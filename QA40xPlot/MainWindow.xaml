@@ -1,0 +1,28 @@
+﻿<Window x:Class="QA40xPlot.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:QA40xPlot"
+        mc:Ignorable="d"
+        Title="Qa40x_Plot" Height="450" Width="800">
+    <Grid>
+        <TabControl>
+            <TabItem Header="Thd vs Freq">
+                <Grid Background="#FFE5E5E5">
+                    <local:PlotPage  />
+                </Grid> 
+            </TabItem>
+            <TabItem Header="Thd vs Amp">
+                <Grid Background="#FFE5E5E5"/>
+            </TabItem>
+            <TabItem Header="Freq Response">
+                <Grid Background="#FFE5E5E5"/>
+            </TabItem>
+            <TabItem Header="Bode Plot">
+                <Grid Background="#FFE5E5E5"/>
+            </TabItem>
+        </TabControl>
+
+    </Grid>
+</Window>
