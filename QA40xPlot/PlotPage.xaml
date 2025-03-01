@@ -3,6 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:views="clr-namespace:QA40xPlot.Views"
+             xmlns:vm="clr-namespace:QA40xPlot.ViewModels"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit" 
              xmlns:local="clr-namespace:QA40xPlot"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
@@ -12,7 +15,12 @@
         </Style>
     </UserControl.Resources>
     <Grid Height="Auto" Width="Auto">
-        <GroupBox Header="Measurement Settings" >
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <GroupBox Header="Measurement Settings" Grid.Column="0">
             <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -20,45 +28,142 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition />
-                    <RowDefinition />
-                    <RowDefinition />
-                    <RowDefinition />
-                    <RowDefinition />
-                    <RowDefinition />
-                    <RowDefinition />
-                    <RowDefinition />
-                    <RowDefinition />
-                    <RowDefinition />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Label Content="Set generator by" Grid.Column="0" Grid.Row="0"  />
-                <Label Content="Gen voltage" Grid.Column="0"  Grid.Row="1"   />
-                <Label Content="Amplifier Load" Grid.Column="0"  Grid.Row="2"  />
-                <Label Content="Output Power" Grid.Column="0"  Grid.Row="3"  />
+                <Label Content="Gen voltage" Grid.Column="0" Grid.Row="1"   />
+                <Label Content="Amplifier Load" Grid.Column="0" Grid.Row="2"  />
+                <Label Content="Output Power" Grid.Column="0" Grid.Row="3"  />
                 <TextBox Text="New TextBox" Grid.Column="1" Grid.Row="3" />
                 <Label Content="Output Voltage" Grid.Column="0" Grid.Row="4"   />
-                <Label Content="Start Frequency" Grid.Column="0"  Grid.Row="5"  />
-                <Label Content="End Frequency" Grid.Column="0"  Grid.Row="6"  />
-                <Label Content="Steps / Octave" Grid.Column="0"  Grid.Row="7"  />
-                <Label Content="Averages" Grid.Column="0"  Grid.Row="8"  />
-                <CheckBox Content="Left channel" Grid.Column="0"  Grid.Row="9"  />
-                <TextBox Text="Set generator by more" Grid.Column="1" Grid.ColumnSpan="2"  Grid.Row="0"  />
-                <TextBox Text="Gen voltage" Grid.Column="1"  Grid.Row="1"   />
-                <TextBox Text="Amplifier Load" Grid.Column="1"  Grid.Row="2"  />
-                <TextBox Text="Output Power"  Grid.Column="1" Grid.Row="3"   />
-                <TextBox Text="Output Voltage" Grid.Column="1" Grid.Row="4"  />
-                <TextBox Text="Start Frequency" Grid.Column="1" Grid.Row="5"   />
-                <TextBox Text="End Frequency" Grid.Column="1" Grid.Row="6"   />
-                <TextBox Text="Steps / Octave" Grid.Column="1" Grid.Row="7"  />
-                <TextBox Text="Averages" Grid.Column="1" Grid.Row="8"  />
-                <CheckBox Content="Right channel" Grid.Column="1" Grid.Row="9"  />
-                <Label Content="dbv" Grid.Column="2" Grid.Row="1"  />
+                <Label Content="Start Frequency" Grid.Column="0" Grid.Row="5"  />
+                <Label Content="End Frequency" Grid.Column="0" Grid.Row="6"  />
+                <Label Content="Steps / Octave" Grid.Column="0" Grid.Row="7"  />
+                <Label Content="Averages" Grid.Column="0" Grid.Row="8"  />
+                <CheckBox Content="Left channel" IsChecked="{Binding LeftChannel}" Grid.Column="0" Grid.Row="9"  />
+                <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  SelectedIndex="{Binding MeasureType}">
+                    <ComboBoxItem Content="Input Voltage" />
+                    <ComboBoxItem Content="Output Voltage" />
+                    <ComboBoxItem Content="Output Power" />
+                </ComboBox>
+                <TextBox Text="{Binding GenVoltage}" Grid.Column="1"  Grid.Row="1" IsEnabled="{Binding ReadVoltage}" LostFocus="OnVoltageChanged" />
+                <TextBox Text="{Binding AmpLoad}" Grid.Column="1"  Grid.Row="2"  />
+                <TextBox Text="{Binding OutPower}"  Grid.Column="1" Grid.Row="3"  IsEnabled="{Binding ReadOutPower}"   />
+                <TextBox Text="{Binding OutVoltage}" Grid.Column="1" Grid.Row="4" IsEnabled="{Binding ReadOutVoltage}"  LostFocus="OnAmpVoltageChanged"   />
+                <TextBox Text="{Binding StartFreq}" Grid.Column="1" Grid.Row="5"   />
+                <TextBox Text="{Binding EndFreq}" Grid.Column="1" Grid.Row="6"   />
+                <xctk:IntegerUpDown Value="{Binding StepsOctave}" VerticalAlignment="Center" Grid.Column="1" Grid.Row="7"  />
+                <xctk:IntegerUpDown Value="{Binding Averages}" VerticalAlignment="Center" Grid.Column="1" Grid.Row="8"  />
+                <CheckBox Content="Right channel" IsChecked="{Binding RightChannel}" Grid.Column="1" Grid.Row="9"  />
+                <ComboBox  Grid.Column="2" Grid.Row="1" VerticalAlignment="Center"  SelectedIndex="{Binding GeneratorUnits}" ItemsSource="{Binding VoltItems}">
+                </ComboBox>
                 <Label Content="Ohm" Grid.Column="2" Grid.Row="2"  />
                 <Label Content="Watt" Grid.Column="2" Grid.Row="3"  />
-                <Label Content="dbv" Grid.Column="2" Grid.Row="4"  />
+                <ComboBox  Grid.Column="2" Grid.Row="4" VerticalAlignment="Center"  SelectedIndex="{Binding OutputUnits}" ItemsSource="{Binding VoltItems}">
+                </ComboBox>
                 <Label Content="Hz" Grid.Column="2" Grid.Row="5"  />
                 <Label Content="Hz" Grid.Column="2" Grid.Row="6"  />
             </Grid>
-    </GroupBox>
+        </GroupBox>
+        <views:PlotControl x:Name="WpfPlot1" Grid.Column="1" />
+        <StackPanel Grid.Column="2" Orientation="Vertical">
+            <GroupBox Header="dB Range" Visibility="{Binding ToShowdB}">
+                <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Label Content="Top" Grid.Row="0"  />
+                    <xctk:IntegerUpDown  Value="{Binding RangeTopdB}" Grid.Row="1"   />
+                    <Label Content="Bottom" Grid.Row="2"  />
+                    <xctk:IntegerUpDown  Value="{Binding RangeBottomdB}" Grid.Row="3"  />
+                    <Button Content="Autofit" Grid.Row="4" />
+                </Grid>
+            </GroupBox>
+            <GroupBox Header="% Range" Visibility="{Binding ToShowRange}">
+                <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Label Content="Top" Grid.Row="0"  />
+                    <ComboBox Grid.Row="1" VerticalAlignment="Center"  SelectedValue="{Binding RangeTop}" ItemsSource="{Binding StartPercents}">
+                    </ComboBox>
+                    <Label Content="Bottom" Grid.Row="2"  />
+                    <ComboBox Grid.Row="3" VerticalAlignment="Center"  SelectedValue="{Binding RangeBottom}" ItemsSource="{Binding EndPercents}">
+                    </ComboBox>
+                    <Button Content="Autofit" Grid.Row="4" />
+                </Grid>
+            </GroupBox>
+            <GroupBox Header="Frequency Range">
+                <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Label Content="From" Grid.Row="0"  />
+                    <ComboBox Grid.Row="1" VerticalAlignment="Center"  SelectedValue="{Binding GraphStartFreq}" ItemsSource="{Binding StartFrequencies}">
+                    </ComboBox>
+                    <Label Content="To" Grid.Row="2"  />
+                    <ComboBox Grid.Row="3" VerticalAlignment="Center" SelectedValue="{Binding GraphEndFreq}" ItemsSource="{Binding EndFrequencies}">
+                    </ComboBox>
+                    <Button Content="Autofit" Grid.Row="4" />
+                </Grid>
+            </GroupBox>
+            <GroupBox Header="Graph Data">
+                <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <CheckBox Content="Magnitude" IsChecked="{Binding ShowMagnitude}" Grid.Row="0"  />
+                    <CheckBox Content="THD" IsChecked="{Binding ShowTHD}" Grid.Row="1"  />
+                    <CheckBox Content="D2" IsChecked="{Binding ShowD2}" Grid.Row="2"  />
+                    <CheckBox Content="D3" IsChecked="{Binding ShowD3}" Grid.Row="3"  />
+                    <CheckBox Content="D4" IsChecked="{Binding ShowD4}" Grid.Row="4"  />
+                    <CheckBox Content="D5" IsChecked="{Binding ShowD5}" Grid.Row="5"  />
+                    <CheckBox Content="D6+" IsChecked="{Binding ShowD6}" Grid.Row="6"  />
+                    <CheckBox Content="Noise Floor" IsChecked="{Binding ShowNoiseFloor}" Grid.Row="7"  />
+                </Grid>
+            </GroupBox>
+            <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="0"  />
+                <CheckBox Content="Data Points" IsChecked="{Binding ShowPoints}" Grid.Row="1"  />
+                <CheckBox Content="%" IsChecked="{Binding ShowPercent}" Grid.Row="2"  />
+                <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="3"  />
+                <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="4"  />
+            </Grid>
+        </StackPanel>
     </Grid>
 </UserControl>

@@ -2,10 +2,35 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows10.0.17763.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Actions\frmBodePlot.cs" />
+    <Compile Remove="Actions\frmBodePlot.Designer.cs" />
+    <Compile Remove="Actions\frmFrequencyResponse.cs" />
+    <Compile Remove="Actions\frmFrequencyResponse.Designer.cs" />
+    <Compile Remove="Actions\frmMain.cs" />
+    <Compile Remove="Actions\frmMain.Designer.cs" />
+    <Compile Remove="Actions\frmThdAmplitude.cs" />
+    <Compile Remove="Actions\frmThdAmplitude.Designer.cs" />
+    <Compile Remove="Views\EnumBindingSourceExtension.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Actions\frmBodePlot.resx" />
+    <EmbeddedResource Remove="Actions\frmFrequencyResponse.resx" />
+    <EmbeddedResource Remove="Actions\frmMain.resx" />
+    <EmbeddedResource Remove="Actions\frmThdAmplitude.resx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.7.25103.5738" />
+    <PackageReference Include="FftSharp" Version="2.2.0" />
+    <PackageReference Include="ScottPlot.WPF" Version="5.0.54" />
+  </ItemGroup>
 
 </Project>

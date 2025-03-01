@@ -7,7 +7,14 @@
         mc:Ignorable="d"
         Title="Qa40x_Plot" Height="450" Width="800">
     <Grid>
-        <TabControl>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Label Grid.Row="0" Content="{Binding ProgressMessage}"/>
+        <Label Grid.Row="1" Content="{Binding ProgressBar}"/>
+        <TabControl Grid.Row="2">
             <TabItem Header="Thd vs Freq">
                 <Grid Background="#FFE5E5E5">
                     <local:PlotPage  />
@@ -23,6 +30,5 @@
                 <Grid Background="#FFE5E5E5"/>
             </TabItem>
         </TabControl>
-
     </Grid>
 </Window>

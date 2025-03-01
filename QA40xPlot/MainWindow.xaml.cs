@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using QA40xPlot.ViewModels;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -19,6 +20,9 @@ namespace QA40xPlot
         public MainWindow()
         {
             InitializeComponent();
-        }
+            var vm = ViewModels.ViewSettings.Singleton.Main;
+            this.DataContext = vm;
+            vm.ProgressMessage = "Hello, World!";
+		}
     }
 }
