@@ -162,7 +162,7 @@ namespace QA40xPlot.Libraries
         /// <param name="stopFrequency">Stop frequency</param>
         /// <param name="stepsPerOctave">Steps per octave</param>
         /// <returns></returns>
-        public static double[] GetLineairSpacedLogarithmicValuesPerOctave(double start, double stop, uint stepsPerOctave)
+        public static double[] GetLinearSpacedLogarithmicValuesPerOctave(double start, double stop, uint stepsPerOctave)
         {
             // Calculate the number of octaves between start and stop frequencies
             double octaves = Math.Max(1, Math.Log(stop / start, 2));

@@ -127,7 +127,7 @@
                 </Grid>
             </GroupBox>
             <GroupBox Header="X-Axis">
-                <ComboBox Grid.Row="3" VerticalAlignment="Center"  SelectedValue="{Binding XAxisType}" ItemsSource="{Binding XAxisTypes}">
+                <ComboBox Grid.Row="3" VerticalAlignment="Center"  SelectedIndex="{Binding XAxisType}" ItemsSource="{Binding XAxisTypes}">
                 </ComboBox>
             </GroupBox>
             <GroupBox Header="Voltage Range">

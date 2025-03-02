@@ -263,7 +263,7 @@ namespace QA40xPlot.Actions
                 // ********************************************************************
                 var binSize = QaLibrary.CalcBinSize(thd.SampleRate, thd.FftSize);
                 // Generate a list of frequencies
-                var stepFrequencies = QaLibrary.GetLineairSpacedLogarithmicValuesPerOctave(thd.StartFreq, thd.EndFreq, thd.StepsOctave);
+                var stepFrequencies = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(thd.StartFreq, thd.EndFreq, thd.StepsOctave);
                 // Translate the generated list to bin center frequencies
                 var stepBinFrequencies = QaLibrary.TranslateToBinFrequencies(stepFrequencies, thd.SampleRate, thd.FftSize);
                 stepBinFrequencies = stepBinFrequencies.Where(x => x >= 1 && x <= 95500)                // Filter out values that are out of range 
@@ -726,20 +726,22 @@ namespace QA40xPlot.Actions
             ThdFreqViewModel thd = ViewSettings.Singleton.ThdFreq;
             myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(thd.GraphStartFreq)), Math.Log10(Convert.ToInt32(thd.GraphEndFreq)), Math.Log10(Convert.ToDouble(thd.RangeBottom)) - 0.00000001, Math.Log10(Convert.ToDouble(thd.RangeTop)));  // - 0.000001 to force showing label
             myPlot.Title("Distortion vs Frequency (%)");
-            myPlot.Axes.Title.Label.FontSize = 17;
+            myPlot.Axes.Title.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
 
-            myPlot.XLabel("Frequency (Hz)");
-            myPlot.Axes.Bottom.Label.OffsetX = 330;
-            myPlot.Axes.Bottom.Label.FontSize = 15;
-            myPlot.Axes.Bottom.Label.Bold = false;
+			myPlot.XLabel("Frequency (Hz)");
+			myPlot.Axes.Bottom.Label.Alignment = Alignment.MiddleCenter;
+			myPlot.Axes.Bottom.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
+			myPlot.YLabel("Distortion (%)");
+			myPlot.Axes.Left.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
 
-            myPlot.Legend.IsVisible = true;
+			// configure tick labels
+			myPlot.Axes.Bottom.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
+			myPlot.Axes.Left.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
+
+			myPlot.Legend.IsVisible = true;
             myPlot.Legend.Orientation = ScottPlot.Orientation.Horizontal;
             myPlot.Legend.Alignment = ScottPlot.Alignment.UpperRight;
             myPlot.ShowLegend();
-
-            PixelPadding padding = new(65, 20, 30, 50);         
-            myPlot.Layout.Fixed(padding);
 
             ScottPlot.AxisRules.MaximumBoundary rule = new(
                 xAxis: myPlot.Axes.Bottom,
@@ -873,9 +875,10 @@ namespace QA40xPlot.Actions
         void InitializeMagnitudePlot()
         {
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;
+			var thdFreq = ViewSettings.Singleton.ThdFreq;
 
 			myPlot.Clear();
-            myPlot.Axes.Remove(Edge.Right);
+            //myPlot.Axes.Remove(Edge.Right);
 
             // create a minor tick generator that places log-distributed minor ticks
             //ScottPlot.TickGenerators. minorTickGen = new();
@@ -929,26 +932,29 @@ namespace QA40xPlot.Actions
 
 
             //myPlot.Axes.AutoScale();
-            ThdFreqViewModel thd = ViewSettings.Singleton.ThdFreq;
-			myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(thd.GraphStartFreq)), Math.Log10(Convert.ToInt32(thd.GraphEndFreq)), thd.RangeBottomdB, thd.RangeTopdB);
+			myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(thdFreq.GraphStartFreq)), Math.Log10(Convert.ToInt32(thdFreq.GraphEndFreq)), thdFreq.RangeBottomdB, thdFreq.RangeTopdB);
 
             myPlot.Title("Distortion vs Frequency (dB)");
-            myPlot.Axes.Title.Label.FontSize = 17;
+            myPlot.Axes.Title.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.TITLE_SIZE);
 
-            myPlot.XLabel("Frequency (Hz)");
-            myPlot.Axes.Bottom.Label.OffsetX = 330;
-            myPlot.Axes.Bottom.Label.FontSize = 15;
-            myPlot.Axes.Bottom.Label.Bold = false;
 
+			myPlot.XLabel("Frequency (Hz)");
+			myPlot.Axes.Bottom.Label.Alignment = Alignment.MiddleCenter;
+			myPlot.Axes.Bottom.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
+			myPlot.YLabel("Distortion (dB)");
+			myPlot.Axes.Left.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
+
+			// configure tick labels
+			myPlot.Axes.Bottom.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
+			myPlot.Axes.Left.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
+            
+            // Legend
             myPlot.Legend.IsVisible = true;
             myPlot.Legend.Orientation = ScottPlot.Orientation.Horizontal;
             myPlot.Legend.Alignment = ScottPlot.Alignment.UpperRight;
+			myPlot.ShowLegend();
 
-            PixelPadding padding = new(65, 20, 30, 50);
-            myPlot.Layout.Fixed(padding);
-
-
-            ScottPlot.AxisRules.MaximumBoundary rule = new(
+			ScottPlot.AxisRules.MaximumBoundary rule = new(
                 xAxis: myPlot.Axes.Bottom,
                 yAxis: myPlot.Axes.Left,
                 limits: new AxisLimits(Math.Log10(1), Math.Log10(100000), -200, 100)
@@ -968,7 +974,7 @@ namespace QA40xPlot.Actions
         /// <param name="measurementResult">Data to plot</param>
         void PlotMagnitude(ThdFrequencyMeasurementResult measurementResult, int measurementNr, bool showLeftChannel, bool showRightChannel)
         {
-			ThdFreqViewModel thd = ViewSettings.Singleton.ThdFreq;
+			var thdFreq = ViewSettings.Singleton.ThdFreq;
 			var freqX = new List<double>();
          
             var magnY_left = new List<double>();
@@ -993,52 +999,52 @@ namespace QA40xPlot.Actions
             {
                 freqX.Add(step.FundamentalFrequency);
                
-                if (showLeftChannel && thd.LeftChannel)
+                if (showLeftChannel && thdFreq.LeftChannel)
                 {
-                    if (thd.ShowMagnitude)
+                    if (thdFreq.ShowMagnitude)
                         magnY_left.Add(step.Left.Gain_dB);
 
-                    if (step.Left.Harmonics.Count > 0 && thd.ShowTHD)
+                    if (step.Left.Harmonics.Count > 0 && thdFreq.ShowTHD)
                         hTotY_left.Add(step.Left.Thd_dB + step.Left.Gain_dB);
-                    if (step.Left.Harmonics.Count > 0 && thd.ShowD2)
+                    if (step.Left.Harmonics.Count > 0 && thdFreq.ShowD2)
                         h2Y_left.Add(step.Left.Harmonics[0].Amplitude_dBV - step.Left.Fundamental_dBV + step.Right.Gain_dB);
-                    if (step.Left.Harmonics.Count > 1 && thd.ShowD3)
+                    if (step.Left.Harmonics.Count > 1 && thdFreq.ShowD3)
                         h3Y_left.Add(step.Left.Harmonics[1].Amplitude_dBV - step.Left.Fundamental_dBV + step.Left.Gain_dB);
-                    if (step.Left.Harmonics.Count > 2 && thd.ShowD4)
+                    if (step.Left.Harmonics.Count > 2 && thdFreq.ShowD4)
                         h4Y_left.Add(step.Left.Harmonics[2].Amplitude_dBV - step.Left.Fundamental_dBV + step.Left.Gain_dB);
-                    if (step.Left.Harmonics.Count > 3 && thd.ShowD5)
+                    if (step.Left.Harmonics.Count > 3 && thdFreq.ShowD5)
                         h5Y_left.Add(step.Left.Harmonics[3].Amplitude_dBV - step.Left.Fundamental_dBV + step.Left.Gain_dB);
-                    if (step.Left.D6Plus_dBV != 0 && step.Left.Harmonics.Count > 4 && thd.ShowD6)
+                    if (step.Left.D6Plus_dBV != 0 && step.Left.Harmonics.Count > 4 && thdFreq.ShowD6)
                         h6Y_left.Add(step.Left.D6Plus_dBV - step.Left.Fundamental_dBV + step.Left.Gain_dB);
-                    if (thd.ShowNoiseFloor)
+                    if (thdFreq.ShowNoiseFloor)
                         noiseY_left.Add(step.Left.Average_NoiseFloor_dBV - step.Left.Fundamental_dBV + step.Left.Gain_dB);
                 }
 
-                if (showRightChannel && thd.RightChannel)
+                if (showRightChannel && thdFreq.RightChannel)
                 {
-                    if (thd.ShowMagnitude)
+                    if (thdFreq.ShowMagnitude)
                         magnY_right.Add(step.Right.Gain_dB);
 
-                    if (step.Right.Harmonics.Count > 0 && thd.ShowTHD)
+                    if (step.Right.Harmonics.Count > 0 && thdFreq.ShowTHD)
                         hTotY_right.Add(step.Right.Thd_dB + step.Right.Gain_dB);
-                    if (step.Right.Harmonics.Count > 0 && thd.ShowD2)
+                    if (step.Right.Harmonics.Count > 0 && thdFreq.ShowD2)
                         h2Y_right.Add(step.Right.Harmonics[0].Amplitude_dBV - step.Right.Fundamental_dBV + step.Right.Gain_dB);
-                    if (step.Right.Harmonics.Count > 1 && thd.ShowD3)
+                    if (step.Right.Harmonics.Count > 1 && thdFreq.ShowD3)
                         h3Y_right.Add(step.Right.Harmonics[1].Amplitude_dBV - step.Right.Fundamental_dBV + step.Right.Gain_dB);
-                    if (step.Right.Harmonics.Count > 2 && thd.ShowD4)
+                    if (step.Right.Harmonics.Count > 2 && thdFreq.ShowD4)
                         h4Y_right.Add(step.Right.Harmonics[2].Amplitude_dBV - step.Right.Fundamental_dBV + step.Right.Gain_dB);
-                    if (step.Right.Harmonics.Count > 3 && thd.ShowD5)
+                    if (step.Right.Harmonics.Count > 3 && thdFreq.ShowD5)
                         h5Y_right.Add(step.Right.Harmonics[3].Amplitude_dBV - step.Right.Fundamental_dBV + step.Right.Gain_dB);
-                    if (step.Right.D6Plus_dBV != 0 && step.Right.Harmonics.Count > 4 && thd.ShowD6)
+                    if (step.Right.D6Plus_dBV != 0 && step.Right.Harmonics.Count > 4 && thdFreq.ShowD6)
                         h6Y_right.Add(step.Right.D6Plus_dBV - step.Right.Fundamental_dBV + step.Right.Gain_dB);
-                    if (thd.ShowNoiseFloor)
+                    if (thdFreq.ShowNoiseFloor)
                         noiseY_right.Add(step.Right.Average_NoiseFloor_dBV - step.Right.Fundamental_dBV + step.Right.Gain_dB);
                 }
             }
 
             double[] logFreqX = freqX.Select(Math.Log10).ToArray();
-            float lineWidth = thd.ShowThickLines ? 1.6f : 1;
-            float markerSize = thd.ShowPoints ? lineWidth + 3 : 1;
+            float lineWidth = thdFreq.ShowThickLines ? 1.6f : 1;
+            float markerSize = thdFreq.ShowPoints ? lineWidth + 3 : 1;
 
             var colors = new GraphColors();
             int color = measurementNr * 2;
@@ -1297,7 +1303,6 @@ namespace QA40xPlot.Actions
             MeasurementBusy = true;
             ct = new();
             await PerformMeasurementSteps(ct.Token);
-            await showMessage("Finished");
             await showMessage("Finished");
             MeasurementBusy = false;
         }

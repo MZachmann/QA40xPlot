@@ -19,7 +19,12 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _ProgressMax; set => SetProperty(ref _ProgressMax, value);
 		}
-		#endregion
+		private double _ScreenDpi = 0;
+		public double ScreenDpi
+		{
+			get => _ScreenDpi; set => SetProperty(ref _ScreenDpi, value);
+		}
+#endregion
 
 		public async Task SetProgressMessage(String message, int delay = 0)
 		{

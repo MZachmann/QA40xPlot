@@ -196,7 +196,7 @@ namespace QA40xPlot.Actions
             var startAmplitudeV = QaLibrary.ConvertVoltage(thdAmp.StartAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
             var prevGeneratorVoltagedBV = thdAmp.StartAmplitude;
             var endAmplitudeV = QaLibrary.ConvertVoltage(thdAmp.EndAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
-			var stepVoltages = QaLibrary.GetLineairSpacedLogarithmicValuesPerOctave(startAmplitudeV, endAmplitudeV, thdAmp.StepsOctave);
+			var stepVoltages = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(startAmplitudeV, endAmplitudeV, thdAmp.StepsOctave);
 
             // ********************************************************************
             // Do noise floor measurement
@@ -728,9 +728,12 @@ namespace QA40xPlot.Actions
             tickGenX.LabelFormatter = LogTickLabelFormatter;
             myPlot.Axes.Bottom.TickGenerator = tickGenX;
 
+			// configure tick labels
+			myPlot.Axes.Bottom.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
+			myPlot.Axes.Left.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
 
-            // show grid lines for minor ticks
-            myPlot.Grid.MajorLineColor = Colors.Black.WithOpacity(.25);
+			// show grid lines for minor ticks
+			myPlot.Grid.MajorLineColor = Colors.Black.WithOpacity(.25);
             myPlot.Grid.MinorLineColor = Colors.Black.WithOpacity(.10);
             myPlot.Grid.MinorLineWidth = 1;
 
@@ -739,21 +742,20 @@ namespace QA40xPlot.Actions
 			myPlot.Axes.SetLimits(Math.Log10(Convert.ToDouble(thdAmp.GraphStartVolts)), Math.Log10(Convert.ToDouble(thdAmp.GraphEndVolts)), 
                 Math.Log10(Convert.ToDouble(thdAmp.RangeBottom)), Math.Log10(Convert.ToDouble(thdAmp.RangeTop)));
             myPlot.Title("Distortion vs Amplitude (%)");
-            myPlot.Axes.Title.Label.FontSize = 17;
+            myPlot.Axes.Title.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.TITLE_SIZE);
 
-            if (thdAmp.XAxisType == (int)E_X_AxisType.OUTPUT_VOLTAGE)
+			if (thdAmp.XAxisType == (int)E_X_AxisType.INPUT_VOLTAGE)
+				myPlot.XLabel("Input voltage (Vrms)");
+			else if (thdAmp.XAxisType == (int)E_X_AxisType.OUTPUT_VOLTAGE)
                 myPlot.XLabel("Output voltage (Vrms)");
             else if (thdAmp.XAxisType == (int)E_X_AxisType.OUTPUT_POWER)
                 myPlot.XLabel("Output power (W)");
-            else if (thdAmp.XAxisType == (int)E_X_AxisType.INPUT_VOLTAGE)
-                myPlot.XLabel("Input voltage (Vrms)");
+            myPlot.Axes.Bottom.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
 
-            myPlot.Axes.Bottom.Label.OffsetX = 330;
-            myPlot.Axes.Bottom.Label.FontSize = 15;
-            myPlot.Axes.Bottom.Label.Bold = false;
+			myPlot.YLabel("Distortion (%)");
+			myPlot.Axes.Left.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
 
-
-            myPlot.Legend.IsVisible = true;
+			myPlot.Legend.IsVisible = true;
             myPlot.Legend.Orientation = ScottPlot.Orientation.Horizontal;
             myPlot.Legend.Alignment = ScottPlot.Alignment.UpperRight;
             myPlot.ShowLegend();
@@ -902,9 +904,9 @@ namespace QA40xPlot.Actions
             var thdAmp = ViewSettings.Singleton.ThdAmp;
 			myPlot.Clear();
 
-            // Y - axis
-            // create a numeric tick generator that uses our custom minor tick generator
-            ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGen = new(1);
+			// Y - axis
+			// create a numeric tick generator that uses our custom minor tick generator
+			ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGen = new(1);
             // create a numeric tick generator that uses our custom minor tick generator
             ScottPlot.TickGenerators.NumericAutomatic tickGenY = new();
             tickGenY.TargetTickCount = 15;
@@ -926,31 +928,38 @@ namespace QA40xPlot.Actions
             // tell our custom tick generator to use our new label formatter
             static string LogTickLabelFormatter(double y) => $"{Math.Pow(10, Math.Round(y, 10)):#0.######}";
             tickGenX.LabelFormatter = LogTickLabelFormatter;
+
             myPlot.Axes.Bottom.TickGenerator = tickGenX;
 
 
             // show grid lines for minor ticks
             myPlot.Grid.MajorLineColor = Colors.Black.WithOpacity(.25);
-            myPlot.Grid.MinorLineColor = Colors.Black.WithOpacity(.10);
+			myPlot.Grid.MajorLineWidth = 1;
+			myPlot.Grid.MinorLineColor = Colors.Black.WithOpacity(.10);
             myPlot.Grid.MinorLineWidth = 1;
 
             myPlot.Axes.SetLimits(Math.Log10(Convert.ToDouble(thdAmp.GraphStartVolts)), Math.Log10(Convert.ToDouble(thdAmp.GraphEndVolts)), thdAmp.RangeBottomdB, thdAmp.RangeTopdB);
             
             myPlot.Title("Distortion vs Amplitude (dB)");
-            myPlot.Axes.Title.Label.FontSize = 17;
+            myPlot.Axes.Title.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.TITLE_SIZE);
 
-            if (thdAmp.XAxisType == (int)E_X_AxisType.OUTPUT_VOLTAGE)
-                myPlot.XLabel("Output voltage (Vrms)");
-            else if (thdAmp.XAxisType == (int)E_X_AxisType.OUTPUT_POWER)
-                myPlot.XLabel("Output power (W)");
-            else if (thdAmp.XAxisType == (int)E_X_AxisType.INPUT_VOLTAGE)
-                myPlot.XLabel("Input voltage (Vrms)");
-            myPlot.Axes.Bottom.Label.OffsetX = 330;
-            myPlot.Axes.Bottom.Label.FontSize = 15;
-            myPlot.Axes.Bottom.Label.Bold = false;
+			if (thdAmp.XAxisType == (int)E_X_AxisType.INPUT_VOLTAGE)
+				myPlot.XLabel("Input voltage (Vrms)");
+			else if (thdAmp.XAxisType == (int)E_X_AxisType.OUTPUT_VOLTAGE)
+				myPlot.XLabel("Output voltage (Vrms)");
+			else if (thdAmp.XAxisType == (int)E_X_AxisType.OUTPUT_POWER)
+				myPlot.XLabel("Output power (W)");
+			myPlot.Axes.Bottom.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE); 
 
-            // Lengend
-            myPlot.Legend.IsVisible = true;
+			myPlot.YLabel("Distortion (dB)");
+			myPlot.Axes.Left.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
+
+			// configure tick labels
+			myPlot.Axes.Bottom.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
+			myPlot.Axes.Left.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
+
+			// Legend
+			myPlot.Legend.IsVisible = true;
             myPlot.Legend.Orientation = ScottPlot.Orientation.Horizontal;
             myPlot.Legend.Alignment = ScottPlot.Alignment.UpperRight;
             myPlot.ShowLegend();
@@ -1343,7 +1352,7 @@ namespace QA40xPlot.Actions
 
             }
         }
-
+#endif
         
 
         /// <summary>
@@ -1351,24 +1360,16 @@ namespace QA40xPlot.Actions
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private async void btnStartThdMeasurement_Click(object sender, EventArgs e)
+        public async void StartMeasurement()
         {
             MeasurementBusy = true;
-            btnStopThdMeasurement.Enabled = true;
-            btnStopThdMeasurement.ForeColor = System.Drawing.Color.Black;
-            btnStartThdMeasurement.Enabled = false;
-            btnStartThdMeasurement.ForeColor = System.Drawing.Color.DimGray;
             ct = new();
             await PerformMeasurementSteps(ct.Token);
-            Program.MainForm.ClearMessage();
-            Program.MainForm.HideProgressBar();
-            MeasurementBusy = false;
-            btnStopThdMeasurement.Enabled = false;
-            btnStopThdMeasurement.ForeColor = System.Drawing.Color.DimGray;
-            btnStartThdMeasurement.Enabled = true;
-            btnStartThdMeasurement.ForeColor = System.Drawing.Color.Black;
+			await showMessage("Finished");
+			MeasurementBusy = false;
         }
 
+#if false
         /// <summary>
         /// Start voltage unit is changed.
         /// </summary>
@@ -1516,7 +1517,7 @@ namespace QA40xPlot.Actions
 
 #endif
 
-		public void UpdateGraph(bool settingsChanged)
+        public void UpdateGraph(bool settingsChanged)
         {
             thdPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
 			var thdAmp = ViewSettings.Singleton.ThdAmp;

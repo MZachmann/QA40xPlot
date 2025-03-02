@@ -1,5 +1,6 @@
 ﻿using QA40xPlot.Actions;
 using QA40xPlot.Data;
+using QA40xPlot.Libraries;
 using QA40xPlot.Views;
 using ScottPlot;
 using System.ComponentModel;
@@ -390,7 +391,6 @@ namespace QA40xPlot.ViewModels
 			WindowingMethod = 0;
 
 			InputRange = 0;
-			GeneratorAmplitude = 0.5;       // this is the unitless (dbV) amplitude of the generator
 			RangeTopdB = 20;
 			RangeBottomdB = -150;
 
@@ -403,7 +403,10 @@ namespace QA40xPlot.ViewModels
 			ReadOutPower = true;
 			ReadOutVoltage = true;
 
-			AmpOutputAmplitude = 0;			// this is the unitless (dbV) amplitude of the amplifier output
+			GeneratorAmplitude = -20;       // this is the unitless (dbV) amplitude of the generator
+			AmpOutputAmplitude = -20;         // this is the unitless (dbV) amplitude of the amplifier output
+			GenVoltage = QaLibrary.ConvertVoltage(GeneratorAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)GeneratorUnits);
+			OutVoltage = QaLibrary.ConvertVoltage(AmpOutputAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)OutputUnits);
 		}
 	}
 }

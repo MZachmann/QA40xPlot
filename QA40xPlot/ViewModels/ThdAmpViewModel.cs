@@ -1,5 +1,6 @@
 ﻿using QA40xPlot.Actions;
 using QA40xPlot.Data;
+using QA40xPlot.Libraries;
 using QA40xPlot.Views;
 using ScottPlot;
 using System.ComponentModel;
@@ -12,10 +13,11 @@ namespace QA40xPlot.ViewModels
 	public class ThdAmpViewModel : BaseViewModel
 	{
 		public List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
-		public List<String> StartFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500" }; }
-		public List<String> EndFrequencies { get => new List<string> { "1000", "2000", "5000", "10000", "20000" }; }
+		public List<String> StartVoltages { get => new List<string> { "0.0001", "0.0002", "0.0005", "0.001", "0.002", "0.005", "0.01", "0.02", "0.05", "0.1", "0.2", "0.5" }; }
+		public List<String> EndVoltages{ get => new List<string> {"1","2","5","10","20","50","100","200" }; }
 		public List<String> StartPercents { get => new List<string> { "100", "10", "1", "0.1", "0.01" }; }
 		public List<String> EndPercents { get => new List<string> { "0.1", "0.01", "0.001", "0.0001", "0.00001", "0.000001" }; }
+		public List<String> XAxisTypes { get => new List<string> {"Input Voltage", "Output Voltage", "Output Power" }; }
 		public ActThdAmplitude actThd { get; private set; }
 
 		#region Setters and Getters
@@ -337,6 +339,7 @@ namespace QA40xPlot.ViewModels
 					ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;
 					actThd?.UpdateGraph(true);
 					break;
+				case "XAxisType":
 				case "GraphStartVolts":
 				case "GraphEndVolts":
 				case "RangeBottomdB":
@@ -381,14 +384,12 @@ namespace QA40xPlot.ViewModels
 			StartVoltageUnits = 1;
 			EndVoltage = 1;
 			EndVoltageUnits = 1;
-			StartAmplitude = 0.5;       // this is the unitless (dbV) amplitude of the generator
-			EndAmplitude = 0.5;       // this is the unitless (dbV) amplitude of the generator
 
 			AmpLoad = 8;
 			OutPower = 0.5;
 			OutVoltage = 0.5;
 			TestFreq = 20;
-			GraphStartVolts = ".002";
+			GraphStartVolts = "0.002";
 			GraphEndVolts = "10";
 			StepsOctave = 1;
 			Averages = 1;
@@ -432,9 +433,10 @@ namespace QA40xPlot.ViewModels
 			ReadOutVoltage = true;
 
 			XAxisType = 0;
-
-			StartAmplitude = 0;         // this is the unitless (dbV) amplitude of the amplifier output
-			EndAmplitude = 0;         // this is the unitless (dbV) amplitude of the amplifier output
+			StartAmplitude = -10;       // this is the unitless (dbV) amplitude of the generator
+			EndAmplitude = 0;       // this is the unitless (dbV) amplitude of the generator
+			EndVoltage = QaLibrary.ConvertVoltage(EndAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
+			StartVoltage = QaLibrary.ConvertVoltage(StartAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
 		}
 	}
 }

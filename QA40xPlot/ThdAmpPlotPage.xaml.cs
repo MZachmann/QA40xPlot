@@ -31,7 +31,7 @@ namespace QA40xPlot
 		{
 			// Implement the logic to start the measurement process
 			var vm = ViewModels.ViewSettings.Singleton.ThdAmp;
-			//vm.actThd.StartMeasurement();
+			vm.actThd.StartMeasurement();
 		}
 
 		public void DoStop(object sender, RoutedEventArgs e)
