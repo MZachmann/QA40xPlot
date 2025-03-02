@@ -281,8 +281,6 @@ namespace QA40xPlot.Actions
                 if (ct.IsCancellationRequested)
                     return false;
 
-                //!Program.MainForm.SetupProgressBar(0, stepBinFrequencies.Length);
-
                 // ********************************************************************
                 // Step through the list of frequencies
                 // ********************************************************************
@@ -1299,7 +1297,8 @@ namespace QA40xPlot.Actions
             MeasurementBusy = true;
             ct = new();
             await PerformMeasurementSteps(ct.Token);
-            showMessage(string.Empty);
+            await showMessage("Finished");
+            await showMessage("Finished");
             MeasurementBusy = false;
         }
 

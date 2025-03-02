@@ -21,7 +21,9 @@
                 </Grid> 
             </TabItem>
             <TabItem Header="Thd vs Amp">
-                <Grid Background="#FFE5E5E5"/>
+                <Grid Background="#FFE5E5E5">
+                    <local:ThdAmpPlotPage  />
+                </Grid>
             </TabItem>
             <TabItem Header="Freq Response">
                 <Grid Background="#FFE5E5E5"/>

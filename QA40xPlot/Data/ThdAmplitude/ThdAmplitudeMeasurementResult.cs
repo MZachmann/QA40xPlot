@@ -1,4 +1,5 @@
 ﻿using QA40xPlot.Libraries;
+using QA40xPlot.ViewModels;
 using System.Text.Json.Serialization;
 
 namespace QA40xPlot.Data
@@ -11,7 +12,7 @@ namespace QA40xPlot.Data
         public bool Show { get; set; }                                                  // Show in graph
         public bool Saved { get; set; }                                                 // Has been saved
         public List<ThdAmplitudeStep> AmplitudeSteps { get; set; }                      // Measurement data
-        public ThdAmplitudeMeasurementSettings MeasurementSettings { get; set; }        //  Settings used for this measurement
+        public ThdAmpViewModel MeasurementSettings { get; set; }        //  Settings used for this measurement
 
         [JsonIgnore]
         public LeftRightSeries NoiseFloor { get; set; }                                 // Noise floor measurement
@@ -20,6 +21,11 @@ namespace QA40xPlot.Data
         {
             AmplitudeSteps = [];
             MeasurementSettings = new();
-        }
+            Title = string.Empty;
+            Description = string.Empty;
+			CreateDate = DateTime.Now;
+			Show = false;
+			Saved = false;
+		}
     }
 }

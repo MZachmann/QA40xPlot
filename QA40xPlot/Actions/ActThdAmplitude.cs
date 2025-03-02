@@ -1,320 +1,97 @@
 ﻿using QA40xPlot.Data;
+using QA40xPlot.Libraries;
+using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
 using System.Net.Http;
+using System.Windows;
 
 namespace QA40xPlot.Actions
 {
 
-    public partial class frmThdAmplitude : Form
+    public partial class ActThdAmplitude 
     {
         public ThdAmplitudeData Data { get; set; }       // Data used in this form instance
         public bool MeasurementBusy { get; set; }                   // Measurement busy state
+		private Views.PlotControl? thdPlot;
+		private Views.PlotControl? fftPlot;
+		private Views.PlotControl? timePlot;
 
-        private ThdAmplitudeMeasurementSettings MeasurementSettings;
-        private ThdAmplitudeGraphSettings GraphSettings;
-        private ThdAmplitudeMeasurementResult MeasurementResult;
+		private ThdAmplitudeMeasurementResult MeasurementResult;
 
-        CancellationTokenSource ct;                                 // Measurement cancelation token
+		CancellationTokenSource ct;                                 // Measurement cancelation token
 
         /// <summary>
         /// Constructor
         /// </summary>
-        public frmThdAmplitude(ref ThdAmplitudeData data)
+        public ActThdAmplitude(ref ThdAmplitudeData data, Views.PlotControl graphThd, Views.PlotControl graphFft, Views.PlotControl graphTime)
         {
             Data = data;
             MeasurementResult = new(); // TODO. Add to list
 
-
             ct = new CancellationTokenSource();
 
-            InitializeComponent();
+			// Show empty graphs
+			ThdAmpViewModel thd = ViewSettings.Singleton.ThdAmp;
 
-            PopulateMeasurementSettingsComboBoxes();
-            PopulateGraphSettingsComboBoxes();
-
-            MeasurementSettings = new();
-            SetDefaultMeasurementSettings(ref MeasurementSettings);
-            MeasurementResult.MeasurementSettings = MeasurementSettings;
-            SetDefaultGraphSettings(ref GraphSettings);
-
-            SetMeasurementControls(MeasurementSettings);
-            SetGraphControls(GraphSettings);
+            thdPlot = graphThd;
+            fftPlot = graphFft;
+            timePlot = graphTime;
 
             // Show empty graphs
-            QaLibrary.InitMiniFftPlot(graphFft, 10, 100000, -150, 20);
-            QaLibrary.InitMiniTimePlot(graphTime, 0, 4, -1, 1);
-
+            QaLibrary.InitMiniFftPlot(fftPlot, 10, 100000, -150, 20);
+            QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -1, 1);
 
             // TODO: depends on graph settings which graph is shown
-            if (data.Measurements.Count > 0 && data.Measurements[0].AmplitudeSteps.Count > 0)
-            {
-                UpdateGraph(true);
-            }
+            UpdateGraph(true);
 
-            Program.MainForm.ClearMessage();
-            Program.MainForm.HideProgressBar();
             AttachPlotMouseEvent();
         }
 
-        void PopulateMeasurementSettingsComboBoxes()
-        {
-            var items = new List<KeyValuePair<double, string>>
-            {
-                new (0, "mV"),
-                new (1, "V")
-            };
-            ComboBoxHelper.PopulateComboBox(cmbStartVoltageUnit, items);
-            ComboBoxHelper.PopulateComboBox(cmbEndVoltageUnit, items);
-        }
+		private async Task showMessage(String msg, int delay = 0)
+		{
+			var vm = ViewModels.ViewSettings.Singleton.Main;
+			await vm.SetProgressMessage(msg, delay);
+		}
 
-        void PopulateGraphSettingsComboBoxes()
-        {
-            var items = new List<KeyValuePair<double, string>>
-            {
-                new (100, "100"),
-                new (10, "10"),
-                new (1, "1"),
-				new (0.1, "0.1"),
-				new (0.01, "0.01")
-			};
-            ComboBoxHelper.PopulateComboBox(cmbD_Graph_Top, items);
+		private async Task showProgress(int progress, int delay = 0)
+		{
+			var vm = ViewModels.ViewSettings.Singleton.Main;
+			await vm.SetProgressBar(progress, delay);
+		}
 
-            items = new List<KeyValuePair<double, string>>
-            {
-                new (0.1, "0.1"),
-                new (0.01, "0.01"),
-                new (0.001, "0.001"),
-                new (0.0001, "0.0001"),
-                new (0.00001, "0.00001"),
-                new (0.000001, "0.000001")
-            };
-            ComboBoxHelper.PopulateComboBox(cmbD_Graph_Bottom, items);
 
-            items = new List<KeyValuePair<double, string>>
-            {
-                new (0.0001, "0.0001"),
-                new (0.0002, "0.0002"),
-                new (0.0005, "0.0005"),
-                new (0.001, "0.001"),
-                new (0.002, "0.002"),
-                new (0.005, "0.005"),
-                new (0.01, "0.01"),
-                new (0.02, "0.02"),
-                new (0.02, "0.05"),
-                new (0.1, "0.1"),
-                new (0.2, "0.2"),
-                new (0.5, "0.5")
-            };
-            ComboBoxHelper.PopulateComboBox(cmbGraph_VoltageStart, items);
+		// user entered a new voltage, update the generator amplitude
+		public void UpdateStartAmplitude(string value)
+		{
+			ThdAmpViewModel thd = ViewSettings.Singleton.ThdAmp;
+			var val = QaLibrary.ParseTextToDouble(value, thd.StartVoltage);
+			thd.StartAmplitude = QaLibrary.ConvertVoltage(val, (E_VoltageUnit)thd.StartVoltageUnits, E_VoltageUnit.dBV);
+		}
 
-            items = new List<KeyValuePair<double, string>>
-            {
-                new (1, "1"),
-                new (2, "2"),
-                new (5, "5"),
-                new (10, "10"),
-                new (20, "20"),
-                new (50, "50"),
-                new (100, "100"),
-                new (200, "200")
-            };
-            ComboBoxHelper.PopulateComboBox(cmbGraph_VoltageEnd, items);
-
-            items = new List<KeyValuePair<double, string>>
-            {
-                new (0, "Output voltage"),
-                new (1, "Output power"),
-                new (2, "Input voltage")
-            };
-            ComboBoxHelper.PopulateComboBox(cmbXAxis, items);
-
-        }
-
-     
+		// user entered a new voltage, update the generator amplitude
+		public void UpdateEndAmplitude(string value)
+		{
+			ThdAmpViewModel thd = ViewSettings.Singleton.ThdAmp;
+			var val = QaLibrary.ParseTextToDouble(value, thd.EndVoltage);
+			thd.EndAmplitude = QaLibrary.ConvertVoltage(val, (E_VoltageUnit)thd.EndVoltageUnits, E_VoltageUnit.dBV);
+		}
+		
         /// <summary>
-        /// Initialize Settings with default settings
-        /// </summary>
-        void SetDefaultMeasurementSettings(ref ThdAmplitudeMeasurementSettings settings)
+		/// Update the start voltage in the textbox based on the selected unit.
+		/// If the unit changes then the voltage will be converted
+		/// </summary>
+		public void UpdateStartVoltageDisplay()
         {
-            // Initialize with default measurement settings
-            settings.SampleRate = 192000;
-            settings.FftSize = 65536 * 2;
-            settings.WindowingFunction = Windowing.Hann;
-            settings.StepsPerOctave = 2;
-            settings.Averages = 1;
-            settings.Load = 8;                      // Amplifier load (Ohm)
-            settings.StartAmplitude = 0.001;           
-            settings.StartAmplitudeUnit = E_VoltageUnit.Volt;
-            settings.EndAmplitude = 1;
-            settings.EndAmplitudeUnit = E_VoltageUnit.Volt;
-            settings.EnableLeftChannel = true;
-            settings.EnableRightChannel = true;
-            settings.Frequency = 1000;
-        }
-
-        /// <summary>
-        /// Initializer with default graph settings
-        /// </summary>
-        void SetDefaultGraphSettings(ref ThdAmplitudeGraphSettings settings)
-        {
-            settings = new()
-            {
-                DbRangeTop = 10,
-                DbRangeBottom = -150,
-                D_PercentTop = 10,
-                D_PercentBottom = 0.0001,
-
-                VoltageRange_Start = 0.001,
-                VoltageRange_End = 10,
-
-                GraphType = E_ThdAmplitude_GraphType.DB,
-                ShowMagnitude = true,
-                ShowTHD = true,
-                ShowD2 = true,
-                ShowD3 = true,
-                ShowD4 = true,
-                ShowD5 = true,
-                ShowD6 = true,
-                ShowNoiseFloor = true,
-
-                XAxisType = E_X_AxisType.OUTPUT_VOLTAGE,
-
-                ThickLines = true,
-                ShowDataPoints = false,
-
-                ShowLeftChannel = true,
-                ShowRightChannel = true
-            };
-        }
-
-
-        /// <summary>
-        /// Set initial control values
-        /// </summary>
-        void SetMeasurementControls(ThdAmplitudeMeasurementSettings settings)
-        {
-            txtStartVoltage.Text = settings.StartAmplitude.ToString("#0.0##");
-            cmbStartVoltageUnit.SelectedIndex = (int)settings.StartAmplitudeUnit;
-            txtEndVoltage.Text = settings.EndAmplitude.ToString("#0.0##");
-            cmbEndVoltageUnit.SelectedIndex = (int)settings.EndAmplitudeUnit;
-       
-            txtOutputLoad.Text = settings.Load.ToString();
-            txtFrequency.Text = settings.Frequency.ToString();
-
-            udStepsOctave.Value = settings.StepsPerOctave;
-            udAverages.Value = settings.Averages;
-
-            chkEnableLeftChannel.Checked = settings.EnableLeftChannel;
-            chkEnableRightChannel.Checked = settings.EnableRightChannel;
-        }
-
-
-        void SetGraphControls(ThdAmplitudeGraphSettings graphSettings)
-        {
-            // Align controls
-            gbdB_Range.Left = gbD_Range.Left;
-            gbdB_Range.Top = gbD_Range.Top;
-            // Set correct groupbox visibility
-            gbdB_Range.Visible = graphSettings.GraphType == E_ThdAmplitude_GraphType.DB;
-            gbD_Range.Visible = graphSettings.GraphType == E_ThdAmplitude_GraphType.D_PERCENT;
-
-            ComboBoxHelper.SelectNearestValue(cmbD_Graph_Top, graphSettings.D_PercentTop);
-            ComboBoxHelper.SelectNearestValue(cmbD_Graph_Bottom, graphSettings.D_PercentBottom);
-            ud_dB_Graph_Top.Value = (decimal)graphSettings.DbRangeTop;
-            ud_dB_Graph_Bottom.Value = (decimal)graphSettings.DbRangeBottom;
-            SetStartVoltageSelectedIndex(graphSettings.VoltageRange_Start);
-            SetEndVoltageSelectedIndex(graphSettings.VoltageRange_End);
-
-            chkShowMagnitude.Checked = graphSettings.ShowMagnitude;
-            chkShowThd.Checked = graphSettings.ShowTHD;
-            chkShowD2.Checked = graphSettings.ShowD2;
-            chkShowD3.Checked = graphSettings.ShowD3;
-            chkShowD4.Checked = graphSettings.ShowD4;
-            chkShowD5.Checked = graphSettings.ShowD5;
-            chkShowD6.Checked = graphSettings.ShowD6;
-            chkShowNoiseFloor.Checked = graphSettings.ShowNoiseFloor;
-
-            cmbXAxis.SelectedIndex = (int)GraphSettings.XAxisType;
-
-            chkThickLines.Checked = graphSettings.ThickLines;
-            chkShowDataPoints.Checked = graphSettings.ShowDataPoints;
-
-            chkGraphShowLeftChannel.Checked = graphSettings.ShowLeftChannel;
-            chkGraphShowLeftChannel.Visible = chkEnableLeftChannel.Checked;
-            chkGraphShowRightChannel.Checked = graphSettings.ShowRightChannel;
-            chkGraphShowRightChannel.Visible = chkEnableRightChannel.Checked;
-        }
-
-
-        private void SetStartVoltageSelectedIndex(double startVoltage)
-        {
-            if (startVoltage < 0.0001)
-                cmbGraph_VoltageStart.SelectedIndex = 0;
-            else if (startVoltage < 0.0002)
-                cmbGraph_VoltageStart.SelectedIndex = 1;
-            else if (startVoltage < 0.0005)
-                cmbGraph_VoltageStart.SelectedIndex = 2;
-            else if (startVoltage < 0.001)
-                cmbGraph_VoltageStart.SelectedIndex = 3;
-            else if (startVoltage < 0.002)
-                cmbGraph_VoltageStart.SelectedIndex = 4;
-            else if (startVoltage < 0.005)
-                cmbGraph_VoltageStart.SelectedIndex = 5;
-            else if (startVoltage < 0.01)
-                cmbGraph_VoltageStart.SelectedIndex = 6;
-            else if (startVoltage < 0.02)
-                cmbGraph_VoltageStart.SelectedIndex = 7;
-            else if (startVoltage < 0.05)
-                cmbGraph_VoltageStart.SelectedIndex = 8;
-            else if (startVoltage < 0.1)
-                cmbGraph_VoltageStart.SelectedIndex = 9;
-            else if (startVoltage < 0.2)
-                cmbGraph_VoltageStart.SelectedIndex = 10;
-            else 
-                cmbGraph_VoltageStart.SelectedIndex = 11;
-           
-            GraphSettings.VoltageRange_Start = (double)((KeyValuePair<double, string>)cmbGraph_VoltageStart.SelectedItem).Key;
-        }
-
-        private void SetEndVoltageSelectedIndex(double endVoltage)
-        {
-            if (endVoltage <= 1)
-                cmbGraph_VoltageEnd.SelectedIndex = 0;
-            else if (endVoltage <= 2)
-                cmbGraph_VoltageEnd.SelectedIndex = 1;
-            else if (endVoltage <= 5)
-                cmbGraph_VoltageEnd.SelectedIndex = 2;
-            else if (endVoltage <= 10)
-                cmbGraph_VoltageEnd.SelectedIndex = 3;
-            else if (endVoltage <= 20)
-                cmbGraph_VoltageEnd.SelectedIndex = 4;
-            else if (endVoltage <= 50)
-                cmbGraph_VoltageEnd.SelectedIndex = 5;
-            else if (endVoltage <= 100)
-                cmbGraph_VoltageEnd.SelectedIndex = 6;
-            else
-                cmbGraph_VoltageEnd.SelectedIndex = 7;
-
-            GraphSettings.VoltageRange_End = (double)((KeyValuePair<double, string>)cmbGraph_VoltageEnd.SelectedItem).Key;
-        }
-
-
-
-        /// <summary>
-        /// Update the start voltage in the textbox based on the selected unit.
-        /// If the unit changes then the voltage will be converted
-        /// </summary>
-        void UpdateStartVoltageDisplay()
-        {
-            switch (cmbStartVoltageUnit.SelectedIndex)
+			var vm = ViewModels.ViewSettings.Singleton.ThdAmp;
+			switch (vm.StartVoltageUnits)
             {
                 case 0: // mV
-                    txtStartVoltage.Text = ((int)QaLibrary.ConvertVoltage(MeasurementSettings.StartAmplitude, MeasurementSettings.StartAmplitudeUnit, E_VoltageUnit.MilliVolt)).ToString("###0"); // Whole numbers onyl, so cast to integer
+                    vm.StartVoltage = ((int)QaLibrary.ConvertVoltage(vm.StartAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.MilliVolt)); // Whole numbers onyl, so cast to integer
                     break;
                 case 1: // V
-                    txtStartVoltage.Text = QaLibrary.ConvertVoltage(MeasurementSettings.StartAmplitude, MeasurementSettings.StartAmplitudeUnit, E_VoltageUnit.Volt).ToString("#0.0##");
+					vm.StartVoltage = QaLibrary.ConvertVoltage(vm.StartAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
                     break;
             }
         }
@@ -323,39 +100,41 @@ namespace QA40xPlot.Actions
         /// Update the end voltage in the textbox based on the selected unit.
         /// If the unit changes then the voltage will be converted
         /// </summary>
-        void UpdateEndVoltageDisplay()
+        public void UpdateEndVoltageDisplay()
         {
-            switch (cmbEndVoltageUnit.SelectedIndex)
-            {
-                case 0: // mV
-                    txtEndVoltage.Text = ((int)QaLibrary.ConvertVoltage(MeasurementSettings.EndAmplitude, MeasurementSettings.EndAmplitudeUnit, E_VoltageUnit.MilliVolt)).ToString("###0"); // Whole numbers onyl, so cast to integer
-                    break;
-                case 1: // V
-                    txtEndVoltage.Text = QaLibrary.ConvertVoltage(MeasurementSettings.EndAmplitude, MeasurementSettings.EndAmplitudeUnit, E_VoltageUnit.Volt).ToString("#0.0##");
-                    break;
-            }
-        }
+			var vm = ViewModels.ViewSettings.Singleton.ThdAmp;
+			switch (vm.EndVoltageUnits)
+			{
+				case 0: // mV
+					vm.EndVoltage = ((int)QaLibrary.ConvertVoltage(vm.EndAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.MilliVolt)); // Whole numbers onyl, so cast to integer
+					break;
+				case 1: // V
+					vm.EndVoltage = QaLibrary.ConvertVoltage(vm.EndAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
+					break;
+			}
+		}
 
 
-        /// <summary>
-        /// Perform the measurement
-        /// </summary>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns>result. false if cancelled</returns>
-        async Task<bool> PerformMeasurementSteps(CancellationToken ct)
+		/// <summary>
+		/// Perform the measurement
+		/// </summary>
+		/// <param name="ct">Cancellation token</param>
+		/// <returns>result. false if cancelled</returns>
+		async Task<bool> PerformMeasurementSteps(CancellationToken ct)
         {
+			var thdAmp = ViewSettings.Singleton.ThdAmp;
 
-            ClearPlot();
-            ClearCursorTexts();
+			ClearPlot();
+            //ClearCursorTexts();
 
-            var _measurementSettings = MeasurementSettings.Copy();             // Create snapshot so it is not changed during measuring
+            //var _measurementSettings = MeasurementSettings.Copy();             // Create snapshot so it is not changed during measuring
 
             // Clear measurement result
             MeasurementResult = new()
             {
                 CreateDate = DateTime.Now,
-                Show = true,                                      // Show in graph
-                MeasurementSettings = _measurementSettings       // Copy measurment settings to measurement results
+                Show = true,                       // Show in graph
+                MeasurementSettings = thdAmp       // Copy measurment settings to measurement results
             };
 
             // For now clear measurements to allow only one until we have a UI to manage them.
@@ -364,13 +143,13 @@ namespace QA40xPlot.Actions
             // Add to list
             Data.Measurements.Add(MeasurementResult);
 
-            UpdateGraphChannelSelectors();
+            //UpdateGraphChannelSelectors();
 
-            markerIndex = -1;       // Reset marker
+            //markerIndex = -1;       // Reset marker
 
             // Init mini plots
-            QaLibrary.InitMiniFftPlot(graphFft, 10, 100000, -150, 20);
-            QaLibrary.InitMiniTimePlot(graphTime, 0, 4, -1, 1);
+            QaLibrary.InitMiniFftPlot(fftPlot, 10, 100000, -150, 20);
+            QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -1, 1);
 
             // Check if webserver available and device connected
             if (await QaLibrary.CheckDeviceConnected() == false)
@@ -381,32 +160,32 @@ namespace QA40xPlot.Actions
             // Load a settings file with the particulars we want
             await Qa40x.SetDefaults();
             await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make it turn on or off
-            await Qa40x.SetSampleRate(_measurementSettings.SampleRate);
-            await Qa40x.SetBufferSize(_measurementSettings.FftSize);
-            await Qa40x.SetWindowing(_measurementSettings.WindowingFunction);
+            await Qa40x.SetSampleRate(thdAmp.SampleRate);
+            await Qa40x.SetBufferSize(thdAmp.FftSize);
+            await Qa40x.SetWindowing(thdAmp.WindowingMethod);
             await Qa40x.SetRoundFrequencies(true);
 
 
             // ********************************************************************
             // Determine attenuation level
             // ********************************************************************
-            double generatorAmplitudedBV = QaLibrary.ConvertVoltage(_measurementSettings.StartAmplitude, _measurementSettings.StartAmplitudeUnit, E_VoltageUnit.dBV);
-            await Program.MainForm.ShowMessage($"Determining the best input attenuation for a generator voltage of {generatorAmplitudedBV:0.00#} dBV.");
+            double generatorAmplitudedBV = thdAmp.StartAmplitude;
+            await showMessage($"Determining the best input attenuation for a generator voltage of {generatorAmplitudedBV:0.00#} dBV.");
 
-            double testFrequency = QaLibrary.GetNearestBinFrequency(_measurementSettings.Frequency, _measurementSettings.SampleRate, _measurementSettings.FftSize);
+            double testFrequency = QaLibrary.GetNearestBinFrequency(thdAmp.TestFreq, thdAmp.SampleRate, thdAmp.FftSize);
             // Determine correct input attenuation
-            var result = await QaLibrary.DetermineAttenuationForGeneratorVoltageWithChirp(generatorAmplitudedBV, 42, _measurementSettings.EnableLeftChannel, _measurementSettings.EnableRightChannel, ct);
+            var result = await QaLibrary.DetermineAttenuationForGeneratorVoltageWithChirp(generatorAmplitudedBV, 42, thdAmp.LeftChannel, thdAmp.RightChannel, ct);
             if (ct.IsCancellationRequested)
                 return false;
-            QaLibrary.PlotMiniFftGraph(graphFft, result.Item3.FreqInput, _measurementSettings.EnableLeftChannel, _measurementSettings.EnableRightChannel);
-            QaLibrary.PlotMiniTimeGraph(graphTime, result.Item3.TimeInput, testFrequency, _measurementSettings.EnableLeftChannel, _measurementSettings.EnableRightChannel, true);
+            QaLibrary.PlotMiniFftGraph(fftPlot, result.Item3.FreqInput, thdAmp.LeftChannel, thdAmp.RightChannel);
+            QaLibrary.PlotMiniTimeGraph(timePlot, result.Item3.TimeInput, testFrequency, thdAmp.LeftChannel, thdAmp.RightChannel, true);
             var prevInputAmplitudedBV = result.Item2;
             
 
             // Set attenuation
             await Qa40x.SetInputRange(result.Item1);
 
-            await Program.MainForm.ShowMessage($"Found correct input attenuation of {result.Item1:0} dBV for an amplifier amplitude of {result.Item2:0.00#} dBV.", 500);
+            await showMessage($"Found correct input attenuation of {result.Item1:0} dBV for an amplifier amplitude of {result.Item2:0.00#} dBV.", 500);
           
             if (ct.IsCancellationRequested)
                 return false;
@@ -414,25 +193,23 @@ namespace QA40xPlot.Actions
             // ********************************************************************
             // Generate a list of voltages evenly spaced in log scale
             // ********************************************************************
-            var startAmplitudeV = QaLibrary.ConvertVoltage(_measurementSettings.StartAmplitude, _measurementSettings.StartAmplitudeUnit, E_VoltageUnit.Volt);
-            var prevGeneratorVoltagedBV = QaLibrary.ConvertVoltage(_measurementSettings.StartAmplitude, _measurementSettings.StartAmplitudeUnit, E_VoltageUnit.dBV);
-            var endAmplitudeV = QaLibrary.ConvertVoltage(_measurementSettings.EndAmplitude, _measurementSettings.EndAmplitudeUnit, E_VoltageUnit.Volt);
-            var stepVoltages = QaLibrary.GetLineairSpacedLogarithmicValuesPerOctave(startAmplitudeV, endAmplitudeV, _measurementSettings.StepsPerOctave);
+            var startAmplitudeV = QaLibrary.ConvertVoltage(thdAmp.StartAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
+            var prevGeneratorVoltagedBV = thdAmp.StartAmplitude;
+            var endAmplitudeV = QaLibrary.ConvertVoltage(thdAmp.EndAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
+			var stepVoltages = QaLibrary.GetLineairSpacedLogarithmicValuesPerOctave(startAmplitudeV, endAmplitudeV, thdAmp.StepsOctave);
 
             // ********************************************************************
             // Do noise floor measurement
             // ********************************************************************
-            await Program.MainForm.ShowMessage($"Determining noise floor.");
+            await showMessage($"Determining noise floor.");
             await Qa40x.SetOutputSource(OutputSources.Off);
-            MeasurementResult.NoiseFloor = await QaLibrary.DoAcquisitions(_measurementSettings.Averages, ct);
+            MeasurementResult.NoiseFloor = await QaLibrary.DoAcquisitions(thdAmp.Averages, ct);
             if (ct.IsCancellationRequested)
                 return false;
-            QaLibrary.PlotMiniFftGraph(graphFft, MeasurementResult.NoiseFloor.FreqInput, _measurementSettings.EnableLeftChannel, _measurementSettings.EnableRightChannel);
-            QaLibrary.PlotMiniTimeGraph(graphTime, MeasurementResult.NoiseFloor.TimeInput, testFrequency, _measurementSettings.EnableLeftChannel && GraphSettings.ShowLeftChannel, _measurementSettings.EnableRightChannel && GraphSettings.ShowRightChannel);
+            QaLibrary.PlotMiniFftGraph(fftPlot, MeasurementResult.NoiseFloor.FreqInput, thdAmp.LeftChannel, thdAmp.RightChannel);
+            QaLibrary.PlotMiniTimeGraph(timePlot, MeasurementResult.NoiseFloor.TimeInput, testFrequency, thdAmp.LeftChannel && thdAmp.ShowLeft, thdAmp.RightChannel && thdAmp.ShowRight);
 
-            Program.MainForm.SetupProgressBar(0, stepVoltages.Length);
-
-            var binSize = QaLibrary.CalcBinSize(_measurementSettings.SampleRate, _measurementSettings.FftSize);
+            var binSize = QaLibrary.CalcBinSize(thdAmp.SampleRate, thdAmp.FftSize);
             uint fundamentalBin = QaLibrary.GetBinOfFrequency(testFrequency, binSize);
 
             var newAttenuation = 0;
@@ -442,8 +219,8 @@ namespace QA40xPlot.Actions
             // ********************************************************************
             for (int i = 0; i < stepVoltages.Length; i++)
             {
-                await Program.MainForm.ShowMessage($"Measuring step {i + 1} of {stepVoltages.Length}.");
-                Program.MainForm.UpdateProgressBar(i+1);
+                await showMessage($"Measuring step {i + 1} of {stepVoltages.Length}.");
+                await showProgress(100*(i+1)/(stepVoltages.Length));
 
                 // Convert generator voltage from V to dBV
                 var generatorVoltageV = stepVoltages[i];
@@ -458,13 +235,13 @@ namespace QA40xPlot.Actions
                 if (newAttenuation > prevAttenuation && newAttenuation == 24)
                 {
                     // Attenuation changed. Get new noise floor
-                    await Program.MainForm.ShowMessage($"Attenuation changed. Measuring new noise floor.");
+                    await showMessage($"Attenuation changed. Measuring new noise floor.");
                     await Qa40x.SetOutputSource(OutputSources.Off);
-                    MeasurementResult.NoiseFloor = await QaLibrary.DoAcquisitions(_measurementSettings.Averages, ct);
+                    MeasurementResult.NoiseFloor = await QaLibrary.DoAcquisitions(thdAmp.Averages, ct);
                     if (ct.IsCancellationRequested)
                         return false;
-                    QaLibrary.PlotMiniFftGraph(graphFft, MeasurementResult.NoiseFloor.FreqInput, _measurementSettings.EnableLeftChannel, _measurementSettings.EnableRightChannel);
-                    QaLibrary.PlotMiniTimeGraph(graphTime, MeasurementResult.NoiseFloor.TimeInput, testFrequency, _measurementSettings.EnableLeftChannel && GraphSettings.ShowLeftChannel, _measurementSettings.EnableRightChannel && GraphSettings.ShowRightChannel);
+                    QaLibrary.PlotMiniFftGraph(fftPlot, MeasurementResult.NoiseFloor.FreqInput, thdAmp.LeftChannel, thdAmp.RightChannel);
+                    QaLibrary.PlotMiniTimeGraph(timePlot, MeasurementResult.NoiseFloor.TimeInput, testFrequency, thdAmp.LeftChannel && thdAmp.ShowLeft, thdAmp.RightChannel && thdAmp.ShowRight);
                     await Qa40x.SetOutputSource(OutputSources.Sine);
                 }
                 prevAttenuation = newAttenuation;
@@ -479,7 +256,7 @@ namespace QA40xPlot.Actions
                 {
                     try
                     {
-                        lrfs = await QaLibrary.DoAcquisitions(_measurementSettings.Averages, ct);  // Do acquisitions
+                        lrfs = await QaLibrary.DoAcquisitions(thdAmp.Averages, ct);  // Do acquisitions
                         if (ct.IsCancellationRequested)
                             return false;
                     }
@@ -491,7 +268,7 @@ namespace QA40xPlot.Actions
                             newAttenuation += 6;
                             if (newAttenuation > 42)
                             {
-                                MessageBox.Show($"Maximum attenuation reached.\nMeasurements are stopped", "Maximum attenuation reached", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                MessageBox.Show($"Maximum attenuation reached.\nMeasurements are stopped", "Maximum attenuation reached", MessageBoxButton.OK, MessageBoxImage.Information);
                                 await Qa40x.SetOutputSource(OutputSources.Off);
                                 return false;
                             }
@@ -500,9 +277,9 @@ namespace QA40xPlot.Actions
                             if (newAttenuation == 24)
                             {
                                 // Attenuation changed. Get new noise floor
-                                await Program.MainForm.ShowMessage($"Attenuation changed. Measuring new noise floor.");
+                                await showMessage($"Attenuation changed. Measuring new noise floor.");
                                 await Qa40x.SetOutputSource(OutputSources.Off);
-                                MeasurementResult.NoiseFloor = await QaLibrary.DoAcquisitions(_measurementSettings.Averages, ct);
+                                MeasurementResult.NoiseFloor = await QaLibrary.DoAcquisitions(thdAmp.Averages, ct);
                                 if (ct.IsCancellationRequested)
                                     return false;
                                 
@@ -524,17 +301,17 @@ namespace QA40xPlot.Actions
                 };
 
                 // Plot the mini graphs
-                QaLibrary.PlotMiniFftGraph(graphFft, lrfs.FreqInput, _measurementSettings.EnableLeftChannel && GraphSettings.ShowLeftChannel, _measurementSettings.EnableRightChannel && GraphSettings.ShowRightChannel);
-                QaLibrary.PlotMiniTimeGraph(graphTime, lrfs.TimeInput, step.FundamentalFrequency, _measurementSettings.EnableLeftChannel && GraphSettings.ShowLeftChannel, _measurementSettings.EnableRightChannel && GraphSettings.ShowRightChannel);
+                QaLibrary.PlotMiniFftGraph(fftPlot, lrfs.FreqInput, thdAmp.LeftChannel && thdAmp.ShowLeft, thdAmp.RightChannel && thdAmp.ShowRight);
+                QaLibrary.PlotMiniTimeGraph(timePlot, lrfs.TimeInput, step.FundamentalFrequency, thdAmp.LeftChannel && thdAmp.ShowLeft, thdAmp.RightChannel && thdAmp.ShowRight);
 
-                step.Left = ChannelCalculations(binSize, step.FundamentalFrequency, generatorVoltagedBV, lrfs.FreqInput.Left, MeasurementResult.NoiseFloor.FreqInput.Left, _measurementSettings.Load);
-                step.Right = ChannelCalculations(binSize, step.FundamentalFrequency, generatorVoltagedBV, lrfs.FreqInput.Right, MeasurementResult.NoiseFloor.FreqInput.Right, _measurementSettings.Load);
+                step.Left = ChannelCalculations(binSize, step.FundamentalFrequency, generatorVoltagedBV, lrfs.FreqInput.Left, MeasurementResult.NoiseFloor.FreqInput.Left, thdAmp.AmpLoad);
+                step.Right = ChannelCalculations(binSize, step.FundamentalFrequency, generatorVoltagedBV, lrfs.FreqInput.Right, MeasurementResult.NoiseFloor.FreqInput.Right, thdAmp.AmpLoad);
 
                 // Add step data to list
                 MeasurementResult.AmplitudeSteps.Add(step);
 
                 UpdateGraph(false);
-                ShowLastMeasurementCursorTexts();
+                //ShowLastMeasurementCursorTexts();
 
                 // Check if cancel button pressed
                 if (ct.IsCancellationRequested)
@@ -552,7 +329,7 @@ namespace QA40xPlot.Actions
             await Qa40x.SetOutputSource(OutputSources.Off);
 
             // Show message
-            await Program.MainForm.ShowMessage($"Measurement finished!", 500);
+            await showMessage($"Measurement finished!", 500);
           
             return true;
         }
@@ -630,7 +407,7 @@ namespace QA40xPlot.Actions
             return channelData;
         }
 
-
+#if false
         void ShowLastMeasurementCursorTexts()
         {
             if (MeasurementResult == null || MeasurementResult.AmplitudeSteps.Count == 0)
@@ -892,13 +669,13 @@ namespace QA40xPlot.Actions
                 WriteCursorTexts_Dpercent_R(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
             }
         }
-
+#endif
         /// <summary>
         /// Clear the plot
         /// </summary>
         void ClearPlot()
         {
-            thdPlot.Plot.Clear();
+            thdPlot.ThePlot.Clear();
             thdPlot.Refresh();
         }
 
@@ -907,8 +684,10 @@ namespace QA40xPlot.Actions
         /// </summary>
         void InitializeThdPlot()
         {
-            thdPlot.Plot.Clear();
+			ScottPlot.Plot myPlot = thdPlot.ThePlot;
+			var thdAmp = ViewSettings.Singleton.ThdAmp;
 
+			myPlot.Clear();
 
             ScottPlot.TickGenerators.LogMinorTickGenerator minorTickGenY = new();
             minorTickGenY.Divisions = 10;
@@ -927,15 +706,12 @@ namespace QA40xPlot.Actions
             tickGenY.LabelFormatter = LogTickLabelFormatter;
 
             // tell the left axis to use our custom tick generator
-            thdPlot.Plot.Axes.Left.TickGenerator = tickGenY;
+            myPlot.Axes.Left.TickGenerator = tickGenY;
 
             // ******* y-ticks ****
             // create a minor tick generator that places log-distributed minor ticks
             ScottPlot.TickGenerators.LogMinorTickGenerator minorTickGen = new();
             minorTickGen.Divisions = 10;
-
-
-
 
             // create a minor tick generator that places log-distributed minor ticks
             ScottPlot.TickGenerators.LogMinorTickGenerator minorTickGenX = new();
@@ -950,46 +726,46 @@ namespace QA40xPlot.Actions
             tickGenX.IntegerTicksOnly = true;
             // tell our custom tick generator to use our new label formatter
             tickGenX.LabelFormatter = LogTickLabelFormatter;
-            thdPlot.Plot.Axes.Bottom.TickGenerator = tickGenX;
+            myPlot.Axes.Bottom.TickGenerator = tickGenX;
 
 
             // show grid lines for minor ticks
-            thdPlot.Plot.Grid.MajorLineColor = Colors.Black.WithOpacity(.25);
-            thdPlot.Plot.Grid.MinorLineColor = Colors.Black.WithOpacity(.10);
-            thdPlot.Plot.Grid.MinorLineWidth = 1;
+            myPlot.Grid.MajorLineColor = Colors.Black.WithOpacity(.25);
+            myPlot.Grid.MinorLineColor = Colors.Black.WithOpacity(.10);
+            myPlot.Grid.MinorLineWidth = 1;
 
 
-            //thdPlot.Plot.Axes.AutoScale();
-            if (cmbGraph_VoltageStart.SelectedIndex > -1 && cmbGraph_VoltageEnd.SelectedIndex > -1 && cmbD_Graph_Bottom.SelectedIndex > -1 && cmbD_Graph_Top.SelectedIndex > -1)
-                thdPlot.Plot.Axes.SetLimits(Math.Log10(GraphSettings.VoltageRange_Start), Math.Log10(GraphSettings.VoltageRange_End), Math.Log10(GraphSettings.D_PercentBottom), Math.Log10(GraphSettings.D_PercentTop));
-            thdPlot.Plot.Title("Distortion vs Amplitude (%)");
-            thdPlot.Plot.Axes.Title.Label.FontSize = 17;
+			//myPlot.Axes.AutoScale();
+			myPlot.Axes.SetLimits(Math.Log10(Convert.ToDouble(thdAmp.GraphStartVolts)), Math.Log10(Convert.ToDouble(thdAmp.GraphEndVolts)), 
+                Math.Log10(Convert.ToDouble(thdAmp.RangeBottom)), Math.Log10(Convert.ToDouble(thdAmp.RangeTop)));
+            myPlot.Title("Distortion vs Amplitude (%)");
+            myPlot.Axes.Title.Label.FontSize = 17;
 
-            if (cmbXAxis.SelectedIndex == (int)E_X_AxisType.OUTPUT_VOLTAGE)
-                thdPlot.Plot.XLabel("Output voltage (Vrms)");
-            else if (cmbXAxis.SelectedIndex == (int)E_X_AxisType.OUTPUT_POWER)
-                thdPlot.Plot.XLabel("Output power (W)");
-            else if (cmbXAxis.SelectedIndex == (int)E_X_AxisType.INPUT_VOLTAGE)
-                thdPlot.Plot.XLabel("Input voltage (Vrms)");
+            if (thdAmp.XAxisType == (int)E_X_AxisType.OUTPUT_VOLTAGE)
+                myPlot.XLabel("Output voltage (Vrms)");
+            else if (thdAmp.XAxisType == (int)E_X_AxisType.OUTPUT_POWER)
+                myPlot.XLabel("Output power (W)");
+            else if (thdAmp.XAxisType == (int)E_X_AxisType.INPUT_VOLTAGE)
+                myPlot.XLabel("Input voltage (Vrms)");
 
-            thdPlot.Plot.Axes.Bottom.Label.OffsetX = 330;
-            thdPlot.Plot.Axes.Bottom.Label.FontSize = 15;
-            thdPlot.Plot.Axes.Bottom.Label.Bold = false;
+            myPlot.Axes.Bottom.Label.OffsetX = 330;
+            myPlot.Axes.Bottom.Label.FontSize = 15;
+            myPlot.Axes.Bottom.Label.Bold = false;
 
 
-            thdPlot.Plot.Legend.IsVisible = true;
-            thdPlot.Plot.Legend.Orientation = ScottPlot.Orientation.Horizontal;
-            thdPlot.Plot.Legend.Alignment = ScottPlot.Alignment.UpperRight;
-            thdPlot.Plot.ShowLegend();
+            myPlot.Legend.IsVisible = true;
+            myPlot.Legend.Orientation = ScottPlot.Orientation.Horizontal;
+            myPlot.Legend.Alignment = ScottPlot.Alignment.UpperRight;
+            myPlot.ShowLegend();
 
             ScottPlot.AxisRules.MaximumBoundary rule = new(
-                xAxis: thdPlot.Plot.Axes.Bottom,
-                yAxis: thdPlot.Plot.Axes.Left,
+                xAxis: myPlot.Axes.Bottom,
+                yAxis: myPlot.Axes.Left,
                 limits: new AxisLimits(Math.Log10(0), Math.Log10(100), -200, 100)
                 );
 
-            thdPlot.Plot.Axes.Rules.Clear();
-            thdPlot.Plot.Axes.Rules.Add(rule);
+            myPlot.Axes.Rules.Clear();
+            myPlot.Axes.Rules.Add(rule);
 
             thdPlot.Refresh();
 
@@ -1002,7 +778,9 @@ namespace QA40xPlot.Actions
         /// <param name="data"></param>
         void PlotThd(ThdAmplitudeMeasurementResult measurementResult, int measurementNr, bool showLeftChannel, bool showRightChannel)
         {
-            var freqX = new List<double>();
+			ScottPlot.Plot myPlot = thdPlot.ThePlot;
+			var thdAmp = ViewSettings.Singleton.ThdAmp;
+			var freqX = new List<double>();
             var hTotY_left = new List<double>();
             var h2Y_left = new List<double>();
             var h3Y_left = new List<double>();
@@ -1021,7 +799,7 @@ namespace QA40xPlot.Actions
 
             foreach (var step in measurementResult.AmplitudeSteps)
             {
-                double xValue = cmbXAxis.SelectedIndex switch
+                double xValue = thdAmp.XAxisType switch
                 {
                     (int)E_X_AxisType.OUTPUT_VOLTAGE => step.Left.Fundamental_V,
                     (int)E_X_AxisType.OUTPUT_POWER => step.Left.Power_Watt,
@@ -1029,55 +807,56 @@ namespace QA40xPlot.Actions
                 };
                 freqX.Add(xValue);
 
-                if (showLeftChannel && measurementResult.MeasurementSettings.EnableLeftChannel)
+                if (showLeftChannel && measurementResult.MeasurementSettings.LeftChannel)
                 {
-                    if (step.Left.Harmonics.Count > 0 && GraphSettings.ShowTHD)
+                    if (step.Left.Harmonics.Count > 0 && thdAmp.ShowTHD)
                         hTotY_left.Add(step.Left.Thd_Percent);
-                    if (step.Left.Harmonics.Count > 0 && GraphSettings.ShowD2)
+                    if (step.Left.Harmonics.Count > 0 && thdAmp.ShowD2)
                         h2Y_left.Add(step.Left.Harmonics[0].Thd_Percent);
-                    if (step.Left.Harmonics.Count > 1 && GraphSettings.ShowD3)
+                    if (step.Left.Harmonics.Count > 1 && thdAmp.ShowD3)
                         h3Y_left.Add(step.Left.Harmonics[1].Thd_Percent);
-                    if (step.Left.Harmonics.Count > 2 && GraphSettings.ShowD4)
+                    if (step.Left.Harmonics.Count > 2 && thdAmp.ShowD4)
                         h4Y_left.Add(step.Left.Harmonics[2].Thd_Percent);
-                    if (step.Left.Harmonics.Count > 3 && GraphSettings.ShowD5)
+                    if (step.Left.Harmonics.Count > 3 && thdAmp.ShowD5)
                         h5Y_left.Add(step.Left.Harmonics[3].Thd_Percent);
-                    if (step.Left.Harmonics.Count > 4 && step.Left.ThdPercent_D6plus != 0 && GraphSettings.ShowD6)
+                    if (step.Left.Harmonics.Count > 4 && step.Left.ThdPercent_D6plus != 0 && thdAmp.ShowD6)
                         h6Y_left.Add(step.Left.ThdPercent_D6plus);        // D6+
-                    if (GraphSettings.ShowNoiseFloor)
+                    if (thdAmp.ShowNoiseFloor)
                         noiseY_left.Add((step.Left.Average_NoiseFloor_V / step.Left.Fundamental_V) * 100);
                 }
 
-                if (showRightChannel && measurementResult.MeasurementSettings.EnableRightChannel)
+                if (showRightChannel && measurementResult.MeasurementSettings.RightChannel)
                 {
-                    if (step.Right.Harmonics.Count > 0 && GraphSettings.ShowTHD)
+                    if (step.Right.Harmonics.Count > 0 && thdAmp.ShowTHD)
                         hTotY_right.Add(step.Right.Thd_Percent);
-                    if (step.Right.Harmonics.Count > 0 && GraphSettings.ShowD2)
+                    if (step.Right.Harmonics.Count > 0 && thdAmp.ShowD2)
                         h2Y_right.Add(step.Right.Harmonics[0].Thd_Percent);
-                    if (step.Right.Harmonics.Count > 1 && GraphSettings.ShowD3)
+                    if (step.Right.Harmonics.Count > 1 && thdAmp.ShowD3)
                         h3Y_right.Add(step.Right.Harmonics[1].Thd_Percent);
-                    if (step.Right.Harmonics.Count > 2 && GraphSettings.ShowD4)
+                    if (step.Right.Harmonics.Count > 2 && thdAmp.ShowD4)
                         h4Y_right.Add(step.Right.Harmonics[2].Thd_Percent);
-                    if (step.Right.Harmonics.Count > 3 && GraphSettings.ShowD5)
+                    if (step.Right.Harmonics.Count > 3 && thdAmp.ShowD5)
                         h5Y_right.Add(step.Right.Harmonics[3].Thd_Percent);
-                    if (step.Right.Harmonics.Count > 4 && step.Right.ThdPercent_D6plus != 0 && GraphSettings.ShowD6)
+                    if (step.Right.Harmonics.Count > 4 && step.Right.ThdPercent_D6plus != 0 && thdAmp.ShowD6)
                         h6Y_right.Add(step.Right.ThdPercent_D6plus);        // D6+
-                    if (GraphSettings.ShowNoiseFloor)
+                    if (thdAmp.ShowNoiseFloor)
                         noiseY_right.Add((step.Right.Average_NoiseFloor_V / step.Right.Fundamental_V) * 100);
                 }
             }
 
             var colors = new GraphColors();
-            float lineWidth = GraphSettings.ThickLines ? 1.6f : 1;
-            float markerSize = GraphSettings.ShowDataPoints ? lineWidth + 3 : 1;
+            float lineWidth = thdAmp.ShowThickLines ? 1.6f : 1;
+            float markerSize = thdAmp.ShowPoints ? lineWidth + 3 : 1;
 
             double[] logFreqX = freqX.Select(Math.Log10).ToArray();
             int color = measurementNr * 2;
 
             void AddPlot(List<double> yValues, int colorIndex, string legendText, LinePattern linePattern)
             {
-                if (yValues.Count == 0) return;
+                if (yValues.Count == 0) 
+                    return;
                 double[] logYValues = yValues.Select(Math.Log10).ToArray();
-                var plot = thdPlot.Plot.Add.Scatter(logFreqX, logYValues);
+                var plot = myPlot.Add.Scatter(logFreqX, logYValues);
                 plot.LineWidth = lineWidth;
                 plot.Color = colors.GetColor(colorIndex, color);
                 plot.MarkerSize = markerSize;
@@ -1087,28 +866,28 @@ namespace QA40xPlot.Actions
 
             if (showLeftChannel)
             {
-                if (GraphSettings.ShowTHD) AddPlot(hTotY_left, 8, showRightChannel ? "THD-L" : "THD", LinePattern.Solid);
-                if (GraphSettings.ShowD2) AddPlot(h2Y_left, 0, showRightChannel ? "D2-L" : "D2", LinePattern.Solid);
-                if (GraphSettings.ShowD3) AddPlot(h3Y_left, 1, showRightChannel ? "D3-L" : "D3", LinePattern.Solid);
-                if (GraphSettings.ShowD4) AddPlot(h4Y_left, 2, showRightChannel ? "D4-L" : "D4", LinePattern.Solid);
-                if (GraphSettings.ShowD5) AddPlot(h5Y_left, 3, showRightChannel ? "D5-L" : "D5", LinePattern.Solid);
-                if (GraphSettings.ShowD6) AddPlot(h6Y_left, 4, showRightChannel ? "D6+-L" : "D6+", LinePattern.Solid);
-                if (GraphSettings.ShowNoiseFloor) AddPlot(noiseY_left, 9, showRightChannel ? "Noise-L" : "Noise", showRightChannel ? LinePattern.Solid : LinePattern.Dotted);
+                if (thdAmp.ShowTHD) AddPlot(hTotY_left, 8, showRightChannel ? "THD-L" : "THD", LinePattern.Solid);
+                if (thdAmp.ShowD2) AddPlot(h2Y_left, 0, showRightChannel ? "D2-L" : "D2", LinePattern.Solid);
+                if (thdAmp.ShowD3) AddPlot(h3Y_left, 1, showRightChannel ? "D3-L" : "D3", LinePattern.Solid);
+                if (thdAmp.ShowD4) AddPlot(h4Y_left, 2, showRightChannel ? "D4-L" : "D4", LinePattern.Solid);
+                if (thdAmp.ShowD5) AddPlot(h5Y_left, 3, showRightChannel ? "D5-L" : "D5", LinePattern.Solid);
+                if (thdAmp.ShowD6) AddPlot(h6Y_left, 4, showRightChannel ? "D6+-L" : "D6+", LinePattern.Solid);
+                if (thdAmp.ShowNoiseFloor) AddPlot(noiseY_left, 9, showRightChannel ? "Noise-L" : "Noise", showRightChannel ? LinePattern.Solid : LinePattern.Dotted);
             }
 
             if (showRightChannel)
             {
-                if (GraphSettings.ShowTHD) AddPlot(hTotY_right, 8, showLeftChannel ? "THD-R" : "THD", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
-                if (GraphSettings.ShowD2) AddPlot(h2Y_right, 0, showLeftChannel ? "D2-R" : "D2", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
-                if (GraphSettings.ShowD3) AddPlot(h3Y_right, 1, showLeftChannel ? "D3-R" : "D3", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
-                if (GraphSettings.ShowD4) AddPlot(h4Y_right, 2, showLeftChannel ? "D4-R" : "D4", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
-                if (GraphSettings.ShowD5) AddPlot(h5Y_right, 3, showLeftChannel ? "D5-R" : "D5", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
-                if (GraphSettings.ShowD6) AddPlot(h6Y_right, 4, showLeftChannel ? "D6+-R" : "D6+", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
-                if (GraphSettings.ShowNoiseFloor) AddPlot(noiseY_right, 9, showLeftChannel ? "Noise-R" : "Noise", LinePattern.Dotted);
+                if (thdAmp.ShowTHD) AddPlot(hTotY_right, 8, showLeftChannel ? "THD-R" : "THD", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
+                if (thdAmp.ShowD2) AddPlot(h2Y_right, 0, showLeftChannel ? "D2-R" : "D2", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
+                if (thdAmp.ShowD3) AddPlot(h3Y_right, 1, showLeftChannel ? "D3-R" : "D3", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
+                if (thdAmp.ShowD4) AddPlot(h4Y_right, 2, showLeftChannel ? "D4-R" : "D4", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
+                if (thdAmp.ShowD5) AddPlot(h5Y_right, 3, showLeftChannel ? "D5-R" : "D5", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
+                if (thdAmp.ShowD6) AddPlot(h6Y_right, 4, showLeftChannel ? "D6+-R" : "D6+", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
+                if (thdAmp.ShowNoiseFloor) AddPlot(noiseY_right, 9, showLeftChannel ? "Noise-R" : "Noise", LinePattern.Dotted);
             }
 
-            if (markerIndex != -1)
-                QaLibrary.PlotCursorMarker(thdPlot, lineWidth, LinePattern.Solid, markerDataPoint);
+            //if (markerIndex != -1)
+            //    QaLibrary.PlotCursorMarker(thdPlot, lineWidth, LinePattern.Solid, markerDataPoint);
 
             thdPlot.Refresh();
         }
@@ -1119,7 +898,9 @@ namespace QA40xPlot.Actions
         /// </summary>
         void InitializeMagnitudePlot()
         {
-            thdPlot.Plot.Clear();
+			ScottPlot.Plot myPlot = thdPlot.ThePlot;
+            var thdAmp = ViewSettings.Singleton.ThdAmp;
+			myPlot.Clear();
 
             // Y - axis
             // create a numeric tick generator that uses our custom minor tick generator
@@ -1130,7 +911,7 @@ namespace QA40xPlot.Actions
             tickGenY.MinorTickGenerator = minorTickGen;
 
             // tell the left axis to use our custom tick generator
-            thdPlot.Plot.Axes.Left.TickGenerator = tickGenY;
+            myPlot.Axes.Left.TickGenerator = tickGenY;
 
             // X - axis
             // create a minor tick generator that places log-distributed minor ticks
@@ -1145,44 +926,43 @@ namespace QA40xPlot.Actions
             // tell our custom tick generator to use our new label formatter
             static string LogTickLabelFormatter(double y) => $"{Math.Pow(10, Math.Round(y, 10)):#0.######}";
             tickGenX.LabelFormatter = LogTickLabelFormatter;
-            thdPlot.Plot.Axes.Bottom.TickGenerator = tickGenX;
+            myPlot.Axes.Bottom.TickGenerator = tickGenX;
 
 
             // show grid lines for minor ticks
-            thdPlot.Plot.Grid.MajorLineColor = Colors.Black.WithOpacity(.25);
-            thdPlot.Plot.Grid.MinorLineColor = Colors.Black.WithOpacity(.10);
-            thdPlot.Plot.Grid.MinorLineWidth = 1;
+            myPlot.Grid.MajorLineColor = Colors.Black.WithOpacity(.25);
+            myPlot.Grid.MinorLineColor = Colors.Black.WithOpacity(.10);
+            myPlot.Grid.MinorLineWidth = 1;
 
-            if (cmbGraph_VoltageStart.SelectedIndex > -1 && cmbGraph_VoltageEnd.SelectedIndex > -1)
-                thdPlot.Plot.Axes.SetLimits(Math.Log10(GraphSettings.VoltageRange_Start), Math.Log10(GraphSettings.VoltageRange_End), Convert.ToDouble(ud_dB_Graph_Bottom.Value), Convert.ToDouble(ud_dB_Graph_Top.Value));
+            myPlot.Axes.SetLimits(Math.Log10(Convert.ToDouble(thdAmp.GraphStartVolts)), Math.Log10(Convert.ToDouble(thdAmp.GraphEndVolts)), thdAmp.RangeBottomdB, thdAmp.RangeTopdB);
             
-            thdPlot.Plot.Title("Distortion vs Amplitude (dB)");
-            thdPlot.Plot.Axes.Title.Label.FontSize = 17;
+            myPlot.Title("Distortion vs Amplitude (dB)");
+            myPlot.Axes.Title.Label.FontSize = 17;
 
-            if (cmbXAxis.SelectedIndex == (int)E_X_AxisType.OUTPUT_VOLTAGE)
-                thdPlot.Plot.XLabel("Output voltage (Vrms)");
-            else if (cmbXAxis.SelectedIndex == (int)E_X_AxisType.OUTPUT_POWER)
-                thdPlot.Plot.XLabel("Output power (W)");
-            else if (cmbXAxis.SelectedIndex == (int)E_X_AxisType.INPUT_VOLTAGE)
-                thdPlot.Plot.XLabel("Input voltage (Vrms)");
-            thdPlot.Plot.Axes.Bottom.Label.OffsetX = 330;
-            thdPlot.Plot.Axes.Bottom.Label.FontSize = 15;
-            thdPlot.Plot.Axes.Bottom.Label.Bold = false;
+            if (thdAmp.XAxisType == (int)E_X_AxisType.OUTPUT_VOLTAGE)
+                myPlot.XLabel("Output voltage (Vrms)");
+            else if (thdAmp.XAxisType == (int)E_X_AxisType.OUTPUT_POWER)
+                myPlot.XLabel("Output power (W)");
+            else if (thdAmp.XAxisType == (int)E_X_AxisType.INPUT_VOLTAGE)
+                myPlot.XLabel("Input voltage (Vrms)");
+            myPlot.Axes.Bottom.Label.OffsetX = 330;
+            myPlot.Axes.Bottom.Label.FontSize = 15;
+            myPlot.Axes.Bottom.Label.Bold = false;
 
             // Lengend
-            thdPlot.Plot.Legend.IsVisible = true;
-            thdPlot.Plot.Legend.Orientation = ScottPlot.Orientation.Horizontal;
-            thdPlot.Plot.Legend.Alignment = ScottPlot.Alignment.UpperRight;
-            thdPlot.Plot.ShowLegend();
+            myPlot.Legend.IsVisible = true;
+            myPlot.Legend.Orientation = ScottPlot.Orientation.Horizontal;
+            myPlot.Legend.Alignment = ScottPlot.Alignment.UpperRight;
+            myPlot.ShowLegend();
 
             ScottPlot.AxisRules.MaximumBoundary rule = new(
-                xAxis: thdPlot.Plot.Axes.Bottom,
-                yAxis: thdPlot.Plot.Axes.Left,
+                xAxis: myPlot.Axes.Bottom,
+                yAxis: myPlot.Axes.Left,
                 limits: new AxisLimits(Math.Log10(0.0001), Math.Log10(100), -200, 100)
                 );
 
-            thdPlot.Plot.Axes.Rules.Clear();
-            thdPlot.Plot.Axes.Rules.Add(rule);
+            myPlot.Axes.Rules.Clear();
+            myPlot.Axes.Rules.Add(rule);
 
             thdPlot.Refresh();
         }
@@ -1194,8 +974,9 @@ namespace QA40xPlot.Actions
         /// <param name="data">The data to plot</param>
         void PlotMagnitude(ThdAmplitudeMeasurementResult measurementResult, int measurementNr, bool showLeftChannel, bool showRightChannel)
         {
-            // Create lists for line data
-            var amplitudeX_L = new List<double>();
+			var thdAmp = ViewSettings.Singleton.ThdAmp;
+			// Create lists for line data
+			var amplitudeX_L = new List<double>();
             var amplitudeX_R = new List<double>();
             var magnY_left = new List<double>();
             var hTotY_left = new List<double>();
@@ -1218,7 +999,7 @@ namespace QA40xPlot.Actions
             // Add data to the line lists
             foreach (var step in measurementResult.AmplitudeSteps)
             {
-                double xValue_L = GraphSettings.XAxisType switch
+                double xValue_L = (E_X_AxisType)thdAmp.XAxisType switch
                 {
                     E_X_AxisType.OUTPUT_VOLTAGE => step.Left.Fundamental_V,
                     E_X_AxisType.OUTPUT_POWER => step.Left.Power_Watt,
@@ -1226,7 +1007,7 @@ namespace QA40xPlot.Actions
                 };
                 amplitudeX_L.Add(xValue_L);
 
-                double xValue_R = GraphSettings.XAxisType switch
+                double xValue_R = (E_X_AxisType)thdAmp.XAxisType switch
                 {
                     E_X_AxisType.OUTPUT_VOLTAGE => step.Right.Fundamental_V,
                     E_X_AxisType.OUTPUT_POWER => step.Right.Power_Watt,
@@ -1234,9 +1015,9 @@ namespace QA40xPlot.Actions
                 };
                 amplitudeX_R.Add(xValue_R);
 
-                if (showLeftChannel && measurementResult.MeasurementSettings.EnableLeftChannel)
+                if (showLeftChannel && measurementResult.MeasurementSettings.LeftChannel)
                 {
-                    if (GraphSettings.ShowMagnitude)
+                    if (thdAmp.ShowMagnitude)
                         magnY_left.Add(step.Left.Gain_dB);
 
                     if (step.Left.Harmonics.Count > 0)
@@ -1250,15 +1031,15 @@ namespace QA40xPlot.Actions
                         h4Y_left.Add(step.Left.Harmonics[2].Amplitude_dBV - step.Left.Fundamental_dBV + step.Left.Gain_dB);
                     if (step.Left.Harmonics.Count > 3)
                         h5Y_left.Add(step.Left.Harmonics[3].Amplitude_dBV - step.Left.Fundamental_dBV + step.Left.Gain_dB);
-                    if (step.Left.D6Plus_dBV != 0 && step.Left.Harmonics.Count > 4 && GraphSettings.ShowD6)
+                    if (step.Left.D6Plus_dBV != 0 && step.Left.Harmonics.Count > 4 && thdAmp.ShowD6)
                         h6Y_left.Add(step.Left.D6Plus_dBV - step.Left.Fundamental_dBV + step.Left.Gain_dB);
-                    if (GraphSettings.ShowNoiseFloor)
+                    if (thdAmp.ShowNoiseFloor)
                         noiseY_left.Add(step.Left.Average_NoiseFloor_dBV - step.Left.Fundamental_dBV + step.Left.Gain_dB);
                 }
 
-                if (showRightChannel && measurementResult.MeasurementSettings.EnableRightChannel)
+                if (showRightChannel && measurementResult.MeasurementSettings.RightChannel)
                 {
-                    if (GraphSettings.ShowMagnitude)
+                    if (thdAmp.ShowMagnitude)
                         magnY_right.Add(step.Right.Gain_dB);
 
                     if (step.Right.Harmonics.Count > 0)
@@ -1272,9 +1053,9 @@ namespace QA40xPlot.Actions
                         h4Y_right.Add(step.Right.Harmonics[2].Amplitude_dBV - step.Right.Fundamental_dBV + step.Right.Gain_dB);
                     if (step.Right.Harmonics.Count > 3)
                         h5Y_right.Add(step.Right.Harmonics[3].Amplitude_dBV - step.Right.Fundamental_dBV + step.Right.Gain_dB);
-                    if (step.Right.D6Plus_dBV != 0 && step.Right.Harmonics.Count > 4 && GraphSettings.ShowD6)
+                    if (step.Right.D6Plus_dBV != 0 && step.Right.Harmonics.Count > 4 && thdAmp.ShowD6)
                         h6Y_right.Add(step.Right.D6Plus_dBV - step.Right.Fundamental_dBV + step.Right.Gain_dB);
-                    if (GraphSettings.ShowNoiseFloor)
+                    if (thdAmp.ShowNoiseFloor)
                         noiseY_right.Add(step.Right.Average_NoiseFloor_dBV - step.Right.Fundamental_dBV + step.Right.Gain_dB);
                 }
             }
@@ -1282,8 +1063,8 @@ namespace QA40xPlot.Actions
             // add a scatter plot to the plot
             double[] logAmplitudeX_L = amplitudeX_L.Select(Math.Log10).ToArray();
             double[] logAmplitudeX_R = amplitudeX_R.Select(Math.Log10).ToArray();
-            float lineWidth = GraphSettings.ThickLines ? 1.6f : 1;
-            float markerSize = GraphSettings.ShowDataPoints ? lineWidth + 3 : 1;
+            float lineWidth = thdAmp.ShowThickLines ? 1.6f : 1;
+            float markerSize = thdAmp.ShowPoints ? lineWidth + 3 : 1;
 
             var colors = new GraphColors();
             int color = measurementNr * 2;
@@ -1292,7 +1073,7 @@ namespace QA40xPlot.Actions
             {
                 if (yValues.Count == 0) return;
                 
-                var plot = thdPlot.Plot.Add.Scatter(xValues, yValues.ToArray());
+                var plot = thdPlot.ThePlot.Add.Scatter(xValues, yValues.ToArray());
                 plot.LineWidth = lineWidth;
                 plot.Color = colors.GetColor(colorIndex, color);
                 plot.MarkerSize = markerSize;
@@ -1302,90 +1083,68 @@ namespace QA40xPlot.Actions
 
             if (showLeftChannel)
             {
-                if (GraphSettings.ShowMagnitude) AddPlot(logAmplitudeX_L, magnY_left, 9, showRightChannel ? "Magn-L" : "Magn", LinePattern.DenselyDashed);
-                if (GraphSettings.ShowTHD) AddPlot(logAmplitudeX_L, hTotY_left, 8, showRightChannel ? "THD-L" : "THD", LinePattern.Solid);
-                if (GraphSettings.ShowD2) AddPlot(logAmplitudeX_L, h2Y_left, 0, showRightChannel ? "H2-L" : "H2", LinePattern.Solid);
-                if (GraphSettings.ShowD3) AddPlot(logAmplitudeX_L, h3Y_left, 1, showRightChannel ? "H3-L" : "H3", LinePattern.Solid);
-                if (GraphSettings.ShowD4) AddPlot(logAmplitudeX_L, h4Y_left, 2, showRightChannel ? "H4-L" : "H4", LinePattern.Solid);
-                if (GraphSettings.ShowD5) AddPlot(logAmplitudeX_L, h5Y_left, 3, showRightChannel ? "H5-L" : "H5", LinePattern.Solid);
-                if (GraphSettings.ShowD6) AddPlot(logAmplitudeX_L, h6Y_left, 4, showRightChannel ? "H6+-L" : "H6+", LinePattern.Solid);
-                if (GraphSettings.ShowNoiseFloor) AddPlot(logAmplitudeX_L, noiseY_left, 9, showRightChannel ? "Noise-L" : "Noise", showRightChannel ? LinePattern.Solid : LinePattern.Dotted);
+                if (thdAmp.ShowMagnitude) AddPlot(logAmplitudeX_L, magnY_left, 9, showRightChannel ? "Magn-L" : "Magn", LinePattern.DenselyDashed);
+                if (thdAmp.ShowTHD) AddPlot(logAmplitudeX_L, hTotY_left, 8, showRightChannel ? "THD-L" : "THD", LinePattern.Solid);
+                if (thdAmp.ShowD2) AddPlot(logAmplitudeX_L, h2Y_left, 0, showRightChannel ? "H2-L" : "H2", LinePattern.Solid);
+                if (thdAmp.ShowD3) AddPlot(logAmplitudeX_L, h3Y_left, 1, showRightChannel ? "H3-L" : "H3", LinePattern.Solid);
+                if (thdAmp.ShowD4) AddPlot(logAmplitudeX_L, h4Y_left, 2, showRightChannel ? "H4-L" : "H4", LinePattern.Solid);
+                if (thdAmp.ShowD5) AddPlot(logAmplitudeX_L, h5Y_left, 3, showRightChannel ? "H5-L" : "H5", LinePattern.Solid);
+                if (thdAmp.ShowD6) AddPlot(logAmplitudeX_L, h6Y_left, 4, showRightChannel ? "H6+-L" : "H6+", LinePattern.Solid);
+                if (thdAmp.ShowNoiseFloor) AddPlot(logAmplitudeX_L, noiseY_left, 9, showRightChannel ? "Noise-L" : "Noise", showRightChannel ? LinePattern.Solid : LinePattern.Dotted);
             }
 
             if (showRightChannel)
             {
-                if (GraphSettings.ShowMagnitude) AddPlot(logAmplitudeX_R, magnY_right, 9, showLeftChannel ? "Magn-R" : "Magn", showLeftChannel ? LinePattern.Dotted : LinePattern.DenselyDashed);
-                if (GraphSettings.ShowTHD) AddPlot(logAmplitudeX_R, hTotY_right, 8, showLeftChannel ? "THD-R" : "THD", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
-                if (GraphSettings.ShowD2) AddPlot(logAmplitudeX_R, h2Y_right, 0, showLeftChannel ? "H2-R" : "H2", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
-                if (GraphSettings.ShowD3) AddPlot(logAmplitudeX_R, h3Y_right, 1, showLeftChannel ? "H3-R" : "H3", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
-                if (GraphSettings.ShowD4) AddPlot(logAmplitudeX_R, h4Y_right, 2, showLeftChannel ? "H4-R" : "H4", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
-                if (GraphSettings.ShowD5) AddPlot(logAmplitudeX_R, h5Y_right, 3, showLeftChannel ? "H5-R" : "H5", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
-                if (GraphSettings.ShowD6) AddPlot(logAmplitudeX_R, h6Y_right, 4, showLeftChannel ? "H6+-R" : "H6+", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
-                if (GraphSettings.ShowNoiseFloor) AddPlot(logAmplitudeX_R, noiseY_right, 9, showLeftChannel ? "Noise-R" : "Noise", LinePattern.Dotted);
+                if (thdAmp.ShowMagnitude) AddPlot(logAmplitudeX_R, magnY_right, 9, showLeftChannel ? "Magn-R" : "Magn", showLeftChannel ? LinePattern.Dotted : LinePattern.DenselyDashed);
+                if (thdAmp.ShowTHD) AddPlot(logAmplitudeX_R, hTotY_right, 8, showLeftChannel ? "THD-R" : "THD", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
+                if (thdAmp.ShowD2) AddPlot(logAmplitudeX_R, h2Y_right, 0, showLeftChannel ? "H2-R" : "H2", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
+                if (thdAmp.ShowD3) AddPlot(logAmplitudeX_R, h3Y_right, 1, showLeftChannel ? "H3-R" : "H3", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
+                if (thdAmp.ShowD4) AddPlot(logAmplitudeX_R, h4Y_right, 2, showLeftChannel ? "H4-R" : "H4", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
+                if (thdAmp.ShowD5) AddPlot(logAmplitudeX_R, h5Y_right, 3, showLeftChannel ? "H5-R" : "H5", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
+                if (thdAmp.ShowD6) AddPlot(logAmplitudeX_R, h6Y_right, 4, showLeftChannel ? "H6+-R" : "H6+", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
+                if (thdAmp.ShowNoiseFloor) AddPlot(logAmplitudeX_R, noiseY_right, 9, showLeftChannel ? "Noise-R" : "Noise", LinePattern.Dotted);
             }
 
             // If marker selected draw marker line
-            if (markerIndex != -1)
-                QaLibrary.PlotCursorMarker(thdPlot, lineWidth, LinePattern.Solid, markerDataPoint);
+            //if (markerIndex != -1)
+            //    QaLibrary.PlotCursorMarker(thdPlot, lineWidth, LinePattern.Solid, markerDataPoint);
 
             thdPlot.Refresh();
         }
 
-
-        void UpdateGraphChannelSelectors()
-        {
-            if (MeasurementSettings.EnableLeftChannel && !MeasurementSettings.EnableRightChannel)
-            {
-                // Only single channel. Enable
-                chkGraphShowLeftChannel.Checked = true;
-                chkGraphShowRightChannel.Checked = false;
-                GraphSettings.ShowLeftChannel = true;
-                GraphSettings.ShowRightChannel = false;
-            }
-            if (MeasurementSettings.EnableRightChannel && !MeasurementSettings.EnableLeftChannel)
-            {
-                chkGraphShowLeftChannel.Checked = false;
-                chkGraphShowRightChannel.Checked = true;
-                GraphSettings.ShowLeftChannel = false;
-                GraphSettings.ShowRightChannel = true;
-            }
-            chkGraphShowLeftChannel.Enabled = MeasurementSettings.EnableLeftChannel && MeasurementSettings.EnableRightChannel;
-            chkGraphShowRightChannel.Enabled = MeasurementSettings.EnableLeftChannel && MeasurementSettings.EnableRightChannel;
-            pnlCursorsLeft.Visible = GraphSettings.ShowLeftChannel;
-            pnlCursorsRight.Visible = GraphSettings.ShowRightChannel;
-        }
 
         /// <summary>
         /// Attach mouse events to the main graph
         /// </summary>
         void AttachPlotMouseEvent()
         {
-            // Attach the mouse move event
-            thdPlot.MouseMove += (s, e) =>
-            {
-                ShowCursorMiniGraphs(s, e);
-                SetCursorMarker(s, e, false);
-            };
+            //// Attach the mouse move event
+            //thdPlot.MouseMove += (s, e) =>
+            //{
+            //    ShowCursorMiniGraphs(s, e);
+            //    SetCursorMarker(s, e, false);
+            //};
 
-            // Mouse is clicked
-            thdPlot.MouseDown += (s, e) =>
-            {
-                SetCursorMarker(s, e, true);      // Set persistent marker
-            };
+            //// Mouse is clicked
+            //thdPlot.MouseDown += (s, e) =>
+            //{
+            //    SetCursorMarker(s, e, true);      // Set persistent marker
+            //};
 
-            // Mouse is leaving the graph
-            thdPlot.SKControl.MouseLeave += (s, e) =>
-            {
-                // If persistent marker set then show mini plots of that marker
-                if (markerIndex >= 0)
-                {
-                    QaLibrary.PlotMiniFftGraph(graphFft, MeasurementResult.AmplitudeSteps[markerIndex].fftData, MeasurementResult.MeasurementSettings.EnableLeftChannel && GraphSettings.ShowLeftChannel, MeasurementResult.MeasurementSettings.EnableRightChannel && GraphSettings.ShowRightChannel);
-                    QaLibrary.PlotMiniTimeGraph(graphTime, MeasurementResult.AmplitudeSteps[markerIndex].timeData, MeasurementResult.AmplitudeSteps[markerIndex].FundamentalFrequency, MeasurementResult.MeasurementSettings.EnableLeftChannel && GraphSettings.ShowLeftChannel, MeasurementResult.MeasurementSettings.EnableRightChannel && GraphSettings.ShowRightChannel);
-                }
-            };
+            //// Mouse is leaving the graph
+            //thdPlot.SKControl.MouseLeave += (s, e) =>
+            //{
+            //    // If persistent marker set then show mini plots of that marker
+            //    if (markerIndex >= 0)
+            //    {
+            //        QaLibrary.PlotMiniFftGraph(fftPlot, MeasurementResult.AmplitudeSteps[markerIndex].fftData, MeasurementResult.MeasurementSettings.EnableLeftChannel && thdAmp.ShowLeft, MeasurementResult.MeasurementSettings.EnableRightChannel && thdAmp.ShowRight);
+            //        QaLibrary.PlotMiniTimeGraph(timePlot, MeasurementResult.AmplitudeSteps[markerIndex].timeData, MeasurementResult.AmplitudeSteps[markerIndex].FundamentalFrequency, MeasurementResult.MeasurementSettings.EnableLeftChannel && thdAmp.ShowLeft, MeasurementResult.MeasurementSettings.EnableRightChannel && thdAmp.ShowRight);
+            //    }
+            //};
 
         }
 
+#if false
         /// <summary>
         /// Show the mini graphs fot the frequency where the mouse cursor is pointing to
         /// </summary>
@@ -1393,22 +1152,25 @@ namespace QA40xPlot.Actions
         /// <param name="e"></param>
         void ShowCursorMiniGraphs(object s, MouseEventArgs e)
         {
-            if (MeasurementBusy)
+			ScottPlot.Plot myPlot = thdPlot.ThePlot;
+			var thdAmp = ViewSettings.Singleton.ThdAmp;
+
+			if (MeasurementBusy)
                 return;         // Still busy
 
             // determine where the mouse is and get the nearest point
             Pixel mousePixel = new(e.Location.X, e.Location.Y);
-            Coordinates mouseLocation = thdPlot.Plot.GetCoordinates(mousePixel);
-            if (thdPlot.Plot.GetPlottables<Scatter>().Count() == 0)
+            Coordinates mouseLocation = myPlot.GetCoordinates(mousePixel);
+            if (myPlot.GetPlottables<Scatter>().Count() == 0)
                 return;
             
-            DataPoint nearest1 = thdPlot.Plot.GetPlottables<Scatter>().First().Data.GetNearestX(mouseLocation, thdPlot.Plot.LastRender);
+            DataPoint nearest1 = myPlot.GetPlottables<Scatter>().First().Data.GetNearestX(mouseLocation, myPlot.LastRender);
 
             // place the crosshair over the highlighted point
             if (nearest1.IsReal && MeasurementResult.AmplitudeSteps.Count > nearest1.Index)
             {
-                QaLibrary.PlotMiniFftGraph(graphFft, MeasurementResult.AmplitudeSteps[nearest1.Index].fftData, MeasurementResult.MeasurementSettings.EnableLeftChannel && GraphSettings.ShowLeftChannel, MeasurementResult.MeasurementSettings.EnableRightChannel && GraphSettings.ShowRightChannel);
-                QaLibrary.PlotMiniTimeGraph(graphTime, MeasurementResult.AmplitudeSteps[nearest1.Index].timeData, MeasurementResult.AmplitudeSteps[nearest1.Index].FundamentalFrequency, MeasurementResult.MeasurementSettings.EnableLeftChannel && GraphSettings.ShowLeftChannel, MeasurementResult.MeasurementSettings.EnableRightChannel && GraphSettings.ShowRightChannel);
+                QaLibrary.PlotMiniFftGraph(fftPlot, MeasurementResult.AmplitudeSteps[nearest1.Index].fftData, thdAmp.LeftChannel && thdAmp.ShowLeft, thdAmp.RightChannel && thdAmp.ShowRight);
+                QaLibrary.PlotMiniTimeGraph(timePlot, MeasurementResult.AmplitudeSteps[nearest1.Index].timeData, MeasurementResult.AmplitudeSteps[nearest1.Index].FundamentalFrequency, thdAmp.LeftChannel && thdAmp.ShowLeft, thdAmp.RightChannel && thdAmp.ShowRight);
             }
         }
 
@@ -1424,21 +1186,22 @@ namespace QA40xPlot.Actions
         /// <param name="isClick"></param>
         void SetCursorMarker(object s, MouseEventArgs e, bool isClick)
         {
-            if (MeasurementBusy)            // Do not show marker when measurement is still busy
+			ScottPlot.Plot myPlot = thdPlot.ThePlot;
+			if (MeasurementBusy)            // Do not show marker when measurement is still busy
                 return;
 
             // determine where the mouse is and get the nearest point
             Pixel mousePixel = new(e.Location.X, e.Location.Y);
-            Coordinates mouseLocation = thdPlot.Plot.GetCoordinates(mousePixel);
-            if (thdPlot.Plot.GetPlottables<Scatter>().Count() == 0) 
+            Coordinates mouseLocation = myPlot.GetCoordinates(mousePixel);
+            if (myPlot.GetPlottables<Scatter>().Count() == 0) 
                 return;                     // Nothing plotted
 
             // Get nearest x-location in plot
             DataPoint nearest1 = new();
 
-            for (int i = 0; i < thdPlot.Plot.GetPlottables<Scatter>().Count(); i++)
+            for (int i = 0; i < myPlot.GetPlottables<Scatter>().Count(); i++)
             {
-                nearest1 = thdPlot.Plot.GetPlottables<Scatter>().ToList()[i].Data.GetNearestX(mouseLocation, thdPlot.Plot.LastRender);
+                nearest1 = myPlot.GetPlottables<Scatter>().ToList()[i].Data.GetNearestX(mouseLocation, myPlot.LastRender);
                 if (nearest1.IsReal)
                     break;
             }
@@ -1456,7 +1219,7 @@ namespace QA40xPlot.Actions
                     {
                         // Remove marker
                         markerIndex = -1;
-                        thdPlot.Plot.Remove<Crosshair>();
+                        myPlot.Remove<Crosshair>();
                         return;
                     }
                     else
@@ -1751,58 +1514,41 @@ namespace QA40xPlot.Actions
             UpdateGraph(true);
         }
 
+#endif
 
-
-        private void UpdateGraph(bool settingsChanged)
+		public void UpdateGraph(bool settingsChanged)
         {
-            thdPlot.Plot.Remove<Scatter>();             // Remove all current lines
-            int resultNr = 0;
+            thdPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
+			var thdAmp = ViewSettings.Singleton.ThdAmp;
+			int resultNr = 0;
 
-            if (GraphSettings.GraphType == E_ThdAmplitude_GraphType.DB)
+            if (!thdAmp.ShowPercent)
             {
                 if (settingsChanged)
                 {
-                    gbdB_Range.Visible = true;
-                    btnGraph_dB.BackColor = System.Drawing.Color.Cornsilk;
-                    gbD_Range.Visible = false;
-                    btnGraph_D_Percent.BackColor = System.Drawing.Color.WhiteSmoke;
-                    chkShowMagnitude.Enabled = true;
-                    lblCursorMagnitude.Visible = true;
-                    lblCursor_Magnitude_L.Visible = true;
-                    lblCursor_Magnitude_R.Visible = true;
-
                     InitializeMagnitudePlot();
                 }
 
                 foreach (var result in Data.Measurements.Where(m => m.Show))
                 {
-                    PlotMagnitude(result, resultNr++, GraphSettings.ShowLeftChannel, GraphSettings.ShowRightChannel);
+                    PlotMagnitude(result, resultNr++, thdAmp.ShowLeft, thdAmp.ShowRight);
                 }
             }
             else
             {
                 if (settingsChanged)
                 {
-                    gbdB_Range.Visible = false;
-                    btnGraph_dB.BackColor = System.Drawing.Color.WhiteSmoke;
-                    gbD_Range.Visible = true;
-                    btnGraph_D_Percent.BackColor = System.Drawing.Color.Cornsilk;
-                    chkShowMagnitude.Enabled = false;
-                    lblCursorMagnitude.Visible = false;
-                    lblCursor_Magnitude_L.Visible = false;
-                    lblCursor_Magnitude_R.Visible = false;
-
                     InitializeThdPlot();
                 }
 
                 foreach (var result in Data.Measurements.Where(m => m.Show))
                 {
-                    PlotThd(result, resultNr++, GraphSettings.ShowLeftChannel, GraphSettings.ShowRightChannel);
+                    PlotThd(result, resultNr++, thdAmp.ShowLeft, thdAmp.ShowRight);
                 }
             }
         }
 
-
+#if false
         private void btnFitDGraphY_Click(object sender, EventArgs e)
         {
             if (MeasurementResult.AmplitudeSteps.Count == 0)
@@ -2160,14 +1906,14 @@ namespace QA40xPlot.Actions
 
         private void chkGraphShowLeftChannel_CheckedChanged(object sender, EventArgs e)
         {
-            GraphSettings.ShowLeftChannel = chkGraphShowLeftChannel.Checked;
+            thdAmp.ShowLeft = chkGraphShowLeftChannel.Checked;
             UpdateGraphChannelSelectors();
             UpdateGraph(true);
         }
 
         private void chkGraphShowRightChannel_CheckedChanged(object sender, EventArgs e)
         {
-            GraphSettings.ShowRightChannel = chkGraphShowRightChannel.Checked;
+            thdAmp.ShowRight = chkGraphShowRightChannel.Checked;
             UpdateGraphChannelSelectors();
             UpdateGraph(true);
         }
@@ -2186,5 +1932,6 @@ namespace QA40xPlot.Actions
         {
 
         }
+#endif
     }
 }

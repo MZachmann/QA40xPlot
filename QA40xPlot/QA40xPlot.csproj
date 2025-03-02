@@ -15,8 +15,6 @@
     <Compile Remove="Actions\frmFrequencyResponse.Designer.cs" />
     <Compile Remove="Actions\frmMain.cs" />
     <Compile Remove="Actions\frmMain.Designer.cs" />
-    <Compile Remove="Actions\frmThdAmplitude.cs" />
-    <Compile Remove="Actions\frmThdAmplitude.Designer.cs" />
     <Compile Remove="Views\EnumBindingSourceExtension.cs" />
   </ItemGroup>
 
@@ -31,6 +29,18 @@
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.7.25103.5738" />
     <PackageReference Include="FftSharp" Version="2.2.0" />
     <PackageReference Include="ScottPlot.WPF" Version="5.0.54" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="ThdAmpPlotPage.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="ThdAmpPlotPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
 
 </Project>
