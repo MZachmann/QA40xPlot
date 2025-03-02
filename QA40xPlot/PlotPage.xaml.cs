@@ -44,12 +44,27 @@ namespace QA40xPlot
 	/// </summary>
 	public partial class PlotPage : UserControl
 	{
+
+		public void DoStart(object sender, RoutedEventArgs e)
+		{
+			// Implement the logic to start the measurement process
+			var vm = ViewModels.ViewSettings.Singleton.ThdFreq;
+			vm.actThd.StartMeasurement();
+		}
+
+		public void DoStop(object sender, RoutedEventArgs e)
+		{
+			// Implement the logic to start the measurement process
+			var vm = ViewModels.ViewSettings.Singleton.ThdFreq;
+			//vm.actThd.Start();
+		}
+
 		public PlotPage()
 		{
 			InitializeComponent();
 			var vm = ViewModels.ViewSettings.Singleton.ThdFreq;
 			this.DataContext = vm;
-			vm.SetAction(this.WpfPlot1, this.WpfPlot1, this.WpfPlot1);
+			vm.SetAction(this.WpfPlot1, this.WpfPlot2, this.WpfPlot3);
 		}
 
 		private void OnVoltageChanged(object sender, RoutedEventArgs e)

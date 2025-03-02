@@ -12,6 +12,21 @@
     <UserControl.Resources>
         <Style TargetType="TextBox">
             <Setter Property="VerticalAlignment" Value="Center"/>
+            <!-- Ensure the readonly property is visible -->
+            <Style.Triggers>
+                <Trigger Property="IsReadOnly" Value="True">
+                    <Setter Property="Background" Value="LightGray" />
+                </Trigger>
+                <Trigger Property="IsReadOnly" Value="True">
+                    <Setter Property="Foreground" Value="DarkGray" />
+                </Trigger>
+                <Trigger Property="IsReadOnly" Value="False">
+                    <Setter Property="Background" Value="White" />
+                </Trigger>
+                <Trigger Property="IsReadOnly" Value="False">
+                    <Setter Property="Foreground" Value="Black" />
+                </Trigger>
+            </Style.Triggers>
         </Style>
     </UserControl.Resources>
     <Grid Height="Auto" Width="Auto">
@@ -20,8 +35,13 @@
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <GroupBox Header="Measurement Settings" Grid.Column="0">
-            <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+        <StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Button Content="Start" Click="DoStart"></Button>
+                <Button Content="Stop" Click="DoStop"></Button>
+            </StackPanel>
+            <GroupBox Header="Measurement Settings" Grid.Column="0">
+                <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
@@ -38,6 +58,8 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="100" />
+                    <RowDefinition Height="100" />
                 </Grid.RowDefinitions>
                 <Label Content="Set generator by" Grid.Column="0" Grid.Row="0"  />
                 <Label Content="Gen voltage" Grid.Column="0" Grid.Row="1"   />
@@ -50,15 +72,17 @@
                 <Label Content="Steps / Octave" Grid.Column="0" Grid.Row="7"  />
                 <Label Content="Averages" Grid.Column="0" Grid.Row="8"  />
                 <CheckBox Content="Left channel" IsChecked="{Binding LeftChannel}" Grid.Column="0" Grid.Row="9"  />
+                <views:PlotControl x:Name="WpfPlot2" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="10" Width="150" />
+                    <views:PlotControl x:Name="WpfPlot3" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="11" Width="150" />
                 <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  SelectedIndex="{Binding MeasureType}">
                     <ComboBoxItem Content="Input Voltage" />
                     <ComboBoxItem Content="Output Voltage" />
                     <ComboBoxItem Content="Output Power" />
                 </ComboBox>
-                <TextBox Text="{Binding GenVoltage}" Grid.Column="1"  Grid.Row="1" IsEnabled="{Binding ReadVoltage}" LostFocus="OnVoltageChanged" />
+                <TextBox Text="{Binding GenVoltage}" Grid.Column="1"  Grid.Row="1" IsReadOnly="{Binding ReadVoltage}" LostFocus="OnVoltageChanged" />
                 <TextBox Text="{Binding AmpLoad}" Grid.Column="1"  Grid.Row="2"  />
-                <TextBox Text="{Binding OutPower}"  Grid.Column="1" Grid.Row="3"  IsEnabled="{Binding ReadOutPower}"   />
-                <TextBox Text="{Binding OutVoltage}" Grid.Column="1" Grid.Row="4" IsEnabled="{Binding ReadOutVoltage}"  LostFocus="OnAmpVoltageChanged"   />
+                <TextBox Text="{Binding OutPower}"  Grid.Column="1" Grid.Row="3"  IsReadOnly="{Binding ReadOutPower}"   />
+                <TextBox Text="{Binding OutVoltage}" Grid.Column="1" Grid.Row="4" IsReadOnly="{Binding ReadOutVoltage}"  LostFocus="OnAmpVoltageChanged"   />
                 <TextBox Text="{Binding StartFreq}" Grid.Column="1" Grid.Row="5"   />
                 <TextBox Text="{Binding EndFreq}" Grid.Column="1" Grid.Row="6"   />
                 <xctk:IntegerUpDown Value="{Binding StepsOctave}" VerticalAlignment="Center" Grid.Column="1" Grid.Row="7"  />
@@ -74,6 +98,7 @@
                 <Label Content="Hz" Grid.Column="2" Grid.Row="6"  />
             </Grid>
         </GroupBox>
+        </StackPanel>
         <views:PlotControl x:Name="WpfPlot1" Grid.Column="1" />
         <StackPanel Grid.Column="2" Orientation="Vertical">
             <GroupBox Header="dB Range" Visibility="{Binding ToShowdB}">
@@ -150,20 +175,22 @@
                     <CheckBox Content="Noise Floor" IsChecked="{Binding ShowNoiseFloor}" Grid.Row="7"  />
                 </Grid>
             </GroupBox>
-            <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="0"  />
-                <CheckBox Content="Data Points" IsChecked="{Binding ShowPoints}" Grid.Row="1"  />
-                <CheckBox Content="%" IsChecked="{Binding ShowPercent}" Grid.Row="2"  />
-                <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="3"  />
-                <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="4"  />
-            </Grid>
+            <GroupBox Header="Options">
+                <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="0"  />
+                    <CheckBox Content="Data Points" IsChecked="{Binding ShowPoints}" Grid.Row="1"  />
+                    <CheckBox Content="%" IsChecked="{Binding ShowPercent}" Grid.Row="2"  />
+                    <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="3"  />
+                    <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="4"  />
+                </Grid>
+            </GroupBox>
         </StackPanel>
     </Grid>
 </UserControl>

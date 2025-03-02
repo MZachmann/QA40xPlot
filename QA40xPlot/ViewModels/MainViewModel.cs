@@ -9,23 +9,33 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _ProgressMessage; set => SetProperty(ref _ProgressMessage, value);
 		}
-		private String _ProgressBar = String.Empty;         // type of alert
-		public String ProgressBar
+		private int _ProgressAmount = 0;         // type of alert
+		public int ProgressAmount
 		{
-			get => _ProgressBar; set => SetProperty(ref _ProgressBar, value);
+			get => _ProgressAmount; set => SetProperty(ref _ProgressAmount, value);
 		}
-#endregion
+		private int _ProgressMax = 0;
+		public int ProgressMax
+		{
+			get => _ProgressMax; set => SetProperty(ref _ProgressMax, value);
+		}
+		#endregion
 
-		public async Task ShowProgressMessage(String message, int delay = 0)
+		public async Task SetProgressMessage(String message, int delay = 0)
 		{
 			ProgressMessage = message;
 			if (delay > 0)
 				await Task.Delay(delay);
 		}
 
-		public async Task ShowProgressBar(String message, int delay = 0)
+		public void SetupProgressBar(int most)
 		{
-			ProgressBar = message;
+			ProgressMax = most;
+		}
+
+		public async Task SetProgressBar(int progress, int delay = 0)
+		{
+			ProgressAmount = progress;
 			if (delay > 0)
 				await Task.Delay(delay);
 		}

@@ -8,6 +8,8 @@ using System.Data;
 using System.Threading.Tasks;
 using System.Windows;
 
+// various things for the thd vs frequency activity
+
 namespace QA40xPlot.Actions
 {
 
@@ -40,232 +42,25 @@ namespace QA40xPlot.Actions
 
 			ct = new CancellationTokenSource();
 
-            //PopulateMeasurementSettingsComboBoxes();
-            //PopulateGraphSettingsComboBoxes();
-
-            //SetDefaultMeasurementSettings(ref MeasurementSettings);
-            //SetDefaultGraphSettings(ref GraphSettings);
-            
-            //SetMeasurementControls(MeasurementSettings);
-            //SetGraphControls(GraphSettings);
-
             // Show empty graphs
             ThdFreqViewModel thd = ViewSettings.Singleton.ThdFreq;
 			QaLibrary.InitMiniFftPlot(fftPlot, thd.StartFreq, thd.EndFreq, -150, 20);
             QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -1, 1);
 
-
             // TODO: depends on graph settings which graph is shown
             UpdateGraph(true);
 
-            //Program.MainForm.ClearMessage();
-            //Program.MainForm.HideProgressBar();
             AttachPlotMouseEvent();
         }
 
-#if FALSE
-        void PopulateMeasurementSettingsComboBoxes()
-        {
-            var items = new List<KeyValuePair<double, string>>
-            {
-                new (0, "Input voltage"),
-                new (1, "Output voltage"),
-                new (2, "Output power")
-            };
-            ComboBoxHelper.PopulateComboBox(cmbGeneratorType, items);
-
-            items = new List<KeyValuePair<double, string>>
-            {
-                new (0, "mV"),
-                new (1, "V"),
-                new (2, "dBV")
-            };
-            ComboBoxHelper.PopulateComboBox(cmbGeneratorVoltageUnit, items);
-            ComboBoxHelper.PopulateComboBox(cmbAmplifierOutputVoltageUnit, items);
-        }
-
-        void PopulateGraphSettingsComboBoxes()
-        {
-            var items = new List<KeyValuePair<double, string>>
-            {
-                new (100, "100"),
-                new (10, "10"),
-                new (1, "1"),
-				new (0.1, "0.1"),
-				new (0.01, "0.01")
-            };
-            ComboBoxHelper.PopulateComboBox(cmbD_Graph_Top, items);
-
-            items = new List<KeyValuePair<double, string>>
-            {
-                new (0.1, "0.1"),
-                new (0.01, "0.01"),
-                new (0.001, "0.001"),
-                new (0.0001, "0.0001"),
-                new (0.00001, "0.00001"),
-                new (0.000001, "0.000001")
-            };
-            ComboBoxHelper.PopulateComboBox(cmbD_Graph_Bottom, items);
-
-            items = new List<KeyValuePair<double, string>>
-            {
-                new (5, "5"),
-                new (10, "10"),
-                new (20, "20"),
-                new (50, "50"),
-                new (100, "100"),
-                new (200, "200"),
-                new (500, "500")
-            };
-            ComboBoxHelper.PopulateComboBox(cmbGraph_FreqStart, items);
-
-            items = new List<KeyValuePair<double, string>>
-            {
-                new (1000, "1000"),
-                new (2000, "2000"),
-                new (5000, "5000"),
-                new (10000, "10000"),
-                new (20000, "20000"),
-                new (50000, "50000"),
-                new (100000, "100000")
-            };
-            ComboBoxHelper.PopulateComboBox(cmbGraph_FreqEnd, items);
-        }
-
-        /// <summary>
-        /// Initialize Settings with default settings
-        /// </summary>
-        void SetDefaultMeasurementSettings(ref ThdFrequencyMeasurementSettings settings)
-        {
-            // Initialize with default measurement settings
-            settings.StartFrequency = 20;
-            settings.EndFrequency = 20000;  
-            settings.SampleRate = 192000;
-            settings.FftSize = 65536 * 2;
-            settings.WindowingFunction = Windowing.Hann;
-            settings.InputRange = 18;
-            settings.GeneratorType = E_GeneratorType.INPUT_VOLTAGE;         
-            settings.GeneratorAmplitude = -25;
-            settings.GeneratorAmplitudeUnit = E_VoltageUnit.dBV;
-            settings.StepsPerOctave = 2;
-            settings.Averages = 1;
-            settings.Load = 8;                      // Amplifier load (Ohm)
-            settings.AmpOutputPower = 1;            // Output power (Watt)
-            settings.AmpOutputAmplitude = 9.03;     
-            settings.AmpOutputAmplitudeUnit = E_VoltageUnit.dBV;
-            settings.EnableLeftChannel = true;
-            settings.EnableRightChannel = true;
-        }
-
-        /// <summary>
-        /// Initializer with default graph settings
-        /// </summary>
-        void SetDefaultGraphSettings(ref ThdFrequencyGraphSettings settings)
-        {
-            settings = new()
-            {
-                DbRangeTop = 10,
-                DbRangeBottom = -150,
-                D_PercentTop = 10,
-                D_PercentBottom = 0.0001,
-
-                FrequencyRange_Start = 20,
-                FrequencyRange_End = 20000,
-
-                GraphType = E_ThdFreq_GraphType.DB,
-                ShowMagnitude = true,
-                ShowTHD = true,
-                ShowD2 = true,
-                ShowD3 = true,
-                ShowD4 = true,
-                ShowD5 = true,
-                ShowD6 = true,
-                ShowNoiseFloor = true,
-
-                ThickLines = true,
-                ShowDataPoints = false,
-
-                ShowLeftChannel = true,
-                ShowRightChannel = true
-            };
-        }
-
-        /// <summary>
-        /// Set initial control values
-        /// </summary>
-        void SetMeasurementControls(ThdFrequencyMeasurementSettings settings)
-        {
-            cmbGeneratorType.SelectedIndex = (int)settings.GeneratorType;                     
-            txtGeneratorVoltage.ReadOnly = settings.GeneratorType  != 0;
-            txtGeneratorVoltage.Text = settings.GeneratorAmplitude.ToString("#0.0##");
-            cmbGeneratorVoltageUnit.SelectedIndex = (int)settings.GeneratorAmplitudeUnit;
-            txtAmplifierOutputVoltage.Text = settings.AmpOutputAmplitude.ToString("#0.0##");
-            cmbAmplifierOutputVoltageUnit.SelectedIndex = (int)settings.AmpOutputAmplitudeUnit;
-            txtOutputLoad.Text = settings.Load.ToString();
-            txtAmplifierOutputPower.Text = settings.AmpOutputPower.ToString();
-            txtStartFrequency.Text = settings.StartFrequency.ToString();
-            txtEndFrequency.Text = settings.EndFrequency.ToString();
-            udStepsOctave.Value = settings.StepsPerOctave;
-            udAverages.Value = settings.Averages;
-
-            chkEnableLeftChannel.Checked = settings.EnableLeftChannel;
-            chkEnableRightChannel.Checked = settings.EnableRightChannel;  
-        }
-
-        void SetGraphControls(ThdFrequencyGraphSettings graphSettings)
-        {
-            // Align controls
-            gbdB_Range.Left = gbD_Range.Left;
-            gbdB_Range.Top = gbD_Range.Top;
-            // Set correct groupbox visibility
-            gbdB_Range.Visible = graphSettings.GraphType == E_ThdFreq_GraphType.DB;
-            gbD_Range.Visible = graphSettings.GraphType == E_ThdFreq_GraphType.D_PERCENT;
-
-            ComboBoxHelper.SelectNearestValue(cmbD_Graph_Top, graphSettings.D_PercentTop);
-            ComboBoxHelper.SelectNearestValue(cmbD_Graph_Bottom, graphSettings.D_PercentBottom);
-            ud_dB_Graph_Top.Value = (decimal)graphSettings.DbRangeTop;
-            ud_dB_Graph_Bottom.Value = (decimal)graphSettings.DbRangeBottom;
-            SetStartFrequencySelectedIndexByFrequency(graphSettings.FrequencyRange_Start);
-            SetEndFrequencySelectedIndexByFrequency(graphSettings.FrequencyRange_End);
-
-            chkShowMagnitude.Checked = graphSettings.ShowMagnitude;
-            chkShowThd.Checked = graphSettings.ShowTHD;
-            chkShowD2.Checked = graphSettings.ShowD2;
-            chkShowD3.Checked = graphSettings.ShowD3;
-            chkShowD4.Checked = graphSettings.ShowD4;
-            chkShowD5.Checked = graphSettings.ShowD5;
-            chkShowD6.Checked = graphSettings.ShowD6;
-            chkShowNoiseFloor.Checked = graphSettings.ShowNoiseFloor;
-
-            chkThickLines.Checked = graphSettings.ThickLines;
-            chkShowDataPoints.Checked = graphSettings.ShowDataPoints;
-
-            chkGraphShowLeftChannel.Checked = thd.ShowLeft;
-            chkGraphShowLeftChannel.Visible = chkEnableLeftChannel.Checked;
-            chkGraphShowRightChannel.Checked = thd.ShowRight;
-            chkGraphShowRightChannel.Visible = chkEnableRightChannel.Checked;
-        }
-
-#endif
 		/// <summary>
 		/// Update the generator voltage in the textbox based on the selected unit.
 		/// If the unit changes then the voltage will be converted
 		/// </summary>
-		void UpdateGeneratorVoltageDisplay()
+		public void UpdateGeneratorVoltageDisplay()
         {
 			var vm = ViewSettings.Singleton.ThdFreq;
-			switch (vm.GeneratorUnits)
-            {
-                case 0: // mV
-                    vm.GenVoltage = ((int)QaLibrary.ConvertVoltage(vm.GeneratorAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.MilliVolt)); // Whole numbers onyl, so cast to integer
-                    break;
-                case 1: // V
-                    vm.GenVoltage = QaLibrary.ConvertVoltage(vm.GeneratorAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
-                    break;
-                case 2: // dB
-                    vm.GenVoltage = QaLibrary.ConvertVoltage(vm.GeneratorAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.dBV);
-                    break;
-            }
+			vm.GenVoltage = QaLibrary.ConvertVoltage(vm.GeneratorAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)vm.GeneratorUnits);
         }
 
 		/// <summary>
@@ -298,21 +93,21 @@ namespace QA40xPlot.Actions
 			switch (vm.MeasureType)
             {
                 case 0: // Input voltage
-                    vm.ReadVoltage = true;
-					vm.ReadOutPower = false;
-					vm.ReadOutVoltage = false;
-                    UpdateGeneratorVoltageDisplay();
-                    break;
-                case 1: // Output voltage
 					vm.ReadVoltage = false;
-					vm.ReadOutPower = false;
+					vm.ReadOutPower = true;
 					vm.ReadOutVoltage = true;
 					UpdateGeneratorVoltageDisplay();
 					break;
-                case 2: // Output power
-					vm.ReadVoltage = false;
+				case 1: // Output voltage
+					vm.ReadVoltage = true;
 					vm.ReadOutPower = true;
 					vm.ReadOutVoltage = false;
+					UpdateGeneratorVoltageDisplay();
+					break;
+				case 2: // Output power
+					vm.ReadVoltage = true;
+					vm.ReadOutPower = false;
+					vm.ReadOutVoltage = true;
 					//vm.OutPower = QaLibrary.ParseTextToDouble(txtAmplifierOutputPower.Text, MeasurementSettings.AmpOutputPower);
 					//vm.AmpLoad = QaLibrary.ParseTextToDouble(txtOutputLoad.Text, MeasurementSettings.Load);
 					//vm.Voltage = Math.Sqrt(MeasurementSettings.AmpOutputPower * MeasurementSettings.Load);      // Expected output DUT amplitude in Volts
@@ -324,9 +119,14 @@ namespace QA40xPlot.Actions
 
         private async Task showMessage(String msg, int delay = 0)
         {
-			//lbl_Message.Text = message;
-			if (delay > 0)
-				await Task.Delay(delay);
+            var vm = ViewModels.ViewSettings.Singleton.Main;
+            await vm.SetProgressMessage(msg, delay);
+		}
+
+		private async Task showProgress(int progress, int delay = 0)
+		{
+			var vm = ViewModels.ViewSettings.Singleton.Main;
+			await vm.SetProgressBar(progress, delay);
 		}
 
 		/// <summary>
@@ -364,7 +164,7 @@ namespace QA40xPlot.Actions
 			QaLibrary.InitMiniFftPlot(fftPlot, thd.StartFreq, thd.EndFreq, -150, 20);
             QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -1, 1);
 
-            // Check if webserver available and device connected
+            // Check if REST interface is available and device connected
             if (await QaLibrary.CheckDeviceConnected() == false)
                 return false;
            
@@ -489,7 +289,7 @@ namespace QA40xPlot.Actions
                 for (int f = 0; f < stepBinFrequencies.Length; f++)
                 {
                     await showMessage($"Measuring step {f + 1} of {stepBinFrequencies.Length}.");
-                    //!Program.MainForm.UpdateProgressBar(f + 1);
+					await showProgress(100*(f + 1)/ stepBinFrequencies.Length);
 
                     // Set the generator
                     double amplitudeSetpointdBV = QaLibrary.ConvertVoltage(thd.GeneratorAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.dBV);
@@ -1347,28 +1147,28 @@ namespace QA40xPlot.Actions
         /// </summary>
         /// <param name="s"></param>
         /// <param name="e"></param>
-   //     void ShowCursorMiniGraphs(object s, MouseEventArgs e)
-   //     {
-			//ScottPlot.Plot myPlot = thdPlot.ThePlot;
+        //     void ShowCursorMiniGraphs(object s, MouseEventArgs e)
+        //     {
+        //ScottPlot.Plot myPlot = thdPlot.ThePlot;
 
-			//if (MeasurementBusy)
-   //             return;         // Still busy
+        //if (MeasurementBusy)
+        //             return;         // Still busy
 
-   //         // determine where the mouse is and get the nearest point
-   //         Pixel mousePixel = new(e.Location.X, e.Location.Y);
-   //         Coordinates mouseLocation = myPlot.GetCoordinates(mousePixel);
-   //         if (myPlot.GetPlottables<Scatter>().Count() == 0)
-   //             return;
+        //         // determine where the mouse is and get the nearest point
+        //         Pixel mousePixel = new(e.Location.X, e.Location.Y);
+        //         Coordinates mouseLocation = myPlot.GetCoordinates(mousePixel);
+        //         if (myPlot.GetPlottables<Scatter>().Count() == 0)
+        //             return;
 
-   //         DataPoint nearest1 = myPlot.GetPlottables<Scatter>().First().Data.GetNearestX(mouseLocation, myPlot.LastRender);
+        //         DataPoint nearest1 = myPlot.GetPlottables<Scatter>().First().Data.GetNearestX(mouseLocation, myPlot.LastRender);
 
-   //         // place the crosshair over the highlighted point
-   //         if (nearest1.IsReal && MeasurementResult.FrequencySteps.Count > nearest1.Index)
-   //         {
-   //             QaLibrary.PlotMiniFftGraph(fftPlot, MeasurementResult.FrequencySteps[nearest1.Index].fftData, MeasurementResult.MeasurementSettings.EnableLeftChannel && thd.ShowLeft, MeasurementResult.MeasurementSettings.EnableRightChannel && thd.ShowRight);
-   //             QaLibrary.PlotMiniTimeGraph(timePlot, MeasurementResult.FrequencySteps[nearest1.Index].timeData, MeasurementResult.FrequencySteps[nearest1.Index].FundamentalFrequency, MeasurementResult.MeasurementSettings.EnableLeftChannel && thd.ShowLeft, MeasurementResult.MeasurementSettings.EnableRightChannel && thd.ShowRight);
-   //         }
-   //     }
+        //         // place the crosshair over the highlighted point
+        //         if (nearest1.IsReal && MeasurementResult.FrequencySteps.Count > nearest1.Index)
+        //         {
+        //             QaLibrary.PlotMiniFftGraph(fftPlot, MeasurementResult.FrequencySteps[nearest1.Index].fftData, MeasurementResult.MeasurementSettings.EnableLeftChannel && thd.ShowLeft, MeasurementResult.MeasurementSettings.EnableRightChannel && thd.ShowRight);
+        //             QaLibrary.PlotMiniTimeGraph(timePlot, MeasurementResult.FrequencySteps[nearest1.Index].timeData, MeasurementResult.FrequencySteps[nearest1.Index].FundamentalFrequency, MeasurementResult.MeasurementSettings.EnableLeftChannel && thd.ShowLeft, MeasurementResult.MeasurementSettings.EnableRightChannel && thd.ShowRight);
+        //         }
+        //     }
 
         /// <summary>
         /// Draw a cursor marker and update cursor texts
@@ -1376,180 +1176,133 @@ namespace QA40xPlot.Actions
         /// <param name="s"></param>
         /// <param name="e"></param>
         /// <param name="isClick"></param>
-   //     void SetCursorMarker(object s, MouseEventArgs e, bool isClick)
-   //     {
-			//ScottPlot.Plot myPlot = thdPlot.ThePlot;
+        //     void SetCursorMarker(object s, MouseEventArgs e, bool isClick)
+        //     {
+        //ScottPlot.Plot myPlot = thdPlot.ThePlot;
 
-			//if (MeasurementBusy)
-   //             return;
+        //if (MeasurementBusy)
+        //             return;
 
-   //         // determine where the mouse is and get the nearest point
-   //         Pixel mousePixel = new(e.Location.X, e.Location.Y);
-   //         Coordinates mouseLocation = myPlot.GetCoordinates(mousePixel);
-   //         if (myPlot.GetPlottables<Scatter>().Count() == 0)
-   //             return;
-   //         DataPoint nearest1 = myPlot.GetPlottables<Scatter>().First().Data.GetNearestX(mouseLocation, myPlot.LastRender);
+        //         // determine where the mouse is and get the nearest point
+        //         Pixel mousePixel = new(e.Location.X, e.Location.Y);
+        //         Coordinates mouseLocation = myPlot.GetCoordinates(mousePixel);
+        //         if (myPlot.GetPlottables<Scatter>().Count() == 0)
+        //             return;
+        //         DataPoint nearest1 = myPlot.GetPlottables<Scatter>().First().Data.GetNearestX(mouseLocation, myPlot.LastRender);
 
-   //         // place the crosshair over the highlighted point
-   //         if (nearest1.IsReal)
-   //         {
-   //             float lineWidth = (GraphSettings.ThickLines ? 1.6f : 1);
-   //             LinePattern linePattern = LinePattern.DenselyDashed;
+        //         // place the crosshair over the highlighted point
+        //         if (nearest1.IsReal)
+        //         {
+        //             float lineWidth = (GraphSettings.ThickLines ? 1.6f : 1);
+        //             LinePattern linePattern = LinePattern.DenselyDashed;
 
-   //             if (isClick)
-   //             {
-   //                 // Mouse click
-   //                 if (nearest1.Index == markerIndex)
-   //                 {
-   //                     // Remove marker
-   //                     markerIndex = -1;
-   //                     myPlot.Remove<Crosshair>();
-   //                     return;
-   //                 }
-   //                 else
-   //                 {
-   //                     markerIndex = nearest1.Index;
-   //                     markerDataPoint = nearest1;
-   //                     linePattern = LinePattern.Solid;
-   //                 }
-   //             }
-   //             else
-   //             {
-   //                 // Mouse hoover
-   //                 if (markerIndex != -1)
-   //                     return;                     // Do not show new marker. There is already a clicked marker
-   //             }
+        //             if (isClick)
+        //             {
+        //                 // Mouse click
+        //                 if (nearest1.Index == markerIndex)
+        //                 {
+        //                     // Remove marker
+        //                     markerIndex = -1;
+        //                     myPlot.Remove<Crosshair>();
+        //                     return;
+        //                 }
+        //                 else
+        //                 {
+        //                     markerIndex = nearest1.Index;
+        //                     markerDataPoint = nearest1;
+        //                     linePattern = LinePattern.Solid;
+        //                 }
+        //             }
+        //             else
+        //             {
+        //                 // Mouse hoover
+        //                 if (markerIndex != -1)
+        //                     return;                     // Do not show new marker. There is already a clicked marker
+        //             }
 
-   //             QaLibrary.PlotCursorMarker(thdPlot, lineWidth, linePattern, nearest1);
-
-
-   //             if (MeasurementResult.FrequencySteps.Count > nearest1.Index)
-   //             {
-   //                 ThdFrequencyStep step = MeasurementResult.FrequencySteps[nearest1.Index];
-
-   //                 if (GraphSettings.GraphType == E_ThdFreq_GraphType.DB)
-   //                 {
-   //                     WriteCursorTexts_dB_L(step.FundamentalFrequency
-   //                     , step.Left.Gain_dB
-   //                     , step.Left.Thd_dB - step.Left.Fundamental_dBV
-   //                     , (step.Left.Harmonics.Count > 0 ? step.Left.Harmonics[0].Amplitude_dBV - step.Left.Fundamental_dBV : 0)   // 2nd harmonic
-   //                     , (step.Left.Harmonics.Count > 1 ? step.Left.Harmonics[1].Amplitude_dBV - step.Left.Fundamental_dBV : 0)
-   //                     , (step.Left.Harmonics.Count > 2 ? step.Left.Harmonics[2].Amplitude_dBV - step.Left.Fundamental_dBV : 0)
-   //                     , (step.Left.Harmonics.Count > 3 ? step.Left.Harmonics[3].Amplitude_dBV - step.Left.Fundamental_dBV : 0)
-   //                     , (step.Left.Harmonics.Count > 4 ? step.Left.D6Plus_dBV - step.Left.Fundamental_dBV : 0)                   // 6+ harmonics
-   //                     , step.Left.Power_Watt
-   //                     , step.Left.Average_NoiseFloor_dBV - step.Left.Fundamental_dBV
-   //                     , MeasurementResult.MeasurementSettings.Load
-   //                     );
-
-   //                     WriteCursorTexts_dB_R(step.FundamentalFrequency
-   //                     , step.Right.Gain_dB
-   //                     , step.Right.Thd_dB - step.Right.Fundamental_dBV
-   //                     , (step.Right.Harmonics.Count > 0 ? step.Right.Harmonics[0].Amplitude_dBV - step.Right.Fundamental_dBV : 0)   // 2nd harmonic
-   //                     , (step.Right.Harmonics.Count > 1 ? step.Right.Harmonics[1].Amplitude_dBV - step.Right.Fundamental_dBV : 0)
-   //                     , (step.Right.Harmonics.Count > 2 ? step.Right.Harmonics[2].Amplitude_dBV - step.Right.Fundamental_dBV : 0)
-   //                     , (step.Right.Harmonics.Count > 3 ? step.Right.Harmonics[3].Amplitude_dBV - step.Right.Fundamental_dBV : 0)
-   //                     , (step.Right.Harmonics.Count > 4 ? step.Right.D6Plus_dBV - step.Right.Fundamental_dBV : 0)                   // 6+ harmonics
-   //                     , step.Right.Power_Watt
-   //                     , step.Right.Average_NoiseFloor_dBV - step.Right.Fundamental_dBV
-   //                     , MeasurementResult.MeasurementSettings.Load
-   //                     );
-   //                 }
-   //                 else
-   //                 {
-   //                     WriteCursorTexts_Dpercent_L(step.FundamentalFrequency
-   //                     , step.Left.Gain_dB
-   //                     , step.Left.Thd_Percent
-   //                     , (step.Left.Harmonics.Count > 0 ? step.Left.Harmonics[0].Thd_Percent : 0)     // 2nd harmonic
-   //                     , (step.Left.Harmonics.Count > 1 ? step.Left.Harmonics[1].Thd_Percent : 0)
-   //                     , (step.Left.Harmonics.Count > 2 ? step.Left.Harmonics[2].Thd_Percent : 0)
-   //                     , (step.Left.Harmonics.Count > 3 ? step.Left.Harmonics[3].Thd_Percent : 0)
-   //                     , (step.Left.Harmonics.Count > 4 ? step.Left.ThdPercent_D6plus : 0)                   // 6+ harmonics
-   //                     , step.Left.Power_Watt
-   //                     , (step.Left.Average_NoiseFloor_V / step.Left.Fundamental_V) * 100
-   //                     , MeasurementResult.MeasurementSettings.Load
-   //                     );
-
-   //                     WriteCursorTexts_Dpercent_R(step.FundamentalFrequency
-   //                     , step.Right.Gain_dB
-   //                     , step.Right.Thd_Percent
-   //                     , (step.Right.Harmonics.Count > 0 ? step.Right.Harmonics[0].Thd_Percent : 0)     // 2nd harmonic
-   //                     , (step.Right.Harmonics.Count > 1 ? step.Right.Harmonics[1].Thd_Percent : 0)
-   //                     , (step.Right.Harmonics.Count > 2 ? step.Right.Harmonics[2].Thd_Percent : 0)
-   //                     , (step.Right.Harmonics.Count > 3 ? step.Right.Harmonics[3].Thd_Percent : 0)
-   //                     , (step.Right.Harmonics.Count > 4 ? step.Right.ThdPercent_D6plus : 0)                   // 6+ harmonics
-   //                     , step.Right.Power_Watt
-   //                     , (step.Right.Average_NoiseFloor_V / step.Right.Fundamental_V) * 100
-   //                     , MeasurementResult.MeasurementSettings.Load
-   //                     );
-   //                 }
+        //             QaLibrary.PlotCursorMarker(thdPlot, lineWidth, linePattern, nearest1);
 
 
-   //             }
+        //             if (MeasurementResult.FrequencySteps.Count > nearest1.Index)
+        //             {
+        //                 ThdFrequencyStep step = MeasurementResult.FrequencySteps[nearest1.Index];
 
-   //         }
-   //     }
+        //                 if (GraphSettings.GraphType == E_ThdFreq_GraphType.DB)
+        //                 {
+        //                     WriteCursorTexts_dB_L(step.FundamentalFrequency
+        //                     , step.Left.Gain_dB
+        //                     , step.Left.Thd_dB - step.Left.Fundamental_dBV
+        //                     , (step.Left.Harmonics.Count > 0 ? step.Left.Harmonics[0].Amplitude_dBV - step.Left.Fundamental_dBV : 0)   // 2nd harmonic
+        //                     , (step.Left.Harmonics.Count > 1 ? step.Left.Harmonics[1].Amplitude_dBV - step.Left.Fundamental_dBV : 0)
+        //                     , (step.Left.Harmonics.Count > 2 ? step.Left.Harmonics[2].Amplitude_dBV - step.Left.Fundamental_dBV : 0)
+        //                     , (step.Left.Harmonics.Count > 3 ? step.Left.Harmonics[3].Amplitude_dBV - step.Left.Fundamental_dBV : 0)
+        //                     , (step.Left.Harmonics.Count > 4 ? step.Left.D6Plus_dBV - step.Left.Fundamental_dBV : 0)                   // 6+ harmonics
+        //                     , step.Left.Power_Watt
+        //                     , step.Left.Average_NoiseFloor_dBV - step.Left.Fundamental_dBV
+        //                     , MeasurementResult.MeasurementSettings.Load
+        //                     );
+
+        //                     WriteCursorTexts_dB_R(step.FundamentalFrequency
+        //                     , step.Right.Gain_dB
+        //                     , step.Right.Thd_dB - step.Right.Fundamental_dBV
+        //                     , (step.Right.Harmonics.Count > 0 ? step.Right.Harmonics[0].Amplitude_dBV - step.Right.Fundamental_dBV : 0)   // 2nd harmonic
+        //                     , (step.Right.Harmonics.Count > 1 ? step.Right.Harmonics[1].Amplitude_dBV - step.Right.Fundamental_dBV : 0)
+        //                     , (step.Right.Harmonics.Count > 2 ? step.Right.Harmonics[2].Amplitude_dBV - step.Right.Fundamental_dBV : 0)
+        //                     , (step.Right.Harmonics.Count > 3 ? step.Right.Harmonics[3].Amplitude_dBV - step.Right.Fundamental_dBV : 0)
+        //                     , (step.Right.Harmonics.Count > 4 ? step.Right.D6Plus_dBV - step.Right.Fundamental_dBV : 0)                   // 6+ harmonics
+        //                     , step.Right.Power_Watt
+        //                     , step.Right.Average_NoiseFloor_dBV - step.Right.Fundamental_dBV
+        //                     , MeasurementResult.MeasurementSettings.Load
+        //                     );
+        //                 }
+        //                 else
+        //                 {
+        //                     WriteCursorTexts_Dpercent_L(step.FundamentalFrequency
+        //                     , step.Left.Gain_dB
+        //                     , step.Left.Thd_Percent
+        //                     , (step.Left.Harmonics.Count > 0 ? step.Left.Harmonics[0].Thd_Percent : 0)     // 2nd harmonic
+        //                     , (step.Left.Harmonics.Count > 1 ? step.Left.Harmonics[1].Thd_Percent : 0)
+        //                     , (step.Left.Harmonics.Count > 2 ? step.Left.Harmonics[2].Thd_Percent : 0)
+        //                     , (step.Left.Harmonics.Count > 3 ? step.Left.Harmonics[3].Thd_Percent : 0)
+        //                     , (step.Left.Harmonics.Count > 4 ? step.Left.ThdPercent_D6plus : 0)                   // 6+ harmonics
+        //                     , step.Left.Power_Watt
+        //                     , (step.Left.Average_NoiseFloor_V / step.Left.Fundamental_V) * 100
+        //                     , MeasurementResult.MeasurementSettings.Load
+        //                     );
+
+        //                     WriteCursorTexts_Dpercent_R(step.FundamentalFrequency
+        //                     , step.Right.Gain_dB
+        //                     , step.Right.Thd_Percent
+        //                     , (step.Right.Harmonics.Count > 0 ? step.Right.Harmonics[0].Thd_Percent : 0)     // 2nd harmonic
+        //                     , (step.Right.Harmonics.Count > 1 ? step.Right.Harmonics[1].Thd_Percent : 0)
+        //                     , (step.Right.Harmonics.Count > 2 ? step.Right.Harmonics[2].Thd_Percent : 0)
+        //                     , (step.Right.Harmonics.Count > 3 ? step.Right.Harmonics[3].Thd_Percent : 0)
+        //                     , (step.Right.Harmonics.Count > 4 ? step.Right.ThdPercent_D6plus : 0)                   // 6+ harmonics
+        //                     , step.Right.Power_Watt
+        //                     , (step.Right.Average_NoiseFloor_V / step.Right.Fundamental_V) * 100
+        //                     , MeasurementResult.MeasurementSettings.Load
+        //                     );
+        //                 }
+
+
+        //             }
+
+        //         }
+        //     }
 
 
         /// <summary>
         ///  Start measurement button click
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        //private async void btnStartMeasurement_Click(object sender, EventArgs e)
-        //{
-        //    MeasurementBusy = true;
-        //    btnStopThdMeasurement.Enabled = true;
-        //    btnStopThdMeasurement.ForeColor = System.Drawing.Color.Black;
-        //    btnStartThdMeasurement.Enabled = false;
-        //    btnStartThdMeasurement.ForeColor = System.Drawing.Color.DimGray;
-        //    ct = new();
-        //    await PerformMeasurementSteps(ct.Token);
-        //    Program.MainForm.ClearMessage();
-        //    //!Program.MainForm.HideProgressBar();
-        //    MeasurementBusy = false;
-        //    btnStopThdMeasurement.Enabled = false;
-        //    btnStopThdMeasurement.ForeColor = System.Drawing.Color.DimGray;
-        //    btnStartThdMeasurement.Enabled = true;
-        //    btnStartThdMeasurement.ForeColor = System.Drawing.Color.Black;
-        //}
+        public async void StartMeasurement()
+        {
+            MeasurementBusy = true;
+            ct = new();
+            await PerformMeasurementSteps(ct.Token);
+            showMessage(string.Empty);
+            MeasurementBusy = false;
+        }
 
-
-        /// <summary>
-        /// Generator type changed event
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        //private void cmbGenType_SelectedIndexChanged(object sender, EventArgs e)
-        //{
-        //    MeasurementSettings.GeneratorType = (E_GeneratorType)cmbGeneratorType.SelectedIndex;
-        //    UpdateGeneratorParameters();
-        //}
-
-        /// <summary>
-        /// Voltage unit changed event
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        //private void cmbVoltageUnit_SelectedIndexChanged(object sender, EventArgs e)
-        //{
-        //    UpdateGeneratorVoltageDisplay();
-        //}
-
-        /// <summary>
-        /// Generator voltage change event
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        //private void txtGenVoltage_TextChanged(object sender, EventArgs e)
-        //{
-        //    if (txtGeneratorVoltage.Focused)
-        //    {
-        //        MeasurementSettings.GeneratorAmplitude = QaLibrary.ParseTextToDouble(txtGeneratorVoltage.Text, MeasurementSettings.GeneratorAmplitude);
-        //        MeasurementSettings.GeneratorAmplitudeUnit = (E_VoltageUnit)cmbGeneratorVoltageUnit.SelectedIndex;
-        //    }
-        //    ValidateGeneratorAmplitude(sender);
-        //}
 
         /// <summary>
         /// Validate the generator voltage and show red text if invalid
@@ -1563,235 +1316,6 @@ namespace QA40xPlot.Actions
         //        QaLibrary.ValidateRangeAdorner(sender, QaLibrary.MINIMUM_GENERATOR_VOLTAGE_V, QaLibrary.MAXIMUM_GENERATOR_VOLTAGE_V);     // V
         //    else
         //        QaLibrary.ValidateRangeAdorner(sender, QaLibrary.MINIMUM_GENERATOR_VOLTAGE_DBV, QaLibrary.MAXIMUM_GENERATOR_VOLTAGE_DBV);       // dBV
-        //}
-
-        /// <summary>
-        /// Generator voltage keypress event
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        //private void txtGenVoltage_KeyPress(object sender, KeyPressEventArgs e)
-        //{
-        //    QaLibrary.AllowNumericInput(sender, e, false);
-        //}
-
-        /// <summary>
-        /// Output load change event
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        //private void txtOutputLoad_TextChanged(object sender, EventArgs e)
-        //{
-        //    MeasurementSettings.Load = QaLibrary.ParseTextToDouble(txtOutputLoad.Text, MeasurementSettings.Load);
-        //    UpdateGeneratorParameters();
-        //    QaLibrary.ValidateRangeAdorner(sender, QaLibrary.MINIMUM_LOAD, QaLibrary.MAXIMUM_LOAD);
-        //}
-
-        /// <summary>
-        /// Output power change event
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        //private void txtOutputPower_TextChanged(object sender, EventArgs e)
-        //{
-        //    MeasurementSettings.AmpOutputPower = QaLibrary.ParseTextToDouble(txtAmplifierOutputPower.Text, MeasurementSettings.AmpOutputPower);
-        //    UpdateGeneratorParameters();
-        //    QaLibrary.ValidateRangeAdorner(sender, 0, 1000);
-        //}
-
-
-        /// <summary>
-        /// Amount of steps per octave change event
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        //private void udStepsOctave_ValueChanged(object sender, EventArgs e)
-        //{
-        //    MeasurementSettings.StepsPerOctave = Convert.ToUInt16(udStepsOctave.Value);
-        //}
-
-        /// <summary>
-        /// Amount of averages change event
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        //private void udAverages_ValueChanged(object sender, EventArgs e)
-        //{
-        //    MeasurementSettings.Averages = Convert.ToUInt16(udAverages.Value);
-        //}
-
-
-        /// <summary>
-        /// Key press event of output voltage textbox.
-        /// Check if value is numeric. Else prevent editing
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        //private void txtOutputVoltage_KeyPress(object sender, KeyPressEventArgs e)
-        //{
-        //    QaLibrary.AllowNumericInput(sender, e, false);
-        //}
-
-        /// <summary>
-        /// Output voltage has been changed.
-        /// This event is also fired when text is changed by code.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        //private void txtOutputVoltage_TextChanged(object sender, EventArgs e)
-        //{
-        //    if (txtAmplifierOutputVoltage.Focused)
-        //    {
-        //        // Event fired by user input
-        //        MeasurementSettings.AmpOutputAmplitude = QaLibrary.ParseTextToDouble(txtAmplifierOutputVoltage.Text, MeasurementSettings.AmpOutputAmplitude);
-        //        MeasurementSettings.AmpOutputAmplitudeUnit = (E_VoltageUnit)cmbAmplifierOutputVoltageUnit.SelectedIndex;
-        //    }
-        //    ValidateAmplifierOutputAmplitude(sender);
-        //}
-
-        /// <summary>
-        /// Validate the amplifier output voltage in the textbox. Show text in red when value invalid.
-        /// </summary>
-        /// <param name="sender"></param>
-        //private void ValidateAmplifierOutputAmplitude(object sender)
-        //{
-        //    if (cmbAmplifierOutputVoltageUnit.SelectedIndex == (int)E_VoltageUnit.MilliVolt)
-        //        QaLibrary.ValidateRangeAdorner(sender, QaLibrary.MINIMUM_DEVICE_INPUT_VOLTAGE_MV, QaLibrary.MAXIMUM_DEVICE_INPUT_VOLTAGE_MV);      // V
-        //    else if (cmbAmplifierOutputVoltageUnit.SelectedIndex == (int)E_VoltageUnit.Volt)
-        //        QaLibrary.ValidateRangeAdorner(sender, QaLibrary.MINIMUM_DEVICE_INPUT_VOLTAGE_V, QaLibrary.MAXIMUM_DEVICE_INPUT_VOLTAGE_V);       // mV
-        //    else
-        //        QaLibrary.ValidateRangeAdorner(sender, QaLibrary.MINIMUM_DEVICE_INPUT_VOLTAGE_DBV, QaLibrary.MAXIMUM_DEVICE_INPUT_VOLTAGE_DBV);       // dBV
-        //}
-
-        /// <summary>
-        /// Start frequency key press.
-        /// Allow integers only
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        //private void txtStartFreq_KeyPress(object sender, KeyPressEventArgs e)
-        //{
-        //    QaLibrary.AllowNumericInput(sender, e, true);
-        //}
-
-        /// <summary>
-        /// Start frequency changed.
-        /// Show text in red when value invalid
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        //private void txtStartFreq_TextChanged(object sender, EventArgs e)
-        //{
-        //    QaLibrary.ValidateRangeAdorner(sender, QaLibrary.MINIMUM_GENERATOR_FREQUENCY_HZ, QaLibrary.MAXIMUM_GENERATOR_FREQUENCY_HZ);
-        //    MeasurementSettings.StartFrequency = QaLibrary.ParseTextToUint(txtStartFrequency.Text, MeasurementSettings.StartFrequency);
-        //}
-
-        /// <summary>
-        /// End frequency key press.
-        /// Allow integers only
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        //private void txtEndFreq_KeyPress(object sender, KeyPressEventArgs e)
-        //{
-        //    QaLibrary.AllowNumericInput(sender, e, true);
-        //}
-
-        /// <summary>
-        /// End frequency changed.
-        /// Show text in red when value invalid
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        //private void txtEndFreq_TextChanged(object sender, EventArgs e)
-        //{
-        //    QaLibrary.ValidateRangeAdorner(sender, 5, 96000);
-        //    MeasurementSettings.EndFrequency = QaLibrary.ParseTextToUint(txtEndFrequency.Text, MeasurementSettings.EndFrequency);
-        //}
-
-        /// <summary>
-        /// Load key press.
-        /// Allow decimals only
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        //private void txtOutputLoad_KeyPress(object sender, KeyPressEventArgs e)
-        //{
-        //    QaLibrary.AllowNumericInput(sender, e, false);
-        //}
-
-
-        /// <summary>
-        /// Output power key press
-        /// Allow decimals only
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        //private void txtOutputPower_KeyPress(object sender, KeyPressEventArgs e)
-        //{
-        //    QaLibrary.AllowNumericInput(sender, e, false);
-        //}
-
-        /// <summary>
-        /// Output voltage display unit changed.
-        /// Convert voltage to new unit
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        //private void cmbOutputVoltageUnit_SelectedIndexChanged(object sender, EventArgs e)
-        //{
-        //    UpdateAmpOutputVoltageDisplay();
-        //}
-
-        /// <summary>
-        /// Set graph x axis to data range
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        //private void btnFitGraphX_Click(object sender, EventArgs e)
-        //{
-        //    SetStartFrequencySelectedIndexByFrequency(MeasurementSettings.StartFrequency);
-        //    SetEndFrequencySelectedIndexByFrequency(MeasurementSettings.EndFrequency);
-        //}
-
-        //private void SetStartFrequencySelectedIndexByFrequency(uint startfrequency)
-        //{
-        //    if (startfrequency < 10)
-        //         cmbGraph_FreqStart.SelectedIndex = 0;
-        //    else if (startfrequency < 20)
-        //        cmbGraph_FreqStart.SelectedIndex = 1;
-        //    else if (startfrequency < 50)
-        //        cmbGraph_FreqStart.SelectedIndex = 2;
-        //    else if (startfrequency < 100)
-        //        cmbGraph_FreqStart.SelectedIndex = 3;
-        //    else if (startfrequency < 200)
-        //        cmbGraph_FreqStart.SelectedIndex = 4;
-        //    else if (startfrequency < 500)
-        //        cmbGraph_FreqStart.SelectedIndex = 4;
-        //    else
-        //        cmbGraph_FreqStart.SelectedIndex = 6;
-
-        //    GraphSettings.FrequencyRange_Start = (uint)((KeyValuePair<double, string>)cmbGraph_FreqStart.SelectedItem).Key;
-        //}
-
-        //private void SetEndFrequencySelectedIndexByFrequency(uint endfrequency)
-        //{
-        //    if (endfrequency <= 1000)
-        //        cmbGraph_FreqEnd.SelectedIndex = 0;
-        //    else if (endfrequency <= 2000)
-        //        cmbGraph_FreqEnd.SelectedIndex = 1;
-        //    else if (endfrequency <= 5000)
-        //        cmbGraph_FreqEnd.SelectedIndex = 2;
-        //    else if (endfrequency <= 10000)
-        //        cmbGraph_FreqEnd.SelectedIndex = 3;
-        //    else if (endfrequency <= 20000)
-        //        cmbGraph_FreqEnd.SelectedIndex = 4;
-        //    else if (endfrequency <= 50000)
-        //        cmbGraph_FreqEnd.SelectedIndex = 5;
-        //    else
-        //        cmbGraph_FreqEnd.SelectedIndex = 6;
-
-        //    GraphSettings.FrequencyRange_End = (uint)((KeyValuePair<double, string>)cmbGraph_FreqEnd.SelectedItem).Key;
         //}
 
         // user entered a new voltage, update the generator amplitude

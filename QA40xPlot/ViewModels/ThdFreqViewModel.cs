@@ -298,11 +298,13 @@ namespace QA40xPlot.ViewModels
 				case "OutputUnits":
 					actThd?.UpdateAmpOutputVoltageDisplay();
 					break;
+				case "GeneratorUnits":
+					actThd?.UpdateGeneratorVoltageDisplay();
+					break;
 				case "Voltage":
 				case "AmpLoad":
 				case "OutPower":
 				case "MeasureType":
-				case "GeneratorUnits":
 				case "VoltageUnits":
 					actThd?.UpdateGeneratorParameters();
 					break;
@@ -366,7 +368,7 @@ namespace QA40xPlot.ViewModels
 			MeasureType = 2;
 			OutputUnits = 0;
 			GeneratorUnits = 0;
-			RangeTop = "1";
+			RangeTop = "1";             // when graphing percents distortion this is logarithmic 0.01....
 			RangeBottom = "0.001";
 
 			ShowThickLines = true;
@@ -388,18 +390,20 @@ namespace QA40xPlot.ViewModels
 			WindowingMethod = 0;
 
 			InputRange = 0;
-			GeneratorAmplitude = 0.5;
+			GeneratorAmplitude = 0.5;       // this is the unitless (dbV) amplitude of the generator
 			RangeTopdB = 20;
 			RangeBottomdB = -150;
 
 			ToShowRange = Visibility.Visible;
-			ToShowdB = Visibility.Hidden;
+			ToShowdB = Visibility.Visible;
+			// make a few things happen to synch the gui
+			Task.Delay(1000).ContinueWith(t => { ShowPercent = false; MeasureType = 0; });
 
 			ReadVoltage = true;
 			ReadOutPower = true;
 			ReadOutVoltage = true;
 
-			AmpOutputAmplitude = 0;
+			AmpOutputAmplitude = 0;			// this is the unitless (dbV) amplitude of the amplifier output
 		}
 	}
 }

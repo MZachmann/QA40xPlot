@@ -13,7 +13,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Label Grid.Row="0" Content="{Binding ProgressMessage}"/>
-        <Label Grid.Row="1" Content="{Binding ProgressBar}"/>
+        <ProgressBar Grid.Row="1" Minimum="0" Maximum="100" MinHeight="5" Value="{Binding ProgressAmount}" />
         <TabControl Grid.Row="2">
             <TabItem Header="Thd vs Freq">
                 <Grid Background="#FFE5E5E5">
