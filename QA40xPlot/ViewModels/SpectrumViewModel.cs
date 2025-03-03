@@ -15,7 +15,8 @@ namespace QA40xPlot.ViewModels
 		public List<String> SampleRates { get => new List<string> { "48000", "96000", "192000", "384000" }; }
 		public List<String> FftSizes { get => new List<string> { "64K", "128K", "256K", "512K", "1024K" }; }
 		public List<uint> FftActualSizes { get => new List<uint> { 65536, 131072, 262144, 524288, 1048576 }; }
-		public List<String> WindowingTypes { get => new List<string> { "Rect", "Bartlett", "Hamming", "Hann", "Flat Top" }; }	// matches enum Windowing
+		//public List<String> WindowingTypes { get => new List<string> { "Rect", "Bartlett", "Hamming", "Hann", "Flat Top" }; }   // matches enum Windowing
+		public List<String> WindowingTypes { get => new List<string> { "Rectangle", "Hann", "FlatTop" }; }    // the only ones that seem to work...
 		public List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 		public List<String> MeasureTypes { get => new List<string> { "Input Voltage", "Output Voltage", "Output Power" }; }
 		public List<String> GenFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "2000", "5000", "10000" }; }
@@ -278,8 +279,8 @@ namespace QA40xPlot.ViewModels
 			get => _FftSize;
 			set => SetProperty(ref _FftSize, value);
 		}
-		private int _Windowing;
-		public int WindowingMethod
+		private string _Windowing;
+		public string WindowingMethod
 		{
 			get => _Windowing;
 			set => SetProperty(ref _Windowing, value);
@@ -447,7 +448,7 @@ namespace QA40xPlot.ViewModels
 
 			SampleRate = "96000";
 			FftSize = "64K";
-			WindowingMethod = (int)Windowing.Hann;
+			WindowingMethod = "Hann";
 
 			InputRange = 0;
 			RangeTopdB = 20;

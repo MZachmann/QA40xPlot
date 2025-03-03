@@ -125,7 +125,7 @@ namespace QA40xPlot.Libraries
             await Put(string.Format("/Settings/I2sGen/Width/{0}", width));
         }
 
-        static public async Task SetWindowing(Windowing w)
+        static public async Task SetWindowing(string w)
         {
             await Put(string.Format("/Settings/Windowing/{0}", w.ToString()));
         }

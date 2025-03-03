@@ -85,15 +85,7 @@ namespace QA40xPlot.Actions
 		public void UpdateStartVoltageDisplay()
         {
 			var vm = ViewModels.ViewSettings.Singleton.ThdAmp;
-			switch (vm.StartVoltageUnits)
-            {
-                case 0: // mV
-                    vm.StartVoltage = ((int)QaLibrary.ConvertVoltage(vm.StartAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.MilliVolt)); // Whole numbers onyl, so cast to integer
-                    break;
-                case 1: // V
-					vm.StartVoltage = QaLibrary.ConvertVoltage(vm.StartAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
-                    break;
-            }
+			vm.StartVoltage = QaLibrary.ConvertVoltage(vm.StartAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)vm.StartVoltageUnits);
         }
 
         /// <summary>
@@ -103,13 +95,13 @@ namespace QA40xPlot.Actions
         public void UpdateEndVoltageDisplay()
         {
 			var vm = ViewModels.ViewSettings.Singleton.ThdAmp;
+			vm.EndVoltage = QaLibrary.ConvertVoltage(vm.EndAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)vm.EndVoltageUnits);
 			switch (vm.EndVoltageUnits)
 			{
 				case 0: // mV
 					vm.EndVoltage = ((int)QaLibrary.ConvertVoltage(vm.EndAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.MilliVolt)); // Whole numbers onyl, so cast to integer
 					break;
 				case 1: // V
-					vm.EndVoltage = QaLibrary.ConvertVoltage(vm.EndAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
 					break;
 			}
 		}
@@ -162,7 +154,7 @@ namespace QA40xPlot.Actions
             await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make it turn on or off
             await Qa40x.SetSampleRate(thdAmp.SampleRate);
             await Qa40x.SetBufferSize(thdAmp.FftSize);
-            await Qa40x.SetWindowing(thdAmp.WindowingMethod);
+            await Qa40x.SetWindowing(thdAmp.WindowingMethod.ToString());
             await Qa40x.SetRoundFrequencies(true);
 
 

@@ -35,8 +35,8 @@ namespace QA40xPlot.ViewModels
 			get => _StartAmplitude; set => SetProperty(ref _StartAmplitude, value);
 		}
 
-		private double _StartVoltageUnits;         // type of alert
-		public double StartVoltageUnits
+		private uint _StartVoltageUnits;         // type of alert
+		public uint StartVoltageUnits
 		{
 			get => _StartVoltageUnits; set => SetProperty(ref _StartVoltageUnits, value);
 		}
@@ -53,8 +53,8 @@ namespace QA40xPlot.ViewModels
 			get => _EndAmplitude; set => SetProperty(ref _EndAmplitude, value);
 		}
 
-		private double _EndVoltageUnits;         // type of alert
-		public double EndVoltageUnits
+		private uint _EndVoltageUnits;         // type of alert
+		public uint EndVoltageUnits
 		{
 			get => _EndVoltageUnits; set => SetProperty(ref _EndVoltageUnits, value);
 		}
