@@ -38,6 +38,18 @@ namespace QA40xPlot.ViewModels
 			get => _MyStep;
 			set => SetProperty(ref _MyStep, value);
 		}
+		private double _ThdIndB;
+		public double ThdIndB
+		{
+			get => _ThdIndB;
+			set => SetProperty(ref _ThdIndB, value);
+		}
+		private double _ThdInPercent;
+		public double ThdInPercent
+		{
+			get => _ThdInPercent;
+			set => SetProperty(ref _ThdInPercent, value);
+		}
 
 		public ChannelViewModel() 
 		{ 
@@ -47,8 +59,12 @@ namespace QA40xPlot.ViewModels
 		{
 			MyStep = step;
 			FundamentalFrequency = Fundamental;
-			SNRatio = 20*Math.Log10(step.Fundamental_V / step.Average_NoiseFloor_V);
+			SNRatio = 20*Math.Log10(step.Fundamental_V * step.Thd_Percent / 100);
 			ENOB = (SNRatio - 1.76) / 6.02;
+			double thdv = Math.Pow(10, MyStep.Thd_dB / 20); // in volts
+			double totalv = step.Fundamental_V;
+			ThdIndB = 20*Math.Log10(thdv - MyStep.Average_NoiseFloor_V);
+			ThdInPercent = step.Thd_Percent * ((thdv - MyStep.Average_NoiseFloor_V) / thdv);
 		}
 	}
 }

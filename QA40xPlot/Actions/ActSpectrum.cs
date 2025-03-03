@@ -206,7 +206,7 @@ namespace QA40xPlot.Actions
 					await showProgress(100*(f + 1)/ stepBinFrequencies.Length);
 
                     // Set the generator
-                    double amplitudeSetpointdBV = QaLibrary.ConvertVoltage(thd.GeneratorAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.dBV);
+                    double amplitudeSetpointdBV = QaLibrary.ConvertVoltage(Convert.ToDouble(thd.Gen1Voltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
                     await Qa40x.SetGen1(stepBinFrequencies[f], amplitudeSetpointdBV, true);
                     if (f == 0)
                         await Qa40x.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
@@ -292,7 +292,8 @@ namespace QA40xPlot.Actions
 
             // Reset harmonic distortion variables
             double distortionSqrtTotal = 0;
-            double distiortionD6plus = 0;
+			double distortionSqrtTotalN = 0;
+			double distiortionD6plus = 0;
 
             // Loop through harmonics up tot the 12th
             for (int harmonicNumber = 2; harmonicNumber <= 12; harmonicNumber++)                                                  // For now up to 12 harmonics, start at 2nd
@@ -303,25 +304,30 @@ namespace QA40xPlot.Actions
                 if (bin >= fftData.Length) break;                                          // Invalid bin, skip harmonic
 
                 double amplitude_V = fftData[bin];
-                double amplitude_dBV = 20 * Math.Log10(amplitude_V);
-                double thd_Percent = (amplitude_V / channelData.Fundamental_V) * 100;
+                double noise_V = noiseFloorFftData[bin];
 
-                HarmonicData harmonic = new()
+				double amplitude_dBV = 20 * Math.Log10(amplitude_V);
+                double thd_Percent = (amplitude_V / (channelData.Fundamental_V - noise_V)) * 100;
+				double thdN_Percent = (amplitude_V / channelData.Fundamental_V) * 100;
+
+				HarmonicData harmonic = new()
                 {
                     HarmonicNr = harmonicNumber,
                     Frequency = harmonicFrequency,
                     Amplitude_V = amplitude_V,
                     Amplitude_dBV = amplitude_dBV,
                     Thd_Percent = thd_Percent,
-                    Thd_dB = 20 * Math.Log10(thd_Percent / 100.0),
-                    NoiseAmplitude_V = noiseFloorFftData[bin]
+					Thd_dB = 20 * Math.Log10(thd_Percent / 100.0),
+					Thd_dBN = 20 * Math.Log10(thdN_Percent / 100.0),
+					NoiseAmplitude_V = noiseFloorFftData[bin]
                 };
 
                 if (harmonicNumber >= 6)
                     distiortionD6plus += Math.Pow(amplitude_V, 2);
 
-                distortionSqrtTotal += Math.Pow(amplitude_V, 2);
-                channelData.Harmonics.Add(harmonic);
+                distortionSqrtTotal += Math.Pow(Math.Sqrt(Math.Max(0,amplitude_V* amplitude_V - noiseFloorFftData[bin]* noiseFloorFftData[bin])), 2);
+				distortionSqrtTotalN += Math.Pow(amplitude_V, 2);
+				channelData.Harmonics.Add(harmonic);
             }
 
             // Calculate THD
@@ -329,10 +335,12 @@ namespace QA40xPlot.Actions
             {
                 channelData.Thd_Percent = (Math.Sqrt(distortionSqrtTotal) / channelData.Fundamental_V) * 100;
                 channelData.Thd_dB = 20 * Math.Log10(channelData.Thd_Percent / 100.0);
-            }
+				var Thdn_Percent = (Math.Sqrt(distortionSqrtTotalN) / channelData.Fundamental_V) * 100;
+				channelData.Thd_dBN = 20 * Math.Log10(Thdn_Percent / 100.0);
+			}
 
-            // Calculate D6+ (D6 - D12)
-            if (distiortionD6plus != 0)
+			// Calculate D6+ (D6 - D12)
+			if (distiortionD6plus != 0)
             {
                 channelData.D6Plus_dBV = 20 * Math.Log10(Math.Sqrt(distiortionD6plus));
                 channelData.ThdPercent_D6plus = Math.Sqrt(distiortionD6plus / Math.Pow(channelData.Fundamental_V, 2)) * 100;
@@ -1109,18 +1117,20 @@ namespace QA40xPlot.Actions
 			rslt = await PerformMeasurementSteps(MeasurementResult, ct.Token);
             var fftsize = mSets.FftSize;
             var sampleRate = mSets.SampleRate;
-			if ( rslt)
+            var atten = mSets.Attenuation;
+            if (rslt)
             {
-				await showMessage("Running");
-				while (!ct.IsCancellationRequested)
-				{
-					await Task.Delay(250);
+                await showMessage("Running");
+                while (!ct.IsCancellationRequested)
+                {
+                    await Task.Delay(250);
                     if (ct.IsCancellationRequested)
                         break;
-                    if (mSets.FftSize != fftsize || mSets.SampleRate != sampleRate)
+                    if (mSets.FftSize != fftsize || mSets.SampleRate != sampleRate || mSets.Attenuation != atten)
                     {
 						fftsize = mSets.FftSize;
 						sampleRate = mSets.SampleRate;
+						atten = mSets.Attenuation;
 						MeasurementResult = new()
                         {
                             CreateDate = DateTime.Now,

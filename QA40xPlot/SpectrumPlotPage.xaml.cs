@@ -31,7 +31,7 @@ namespace QA40xPlot
 			InitializeComponent();
 			var vm = ViewModels.ViewSettings.Singleton.SpectrumVm;
 			this.DataContext = vm;
-			vm.SetAction(this.WpfPlot1);
+			vm.SetAction(this.WpfPlot1, this.Info1);
 		}
 
 		private void OnVoltageChanged(object sender, RoutedEventArgs e)

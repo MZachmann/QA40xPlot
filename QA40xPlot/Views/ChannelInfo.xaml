@@ -6,56 +6,80 @@
              xmlns:local="clr-namespace:QA40xPlot.Views"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="200" Background="MintCream">
+    <Border BorderBrush="LightGreen" BorderThickness="1">
         <StackPanel Orientation="Vertical">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Label Content="{Binding FundamentalFrequency}" ContentStringFormat="{}{0:F0} Hz"/>
-                <Label Content="{Binding MyStep.Fundamental_dBV}" ContentStringFormat="{}{0:F2} dBV"/>
-                <Label Content="{Binding MyStep.Fundamental_V}" ContentStringFormat="{}{0:F2} VRMS"/>
-            </StackPanel>
-            <Label HorizontalAlignment="Center" Content="{Binding MyStep.Gain_dB}" ContentStringFormat="Gain {0:F2} dB"/>
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-                <Label Grid.Row="0" Grid.Column="0" Content="THD+N:" HorizontalAlignment="Right"/>
-            <Label Grid.Row="0" Grid.Column="1" Content="{Binding MyStep.Thd_dB}" ContentStringFormat="{}{0:F1} dBV"/>
-                <Label Grid.Row="0" Grid.Column="2" Content="THD+N:" HorizontalAlignment="Right"/>
-            <Label Grid.Row="0" Grid.Column="3" Content="{Binding MyStep.Thd_Percent}" ContentStringFormat="{}{0:F4} %"/>
-        
-                <Label Grid.Row="1" Grid.Column="0" Content="N:" HorizontalAlignment="Right"/>
-            <Label Grid.Row="1" Grid.Column="1" Content="{Binding MyStep.Average_NoiseFloor_dBV}" ContentStringFormat="{}{0:F1} dBV"/>
-                <Label Grid.Row="1" Grid.Column="2" Content="THD:" HorizontalAlignment="Right"/>
-            <Label Grid.Row="1" Grid.Column="3" Content="{Binding MyStep.Thd_dB}" ContentStringFormat="{}{0:F1} dBV"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Label Grid.Row="0" Grid.Column="0" Content="{Binding FundamentalFrequency}" ContentStringFormat="{}{0:F0} Hz"/>
+                <Label Grid.Row="0" Grid.Column="1" Content="{Binding MyStep.Fundamental_dBV}" ContentStringFormat="{}{0:F2} dBV"/>
+                <Label Grid.Row="0" Grid.Column="2" Content="{Binding MyStep.Fundamental_V}" ContentStringFormat="{}{0:F2} VRMS"/>
+                <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Center" Content="{Binding MyStep.Gain_dB}" ContentStringFormat="Gain {0:F2} dB"/>
+            </Grid>
+            <Rectangle HorizontalAlignment="Stretch" Height="3" Fill="DarkGreen" />
+            <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Label Grid.Row="0" Grid.Column="0" Content="N:" HorizontalAlignment="Right"/>
+                    <Label Grid.Row="0" Grid.Column="1" Content="{Binding MyStep.Average_NoiseFloor_dBV}" ContentStringFormat="{}{0:F2} dBV"/>
+                    <Label Grid.Row="0" Grid.Column="2" Content="{Binding MyStep.Average_NoiseFloor_V}" ContentStringFormat="{}{0:F5} V"/>
 
-                <Label Grid.Row="2" Grid.Column="0" Content="SNR" HorizontalAlignment="Right"/>
-            <Label Grid.Row="2" Grid.Column="1" Content="{Binding SNRatio}" ContentStringFormat="{}{0:F1} dB"/>
-                <Label Grid.Row="2" Grid.Column="2" Content="ENOB" HorizontalAlignment="Right"/>
-            <Label Grid.Row="2" Grid.Column="3" Content="{Binding ENOB}" ContentStringFormat="{}{0:F1} bits"/>
+                    <Label Grid.Row="1" Grid.Column="0" Content="THD:" HorizontalAlignment="Right"/>
+                    <Label Grid.Row="1" Grid.Column="1" Content="{Binding ThdIndB}" ContentStringFormat="{}{0:F2} dBV"/>
+                    <Label Grid.Row="1" Grid.Column="2" Content="{Binding ThdInPercent}" ContentStringFormat="{}{0:F5} %"/>
+                
+                    <Label Grid.Row="2" Grid.Column="0" Content="THD+N:" HorizontalAlignment="Right"/>
+                    <Label Grid.Row="2" Grid.Column="1" Content="{Binding MyStep.Thd_dBN}" ContentStringFormat="{}{0:F2} dBV"/>
+                    <Label Grid.Row="2" Grid.Column="2" Content="{Binding MyStep.Thd_PercentN}" ContentStringFormat="{}{0:F5} %"/>
+            </Grid>
+            <Rectangle HorizontalAlignment="Stretch" Height="3" Fill="DarkGreen" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Label Grid.Row="0" Grid.Column="0" Content="SNR:" HorizontalAlignment="Right"/>
+                <Label Grid.Row="0" Grid.Column="1" Content="{Binding SNRatio}" ContentStringFormat="{}{0:F2} dB"/>
+                <Label Grid.Row="0" Grid.Column="2" Content="ENOB:" HorizontalAlignment="Right"/>
+                <Label Grid.Row="0" Grid.Column="3" Content="{Binding ENOB}" ContentStringFormat="{}{0:F1} bits"/>
 
-                <Label Grid.Row="3" Grid.Column="0" Content="2nd" HorizontalAlignment="Right"/>
-            <Label Grid.Row="3" Grid.Column="1" Content="{Binding MyStep.Harmonics[0].Thd_Percent}" ContentStringFormat="{}{0:0.######} %"/>
-                <Label Grid.Row="3" Grid.Column="2" Content="3rd" HorizontalAlignment="Right"/>
-            <Label Grid.Row="3" Grid.Column="3" Content="{Binding MyStep.Harmonics[1].Thd_Percent}" ContentStringFormat="{}{0:0.######} %"/>
+                <Label Grid.Row="1" Grid.Column="0" Content="2nd:" HorizontalAlignment="Right"/>
+                <Label Grid.Row="1" Grid.Column="1" Content="{Binding MyStep.Harmonics[0].Thd_Percent}" ContentStringFormat="{}{0:0.######} %"/>
+                <Label Grid.Row="1" Grid.Column="2" Content="3rd:" HorizontalAlignment="Right"/>
+                <Label Grid.Row="1" Grid.Column="3" Content="{Binding MyStep.Harmonics[1].Thd_Percent}" ContentStringFormat="{}{0:0.######} %"/>
 
-                <Label Grid.Row="4" Grid.Column="0" Content="4th" HorizontalAlignment="Right"/>
-            <Label Grid.Row="4" Grid.Column="1" Content="{Binding MyStep.Harmonics[2].Thd_Percent}" ContentStringFormat="{}{0:0.######} %"/>
-                <Label Grid.Row="4" Grid.Column="2" Content="5th" HorizontalAlignment="Right"/>
-            <Label Grid.Row="4" Grid.Column="3" Content="{Binding MyStep.Harmonics[3].Thd_Percent}" ContentStringFormat="{}{0:0.######} %"/>
+                <Label Grid.Row="2" Grid.Column="0" Content="4th:" HorizontalAlignment="Right"/>
+                <Label Grid.Row="2" Grid.Column="1" Content="{Binding MyStep.Harmonics[2].Thd_Percent}" ContentStringFormat="{}{0:0.######} %"/>
+                <Label Grid.Row="2" Grid.Column="2" Content="5th:" HorizontalAlignment="Right"/>
+                <Label Grid.Row="2" Grid.Column="3" Content="{Binding MyStep.Harmonics[3].Thd_Percent}" ContentStringFormat="{}{0:0.######} %"/>
 
-                <Label Grid.Row="5" Grid.Column="0" Content="6th" HorizontalAlignment="Right"/>
-            <Label Grid.Row="5" Grid.Column="1" Content="{Binding MyStep.Harmonics[4].Thd_Percent}" ContentStringFormat="{}{0:0.######} %"/>
+                <Label Grid.Row="3" Grid.Column="0" Content="6th:" HorizontalAlignment="Right"/>
+                <Label Grid.Row="3" Grid.Column="1" Content="{Binding MyStep.Harmonics[4].Thd_Percent}" ContentStringFormat="{}{0:0.######} %"/>
 
             </Grid>
-        </StackPanel>
+    </StackPanel>
+    </Border>
 </UserControl>

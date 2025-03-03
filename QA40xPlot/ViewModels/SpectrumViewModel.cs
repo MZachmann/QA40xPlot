@@ -26,14 +26,15 @@ namespace QA40xPlot.ViewModels
 		public List<String> StartPercents { get => new List<string> { "100", "10", "1", "0.1", "0.01" }; }
 		public List<String> EndPercents { get => new List<string> { "0.1", "0.01", "0.001", "0.0001", "0.00001", "0.000001" }; }
 		public ActSpectrum  actSpec { get; private set; }
+		public ChannelInfo actInfo { get; private set; }
 		public RelayCommand SetAttenuate { get => new RelayCommand(SetAtten); }
 		public RelayCommand DoStart { get => new RelayCommand(StartIt); }
 		public RelayCommand DoStop { get => new RelayCommand(StopIt); }
 		public RelayCommand ToggleGenerator { get => new RelayCommand(StopIt); }
 
 		#region Setters and Getters
-		private string _ShowChannelInfo = "*";         // type of alert
-		public string ShowChannelInfo
+		private bool _ShowChannelInfo = false;         // type of alert
+		public bool ShowChannelInfo
 		{
 			get => _ShowChannelInfo;
 			set => SetProperty(ref _ShowChannelInfo, value);
@@ -199,11 +200,11 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowThickLines, value);
 		}
 
-		private bool _ShowPoints;
-		public bool ShowPoints
+		private bool _ShowSummary = true;
+		public bool ShowSummary
 		{
-			get => _ShowPoints;
-			set => SetProperty(ref _ShowPoints, value);
+			get => _ShowSummary;
+			set => SetProperty(ref _ShowSummary, value);
 		}
 
 		private bool _ShowPercent;
@@ -361,6 +362,11 @@ namespace QA40xPlot.ViewModels
 					ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;
 					actSpec?.UpdateGraph(true);
 					break;
+				case "ShowSummary":
+					ShowChannelInfo = ShowSummary;
+					if( actInfo != null)
+						actInfo.Visibility = ShowSummary ? Visibility.Visible : Visibility.Hidden;
+					break;
 				case "GraphStartFreq":
 				case "GraphEndFreq":
 				case "RangeBottomdB":
@@ -377,7 +383,6 @@ namespace QA40xPlot.ViewModels
 				case "ShowD5":
 				case "ShowD6":
 				case "ShowNoiseFloor":
-				case "ShowPoints":
 				case "ShowThickLines":
 					actSpec?.UpdateGraph(true);
 					break;
@@ -386,10 +391,11 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		public void SetAction(PlotControl plot)
+		public void SetAction(PlotControl plot, ChannelInfo info)
 		{
 			SpectrumData data = new SpectrumData();
 			actSpec = new ActSpectrum(ref data, plot);
+			actInfo = info;
 		}
 
 		private static void SetAtten(object parameter)
@@ -440,7 +446,7 @@ namespace QA40xPlot.ViewModels
 			RangeBottom = "0.001";
 
 			ShowThickLines = true;
-			ShowPoints = false;
+			ShowSummary = true;
 			ShowPercent = true;
 			ShowLeft = true;
 			ShowRight = false;
