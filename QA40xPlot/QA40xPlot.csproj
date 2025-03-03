@@ -35,6 +35,9 @@
     <Compile Update="ThdAmpPlotPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="SpectrumPlotPage.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

@@ -24,30 +24,28 @@ namespace QA40xPlot
 	/// <summary>
 	/// Interaction logic for UserControl1.xaml
 	/// </summary>
-	public partial class ThdAmpPlotPage : UserControl
+	public partial class SpectrumPlotPage : UserControl
 	{
-
-		public ThdAmpPlotPage()
+		public SpectrumPlotPage()
 		{
 			InitializeComponent();
-			var vm = ViewModels.ViewSettings.Singleton.ThdAmp;
+			var vm = ViewModels.ViewSettings.Singleton.SpectrumVm;
 			this.DataContext = vm;
-			vm.SetAction(this.WpfPlot1, this.WpfPlot2, this.WpfPlot3);
+			vm.SetAction(this.WpfPlot1);
 		}
 
-		private void OnStartVoltageChanged(object sender, RoutedEventArgs e)
+		private void OnVoltageChanged(object sender, RoutedEventArgs e)
 		{
-			var vm = ViewModels.ViewSettings.Singleton.ThdAmp;
+			var vm = ViewModels.ViewSettings.Singleton.SpectrumVm;
 			var u = ((TextBox)sender).Text;
-			vm.actThd.UpdateStartAmplitude(u);
+			vm.actSpec.UpdateGenAmplitude(u);
 		}
 
-		private void OnEndVoltageChanged(object sender, RoutedEventArgs e)
+		private void OnAmpVoltageChanged(object sender, RoutedEventArgs e)
 		{
-			var vm = ViewModels.ViewSettings.Singleton.ThdAmp;
+			var vm = ViewModels.ViewSettings.Singleton.SpectrumVm;
 			var u = ((TextBox)sender).Text;
-			vm.actThd.UpdateEndAmplitude(u);
+			vm.actSpec.UpdateAmpAmplitude(u);
 		}
-
 	}
 }

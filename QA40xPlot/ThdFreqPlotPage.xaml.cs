@@ -42,24 +42,9 @@ namespace QA40xPlot
 	/// <summary>
 	/// Interaction logic for UserControl1.xaml
 	/// </summary>
-	public partial class PlotPage : UserControl
+	public partial class ThdFreqPlotPage : UserControl
 	{
-
-		public void DoStart(object sender, RoutedEventArgs e)
-		{
-			// Implement the logic to start the measurement process
-			var vm = ViewModels.ViewSettings.Singleton.ThdFreq;
-			vm.actThd.StartMeasurement();
-		}
-
-		public void DoStop(object sender, RoutedEventArgs e)
-		{
-			// Implement the logic to start the measurement process
-			var vm = ViewModels.ViewSettings.Singleton.ThdFreq;
-			//vm.actThd.Start();
-		}
-
-		public PlotPage()
+		public ThdFreqPlotPage()
 		{
 			InitializeComponent();
 			var vm = ViewModels.ViewSettings.Singleton.ThdFreq;

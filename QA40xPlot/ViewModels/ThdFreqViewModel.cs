@@ -13,11 +13,14 @@ namespace QA40xPlot.ViewModels
 	public class ThdFreqViewModel : BaseViewModel
 	{
 		public List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
+		public List<String> MeasureTypes { get => new List<string> { "Input Voltage", "Output Voltage", "Output Power" }; }
 		public List<String> StartFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500" }; }
 		public List<String> EndFrequencies { get => new List<string> { "1000", "2000", "5000", "10000", "20000" }; }
 		public List<String> StartPercents { get => new List<string> { "100", "10", "1", "0.1", "0.01" }; }
 		public List<String> EndPercents { get => new List<string> { "0.1", "0.01", "0.001", "0.0001", "0.00001", "0.000001" }; }
 		public ActThdFrequency actThd { get; private set; }
+		public RelayCommand DoStart { get => new RelayCommand(StartIt); }
+		public RelayCommand DoStop { get => new RelayCommand(StopIt); }
 
 		#region Setters and Getters
 		private double _GenVoltage;         // type of alert
@@ -290,6 +293,17 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ReadOutVoltage, value);
 		}
 		#endregion
+
+		private static void StartIt(object parameter)
+		{
+			// Implement the logic to start the measurement process
+			var vm = ViewModels.ViewSettings.Singleton.ThdFreq;
+			vm.actThd.StartMeasurement();
+		}
+
+		private static void StopIt(object parameter)
+		{
+		}
 
 		// the property change is used to trigger repaints of the graph
 		private void CheckPropertyChanged(object sender, PropertyChangedEventArgs e)
