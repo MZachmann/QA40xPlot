@@ -43,6 +43,7 @@ namespace QA40xPlot.Actions
 			MeasurementResult = new();
 			UpdateGraph(true);
 
+
 			AttachPlotMouseEvent();
         }
 
@@ -134,8 +135,6 @@ namespace QA40xPlot.Actions
 
             // Add to list
             Data.Measurements.Add(MeasurementResult);
-
-            UpdateGraphChannelSelectors();
 
             markerIndex = -1;       // Reset marker
 
@@ -241,10 +240,11 @@ namespace QA40xPlot.Actions
 					ClearPlot();
 					//ClearCursorTexts();
 					UpdateGraph(false);
-                    //ShowLastMeasurementCursorTexts();
+                    DrawChannelInfoTable();
+					//ShowLastMeasurementCursorTexts();
 
-                    // Check if cancel button pressed
-                    if (ct.IsCancellationRequested)
+					// Check if cancel button pressed
+					if (ct.IsCancellationRequested)
                     {
                         break;
                     }
@@ -289,7 +289,6 @@ namespace QA40xPlot.Actions
             // Calculate average noise floor
             channelData.Average_NoiseFloor_V = noiseFloorFftData.Skip((int)fundamentalBin + 1).Average();   // Average noise floor in Volts after the fundamental
             channelData.Average_NoiseFloor_dBV = 20 * Math.Log10(channelData.Average_NoiseFloor_V);         // Average noise floor in dBV
-
 
             // Reset harmonic distortion variables
             double distortionSqrtTotal = 0;
@@ -908,29 +907,6 @@ namespace QA40xPlot.Actions
             fftPlot.Refresh();
 		}
 
-		void UpdateGraphChannelSelectors()
-        {
-            //if (MeasurementSettings.EnableLeftChannel && !MeasurementSettings.EnableRightChannel)
-            //{
-            //    // Only single channel. Enable
-            //    chkGraphShowLeftChannel.Checked = true;
-            //    chkGraphShowRightChannel.Checked = false;
-            //    thd.ShowLeft = true;
-            //    thd.ShowRight = false;
-            //}
-            //if (MeasurementSettings.EnableRightChannel && !MeasurementSettings.EnableLeftChannel)
-            //{
-            //    chkGraphShowLeftChannel.Checked = false;
-            //    chkGraphShowRightChannel.Checked = true;
-            //    thd.ShowLeft = false;
-            //    thd.ShowRight = true;
-            //}
-            //chkGraphShowLeftChannel.Enabled = MeasurementSettings.EnableLeftChannel && MeasurementSettings.EnableRightChannel;
-            //chkGraphShowRightChannel.Enabled = MeasurementSettings.EnableLeftChannel && MeasurementSettings.EnableRightChannel;
-            //pnlCursorsLeft.Visible = thd.ShowLeft;
-            //pnlCursorsRight.Visible = thd.ShowRight;
-        }
-
         /// <summary>
         /// Attach mouse events to the main graph
         /// </summary>
@@ -1191,6 +1167,15 @@ namespace QA40xPlot.Actions
 			thd.AmpOutputAmplitude = QaLibrary.ConvertVoltage(val, (E_VoltageUnit)thd.OutputUnits, E_VoltageUnit.dBV);
 		}
 
+        // show the latest step values in the table
+        public void DrawChannelInfoTable()
+        {
+			SpectrumViewModel thd = ViewSettings.Singleton.SpectrumVm;
+			var vm = ViewSettings.Singleton.ChannelLeft;
+            vm.FundamentalFrequency = 0;
+            vm.CalculateChannelValues(MeasurementResult.FrequencySteps[0].Left, Convert.ToDouble( thd.Gen1Frequency));
+		}
+
 		public void UpdateGraph(bool settingsChanged)
         {
             fftPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
@@ -1201,15 +1186,6 @@ namespace QA40xPlot.Actions
             {
                 if (settingsChanged)
                 {
-                    //gbdB_Range.Visible = true;
-                    //btnGraph_dB.BackColor = System.Drawing.Color.Cornsilk;
-                    //gbD_Range.Visible = false;
-                    //btnGraph_D_Percent.BackColor = System.Drawing.Color.WhiteSmoke;
-                    //chkShowMagnitude.Enabled = true;
-                    //lblCursorMagnitude.Visible = true;
-                    //lblCursor_Magnitude_L.Visible = true;
-                    //lblCursor_Magnitude_R.Visible = true;
-
                     InitializeMagnitudePlot();
                 }
 
@@ -1222,15 +1198,6 @@ namespace QA40xPlot.Actions
             {
                 if (settingsChanged)
                 {
-                    //gbdB_Range.Visible = false;
-                    //btnGraph_dB.BackColor = System.Drawing.Color.WhiteSmoke;
-                    //gbD_Range.Visible = true;
-                    //btnGraph_D_Percent.BackColor = System.Drawing.Color.Cornsilk;
-                    //chkShowMagnitude.Enabled = false;
-                    //lblCursorMagnitude.Visible = false;
-                    //lblCursor_Magnitude_L.Visible = false;
-                    //lblCursor_Magnitude_R.Visible = false;
-
                     InitializefftPlot();
                 }
           
@@ -1359,222 +1326,6 @@ namespace QA40xPlot.Actions
             */
         }
 
-        /// <summary>
-        ///  Cancel measurement
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void btnStopMeasurement_Click(object sender, EventArgs e)
-        {
-            ct.Cancel();
-        }
-
-        private void lblCursor_Power_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void chkEnableLeftChannel_CheckedChanged(object sender, EventArgs e)
-        {
-            MeasurementSettings.EnableLeftChannel = chkEnableLeftChannel.Checked;
-        }
-
-        private void chkEnableRightChannel_CheckedChanged(object sender, EventArgs e)
-        {
-            MeasurementSettings.EnableRightChannel = chkEnableRightChannel.Checked;
-        }
-
-        private void cmbD_Graph_Top_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (cmbD_Graph_Top.SelectedIndex != -1)
-                GraphSettings.D_PercentTop = (double)((KeyValuePair<double, string>)cmbD_Graph_Top.SelectedItem).Key;
-            UpdateGraph(true);
-        }
-
-        private void cmbD_Graph_Bottom_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (cmbD_Graph_Bottom.SelectedIndex != -1)
-                GraphSettings.D_PercentBottom = (double)((KeyValuePair<double, string>)cmbD_Graph_Bottom.SelectedItem).Key;
-            UpdateGraph(true);
-        }
-
-        private void ud_dB_Graph_Top_ValueChanged(object sender, EventArgs e)
-        {
-            // Prevent top lower than bottom
-            if (ud_dB_Graph_Top.Value - ud_dB_Graph_Bottom.Value < 1)
-            {
-                ud_dB_Graph_Top.Value = ud_dB_Graph_Bottom.Value + 1;
-            }
-
-            // Change increment when top and bottom closer together
-            GraphSettings.DbRangeTop = (double)ud_dB_Graph_Top.Value;
-            if (GraphSettings.DbRangeTop - GraphSettings.DbRangeBottom < 20)
-            {
-                ud_dB_Graph_Top.Increment = 1;
-                ud_dB_Graph_Bottom.Increment = 1;
-            }
-            else if (GraphSettings.DbRangeTop - GraphSettings.DbRangeBottom < 50)
-            {
-                ud_dB_Graph_Top.Increment = 5;
-                ud_dB_Graph_Bottom.Increment = 5;
-            }
-            else
-            {
-                ud_dB_Graph_Top.Increment = 10;
-                ud_dB_Graph_Bottom.Increment = 10;
-            }
-            UpdateGraph(true);
-        }
-
-        private void ud_dB_Graph_Bottom_ValueChanged(object sender, EventArgs e)
-        {
-            // Prevent bottom higher than top
-            if (ud_dB_Graph_Top.Value - ud_dB_Graph_Bottom.Value < 1)
-            {
-                ud_dB_Graph_Bottom.Value = ud_dB_Graph_Top.Value - 1;
-            }
-
-            // Change increment when top and bottom closer together
-            GraphSettings.DbRangeBottom = (double)ud_dB_Graph_Bottom.Value;
-            if (GraphSettings.DbRangeTop - GraphSettings.DbRangeBottom < 20)
-            {
-                ud_dB_Graph_Top.Increment = 1;
-                ud_dB_Graph_Bottom.Increment = 1;
-            }
-            else if (GraphSettings.DbRangeTop - GraphSettings.DbRangeBottom < 50)
-            {
-                ud_dB_Graph_Top.Increment = 5;
-                ud_dB_Graph_Bottom.Increment = 5;
-            }
-            else
-            {
-                ud_dB_Graph_Top.Increment = 10;
-                ud_dB_Graph_Bottom.Increment = 10;
-            }
-            UpdateGraph(true);
-        }
-
-        private void cmbGraph_FreqStart_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (cmbGraph_FreqStart.SelectedIndex != -1)
-                GraphSettings.FrequencyRange_Start = (uint)((KeyValuePair<double, string>)cmbGraph_FreqStart.SelectedItem).Key;
-            UpdateGraph(true);
-        }
-
-        private void cmbGraph_FreqEnd_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (cmbGraph_FreqEnd.SelectedIndex != -1)
-                GraphSettings.FrequencyRange_End = (uint)((KeyValuePair<double, string>)cmbGraph_FreqEnd.SelectedItem).Key;
-            UpdateGraph(true);
-        }
-
-        private void chkShowMagnitude_CheckedChanged(object sender, EventArgs e)
-        {
-            GraphSettings.ShowMagnitude = chkShowMagnitude.Checked;
-            UpdateGraph(true);
-        }
-
-        private void chkShowThd_CheckedChanged_1(object sender, EventArgs e)
-        {
-            GraphSettings.ShowTHD = chkShowThd.Checked;
-            UpdateGraph(true);
-        }
-
-        private void chkShowD2_CheckedChanged(object sender, EventArgs e)
-        {
-            GraphSettings.ShowD2 = chkShowD2.Checked;
-            UpdateGraph(true);
-        }
-
-        private void chkShowD3_CheckedChanged(object sender, EventArgs e)
-        {
-            GraphSettings.ShowD3 = chkShowD3.Checked;
-            UpdateGraph(true);
-        }
-
-        private void chkShowD4_CheckedChanged(object sender, EventArgs e)
-        {
-            GraphSettings.ShowD4 = chkShowD4.Checked;
-            UpdateGraph(true);
-        }
-
-        private void chkShowD5_CheckedChanged(object sender, EventArgs e)
-        {
-            GraphSettings.ShowD5 = chkShowD5.Checked;
-            UpdateGraph(true);
-        }
-
-        private void chkShowD6_CheckedChanged(object sender, EventArgs e)
-        {
-            GraphSettings.ShowD6 = chkShowD6.Checked;
-            UpdateGraph(true);
-        }
-
-        private void chkShowNoiseFloor_CheckedChanged(object sender, EventArgs e)
-        {
-            GraphSettings.ShowNoiseFloor = chkShowNoiseFloor.Checked;
-            UpdateGraph(true);
-        }
-
-        private void chkThickLines_CheckedChanged(object sender, EventArgs e)
-        {
-            GraphSettings.ThickLines = chkThickLines.Checked;
-            UpdateGraph(true);
-        }
-
-        private void chkShowDataPoints_CheckedChanged(object sender, EventArgs e)
-        {
-            GraphSettings.ShowDataPoints = chkShowDataPoints.Checked;
-            UpdateGraph(true);
-        }
-
-        /// <summary>
-        /// Magnitude graph button click event
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void btnGraph_dB_Click(object sender, EventArgs e)
-        {
-            GraphSettings.GraphType = E_ThdFreq_GraphType.DB;
-            ClearCursorTexts();
-            UpdateGraph(true);
-        }
-
-        /// <summary>
-        /// THD % graph button click event
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void btnGraph_D_Click(object sender, EventArgs e)
-        {
-            GraphSettings.GraphType = E_ThdFreq_GraphType.D_PERCENT;
-            ClearCursorTexts();
-            UpdateGraph(true);
-        }
-
-        private void chkGraphShowLeftChannel_CheckedChanged(object sender, EventArgs e)
-        {
-            thd.ShowLeft = chkGraphShowLeftChannel.Checked;
-            UpdateGraphChannelSelectors();
-            UpdateGraph(true);
-        }
-
-        private void chkGraphShowRightChannel_CheckedChanged(object sender, EventArgs e)
-        {
-            thd.ShowRight = chkGraphShowRightChannel.Checked;
-            UpdateGraphChannelSelectors();
-            UpdateGraph(true);
-        }
-
-        private void label4_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void scGraphCursors_Panel2_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
 #endif
     }
 }

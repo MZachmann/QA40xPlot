@@ -10,6 +10,8 @@ namespace QA40xPlot.ViewModels
 		public SpectrumViewModel SpectrumVm { get; private set; }
 		public ThdFreqViewModel ThdFreq { get; private set; }
 		public ThdAmpViewModel ThdAmp { get; private set; }
+		public ChannelViewModel ChannelLeft { get; private set; }
+		public ChannelViewModel ChannelRight { get; private set; }
 		public MainViewModel Main { get; private set; }
 
 		public ViewSettings() 
@@ -17,6 +19,8 @@ namespace QA40xPlot.ViewModels
 			SpectrumVm = new SpectrumViewModel();
 			ThdAmp = new ThdAmpViewModel();
 			ThdFreq = new ThdFreqViewModel();
+			ChannelLeft = new ChannelViewModel();
+			ChannelRight = new ChannelViewModel();
 			Main = new MainViewModel();
 		}
 	}

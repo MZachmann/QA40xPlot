@@ -32,6 +32,13 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand ToggleGenerator { get => new RelayCommand(StopIt); }
 
 		#region Setters and Getters
+		private string _ShowChannelInfo = "*";         // type of alert
+		public string ShowChannelInfo
+		{
+			get => _ShowChannelInfo;
+			set => SetProperty(ref _ShowChannelInfo, value);
+		}
+
 		private double _GenVoltage;         // type of alert
 		public double GenVoltage
 		{

@@ -127,7 +127,14 @@
                 </Grid>
             </GroupBox>
         </StackPanel>
-        <views:PlotControl x:Name="WpfPlot1" Grid.Column="1" />
+        <Grid Grid.Column="1" >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="{Binding ShowChannelInfo}" />
+            </Grid.ColumnDefinitions>
+            <views:PlotControl x:Name="WpfPlot1" Grid.Column="0" />
+            <views:ChannelInfo x:Name="Info1" Grid.Column="1"/>
+        </Grid>
         <StackPanel Grid.Column="2" Orientation="Vertical">
             <GroupBox Header="dB Range" Visibility="{Binding ToShowdB}">
                 <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
