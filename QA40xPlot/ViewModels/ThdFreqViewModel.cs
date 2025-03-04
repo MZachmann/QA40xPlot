@@ -23,78 +23,77 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand DoStop { get => new RelayCommand(StopIt); }
 
 		#region Setters and Getters
-		private double _GenVoltage;         // type of alert
+		private double _GenVoltage;
 		public double GenVoltage
 		{
 			get => _GenVoltage; set => SetProperty(ref _GenVoltage, value);
 		}
 
-		private double _AmpLoad;         // type of alert
+		private double _AmpLoad;
 		public double AmpLoad
 		{
 			get => _AmpLoad; set => SetProperty(ref _AmpLoad, value);
 		}
 
-		private double _OutPower;         // type of alert
+		private double _OutPower;
 		public double OutPower
 		{
 			get => _OutPower; set => SetProperty(ref _OutPower, value);
 		}
 
-		private double _OutVoltage;         // type of alert
+		private double _OutVoltage;
 		public double OutVoltage
 		{
 			get => _OutVoltage; set => SetProperty(ref _OutVoltage, value);
 		}
 
-		private double _StartFreq;         // type of alert
+		private double _StartFreq;
 		public double StartFreq
 		{
-			get => _StartFreq; 
+			get => _StartFreq;
 			set => SetProperty(ref _StartFreq, value);
 		}
 
-		private double _EndFreq;         // type of alert
+		private double _EndFreq;
 		public double EndFreq
 		{
-			get => _EndFreq; 
+			get => _EndFreq;
 			set => SetProperty(ref _EndFreq, value);
 		}
 
-		private string _GraphStartFreq;         // type of alert
+		private string _GraphStartFreq;
 		public string GraphStartFreq
 		{
-			get => _GraphStartFreq; 
+			get => _GraphStartFreq;
 			set => SetProperty(ref _GraphStartFreq, value);
 		}
 
-		private string _GraphEndFreq;         // type of alert
+		private string _GraphEndFreq;
 		public string GraphEndFreq
 		{
-			get => _GraphEndFreq; 
-			set => 
-				SetProperty(ref _GraphEndFreq, value);
+			get => _GraphEndFreq;
+			set => SetProperty(ref _GraphEndFreq, value);
 		}
 
-		private uint _StepsOctave;         // type of alert
+		private uint _StepsOctave;
 		public uint StepsOctave
 		{
 			get => _StepsOctave; set => SetProperty(ref _StepsOctave, value);
 		}
 
-		private uint _Averages;         // type of alert
+		private uint _Averages;
 		public uint Averages
 		{
 			get => _Averages; set => SetProperty(ref _Averages, value);
 		}
 
-		private bool _RightChannel;         // type of alert
+		private bool _RightChannel;
 		public bool RightChannel
 		{
 			get => _RightChannel; set => SetProperty(ref _RightChannel, value);
 		}
 
-		private bool _LeftChannel;         // type of alert
+		private bool _LeftChannel;
 		public bool LeftChannel
 		{
 			get => _LeftChannel; set => SetProperty(ref _LeftChannel, value);
@@ -368,59 +367,6 @@ namespace QA40xPlot.ViewModels
 		{
 			PropertyChanged += CheckPropertyChanged;
 
-			GenVoltage = 0.03;
-			AmpLoad = 8;
-			OutPower = 0.5;
-			OutVoltage = 0.5;
-			StartFreq = 20;
-			EndFreq = 20000;
-			GraphStartFreq = "20";
-			GraphEndFreq = "20000";
-			StepsOctave = 1;
-			Averages = 1;
-			LeftChannel = true;
-			RightChannel = false;
-			MeasureType = 2;
-			OutputUnits = 0;
-			GeneratorUnits = 0;
-			RangeTop = "1";             // when graphing percents distortion this is logarithmic 0.01....
-			RangeBottom = "0.001";
-
-			ShowThickLines = true;
-			ShowPoints = false;
-			ShowPercent = true;
-			ShowLeft = true;
-			ShowRight = false;
-			ShowTHD = true;
-			ShowMagnitude = true;
-			ShowD2 = true;
-			ShowD3 = true;
-			ShowD4 = true;
-			ShowD5 = true;
-			ShowD6 = true;
-			ShowNoiseFloor = true;
-
-			SampleRate = 96000;
-			FftSize = 65536;
-			WindowingMethod = 0;
-
-			InputRange = 0;
-			RangeTopdB = 20;
-			RangeBottomdB = -180;
-
-			ToShowRange = Visibility.Visible;
-			ToShowdB = Visibility.Visible;
-			// make a few things happen to synch the gui
-			Task.Delay(1000).ContinueWith(t => { ShowPercent = false; MeasureType = 0; });
-
-			ReadVoltage = true;
-			ReadOutPower = true;
-			ReadOutVoltage = true;
-
-			GeneratorAmplitude = -20;       // this is the unitless (dbV) amplitude of the generator
-			AmpOutputAmplitude = -20;         // this is the unitless (dbV) amplitude of the amplifier output
-			GenVoltage = QaLibrary.ConvertVoltage(GeneratorAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)GeneratorUnits);
-			OutVoltage = QaLibrary.ConvertVoltage(AmpOutputAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)OutputUnits);
 		}
 	}
 }

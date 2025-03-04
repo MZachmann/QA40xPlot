@@ -291,10 +291,21 @@ namespace QA40xPlot.Actions
 			var sampleRate = Convert.ToUInt32(vm.SampleRate);
 			var fftsize = vm.FftActualSizes.ElementAt(vm.FftSizes.IndexOf(vm.FftSize));
 			int bin = (int)QaLibrary.GetBinOfFrequency(frequency, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
-			var value = 20 * Math.Log10(fmr.FrequencySteps[0].fftData.Left[bin]);
-            var mymark = myPlot.Add.Marker(Math.Log10(frequency), value,
-                MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), isred ? Colors.Red : Colors.DarkOrange);
-			mymark.LegendText = string.Format("{1}: {0:F1}", value, (int)frequency);
+            double markVal = 0;
+            ScottPlot.Color markerCol = new ScottPlot.Color();
+            if( ! vm.ShowLeft)
+            {
+				markVal = 20 * Math.Log10(fmr.FrequencySteps[0].fftData.Right[bin]);
+                markerCol = isred ? Colors.Green : Colors.DarkGreen;
+			}
+            else
+            {
+				markVal = 20 * Math.Log10(fmr.FrequencySteps[0].fftData.Left[bin]);
+				markerCol = isred ? Colors.Red : Colors.DarkOrange;
+			}
+			var mymark = myPlot.Add.Marker(Math.Log10(frequency), markVal,
+                MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), markerCol);
+			mymark.LegendText = string.Format("{1}: {0:F1}", markVal, (int)frequency);
 		}
 
 		private void ShowHarmonicMarkers(SpectrumMeasurementResult fmr)
@@ -303,8 +314,6 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			if ( vm.ShowMarkers)
             {
-				myPlot.Legend.Orientation = ScottPlot.Orientation.Vertical;
-				myPlot.Legend.FontSize = GraphUtil.PtToPixels(PixelSizes.LEGEND_SIZE);
                 AddAMarker(fmr, Convert.ToDouble(vm.Gen1Frequency));
 
                 for(int i=0; i<6; i++)
@@ -324,6 +333,7 @@ namespace QA40xPlot.Actions
 			{
 				var sampleRate = Convert.ToUInt32(vm.SampleRate);
 				var fftsize = vm.FftActualSizes.ElementAt(vm.FftSizes.IndexOf(vm.FftSize));
+                var nfloor = MeasurementResult.FrequencySteps[0].Left.Average_NoiseFloor_dBV;   // Average noise floor in dBVolts after the fundamental
 				foreach (int freq in freqchecks)
 				{
                     // check 5 harmonics of each
@@ -331,8 +341,9 @@ namespace QA40xPlot.Actions
                     {
                         var actfreq = QaLibrary.GetNearestBinFrequency(freq * i, sampleRate, fftsize);
 						int bin = (int)QaLibrary.GetBinOfFrequency(actfreq, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
-                        var data = fmr.FrequencySteps[0].fftData.Left[bin];
-						if(( 20*Math.Log10(data)) > -90)
+                        var data = vm.ShowLeft ? fmr.FrequencySteps[0].fftData.Left[bin] : fmr.FrequencySteps[0].fftData.Right[bin];
+                        double udif = 20 * Math.Log10(data);
+						if ((udif - nfloor) > 20)
                         {
                             AddAMarker(fmr, actfreq, true);
                         }
@@ -657,8 +668,7 @@ namespace QA40xPlot.Actions
 
 			myPlot.Clear();
 
-
-            ScottPlot.TickGenerators.LogMinorTickGenerator minorTickGenY = new();
+			ScottPlot.TickGenerators.LogMinorTickGenerator minorTickGenY = new();
             minorTickGenY.Divisions = 10;
 
             // create a numeric tick generator that uses our custom minor tick generator
@@ -740,9 +750,10 @@ namespace QA40xPlot.Actions
 			myPlot.Axes.Left.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
 
 			myPlot.Legend.IsVisible = true;
-            myPlot.Legend.Orientation = ScottPlot.Orientation.Horizontal;
             myPlot.Legend.Alignment = ScottPlot.Alignment.UpperRight;
-            myPlot.ShowLegend();
+			myPlot.Legend.Orientation = ScottPlot.Orientation.Vertical;
+			myPlot.Legend.FontSize = GraphUtil.PtToPixels(PixelSizes.LEGEND_SIZE);
+			myPlot.ShowLegend();
 
             ScottPlot.AxisRules.MaximumBoundary rule = new(
                 xAxis: myPlot.Axes.Bottom,
@@ -753,7 +764,7 @@ namespace QA40xPlot.Actions
             myPlot.Axes.Rules.Clear();
             myPlot.Axes.Rules.Add(rule);
 
-            fftPlot.Refresh();
+			fftPlot.Refresh();
         }
 
         /// <summary>
@@ -766,6 +777,7 @@ namespace QA40xPlot.Actions
 			//QaLibrary.PlotMiniFftGraph(fftPlot, MeasurementResult.FrequencySteps[0].fftData, specVm.LeftChannel, specVm.RightChannel);
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			myPlot.Clear();
+
 			var fftData = MeasurementResult.FrequencySteps[0].fftData;
 			bool leftChannelEnabled = specVm.LeftChannel;
 			bool rightChannelEnabled = specVm.RightChannel;
@@ -819,6 +831,9 @@ namespace QA40xPlot.Actions
 				myPlot.Axes.SetLimits(Math.Log10(10), Math.Log10(100000), -150, limitY);
 			}
 
+			myPlot.Legend.Orientation = ScottPlot.Orientation.Vertical;
+			myPlot.Legend.FontSize = GraphUtil.PtToPixels(PixelSizes.LEGEND_SIZE);
+
 			fftPlot.Refresh();
 		}
 
@@ -833,14 +848,14 @@ namespace QA40xPlot.Actions
 			var thdFreq = ViewSettings.Singleton.SpectrumVm;
 
 			myPlot.Clear();
-            //myPlot.Axes.Remove(Edge.Right);
+			//myPlot.Axes.Remove(Edge.Right);
 
-            // create a minor tick generator that places log-distributed minor ticks
-            //ScottPlot.TickGenerators. minorTickGen = new();
-            //minorTickGen.Divisions = 1;
+			// create a minor tick generator that places log-distributed minor ticks
+			//ScottPlot.TickGenerators. minorTickGen = new();
+			//minorTickGen.Divisions = 1;
 
-            // create a numeric tick generator that uses our custom minor tick generator
-            ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGen = new(2);
+			// create a numeric tick generator that uses our custom minor tick generator
+			ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGen = new(2);
 
             ScottPlot.TickGenerators.NumericAutomatic tickGenY = new();
             tickGenY.TargetTickCount = 15;
@@ -905,8 +920,9 @@ namespace QA40xPlot.Actions
             
             // Legend
             myPlot.Legend.IsVisible = true;
-            myPlot.Legend.Orientation = ScottPlot.Orientation.Horizontal;
             myPlot.Legend.Alignment = ScottPlot.Alignment.UpperRight;
+			myPlot.Legend.Orientation = ScottPlot.Orientation.Vertical;
+			myPlot.Legend.FontSize = GraphUtil.PtToPixels(PixelSizes.LEGEND_SIZE);
 			myPlot.ShowLegend();
 
 			ScottPlot.AxisRules.MaximumBoundary rule = new(
@@ -934,8 +950,8 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			myPlot.Clear();
             var fftData = MeasurementResult.FrequencySteps[0].fftData;
-			bool leftChannelEnabled = specVm.LeftChannel;
-			bool rightChannelEnabled = specVm.RightChannel;
+            bool leftChannelEnabled = specVm.ShowLeft;
+            bool rightChannelEnabled = specVm.ShowRight;
 
 			List<double> freqX = [];
 			List<double> dBV_Left_Y = [];
@@ -985,8 +1001,7 @@ namespace QA40xPlot.Actions
 				limitY += 10;
 				myPlot.Axes.SetLimits(Math.Log10(10), Math.Log10(100000), -150, limitY);
 			}
-
-            fftPlot.Refresh();
+			fftPlot.Refresh();
 		}
 
         /// <summary>

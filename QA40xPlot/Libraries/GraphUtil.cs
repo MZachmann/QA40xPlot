@@ -13,7 +13,7 @@ namespace QA40xPlot.Libraries
 		SUBTITLE_SIZE = 12,
 		AXIS_SIZE = 9,
 		LABEL_SIZE = 9,
-		LEGEND_SIZE = 11,
+		LEGEND_SIZE = 9,
 	}
 
 	public interface GraphUtil
