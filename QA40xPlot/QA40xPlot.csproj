@@ -11,8 +11,6 @@
   <ItemGroup>
     <Compile Remove="Actions\frmBodePlot.cs" />
     <Compile Remove="Actions\frmBodePlot.Designer.cs" />
-    <Compile Remove="Actions\frmFrequencyResponse.cs" />
-    <Compile Remove="Actions\frmFrequencyResponse.Designer.cs" />
     <Compile Remove="Actions\frmMain.cs" />
     <Compile Remove="Actions\frmMain.Designer.cs" />
     <Compile Remove="Views\EnumBindingSourceExtension.cs" />
@@ -32,16 +30,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="ThdAmpPlotPage.xaml.cs">
+    <Compile Update="Views\ThdAmpPlotPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="SpectrumPlotPage.xaml.cs">
+    <Compile Update="Views\SpectrumPlotPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
 
   <ItemGroup>
-    <Page Update="ThdAmpPlotPage.xaml">
+    <Page Update="Views\ThdAmpPlotPage.xaml">
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>

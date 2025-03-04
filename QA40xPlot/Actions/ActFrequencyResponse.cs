@@ -1,56 +1,72 @@
 ﻿using QA40xPlot.Data;
+using QA40xPlot.Libraries;
+using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
+using System.Windows;
 
 
 namespace QA40xPlot.Actions
 {
 
-    public partial class frmFrequencyResponse
+    public partial class ActFrequencyResponse
     {
         public FrequencyResponseData Data { get; set; }       // Data used in this form instance
         public bool MeasurementBusy { get; set; }                   // Measurement busy state
+		private Views.PlotControl? frqrsPlot;
 
-        private FrequencyResponseMeasurementSettings MeasurementSettings;
-        private FrequencyResponseGraphSettings GraphSettings;
-        private FrequencyResponseMeasurementResult MeasurementResult;
+		//private FrequencyResponseMeasurementSettings MeasurementSettings;
+		//private FrequencyResponseGraphSettings GraphSettings;
+		private FrequencyResponseMeasurementResult MeasurementResult;
 
         CancellationTokenSource ct;                                 // Measurement cancelation token
 
         /// <summary>
         /// Constructor
         /// </summary>
-        public frmFrequencyResponse(ref FrequencyResponseData data)
+        public ActFrequencyResponse(ref FrequencyResponseData data, Views.PlotControl graphFreq)
         {
             Data = data;
-            MeasurementResult = new(); // TODO. Add to list
+            frqrsPlot = graphFreq;
 
-
+			MeasurementResult = new(); // TODO. Add to list
             ct = new CancellationTokenSource();
 
-            InitializeComponent();
-
-            PopulateMeasurementSettingsComboBoxes();
-            PopulateGraphSettingsComboBoxes();
-
-            MeasurementSettings = new();
-            SetDefaultMeasurementSettings(ref MeasurementSettings);
-            MeasurementResult.MeasurementSettings = MeasurementSettings;
-            SetDefaultGraphSettings(ref GraphSettings);
-
-            SetMeasurementControls(MeasurementSettings);
-            SetGraphControls(GraphSettings);
-
-
             UpdateGraph(true);
-            UpdateGraphChannelSelectors();
+            //UpdateGraphChannelSelectors();
 
-            Program.MainForm.ClearMessage();
-            Program.MainForm.HideProgressBar();
-            AttachPlotMouseEvent();
+            //Program.MainForm.ClearMessage();
+            //Program.MainForm.HideProgressBar();
+            //AttachPlotMouseEvent();
         }
 
+        public void DoCancel()
+        {
+            ct.Cancel();
+		}
+
+		private async Task showMessage(String msg, int delay = 0)
+		{
+			var vm = ViewModels.ViewSettings.Singleton.Main;
+			await vm.SetProgressMessage(msg, delay);
+		}
+
+		private async Task showProgress(int progress, int delay = 0)
+		{
+			var vm = ViewModels.ViewSettings.Singleton.Main;
+			await vm.SetProgressBar(progress, delay);
+		}
+
+		// user entered a new voltage, update the generator amplitude
+		public void UpdateGenAmplitude(string value)
+		{
+			FreqRespViewModel frqrsVm = ViewSettings.Singleton.FreqRespVm;
+			var val = QaLibrary.ParseTextToDouble(value, Convert.ToDouble(frqrsVm.Gen1Voltage));
+			frqrsVm.GeneratorAmplitude = QaLibrary.ConvertVoltage(val, (E_VoltageUnit)frqrsVm.GeneratorUnits, E_VoltageUnit.dBV);
+		}
+
+#if false
         void PopulateMeasurementSettingsComboBoxes()
         { 
             var items = new List<KeyValuePair<double, string>>
@@ -234,67 +250,53 @@ namespace QA40xPlot.Actions
             ComboBoxHelper.SelectNearestValue(cmbGraph_FreqEnd, endfrequency);
             GraphSettings.FrequencyRange_End = (uint)((KeyValuePair<double, string>)cmbGraph_FreqEnd.SelectedItem).Key;
         }
+#endif
+
+		/// <summary>
+		/// Start measurement button clicked
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		public async void StartMeasurement()
+		{
+			var vm = ViewSettings.Singleton.FreqRespVm;
+			MeasurementBusy = true;
+			ct = new();
+            UpdateGenAmplitude(vm.Gen1Voltage);   // convert gen1voltage to dbv
+            UpdateGraph(true);
+			await PerformMeasurement(ct.Token, false);
+			await showMessage("Finished");
+			MeasurementBusy = false;
+		}
 
 
-
-        /// <summary>
-        /// Update the start voltage in the textbox based on the selected unit.
-        /// If the unit changes then the voltage will be converted
-        /// </summary>
-        void UpdateGeneratorVoltageDisplay()
+		/// <summary>
+		/// Update the start voltage in the textbox based on the selected unit.
+		/// If the unit changes then the voltage will be converted
+		/// </summary>
+		public void UpdateGeneratorVoltageDisplay()
         {
-            switch (cmbGeneratorVoltageUnit.SelectedIndex)
-            {
-                case 0: // mV
-                    txtGeneratorVoltage.Text = ((int)QaLibrary.ConvertVoltage(MeasurementSettings.GeneratorAmplitude, MeasurementSettings.GeneratorAmplitudeUnit, E_VoltageUnit.MilliVolt)).ToString("###0"); // Whole numbers onyl, so cast to integer
-                    break;
-                case 1: // V
-                    txtGeneratorVoltage.Text = QaLibrary.ConvertVoltage(MeasurementSettings.GeneratorAmplitude, MeasurementSettings.GeneratorAmplitudeUnit, E_VoltageUnit.Volt).ToString("#0.0##");
-                    break;
-                case 2: // dB
-                    txtGeneratorVoltage.Text = QaLibrary.ConvertVoltage(MeasurementSettings.GeneratorAmplitude, MeasurementSettings.GeneratorAmplitudeUnit, E_VoltageUnit.dBV).ToString("#0.0#");
-                    break;
-            }
-        }
+			var vm = ViewSettings.Singleton.FreqRespVm;
+			vm.Gen1Voltage = QaLibrary.ConvertVoltage(vm.GeneratorAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)vm.GeneratorUnits).ToString();
+		}
 
-
-
-
-
-
-        /// <summary>
-        /// Perform the measurement
-        /// </summary>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns>result. false if cancelled</returns>
-        async Task<bool> PerformMeasurement(CancellationToken ct, bool continuous)
+		/// <summary>
+		/// Perform the measurement
+		/// </summary>
+		/// <param name="ct">Cancellation token</param>
+		/// <returns>result. false if cancelled</returns>
+		async Task<bool> PerformMeasurement(CancellationToken ct, bool continuous)
         {
-            ClearPlot();
-            ClearCursorTexts();
+            frqrsPlot.ThePlot.Clear();
+			var frqrsVm = ViewSettings.Singleton.FreqRespVm;
 
-            var _measurementSettings = MeasurementSettings.Copy();             // Create snapshot so it is not changed during measuring
-
-            switch (_measurementSettings.SampleRate)
-            {
-                case 48000:
-                    _measurementSettings.FftSize = 32768;
-                    break;
-                case 96000:
-                    _measurementSettings.FftSize = 65536;
-                    break;
-                case 192000:
-                    _measurementSettings.FftSize = 131072;
-                    break;
-            }
-            _measurementSettings.FftSize *= _measurementSettings.FftResolution; 
-                                      
-            // Clear measurement result
-            MeasurementResult = new()
+			// Clear measurement result
+			MeasurementResult = new()
             {
                 CreateDate = DateTime.Now,
                 Show = true,                                      // Show in graph
-                MeasurementSettings = _measurementSettings       // Copy measurment settings to measurement results
-            };
+                MeasurementSettings = frqrsVm       // Copy measurment settings to measurement results
+			};
 
             // For now clear measurements to allow only one until we have a UI to manage them.
             Data.Measurements.Clear();
@@ -302,22 +304,26 @@ namespace QA40xPlot.Actions
             // Add to list
             Data.Measurements.Add(MeasurementResult);
 
-            UpdateGraphChannelSelectors();
+            // UpdateGraphChannelSelectors();
 
-            markerIndex = -1;       // Reset marker
+            // markerIndex = -1;       // Reset marker
 
-            // Check if webserver available and device connected
-            if (await QaLibrary.CheckDeviceConnected() == false)
-                return false;
 
-            // ********************************************************************
-            // Check connection
-            // Load a settings file with the particulars we want
-            await Qa40x.SetDefaults();
+			// ********************************************************************
+			// Check connection
+			if (await QaLibrary.CheckDeviceConnected() == false)
+				return false;
+
+			// ********************************************************************
+			// Setup the device
+			var sampleRate = Convert.ToUInt32(frqrsVm.SampleRate);
+			var fftsize = frqrsVm.FftActualSizes.ElementAt(frqrsVm.FftSizes.IndexOf(frqrsVm.FftSize));
+
+			await Qa40x.SetDefaults();
             await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make it turn on or off
-            await Qa40x.SetSampleRate(_measurementSettings.SampleRate);
-            await Qa40x.SetBufferSize(_measurementSettings.FftSize);
-            await Qa40x.SetWindowing(_measurementSettings.WindowingFunction);
+            await Qa40x.SetSampleRate(sampleRate);
+            await Qa40x.SetBufferSize(fftsize);
+            await Qa40x.SetWindowing("Hann");
             await Qa40x.SetRoundFrequencies(true);
 
             try
@@ -328,23 +334,24 @@ namespace QA40xPlot.Actions
                 var attenuation = QaLibrary.MAXIMUM_DEVICE_ATTENUATION;
                 double genVoltagedBV = -150;
 
-                if (_measurementSettings.GeneratorType == E_GeneratorType.OUTPUT_VOLTAGE)     // Based on output
-                {
-                    double amplifierOutputVoltagedBV = QaLibrary.ConvertVoltage(_measurementSettings.GeneratorAmplitude, _measurementSettings.GeneratorAmplitudeUnit, E_VoltageUnit.dBV);
+				E_GeneratorType etp = (E_GeneratorType)frqrsVm.MeasureType;
 
-                    await Program.MainForm.ShowMessage($"Determining generator amplitude to get an output amplitude of {amplifierOutputVoltagedBV:0.00#} dBV.");
+				if (etp == E_GeneratorType.OUTPUT_VOLTAGE)     // Based on output
+                {
+                    double amplifierOutputVoltagedBV = frqrsVm.GeneratorAmplitude;
+					await showMessage($"Determining generator amplitude to get an output amplitude of {amplifierOutputVoltagedBV:0.00#} dBV.");
 
                     // Get input voltage based on desired output voltage
                     attenuation = QaLibrary.DetermineAttenuation(amplifierOutputVoltagedBV);
                     double startAmplitude = -40;  // We start a measurement with a 10 mV signal.
-                    var result = await QaLibrary.DetermineGenAmplitudeByOutputAmplitudeWithChirp(startAmplitude, amplifierOutputVoltagedBV, _measurementSettings.EnableLeftChannel, _measurementSettings.EnableRightChannel, ct);
+                    var result = await QaLibrary.DetermineGenAmplitudeByOutputAmplitudeWithChirp(startAmplitude, amplifierOutputVoltagedBV, true, frqrsVm.RightChannel, ct);
                     if (ct.IsCancellationRequested)
                         return false;
                     genVoltagedBV = result.Item1;
 
                     if (genVoltagedBV == -150)
                     {
-                        await Program.MainForm.ShowMessage($"Could not determine a valid generator amplitude. The amplitude would be {genVoltagedBV:0.00#} dBV.");
+                        await showMessage($"Could not determine a valid generator amplitude. The amplitude would be {genVoltagedBV:0.00#} dBV.");
                         return false;
                     }
 
@@ -355,37 +362,35 @@ namespace QA40xPlot.Actions
                     // Check if amplitude found within the generator range
                     if (genVoltagedBV < 18)
                     {
-                        await Program.MainForm.ShowMessage($"Found an input amplitude of {genVoltagedBV:0.00#} dBV. Doing second pass.");
+                        await showMessage($"Found an input amplitude of {genVoltagedBV:0.00#} dBV. Doing second pass.");
 
                         // 2nd time for extra accuracy
-                        result = await QaLibrary.DetermineGenAmplitudeByOutputAmplitudeWithChirp(genVoltagedBV, amplifierOutputVoltagedBV, _measurementSettings.EnableLeftChannel, _measurementSettings.EnableRightChannel, ct);
+                        result = await QaLibrary.DetermineGenAmplitudeByOutputAmplitudeWithChirp(genVoltagedBV, amplifierOutputVoltagedBV, true, frqrsVm.RightChannel, ct);
                         if (ct.IsCancellationRequested)
                             return false;
                         genVoltagedBV = result.Item1;
                         if (genVoltagedBV == -150)
                         {
-                            await Program.MainForm.ShowMessage($"Could not determine a valid generator amplitude. The amplitude would be {genVoltagedBV:0.00#} dBV.");
+                            await showMessage($"Could not determine a valid generator amplitude. The amplitude would be {genVoltagedBV:0.00#} dBV.");
                             return false;
                         }
                     }
 
-                    await Program.MainForm.ShowMessage($"Found an input amplitude of {genVoltagedBV:0.00#} dBV.");
+                    await showMessage($"Found an input amplitude of {genVoltagedBV:0.00#} dBV.");
                 }
                 else
                 {
-                    genVoltagedBV = QaLibrary.ConvertVoltage(_measurementSettings.GeneratorAmplitude, _measurementSettings.GeneratorAmplitudeUnit, E_VoltageUnit.dBV);
-                    await Program.MainForm.ShowMessage($"Determining the best input attenuation for a generator voltage of {genVoltagedBV:0.00#} dBV.");
+                    genVoltagedBV = frqrsVm.GeneratorAmplitude;
+                    await showMessage($"Determining the best input attenuation for a generator voltage of {genVoltagedBV:0.00#} dBV.");
 
                     // Determine correct input attenuation
-                    var result = await QaLibrary.DetermineAttenuationForGeneratorVoltageWithChirp(genVoltagedBV, QaLibrary.MAXIMUM_DEVICE_ATTENUATION, _measurementSettings.EnableLeftChannel, _measurementSettings.EnableRightChannel, ct);
+                    var result = await QaLibrary.DetermineAttenuationForGeneratorVoltageWithChirp(genVoltagedBV, QaLibrary.MAXIMUM_DEVICE_ATTENUATION, true, frqrsVm.RightChannel, ct);
                     if (ct.IsCancellationRequested)
                         return false;
                     attenuation = result.Item1;
 
-                    await Program.MainForm.ShowMessage($"Found correct input attenuation of {attenuation:0} dBV for an amplfier amplitude of {result.Item2:0.00#} dBV.", 500);
+                    await showMessage($"Found correct input attenuation of {attenuation:0} dBV for an amplfier amplitude of {result.Item2:0.00#} dBV.", 500);
                 }
-
-
 
                 // Set the new input range
                 await Qa40x.SetInputRange(attenuation);
@@ -394,74 +399,48 @@ namespace QA40xPlot.Actions
                 if (ct.IsCancellationRequested)
                     return false;
 
-
                 await Qa40x.SetOutputSource(OutputSources.ExpoChirp);
-                await Qa40x.SetExpoChirpGen(genVoltagedBV, 0, _measurementSettings.SmoothDenominator, _measurementSettings.RightChannelIsReference);
-
-                await Program.MainForm.ShowMessage($"Sweeping...");
-                var lfrs = await QaLibrary.DoAcquisitions(_measurementSettings.Averages, ct, true, false);
-                if (ct.IsCancellationRequested)
-                    return false;
-                MeasurementResult.FrequencyResponseData = lfrs;
-                MeasurementResult.GainData = CalculateGain(lfrs.FreqInput);
-                UpdateGraph(false);
-
-                // When right channel then first sweeps have a lot of ripple. We do two extra sweeps.
-                if (_measurementSettings.RightChannelIsReference)
-                {
-                    lfrs = await QaLibrary.DoAcquisitions(2, ct, true, false);
-                    if (ct.IsCancellationRequested)
-                        return false;
-                    MeasurementResult.FrequencyResponseData = lfrs;
-                    MeasurementResult.GainData = CalculateGain(lfrs.FreqInput);
-                    UpdateGraph(false);
-                }
-                await Program.MainForm.ShowMessage($"Sweeping done", 200);
-                MeasurementResult.GainData = CalculateGain(lfrs.FreqInput);
-                UpdateGraph(false);
-                ShowLastMeasurementCursorTexts();
+                //await Qa40x.SetExpoChirpGen(genVoltagedBV, 0, frqrsVm.Smoothing, frqrsVm.RightChannel);
+				await Qa40x.SetExpoChirpGen(genVoltagedBV, 0, 24, frqrsVm.RightChannel);
 
                 // If in continous mode we continue sweeping until cancellation requested.
-                while (continuous && !ct.IsCancellationRequested)
+                do
                 {
-                    await Program.MainForm.ShowMessage($"Sweeping...");
-                    lfrs = await QaLibrary.DoAcquisitions(_measurementSettings.Averages, ct, true, true);
+                    await showMessage($"Sweeping...");
                     if (ct.IsCancellationRequested)
-                        return false;
+                        break;
+					var lfrs = await QaLibrary.DoAcquisitions(frqrsVm.Averages, ct, true, true);
+                    if (ct.IsCancellationRequested)
+						break;
 
-                    await Program.MainForm.ShowMessage($"Sweeping done", 200);
+					await showMessage($"Sweeping done", 200);
                     MeasurementResult.FrequencyResponseData = lfrs;
                     MeasurementResult.GainData = CalculateGain(lfrs.FreqInput);
                     UpdateGraph(false);
                     ShowLastMeasurementCursorTexts();
 
-                    bool result = QaLibrary.DetermineAttenuationFromLeftRightSeriesData(_measurementSettings.EnableLeftChannel, _measurementSettings.EnableRightChannel, lfrs, out double peak_dBV, out int newAttenuation);
+                    bool result = QaLibrary.DetermineAttenuationFromLeftRightSeriesData(true, frqrsVm.RightChannel, lfrs, out double peak_dBV, out int newAttenuation);
                     if (result && attenuation != newAttenuation)
                     {
                         attenuation = newAttenuation;
                         await Qa40x.SetInputRange(attenuation);
                     }
-                }
-
-                // Check if cancel button pressed
-                if (ct.IsCancellationRequested)
-                {
-                    await Qa40x.SetOutputSource(OutputSources.Off);                                             // Be sure to switch gen off
-                    return false;
-                }
-            }
+                } while (continuous && !ct.IsCancellationRequested);
+			}
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "An error occurred", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
             }
 
             // Turn the generator off
             await Qa40x.SetOutputSource(OutputSources.Off);
 
             // Show message
-            await Program.MainForm.ShowMessage($"Measurement finished!", 500);
+            await showMessage($"Measurement finished!", 500);
 
-            return true;
+            UpdateGraph(false);
+
+            return ct.IsCancellationRequested;
         }
 
 
@@ -484,7 +463,7 @@ namespace QA40xPlot.Actions
 
         }
 
-
+#if false
         void ClearCursorTexts()
         {
             lblCursor_Frequency.Text = "F: 0.00 Hz";
@@ -501,17 +480,20 @@ namespace QA40xPlot.Actions
         /// </summary>
         void ClearPlot()
         {
-            freqPlot.Plot.Clear();
-            freqPlot.Refresh();
+            frqrsPlot.Plot.Clear();
+            frqrsPlot.Refresh();
         }
-
+#endif
 
         /// <summary>
         /// Initialize the magnitude plot
         /// </summary>
         void InitializePlot()
         {
-            freqPlot.Plot.Clear();
+			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
+			var frqrsVm = ViewSettings.Singleton.FreqRespVm;
+
+			myPlot.Clear();
 
             // create a minor tick generator that places log-distributed minor ticks
             //ScottPlot.TickGenerators. minorTickGen = new();
@@ -524,8 +506,8 @@ namespace QA40xPlot.Actions
             tickGenY.TargetTickCount = 21;
             tickGenY.MinorTickGenerator = minorTickGen;
 
-            // tell the left axis to use our custom tick generator
-            freqPlot.Plot.Axes.Left.TickGenerator = tickGenY;
+			// tell the left axis to use our custom tick generator
+			myPlot.Axes.Left.TickGenerator = tickGenY;
 
             // create a minor tick generator that places log-distributed minor ticks
             ScottPlot.TickGenerators.LogMinorTickGenerator minorTickGenX = new();
@@ -555,47 +537,45 @@ namespace QA40xPlot.Actions
             tickGenX.AddMajor(Math.Log10(50000), "50k");
             tickGenX.AddMajor(Math.Log10(100000), "100k");
 
-            freqPlot.Plot.Axes.Bottom.TickGenerator = tickGenX;
+            myPlot.Axes.Bottom.TickGenerator = tickGenX;
 
             // show grid lines for major ticks
-            freqPlot.Plot.Grid.MajorLineColor = Colors.Black.WithOpacity(.35);
-            freqPlot.Plot.Grid.MajorLineWidth = 1;
-            freqPlot.Plot.Grid.MinorLineColor = Colors.Black.WithOpacity(.15);
-            freqPlot.Plot.Grid.MinorLineWidth = 1;
+            myPlot.Grid.MajorLineColor = Colors.Black.WithOpacity(.35);
+            myPlot.Grid.MajorLineWidth = 1;
+            myPlot.Grid.MinorLineColor = Colors.Black.WithOpacity(.15);
+            myPlot.Grid.MinorLineWidth = 1;
 
 
             //thdPlot.Plot.Axes.AutoScale();
-            if (cmbGraph_FreqStart.SelectedIndex > -1 && cmbGraph_FreqEnd.SelectedIndex > -1)
-                freqPlot.Plot.Axes.SetLimits(Math.Log10(GraphSettings.FrequencyRange_Start), Math.Log10(Convert.ToDouble(GraphSettings.FrequencyRange_End)), GraphSettings.YRangeBottom, GraphSettings.YRangeTop);
+			myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(frqrsVm.GraphStartFreq)), Math.Log10(Convert.ToInt32(frqrsVm.GraphEndFreq)), frqrsVm.RangeBottomdB, frqrsVm.RangeTopdB);
 
-            if (GraphSettings.GraphType == E_FrequencyResponseGraphType.DBV)
-                freqPlot.Plot.Title("Frequency Response (dBV)");
-            else
-                freqPlot.Plot.Title("Gain (dB)");
+			//if (GraphSettings.GraphType == E_FrequencyResponseGraphType.DBV)
+			myPlot.Title("Frequency Response (dBV)");
+            //else
+            //    myPlot.Title("Gain (dB)");
 
-            freqPlot.Plot.Axes.Title.Label.FontSize = 17;
+            myPlot.Axes.Title.Label.FontSize = 17;
 
-            freqPlot.Plot.XLabel("Frequency (Hz)");
-            freqPlot.Plot.Axes.Bottom.Label.OffsetX = 330;
-            freqPlot.Plot.Axes.Bottom.Label.FontSize = 15;
-            freqPlot.Plot.Axes.Bottom.Label.Bold = false;
+            myPlot.XLabel("Frequency (Hz)");
+            myPlot.Axes.Bottom.Label.OffsetX = 330;
+            myPlot.Axes.Bottom.Label.FontSize = 15;
+            myPlot.Axes.Bottom.Label.Bold = false;
 
 
-            freqPlot.Plot.Legend.IsVisible = true;
-            freqPlot.Plot.Legend.Orientation = ScottPlot.Orientation.Horizontal;
-            freqPlot.Plot.Legend.Alignment = ScottPlot.Alignment.UpperRight;
-
+            myPlot.Legend.IsVisible = true;
+            myPlot.Legend.Orientation = ScottPlot.Orientation.Horizontal;
+            myPlot.Legend.Alignment = ScottPlot.Alignment.UpperRight;
 
             ScottPlot.AxisRules.MaximumBoundary rule = new(
-                xAxis: freqPlot.Plot.Axes.Bottom,
-                yAxis: freqPlot.Plot.Axes.Left,
+                xAxis: myPlot.Axes.Bottom,
+                yAxis: myPlot.Axes.Left,
                 limits: new AxisLimits(Math.Log10(1), Math.Log10(100000), -200, 100)
                 );
 
-            freqPlot.Plot.Axes.Rules.Clear();
-            freqPlot.Plot.Axes.Rules.Add(rule);
+            myPlot.Axes.Rules.Clear();
+            myPlot.Axes.Rules.Add(rule);
 
-            freqPlot.Refresh();
+            frqrsPlot.Refresh();
         }
 
 
@@ -605,7 +585,10 @@ namespace QA40xPlot.Actions
         /// <param name="measurementResult">Data to plot</param>
         void PlotGraph(FrequencyResponseMeasurementResult measurementResult, int measurementNr, bool showLeftChannel, bool showRightChannel, E_FrequencyResponseGraphType graphType)
         {
-            if (measurementResult == null || measurementResult.FrequencyResponseData == null || measurementResult.FrequencyResponseData.FreqInput == null)
+			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
+			var frqrsVm = ViewSettings.Singleton.FreqRespVm;
+
+			if (measurementResult == null || measurementResult.FrequencyResponseData == null || measurementResult.FrequencyResponseData.FreqInput == null)
                 return;
 
             var freqX = new List<double>();
@@ -636,13 +619,13 @@ namespace QA40xPlot.Actions
                 foreach (var step in measurementResult.FrequencyResponseData.FreqInput.Left.Skip(1))        // Skip first bin (DC)
                 {
                     freqX.Add(startFrequency);
-                    if (showLeftChannel && measurementResult.MeasurementSettings.EnableLeftChannel)
+                    if (showLeftChannel)
                         magnY_left.Add(QaLibrary.ConvertVoltage(step, E_VoltageUnit.Volt, E_VoltageUnit.dBV));
 
                     startFrequency += frequencyStep;
                 }
 
-                if (showRightChannel && measurementResult.MeasurementSettings.EnableRightChannel)
+                if (showRightChannel && measurementResult.MeasurementSettings.RightChannel)
                 {
                     foreach (var step in measurementResult.FrequencyResponseData.FreqInput.Right.Skip(1))
                     {
@@ -652,17 +635,18 @@ namespace QA40xPlot.Actions
             }
 
             double[] logFreqX = freqX.Select(Math.Log10).ToArray();
-            float lineWidth = GraphSettings.ThickLines ? 1.6f : 1;
-            float markerSize = GraphSettings.ShowDataPoints ? lineWidth + 3 : 1;
+            float lineWidth = frqrsVm.ShowThickLines ? 1.6f : 1;
+            float markerSize = frqrsVm.ShowPoints ? lineWidth + 3 : 1;
 
             var colors = new GraphColors();
             int color = measurementNr * 2;
 
             void AddPlot(List<double> yValues, string legendText, int colorIndex, LinePattern linePattern)
             {
-                if (yValues.Count == 0) return;
+                if (yValues.Count == 0) 
+                    return;
                 var logYValues = yValues.ToArray();
-                var plot = freqPlot.Plot.Add.Scatter(logFreqX, logYValues);
+                var plot = frqrsPlot.ThePlot.Add.Scatter(logFreqX, logYValues);
                 plot.LineWidth = lineWidth;
                 plot.Color = colors.GetColor(colorIndex, color);
                 plot.MarkerSize = markerSize;
@@ -679,14 +663,14 @@ namespace QA40xPlot.Actions
             if (gainY.Count > 0)
                 AddPlot(gainY, "Gain", 9, LinePattern.Solid);
 
-            if (markerIndex != -1)
-                QaLibrary.PlotCursorMarker(freqPlot, lineWidth, LinePattern.Solid, markerDataPoint);
+            //if (markerIndex != -1)
+            //    QaLibrary.PlotCursorMarker(frqrsPlot, lineWidth, LinePattern.Solid, markerDataPoint);
 
-            //freqPlot.Refresh();
+            frqrsPlot.Refresh();
         }
 
 
-
+#if false
         void UpdateGraphChannelSelectors()
         {
             if (MeasurementSettings.RightChannelIsReference)
@@ -793,24 +777,24 @@ namespace QA40xPlot.Actions
         void AttachPlotMouseEvent()
         {
             // Attach the mouse move event
-            freqPlot.MouseMove += (s, e) =>
+            frqrsPlot.MouseMove += (s, e) =>
             {
                 SetCursorMarker(s, e, false);
             };
 
             // Mouse is clicked
-            freqPlot.MouseDown += (s, e) =>
+            frqrsPlot.MouseDown += (s, e) =>
             {
                 SetCursorMarker(s, e, true);      // Set persistent marker
             };
 
             // Mouse is leaving the graph
-            freqPlot.SKControl.MouseLeave += (s, e) =>
+            frqrsPlot.SKControl.MouseLeave += (s, e) =>
             {
                 if (markerIndex == -1)
                 {
-                    freqPlot.Plot.Remove<Crosshair>();
-                    freqPlot.Refresh();
+                    frqrsPlot.Plot.Remove<Crosshair>();
+                    frqrsPlot.Refresh();
                 }
             };
 
@@ -833,12 +817,12 @@ namespace QA40xPlot.Actions
 
             // determine where the mouse is and get the nearest point
             Pixel mousePixel = new(e.Location.X, e.Location.Y);
-            Coordinates mouseLocation = freqPlot.Plot.GetCoordinates(mousePixel);
-            if (freqPlot.Plot.GetPlottables<Scatter>().Count() == 0)
+            Coordinates mouseLocation = frqrsPlot.Plot.GetCoordinates(mousePixel);
+            if (frqrsPlot.Plot.GetPlottables<Scatter>().Count() == 0)
                 return;                     // Nothing plotted
 
             // Get nearest x-location in plotr
-            DataPoint nearest1 = freqPlot.Plot.GetPlottables<Scatter>().First().Data.GetNearestX(mouseLocation, freqPlot.Plot.LastRender);
+            DataPoint nearest1 = frqrsPlot.Plot.GetPlottables<Scatter>().First().Data.GetNearestX(mouseLocation, frqrsPlot.Plot.LastRender);
 
             // place the crosshair over the highlighted point
             if (nearest1.IsReal)
@@ -853,7 +837,7 @@ namespace QA40xPlot.Actions
                     {
                         // Remove marker
                         markerIndex = -1;
-                        freqPlot.Plot.Remove<Crosshair>();
+                        frqrsPlot.Plot.Remove<Crosshair>();
                         return;
                     }
                     else
@@ -871,7 +855,7 @@ namespace QA40xPlot.Actions
                         return;                                 // Do not show new marker. There is already a clicked marker
                 }
 
-                QaLibrary.PlotCursorMarker(freqPlot, lineWidth, linePattern, nearest1);
+                QaLibrary.PlotCursorMarker(frqrsPlot, lineWidth, linePattern, nearest1);
 
                 // Check if index in StepData array
                 if (MeasurementResult.FrequencyResponseData.FreqInput.Left.Count() > nearest1.Index)
@@ -1064,156 +1048,130 @@ namespace QA40xPlot.Actions
             UpdateGraphChannelSelectors();
             btnFitGraphY_Click(sender, e);
         }
+#endif
 
 
-
-        private void UpdateGraph(bool settingsChanged)
+        public void UpdateGraph(bool settingsChanged)
         {
-            freqPlot.Plot.Remove<Scatter>();             // Remove all current lines
-            int resultNr = 0;
+            frqrsPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
+			var frqsrVm = ViewSettings.Singleton.FreqRespVm;
+
+			int resultNr = 0;
 
             
             if (settingsChanged)
             {
-                btnGraph_dBV.BackColor = System.Drawing.Color.Cornsilk;
-                btnGraph_Gain.BackColor = System.Drawing.Color.WhiteSmoke;
-
                 InitializePlot();
             }
 
             foreach (var result in Data.Measurements.Where(m => m.Show))
             {
-                PlotGraph(result, resultNr++, GraphSettings.ShowLeftChannel, GraphSettings.ShowRightChannel, GraphSettings.GraphType);
+                PlotGraph(result, resultNr++, frqsrVm.ShowLeft, frqsrVm.ShowRight, E_FrequencyResponseGraphType.DBV);  // frqsrVm.GraphType);
             }
 
             PlotBandwidthLines();
-            freqPlot.Refresh();
+            frqrsPlot.Refresh();
         }
 
         private void PlotBandwidthLines()
         {
             // Plot
-            if (GraphSettings.GraphType == E_FrequencyResponseGraphType.DBV)   
+            //if (GraphSettings.GraphType == E_FrequencyResponseGraphType.DBV)   
                 PlotDbVBandwidthLines();
-            else 
-                PlotGainBandwidthLines();
+            //else 
+            //    PlotGainBandwidthLines();
         }
 
         void PlotDbVBandwidthLines() 
         {
-            // Remove old lines
-            freqPlot.Plot.Remove<VerticalLine>();
-            freqPlot.Plot.Remove<Arrow>();
-            freqPlot.Plot.Remove<Text>();
+			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
+			FreqRespViewModel frqrsVm = ViewSettings.Singleton.FreqRespVm;
+
+			// Remove old lines
+			myPlot.Remove<VerticalLine>();
+			myPlot.Remove<Arrow>();
+			myPlot.Remove<Text>();
 
             if (MeasurementResult != null && MeasurementResult.FrequencyResponseData != null && MeasurementResult.FrequencyResponseData.FreqInput != null)
             {
                 BandwidthData bandwidthData3dB = new BandwidthData();
                 BandwidthData bandwidthData1dB = new BandwidthData();
-                if (MeasurementResult.MeasurementSettings.EnableLeftChannel)
+                if (MeasurementResult.MeasurementSettings.LeftChannel)
                 {
                     bandwidthData3dB.Left = CalculateBandwidth(-3, MeasurementResult.FrequencyResponseData.FreqInput.Left, MeasurementResult.FrequencyResponseData.FreqInput.Df);
-                    lblMeas_BW3_L.Text = AutoUnitText(bandwidthData3dB.Left.Bandwidth, "Hz", 2);
-                    lblMeas_BW3_low_L.Text = AutoUnitText(bandwidthData3dB.Left.LowerFreq, "Hz", 2);
-                    lblMeas_BW3_high_L.Text = AutoUnitText(bandwidthData3dB.Left.UpperFreq, "Hz", 2);
-                    lblMeas_Amplitude_V_L.Text = AutoUnitText(bandwidthData3dB.Left.HighestAmplitudeVolt, "V", 2);
-                    lblMeas_Amplitude_dBV_L.Text = AutoUnitText(QaLibrary.ConvertVoltage(bandwidthData3dB.Left.HighestAmplitudeVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV), "dBV", 2);
-                    lblMeas_Highest_Freq_L.Text = AutoUnitText(bandwidthData3dB.Left.HighestAmplitudeFreq, "Hz", 2);
-
                     bandwidthData1dB.Left = CalculateBandwidth(-1, MeasurementResult.FrequencyResponseData.FreqInput.Left, MeasurementResult.FrequencyResponseData.FreqInput.Df);
-                    lblMeas_BW1_L.Text = AutoUnitText(bandwidthData1dB.Left.Bandwidth, "Hz", 2);
-                    lblMeas_BW1_low_L.Text = AutoUnitText(bandwidthData1dB.Left.LowerFreq, "Hz", 2);
-                    lblMeas_BW1_high_L.Text = AutoUnitText(bandwidthData1dB.Left.UpperFreq, "Hz", 2);
                 }
 
-                if (MeasurementResult.MeasurementSettings.EnableRightChannel)
+                if (MeasurementResult.MeasurementSettings.RightChannel)
                 {
                     bandwidthData3dB.Right = CalculateBandwidth(-3, MeasurementResult.FrequencyResponseData.FreqInput.Right, MeasurementResult.FrequencyResponseData.FreqInput.Df);
-                    lblMeas_BW3_R.Text = AutoUnitText(bandwidthData3dB.Right.Bandwidth, "Hz", 1);
-                    lblMeas_BW3_low_R.Text = AutoUnitText(bandwidthData3dB.Right.LowerFreq, "Hz", 1);
-                    lblMeas_BW3_high_R.Text = AutoUnitText(bandwidthData3dB.Right.UpperFreq, "Hz", 1);
-                    lblMeas_Amplitude_V_R.Text = AutoUnitText(bandwidthData3dB.Right.HighestAmplitudeVolt, "V", 2);
-                    lblMeas_Amplitude_dBV_R.Text = AutoUnitText(QaLibrary.ConvertVoltage(bandwidthData3dB.Right.HighestAmplitudeVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV), "dBV", 2);
-                    lblMeas_Highest_Freq_R.Text = AutoUnitText(bandwidthData3dB.Right.HighestAmplitudeFreq, "Hz", 1);
-
                     bandwidthData1dB.Right = CalculateBandwidth(-1, MeasurementResult.FrequencyResponseData.FreqInput.Right, MeasurementResult.FrequencyResponseData.FreqInput.Df);
-                    lblMeas_BW1_R.Text = AutoUnitText(bandwidthData1dB.Right.Bandwidth, "Hz", 1);
-                    lblMeas_BW1_low_R.Text = AutoUnitText(bandwidthData1dB.Right.LowerFreq, "Hz", 1);
-                    lblMeas_BW1_high_R.Text = AutoUnitText(bandwidthData1dB.Right.UpperFreq, "Hz", 1);
                 }
 
                 // Draw bandwidth lines
                 var colors = new GraphColors();
-                float lineWidth = GraphSettings.ThickLines ? 1.6f : 1;
+                float lineWidth = frqrsVm.ShowThickLines ? 1.6f : 1;
 
-                if (GraphSettings.ShowLeftChannel && MeasurementSettings.EnableLeftChannel)
+                if (frqrsVm.ShowLeft && frqrsVm.LeftChannel)
                 {
-                    if (GraphSettings.Show3dBBandwidth_L)
+                    if (frqrsVm.Show3dBBandwidth_L)
                     {
                         DrawBandwithLines(3, bandwidthData3dB.Left, 0);
                     }
 
-                    if (GraphSettings.Show1dBBandwidth_L)
+                    if (frqrsVm.Show1dBBandwidth_L)
                     {
                         DrawBandwithLines(1, bandwidthData1dB.Left, 1);
                     }
                 }
 
-                if (GraphSettings.ShowRightChannel && MeasurementSettings.EnableRightChannel)
+                if (frqrsVm.ShowRight && frqrsVm.RightChannel)
                 {
-                    if (GraphSettings.Show3dBBandwidth_R)
+                    if (frqrsVm.Show3dBBandwidth_R)
                     {
                         DrawBandwithLines(3, bandwidthData3dB.Right, 2);
                     }
 
-                    if (GraphSettings.Show1dBBandwidth_R)
+                    if (frqrsVm.Show1dBBandwidth_R)
                     {
                         DrawBandwithLines(1, bandwidthData3dB.Right, 3);
                     }
                 }
-
-
             }
         }
 
         void PlotGainBandwidthLines()
         {
-            // Remove old lines
-            freqPlot.Plot.Remove<VerticalLine>();
-            freqPlot.Plot.Remove<Arrow>();
-            freqPlot.Plot.Remove<Text>();
+			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
+			FreqRespViewModel frqrsVm = ViewSettings.Singleton.FreqRespVm;
+
+			// Remove old lines
+			myPlot.Remove<VerticalLine>();
+            myPlot.Remove<Arrow>();
+            myPlot.Remove<Text>();
 
             // GAIN
             if (MeasurementResult != null && MeasurementResult.GainData != null)
             {
                 // Gain BW
-                if (MeasurementResult.MeasurementSettings.EnableLeftChannel)
+                if (MeasurementResult.MeasurementSettings.LeftChannel)
                 {
                     var gainBW3dB = CalculateBandwidth(-3, MeasurementResult.GainData, MeasurementResult.FrequencyResponseData.FreqInput.Df);        // Volts is gain
-                    lblMeas_BW3_L.Text = AutoUnitText(gainBW3dB.Bandwidth, "Hz", 1);
-                    lblMeas_BW3_low_L.Text = AutoUnitText(gainBW3dB.LowerFreq, "Hz", 1);
-                    lblMeas_BW3_high_L.Text = AutoUnitText(gainBW3dB.UpperFreq, "Hz", 1);
-                    lblMeas_Amplitude_V_L.Text = gainBW3dB.HighestAmplitudeVolt.ToString("0.00") + " x";
-                    lblMeas_Amplitude_dBV_L.Text = AutoUnitText(QaLibrary.ConvertVoltage(gainBW3dB.HighestAmplitudeVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV), "dB", 2);
-                    lblMeas_Highest_Freq_L.Text = AutoUnitText(gainBW3dB.HighestAmplitudeFreq, "Hz", 1);
 
                     var gainBW1dB = CalculateBandwidth(-1, MeasurementResult.GainData, MeasurementResult.FrequencyResponseData.FreqInput.Df);
-                    lblMeas_BW1_L.Text = AutoUnitText(gainBW1dB.Bandwidth, "Hz", 1);
-                    lblMeas_BW1_low_L.Text = AutoUnitText(gainBW1dB.LowerFreq, "Hz", 1);
-                    lblMeas_BW1_high_L.Text = AutoUnitText(gainBW1dB.UpperFreq, "Hz", 1);
 
                     // Draw bandwidth lines
                     var colors = new GraphColors();
-                    float lineWidth = GraphSettings.ThickLines ? 1.6f : 1;
+                    float lineWidth = frqrsVm.ShowThickLines ? 1.6f : 1;
 
-                    if (GraphSettings.ShowLeftChannel && MeasurementSettings.EnableLeftChannel)
+                    if (frqrsVm.ShowLeft && frqrsVm.LeftChannel)
                     {
-                        if (GraphSettings.Show3dBBandwidth_L)
+                        if (frqrsVm.Show3dBBandwidth_L)
                         {
                             DrawBandwithLines(3, gainBW3dB, 0);
                         }
 
-                        if (GraphSettings.Show1dBBandwidth_L)
+                        if (frqrsVm.Show1dBBandwidth_L)
                         {
                             DrawBandwithLines(1, gainBW1dB, 1);
                         }
@@ -1332,8 +1290,10 @@ namespace QA40xPlot.Actions
 
         void DrawBandwithLines(int gain, BandwidthChannelData channelData, int colorRange)
         {
-            var colors = new GraphColors();
-            float lineWidth = GraphSettings.ThickLines ? 1.6f : 1;
+			var frqrsVm = ViewSettings.Singleton.FreqRespVm;
+
+			var colors = new GraphColors();
+            float lineWidth = frqrsVm.ShowThickLines ? 1.6f : 1;
 
             // Low frequency vertical line
             var lowerFreq_dBV_left = Math.Log10(channelData.LowerFreq);
@@ -1361,19 +1321,19 @@ namespace QA40xPlot.Actions
             var bwLowF = $"{channelData.LowerFreq:0 Hz}";
             if (channelData.LowerFreq > 1000)
                 bwLowF = $"{(channelData.LowerFreq / 1000):0.00# kHz}";
-            AddText(bwLowF, lowerFreq_dBV_left, freqPlot.Plot.Axes.GetLimits().Bottom, colors.GetColor(colorRange, 8), -20, -30);
+            AddText(bwLowF, lowerFreq_dBV_left, frqrsPlot.ThePlot.Axes.GetLimits().Bottom, colors.GetColor(colorRange, 8), -20, -30);
 
             // High frequency text         
             var bwHighF = $"{channelData.UpperFreq:0 Hz}";
             if (channelData.UpperFreq > 1000)
                 bwHighF = $"{(channelData.UpperFreq / 1000):0.00# kHz}";
-            AddText(bwHighF, upperFreq_dBV_left, freqPlot.Plot.Axes.GetLimits().Bottom, colors.GetColor(colorRange, 8), -20, -30);
+            AddText(bwHighF, upperFreq_dBV_left, frqrsPlot.ThePlot.Axes.GetLimits().Bottom, colors.GetColor(colorRange, 8), -20, -30);
         }
 
 
         void AddVerticalLine(double x, double maximum, ScottPlot.Color color, float lineWidth)
         {
-            var line = freqPlot.Plot.Add.VerticalLine(x);
+            var line = frqrsPlot.ThePlot.Add.VerticalLine(x);
             line.Maximum = maximum;
             line.Color = color;
             line.LineWidth = lineWidth;
@@ -1384,7 +1344,7 @@ namespace QA40xPlot.Actions
         {
             Coordinates arrowTip = new Coordinates(x1, y1);
             Coordinates arrowBase = new Coordinates(x2, y2);
-            var arrow = freqPlot.Plot.Add.Arrow(arrowTip, arrowBase);
+            var arrow = frqrsPlot.ThePlot.Add.Arrow(arrowTip, arrowBase);
             arrow.ArrowStyle.LineWidth = lineWidth;
             arrow.ArrowStyle.ArrowheadLength = 12;
             arrow.ArrowStyle.ArrowheadWidth = 8;
@@ -1394,7 +1354,7 @@ namespace QA40xPlot.Actions
 
         void AddText(string text, double x, double y, ScottPlot.Color backgroundColor, int offsetX, int offsetY)
         {
-            var txt = freqPlot.Plot.Add.Text(text, x, y);
+            var txt = frqrsPlot.ThePlot.Add.Text(text, x, y);
             txt.LabelFontSize = 12;
             txt.LabelBorderColor = Colors.Black;
             txt.LabelBorderWidth = 1;
@@ -1405,9 +1365,9 @@ namespace QA40xPlot.Actions
             txt.OffsetY = offsetY;
         }
 
-    
 
 
+#if false
         /// <summary>
         /// Measurement cancel button clicked
         /// </summary>
@@ -1652,5 +1612,6 @@ namespace QA40xPlot.Actions
             if (cmbLowFrequencyAccuracy.SelectedIndex != -1)
                 MeasurementSettings.FftResolution = (uint)((KeyValuePair<double, string>)cmbLowFrequencyAccuracy.SelectedItem).Key;
         }
+#endif
     }
 }

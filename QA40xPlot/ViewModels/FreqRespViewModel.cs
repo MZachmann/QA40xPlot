@@ -10,7 +10,7 @@ using System.Windows.Controls;
 
 namespace QA40xPlot.ViewModels
 {
-	public class SpectrumViewModel : BaseViewModel
+	public class FreqRespViewModel : BaseViewModel
 	{
 		public List<String> SampleRates { get => new List<string> { "48000", "96000", "192000", "384000" }; }
 		public List<String> FftSizes { get => new List<string> { "64K", "128K", "256K", "512K", "1024K" }; }
@@ -18,15 +18,15 @@ namespace QA40xPlot.ViewModels
 		//public List<String> WindowingTypes { get => new List<string> { "Rect", "Bartlett", "Hamming", "Hann", "Flat Top" }; }   // matches enum Windowing
 		public List<String> WindowingTypes { get => new List<string> { "Rectangle", "Hann", "FlatTop" }; }    // the only ones that seem to work...
 		public List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
-		public List<String> MeasureTypes { get => new List<string> { "Input Voltage", "Output Voltage", "Output Power" }; }
+		public List<String> MeasureTypes { get => new List<string> { "Input Voltage", "Output Voltage"}; }
 		public List<String> GenFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "2000", "5000", "10000" }; }
 		public List<String> GenAmplitudes { get => new List<string> { "0.05", "0.1", "0.25", "0.5", "0.75", "1", "2", "5" }; }
 		public List<String> StartFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500" }; }
 		public List<String> EndFrequencies { get => new List<string> { "1000", "2000", "5000", "10000", "20000" }; }
 		public List<String> StartPercents { get => new List<string> { "100", "10", "1", "0.1", "0.01" }; }
 		public List<String> EndPercents { get => new List<string> { "0.1", "0.01", "0.001", "0.0001", "0.00001", "0.000001" }; }
-		public ActSpectrum  actSpec { get; private set; }
-		public ChannelInfo  actInfo { get; private set; }
+		public List<String> Smoothings { get => new List<string> { "None", "1/24", "1/6" }; }
+		public ActFrequencyResponse  actFreq { get; private set; }
 		public RelayCommand SetAttenuate { get => new RelayCommand(SetAtten); }
 		public RelayCommand DoStart { get => new RelayCommand(StartIt); }
 		public RelayCommand DoStop { get => new RelayCommand(StopIt); }
@@ -38,6 +38,12 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _ShowChannelInfo;
 			set => SetProperty(ref _ShowChannelInfo, value);
+		}
+
+		private double _GenVoltage;         // type of alert
+		public double GenVoltage
+		{
+			get => _GenVoltage; set => SetProperty(ref _GenVoltage, value);
 		}
 
 		private double _AmpLoad;         // type of alert
@@ -70,6 +76,13 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _Gen1Frequency;
 			set => SetProperty(ref _Gen1Frequency, value);
+		}
+
+		private string _Smoothing;         // type of alert
+		public string Smoothing
+		{
+			get => _Smoothing;
+			set => SetProperty(ref _Smoothing, value);
 		}
 
 		private string _Gen1Voltage;         // type of alert
@@ -192,6 +205,13 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _ShowThickLines;
 			set => SetProperty(ref _ShowThickLines, value);
+		}
+
+		private bool _ShowPoints;
+		public bool ShowPoints
+		{
+			get => _ShowPoints;
+			set => SetProperty(ref _ShowPoints, value);
 		}
 
 		private bool _ShowSummary = true;
@@ -343,6 +363,32 @@ namespace QA40xPlot.ViewModels
 			get => _AttenCheck;
 			set => SetProperty(ref _AttenCheck, value);
 		}
+
+		private bool _Show3dBBandwidth_L;
+		public bool Show3dBBandwidth_L
+		{
+			get => _Show3dBBandwidth_L;
+			set => SetProperty(ref _Show3dBBandwidth_L, value);
+		}
+		private bool _Show3dBBandwidth_R;
+		public bool Show3dBBandwidth_R
+		{
+			get => _Show3dBBandwidth_R;
+			set => SetProperty(ref _Show3dBBandwidth_R, value);
+		}
+
+		private bool _Show1dBBandwidth_L;
+		public bool Show1dBBandwidth_L
+		{
+			get => _Show1dBBandwidth_L;
+			set => SetProperty(ref _Show1dBBandwidth_L, value);
+		}
+		private bool _Show1dBBandwidth_R;
+		public bool Show1dBBandwidth_R
+		{
+			get => _Show1dBBandwidth_R;
+			set => SetProperty(ref _Show1dBBandwidth_R, value);
+		}
 		#endregion
 
 
@@ -352,28 +398,20 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
-				case "OutputUnits":
-					actSpec?.UpdateAmpOutputVoltageDisplay();
-					break;
 				case "GeneratorUnits":
-					actSpec?.UpdateGeneratorVoltageDisplay();
+					actFreq?.UpdateGeneratorVoltageDisplay();
 					break;
 				case "Voltage":
 				case "AmpLoad":
 				case "OutPower":
 				case "MeasureType":
 				case "VoltageUnits":
-					actSpec?.UpdateGeneratorParameters();
+					//actFreq?.UpdateGeneratorParameters();
 					break;
 				case "ShowPercent":
 					ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
 					ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;
-					actSpec?.UpdateGraph(true);
-					break;
-				case "ShowSummary":
-					ShowChannelInfo = ShowSummary;
-					if( actInfo != null)
-						actInfo.Visibility = ShowSummary ? Visibility.Visible : Visibility.Hidden;
+					actFreq?.UpdateGraph(true);
 					break;
 				case "GraphStartFreq":
 				case "GraphEndFreq":
@@ -393,23 +431,22 @@ namespace QA40xPlot.ViewModels
 				case "ShowNoiseFloor":
 				case "ShowThickLines":
 				case "ShowMarkers":
-					actSpec?.UpdateGraph(true);
+					actFreq?.UpdateGraph(true);
 					break;
 				default:
 					break;
 			}
 		}
 
-		public void SetAction(PlotControl plot, ChannelInfo info)
+		public void SetAction(PlotControl plot)
 		{
-			SpectrumData data = new SpectrumData();
-			actSpec = new ActSpectrum(ref data, plot);
-			actInfo = info;
+			FrequencyResponseData data = new FrequencyResponseData();
+			actFreq = new ActFrequencyResponse(ref data, plot);
 		}
 
 		private static void SetAtten(object parameter)
 		{
-			var vm = ViewSettings.Singleton.SpectrumVm;
+			var vm = ViewSettings.Singleton.FreqRespVm;
 			var atten = Convert.ToDouble(parameter);
 			vm.Attenuation = atten;
 		}
@@ -417,25 +454,26 @@ namespace QA40xPlot.ViewModels
 		private static void StartIt(object parameter)
 		{
 			// Implement the logic to start the measurement process
-			var vm = ViewModels.ViewSettings.Singleton.SpectrumVm;
-			vm.actSpec.StartMeasurement();
+			var vm = ViewModels.ViewSettings.Singleton.FreqRespVm;
+			vm.actFreq.StartMeasurement();
 		}
 
 		private static void StopIt(object parameter)
 		{
-			var vm = ViewModels.ViewSettings.Singleton.SpectrumVm;
-			vm.actSpec.DoCancel();
+			var vm = ViewModels.ViewSettings.Singleton.FreqRespVm;
+			vm.actFreq.DoCancel();
 		}
 
-		~SpectrumViewModel()
+		~FreqRespViewModel()
 		{
 			PropertyChanged -= CheckPropertyChanged;
 		}
 
-		public SpectrumViewModel()
+		public FreqRespViewModel()
 		{
 			PropertyChanged += CheckPropertyChanged;
 
+			GenVoltage = 0.03;
 			AmpLoad = 8;
 			OutPower = 0.5;
 			OutVoltage = 0.5;
@@ -449,7 +487,7 @@ namespace QA40xPlot.ViewModels
 			RightChannel = false;
 			MeasureType = 2;
 			OutputUnits = 0;
-			GeneratorUnits = 0;
+			GeneratorUnits = (int)E_VoltageUnit.Volt;
 			RangeTop = "1";             // when graphing percents distortion this is logarithmic 0.01....
 			RangeBottom = "0.001";
 
@@ -477,6 +515,7 @@ namespace QA40xPlot.ViewModels
 
 			ShowMarkers = true;
 			ShowPowerMarkers = false;
+			ShowPoints = false;
 
 			ToShowRange = Visibility.Visible;
 			ToShowdB = Visibility.Visible;
@@ -493,9 +532,12 @@ namespace QA40xPlot.ViewModels
 			OutVoltage = QaLibrary.ConvertVoltage(AmpOutputAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)OutputUnits);
 
 			Gen1Frequency = "1000";
+			Smoothing = "None";
 
 			Attenuation = 42;
 			AttenCheck = true;
+
+			Show3dBBandwidth_L = true;
 		}
 	}
 }

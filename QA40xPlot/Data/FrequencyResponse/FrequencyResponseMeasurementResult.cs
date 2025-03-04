@@ -1,4 +1,5 @@
 ﻿using QA40xPlot.Libraries;
+using QA40xPlot.ViewModels;
 
 namespace QA40xPlot.Data
 {
@@ -11,7 +12,7 @@ namespace QA40xPlot.Data
         public bool Saved { get; set; }                                                 // Has been saved
         public LeftRightSeries FrequencyResponseData { get; set; }                      // Measurement data
         public double[] GainData { get; set; }                                          // Calculated gain over frequency
-        public FrequencyResponseMeasurementSettings MeasurementSettings { get; set; }   //  Settings used for this measurement
+        public FreqRespViewModel MeasurementSettings { get; set; }   //  Settings used for this measurement
 
         public FrequencyResponseMeasurementResult()
         {

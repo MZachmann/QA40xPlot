@@ -19,7 +19,7 @@ using System.Windows.Shapes;
 using Windows.UI.ViewManagement;
 using Xceed.Wpf.Toolkit;
 
-namespace QA40xPlot
+namespace QA40xPlot.Views
 {
 	/// <summary>
 	/// Interaction logic for UserControl1.xaml

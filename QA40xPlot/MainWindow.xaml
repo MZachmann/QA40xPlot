@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="clr-namespace:QA40xPlot.Views"
         xmlns:local="clr-namespace:QA40xPlot"
         mc:Ignorable="d"
         Title="Qa40x_Plot" Height="800" Width="1600" Background="MintCream">
@@ -15,23 +16,25 @@
         <Label Grid.Row="0" Content="{Binding ProgressMessage}"/>
         <ProgressBar Grid.Row="1" Minimum="0" Maximum="100" MinHeight="5" Value="{Binding ProgressAmount}" />
         <TabControl Grid.Row="2">
+            <TabItem Header="Freq Response">
+                <Grid Background="#FFE5E5E5">
+                    <views:FreqRespPlotPage  />
+                </Grid>
+            </TabItem>
             <TabItem Header="Spectrum">
                 <Grid Background="#FF35E5E5">
-                    <local:SpectrumPlotPage  />
+                    <views:SpectrumPlotPage  />
                 </Grid>
             </TabItem>
             <TabItem Header="Thd vs Freq">
                 <Grid Background="#FFE5E5E5">
-                    <local:ThdFreqPlotPage  />
+                    <views:ThdFreqPlotPage  />
                 </Grid> 
             </TabItem>
             <TabItem Header="Thd vs Amp">
                 <Grid Background="#FFE5E5E5">
-                    <local:ThdAmpPlotPage  />
+                    <views:ThdAmpPlotPage  />
                 </Grid>
-            </TabItem>
-            <TabItem Header="Freq Response">
-                <Grid Background="#FFE5E5E5"/>
             </TabItem>
             <TabItem Header="Bode Plot">
                 <Grid Background="#FFE5E5E5"/>

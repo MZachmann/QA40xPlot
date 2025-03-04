@@ -19,51 +19,33 @@ using System.Windows.Shapes;
 using Windows.UI.ViewManagement;
 using Xceed.Wpf.Toolkit;
 
-namespace QA40xPlot
+namespace QA40xPlot.Views
 {
-	public class ColorUtil
-	{
-		// From https://learn.microsoft.com/en-us/windows/apps/desktop/modernize/apply-windows-themes?WT.mc_id=DT-MVP-5003978#know-when-dark-mode-is-enabled
-		private bool CheckColorTheme()
-		{
-			var settings = new UISettings();
-			var clr = settings.GetColorValue(UIColorType.Background);
-			var isLight = IsColorLight(clr);
-			return isLight;
-		}
-
-		private static bool IsColorLight(Windows.UI.Color clr)
-		{
-			return ((5 * clr.G) + (2 * clr.R) + clr.B) > (8 * 128);
-		}
-
-	}
-
 	/// <summary>
 	/// Interaction logic for UserControl1.xaml
 	/// </summary>
-	public partial class ThdFreqPlotPage : UserControl
+	public partial class SpectrumPlotPage : UserControl
 	{
-		public ThdFreqPlotPage()
+		public SpectrumPlotPage()
 		{
 			InitializeComponent();
-			var vm = ViewModels.ViewSettings.Singleton.ThdFreq;
+			var vm = ViewModels.ViewSettings.Singleton.SpectrumVm;
 			this.DataContext = vm;
-			vm.SetAction(this.WpfPlot1, this.WpfPlot2, this.WpfPlot3);
+			vm.SetAction(this.WpfPlot1, this.Info1);
 		}
 
 		private void OnVoltageChanged(object sender, RoutedEventArgs e)
 		{
-			var vm = ViewModels.ViewSettings.Singleton.ThdFreq;
+			var vm = ViewModels.ViewSettings.Singleton.SpectrumVm;
 			var u = ((TextBox)sender).Text;
-			vm.actThd.UpdateGenAmplitude(u);
+			vm.actSpec.UpdateGenAmplitude(u);
 		}
 
 		private void OnAmpVoltageChanged(object sender, RoutedEventArgs e)
 		{
-			var vm = ViewModels.ViewSettings.Singleton.ThdFreq;
+			var vm = ViewModels.ViewSettings.Singleton.SpectrumVm;
 			var u = ((TextBox)sender).Text;
-			vm.actThd.UpdateAmpAmplitude(u);
+			vm.actSpec.UpdateAmpAmplitude(u);
 		}
 	}
 }

@@ -1,12 +1,16 @@
-﻿using QA40xPlot.Data;
+﻿using FftSharp;
+using QA40xPlot.Data;
 
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
+using System.Drawing.Imaging;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Interop;
+using System.Windows.Shapes;
 
 // various things for the thd vs frequency activity
 
@@ -26,7 +30,7 @@ namespace QA40xPlot.Actions
 
         private float _Thickness = 2.0f;
 
-		public CancellationTokenSource ct { private set; get; }                                 // Measurement cancelation token
+		CancellationTokenSource ct { set; get; }                                 // Measurement cancelation token
 
         /// <summary>
         /// Constructor
@@ -47,6 +51,11 @@ namespace QA40xPlot.Actions
 			AttachPlotMouseEvent();
         }
 
+        public void DoCancel()
+        {
+            ct.Cancel();
+		}
+
 		/// <summary>
 		/// Update the generator voltage in the textbox based on the selected unit.
 		/// If the unit changes then the voltage will be converted
@@ -54,7 +63,7 @@ namespace QA40xPlot.Actions
 		public void UpdateGeneratorVoltageDisplay()
         {
 			var vm = ViewSettings.Singleton.SpectrumVm;
-			vm.GenVoltage = QaLibrary.ConvertVoltage(vm.GeneratorAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)vm.GeneratorUnits);
+			vm.Gen1Voltage = QaLibrary.ConvertVoltage(vm.GeneratorAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)vm.GeneratorUnits).ToString();
         }
 
 		/// <summary>
@@ -158,7 +167,6 @@ namespace QA40xPlot.Actions
 			await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make it turn on or off
 			await Qa40x.SetSampleRate(sampleRate);
             await Qa40x.SetBufferSize(fftsize);
-			Windowing wValue = (Windowing)Enum.Parse(typeof(Windowing), thd.WindowingMethod);
 			await Qa40x.SetWindowing(thd.WindowingMethod);
             await Qa40x.SetRoundFrequencies(true);
 			await Qa40x.SetInputRange((int)thd.Attenuation);
@@ -240,7 +248,6 @@ namespace QA40xPlot.Actions
 					ClearPlot();
 					//ClearCursorTexts();
 					UpdateGraph(false);
-                    DrawChannelInfoTable();
 					//ShowLastMeasurementCursorTexts();
 
 					// Check if cancel button pressed
@@ -267,16 +274,78 @@ namespace QA40xPlot.Actions
             return !ct.IsCancellationRequested;
         }
 
-        /// <summary>
-        /// Perform the calculations of a single channel (left or right)
-        /// </summary>
-        /// <param name="binSize"></param>
-        /// <param name="fundamentalFrequency"></param>
-        /// <param name="generatorAmplitudeDbv"></param>
-        /// <param name="fftData"></param>
-        /// <param name="noiseFloorFftData"></param>
-        /// <returns></returns>
-        private ThdFrequencyStepChannel ChannelCalculations(double binSize, double fundamentalFrequency, double generatorAmplitudeDbv, double[] fftData, double[] noiseFloorFftData, double load)
+        private static int toint(string st)
+        {
+            return Convert.ToInt32(st);
+		}
+
+        private void AddAMarker(SpectrumMeasurementResult fmr, double frequency, bool isred = false)
+		{
+			var vm = ViewSettings.Singleton.SpectrumVm;
+			ScottPlot.Plot myPlot = fftPlot.ThePlot;
+			var sampleRate = Convert.ToUInt32(vm.SampleRate);
+			var fftsize = vm.FftActualSizes.ElementAt(vm.FftSizes.IndexOf(vm.FftSize));
+			int bin = (int)QaLibrary.GetBinOfFrequency(frequency, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
+			var value = 20 * Math.Log10(fmr.FrequencySteps[0].fftData.Left[bin]);
+            var mymark = myPlot.Add.Marker(Math.Log10(frequency), value,
+                MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), isred ? Colors.Red : Colors.DarkBlue);
+			mymark.LegendText = string.Format("{1}: {0:F1}", value, (int)frequency);
+		}
+
+		private void ShowHarmonicMarkers(SpectrumMeasurementResult fmr)
+        {
+            var vm = ViewSettings.Singleton.SpectrumVm;
+			ScottPlot.Plot myPlot = fftPlot.ThePlot;
+			if ( vm.ShowMarkers)
+            {
+				myPlot.Legend.Orientation = ScottPlot.Orientation.Vertical;
+				myPlot.Legend.FontSize = GraphUtil.PtToPixels(PixelSizes.LEGEND_SIZE);
+                AddAMarker(fmr, Convert.ToDouble(vm.Gen1Frequency));
+
+                for(int i=0; i<6; i++)
+                {
+                    var frq = fmr.FrequencySteps[0].Left.Harmonics[i].Frequency;
+					AddAMarker(fmr, frq);
+				}
+			}
+		}
+
+		private void ShowPowerMarkers(SpectrumMeasurementResult fmr)
+		{
+			var vm = ViewSettings.Singleton.SpectrumVm;
+            List<int> freqchecks = new List<int> { 50, 60 };
+			ScottPlot.Plot myPlot = fftPlot.ThePlot;
+			if (vm.ShowPowerMarkers)
+			{
+				var sampleRate = Convert.ToUInt32(vm.SampleRate);
+				var fftsize = vm.FftActualSizes.ElementAt(vm.FftSizes.IndexOf(vm.FftSize));
+				foreach (int freq in freqchecks)
+				{
+                    // check 5 harmonics of each
+                    for(int i=1; i<4; i++)
+                    {
+                        var actfreq = QaLibrary.GetNearestBinFrequency(freq * i, sampleRate, fftsize);
+						int bin = (int)QaLibrary.GetBinOfFrequency(actfreq, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
+                        var data = fmr.FrequencySteps[0].fftData.Left[bin];
+						if(( 20*Math.Log10(data)) > -90)
+                        {
+                            AddAMarker(fmr, actfreq, true);
+                        }
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// Perform the calculations of a single channel (left or right)
+		/// </summary>
+		/// <param name="binSize"></param>
+		/// <param name="fundamentalFrequency"></param>
+		/// <param name="generatorAmplitudeDbv"></param>
+		/// <param name="fftData"></param>
+		/// <param name="noiseFloorFftData"></param>
+		/// <returns></returns>
+		private ThdFrequencyStepChannel ChannelCalculations(double binSize, double fundamentalFrequency, double generatorAmplitudeDbv, double[] fftData, double[] noiseFloorFftData, double load)
         {
             uint fundamentalBin = QaLibrary.GetBinOfFrequency(fundamentalFrequency, binSize);
 
@@ -1101,7 +1170,12 @@ namespace QA40xPlot.Actions
         /// </summary>
         public async void StartMeasurement()
         {
-            MeasurementBusy = true;
+            if(MeasurementBusy)
+			{
+                MessageBox.Show("Device is already running");
+				return;
+			}
+			MeasurementBusy = true;
             ct = new();
 			var mSets = ViewSettings.Singleton.SpectrumVm;
 
@@ -1165,7 +1239,7 @@ namespace QA40xPlot.Actions
         public void UpdateGenAmplitude(string value)
         {
 			SpectrumViewModel thd = ViewSettings.Singleton.SpectrumVm;
-            var val = QaLibrary.ParseTextToDouble(value, thd.GenVoltage);
+            var val = QaLibrary.ParseTextToDouble(value, Convert.ToDouble(thd.Gen1Voltage));
 			thd.GeneratorAmplitude = QaLibrary.ConvertVoltage(val, (E_VoltageUnit)thd.GeneratorUnits, E_VoltageUnit.dBV);
 		}
 
@@ -1189,7 +1263,8 @@ namespace QA40xPlot.Actions
 		public void UpdateGraph(bool settingsChanged)
         {
             fftPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
-            int resultNr = 0;
+			fftPlot.ThePlot.Remove<Marker>();             // Remove all current lines
+			int resultNr = 0;
 			SpectrumViewModel thd = ViewSettings.Singleton.SpectrumVm;
 
 			if (!thd.ShowPercent)
@@ -1214,9 +1289,16 @@ namespace QA40xPlot.Actions
                 foreach (var result in Data.Measurements.Where(m => m.Show))
                 {
                     PlotThd(result, resultNr++, thd.ShowLeft, thd.ShowRight);
-                }
+				}
             }
-        }
+
+            if( MeasurementResult.FrequencySteps.Count > 0)
+            {
+				ShowHarmonicMarkers(MeasurementResult);
+				ShowPowerMarkers(MeasurementResult);
+				DrawChannelInfoTable();
+			}
+		}
 
 #if FALSE
         /// <summary>
@@ -1337,5 +1419,5 @@ namespace QA40xPlot.Actions
         }
 
 #endif
-    }
+	}
 }

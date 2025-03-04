@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="QA40xPlot.SpectrumPlotPage"
+﻿<UserControl x:Class="QA40xPlot.Views.ThdAmpPlotPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -35,103 +35,65 @@
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <StackPanel Grid.Column="0" Orientation="Vertical">
+        <StackPanel Grid.Column="0">
             <GroupBox Header="" >
-                <StackPanel>
-                <GroupBox Grid.Column="0" Grid.Row="0" >
-                    <Grid >
+                <Grid >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                        <Button Content="Start" FontSize="14" Command="{Binding DoStart}" Grid.Column="0" Grid.Row="0"  HorizontalAlignment="Center"></Button>
-                            <Button Content="Stop" FontSize="14" Command="{Binding DoStop}" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center"></Button>
-                    </Grid>
-                </GroupBox>
-                    <ToggleButton Content="Generator" Command="{Binding ToggleGenerator}" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" HorizontalAlignment="Center"></ToggleButton>
-                </StackPanel>
-            </GroupBox>
-            <GroupBox Header="Attenuation" >
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="0" Command="{Binding SetAttenuate}" CommandParameter="0" Grid.Row="0" Grid.Column="0" Margin="4"></RadioButton>
-                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="6" Command="{Binding SetAttenuate}" CommandParameter="6" Grid.Row="0" Grid.Column="1" Margin="4"></RadioButton>
-                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="12" Command="{Binding SetAttenuate}" CommandParameter="12" Grid.Row="0" Grid.Column="2" Margin="4"></RadioButton>
-                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="18" Command="{Binding SetAttenuate}" CommandParameter="18" Grid.Row="0" Grid.Column="3" Margin="4"></RadioButton>
-                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="24" Command="{Binding SetAttenuate}" CommandParameter="24" Grid.Row="1" Grid.Column="0" Margin="4"></RadioButton>
-                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="30" Command="{Binding SetAttenuate}" CommandParameter="30" Grid.Row="1" Grid.Column="1" Margin="4"></RadioButton>
-                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="36" Command="{Binding SetAttenuate}" CommandParameter="36" Grid.Row="1" Grid.Column="2" Margin="4"></RadioButton>
-                    <RadioButton IsChecked="{Binding AttenCheck}" Style="{StaticResource {x:Type ToggleButton}}" Content="42" Command="{Binding SetAttenuate}" CommandParameter="42" Grid.Row="1" Grid.Column="3" Margin="4"></RadioButton>
+                    <Button Content="Start" Command="{Binding DoStart}" Grid.Column="0" HorizontalAlignment="Center"></Button>
+                    <Button Content="Stop" Command="{Binding DoStop}" Grid.Column="1" HorizontalAlignment="Center"></Button>
                 </Grid>
             </GroupBox>
-            <GroupBox Header="Samples" >
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Label Content="Sample Rate" Grid.Row="0" Grid.Column="0"  />
-                    <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  
-                               SelectedValue="{Binding SampleRate}" ItemsSource="{Binding SampleRates}">
-                    </ComboBox>
-                    <Label Content="Fft Size" Grid.Row="1" Grid.Column="0"  />
-                    <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Center"  
-                               SelectedValue="{Binding FftSize}" ItemsSource="{Binding FftSizes}">
-                    </ComboBox>
-                    <Label Content="Averages" Grid.Column="0" Grid.Row="2"  />
-                    <xctk:IntegerUpDown Value="{Binding Averages}" VerticalAlignment="Center" Grid.Column="1" Grid.Row="2"  />
-                    <Label Content="Window" Grid.Row="3" Grid.Column="0"  />
-                    <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="3" VerticalAlignment="Center"  
-                               SelectedValue="{Binding WindowingMethod}" ItemsSource="{Binding WindowingTypes}">
-                    </ComboBox>
-                </Grid>
-            </GroupBox>
-            <GroupBox Header="Generator 1" >
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Label Content="Frequency" Grid.Row="0" Grid.Column="0"  />
-                    <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  
-                               IsEditable="True" SelectedValue="{Binding Gen1Frequency}" ItemsSource="{Binding GenFrequencies}">
-                    </ComboBox>
-                    <Label Content="Voltage" Grid.Row="1" Grid.Column="0"  />
-                    <ComboBox IsEditable="True" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Center"  
-                               SelectedValue="{Binding Gen1Voltage}" ItemsSource="{Binding GenAmplitudes}">
-                    </ComboBox>
-                </Grid>
-            </GroupBox>
+            <GroupBox Header="Measurement Settings" >
+                <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="100" />
+                    <RowDefinition Height="100" />
+                </Grid.RowDefinitions>
+                <Label Content="Set generator by" Grid.Column="0" Grid.Row="0"  />
+                <Label Content="Start voltage" Grid.Column="0" Grid.Row="1"   />
+                <Label Content="End voltage" Grid.Column="0" Grid.Row="2"   />
+                <Label Content="Amplifier Load" Grid.Column="0" Grid.Row="3"  />
+                <Label Content="Test Frequency" Grid.Column="0" Grid.Row="4"  />
+                <Label Content="Steps / Octave" Grid.Column="0" Grid.Row="5"  />
+                <Label Content="Averages" Grid.Column="0" Grid.Row="6"  />
+                <CheckBox Content="Left channel" IsChecked="{Binding LeftChannel}" Grid.Column="0" Grid.Row="7"  />
+                <views:PlotControl x:Name="WpfPlot2" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="8" Width="150" />
+                <views:PlotControl x:Name="WpfPlot3" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="9" Width="150" />
+                <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  SelectedIndex="{Binding MeasureType}" ItemsSource="{Binding MeasureTypes}">
+                </ComboBox>
+                    <TextBox Text="{Binding StartVoltage, StringFormat={}{0:0.####}}" Grid.Column="1"  Grid.Row="1" LostFocus="OnStartVoltageChanged" />
+                    <TextBox Text="{Binding EndVoltage, StringFormat={}{0:0.####}}" Grid.Column="1"  Grid.Row="2" LostFocus="OnEndVoltageChanged" />
+                <TextBox Text="{Binding AmpLoad}" Grid.Column="1"  Grid.Row="3"  />
+                <TextBox Text="{Binding TestFreq}" Grid.Column="1" Grid.Row="4"   />
+                <xctk:IntegerUpDown Value="{Binding StepsOctave}" VerticalAlignment="Center" Grid.Column="1" Grid.Row="5"  />
+                <xctk:IntegerUpDown Value="{Binding Averages}" VerticalAlignment="Center" Grid.Column="1" Grid.Row="6"  />
+                <CheckBox Content="Right channel" IsChecked="{Binding RightChannel}" Grid.Column="1" Grid.Row="7"  />
+                <ComboBox  Grid.Column="2" Grid.Row="1" VerticalAlignment="Center"  SelectedIndex="{Binding StartVoltageUnits}" ItemsSource="{Binding VoltItems}">
+                </ComboBox>
+                    <ComboBox  Grid.Column="2" Grid.Row="2" VerticalAlignment="Center"  SelectedIndex="{Binding EndVoltageUnits}" ItemsSource="{Binding VoltItems}">
+                </ComboBox>
+                <Label Content="Ohm" Grid.Column="3" Grid.Row="3"  />
+                <Label Content="Hz" Grid.Column="2" Grid.Row="4"  />
+            </Grid>
+        </GroupBox>
         </StackPanel>
-        <Grid Grid.Column="1">
-            <views:PlotControl x:Name="WpfPlot1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
-            <views:ChannelInfo x:Name="Info1"  Height="250" Width="300" 
-                  VerticalAlignment="Top" HorizontalAlignment="Left" Margin="120,120,0,0" />
-        </Grid>
+        <views:PlotControl x:Name="WpfPlot1" Grid.Column="1" />
         <StackPanel Grid.Column="2" Orientation="Vertical">
             <GroupBox Header="dB Range" Visibility="{Binding ToShowdB}">
                 <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
@@ -150,7 +112,7 @@
                     <xctk:IntegerUpDown  Value="{Binding RangeTopdB}" Grid.Row="0" Grid.Column="1"   />
                     <Label Content="Bottom" Grid.Row="1" Grid.Column="0"  />
                     <xctk:IntegerUpDown  Value="{Binding RangeBottomdB}" Grid.Row="1" Grid.Column="1"  />
-                    <Button Content="Autofit" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center"  />
+                    <Button Content="Autofit" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Center" Grid.ColumnSpan="2"  />
                 </Grid>
             </GroupBox>
             <GroupBox Header="% Range" Visibility="{Binding ToShowRange}">
@@ -163,17 +125,23 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Label Content="Top" Grid.Row="0" Grid.Column="0"  />
-                    <ComboBox Grid.Column="1"  Grid.Row="0" VerticalAlignment="Center"  SelectedValue="{Binding RangeTop}" ItemsSource="{Binding StartPercents}">
+                    <ComboBox Grid.Row="0" Grid.Column="1"  VerticalAlignment="Center"  SelectedValue="{Binding RangeTop}" ItemsSource="{Binding StartPercents}">
                     </ComboBox>
                     <Label Content="Bottom" Grid.Row="1" Grid.Column="0"  />
-                    <ComboBox Grid.Column="1"  Grid.Row="1" VerticalAlignment="Center"  SelectedValue="{Binding RangeBottom}" ItemsSource="{Binding EndPercents}">
+                    <ComboBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Center"  SelectedValue="{Binding RangeBottom}" ItemsSource="{Binding EndPercents}">
                     </ComboBox>
                     <Button Content="Autofit" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Center" Grid.ColumnSpan="2"  />
                 </Grid>
             </GroupBox>
-            <GroupBox Header="Frequency Range">
+            <GroupBox Header="X-Axis">
+                <ComboBox Grid.Row="3" VerticalAlignment="Center"  SelectedIndex="{Binding XAxisType}" ItemsSource="{Binding MeasureTypes}">
+                </ComboBox>
+            </GroupBox>
+            <GroupBox Header="Voltage Range">
                 <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -186,11 +154,11 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <Label Content="From" Grid.Row="0"  Grid.Column="0" />
-                    <ComboBox Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"  SelectedValue="{Binding GraphStartFreq}" ItemsSource="{Binding StartFrequencies}">
+                    <Label Content="From" Grid.Row="0" Grid.Column="0"  />
+                    <ComboBox Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"  SelectedValue="{Binding GraphStartVolts}" ItemsSource="{Binding StartVoltages}">
                     </ComboBox>
                     <Label Content="To" Grid.Row="1" Grid.Column="0"  />
-                    <ComboBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" SelectedValue="{Binding GraphEndFreq}" ItemsSource="{Binding EndFrequencies}">
+                    <ComboBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" SelectedValue="{Binding GraphEndVolts}" ItemsSource="{Binding EndVoltages}">
                     </ComboBox>
                     <Button Content="Autofit" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Center" Grid.ColumnSpan="2"  />
                 </Grid>
@@ -227,7 +195,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="0"  />
-                    <CheckBox Content="Summary Data" IsChecked="{Binding ShowSummary}" Grid.Row="1"  />
+                    <CheckBox Content="Data Points" IsChecked="{Binding ShowPoints}" Grid.Row="1"  />
                     <CheckBox Content="%" IsChecked="{Binding ShowPercent}" Grid.Row="2"  />
                     <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="3"  />
                     <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="4"  />
