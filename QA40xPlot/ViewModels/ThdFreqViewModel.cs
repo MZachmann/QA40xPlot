@@ -406,7 +406,7 @@ namespace QA40xPlot.ViewModels
 
 			InputRange = 0;
 			RangeTopdB = 20;
-			RangeBottomdB = -150;
+			RangeBottomdB = -180;
 
 			ToShowRange = Visibility.Visible;
 			ToShowdB = Visibility.Visible;

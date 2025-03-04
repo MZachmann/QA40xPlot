@@ -500,7 +500,7 @@ namespace QA40xPlot.Actions
             //minorTickGen.Divisions = 1;
 
             // create a numeric tick generator that uses our custom minor tick generator
-            ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGen = new(1);
+            ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGen = new(2);
 
             ScottPlot.TickGenerators.NumericAutomatic tickGenY = new();
             tickGenY.TargetTickCount = 21;
@@ -554,15 +554,20 @@ namespace QA40xPlot.Actions
             //else
             //    myPlot.Title("Gain (dB)");
 
-            myPlot.Axes.Title.Label.FontSize = 17;
+            myPlot.Axes.Title.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
 
-            myPlot.XLabel("Frequency (Hz)");
+			myPlot.XLabel("Frequency (Hz)");
             myPlot.Axes.Bottom.Label.OffsetX = 330;
-            myPlot.Axes.Bottom.Label.FontSize = 15;
-            myPlot.Axes.Bottom.Label.Bold = false;
+            myPlot.Axes.Bottom.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
+			myPlot.Axes.Bottom.Label.Bold = false;
 
+			myPlot.Axes.Left.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
 
-            myPlot.Legend.IsVisible = true;
+			// configure tick labels
+			myPlot.Axes.Bottom.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
+			myPlot.Axes.Left.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
+
+			myPlot.Legend.IsVisible = true;
             myPlot.Legend.Orientation = ScottPlot.Orientation.Horizontal;
             myPlot.Legend.Alignment = ScottPlot.Alignment.UpperRight;
 
@@ -1355,8 +1360,8 @@ namespace QA40xPlot.Actions
         void AddText(string text, double x, double y, ScottPlot.Color backgroundColor, int offsetX, int offsetY)
         {
             var txt = frqrsPlot.ThePlot.Add.Text(text, x, y);
-            txt.LabelFontSize = 12;
-            txt.LabelBorderColor = Colors.Black;
+            txt.LabelFontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
+			txt.LabelBorderColor = Colors.Black;
             txt.LabelBorderWidth = 1;
             txt.LabelPadding = 2;
             txt.LabelBold = false;

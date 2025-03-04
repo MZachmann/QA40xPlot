@@ -898,7 +898,7 @@ namespace QA40xPlot.Actions
 
 			// Y - axis
 			// create a numeric tick generator that uses our custom minor tick generator
-			ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGen = new(1);
+			ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGen = new(2);
 			// create a numeric tick generator that uses our custom minor tick generator
 			ScottPlot.TickGenerators.NumericAutomatic tickGenY = new();
 			tickGenY.TargetTickCount = 15;

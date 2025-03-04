@@ -22,7 +22,7 @@ namespace QA40xPlot.ViewModels
 		public List<String> GenFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "2000", "5000", "10000" }; }
 		public List<String> GenAmplitudes { get => new List<string> { "0.05", "0.1", "0.25", "0.5", "0.75", "1", "2", "5" }; }
 		public List<String> StartFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500" }; }
-		public List<String> EndFrequencies { get => new List<string> { "1000", "2000", "5000", "10000", "20000" }; }
+		public List<String> EndFrequencies { get => new List<string> { "1000", "2000", "5000", "10000", "20000", "50000", "100000" }; }
 		public List<String> StartPercents { get => new List<string> { "100", "10", "1", "0.1", "0.01" }; }
 		public List<String> EndPercents { get => new List<string> { "0.1", "0.01", "0.001", "0.0001", "0.00001", "0.000001" }; }
 		public List<String> Smoothings { get => new List<string> { "None", "1/24", "1/6" }; }
@@ -511,7 +511,7 @@ namespace QA40xPlot.ViewModels
 
 			InputRange = 0;
 			RangeTopdB = 20;
-			RangeBottomdB = -150;
+			RangeBottomdB = -180;
 
 			ShowMarkers = true;
 			ShowPowerMarkers = false;

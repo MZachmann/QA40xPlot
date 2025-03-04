@@ -343,6 +343,12 @@ namespace QA40xPlot.ViewModels
 			get => _AttenCheck;
 			set => SetProperty(ref _AttenCheck, value);
 		}
+		private bool _UseGenerator;
+		public bool UseGenerator
+		{
+			get => _UseGenerator;
+			set => SetProperty(ref _UseGenerator, value);
+		}
 		#endregion
 
 
@@ -449,7 +455,6 @@ namespace QA40xPlot.ViewModels
 			RightChannel = false;
 			MeasureType = 2;
 			OutputUnits = 0;
-			GeneratorUnits = 0;
 			RangeTop = "1";             // when graphing percents distortion this is logarithmic 0.01....
 			RangeBottom = "0.001";
 
@@ -473,7 +478,7 @@ namespace QA40xPlot.ViewModels
 
 			InputRange = 0;
 			RangeTopdB = 20;
-			RangeBottomdB = -150;
+			RangeBottomdB = -180;
 
 			ShowMarkers = true;
 			ShowPowerMarkers = false;
@@ -489,6 +494,7 @@ namespace QA40xPlot.ViewModels
 
 			GeneratorAmplitude = -20;       // this is the unitless (dbV) amplitude of the generator
 			AmpOutputAmplitude = -20;         // this is the unitless (dbV) amplitude of the amplifier output
+			GeneratorUnits = (int)E_VoltageUnit.Volt;
 			Gen1Voltage = QaLibrary.ConvertVoltage(GeneratorAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)GeneratorUnits).ToString();
 			OutVoltage = QaLibrary.ConvertVoltage(AmpOutputAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)OutputUnits);
 

@@ -49,10 +49,10 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                         <Button Content="Start" FontSize="14" Command="{Binding DoStart}" Grid.Column="0" Grid.Row="0"  HorizontalAlignment="Center"></Button>
-                            <Button Content="Stop" FontSize="14" Command="{Binding DoStop}" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center"></Button>
+                            <Button Content="Sto_p" FontSize="14" Command="{Binding DoStop}" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center"></Button>
                     </Grid>
                 </GroupBox>
-                    <ToggleButton Content="Generator" Command="{Binding ToggleGenerator}" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" HorizontalAlignment="Center"></ToggleButton>
+                    <CheckBox Content="_Use Generator" IsChecked="{Binding UseGenerator}" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" HorizontalAlignment="Center"></CheckBox>
                 </StackPanel>
             </GroupBox>
             <GroupBox Header="Attenuation" >
@@ -90,18 +90,19 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <Label Content="Sample Rate" Grid.Row="0" Grid.Column="0"  />
-                    <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  
+                    <Label Content="_Sample Rate" Grid.Row="0" Grid.Column="0"  Target="{Binding ElementName=cbSampleRate}"  />
+                    <ComboBox x:Name="cbSampleRate"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  
                                SelectedValue="{Binding SampleRate}" ItemsSource="{Binding SampleRates}">
                     </ComboBox>
-                    <Label Content="Fft Size" Grid.Row="1" Grid.Column="0"  />
-                    <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Center"  
+                    <Label Content="_Fft Size" Grid.Row="1" Grid.Column="0" Target="{Binding ElementName=cbfftSize}"  />
+                    <ComboBox x:Name="cbfftSize"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Center"  
                                SelectedValue="{Binding FftSize}" ItemsSource="{Binding FftSizes}">
                     </ComboBox>
-                    <Label Content="Averages" Grid.Column="0" Grid.Row="2"  />
-                    <xctk:IntegerUpDown Value="{Binding Averages}" VerticalAlignment="Center" Grid.Column="1" Grid.Row="2"  />
-                    <Label Content="Window" Grid.Row="3" Grid.Column="0"  />
-                    <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="3" VerticalAlignment="Center"  
+                    <Label Content="_Averages" Grid.Column="0" Grid.Row="2" Target="{Binding ElementName=xcaverages}"  />
+                    <xctk:IntegerUpDown x:Name="xcaverages" Value="{Binding Averages}" VerticalAlignment="Center" Grid.Column="1" Grid.Row="2"  />
+
+                    <Label Content="_Window" Grid.Row="3" Grid.Column="0" Target="{Binding ElementName=cbWindow}"  />
+                    <ComboBox x:Name="cbWindow" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="3" VerticalAlignment="Center"  
                                SelectedValue="{Binding WindowingMethod}" ItemsSource="{Binding WindowingTypes}">
                     </ComboBox>
                 </Grid>
@@ -116,12 +117,12 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <Label Content="Frequency" Grid.Row="0" Grid.Column="0"  />
-                    <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  
+                    <Label Content="Fre_quency" Grid.Row="0" Grid.Column="0" Target="{Binding ElementName=cbFreq}"  />
+                    <ComboBox x:Name="cbFreq" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  
                                IsEditable="True" SelectedValue="{Binding Gen1Frequency}" ItemsSource="{Binding GenFrequencies}">
                     </ComboBox>
-                    <Label Content="Voltage" Grid.Row="1" Grid.Column="0"  />
-                    <ComboBox IsEditable="True" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Center"  
+                    <Label Content="_Voltage" Grid.Row="1" Grid.Column="0" Target="{Binding ElementName=cbVolt}"  />
+                    <ComboBox x:Name="cbVolt" IsEditable="True" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Center"  
                                SelectedValue="{Binding Gen1Voltage}" ItemsSource="{Binding GenAmplitudes}">
                     </ComboBox>
                 </Grid>

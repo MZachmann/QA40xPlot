@@ -217,9 +217,14 @@ namespace QA40xPlot.Actions
                     double amplitudeSetpointdBV = QaLibrary.ConvertVoltage(Convert.ToDouble(thd.Gen1Voltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
                     await Qa40x.SetGen1(stepBinFrequencies[f], amplitudeSetpointdBV, true);
                     if (f == 0)
-                        await Qa40x.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
+                    {
+                        if( thd.UseGenerator)
+                        {
+							await Qa40x.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
+						}
+					}
 
-                    LeftRightSeries lrfs = await QaLibrary.DoAcquisitions(thd.Averages, ct);
+					LeftRightSeries lrfs = await QaLibrary.DoAcquisitions(thd.Averages, ct);
                     if (ct.IsCancellationRequested)
                         break;
 
@@ -288,7 +293,7 @@ namespace QA40xPlot.Actions
 			int bin = (int)QaLibrary.GetBinOfFrequency(frequency, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
 			var value = 20 * Math.Log10(fmr.FrequencySteps[0].fftData.Left[bin]);
             var mymark = myPlot.Add.Marker(Math.Log10(frequency), value,
-                MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), isred ? Colors.Red : Colors.DarkBlue);
+                MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), isred ? Colors.Red : Colors.DarkOrange);
 			mymark.LegendText = string.Format("{1}: {0:F1}", value, (int)frequency);
 		}
 
@@ -835,7 +840,7 @@ namespace QA40xPlot.Actions
             //minorTickGen.Divisions = 1;
 
             // create a numeric tick generator that uses our custom minor tick generator
-            ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGen = new(1);
+            ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGen = new(2);
 
             ScottPlot.TickGenerators.NumericAutomatic tickGenY = new();
             tickGenY.TargetTickCount = 15;

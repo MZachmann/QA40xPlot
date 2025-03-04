@@ -885,7 +885,7 @@ namespace QA40xPlot.Actions
             //minorTickGen.Divisions = 1;
 
             // create a numeric tick generator that uses our custom minor tick generator
-            ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGen = new(1);
+            ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGen = new(2);
 
             ScottPlot.TickGenerators.NumericAutomatic tickGenY = new();
             tickGenY.TargetTickCount = 15;

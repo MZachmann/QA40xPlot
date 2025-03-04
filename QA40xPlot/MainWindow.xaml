@@ -16,11 +16,6 @@
         <Label Grid.Row="0" Content="{Binding ProgressMessage}"/>
         <ProgressBar Grid.Row="1" Minimum="0" Maximum="100" MinHeight="5" Value="{Binding ProgressAmount}" />
         <TabControl Grid.Row="2">
-            <TabItem Header="Freq Response">
-                <Grid Background="#FFE5E5E5">
-                    <views:FreqRespPlotPage  />
-                </Grid>
-            </TabItem>
             <TabItem Header="Spectrum">
                 <Grid Background="#FF35E5E5">
                     <views:SpectrumPlotPage  />
@@ -34,6 +29,11 @@
             <TabItem Header="Thd vs Amp">
                 <Grid Background="#FFE5E5E5">
                     <views:ThdAmpPlotPage  />
+                </Grid>
+            </TabItem>
+            <TabItem Header="Freq Response">
+                <Grid Background="#FFE5E5E5">
+                    <views:FreqRespPlotPage  />
                 </Grid>
             </TabItem>
             <TabItem Header="Bode Plot">
