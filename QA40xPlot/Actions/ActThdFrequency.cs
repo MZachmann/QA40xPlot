@@ -373,7 +373,7 @@ namespace QA40xPlot.Actions
 
             // Reset harmonic distortion variables
             double distortionSqrtTotal = 0;
-            double distiortionD6plus = 0;
+            double distortionD6plus = 0;
 
             // Loop through harmonics up tot the 12th
             for (int harmonicNumber = 2; harmonicNumber <= 12; harmonicNumber++)                                                  // For now up to 12 harmonics, start at 2nd
@@ -399,7 +399,7 @@ namespace QA40xPlot.Actions
                 };
 
                 if (harmonicNumber >= 6)
-                    distiortionD6plus += Math.Pow(amplitude_V, 2);
+                    distortionD6plus += Math.Pow(amplitude_V, 2);
 
                 distortionSqrtTotal += Math.Pow(amplitude_V, 2);
                 channelData.Harmonics.Add(harmonic);
@@ -413,10 +413,10 @@ namespace QA40xPlot.Actions
             }
 
             // Calculate D6+ (D6 - D12)
-            if (distiortionD6plus != 0)
+            if (distortionD6plus != 0)
             {
-                channelData.D6Plus_dBV = 20 * Math.Log10(Math.Sqrt(distiortionD6plus));
-                channelData.ThdPercent_D6plus = Math.Sqrt(distiortionD6plus / Math.Pow(channelData.Fundamental_V, 2)) * 100;
+                channelData.D6Plus_dBV = 20 * Math.Log10(Math.Sqrt(distortionD6plus));
+                channelData.ThdPercent_D6plus = Math.Sqrt(distortionD6plus / Math.Pow(channelData.Fundamental_V, 2)) * 100;
                 channelData.ThdDbD6plus = 20 * Math.Log10(channelData.ThdPercent_D6plus / 100.0);
             }
 
@@ -1085,8 +1085,8 @@ namespace QA40xPlot.Actions
                 AddPlot(noiseY_right, showLeftChannel ? "Noise-R" : "Noise", 9, LinePattern.Dotted);
             }
 
-            if (markerIndex != -1)
-                QaLibrary.PlotCursorMarker(thdPlot, lineWidth, LinePattern.Solid, markerDataPoint);
+            //if (thdPlot!= null && markerIndex != -1)
+            //    QaLibrary.PlotCursorMarker(thdPlot, lineWidth, LinePattern.Solid, markerDataPoint);
 
             thdPlot.Refresh();
         }

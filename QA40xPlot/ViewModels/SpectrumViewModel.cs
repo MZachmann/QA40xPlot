@@ -15,8 +15,7 @@ namespace QA40xPlot.ViewModels
 		public List<String> SampleRates { get => new List<string> { "48000", "96000", "192000", "384000" }; }
 		public List<String> FftSizes { get => new List<string> { "64K", "128K", "256K", "512K", "1024K" }; }
 		public List<uint> FftActualSizes { get => new List<uint> { 65536, 131072, 262144, 524288, 1048576 }; }
-		//public List<String> WindowingTypes { get => new List<string> { "Rect", "Bartlett", "Hamming", "Hann", "Flat Top" }; }   // matches enum Windowing
-		public List<String> WindowingTypes { get => new List<string> { "Rectangle", "Hann", "FlatTop" }; }    // the only ones that seem to work...
+		public List<String> WindowingTypes { get => new List<string> { "Rectangle", "Hann", "FlatTop" }; }
 		public List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 		public List<String> MeasureTypes { get => new List<string> { "Input Voltage", "Output Voltage", "Output Power" }; }
 		public List<String> GenFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "2000", "5000", "10000" }; }
@@ -25,15 +24,15 @@ namespace QA40xPlot.ViewModels
 		public List<String> EndFrequencies { get => new List<string> { "1000", "2000", "5000", "10000", "20000" }; }
 		public List<String> StartPercents { get => new List<string> { "100", "10", "1", "0.1", "0.01" }; }
 		public List<String> EndPercents { get => new List<string> { "0.1", "0.01", "0.001", "0.0001", "0.00001", "0.000001" }; }
-		public ActSpectrum  actSpec { get; private set; }
-		public ChannelInfo  actInfo { get; private set; }
+		public ActSpectrum actSpec { get; private set; }
+		public ChannelInfo actInfo { get; private set; }
 		public RelayCommand SetAttenuate { get => new RelayCommand(SetAtten); }
 		public RelayCommand DoStart { get => new RelayCommand(StartIt); }
 		public RelayCommand DoStop { get => new RelayCommand(StopIt); }
 		public RelayCommand ToggleGenerator { get => new RelayCommand(StopIt); }
 
 		#region Setters and Getters
-		private bool _ShowChannelInfo = false;         // type of alert
+		private bool _ShowChannelInfo = false;
 		public bool ShowChannelInfo
 		{
 			get => _ShowChannelInfo;
@@ -45,58 +44,36 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _AmpLoad; set => SetProperty(ref _AmpLoad, value);
 		}
-
-		private double _OutPower;         // type of alert
-		public double OutPower
-		{
-			get => _OutPower; set => SetProperty(ref _OutPower, value);
-		}
-
 		private double _OutVoltage;         // type of alert
 		public double OutVoltage
 		{
 			get => _OutVoltage; set => SetProperty(ref _OutVoltage, value);
 		}
-
-		private double _StartFreq;         // type of alert
-		public double StartFreq
-		{
-			get => _StartFreq; 
-			set => SetProperty(ref _StartFreq, value);
-		}
-
-		private string _Gen1Frequency;         // type of alert
+		private string _Gen1Frequency;
 		public string Gen1Frequency
 		{
 			get => _Gen1Frequency;
 			set => SetProperty(ref _Gen1Frequency, value);
 		}
 
-		private string _Gen1Voltage;         // type of alert
+		private string _Gen1Voltage;
 		public string Gen1Voltage
 		{
 			get => _Gen1Voltage;
 			set => SetProperty(ref _Gen1Voltage, value);
 		}
 
-		private double _EndFreq;         // type of alert
-		public double EndFreq
-		{
-			get => _EndFreq; 
-			set => SetProperty(ref _EndFreq, value);
-		}
-
-		private string _GraphStartFreq;         // type of alert
+		private string _GraphStartFreq;
 		public string GraphStartFreq
 		{
-			get => _GraphStartFreq; 
+			get => _GraphStartFreq;
 			set => SetProperty(ref _GraphStartFreq, value);
 		}
 
-		private string _GraphEndFreq;         // type of alert
+		private string _GraphEndFreq;
 		public string GraphEndFreq
 		{
-			get => _GraphEndFreq; 
+			get => _GraphEndFreq;
 			set => 
 				SetProperty(ref _GraphEndFreq, value);
 		}
@@ -107,10 +84,11 @@ namespace QA40xPlot.ViewModels
 			get => _StepsOctave; set => SetProperty(ref _StepsOctave, value);
 		}
 
-		private uint _Averages;         // type of alert
+		private uint _Averages;
 		public uint Averages
 		{
-			get => _Averages; set => SetProperty(ref _Averages, value);
+			get => _Averages;
+			set => SetProperty(ref _Averages, value);
 		}
 
 		private bool _RightChannel;         // type of alert
@@ -365,8 +343,6 @@ namespace QA40xPlot.ViewModels
 					actSpec?.UpdateGeneratorVoltageDisplay();
 					break;
 				case "Voltage":
-				case "AmpLoad":
-				case "OutPower":
 				case "MeasureType":
 				case "VoltageUnits":
 					actSpec?.UpdateGeneratorParameters();
@@ -378,7 +354,7 @@ namespace QA40xPlot.ViewModels
 					break;
 				case "ShowSummary":
 					ShowChannelInfo = ShowSummary;
-					if( actInfo != null)
+					if (actInfo != null)
 						actInfo.Visibility = ShowSummary ? Visibility.Visible : Visibility.Hidden;
 					break;
 				case "GraphStartFreq":
@@ -442,11 +418,7 @@ namespace QA40xPlot.ViewModels
 		{
 			PropertyChanged += CheckPropertyChanged;
 
-			AmpLoad = 8;
-			OutPower = 0.5;
 			OutVoltage = 0.5;
-			StartFreq = 20;
-			EndFreq = 20000;
 			GraphStartFreq = "20";
 			GraphEndFreq = "20000";
 			StepsOctave = 1;
@@ -491,13 +463,11 @@ namespace QA40xPlot.ViewModels
 			ReadVoltage = true;
 			ReadOutPower = true;
 			ReadOutVoltage = true;
-
 			GeneratorAmplitude = -20;       // this is the unitless (dbV) amplitude of the generator
 			AmpOutputAmplitude = -20;         // this is the unitless (dbV) amplitude of the amplifier output
 			GeneratorUnits = (int)E_VoltageUnit.Volt;
 			Gen1Voltage = QaLibrary.ConvertVoltage(GeneratorAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)GeneratorUnits).ToString();
-			OutVoltage = QaLibrary.ConvertVoltage(AmpOutputAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)OutputUnits);
-
+			MeasureType = 0;
 			Gen1Frequency = "1000";
 
 			Attenuation = 42;

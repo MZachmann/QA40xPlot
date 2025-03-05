@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Input;
 
-namespace QA40xPlot
+namespace QA40xPlot.ViewModels
 {
     public class RelayCommand : ICommand
     {

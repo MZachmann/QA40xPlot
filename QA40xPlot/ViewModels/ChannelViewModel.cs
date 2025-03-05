@@ -59,12 +59,12 @@ namespace QA40xPlot.ViewModels
 		{
 			MyStep = step;
 			FundamentalFrequency = Fundamental;
-			SNRatio = 20*Math.Log10(step.Fundamental_V * step.Thd_Percent / 100);
+			SNRatio = 20*Math.Log10(step.Fundamental_V/step.TotalNoiseFloor_V);
 			ENOB = (SNRatio - 1.76) / 6.02;
 			double thdv = Math.Pow(10, MyStep.Thd_dB / 20); // in volts
 			double totalv = step.Fundamental_V;
-			ThdIndB = 20*Math.Log10(thdv - MyStep.Average_NoiseFloor_V);
-			ThdInPercent = step.Thd_Percent * ((thdv - MyStep.Average_NoiseFloor_V) / thdv);
+			ThdIndB = 20*Math.Log10(thdv - step.TotalNoiseFloor_V);
+			ThdInPercent = step.Thd_Percent * ((thdv - step.TotalNoiseFloor_V) / thdv);
 		}
 	}
 }

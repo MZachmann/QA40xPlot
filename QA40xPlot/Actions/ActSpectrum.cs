@@ -374,9 +374,12 @@ namespace QA40xPlot.Actions
             // Calculate average noise floor
             channelData.Average_NoiseFloor_V = noiseFloorFftData.Skip((int)fundamentalBin + 1).Average();   // Average noise floor in Volts after the fundamental
             channelData.Average_NoiseFloor_dBV = 20 * Math.Log10(channelData.Average_NoiseFloor_V);         // Average noise floor in dBV
+            var v2 = noiseFloorFftData.Skip((int)fundamentalBin + 1).Select(x => x*x).Sum();    // Squared noise floor in Volts after the fundamental
+			channelData.TotalNoiseFloor_V = Math.Sqrt(v2);   // Average noise floor in Volts after the fundamental
 
-            // Reset harmonic distortion variables
-            double distortionSqrtTotal = 0;
+
+			// Reset harmonic distortion variables
+			double distortionSqrtTotal = 0;
 			double distortionSqrtTotalN = 0;
 			double distiortionD6plus = 0;
 
@@ -389,7 +392,7 @@ namespace QA40xPlot.Actions
                 if (bin >= fftData.Length) break;                                          // Invalid bin, skip harmonic
 
                 double amplitude_V = fftData[bin];
-                double noise_V = noiseFloorFftData[bin];
+                double noise_V = channelData.TotalNoiseFloor_V;
 
 				double amplitude_dBV = 20 * Math.Log10(amplitude_V);
                 double thd_Percent = (amplitude_V / (channelData.Fundamental_V - noise_V)) * 100;
