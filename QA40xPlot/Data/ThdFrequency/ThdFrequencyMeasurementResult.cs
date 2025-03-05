@@ -17,10 +17,11 @@ namespace QA40xPlot.Data
         [JsonIgnore]
         public LeftRightSeries NoiseFloor { get; set; }                                 // Noise floor measurement
 
-        public ThdFrequencyMeasurementResult()
+        public ThdFrequencyMeasurementResult(ThdFreqViewModel vm)
         {
             FrequencySteps = [];
-            MeasurementSettings = new();
-        }
+			MeasurementSettings = new();
+			vm.CopyPropertiesTo(MeasurementSettings);
+		}
     }
 }

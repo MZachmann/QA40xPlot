@@ -5,6 +5,7 @@ using QA40xPlot.Views;
 using ScottPlot;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -24,8 +25,8 @@ namespace QA40xPlot.ViewModels
 		public List<String> EndFrequencies { get => new List<string> { "1000", "2000", "5000", "10000", "20000" }; }
 		public List<String> StartPercents { get => new List<string> { "100", "10", "1", "0.1", "0.01" }; }
 		public List<String> EndPercents { get => new List<string> { "0.1", "0.01", "0.001", "0.0001", "0.00001", "0.000001" }; }
-		public ActSpectrum actSpec { get; private set; }
-		public ChannelInfo actInfo { get; private set; }
+		private ActSpectrum actSpec { get;  set; }
+		private ChannelInfo actInfo { get;  set; }
 		public RelayCommand SetAttenuate { get => new RelayCommand(SetAtten); }
 		public RelayCommand DoStart { get => new RelayCommand(StartIt); }
 		public RelayCommand DoStop { get => new RelayCommand(StopIt); }
@@ -407,6 +408,23 @@ namespace QA40xPlot.ViewModels
 		{
 			var vm = ViewModels.ViewSettings.Singleton.SpectrumVm;
 			vm.actSpec.DoCancel();
+		}
+
+		public void OnVoltageChanged(string news)
+		{
+			actSpec.UpdateGenAmplitude(news);
+		}
+
+		public void OnAmpVoltageChanged(string news)
+		{
+			actSpec.UpdateAmpAmplitude(news);
+		}
+
+		public string SerializeAll()
+		{
+			string jsonString = JsonSerializer.Serialize(this);
+			//Console.WriteLine(jsonString);
+			return jsonString;
 		}
 
 		~SpectrumViewModel()

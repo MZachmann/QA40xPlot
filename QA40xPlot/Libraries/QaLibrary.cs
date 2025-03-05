@@ -215,13 +215,13 @@ namespace QA40xPlot.Libraries
                 return null;
             if (getFrequencySeries)
             {
-                leftRightSeries.FreqInput = await Qa40x.GetInputFrequencySeries();
+                leftRightSeries.FreqRslt = await Qa40x.GetInputFrequencySeries();
                 if (ct.IsCancellationRequested)
                     return null;
             }
             if (getTimeSeries)
             {
-                leftRightSeries.TimeInput = await Qa40x.GetInputTimeSeries();
+                leftRightSeries.TimeRslt = await Qa40x.GetInputTimeSeries();
                 if (ct.IsCancellationRequested)
                     return null;
             }
@@ -237,19 +237,19 @@ namespace QA40xPlot.Libraries
                     if (ct.IsCancellationRequested)
                         return null;
                     LeftRightSeries leftRightSeries2 = new LeftRightSeries();
-                    leftRightSeries2.FreqInput = await Qa40x.GetInputFrequencySeries();
+                    leftRightSeries2.FreqRslt = await Qa40x.GetInputFrequencySeries();
 
-                    for (int j = 0; j < leftRightSeries2.FreqInput.Left.Length; j++)
+                    for (int j = 0; j < leftRightSeries2.FreqRslt.Left.Length; j++)
                     {
-                        leftRightSeries.FreqInput.Left[j] += leftRightSeries2.FreqInput.Left[j];
-                        leftRightSeries.FreqInput.Right[j] += leftRightSeries2.FreqInput.Right[j];
+                        leftRightSeries.FreqRslt.Left[j] += leftRightSeries2.FreqRslt.Left[j];
+                        leftRightSeries.FreqRslt.Right[j] += leftRightSeries2.FreqRslt.Right[j];
                     }
                 }
 
-                for (int j = 0; j < leftRightSeries.FreqInput.Left.Length; j++)
+                for (int j = 0; j < leftRightSeries.FreqRslt.Left.Length; j++)
                 {
-                    leftRightSeries.FreqInput.Left[j] = leftRightSeries.FreqInput.Left[j] / averages;
-                    leftRightSeries.FreqInput.Right[j] = leftRightSeries.FreqInput.Right[j] / averages;
+                    leftRightSeries.FreqRslt.Left[j] = leftRightSeries.FreqRslt.Left[j] / averages;
+                    leftRightSeries.FreqRslt.Right[j] = leftRightSeries.FreqRslt.Right[j] / averages;
                 }
             }
 
@@ -375,7 +375,7 @@ namespace QA40xPlot.Libraries
 
         public static bool DetermineAttenuationFromLeftRightSeriesData(bool leftChannelEnabled, bool rightChannelEnabled, LeftRightSeries acqData, out double peak_dBV, out int attenuation)
         {
-            if (acqData == null || acqData.FreqInput == null)
+            if (acqData == null || acqData.FreqRslt == null)
             {
                 peak_dBV = 0;
                 attenuation = 42;
@@ -386,9 +386,9 @@ namespace QA40xPlot.Libraries
             double peak_left = -150;
             double peak_right = -150;
             if (leftChannelEnabled)
-                peak_left = acqData.TimeInput.Left.Max();
+                peak_left = acqData.TimeRslt.Left.Max();
             if (rightChannelEnabled)
-                peak_right = acqData.TimeInput.Right.Max();
+                peak_right = acqData.TimeRslt.Right.Max();
 
             peak_dBV = 20 * Math.Log10(Math.Max(peak_left, peak_right));
             attenuation = DetermineAttenuation(peak_dBV);
@@ -462,25 +462,25 @@ namespace QA40xPlot.Libraries
             await Qa40x.SetExpoChirpGen(startGeneratorAmplitude, 0, 48, false);
             await Qa40x.SetOutputSource(OutputSources.ExpoChirp);                   // Set sine wave
             LeftRightSeries acqData = await DoAcquisitions(1, ct);                  // Do a single aqcuisition
-            if (acqData == null || acqData.FreqInput == null)
+            if (acqData == null || acqData.FreqRslt == null)
                 return (150, null);
 
-            int binsToSkip = (int)(10 / acqData.FreqInput.Df);                      // Skip first 10 Hz
-            int binsToTake = (int)(80000 / acqData.FreqInput.Df);                   // Take up to 80 kHz
+            int binsToSkip = (int)(10 / acqData.FreqRslt.Df);                      // Skip first 10 Hz
+            int binsToTake = (int)(80000 / acqData.FreqRslt.Df);                   // Take up to 80 kHz
 
-            if (binsToTake >= acqData.FreqInput.Left.Length)                        // Invalid amount of samples, use all 
+            if (binsToTake >= acqData.FreqRslt.Left.Length)                        // Invalid amount of samples, use all 
             {
                 binsToSkip = 0;
-                binsToTake = acqData.FreqInput.Left.Length;        
+                binsToTake = acqData.FreqRslt.Left.Length;        
             }
 
             // Determine highest channel value
             double peak_left = -150;
             double peak_right = -150;
             if (leftChannelEnabled)
-                peak_left = acqData.FreqInput.Left.Skip(binsToSkip).Take(binsToTake).Max();
+                peak_left = acqData.FreqRslt.Left.Skip(binsToSkip).Take(binsToTake).Max();
             if (rightChannelEnabled)
-                peak_right = acqData.FreqInput.Right.Skip(binsToSkip).Take(binsToTake).Max();
+                peak_right = acqData.FreqRslt.Right.Skip(binsToSkip).Take(binsToTake).Max();
 
             double peak_dBV = 20 * Math.Log10(Math.Max(peak_left, peak_right));
 

@@ -43,8 +43,8 @@ namespace QA40xPlot.Libraries
     public class LeftRightSeries
     {
   
-        public LeftRightFrequencySeries FreqInput;
-        public LeftRightTimeSeries TimeInput;
+        public LeftRightFrequencySeries FreqRslt;
+        public LeftRightTimeSeries TimeRslt;
     }
 
     public class Qa40x

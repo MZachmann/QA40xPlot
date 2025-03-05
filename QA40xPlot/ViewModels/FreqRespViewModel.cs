@@ -5,6 +5,7 @@ using QA40xPlot.ViewModels;
 using QA40xPlot.Views;
 using System.Windows;
 using System.ComponentModel;
+using System.Text.Json;
 
 public class FreqRespViewModel : BaseViewModel
 {
@@ -19,7 +20,7 @@ public class FreqRespViewModel : BaseViewModel
 	public List<String> StartPercents { get => new List<string> { "100", "10", "1", "0.1", "0.01" }; }
 	public List<String> EndPercents { get => new List<string> { "0.1", "0.01", "0.001", "0.0001", "0.00001", "0.000001" }; }
 	public List<String> Smoothings { get => new List<string> { "None", "1/24", "1/6" }; }
-	public ActFrequencyResponse actFreq { get; private set; }
+	private ActFrequencyResponse actFreq { get;  set; }
 	public RelayCommand DoStart { get => new RelayCommand(StartIt); }
 	public RelayCommand DoStop { get => new RelayCommand(StopIt); }
 	public RelayCommand ToggleGenerator { get => new RelayCommand(StopIt); }
@@ -124,13 +125,13 @@ public class FreqRespViewModel : BaseViewModel
 		get => _ShowThickLines;
 		set => SetProperty(ref _ShowThickLines, value);
 	}
+
 	private bool _ShowPoints;
 	public bool ShowPoints
 	{
 		get => _ShowPoints;
 		set => SetProperty(ref _ShowPoints, value);
 	}
-
 
 	private bool _ShowSummary = true;
 	public bool ShowSummary
@@ -285,6 +286,13 @@ public class FreqRespViewModel : BaseViewModel
 	~FreqRespViewModel()
 	{
 		PropertyChanged -= CheckPropertyChanged;
+	}
+
+	public string SerializeAll()
+	{
+		string jsonString = JsonSerializer.Serialize(this);
+		//Console.WriteLine(jsonString);
+		return jsonString;
 	}
 
 	public FreqRespViewModel()

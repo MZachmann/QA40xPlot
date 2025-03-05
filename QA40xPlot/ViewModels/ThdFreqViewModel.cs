@@ -5,6 +5,7 @@ using QA40xPlot.Views;
 using ScottPlot;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -18,7 +19,7 @@ namespace QA40xPlot.ViewModels
 		public List<String> EndFrequencies { get => new List<string> { "1000", "2000", "5000", "10000", "20000" }; }
 		public List<String> StartPercents { get => new List<string> { "100", "10", "1", "0.1", "0.01" }; }
 		public List<String> EndPercents { get => new List<string> { "0.1", "0.01", "0.001", "0.0001", "0.00001", "0.000001" }; }
-		public ActThdFrequency actThd { get; private set; }
+		private ActThdFrequency actThd { get; set; }
 		public RelayCommand DoStart { get => new RelayCommand(StartIt); }
 		public RelayCommand DoStop { get => new RelayCommand(StopIt); }
 
@@ -358,6 +359,24 @@ namespace QA40xPlot.ViewModels
 			actThd = new ActThdFrequency(ref data, plot, plot1, plot2);
 		}
 
+
+		public void OnVoltageChanged(string news)
+		{
+			actThd.UpdateGenAmplitude(news);
+		}
+
+		public void OnAmpVoltageChanged(string news)
+		{
+			actThd.UpdateAmpAmplitude(news);
+		}
+
+		public string SerializeAll()
+		{
+			string jsonString = JsonSerializer.Serialize(this);
+			//Console.WriteLine(jsonString);
+			return jsonString;
+		}
+
 		~ThdFreqViewModel()
 		{
 			PropertyChanged -= CheckPropertyChanged;
@@ -367,6 +386,61 @@ namespace QA40xPlot.ViewModels
 		{
 			PropertyChanged += CheckPropertyChanged;
 
+			PropertyChanged += CheckPropertyChanged;
+
+			GenVoltage = 0.03;
+			AmpLoad = 8;
+			OutPower = 0.5;
+			OutVoltage = 0.5;
+			StartFreq = 20;
+			EndFreq = 20000;
+			GraphStartFreq = "20";
+			GraphEndFreq = "20000";
+			StepsOctave = 1;
+			Averages = 1;
+			LeftChannel = true;
+			RightChannel = false;
+			MeasureType = 2;
+			OutputUnits = 0;
+			GeneratorUnits = 0;
+			RangeTop = "1";             // when graphing percents distortion this is logarithmic 0.01....
+			RangeBottom = "0.001";
+
+			ShowThickLines = true;
+			ShowPoints = false;
+			ShowPercent = true;
+			ShowLeft = true;
+			ShowRight = false;
+			ShowTHD = true;
+			ShowMagnitude = true;
+			ShowD2 = true;
+			ShowD3 = true;
+			ShowD4 = true;
+			ShowD5 = true;
+			ShowD6 = true;
+			ShowNoiseFloor = true;
+
+			SampleRate = 96000;
+			FftSize = 65536;
+			WindowingMethod = 0;
+
+			InputRange = 0;
+			RangeTopdB = 20;
+			RangeBottomdB = -180;
+
+			ToShowRange = Visibility.Visible;
+			ToShowdB = Visibility.Visible;
+			// make a few things happen to synch the gui
+			Task.Delay(1000).ContinueWith(t => { ShowPercent = false; MeasureType = 0; });
+
+			ReadVoltage = true;
+			ReadOutPower = true;
+			ReadOutVoltage = true;
+
+			GeneratorAmplitude = -20;       // this is the unitless (dbV) amplitude of the generator
+			AmpOutputAmplitude = -20;         // this is the unitless (dbV) amplitude of the amplifier output
+			GenVoltage = QaLibrary.ConvertVoltage(GeneratorAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)GeneratorUnits);
+			OutVoltage = QaLibrary.ConvertVoltage(AmpOutputAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)OutputUnits);
 		}
 	}
 }

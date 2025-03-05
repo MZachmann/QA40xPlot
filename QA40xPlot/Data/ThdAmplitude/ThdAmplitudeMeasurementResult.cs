@@ -17,11 +17,12 @@ namespace QA40xPlot.Data
         [JsonIgnore]
         public LeftRightSeries NoiseFloor { get; set; }                                 // Noise floor measurement
 
-        public ThdAmplitudeMeasurementResult()
+        public ThdAmplitudeMeasurementResult(ThdAmpViewModel vm)
         {
             AmplitudeSteps = [];
-            MeasurementSettings = new();
-            Title = string.Empty;
+			MeasurementSettings = new();
+			vm.CopyPropertiesTo(MeasurementSettings);
+			Title = string.Empty;
             Description = string.Empty;
 			CreateDate = DateTime.Now;
 			Show = false;

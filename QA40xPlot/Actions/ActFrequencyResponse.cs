@@ -16,8 +16,6 @@ namespace QA40xPlot.Actions
         public bool MeasurementBusy { get; set; }                   // Measurement busy state
 		private Views.PlotControl? frqrsPlot;
 
-		//private FrequencyResponseMeasurementSettings MeasurementSettings;
-		//private FrequencyResponseGraphSettings GraphSettings;
 		private FrequencyResponseMeasurementResult MeasurementResult;
 
         CancellationTokenSource ct;                                 // Measurement cancelation token
@@ -30,7 +28,7 @@ namespace QA40xPlot.Actions
             Data = data;
             frqrsPlot = graphFreq;
 
-			MeasurementResult = new(); // TODO. Add to list
+			MeasurementResult = new(ViewSettings.Singleton.FreqRespVm); // TODO. Add to list
             ct = new CancellationTokenSource();
 
             UpdateGraph(true);
@@ -65,192 +63,6 @@ namespace QA40xPlot.Actions
 			var val = QaLibrary.ParseTextToDouble(value, Convert.ToDouble(frqrsVm.Gen1Voltage));
 			frqrsVm.GeneratorAmplitude = QaLibrary.ConvertVoltage(val, (E_VoltageUnit)frqrsVm.GeneratorUnits, E_VoltageUnit.dBV);
 		}
-
-#if false
-        void PopulateMeasurementSettingsComboBoxes()
-        { 
-            var items = new List<KeyValuePair<double, string>>
-            {
-                new (0, "Input voltage"),
-                new (1, "Output voltage")
-            };
-            ComboBoxHelper.PopulateComboBox(cmbGeneratorType, items);
-
-            items =
-            [
-                new (48000, "24000"),
-                new (96000, "48000"),
-                new (192000, "96000")
-            ];
-            ComboBoxHelper.PopulateComboBox(cmbFrequencySpan, items);
-
-            items =
-            [
-                new (0, "mV"),
-                new (1, "V"),
-                new (2, "dBV")
-            ];
-            ComboBoxHelper.PopulateComboBox(cmbGeneratorVoltageUnit, items);
-
-
-            items =
-            [
-                new (0, "None"),
-                new (69, "1/69 (min)"),
-                new (48, "1/48"),
-                new (24, "1/24"),
-                new (12, "1/12"),
-                new (6, "1/6"),
-                new (3, "1/3 (max)")
-            ];
-            ComboBoxHelper.PopulateComboBox(cmbSmoothing, items);
-
-            items =
-            [
-                new (1, "1.46"),
-                new (2, "0.73"),
-                new (4, "0.37")
-            ];
-            ComboBoxHelper.PopulateComboBox(cmbLowFrequencyAccuracy, items);
-        }
-
-        void PopulateGraphSettingsComboBoxes()
-        {
-
-            var items = new List<KeyValuePair<double, string>>
-            {
-                new (1, "1"),
-                new (2, "2"),
-                new (5, "5"),
-                new (10, "10"),
-                new (20, "20"),
-                new (50, "50"),
-                new (200, "200"),
-                new (100, "100"),
-                new (500, "500")
-            };
-            ComboBoxHelper.PopulateComboBox(cmbGraph_FreqStart, items);
-
-            items = new List<KeyValuePair<double, string>>
-            {
-                new (1000, "1000"),
-                new (2000, "2000"),
-                new (5000, "5000"),
-                new (10000, "10000"),
-                new (20000, "20000"),
-                new (50000, "50000"),
-                new (100000, "100000")
-            };
-            ComboBoxHelper.PopulateComboBox(cmbGraph_FreqEnd, items);
-
-        }
-
-
-        /// <summary>
-        /// Initialize Settings with default settings
-        /// </summary>
-        void SetDefaultMeasurementSettings(ref FrequencyResponseMeasurementSettings settings)
-        {
-            // Initialize with default measurement settings
-            settings.SampleRate = 192000;
-            settings.FftSize = 65536 * 2;
-            settings.WindowingFunction = Windowing.Hann;
-            settings.SmoothDenominator = 3;
-            settings.RightChannelIsReference = true;
-            settings.GeneratorType = E_GeneratorType.OUTPUT_VOLTAGE;
-            settings.GeneratorAmplitude = 0;
-            settings.GeneratorAmplitudeUnit = E_VoltageUnit.dBV;
-            settings.EnableLeftChannel = true;
-            settings.EnableRightChannel = false;
-            settings.SmoothDenominator = 24;
-            settings.FftResolution = 1;
-        }
-
-        /// <summary>
-        /// Initializer with default graph settings
-        /// </summary>
-        void SetDefaultGraphSettings(ref FrequencyResponseGraphSettings settings)
-        {
-            settings = new()
-            {
-                YRangeTop = 50,
-                YRangeBottom = -20,
-
-                FrequencyRange_Start = 1,
-                FrequencyRange_End = 100000,
-
-                GraphType = E_FrequencyResponseGraphType.DBV,
-
-                Show1dBBandwidth_L = false,
-                Show3dBBandwidth_L = true,
-                Show1dBBandwidth_R = false,
-                Show3dBBandwidth_R = true,
-
-                ThickLines = true,
-                ShowDataPoints = false,
-
-                ShowLeftChannel = true,
-                ShowRightChannel = true
-            };
-        }
-
-
-        /// <summary>
-        /// Set initial control values
-        /// </summary>
-        void SetMeasurementControls(FrequencyResponseMeasurementSettings settings)
-        {
-            cmbGeneratorType.SelectedIndex = (int)settings.GeneratorType;
-            txtGeneratorVoltage.Text = settings.GeneratorAmplitude.ToString("#0.0##");
-            cmbGeneratorVoltageUnit.SelectedIndex = (int)settings.GeneratorAmplitudeUnit;
-            ComboBoxHelper.SelectNearestValue(cmbFrequencySpan, settings.SampleRate);
-            
-            chkRightIsReference.Checked = settings.RightChannelIsReference;
-            ComboBoxHelper.SelectNearestValue(cmbSmoothing, settings.SmoothDenominator);
-            udAverages.Value = settings.Averages;
-
-            ComboBoxHelper.SelectNearestValue(cmbLowFrequencyAccuracy, settings.FftResolution);
-            chkEnableLeftChannel.Checked = settings.EnableLeftChannel;
-            chkEnableRightChannel.Checked = settings.EnableRightChannel;
-            
-        }
-
-
-        void SetGraphControls(FrequencyResponseGraphSettings graphSettings)
-        {
-            ud_Graph_Top.Value = (decimal)graphSettings.YRangeTop;
-            ud_Graph_Bottom.Value = (decimal)graphSettings.YRangeBottom;
-
-            SetStartFrequencySelectedIndexByFrequency(graphSettings.FrequencyRange_Start);
-            SetEndFrequencySelectedIndexByFrequency(graphSettings.FrequencyRange_End);
-
-            chk1dBBandWidth_L.Checked = GraphSettings.Show1dBBandwidth_L;
-            chk3dBBandWidth_L.Checked = GraphSettings.Show3dBBandwidth_L;
-            chk1dBBandWidth_R.Checked = GraphSettings.Show1dBBandwidth_R;
-            chk3dBBandWidth_R.Checked = GraphSettings.Show3dBBandwidth_R;
-
-            chkThickLines.Checked = graphSettings.ThickLines;
-            chkShowDataPoints.Checked = graphSettings.ShowDataPoints;
-
-            chkGraphShowLeftChannel.Checked = graphSettings.ShowLeftChannel;
-            chkGraphShowLeftChannel.Visible = chkEnableLeftChannel.Checked;
-            chkGraphShowRightChannel.Checked = graphSettings.ShowRightChannel;
-            chkGraphShowRightChannel.Visible = chkEnableRightChannel.Checked;
-        }
-
-
-        private void SetStartFrequencySelectedIndexByFrequency(uint startfrequency)
-        {
-            ComboBoxHelper.SelectNearestValue(cmbGraph_FreqStart, startfrequency);
-            GraphSettings.FrequencyRange_Start = (uint)((KeyValuePair<double, string>)cmbGraph_FreqStart.SelectedItem).Key;
-        }
-
-        private void SetEndFrequencySelectedIndexByFrequency(uint endfrequency)
-        {
-            ComboBoxHelper.SelectNearestValue(cmbGraph_FreqEnd, endfrequency);
-            GraphSettings.FrequencyRange_End = (uint)((KeyValuePair<double, string>)cmbGraph_FreqEnd.SelectedItem).Key;
-        }
-#endif
 
 		/// <summary>
 		/// Start measurement button clicked
@@ -288,15 +100,14 @@ namespace QA40xPlot.Actions
 		async Task<bool> PerformMeasurement(CancellationToken ct, bool continuous)
         {
             frqrsPlot.ThePlot.Clear();
-			var frqrsVm = ViewSettings.Singleton.FreqRespVm;
 
 			// Clear measurement result
-			MeasurementResult = new()
+			MeasurementResult = new(ViewSettings.Singleton.FreqRespVm)
             {
                 CreateDate = DateTime.Now,
                 Show = true,                                      // Show in graph
-                MeasurementSettings = frqrsVm       // Copy measurment settings to measurement results
 			};
+            var frqrsVm = MeasurementResult.MeasurementSettings;
 
             // For now clear measurements to allow only one until we have a UI to manage them.
             Data.Measurements.Clear();
@@ -415,7 +226,7 @@ namespace QA40xPlot.Actions
 
 					await showMessage($"Sweeping done", 200);
                     MeasurementResult.FrequencyResponseData = lfrs;
-                    MeasurementResult.GainData = CalculateGain(lfrs.FreqInput);
+                    MeasurementResult.GainData = CalculateGain(lfrs.FreqRslt);
                     UpdateGraph(false);
                     ShowLastMeasurementCursorTexts();
 
@@ -462,28 +273,6 @@ namespace QA40xPlot.Actions
                 return;
 
         }
-
-#if false
-        void ClearCursorTexts()
-        {
-            lblCursor_Frequency.Text = "F: 0.00 Hz";
-            lblCursor_Amplitude_dBV_L.Text = "0.00 dBV";
-            lblCursor_Amplitude_dBV_R.Text = "0.00 dBV";
-            lblCursor_Amplitude_V_L.Text = "0.00 V";
-            lblCursor_Amplitude_V_R.Text = "0.00 V";
-            lblCursor_Gain_times_L.Text = "0.00 x";
-            lblCursor_Gain_dB_L.Text = "0.00 dB";
-        }
-
-        /// <summary>
-        /// Clear the plot
-        /// </summary>
-        void ClearPlot()
-        {
-            frqrsPlot.Plot.Clear();
-            frqrsPlot.Refresh();
-        }
-#endif
 
         /// <summary>
         /// Initialize the magnitude plot
@@ -593,7 +382,7 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
 			var frqrsVm = ViewSettings.Singleton.FreqRespVm;
 
-			if (measurementResult == null || measurementResult.FrequencyResponseData == null || measurementResult.FrequencyResponseData.FreqInput == null)
+			if (measurementResult == null || measurementResult.FrequencyResponseData == null || measurementResult.FrequencyResponseData.FreqRslt == null)
                 return;
 
             var freqX = new List<double>();
@@ -601,7 +390,7 @@ namespace QA40xPlot.Actions
             var magnY_right = new List<double>();
             var gainY = new List<double>();
 
-            double frequencyStep = measurementResult.FrequencyResponseData.FreqInput.Df;
+            double frequencyStep = measurementResult.FrequencyResponseData.FreqRslt.Df;
             double startFrequency = frequencyStep;
 
 
@@ -621,7 +410,7 @@ namespace QA40xPlot.Actions
             else
             {
                 // dBV graph
-                foreach (var step in measurementResult.FrequencyResponseData.FreqInput.Left.Skip(1))        // Skip first bin (DC)
+                foreach (var step in measurementResult.FrequencyResponseData.FreqRslt.Left.Skip(1))        // Skip first bin (DC)
                 {
                     freqX.Add(startFrequency);
                     if (showLeftChannel)
@@ -632,7 +421,7 @@ namespace QA40xPlot.Actions
 
                 if (showRightChannel && measurementResult.MeasurementSettings.RightChannel)
                 {
-                    foreach (var step in measurementResult.FrequencyResponseData.FreqInput.Right.Skip(1))
+                    foreach (var step in measurementResult.FrequencyResponseData.FreqRslt.Right.Skip(1))
                     {
                         magnY_right.Add(QaLibrary.ConvertVoltage(step, E_VoltageUnit.Volt, E_VoltageUnit.dBV));
                     }
@@ -674,386 +463,6 @@ namespace QA40xPlot.Actions
             frqrsPlot.Refresh();
         }
 
-
-#if false
-        void UpdateGraphChannelSelectors()
-        {
-            if (MeasurementSettings.RightChannelIsReference)
-            {
-                chkGraphShowLeftChannel.Checked = true;
-                chkGraphShowRightChannel.Checked = false;
-                GraphSettings.ShowLeftChannel = true;
-                GraphSettings.ShowRightChannel = false;
-                chkGraphShowLeftChannel.Visible = false;
-                chkGraphShowRightChannel.Visible = false;
-                chkEnableLeftChannel.Checked = true;
-                chkEnableLeftChannel.Visible = false;
-                chkEnableRightChannel.Checked = false;
-                chkEnableRightChannel.Visible = false;
-                btnGraph_Gain.Visible = true;
-            }
-            else
-            {
-                chkGraphShowLeftChannel.Visible = true;
-                chkGraphShowRightChannel.Visible = true;
-                chkEnableLeftChannel.Visible = true;
-                chkEnableRightChannel.Visible = true;
-                
-                btnGraph_Gain.Visible = false;
-                GraphSettings.GraphType = E_FrequencyResponseGraphType.DBV;
-                
-                
-                if (MeasurementSettings.EnableLeftChannel && !MeasurementSettings.EnableRightChannel)
-                {
-                    // Only single channel. Enable
-                    chkGraphShowLeftChannel.Checked = true;
-                    chkGraphShowRightChannel.Checked = false;
-                    GraphSettings.ShowLeftChannel = true;
-                    GraphSettings.ShowRightChannel = false;
-                }
-                if (MeasurementSettings.EnableRightChannel && !MeasurementSettings.EnableLeftChannel)
-                {
-                    chkGraphShowLeftChannel.Checked = false;
-                    chkGraphShowRightChannel.Checked = true;
-                    GraphSettings.ShowLeftChannel = false;
-                    GraphSettings.ShowRightChannel = true;
-                }
-            }
-            chkGraphShowLeftChannel.Enabled = MeasurementSettings.EnableLeftChannel && MeasurementSettings.EnableRightChannel;
-            chkGraphShowRightChannel.Enabled = MeasurementSettings.EnableLeftChannel && MeasurementSettings.EnableRightChannel;
-            pnlCursorsLeft.Visible = GraphSettings.ShowLeftChannel;
-            pnlCursorsRight.Visible = GraphSettings.ShowRightChannel;
-
-            grpMeasurements_L.Visible = MeasurementSettings.EnableLeftChannel;
-            grpMeasurements_R.Visible = MeasurementSettings.EnableRightChannel && GraphSettings.GraphType == E_FrequencyResponseGraphType.DBV;
-            if (GraphSettings.GraphType == E_FrequencyResponseGraphType.DBV)
-            {
-                grpMeasurements_L.Text = "Measurements left channel";
-                pnlCursorsRight.Visible = true;
-                lblCursor_LeftChannel.Visible = true;
-                lblCursor_RightChannel.Visible = true;
-                lblCursorAmplitude.Visible = true;
-                lblCursor_Amplitude_dBV_L.Visible = true;
-                lblCursor_Amplitude_V_L.Visible = true;
-
-                lblCursorGain.Visible = false;
-                lblCursor_Gain_dB_L.Visible = false;
-                lblCursor_Gain_times_L.Visible = false;
-
-                lblMeas_MaxAmplitude_L.Text = "Max. amplitude";
-                lblMeas_HighestGainFreq.Text = "Highest amplitude freq.";
-                gbDbV_Range.Text = "dBV";
-            }
-            else
-            { 
-                grpMeasurements_L.Text = "Measurements";
-                pnlCursorsRight.Visible = false;
-                lblCursor_LeftChannel.Visible = false;
-                lblCursor_RightChannel.Visible = false;
-                lblCursorAmplitude.Visible = false;
-                lblCursor_Amplitude_dBV_L.Visible = false;
-                lblCursor_Amplitude_V_L.Visible = false;
-
-                lblCursorGain.Visible = true;
-                lblCursor_Gain_dB_L.Visible = true;
-                lblCursor_Gain_times_L.Visible = true;
-
-                lblMeas_MaxAmplitude_L.Text = "Max. gain";
-                lblMeas_HighestGainFreq.Text = "Highest gain freq.";
-                gbDbV_Range.Text = "dB";
-            }
-
-
-            chk1dBBandWidth_L.Enabled = MeasurementSettings.EnableLeftChannel && GraphSettings.ShowLeftChannel;
-            chk3dBBandWidth_L.Enabled = MeasurementSettings.EnableLeftChannel && GraphSettings.ShowLeftChannel;
-            chk1dBBandWidth_R.Enabled = MeasurementSettings.EnableRightChannel && GraphSettings.ShowRightChannel;
-            chk3dBBandWidth_R.Enabled = MeasurementSettings.EnableRightChannel && GraphSettings.ShowRightChannel;
-            chk1dBBandWidth_L.Checked = GraphSettings.Show1dBBandwidth_L;
-            chk3dBBandWidth_L.Checked = GraphSettings.Show3dBBandwidth_L;
-            chk1dBBandWidth_R.Checked = GraphSettings.Show1dBBandwidth_R;
-            chk3dBBandWidth_R.Checked = GraphSettings.Show3dBBandwidth_R;
-
-            
-        }
-
-        /// <summary>
-        /// Attach mouse events to the main graph
-        /// </summary>
-        void AttachPlotMouseEvent()
-        {
-            // Attach the mouse move event
-            frqrsPlot.MouseMove += (s, e) =>
-            {
-                SetCursorMarker(s, e, false);
-            };
-
-            // Mouse is clicked
-            frqrsPlot.MouseDown += (s, e) =>
-            {
-                SetCursorMarker(s, e, true);      // Set persistent marker
-            };
-
-            // Mouse is leaving the graph
-            frqrsPlot.SKControl.MouseLeave += (s, e) =>
-            {
-                if (markerIndex == -1)
-                {
-                    frqrsPlot.Plot.Remove<Crosshair>();
-                    frqrsPlot.Refresh();
-                }
-            };
-
-        }
-
-
-        int markerIndex = -1;
-        DataPoint markerDataPoint;
-
-        /// <summary>
-        /// Set a cursor marker
-        /// </summary>
-        /// <param name="s"></param>
-        /// <param name="e"></param>
-        /// <param name="isClick"></param>
-        void SetCursorMarker(object s, MouseEventArgs e, bool isClick)
-        {
-            //if (MeasurementBusy)            // Do not show marker when measurement is still busy
-            //    return;
-
-            // determine where the mouse is and get the nearest point
-            Pixel mousePixel = new(e.Location.X, e.Location.Y);
-            Coordinates mouseLocation = frqrsPlot.Plot.GetCoordinates(mousePixel);
-            if (frqrsPlot.Plot.GetPlottables<Scatter>().Count() == 0)
-                return;                     // Nothing plotted
-
-            // Get nearest x-location in plotr
-            DataPoint nearest1 = frqrsPlot.Plot.GetPlottables<Scatter>().First().Data.GetNearestX(mouseLocation, frqrsPlot.Plot.LastRender);
-
-            // place the crosshair over the highlighted point
-            if (nearest1.IsReal)
-            {
-                float lineWidth = (GraphSettings.ThickLines ? 1.6f : 1);
-                LinePattern linePattern = LinePattern.DenselyDashed;
-
-                if (isClick)
-                {
-                    // Mouse click
-                    if (nearest1.Index == markerIndex)          // Clicked point is currently marked
-                    {
-                        // Remove marker
-                        markerIndex = -1;
-                        frqrsPlot.Plot.Remove<Crosshair>();
-                        return;
-                    }
-                    else
-                    {
-                        // Add solid marker line
-                        markerIndex = nearest1.Index;           // Remember marker
-                        markerDataPoint = nearest1;
-                        linePattern = LinePattern.Solid;
-                    }
-                }
-                else
-                {
-                    // Mouse hoover
-                    if (markerIndex != -1)
-                        return;                                 // Do not show new marker. There is already a clicked marker
-                }
-
-                QaLibrary.PlotCursorMarker(frqrsPlot, lineWidth, linePattern, nearest1);
-
-                // Check if index in StepData array
-                if (MeasurementResult.FrequencyResponseData.FreqInput.Left.Count() > nearest1.Index)
-                {
-                    // Write cursor texts based in plot type
-                    if (GraphSettings.GraphType == E_FrequencyResponseGraphType.DBV)
-                    {
-                        WriteCursorTexts_dBV((uint)nearest1.Index);
-                    }
-                    else
-                    {
-                        WriteCursorTexts_Gain((uint)nearest1.Index);
-                    }
-                }
-
-            }
-        }
-
-
-        void WriteCursorTexts_dBV(uint index)
-        {
-            if (MeasurementResult == null || MeasurementResult.MeasurementSettings == null || MeasurementResult.FrequencyResponseData == null || index > (MeasurementResult.FrequencyResponseData.FreqInput.Left.Length - 1))
-                return;
-
-            var binSize = QaLibrary.CalcBinSize(MeasurementResult.MeasurementSettings.SampleRate, MeasurementResult.MeasurementSettings.FftSize);
-            double frequency = QaLibrary.GetBinFrequency(index + 1, binSize);
-            lblCursor_Frequency.Text = $"F: {frequency:0.0 Hz}";
-            lblCursor_Frequency.Refresh();
-
-            if (GraphSettings.ShowLeftChannel)
-            {
-                var amplitudeV_L = MeasurementResult.FrequencyResponseData.FreqInput.Left[index + 1];
-                var amplitudeDbV_L = QaLibrary.ConvertVoltage(amplitudeV_L, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-
-                lblCursor_Amplitude_V_L.Text = $"{amplitudeV_L:0.0# dBV}";
-                lblCursor_Amplitude_dBV_L.Text = $"{amplitudeDbV_L:0.0# dBV}";
-            }
-
-            if (GraphSettings.ShowRightChannel)
-            {
-                var amplitudeV_R = MeasurementResult.FrequencyResponseData.FreqInput.Right[index + 1];
-                var amplitudeDbV_R = QaLibrary.ConvertVoltage(amplitudeV_R, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-
-                lblCursor_Amplitude_V_R.Text = $"{amplitudeV_R:0.0# dBV}";
-                lblCursor_Amplitude_dBV_R.Text = $"{amplitudeDbV_R:0.0# dBV}";
-            }
-            pnlCursorsLeft.Refresh();
-            pnlCursorsRight.Refresh();
-        }
-
-        void WriteCursorTexts_Gain(uint index)
-        {
-            if (MeasurementResult == null || MeasurementResult.MeasurementSettings == null || MeasurementResult.GainData == null || index > (MeasurementResult.GainData.Length - 1))
-                return;
-
-            var binSize = QaLibrary.CalcBinSize(MeasurementResult.MeasurementSettings.SampleRate, MeasurementResult.MeasurementSettings.FftSize);
-            double frequency = QaLibrary.GetBinFrequency(index + 1, binSize);
-            lblCursor_Frequency.Text = $"F: {frequency:0.0 Hz}";
-            lblCursor_Frequency.Refresh();
-
-            var gain = MeasurementResult.GainData[index + 1];
-            var gainDb = QaLibrary.ConvertVoltage(gain, E_VoltageUnit.Volt, E_VoltageUnit.dBV); 
-            lblCursor_Gain_times_L.Text = $"{gain:0.0#} x";
-            lblCursor_Gain_dB_L.Text = $"{gainDb:0.0# dB}";
-            pnlCursorsLeft.Refresh();
-        }
-
-
-        /// <summary>
-        /// Start measurement button clicked
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private async void btnRun_Click(object sender, EventArgs e)
-        {
-            MeasurementBusy = true;
-            btnStopThdMeasurement.Enabled = true;
-            btnStopThdMeasurement.ForeColor = System.Drawing.Color.Black;
-            btnSingle.Enabled = false;
-            btnSingle.ForeColor = System.Drawing.Color.DimGray;
-            btnRun.Enabled = false;
-            btnRun.ForeColor = System.Drawing.Color.DimGray;
-            ct = new();
-            await PerformMeasurement(ct.Token, true);
-            Program.MainForm.ClearMessage();
-            Program.MainForm.HideProgressBar();
-            MeasurementBusy = false;
-            btnStopThdMeasurement.Enabled = false;
-            btnStopThdMeasurement.ForeColor = System.Drawing.Color.DimGray;
-            btnSingle.Enabled = true;
-            btnSingle.ForeColor = System.Drawing.Color.Black;
-            btnRun.Enabled = true;
-            btnRun.ForeColor = System.Drawing.Color.Black;
-        }
-
-
-        private async void btnSingle_Click(object sender, EventArgs e)
-        {
-            MeasurementBusy = true;
-            btnSingle.Enabled = false;
-            btnSingle.ForeColor = System.Drawing.Color.DimGray;
-            btnStopThdMeasurement.Enabled = true;
-            btnStopThdMeasurement.ForeColor = System.Drawing.Color.Black;
-            btnRun.Enabled = false;
-            btnRun.ForeColor = System.Drawing.Color.DimGray;
-            ct = new();
-            await PerformMeasurement(ct.Token, false);
-            Program.MainForm.ClearMessage();
-            Program.MainForm.HideProgressBar();
-            MeasurementBusy = false;
-            btnStopThdMeasurement.Enabled = false;
-            btnStopThdMeasurement.ForeColor = System.Drawing.Color.DimGray;
-            btnRun.Enabled = true;
-            btnRun.ForeColor = System.Drawing.Color.Black;
-            btnSingle.Enabled = true;
-            btnSingle.ForeColor = System.Drawing.Color.Black;
-        }
-
-        /// <summary>
-        /// Start voltage unit is changed.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void cmbGeneratorAmplitudeUnit_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            UpdateGeneratorVoltageDisplay();
-        }
-
-
-
-        private void txtGeneratorAmplitude_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            // Text has been changed by user typing. Remember unit
-            MeasurementSettings.GeneratorAmplitudeUnit = (E_VoltageUnit)cmbGeneratorVoltageUnit.SelectedIndex;
-            QaLibrary.AllowNumericInput(sender, e, false);
-        }
-
-
-
-        private void txtGeneratorAmplitude_TextChanged(object sender, EventArgs e)
-        {
-            if (txtGeneratorVoltage.Focused)
-            {
-                MeasurementSettings.GeneratorAmplitude = QaLibrary.ParseTextToDouble(txtGeneratorVoltage.Text, MeasurementSettings.GeneratorAmplitude);
-                MeasurementSettings.GeneratorAmplitudeUnit = (E_VoltageUnit)cmbGeneratorVoltageUnit.SelectedIndex;
-            }
-            ValidateGeneratorAmplitude(sender);
-        }
-
-
-        /// <summary>
-        /// Chcek if the start voltage is lower then the end voltage and within the device measurement range
-        /// </summary>
-        /// <param name="sender"></param>
-        private void ValidateGeneratorAmplitude(object sender)
-        {
-            if (cmbGeneratorVoltageUnit.SelectedIndex == (int)E_VoltageUnit.MilliVolt)
-            {
-                QaLibrary.ValidateRangeAdorner(sender, QaLibrary.MINIMUM_GENERATOR_VOLTAGE_MV, QaLibrary.MAXIMUM_GENERATOR_VOLTAGE_MV);        // mV
-            }
-            else if (cmbGeneratorVoltageUnit.SelectedIndex == (int)E_VoltageUnit.Volt)
-            {
-                QaLibrary.ValidateRangeAdorner(sender, QaLibrary.MINIMUM_GENERATOR_VOLTAGE_V, QaLibrary.MAXIMUM_GENERATOR_VOLTAGE_V);
-            }
-            else if (cmbGeneratorVoltageUnit.SelectedIndex == (int)E_VoltageUnit.dBV)
-            {
-                QaLibrary.ValidateRangeAdorner(sender, QaLibrary.MINIMUM_GENERATOR_VOLTAGE_DBV, QaLibrary.MAXIMUM_GENERATOR_VOLTAGE_DBV);
-            }
-        }
-
-
-        private void udAverages_ValueChanged(object sender, EventArgs e)
-        {
-            MeasurementSettings.Averages = Convert.ToUInt16(udAverages.Value);
-        }
-
-
-        private void btnGraph_dBV_Click(object sender, EventArgs e)
-        {
-            GraphSettings.GraphType = E_FrequencyResponseGraphType.DBV;
-            ClearCursorTexts();
-            UpdateGraphChannelSelectors();
-            btnFitGraphY_Click(sender, e);
-        }
-
-        private void btnGraph_Gain_Click(object sender, EventArgs e)
-        {
-            GraphSettings.GraphType = E_FrequencyResponseGraphType.GAIN;
-            ClearCursorTexts();
-            UpdateGraphChannelSelectors();
-            btnFitGraphY_Click(sender, e);
-        }
-#endif
 
 
         public void UpdateGraph(bool settingsChanged)
@@ -1097,20 +506,20 @@ namespace QA40xPlot.Actions
 			myPlot.Remove<Arrow>();
 			myPlot.Remove<Text>();
 
-            if (MeasurementResult != null && MeasurementResult.FrequencyResponseData != null && MeasurementResult.FrequencyResponseData.FreqInput != null)
+            if (MeasurementResult != null && MeasurementResult.FrequencyResponseData != null && MeasurementResult.FrequencyResponseData.FreqRslt != null)
             {
                 BandwidthData bandwidthData3dB = new BandwidthData();
                 BandwidthData bandwidthData1dB = new BandwidthData();
                 if (MeasurementResult.MeasurementSettings.LeftChannel)
                 {
-                    bandwidthData3dB.Left = CalculateBandwidth(-3, MeasurementResult.FrequencyResponseData.FreqInput.Left, MeasurementResult.FrequencyResponseData.FreqInput.Df);
-                    bandwidthData1dB.Left = CalculateBandwidth(-1, MeasurementResult.FrequencyResponseData.FreqInput.Left, MeasurementResult.FrequencyResponseData.FreqInput.Df);
+                    bandwidthData3dB.Left = CalculateBandwidth(-3, MeasurementResult.FrequencyResponseData.FreqRslt.Left, MeasurementResult.FrequencyResponseData.FreqRslt.Df);
+                    bandwidthData1dB.Left = CalculateBandwidth(-1, MeasurementResult.FrequencyResponseData.FreqRslt.Left, MeasurementResult.FrequencyResponseData.FreqRslt.Df);
                 }
 
                 if (MeasurementResult.MeasurementSettings.RightChannel)
                 {
-                    bandwidthData3dB.Right = CalculateBandwidth(-3, MeasurementResult.FrequencyResponseData.FreqInput.Right, MeasurementResult.FrequencyResponseData.FreqInput.Df);
-                    bandwidthData1dB.Right = CalculateBandwidth(-1, MeasurementResult.FrequencyResponseData.FreqInput.Right, MeasurementResult.FrequencyResponseData.FreqInput.Df);
+                    bandwidthData3dB.Right = CalculateBandwidth(-3, MeasurementResult.FrequencyResponseData.FreqRslt.Right, MeasurementResult.FrequencyResponseData.FreqRslt.Df);
+                    bandwidthData1dB.Right = CalculateBandwidth(-1, MeasurementResult.FrequencyResponseData.FreqRslt.Right, MeasurementResult.FrequencyResponseData.FreqRslt.Df);
                 }
 
                 // Draw bandwidth lines
@@ -1161,9 +570,9 @@ namespace QA40xPlot.Actions
                 // Gain BW
                 if (MeasurementResult.MeasurementSettings.LeftChannel)
                 {
-                    var gainBW3dB = CalculateBandwidth(-3, MeasurementResult.GainData, MeasurementResult.FrequencyResponseData.FreqInput.Df);        // Volts is gain
+                    var gainBW3dB = CalculateBandwidth(-3, MeasurementResult.GainData, MeasurementResult.FrequencyResponseData.FreqRslt.Df);        // Volts is gain
 
-                    var gainBW1dB = CalculateBandwidth(-1, MeasurementResult.GainData, MeasurementResult.FrequencyResponseData.FreqInput.Df);
+                    var gainBW1dB = CalculateBandwidth(-1, MeasurementResult.GainData, MeasurementResult.FrequencyResponseData.FreqRslt.Df);
 
                     // Draw bandwidth lines
                     var colors = new GraphColors();
@@ -1369,254 +778,5 @@ namespace QA40xPlot.Actions
             txt.OffsetX = offsetX;
             txt.OffsetY = offsetY;
         }
-
-
-
-#if false
-        /// <summary>
-        /// Measurement cancel button clicked
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void btnStopThdMeasurement_Click(object sender, EventArgs e)
-        {
-            ct.Cancel();
-        }
-
-
-        private void chkThickLines_CheckedChanged(object sender, EventArgs e)
-        {
-            GraphSettings.ThickLines = chkThickLines.Checked;
-            UpdateGraph(true);
-        }
-
-        private void chkShowDataPoints_CheckedChanged(object sender, EventArgs e)
-        {
-            GraphSettings.ShowDataPoints = chkShowDataPoints.Checked;
-            UpdateGraph(true);
-        }
-
-        private void chkGraphShowLeftChannel_CheckedChanged(object sender, EventArgs e)
-        {
-            GraphSettings.ShowLeftChannel = chkGraphShowLeftChannel.Checked;
-            UpdateGraphChannelSelectors();
-            UpdateGraph(true);
-        }
-
-        private void chkGraphShowRightChannel_CheckedChanged(object sender, EventArgs e)
-        {
-            GraphSettings.ShowRightChannel = chkGraphShowRightChannel.Checked;
-            UpdateGraphChannelSelectors();
-            UpdateGraph(true);
-        }
-
-        private void chkEnableLeftChannel_CheckedChanged(object sender, EventArgs e)
-        {
-            MeasurementSettings.EnableLeftChannel = chkEnableLeftChannel.Checked;
-            UpdateGraphChannelSelectors();
-            UpdateGraph(true);
-        }
-
-        private void chkEnableRightChannel_CheckedChanged(object sender, EventArgs e)
-        {
-            MeasurementSettings.EnableRightChannel = chkEnableRightChannel.Checked;
-            UpdateGraphChannelSelectors();
-            UpdateGraph(true);
-        }
-
-
-
-        private void ud_dBV_Graph_Top_ValueChanged(object sender, EventArgs e)
-        {
-            // Prevent top lower than bottom
-            if (ud_Graph_Top.Value - ud_Graph_Bottom.Value < 1)
-            {
-                ud_Graph_Top.Value = ud_Graph_Bottom.Value + 1;
-            }
-
-            // Change increment when top and bottom closer together
-            GraphSettings.YRangeTop = (double)ud_Graph_Top.Value;
-            if (GraphSettings.YRangeTop - GraphSettings.YRangeBottom < 20)
-            {
-                ud_Graph_Top.Increment = 1;
-                ud_Graph_Bottom.Increment = 1;
-            }
-            else if (GraphSettings.YRangeTop - GraphSettings.YRangeBottom < 50)
-            {
-                ud_Graph_Top.Increment = 5;
-                ud_Graph_Bottom.Increment = 5;
-            }
-            else
-            {
-                ud_Graph_Top.Increment = 10;
-                ud_Graph_Bottom.Increment = 10;
-            }
-            UpdateGraph(true);
-        }
-
-        private void ud_dBV_Graph_Bottom_ValueChanged(object sender, EventArgs e)
-        {
-            // Prevent bottom higher than top
-            if (ud_Graph_Top.Value - ud_Graph_Bottom.Value < 1)
-            {
-                ud_Graph_Bottom.Value = ud_Graph_Top.Value - 1;
-            }
-
-            // Change increment when top and bottom closer together
-            GraphSettings.YRangeBottom = (double)ud_Graph_Bottom.Value;
-            if (GraphSettings.YRangeTop - GraphSettings.YRangeBottom < 20)
-            {
-                ud_Graph_Top.Increment = 1;
-                ud_Graph_Bottom.Increment = 1;
-            }
-            else if (GraphSettings.YRangeTop - GraphSettings.YRangeBottom < 50)
-            {
-                ud_Graph_Top.Increment = 5;
-                ud_Graph_Bottom.Increment = 5;
-            }
-            else
-            {
-                ud_Graph_Top.Increment = 10;
-                ud_Graph_Bottom.Increment = 10;
-            }
-            UpdateGraph(true);
-        }
-
-        private void cmbGraph_FreqStart_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (cmbGraph_FreqStart.SelectedIndex != -1)
-                GraphSettings.FrequencyRange_Start = (uint)((KeyValuePair<double, string>)cmbGraph_FreqStart.SelectedItem).Key;
-            UpdateGraph(true);
-        }
-
-        private void cmbGraph_FreqEnd_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (cmbGraph_FreqEnd.SelectedIndex != -1)
-                GraphSettings.FrequencyRange_End = (uint)((KeyValuePair<double, string>)cmbGraph_FreqEnd.SelectedItem).Key;
-            UpdateGraph(true);
-        }
-
-
-        private void cmbGeneratorType_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            MeasurementSettings.GeneratorType = (E_GeneratorType)cmbGeneratorType.SelectedIndex;
-            ValidateGeneratorAmplitude(txtGeneratorVoltage);
-        }
-
-  
-        private void cmbSmoothing_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (cmbSmoothing.SelectedIndex != -1)
-                MeasurementSettings.SmoothDenominator = (int)((KeyValuePair<double, string>)cmbSmoothing.SelectedItem).Key;
-        }
-
-
-
-        private void chk1dBBandWidth_CheckedChanged(object sender, EventArgs e)
-        {
-            GraphSettings.Show1dBBandwidth_L = chk1dBBandWidth_L.Checked;
-            UpdateGraph(false);
-        }
-
-        private void chk3dBBandWidth_L_CheckedChanged(object sender, EventArgs e)
-        {
-            GraphSettings.Show3dBBandwidth_L = chk3dBBandWidth_L.Checked;
-            UpdateGraph(false);
-        }
-
-        private void chk1dBBandWidth_R_CheckedChanged(object sender, EventArgs e)
-        {
-            GraphSettings.Show1dBBandwidth_R = chk1dBBandWidth_R.Checked;
-            UpdateGraph(false);
-        }
-
-        private void chk3dBBandWidth_R_CheckedChanged(object sender, EventArgs e)
-        {
-            GraphSettings.Show3dBBandwidth_R = chk3dBBandWidth_R.Checked;
-            UpdateGraph(false);
-        }
-
-        private void cmbFrequencySpan_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (cmbSmoothing.SelectedIndex != -1)
-                MeasurementSettings.SampleRate = (uint)((KeyValuePair<double, string>)cmbFrequencySpan.SelectedItem).Key;
-        }
-
-        private void btnFitGraphX_Click(object sender, EventArgs e)
-        {
-            cmbGraph_FreqStart.SelectedIndex = 0;
-            switch (MeasurementResult.MeasurementSettings.SampleRate)
-            {
-                case 48000:
-                    ComboBoxHelper.SelectNearestValue(cmbGraph_FreqEnd, 50000);
-                    break;
-                case 96000:
-                    ComboBoxHelper.SelectNearestValue(cmbGraph_FreqEnd, 50000);
-                    break;
-                case 192000:
-                    ComboBoxHelper.SelectNearestValue(cmbGraph_FreqEnd, 100000);
-                    break;
-            }
-           
-        }
-
-        private void btnFitGraphY_Click(object sender, EventArgs e)
-        {
-            BandwidthData bw = new BandwidthData();
-            if (GraphSettings.GraphType == E_FrequencyResponseGraphType.GAIN)
-            {
-                if (MeasurementResult == null || MeasurementResult.GainData == null)
-                    return;
-
-                bw.Left = CalculateBandwidth(-3, MeasurementResult.GainData, MeasurementResult.FrequencyResponseData.FreqInput.Df);
-                var maxGain = 20 * Math.Log10(bw.Left.HighestAmplitudeVolt);
-                var maxValue = (int)Math.Round((maxGain + 2) / 2, MidpointRounding.AwayFromZero) * 2;
-                ud_Graph_Top.Value = maxValue;
-
-                var minGain = 20 * Math.Log10(bw.Left.LowestAmplitudeVolt);
-                if ((maxValue - minGain) < 10)
-                    ud_Graph_Bottom.Value = maxValue - 10;
-                else
-                    ud_Graph_Bottom.Value = (int)minGain;
-            }
-            else
-            {
-                if (MeasurementResult == null || MeasurementResult.FrequencyResponseData == null || MeasurementResult.FrequencyResponseData.FreqInput == null || MeasurementResult.FrequencyResponseData.FreqInput.Left == null)
-                    return;
-
-                bw.Left = CalculateBandwidth(-3, MeasurementResult.FrequencyResponseData.FreqInput.Left, MeasurementResult.FrequencyResponseData.FreqInput.Df);
-                bw.Right = CalculateBandwidth(-3, MeasurementResult.FrequencyResponseData.FreqInput.Right, MeasurementResult.FrequencyResponseData.FreqInput.Df);
-
-                var maxGain = 20 * Math.Log10(Math.Max(bw.Left.HighestAmplitudeVolt, (GraphSettings.ShowRightChannel ? bw.Right.HighestAmplitudeVolt : 0)));
-                var maxValue = (int)Math.Round((maxGain + 2) / 2, MidpointRounding.AwayFromZero) * 2;
-                ud_Graph_Top.Value = maxValue;
-
-                var minGain = 20 * Math.Log10(Math.Min(bw.Left.LowestAmplitudeVolt, (GraphSettings.ShowRightChannel ? bw.Right.LowestAmplitudeVolt : 100)));
-                ud_Graph_Bottom.Value = maxValue - 10;      // 1 dB per tick
-                //if ((maxValue - minGain) < 10)
-                //    ud_Graph_Bottom.Value = maxValue - 10;      // Mimimum range is 10
-                //else 
-                //    ud_Graph_Bottom.Value = (int)minGain;
-
-            }
-        }
-
-        private void chkRightIsReference_CheckedChanged(object sender, EventArgs e)
-        {
-            MeasurementSettings.RightChannelIsReference = chkRightIsReference.Checked;
-            UpdateGraphChannelSelectors();
-        }
-
-        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            System.Diagnostics.Process.Start("https://github.com/QuantAsylum/QA40x/wiki/Frequency-Response-with-Right-Channel-as-Reference");
-        }
-
-        private void cmbLowFrequencyAccuracy_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (cmbLowFrequencyAccuracy.SelectedIndex != -1)
-                MeasurementSettings.FftResolution = (uint)((KeyValuePair<double, string>)cmbLowFrequencyAccuracy.SelectedItem).Key;
-        }
-#endif
     }
 }

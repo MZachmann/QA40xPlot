@@ -17,10 +17,11 @@ namespace QA40xPlot.Data
         [JsonIgnore]
         public LeftRightSeries? NoiseFloor { get; set; }                                 // Noise floor measurement
 
-        public SpectrumMeasurementResult()
+        public SpectrumMeasurementResult(SpectrumViewModel vm)
         {
             FrequencySteps = [];
             MeasurementSettings = new();
+            vm.CopyPropertiesTo(MeasurementSettings);
 			NoiseFloor = null;
 		}
     }

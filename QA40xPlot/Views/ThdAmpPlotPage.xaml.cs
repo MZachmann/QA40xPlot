@@ -39,14 +39,14 @@ namespace QA40xPlot.Views
 		{
 			var vm = ViewModels.ViewSettings.Singleton.ThdAmp;
 			var u = ((TextBox)sender).Text;
-			vm.actThd.UpdateStartAmplitude(u);
+			vm.OnStartVoltageChanged(u);
 		}
 
 		private void OnEndVoltageChanged(object sender, RoutedEventArgs e)
 		{
 			var vm = ViewModels.ViewSettings.Singleton.ThdAmp;
 			var u = ((TextBox)sender).Text;
-			vm.actThd.UpdateEndAmplitude(u);
+			vm.OnEndVoltageChanged(u);
 		}
 
 	}

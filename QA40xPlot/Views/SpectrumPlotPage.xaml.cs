@@ -38,14 +38,14 @@ namespace QA40xPlot.Views
 		{
 			var vm = ViewModels.ViewSettings.Singleton.SpectrumVm;
 			var u = ((TextBox)sender).Text;
-			vm.actSpec.UpdateGenAmplitude(u);
+			vm.OnVoltageChanged(u);
 		}
 
 		private void OnAmpVoltageChanged(object sender, RoutedEventArgs e)
 		{
 			var vm = ViewModels.ViewSettings.Singleton.SpectrumVm;
 			var u = ((TextBox)sender).Text;
-			vm.actSpec.UpdateAmpAmplitude(u);
+			vm.OnAmpVoltageChanged(u);
 		}
 	}
 }

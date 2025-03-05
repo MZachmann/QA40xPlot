@@ -5,6 +5,7 @@ using QA40xPlot.Views;
 using ScottPlot;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -18,7 +19,7 @@ namespace QA40xPlot.ViewModels
 		public List<String> EndVoltages { get => new List<string> { "1", "2", "5", "10", "20", "50", "100", "200" }; }
 		public List<String> StartPercents { get => new List<string> { "100", "10", "1", "0.1", "0.01" }; }
 		public List<String> EndPercents { get => new List<string> { "0.1", "0.01", "0.001", "0.0001", "0.00001", "0.000001" }; }
-		public ActThdAmplitude actThd { get; private set; }
+		private ActThdAmplitude actThd { get; set; }
 		public RelayCommand DoStart { get => new RelayCommand(StartIt); }
 		public RelayCommand DoStop { get => new RelayCommand(StopIt); }
 
@@ -321,6 +322,23 @@ namespace QA40xPlot.ViewModels
 		{
 			ThdAmplitudeData data = new ThdAmplitudeData();
 			actThd = new ActThdAmplitude(ref data, plot, plot1, plot2);
+		}
+
+		public void OnStartVoltageChanged(string news)
+		{
+			actThd.UpdateStartAmplitude(news);
+		}
+
+		public void OnEndVoltageChanged(string news)
+		{
+			actThd.UpdateEndAmplitude(news);
+		}
+
+		public string SerializeAll()
+		{
+			string jsonString = JsonSerializer.Serialize(this);
+			//Console.WriteLine(jsonString);
+			return jsonString;
 		}
 
 		~ThdAmpViewModel()

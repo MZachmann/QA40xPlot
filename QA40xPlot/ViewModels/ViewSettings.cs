@@ -2,6 +2,8 @@
 
 // this aggregates the settings somewhere static, which does mean only one of each
 
+using System.Text.Json;
+
 namespace QA40xPlot.ViewModels
 {
 	public class ViewSettings
@@ -14,6 +16,11 @@ namespace QA40xPlot.ViewModels
 		public ChannelViewModel ChannelRight { get; private set; }
 		public FreqRespViewModel FreqRespVm { get; private set; }
 		public MainViewModel Main { get; private set; }
+		public string SerializeAll()
+		{
+			string jsonString = JsonSerializer.Serialize(this);
+			return jsonString;
+		}
 
 		public ViewSettings() 
 		{
@@ -24,6 +31,9 @@ namespace QA40xPlot.ViewModels
 			ChannelRight = new ChannelViewModel();
 			FreqRespVm = new FreqRespViewModel();
 			Main = new MainViewModel();
+
+			//var vout = SerializeAll();
+			//Console.WriteLine(vout);
 		}
 	}
 }

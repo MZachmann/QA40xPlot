@@ -14,10 +14,11 @@ namespace QA40xPlot.Data
         public double[] GainData { get; set; }                                          // Calculated gain over frequency
         public FreqRespViewModel MeasurementSettings { get; set; }   //  Settings used for this measurement
 
-        public FrequencyResponseMeasurementResult()
+        public FrequencyResponseMeasurementResult(FreqRespViewModel vm)
         {
             FrequencyResponseData = new();
-            MeasurementSettings = new();
-        }
+			MeasurementSettings = new();        // make a static copy of the settings so we don't worry about threads
+			vm.CopyPropertiesTo(MeasurementSettings);
+		}
     }
 }
