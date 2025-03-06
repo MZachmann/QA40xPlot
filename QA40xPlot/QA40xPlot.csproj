@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <BaseOutputPath></BaseOutputPath>
+    <BaseOutputPath>C:\build\QA40xPlot</BaseOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -43,6 +43,10 @@
     <Page Update="Views\ThdAmpPlotPage.xaml">
       <SubType>Designer</SubType>
     </Page>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Images\" />
   </ItemGroup>
 
 </Project>
