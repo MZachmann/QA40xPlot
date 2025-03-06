@@ -8,4 +8,5 @@ Spectrum that is the usual QA40x spectral power plot but with a simpler user int
 
 The Release is currently a ZIP file with the entire build folder. Unzip it anywhere and run the QA40xPlot.exe file.
 
-![spectrum](QA40xPlot/Images/SpectralPlot.png)
+![spectrum](Images/SpectralPlot.png)
+![thd vs freq](Images/ThdVsFreq.png)
