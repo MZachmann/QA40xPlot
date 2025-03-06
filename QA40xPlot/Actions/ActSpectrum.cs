@@ -358,16 +358,17 @@ namespace QA40xPlot.Actions
                 Fundamental_dBV = 20 * Math.Log10(fftData[fundamentalBin]),
                 Gain_dB = 20 * Math.Log10(fftData[fundamentalBin] / Math.Pow(10, generatorAmplitudeDbv / 20))
             };
-            // Calculate average noise floor
-            channelData.Average_NoiseFloor_V = noiseFloorFftData.Average();   // Average noise floor in Volts after the fundamental
-            var v2 = binSize * noiseFloorFftData.Select(x => x*x).Sum();    // Squared noise floor in Volts after the fundamental
+			// Calculate average noise floor
+			uint ABin = QaLibrary.GetBinOfFrequency(500, binSize);
+			channelData.Average_NoiseFloor_V = noiseFloorFftData.Average();   // Average noise floor in Volts after the fundamental
+            var v2 = noiseFloorFftData.Select(x => x*x).Sum() / (1.5 * fftData.Length);    // 1.5 for hann window Squared noise floor in Volts after the fundamental
 			channelData.TotalNoiseFloor_V = Math.Sqrt(v2);   // Average noise floor in Volts after the fundamental
 			channelData.Average_NoiseFloor_dBV = 20 * Math.Log10(channelData.TotalNoiseFloor_V);         // Average noise floor in dBV
 
 			// Reset harmonic distortion variables
 			double distortionSqrtTotal = 0;
 			double distortionSqrtTotalN = 0;
-			double distiortionD6plus = 0;
+			double distortionD6plus = 0;
 
             // Loop through harmonics up tot the 12th
             for (int harmonicNumber = 2; harmonicNumber <= 12; harmonicNumber++)                                                  // For now up to 12 harmonics, start at 2nd
@@ -382,8 +383,8 @@ namespace QA40xPlot.Actions
 
 				double amplitude_dBV = 20 * Math.Log10(amplitude_V);
                 double thd_Percent = 0;
-                thd_Percent = (channelData.Fundamental_V > noise_V) ? 0 : (amplitude_V / (channelData.Fundamental_V - noise_V)) * 100;
-				double thdN_Percent = (amplitude_V / channelData.Fundamental_V) * 100;
+                thd_Percent = (amplitude_V / channelData.Fundamental_V) * 100;
+				double thdN_Percent = ((amplitude_V - noiseFloorFftData[bin]) / channelData.Fundamental_V) * 100;
 
 				HarmonicData harmonic = new()
                 {
@@ -398,9 +399,9 @@ namespace QA40xPlot.Actions
                 };
 
                 if (harmonicNumber >= 6)
-                    distiortionD6plus += Math.Pow(amplitude_V, 2);
+                    distortionD6plus += Math.Pow(amplitude_V, 2);
 
-                distortionSqrtTotal += Math.Pow(Math.Sqrt(Math.Max(0,amplitude_V* amplitude_V - noiseFloorFftData[bin]* noiseFloorFftData[bin])), 2);
+				distortionSqrtTotal += Math.Pow(amplitude_V, 2);
 				distortionSqrtTotalN += Math.Pow(amplitude_V, 2);
 				channelData.Harmonics.Add(harmonic);
             }
@@ -415,10 +416,10 @@ namespace QA40xPlot.Actions
 			}
 
 			// Calculate D6+ (D6 - D12)
-			if (distiortionD6plus != 0)
+			if (distortionD6plus != 0)
             {
-                channelData.D6Plus_dBV = 20 * Math.Log10(Math.Sqrt(distiortionD6plus));
-                channelData.ThdPercent_D6plus = Math.Sqrt(distiortionD6plus / Math.Pow(channelData.Fundamental_V, 2)) * 100;
+                channelData.D6Plus_dBV = 20 * Math.Log10(Math.Sqrt(distortionD6plus));
+                channelData.ThdPercent_D6plus = Math.Sqrt(distortionD6plus / Math.Pow(channelData.Fundamental_V, 2)) * 100;
                 channelData.ThdDbD6plus = 20 * Math.Log10(channelData.ThdPercent_D6plus / 100.0);
             }
 

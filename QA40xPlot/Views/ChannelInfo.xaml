@@ -37,7 +37,7 @@
                     </Grid.RowDefinitions>
                     <Label Grid.Row="0" Grid.Column="0" Content="N:" HorizontalAlignment="Right"/>
                     <Label Grid.Row="0" Grid.Column="1" Content="{Binding MyStep.Average_NoiseFloor_dBV}" ContentStringFormat="{}{0:F2} dBV"/>
-                    <Label Grid.Row="0" Grid.Column="2" Content="{Binding MyStep.TotalNoiseFloor_V}" ContentStringFormat="{}{0:F5} V"/>
+                    <Label Grid.Row="0" Grid.Column="2" Content="{Binding MyStep.TotalNoiseFloor_V}" ContentStringFormat="{}{0:F8} V"/>
 
                     <Label Grid.Row="1" Grid.Column="0" Content="THD:" HorizontalAlignment="Right"/>
                     <Label Grid.Row="1" Grid.Column="1" Content="{Binding ThdIndB}" ContentStringFormat="{}{0:F2} dBV"/>
