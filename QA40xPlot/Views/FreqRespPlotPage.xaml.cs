@@ -17,7 +17,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Windows.UI.ViewManagement;
-using Xceed.Wpf.Toolkit;
 
 namespace QA40xPlot.Views
 {

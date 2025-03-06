@@ -12,7 +12,7 @@ using System.Windows;
 namespace QA40xPlot.Actions
 {
 
-    public class ActSpectrum
+    public class ActSpectrum : ActBase
     {
         public SpectrumData Data { get; set; }                  // Data used in this form instance
         public bool MeasurementBusy { get; set; }                   // Measurement busy state
@@ -558,13 +558,9 @@ namespace QA40xPlot.Actions
 			myPlot.Axes.Bottom.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
 			myPlot.Axes.Left.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
 
-			myPlot.Legend.IsVisible = true;
-            myPlot.Legend.Alignment = ScottPlot.Alignment.UpperRight;
-			myPlot.Legend.Orientation = ScottPlot.Orientation.Vertical;
-			myPlot.Legend.FontSize = GraphUtil.PtToPixels(PixelSizes.LEGEND_SIZE);
-			myPlot.ShowLegend();
+			InitLegend(myPlot);
 
-            ScottPlot.AxisRules.MaximumBoundary rule = new(
+			ScottPlot.AxisRules.MaximumBoundary rule = new(
                 xAxis: myPlot.Axes.Bottom,
                 yAxis: myPlot.Axes.Left,
                 limits: new AxisLimits(Math.Log10(1), Math.Log10(100000), -200, 100)
@@ -726,13 +722,9 @@ namespace QA40xPlot.Actions
 			// configure tick labels
 			myPlot.Axes.Bottom.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
 			myPlot.Axes.Left.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
-            
-            // Legend
-            myPlot.Legend.IsVisible = true;
-            myPlot.Legend.Alignment = ScottPlot.Alignment.UpperRight;
-			myPlot.Legend.Orientation = ScottPlot.Orientation.Vertical;
-			myPlot.Legend.FontSize = GraphUtil.PtToPixels(PixelSizes.LEGEND_SIZE);
-			myPlot.ShowLegend();
+
+			// Legend
+			InitLegend(myPlot);
 
 			ScottPlot.AxisRules.MaximumBoundary rule = new(
                 xAxis: myPlot.Axes.Bottom,

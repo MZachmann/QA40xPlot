@@ -15,7 +15,7 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_A0A3A6AD90814E9E9EE530BBBE49946E"
+        "MsmKey" = "8:_9AE71C7621C543A5B6B85A1E96907109"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -178,7 +178,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:QSetup"
         "ProductCode" = "8:{7C53EF70-FED8-4489-9E9F-AD4BC7171FC0}"
-        "PackageCode" = "8:{BB7734F3-8417-47C2-B48D-F8E4D2062E54}"
+        "PackageCode" = "8:{48B79BA7-0586-4BAF-AE83-2A0B1C7BB155}"
         "UpgradeCode" = "8:{3E3D5465-79FC-437F-A4DF-6B672B7C39AF}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
@@ -697,7 +697,7 @@
         }
         "ProjectOutput"
         {
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_A0A3A6AD90814E9E9EE530BBBE49946E"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_9AE71C7621C543A5B6B85A1E96907109"
             {
             "SourcePath" = "8:..\\QA40xPlot\\obj\\Release\\net8.0-windows10.0.17763.0\\apphost.exe"
             "TargetName" = "8:"

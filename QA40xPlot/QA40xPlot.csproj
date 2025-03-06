@@ -25,7 +25,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.7.25103.5738" />
     <PackageReference Include="FftSharp" Version="2.2.0" />
     <PackageReference Include="ScottPlot.WPF" Version="5.0.54" />
   </ItemGroup>
@@ -47,6 +46,10 @@
 
   <ItemGroup>
     <Folder Include="Images\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Include="Views\ThmColors.xaml.not" />
   </ItemGroup>
 
 </Project>

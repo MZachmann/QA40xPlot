@@ -10,7 +10,7 @@ using System.Windows;
 namespace QA40xPlot.Actions
 {
 
-	public partial class ActThdAmplitude
+	public partial class ActThdAmplitude : ActBase
 	{
 		public ThdAmplitudeData Data { get; set; }       // Data used in this form instance
 		public bool MeasurementBusy { get; set; }                   // Measurement busy state
@@ -481,10 +481,7 @@ namespace QA40xPlot.Actions
 			myPlot.YLabel("Distortion (%)");
 			myPlot.Axes.Left.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
 
-			myPlot.Legend.IsVisible = true;
-			myPlot.Legend.Orientation = ScottPlot.Orientation.Horizontal;
-			myPlot.Legend.Alignment = ScottPlot.Alignment.UpperRight;
-			myPlot.ShowLegend();
+			InitLegend(myPlot);
 
 			ScottPlot.AxisRules.MaximumBoundary rule = new(
 				xAxis: myPlot.Axes.Bottom,
@@ -685,10 +682,7 @@ namespace QA40xPlot.Actions
 			myPlot.Axes.Left.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
 
 			// Legend
-			myPlot.Legend.IsVisible = true;
-			myPlot.Legend.Orientation = ScottPlot.Orientation.Horizontal;
-			myPlot.Legend.Alignment = ScottPlot.Alignment.UpperRight;
-			myPlot.ShowLegend();
+			InitLegend(myPlot);
 
 			ScottPlot.AxisRules.MaximumBoundary rule = new(
 				xAxis: myPlot.Axes.Bottom,
