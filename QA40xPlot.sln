@@ -9,7 +9,7 @@ Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "QSetup", "QSetup\QSetup.vdp
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3E0FF3CF-E4AD-4D19-A2E4-5A78091467AD}"
 	ProjectSection(SolutionItems) = preProject
-		QA40xPlot\README.md = QA40xPlot\README.md
+		README.md = README.md
 	EndProjectSection
 EndProject
 Global
