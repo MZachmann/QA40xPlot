@@ -334,27 +334,34 @@ namespace QA40xPlot.Actions
 		private void ShowPowerMarkers(SpectrumMeasurementResult fmr)
 		{
 			var vm = ViewSettings.Singleton.SpectrumVm;
-            List<int> freqchecks = new List<int> { 50, 60 };
+            List<double> freqchecks = new List<double> { 50, 60 };
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			if (vm.ShowPowerMarkers)
 			{
 				var sampleRate = Convert.ToUInt32(vm.SampleRate);
 				var fftsize = vm.FftActualSizes.ElementAt(vm.FftSizes.IndexOf(vm.FftSize));
                 var nfloor = MeasurementResult.FrequencySteps[0].Left.Average_NoiseFloor_dBV;   // Average noise floor in dBVolts after the fundamental
-				foreach (int freq in freqchecks)
+                double fsel = 0;
+                double maxdata = -10;
+                // find if 50 or 60hz is higher, indicating power line frequency
+				foreach(double freq in freqchecks)
 				{
-                    // check 5 harmonics of each
-                    for(int i=1; i<4; i++)
+					var actfreq = QaLibrary.GetNearestBinFrequency(freq, sampleRate, fftsize);
+					int bin = (int)QaLibrary.GetBinOfFrequency(actfreq, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
+					var data = vm.ShowLeft ? fmr.FrequencySteps[0].fftData.Left[bin] : fmr.FrequencySteps[0].fftData.Right[bin];
+                    if(data > maxdata)
                     {
-                        var actfreq = QaLibrary.GetNearestBinFrequency(freq * i, sampleRate, fftsize);
-						int bin = (int)QaLibrary.GetBinOfFrequency(actfreq, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
-                        var data = vm.ShowLeft ? fmr.FrequencySteps[0].fftData.Left[bin] : fmr.FrequencySteps[0].fftData.Right[bin];
-                        double udif = 20 * Math.Log10(data);
-						if ((udif - nfloor) > 20)
-                        {
-                            AddAMarker(fmr, actfreq, true);
-                        }
-					}
+                        fsel = freq;
+                    }
+				}
+                // check 4 harmonics of power frequency
+                for(int i=1; i<4; i++)
+                {
+                    var actfreq = QaLibrary.GetNearestBinFrequency(fsel * i, sampleRate, fftsize);
+					int bin = (int)QaLibrary.GetBinOfFrequency(actfreq, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
+                    var data = vm.ShowLeft ? fmr.FrequencySteps[0].fftData.Left[bin] : fmr.FrequencySteps[0].fftData.Right[bin];
+                    double udif = 20 * Math.Log10(data);
+                    AddAMarker(fmr, actfreq, true);
 				}
 			}
 		}
