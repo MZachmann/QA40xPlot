@@ -13,7 +13,8 @@ namespace QA40xPlot.Data
 		public double Thd_PercentN { get; set; }
 		public double Thd_dB { get; set; }
         public double Thd_dBN { get; set; }
-        public double D6Plus_dBV { get; set; }
+		public double Snr_dB { get; set; }
+		public double D6Plus_dBV { get; set; }
         public double ThdPercent_D6plus { get; set; }
         public double ThdDbD6plus { get; set; }
         public double Power_Watt { get; set; }

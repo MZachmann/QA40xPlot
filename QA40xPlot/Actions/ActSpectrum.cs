@@ -215,7 +215,7 @@ namespace QA40xPlot.Actions
                     if (ct.IsCancellationRequested)
                         break;
 
-                    uint fundamentalBin = QaLibrary.GetBinOfFrequency(stepBinFrequencies[f], binSize);
+					uint fundamentalBin = QaLibrary.GetBinOfFrequency(stepBinFrequencies[f], binSize);
                     if (fundamentalBin >= lrfs.FreqRslt.Left.Length)               // Check in bin within range
                         break;
 
@@ -229,6 +229,24 @@ namespace QA40xPlot.Actions
                   
                     step.Left = ChannelCalculations(binSize, step.FundamentalFrequency, amplitudeSetpointdBV, lrfs.FreqRslt.Left, msr.NoiseFloor.FreqRslt.Left, thd.AmpLoad);
                     step.Right = ChannelCalculations(binSize, step.FundamentalFrequency, amplitudeSetpointdBV, lrfs.FreqRslt.Right, msr.NoiseFloor.FreqRslt.Right, thd.AmpLoad);
+
+                    // Calculate the THD
+                    {
+						var snrdb = await Qa40x.GetSnrDb(stepBinFrequencies[f], 20.0, 20000.0);
+						var thds = await Qa40x.GetThdDb(stepBinFrequencies[f], stepBinFrequencies[f] * 7);
+						var thdN = await Qa40x.GetThdnDb(stepBinFrequencies[f], 20.0, 20000.0);
+
+						step.Left.Thd_dBN = thdN.Left;
+						step.Right.Thd_dBN = thdN.Right;
+						step.Left.Thd_dB = thds.Left;
+						step.Right.Thd_dB = thds.Right;
+						step.Left.Snr_dB = snrdb.Left;
+						step.Right.Snr_dB = snrdb.Right;
+                        step.Left.Thd_Percent = 100*Math.Pow(10, thds.Left / 20);
+						step.Right.Thd_Percent = 100 * Math.Pow(10, thds.Right / 20);
+                        step.Left.Thd_PercentN = 100 * Math.Pow(10, thdN.Left / 20);
+						step.Right.Thd_PercentN = 100 * Math.Pow(10, thdN.Right / 20);
+					}
 
 					// Add step data to list
 					if (msr.FrequencySteps.Count > 0)
@@ -407,13 +425,14 @@ namespace QA40xPlot.Actions
             }
 
             // Calculate THD
-            if (distortionSqrtTotal != 0)
-            {
-                channelData.Thd_Percent = (Math.Sqrt(distortionSqrtTotal) / channelData.Fundamental_V) * 100;
-                channelData.Thd_dB = 20 * Math.Log10(channelData.Thd_Percent / 100.0);
-				var Thdn_Percent = (Math.Sqrt(distortionSqrtTotalN) / channelData.Fundamental_V) * 100;
-				channelData.Thd_dBN = 20 * Math.Log10(Thdn_Percent / 100.0);
-			}
+   //         if (distortionSqrtTotal != 0)
+   //         {
+   //             channelData.Thd_Percent = (Math.Sqrt(distortionSqrtTotal) / channelData.Fundamental_V) * 100;
+   //             channelData.Thd_PercentN = = (Math.Sqrt(distortionSqrtTotal) / channelData.Fundamental_V) * 100;
+			//	channelData.Thd_dB = 20 * Math.Log10(channelData.Thd_Percent / 100.0);
+			//	var Thdn_Percent = (Math.Sqrt(distortionSqrtTotalN) / channelData.Fundamental_V) * 100;
+			//	channelData.Thd_dBN = 20 * Math.Log10(Thdn_Percent / 100.0);
+			//}
 
 			// Calculate D6+ (D6 - D12)
 			if (distortionD6plus != 0)
