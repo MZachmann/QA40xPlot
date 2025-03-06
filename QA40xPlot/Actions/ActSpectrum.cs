@@ -232,9 +232,11 @@ namespace QA40xPlot.Actions
 
                     // Calculate the THD
                     {
-						var snrdb = await Qa40x.GetSnrDb(stepBinFrequencies[f], 20.0, 20000.0);
-						var thds = await Qa40x.GetThdDb(stepBinFrequencies[f], stepBinFrequencies[f] * 7);
-						var thdN = await Qa40x.GetThdnDb(stepBinFrequencies[f], 20.0, 20000.0);
+                        var mif = 20.0;
+                        var maxf = 20000;   // the app seems to use 20,000 so not sampleRate/ 2.0;
+						var snrdb = await Qa40x.GetSnrDb(stepBinFrequencies[f], 20.0, maxf);
+						var thds = await Qa40x.GetThdDb(stepBinFrequencies[f], maxf);
+						var thdN = await Qa40x.GetThdnDb(stepBinFrequencies[f], 20.0, maxf);
 
 						step.Left.Thd_dBN = thdN.Left;
 						step.Right.Thd_dBN = thdN.Right;

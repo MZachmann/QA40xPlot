@@ -20,7 +20,7 @@
                 </Grid.RowDefinitions>
                 <Label Grid.Row="0" Grid.Column="0" Content="{Binding FundamentalFrequency}" ContentStringFormat="{}{0:F0} Hz"/>
                 <Label Grid.Row="0" Grid.Column="1" Content="{Binding MyStep.Fundamental_dBV}" ContentStringFormat="{}{0:F2} dBV"/>
-                <Label Grid.Row="0" Grid.Column="2" Content="{Binding MyStep.Fundamental_V}" ContentStringFormat="{}{0:F2} VRMS"/>
+                <Label Grid.Row="0" Grid.Column="2" Content="{Binding MyStep.Fundamental_V}" ContentStringFormat="{}{0:F4} VRMS"/>
                 <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Center" Content="{Binding MyStep.Gain_dB}" ContentStringFormat="Gain {0:F2} dB"/>
             </Grid>
             <Rectangle HorizontalAlignment="Stretch" Height="3" Fill="DarkGreen" />
