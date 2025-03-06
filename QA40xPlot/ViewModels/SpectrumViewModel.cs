@@ -481,9 +481,9 @@ namespace QA40xPlot.ViewModels
 			ReadVoltage = true;
 			ReadOutPower = true;
 			ReadOutVoltage = true;
-			GeneratorAmplitude = -20;       // this is the unitless (dbV) amplitude of the generator
 			AmpOutputAmplitude = -20;         // this is the unitless (dbV) amplitude of the amplifier output
 			GeneratorUnits = (int)E_VoltageUnit.Volt;
+			GeneratorAmplitude = -20;       // this is the unitless (dbV) amplitude of the generator
 			Gen1Voltage = QaLibrary.ConvertVoltage(GeneratorAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)GeneratorUnits).ToString();
 			MeasureType = 0;
 			Gen1Frequency = "1000";
