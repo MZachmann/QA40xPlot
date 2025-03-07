@@ -5,8 +5,6 @@ VisualStudioVersion = 17.12.35728.132
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QA40xPlot", "QA40xPlot\QA40xPlot.csproj", "{C3FAA3B2-601C-4B93-9C53-60BB437717B4}"
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "QSetup", "QSetup\QSetup.vdproj", "{FCF6BEF2-6186-4171-BE76-80EC40CBF5E3}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3E0FF3CF-E4AD-4D19-A2E4-5A78091467AD}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
@@ -22,8 +20,6 @@ Global
 		{C3FAA3B2-601C-4B93-9C53-60BB437717B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C3FAA3B2-601C-4B93-9C53-60BB437717B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C3FAA3B2-601C-4B93-9C53-60BB437717B4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FCF6BEF2-6186-4171-BE76-80EC40CBF5E3}.Debug|Any CPU.ActiveCfg = Debug
-		{FCF6BEF2-6186-4171-BE76-80EC40CBF5E3}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

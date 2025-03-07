@@ -643,21 +643,6 @@ namespace QA40xPlot.Libraries
         //    }
         //}
 
-        /// <summary>
-        /// Parse text to double. Return fallback texts if failed
-        /// </summary>
-        /// <param name="text">Text to parse</param>
-        /// <param name="fallback">Fallback text</param>
-        /// <returns></returns>
-        public static double ParseTextToDouble(string text, double fallback)
-        {
-
-            if (double.TryParse(text, NumberStyles.Any, CultureInfo.CurrentCulture, out double value))
-                return value;     // return parsed value
-
-            return fallback;
-        }
-
         ///// <summary>
         ///// Parse text to unsigned int. Return fallback texts if failed
         ///// </summary>

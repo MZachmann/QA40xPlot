@@ -17,9 +17,9 @@ namespace QA40xPlot.Actions
         public ThdFrequencyData Data { get; set; }                  // Data used in this form instance
         public bool MeasurementBusy { get; set; }                   // Measurement busy state
 
-        private Views.PlotControl? thdPlot;
-		private Views.PlotControl? fftPlot;
-		private Views.PlotControl? timePlot;
+        private readonly Views.PlotControl thdPlot;
+		private readonly Views.PlotControl fftPlot;
+		private readonly Views.PlotControl timePlot;
 
         private ThdFrequencyMeasurementResult MeasurementResult;
 
@@ -103,8 +103,8 @@ namespace QA40xPlot.Actions
 					vm.ReadVoltage = true;
 					vm.ReadOutPower = false;
 					vm.ReadOutVoltage = true;
-					//vm.OutPower = QaLibrary.ParseTextToDouble(txtAmplifierOutputPower.Text, MeasurementSettings.AmpOutputPower);
-					//vm.AmpLoad = QaLibrary.ParseTextToDouble(txtOutputLoad.Text, MeasurementSettings.Load);
+					//vm.OutPower = MathUtil.ParseTextToDouble(txtAmplifierOutputPower.Text, MeasurementSettings.AmpOutputPower);
+					//vm.AmpLoad = MathUtil.ParseTextToDouble(txtOutputLoad.Text, MeasurementSettings.Load);
 					//vm.Voltage = Math.Sqrt(MeasurementSettings.AmpOutputPower * MeasurementSettings.Load);      // Expected output DUT amplitude in Volts
 					vm.GeneratorUnits = (int)E_VoltageUnit.Volt;                                           // Expected output DUT amplitude in dBV
                     UpdateAmpOutputVoltageDisplay();
@@ -893,7 +893,7 @@ namespace QA40xPlot.Actions
         public void UpdateGenAmplitude(string value)
         {
 			ThdFreqViewModel thd = ViewSettings.Singleton.ThdFreq;
-            var val = QaLibrary.ParseTextToDouble(value, thd.GenVoltage);
+            var val = MathUtil.ParseTextToDouble(value, thd.GenVoltage);
 			thd.GeneratorAmplitude = QaLibrary.ConvertVoltage(val, (E_VoltageUnit)thd.GeneratorUnits, E_VoltageUnit.dBV);
 		}
 
@@ -901,7 +901,7 @@ namespace QA40xPlot.Actions
 		public void UpdateAmpAmplitude(string value)
 		{
 			ThdFreqViewModel thd = ViewSettings.Singleton.ThdFreq;
-			var val = QaLibrary.ParseTextToDouble(value, thd.OutVoltage);
+			var val = MathUtil.ParseTextToDouble(value, thd.OutVoltage);
 			thd.AmpOutputAmplitude = QaLibrary.ConvertVoltage(val, (E_VoltageUnit)thd.OutputUnits, E_VoltageUnit.dBV);
 		}
 

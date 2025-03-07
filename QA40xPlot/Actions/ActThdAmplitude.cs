@@ -14,9 +14,9 @@ namespace QA40xPlot.Actions
 	{
 		public ThdAmplitudeData Data { get; set; }       // Data used in this form instance
 		public bool MeasurementBusy { get; set; }                   // Measurement busy state
-		private Views.PlotControl? thdPlot;
-		private Views.PlotControl? fftPlot;
-		private Views.PlotControl? timePlot;
+		private readonly Views.PlotControl thdPlot;
+		private readonly Views.PlotControl fftPlot;
+		private readonly Views.PlotControl timePlot;
 
 		private ThdAmplitudeMeasurementResult MeasurementResult;
 
@@ -64,7 +64,7 @@ namespace QA40xPlot.Actions
 		public void UpdateStartAmplitude(string value)
 		{
 			ThdAmpViewModel thd = ViewSettings.Singleton.ThdAmp;
-			var val = QaLibrary.ParseTextToDouble(value, thd.StartVoltage);
+			var val = MathUtil.ParseTextToDouble(value, thd.StartVoltage);
 			thd.StartAmplitude = QaLibrary.ConvertVoltage(val, (E_VoltageUnit)thd.StartVoltageUnits, E_VoltageUnit.dBV);
 		}
 
@@ -72,7 +72,7 @@ namespace QA40xPlot.Actions
 		public void UpdateEndAmplitude(string value)
 		{
 			ThdAmpViewModel thd = ViewSettings.Singleton.ThdAmp;
-			var val = QaLibrary.ParseTextToDouble(value, thd.EndVoltage);
+			var val = MathUtil.ParseTextToDouble(value, thd.EndVoltage);
 			thd.EndAmplitude = QaLibrary.ConvertVoltage(val, (E_VoltageUnit)thd.EndVoltageUnits, E_VoltageUnit.dBV);
 		}
 

@@ -14,7 +14,7 @@ namespace QA40xPlot.Actions
     {
         public FrequencyResponseData Data { get; set; }       // Data used in this form instance
         public bool MeasurementBusy { get; set; }                   // Measurement busy state
-		private Views.PlotControl? frqrsPlot;
+		private readonly Views.PlotControl frqrsPlot;
 
 		private FrequencyResponseMeasurementResult MeasurementResult;
 
@@ -60,7 +60,8 @@ namespace QA40xPlot.Actions
 		public void UpdateGenAmplitude(string value)
 		{
 			FreqRespViewModel frqrsVm = ViewSettings.Singleton.FreqRespVm;
-			var val = QaLibrary.ParseTextToDouble(value, Convert.ToDouble(frqrsVm.Gen1Voltage));
+            var oldv = MathUtil.ParseTextToDouble(frqrsVm.Gen1Voltage, 0.1);    // random default
+			var val = MathUtil.ParseTextToDouble(value, oldv);
 			frqrsVm.GeneratorAmplitude = QaLibrary.ConvertVoltage(val, (E_VoltageUnit)frqrsVm.GeneratorUnits, E_VoltageUnit.dBV);
 		}
 
@@ -127,7 +128,12 @@ namespace QA40xPlot.Actions
 
 			// ********************************************************************
 			// Setup the device
-			var sampleRate = Convert.ToUInt32(frqrsVm.SampleRate);
+			var sampleRate = MathUtil.ParseTextToUint(frqrsVm.SampleRate, 0);
+			if (sampleRate == 0 || !frqrsVm.FftSizes.Contains(frqrsVm.FftSize))
+			{
+				MessageBox.Show("Invalid settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+				return false;
+			}
 			var fftsize = frqrsVm.FftActualSizes.ElementAt(frqrsVm.FftSizes.IndexOf(frqrsVm.FftSize));
 
 			await Qa40x.SetDefaults();

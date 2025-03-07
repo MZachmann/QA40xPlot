@@ -17,7 +17,7 @@ namespace QA40xPlot.Actions
         public SpectrumData Data { get; set; }                  // Data used in this form instance
         public bool MeasurementBusy { get; set; }                   // Measurement busy state
 
-        private Views.PlotControl? fftPlot;
+        private readonly Views.PlotControl fftPlot;
 
         private SpectrumMeasurementResult MeasurementResult;
 
@@ -101,8 +101,8 @@ namespace QA40xPlot.Actions
 					vm.ReadVoltage = true;
 					vm.ReadOutPower = false;
 					vm.ReadOutVoltage = true;
-					//vm.OutPower = QaLibrary.ParseTextToDouble(txtAmplifierOutputPower.Text, MeasurementSettings.AmpOutputPower);
-					//vm.AmpLoad = QaLibrary.ParseTextToDouble(txtOutputLoad.Text, MeasurementSettings.Load);
+					//vm.OutPower = MathUtil.ParseTextToDouble(txtAmplifierOutputPower.Text, MeasurementSettings.AmpOutputPower);
+					//vm.AmpLoad = MathUtil.ParseTextToDouble(txtOutputLoad.Text, MeasurementSettings.Load);
 					//vm.Voltage = Math.Sqrt(MeasurementSettings.AmpOutputPower * MeasurementSettings.Load);      // Expected output DUT amplitude in Volts
 					vm.GeneratorUnits = (int)E_VoltageUnit.Volt;                                           // Expected output DUT amplitude in dBV
                     UpdateAmpOutputVoltageDisplay();
@@ -129,21 +129,28 @@ namespace QA40xPlot.Actions
 		/// <returns>result. false if cancelled</returns>
 		async Task<bool> PerformMeasurementSteps(SpectrumMeasurementResult msr, CancellationToken ct)
         {
-            // For now clear measurements to allow only one until we have a UI to manage them.
-            Data.Measurements.Clear();
+			// Setup
+			SpectrumViewModel thd = msr.MeasurementSettings;
+
+			var freq = MathUtil.ParseTextToDouble(thd.Gen1Frequency, 0);
+			var sampleRate = MathUtil.ParseTextToUint(thd.SampleRate, 0);
+			if (freq == 0 || sampleRate == 0 || !thd.FftSizes.Contains(thd.FftSize))
+            {
+                MessageBox.Show("Invalid settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+				return false;
+			}
+			var fftsize = thd.FftActualSizes.ElementAt(thd.FftSizes.IndexOf(thd.FftSize));
+
+			// For now clear measurements to allow only one until we have a UI to manage them.
+			Data.Measurements.Clear();
 
             // Add to list
             Data.Measurements.Add(MeasurementResult);
 
-			// Init mini plots
-			SpectrumViewModel thd = msr.MeasurementSettings;
 
             // Check if REST interface is available and device connected
             if (await QaLibrary.CheckDeviceConnected() == false)
                 return false;
-
-			var sampleRate = Convert.ToUInt32(thd.SampleRate);
-			var fftsize = thd.FftActualSizes.ElementAt(thd.FftSizes.IndexOf(thd.FftSize));
 
             // ********************************************************************  
             // Load a settings we want
@@ -168,12 +175,11 @@ namespace QA40xPlot.Actions
                 // ********************************************************************
                 // Calculate frequency steps to do
                 // ********************************************************************
-                var binSize = QaLibrary.CalcBinSize(Convert.ToUInt32(thd.SampleRate), fftsize);
+                var binSize = QaLibrary.CalcBinSize(sampleRate, fftsize);
                 // Generate a list of frequencies
-                var freq = Convert.ToDouble(thd.Gen1Frequency);
 				var stepFrequencies = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(freq, freq, thd.StepsOctave);
                 // Translate the generated list to bin center frequencies
-                var stepBinFrequencies = QaLibrary.TranslateToBinFrequencies(stepFrequencies, Convert.ToUInt32(thd.SampleRate), fftsize);
+                var stepBinFrequencies = QaLibrary.TranslateToBinFrequencies(stepFrequencies, sampleRate, fftsize);
                 stepBinFrequencies = stepBinFrequencies.Where(x => x >= 1 && x <= 95500)                // Filter out values that are out of range 
                     .GroupBy(x => x)                                                                    // Filter out duplicates
                     .Select(y => y.First())
@@ -193,6 +199,9 @@ namespace QA40xPlot.Actions
 						return false;
 				}
 
+				var genVolt = MathUtil.ParseTextToDouble(thd.Gen1Voltage, 0.001);
+				double amplitudeSetpointdBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+
 				// ********************************************************************
 				// Step through the list of frequencies
 				// ********************************************************************
@@ -203,7 +212,6 @@ namespace QA40xPlot.Actions
 					await showProgress(100*(f + 1)/ stepBinFrequencies.Length);
 
                     // Set the generator
-                    double amplitudeSetpointdBV = QaLibrary.ConvertVoltage(Convert.ToDouble(thd.Gen1Voltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
                     await Qa40x.SetGen1(stepBinFrequencies[f], amplitudeSetpointdBV, true);
                     // for the first go around, turn on the generator
                     if( thd.UseGenerator)
@@ -286,11 +294,6 @@ namespace QA40xPlot.Actions
             return !ct.IsCancellationRequested;
         }
 
-        private static int toint(string st)
-        {
-            return Convert.ToInt32(st);
-		}
-
         private void AddAMarker(SpectrumMeasurementResult fmr, double frequency, bool isred = false)
 		{
 			var vm = ViewSettings.Singleton.SpectrumVm;
@@ -321,7 +324,7 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			if ( vm.ShowMarkers)
             {
-                AddAMarker(fmr, Convert.ToDouble(vm.Gen1Frequency));
+                AddAMarker(fmr, fmr.FrequencySteps[0].FundamentalFrequency);
 
                 for(int i=0; i<6; i++)
                 {
@@ -877,12 +880,12 @@ namespace QA40xPlot.Actions
         //    else
         //        QaLibrary.ValidateRangeAdorner(sender, QaLibrary.MINIMUM_GENERATOR_VOLTAGE_DBV, QaLibrary.MAXIMUM_GENERATOR_VOLTAGE_DBV);       // dBV
         //}
-
+        
         // user entered a new voltage, update the generator amplitude
         public void UpdateGenAmplitude(string value)
         {
 			SpectrumViewModel thd = ViewSettings.Singleton.SpectrumVm;
-            var val = QaLibrary.ParseTextToDouble(value, Convert.ToDouble(thd.Gen1Voltage));
+            var val = MathUtil.ParseTextToDouble(value, Convert.ToDouble(thd.Gen1Voltage));
 			thd.GeneratorAmplitude = QaLibrary.ConvertVoltage(val, (E_VoltageUnit)thd.GeneratorUnits, E_VoltageUnit.dBV);
 		}
 
@@ -890,7 +893,7 @@ namespace QA40xPlot.Actions
 		public void UpdateAmpAmplitude(string value)
 		{
 			SpectrumViewModel thd = ViewSettings.Singleton.SpectrumVm;
-			var val = QaLibrary.ParseTextToDouble(value, thd.OutVoltage);
+			var val = MathUtil.ParseTextToDouble(value, thd.OutVoltage);
 			thd.AmpOutputAmplitude = QaLibrary.ConvertVoltage(val, (E_VoltageUnit)thd.OutputUnits, E_VoltageUnit.dBV);
 		}
 
