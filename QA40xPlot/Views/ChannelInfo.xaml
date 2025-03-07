@@ -6,9 +6,15 @@
              xmlns:local="clr-namespace:QA40xPlot"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="200" Background="MintCream">
+    <UserControl.Resources>
+        <!-- hacky way to remove some white space from the labels -->
+        <Style TargetType="Label">
+            <Setter Property="Margin" Value="0,-4,0,0"/>
+        </Style>
+    </UserControl.Resources>
     <Border BorderBrush="LightGreen" BorderThickness="1">
         <StackPanel Orientation="Vertical">
-            <Grid>
+            <Grid >
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>

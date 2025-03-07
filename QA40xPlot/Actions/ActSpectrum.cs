@@ -285,10 +285,7 @@ namespace QA40xPlot.Actions
             await Qa40x.SetOutputSource(OutputSources.Off);
 
             // Show message
-            if( ct.IsCancellationRequested)
-				await showMessage($"Measurement cancelled!", 500);
-			else
-				await showMessage($"Measurement finished!", 500);
+			await showMessage($"Measurement stopped", 500);
 
             return !ct.IsCancellationRequested;
         }
