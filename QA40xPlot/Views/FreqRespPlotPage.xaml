@@ -185,9 +185,10 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="0"  />
-                    <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="3"  />
-                    <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="4"  />
+                    <CheckBox Content="Show Gain" IsChecked="{Binding ShowGain}" Grid.Row="1"  />
+                    <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="2"  />
+                    <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="3"  />
+                    <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="4"  />
                 </Grid>
             </GroupBox>
         </StackPanel>

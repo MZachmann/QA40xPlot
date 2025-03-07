@@ -164,12 +164,10 @@ namespace QA40xPlot.Actions
 			QaLibrary.PlotMiniFftGraph(fftPlot, result.Item3.FreqRslt, thdAmp.LeftChannel, thdAmp.RightChannel);
 			QaLibrary.PlotMiniTimeGraph(timePlot, result.Item3.TimeRslt, testFrequency, thdAmp.LeftChannel, thdAmp.RightChannel, true);
 			var prevInputAmplitudedBV = result.Item2;
-
-
 			// Set attenuation
 			await Qa40x.SetInputRange(result.Item1);
 
-			await showMessage($"Found correct input attenuation of {result.Item1:0} dBV for an amplifier amplitude of {result.Item2:0.00#} dBV.", 500);
+			await showMessage($"Found correct input attenuation of {result.Item1:0.00#} dBV for an amplifier amplitude of {result.Item2:0.00#} dBV.", 500);
 
 			if (ct.IsCancellationRequested)
 				return false;

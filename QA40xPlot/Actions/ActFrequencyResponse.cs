@@ -115,9 +115,11 @@ namespace QA40xPlot.Actions
             // Add to list
             Data.Measurements.Add(MeasurementResult);
 
-            // UpdateGraphChannelSelectors();
+            var mrs = MeasurementResult.MeasurementSettings;    // cached version of the settings
 
-            // markerIndex = -1;       // Reset marker
+			// UpdateGraphChannelSelectors();
+
+			// markerIndex = -1;       // Reset marker
 
 
 			// ********************************************************************
@@ -127,13 +129,13 @@ namespace QA40xPlot.Actions
 
 			// ********************************************************************
 			// Setup the device
-			var sampleRate = MathUtil.ParseTextToUint(frqrsVm.SampleRate, 0);
-			if (sampleRate == 0 || !frqrsVm.FftSizes.Contains(frqrsVm.FftSize))
+			var sampleRate = MathUtil.ParseTextToUint(mrs.SampleRate, 0);
+			if (sampleRate == 0 || !frqrsVm.FftSizes.Contains(mrs.FftSize))
 			{
 				MessageBox.Show("Invalid settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 				return false;
 			}
-			var fftsize = frqrsVm.FftActualSizes.ElementAt(frqrsVm.FftSizes.IndexOf(frqrsVm.FftSize));
+			var fftsize = frqrsVm.FftActualSizes.ElementAt(frqrsVm.FftSizes.IndexOf(mrs.FftSize));
 
 			await Qa40x.SetDefaults();
             await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make it turn on or off
@@ -150,17 +152,17 @@ namespace QA40xPlot.Actions
                 var attenuation = QaLibrary.MAXIMUM_DEVICE_ATTENUATION;
                 double genVoltagedBV = -150;
 
-				E_GeneratorType etp = (E_GeneratorType)frqrsVm.MeasureType;
+				E_GeneratorType etp = (E_GeneratorType)mrs.MeasureType;
 
 				if (etp == E_GeneratorType.OUTPUT_VOLTAGE)     // Based on output
                 {
-                    double amplifierOutputVoltagedBV = frqrsVm.GeneratorAmplitude;
+                    double amplifierOutputVoltagedBV = mrs.GeneratorAmplitude;
 					await showMessage($"Determining generator amplitude to get an output amplitude of {amplifierOutputVoltagedBV:0.00#} dBV.");
 
                     // Get input voltage based on desired output voltage
                     attenuation = QaLibrary.DetermineAttenuation(amplifierOutputVoltagedBV);
                     double startAmplitude = -40;  // We start a measurement with a 10 mV signal.
-                    var result = await QaLibrary.DetermineGenAmplitudeByOutputAmplitudeWithChirp(startAmplitude, amplifierOutputVoltagedBV, true, frqrsVm.RightChannel, ct);
+                    var result = await QaLibrary.DetermineGenAmplitudeByOutputAmplitudeWithChirp(startAmplitude, amplifierOutputVoltagedBV, true, mrs.RightChannel, ct);
                     if (ct.IsCancellationRequested)
                         return false;
                     genVoltagedBV = result.Item1;
@@ -181,7 +183,7 @@ namespace QA40xPlot.Actions
                         await showMessage($"Found an input amplitude of {genVoltagedBV:0.00#} dBV. Doing second pass.");
 
                         // 2nd time for extra accuracy
-                        result = await QaLibrary.DetermineGenAmplitudeByOutputAmplitudeWithChirp(genVoltagedBV, amplifierOutputVoltagedBV, true, frqrsVm.RightChannel, ct);
+                        result = await QaLibrary.DetermineGenAmplitudeByOutputAmplitudeWithChirp(genVoltagedBV, amplifierOutputVoltagedBV, true, mrs.RightChannel, ct);
                         if (ct.IsCancellationRequested)
                             return false;
                         genVoltagedBV = result.Item1;
@@ -217,7 +219,7 @@ namespace QA40xPlot.Actions
 
                 await Qa40x.SetOutputSource(OutputSources.ExpoChirp);
                 //await Qa40x.SetExpoChirpGen(genVoltagedBV, 0, frqrsVm.Smoothing, frqrsVm.RightChannel);
-				await Qa40x.SetExpoChirpGen(genVoltagedBV, 0, 24, frqrsVm.RightChannel);
+				await Qa40x.SetExpoChirpGen(genVoltagedBV, 0, 24, mrs.RightChannel);
 
                 // If in continous mode we continue sweeping until cancellation requested.
                 do
@@ -231,11 +233,11 @@ namespace QA40xPlot.Actions
 
 					await showMessage($"Sweeping done");
                     MeasurementResult.FrequencyResponseData = lfrs;
-                    MeasurementResult.GainData = CalculateGain(lfrs.FreqRslt);
+                    MeasurementResult.GainData = CalculateGain(lfrs.FreqRslt, frqrsVm.RightChannel);
                     UpdateGraph(false);
                     ShowLastMeasurementCursorTexts();
 
-                    bool result = QaLibrary.DetermineAttenuationFromLeftRightSeriesData(true, frqrsVm.RightChannel, lfrs, out double peak_dBV, out int newAttenuation);
+                    bool result = QaLibrary.DetermineAttenuationFromLeftRightSeriesData(true, true, lfrs, out double peak_dBV, out int newAttenuation);
                     if (result && attenuation != newAttenuation)
                     {
                         attenuation = newAttenuation;
@@ -260,15 +262,21 @@ namespace QA40xPlot.Actions
         }
 
 
-        private double[] CalculateGain(LeftRightFrequencySeries data)
+        private double[] CalculateGain(LeftRightFrequencySeries data, bool useRight)
         {
             double[] gain = new double[data.Left.Length];
-            for (int i = 0; i < data.Left.Length; i ++)
+			for (int i = 0; i < data.Left.Length; i ++)
             {
-                gain[i] = data.Left[i] / (data.Right[i] == 0 ? 0.000000001 : data.Right[i]);
-            }
+                if(useRight)
+                {
+					gain[i] = data.Left[i] / (data.Right[i] == 0 ? 0.000000001 : data.Right[i]);
+				}
+				else
+                {
+					gain[i] = data.Left[i] / Convert.ToDouble(MeasurementResult.MeasurementSettings.Gen1Voltage);
+				}
+			}
 
-            //double[] gain = data.Left.Zip(data.Right, (left, right) => left / (right == 0 ? 0.000000001 : right)).ToArray();
             return gain;
         }
 
@@ -318,7 +326,7 @@ namespace QA40xPlot.Actions
             double startFrequency = frequencyStep;
 
 
-            if (graphType == E_FrequencyResponseGraphType.GAIN)
+            if (frqrsVm.ShowGain)
             {
                 if (measurementResult.GainData == null)
                     return;

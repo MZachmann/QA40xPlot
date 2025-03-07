@@ -167,6 +167,12 @@ public class FreqRespViewModel : BaseViewModel
 		get => _ShowRight;
 		set => SetProperty(ref _ShowRight, value);
 	}
+	private bool _ShowGain;
+	public bool ShowGain
+	{
+		get => _ShowGain;
+		set => SetProperty(ref _ShowGain, value);
+	}
 
 	private string _SampleRate;
 	public string SampleRate
@@ -250,6 +256,7 @@ public class FreqRespViewModel : BaseViewModel
 			case "ShowLeft":
 			case "ShowThickLines":
 			case "ShowMarkers":
+			case "ShowGain":
 				actFreq?.UpdateGraph(true);
 				break;
 			default:
