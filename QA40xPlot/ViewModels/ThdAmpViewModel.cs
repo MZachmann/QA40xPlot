@@ -350,11 +350,6 @@ namespace QA40xPlot.ViewModels
 		{
 			PropertyChanged += CheckPropertyChanged;
 
-			StartVoltage = 0.03;
-			StartVoltageUnits = 1;
-			EndVoltage = 1;
-			EndVoltageUnits = 1;
-
 			AmpLoad = 8;
 			TestFreq = 1000;
 			GraphStartVolts = "0.002";
@@ -395,6 +390,10 @@ namespace QA40xPlot.ViewModels
 			XAxisType = 0;
 			StartAmplitude = -10;       // this is the unitless (dbV) amplitude of the generator
 			EndAmplitude = 0;       // this is the unitless (dbV) amplitude of the generator
+			StartVoltageUnits = 1;
+			EndVoltageUnits = 1;
+			StartVoltage = QaLibrary.ConvertVoltage(StartAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)StartVoltageUnits);
+			EndVoltage = QaLibrary.ConvertVoltage(EndAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)EndVoltageUnits);
 		}
 	}
 }

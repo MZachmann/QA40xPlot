@@ -88,8 +88,8 @@
                     <TextBox Text="{Binding OutVoltage, StringFormat={}{0:0.####}}" Grid.Column="1" Grid.Row="4" IsReadOnly="{Binding ReadOutVoltage}"  LostFocus="OnAmpVoltageChanged"   />
                 <TextBox Text="{Binding StartFreq}" Grid.Column="1" Grid.Row="5"   />
                 <TextBox Text="{Binding EndFreq}" Grid.Column="1" Grid.Row="6"   />
-                <views:NumericSpinner Value="{Binding StepsOctave}" VerticalAlignment="Center" Grid.Column="1" Grid.Row="7"  />
-                <views:NumericSpinner Value="{Binding Averages}" VerticalAlignment="Center" Grid.Column="1" Grid.Row="8"  />
+                    <views:NumericSpinner Value="{Binding StepsOctave}" MinValue="1" VerticalAlignment="Center" Grid.Column="1" Grid.Row="7"  />
+                    <views:NumericSpinner Value="{Binding Averages}" MinValue="1" MaxValue="6" VerticalAlignment="Center" Grid.Column="1" Grid.Row="8"  />
                 <CheckBox Content="Right channel" IsChecked="{Binding RightChannel}" Grid.Column="1" Grid.Row="9"  />
                 <ComboBox  Grid.Column="2" Grid.Row="1" VerticalAlignment="Center"  SelectedIndex="{Binding GeneratorUnits}" ItemsSource="{Binding VoltItems}">
                 </ComboBox>

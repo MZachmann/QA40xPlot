@@ -94,14 +94,6 @@ namespace QA40xPlot.Actions
 		{
 			var vm = ViewModels.ViewSettings.Singleton.ThdAmp;
 			vm.EndVoltage = QaLibrary.ConvertVoltage(vm.EndAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)vm.EndVoltageUnits);
-			switch (vm.EndVoltageUnits)
-			{
-				case 0: // mV
-					vm.EndVoltage = ((int)QaLibrary.ConvertVoltage(vm.EndAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.MilliVolt)); // Whole numbers onyl, so cast to integer
-					break;
-				case 1: // V
-					break;
-			}
 		}
 
 
@@ -411,64 +403,12 @@ namespace QA40xPlot.Actions
 		void InitializeThdPlot()
 		{
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;
+			InitializePctAmpPlot(myPlot);
+
 			var thdAmp = ViewSettings.Singleton.ThdAmp;
-
-			myPlot.Clear();
-
-			ScottPlot.TickGenerators.LogMinorTickGenerator minorTickGenY = new();
-			minorTickGenY.Divisions = 10;
-
-			// create a numeric tick generator that uses our custom minor tick generator
-			ScottPlot.TickGenerators.NumericAutomatic tickGenY = new();
-			tickGenY.MinorTickGenerator = minorTickGenY;
-
-			// create a custom tick formatter to set the label text for each tick
-			static string LogTickLabelFormatter(double y) => $"{Math.Pow(10, Math.Round(y, 10)):#0.######}";
-
-			// tell our major tick generator to only show major ticks that are whole integers
-			tickGenY.IntegerTicksOnly = true;
-
-			// tell our custom tick generator to use our new label formatter
-			tickGenY.LabelFormatter = LogTickLabelFormatter;
-
-			// tell the left axis to use our custom tick generator
-			myPlot.Axes.Left.TickGenerator = tickGenY;
-
-			// ******* y-ticks ****
-			// create a minor tick generator that places log-distributed minor ticks
-			ScottPlot.TickGenerators.LogMinorTickGenerator minorTickGen = new();
-			minorTickGen.Divisions = 10;
-
-			// create a minor tick generator that places log-distributed minor ticks
-			ScottPlot.TickGenerators.LogMinorTickGenerator minorTickGenX = new();
-			// create a numeric tick generator that uses our custom minor tick generator
-			ScottPlot.TickGenerators.NumericAutomatic tickGenX = new();
-
-			minorTickGenX.Divisions = 10;
-			tickGenX.MinorTickGenerator = minorTickGenX;
-
-			tickGenX.TargetTickCount = 25;
-			// tell our major tick generator to only show major ticks that are whole integers
-			tickGenX.IntegerTicksOnly = true;
-			// tell our custom tick generator to use our new label formatter
-			tickGenX.LabelFormatter = LogTickLabelFormatter;
-			myPlot.Axes.Bottom.TickGenerator = tickGenX;
-
-			// configure tick labels
-			myPlot.Axes.Bottom.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
-			myPlot.Axes.Left.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
-
-			// show grid lines for minor ticks
-			myPlot.Grid.MajorLineColor = Colors.Black.WithOpacity(.25);
-			myPlot.Grid.MinorLineColor = Colors.Black.WithOpacity(.10);
-			myPlot.Grid.MinorLineWidth = 1;
-
-
-			//myPlot.Axes.AutoScale();
 			myPlot.Axes.SetLimits(Math.Log10(Convert.ToDouble(thdAmp.GraphStartVolts)), Math.Log10(Convert.ToDouble(thdAmp.GraphEndVolts)),
 				Math.Log10(Convert.ToDouble(thdAmp.RangeBottom)), Math.Log10(Convert.ToDouble(thdAmp.RangeTop)));
 			myPlot.Title("Distortion vs Amplitude (%)");
-			myPlot.Axes.Title.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.TITLE_SIZE);
 
 			if (thdAmp.XAxisType == (int)E_X_AxisType.INPUT_VOLTAGE)
 				myPlot.XLabel("Input voltage (Vrms)");
@@ -476,147 +416,10 @@ namespace QA40xPlot.Actions
 				myPlot.XLabel("Output voltage (Vrms)");
 			else if (thdAmp.XAxisType == (int)E_X_AxisType.OUTPUT_POWER)
 				myPlot.XLabel("Output power (W)");
-			myPlot.Axes.Bottom.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
-
 			myPlot.YLabel("Distortion (%)");
-			myPlot.Axes.Left.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
-
-			SetupLegend(myPlot);
-
-			ScottPlot.AxisRules.MaximumBoundary rule = new(
-				xAxis: myPlot.Axes.Bottom,
-				yAxis: myPlot.Axes.Left,
-				limits: new AxisLimits(Math.Log10(0), Math.Log10(100), -200, 100)
-				);
-
-			myPlot.Axes.Rules.Clear();
-			myPlot.Axes.Rules.Add(rule);
-
-			thdPlot.Refresh();
-
-
-		}
-
-		/// <summary>
-		/// Plot the THD % data
-		/// </summary>
-		/// <param name="data"></param>
-		void PlotThd(ThdAmplitudeMeasurementResult measurementResult, int measurementNr, bool showLeftChannel, bool showRightChannel)
-		{
-			ScottPlot.Plot myPlot = thdPlot.ThePlot;
-			var thdAmp = ViewSettings.Singleton.ThdAmp;
-			var freqX = new List<double>();
-			var hTotY_left = new List<double>();
-			var h2Y_left = new List<double>();
-			var h3Y_left = new List<double>();
-			var h4Y_left = new List<double>();
-			var h5Y_left = new List<double>();
-			var h6Y_left = new List<double>();
-			var noiseY_left = new List<double>();
-
-			var hTotY_right = new List<double>();
-			var h2Y_right = new List<double>();
-			var h3Y_right = new List<double>();
-			var h4Y_right = new List<double>();
-			var h5Y_right = new List<double>();
-			var h6Y_right = new List<double>();
-			var noiseY_right = new List<double>();
-
-			foreach (var step in measurementResult.AmplitudeSteps)
-			{
-				double xValue = thdAmp.XAxisType switch
-				{
-					(int)E_X_AxisType.OUTPUT_VOLTAGE => step.Left.Fundamental_V,
-					(int)E_X_AxisType.OUTPUT_POWER => step.Left.Power_Watt,
-					_ => step.GeneratorVoltage
-				};
-				freqX.Add(xValue);
-
-				if (showLeftChannel && measurementResult.MeasurementSettings.LeftChannel)
-				{
-					if (step.Left.Harmonics.Count > 0 && thdAmp.ShowTHD)
-						hTotY_left.Add(step.Left.Thd_Percent);
-					if (step.Left.Harmonics.Count > 0 && thdAmp.ShowD2)
-						h2Y_left.Add(step.Left.Harmonics[0].Thd_Percent);
-					if (step.Left.Harmonics.Count > 1 && thdAmp.ShowD3)
-						h3Y_left.Add(step.Left.Harmonics[1].Thd_Percent);
-					if (step.Left.Harmonics.Count > 2 && thdAmp.ShowD4)
-						h4Y_left.Add(step.Left.Harmonics[2].Thd_Percent);
-					if (step.Left.Harmonics.Count > 3 && thdAmp.ShowD5)
-						h5Y_left.Add(step.Left.Harmonics[3].Thd_Percent);
-					if (step.Left.Harmonics.Count > 4 && step.Left.ThdPercent_D6plus != 0 && thdAmp.ShowD6)
-						h6Y_left.Add(step.Left.ThdPercent_D6plus);        // D6+
-					if (thdAmp.ShowNoiseFloor)
-						noiseY_left.Add((step.Left.Average_NoiseFloor_V / step.Left.Fundamental_V) * 100);
-				}
-
-				if (showRightChannel && measurementResult.MeasurementSettings.RightChannel)
-				{
-					if (step.Right.Harmonics.Count > 0 && thdAmp.ShowTHD)
-						hTotY_right.Add(step.Right.Thd_Percent);
-					if (step.Right.Harmonics.Count > 0 && thdAmp.ShowD2)
-						h2Y_right.Add(step.Right.Harmonics[0].Thd_Percent);
-					if (step.Right.Harmonics.Count > 1 && thdAmp.ShowD3)
-						h3Y_right.Add(step.Right.Harmonics[1].Thd_Percent);
-					if (step.Right.Harmonics.Count > 2 && thdAmp.ShowD4)
-						h4Y_right.Add(step.Right.Harmonics[2].Thd_Percent);
-					if (step.Right.Harmonics.Count > 3 && thdAmp.ShowD5)
-						h5Y_right.Add(step.Right.Harmonics[3].Thd_Percent);
-					if (step.Right.Harmonics.Count > 4 && step.Right.ThdPercent_D6plus != 0 && thdAmp.ShowD6)
-						h6Y_right.Add(step.Right.ThdPercent_D6plus);        // D6+
-					if (thdAmp.ShowNoiseFloor)
-						noiseY_right.Add((step.Right.Average_NoiseFloor_V / step.Right.Fundamental_V) * 100);
-				}
-			}
-
-			var colors = new GraphColors();
-			float lineWidth = thdAmp.ShowThickLines ? 1.6f : 1;
-			float markerSize = thdAmp.ShowPoints ? lineWidth + 3 : 1;
-
-			double[] logFreqX = freqX.Select(Math.Log10).ToArray();
-			int color = measurementNr * 2;
-
-			void AddPlot(List<double> yValues, int colorIndex, string legendText, LinePattern linePattern)
-			{
-				if (yValues.Count == 0)
-					return;
-				double[] logYValues = yValues.Select(Math.Log10).ToArray();
-				var plot = myPlot.Add.Scatter(logFreqX, logYValues);
-				plot.LineWidth = lineWidth;
-				plot.Color = colors.GetColor(colorIndex, color);
-				plot.MarkerSize = markerSize;
-				plot.LegendText = legendText;
-				plot.LinePattern = linePattern;
-			}
-
-			if (showLeftChannel)
-			{
-				if (thdAmp.ShowTHD) AddPlot(hTotY_left, 8, showRightChannel ? "THD-L" : "THD", LinePattern.Solid);
-				if (thdAmp.ShowD2) AddPlot(h2Y_left, 0, showRightChannel ? "D2-L" : "D2", LinePattern.Solid);
-				if (thdAmp.ShowD3) AddPlot(h3Y_left, 1, showRightChannel ? "D3-L" : "D3", LinePattern.Solid);
-				if (thdAmp.ShowD4) AddPlot(h4Y_left, 2, showRightChannel ? "D4-L" : "D4", LinePattern.Solid);
-				if (thdAmp.ShowD5) AddPlot(h5Y_left, 3, showRightChannel ? "D5-L" : "D5", LinePattern.Solid);
-				if (thdAmp.ShowD6) AddPlot(h6Y_left, 4, showRightChannel ? "D6+-L" : "D6+", LinePattern.Solid);
-				if (thdAmp.ShowNoiseFloor) AddPlot(noiseY_left, 9, showRightChannel ? "Noise-L" : "Noise", showRightChannel ? LinePattern.Solid : LinePattern.Dotted);
-			}
-
-			if (showRightChannel)
-			{
-				if (thdAmp.ShowTHD) AddPlot(hTotY_right, 8, showLeftChannel ? "THD-R" : "THD", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
-				if (thdAmp.ShowD2) AddPlot(h2Y_right, 0, showLeftChannel ? "D2-R" : "D2", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
-				if (thdAmp.ShowD3) AddPlot(h3Y_right, 1, showLeftChannel ? "D3-R" : "D3", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
-				if (thdAmp.ShowD4) AddPlot(h4Y_right, 2, showLeftChannel ? "D4-R" : "D4", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
-				if (thdAmp.ShowD5) AddPlot(h5Y_right, 3, showLeftChannel ? "D5-R" : "D5", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
-				if (thdAmp.ShowD6) AddPlot(h6Y_right, 4, showLeftChannel ? "D6+-R" : "D6+", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
-				if (thdAmp.ShowNoiseFloor) AddPlot(noiseY_right, 9, showLeftChannel ? "Noise-R" : "Noise", LinePattern.Dotted);
-			}
-
-			//if (markerIndex != -1)
-			//    QaLibrary.PlotCursorMarker(thdPlot, lineWidth, LinePattern.Solid, markerDataPoint);
 
 			thdPlot.Refresh();
 		}
-
 
 		/// <summary>
 		/// Initialize the THD magnitude (dB) plot
@@ -624,47 +427,13 @@ namespace QA40xPlot.Actions
 		void InitializeMagnitudePlot()
 		{
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;
+			InitializeMagAmpPlot(myPlot);
 			var thdAmp = ViewSettings.Singleton.ThdAmp;
-			myPlot.Clear();
 
-			// Y - axis
-			// create a numeric tick generator that uses our custom minor tick generator
-			ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGen = new(2);
-			// create a numeric tick generator that uses our custom minor tick generator
-			ScottPlot.TickGenerators.NumericAutomatic tickGenY = new();
-			tickGenY.TargetTickCount = 15;
-			tickGenY.MinorTickGenerator = minorTickGen;
-
-			// tell the left axis to use our custom tick generator
-			myPlot.Axes.Left.TickGenerator = tickGenY;
-
-			// X - axis
-			// create a minor tick generator that places log-distributed minor ticks
-			ScottPlot.TickGenerators.LogMinorTickGenerator minorTickGenX = new();
-			// create a numeric tick generator that uses our custom minor tick generator
-			ScottPlot.TickGenerators.NumericAutomatic tickGenX = new();
-			minorTickGenX.Divisions = 10;
-			tickGenX.MinorTickGenerator = minorTickGenX;
-			tickGenX.TargetTickCount = 25;
-			// tell our major tick generator to only show major ticks that are whole integers
-			tickGenX.IntegerTicksOnly = true;
-			// tell our custom tick generator to use our new label formatter
-			static string LogTickLabelFormatter(double y) => $"{Math.Pow(10, Math.Round(y, 10)):#0.######}";
-			tickGenX.LabelFormatter = LogTickLabelFormatter;
-
-			myPlot.Axes.Bottom.TickGenerator = tickGenX;
-
-
-			// show grid lines for minor ticks
-			myPlot.Grid.MajorLineColor = Colors.Black.WithOpacity(.25);
-			myPlot.Grid.MajorLineWidth = 1;
-			myPlot.Grid.MinorLineColor = Colors.Black.WithOpacity(.10);
-			myPlot.Grid.MinorLineWidth = 1;
-
-			myPlot.Axes.SetLimits(Math.Log10(Convert.ToDouble(thdAmp.GraphStartVolts)), Math.Log10(Convert.ToDouble(thdAmp.GraphEndVolts)), thdAmp.RangeBottomdB, thdAmp.RangeTopdB);
+			myPlot.Axes.SetLimits(Math.Log10(Convert.ToDouble(thdAmp.GraphStartVolts)), Math.Log10(Convert.ToDouble(thdAmp.GraphEndVolts)), 
+				thdAmp.RangeBottomdB, thdAmp.RangeTopdB);
 
 			myPlot.Title("Distortion vs Amplitude (dB)");
-			myPlot.Axes.Title.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.TITLE_SIZE);
 
 			if (thdAmp.XAxisType == (int)E_X_AxisType.INPUT_VOLTAGE)
 				myPlot.XLabel("Input voltage (Vrms)");
@@ -672,26 +441,8 @@ namespace QA40xPlot.Actions
 				myPlot.XLabel("Output voltage (Vrms)");
 			else if (thdAmp.XAxisType == (int)E_X_AxisType.OUTPUT_POWER)
 				myPlot.XLabel("Output power (W)");
-			myPlot.Axes.Bottom.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
 
 			myPlot.YLabel("Distortion (dB)");
-			myPlot.Axes.Left.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
-
-			// configure tick labels
-			myPlot.Axes.Bottom.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
-			myPlot.Axes.Left.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
-
-			// Legend
-			SetupLegend(myPlot);
-
-			ScottPlot.AxisRules.MaximumBoundary rule = new(
-				xAxis: myPlot.Axes.Bottom,
-				yAxis: myPlot.Axes.Left,
-				limits: new AxisLimits(Math.Log10(0.0001), Math.Log10(100), -200, 100)
-				);
-
-			myPlot.Axes.Rules.Clear();
-			myPlot.Axes.Rules.Add(rule);
 
 			thdPlot.Refresh();
 		}
@@ -701,7 +452,7 @@ namespace QA40xPlot.Actions
 		/// Plot the  THD magnitude (dB) data
 		/// </summary>
 		/// <param name="data">The data to plot</param>
-		void PlotMagnitude(ThdAmplitudeMeasurementResult measurementResult, int measurementNr, bool showLeftChannel, bool showRightChannel)
+		void PlotValues(ThdAmplitudeMeasurementResult measurementResult, int measurementNr, bool showLeftChannel, bool showRightChannel)
 		{
 			var thdAmp = ViewSettings.Singleton.ThdAmp;
 			// Create lists for line data
@@ -798,11 +549,21 @@ namespace QA40xPlot.Actions
 			var colors = new GraphColors();
 			int color = measurementNr * 2;
 
+			// here Y values are in dBV
 			void AddPlot(double[] xValues, List<double> yValues, int colorIndex, string legendText, LinePattern linePattern)
 			{
 				if (yValues.Count == 0) return;
-
-				var plot = thdPlot.ThePlot.Add.Scatter(xValues, yValues.ToArray());
+				Scatter? plot = null;
+				var xmax = 1;
+				if( thdAmp.ShowPercent)
+				{
+					var vals = yValues.Select(x => 2 + x / 20).ToArray();		// convert to volts then 100 then back to log10
+					plot = thdPlot.ThePlot.Add.Scatter(xValues, vals);
+				}
+				else
+				{
+					plot = thdPlot.ThePlot.Add.Scatter(xValues, yValues.ToArray());
+				}
 				plot.LineWidth = lineWidth;
 				plot.Color = colors.GetColor(colorIndex, color);
 				plot.MarkerSize = markerSize;
@@ -873,7 +634,7 @@ namespace QA40xPlot.Actions
 
 				foreach (var result in Data.Measurements.Where(m => m.Show))
 				{
-					PlotMagnitude(result, resultNr++, thdAmp.ShowLeft, thdAmp.ShowRight);
+					PlotValues(result, resultNr++, thdAmp.ShowLeft, thdAmp.ShowRight);
 				}
 			}
 			else
@@ -885,7 +646,7 @@ namespace QA40xPlot.Actions
 
 				foreach (var result in Data.Measurements.Where(m => m.Show))
 				{
-					PlotThd(result, resultNr++, thdAmp.ShowLeft, thdAmp.ShowRight);
+					PlotValues(result, resultNr++, thdAmp.ShowLeft, thdAmp.ShowRight);
 				}
 			}
 		}

@@ -95,6 +95,27 @@ namespace QA40xPlot.Actions
 			myPlot.Axes.Bottom.TickGenerator = tickGenX;
 		}
 
+		private static void SetupAmpTics(ScottPlot.Plot myPlot)
+		{
+			// create a minor tick generator that places log-distributed minor ticks
+			ScottPlot.TickGenerators.LogMinorTickGenerator minorTickGenX = new();
+			// create a numeric tick generator that uses our custom minor tick generator
+			ScottPlot.TickGenerators.NumericAutomatic tickGenX = new();
+
+			// create a custom tick formatter to set the label text for each tick
+			static string LogTickLabelFormatter(double y) => $"{Math.Pow(10, Math.Round(y, 10)):#0.######}";
+
+			minorTickGenX.Divisions = 10;
+			tickGenX.MinorTickGenerator = minorTickGenX;
+
+			tickGenX.TargetTickCount = 25;
+			// tell our major tick generator to only show major ticks that are whole integers
+			tickGenX.IntegerTicksOnly = true;
+			// tell our custom tick generator to use our new label formatter
+			tickGenX.LabelFormatter = LogTickLabelFormatter;
+			myPlot.Axes.Bottom.TickGenerator = tickGenX;
+		}
+
 		// this sets the axes bounds for freq vs percent
 		private void AddPctFreqRule(ScottPlot.Plot myPlot)
 		{
@@ -115,6 +136,30 @@ namespace QA40xPlot.Actions
 				xAxis: myPlot.Axes.Bottom,
 				yAxis: myPlot.Axes.Left,
 				limits: new AxisLimits(Math.Log10(1), Math.Log10(100000), -200, 100)
+				);
+			myPlot.Axes.Rules.Add(rule);
+		}
+
+		// this sets the axes bounds for freq vs percent
+		private void AddPctAmpRule(ScottPlot.Plot myPlot)
+		{
+			myPlot.Axes.Rules.Clear();
+			ScottPlot.AxisRules.MaximumBoundary rule = new(
+				xAxis: myPlot.Axes.Bottom,
+				yAxis: myPlot.Axes.Left,
+				limits: new AxisLimits(Math.Log10(0.0001), Math.Log10(100000), Math.Log10(0.00000001), Math.Log10(100))
+				);
+			myPlot.Axes.Rules.Add(rule);
+		}
+
+		// this sets the axes bounds for freq vs magnitude
+		private void AddMagAmpRule(ScottPlot.Plot myPlot)
+		{
+			myPlot.Axes.Rules.Clear();
+			ScottPlot.AxisRules.MaximumBoundary rule = new(
+				xAxis: myPlot.Axes.Bottom,
+				yAxis: myPlot.Axes.Left,
+				limits: new AxisLimits(Math.Log10(0.0001), Math.Log10(100000), -200, 100)
 				);
 			myPlot.Axes.Rules.Add(rule);
 		}
@@ -158,5 +203,22 @@ namespace QA40xPlot.Actions
 			SetupFreqTics(myPlot);
 			AddPctFreqRule(myPlot);
 		}
+
+		public void InitializePctAmpPlot(ScottPlot.Plot myPlot)
+		{
+			InitializeAPlot(myPlot);
+			SetupPercentTics(myPlot);
+			SetupAmpTics(myPlot);
+			AddPctAmpRule(myPlot);
+		}
+
+		public void InitializeMagAmpPlot(ScottPlot.Plot myPlot)
+		{
+			InitializeAPlot(myPlot);
+			SetupMagTics(myPlot);
+			SetupAmpTics(myPlot);
+			AddMagAmpRule(myPlot);
+		}
+
 	}
 }
