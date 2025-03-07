@@ -6,6 +6,7 @@
              xmlns:views="clr-namespace:QA40xPlot.Views"
              xmlns:vm="clr-namespace:QA40xPlot.ViewModels"
              xmlns:local="clr-namespace:QA40xPlot"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Background="MintCream">
     <UserControl.Resources>
@@ -80,8 +81,8 @@
                     <TextBox Text="{Binding EndVoltage, StringFormat={}{0:0.####}}" Grid.Column="1"  Grid.Row="2" LostFocus="OnEndVoltageChanged" />
                 <TextBox Text="{Binding AmpLoad}" Grid.Column="1"  Grid.Row="3"  />
                 <TextBox Text="{Binding TestFreq}" Grid.Column="1" Grid.Row="4"   />
-                    <views:NumericSpinner Value="{Binding StepsOctave}" MinValue="1" VerticalAlignment="Center" Grid.Column="1" Grid.Row="5"  />
-                    <views:NumericSpinner Value="{Binding Averages}" MinValue="1" MaxValue="6" VerticalAlignment="Center" Grid.Column="1" Grid.Row="6"  />
+                    <xctk:IntegerUpDown Value="{Binding StepsOctave}" Minimum="1" VerticalAlignment="Center" Grid.Column="1" Grid.Row="5"  />
+                    <xctk:IntegerUpDown Value="{Binding Averages}" Minimum="1" Maximum="6" VerticalAlignment="Center" Grid.Column="1" Grid.Row="6"  />
                 <CheckBox Content="Right channel" IsChecked="{Binding RightChannel}" Grid.Column="1" Grid.Row="7"  />
                 <ComboBox  Grid.Column="2" Grid.Row="1" VerticalAlignment="Center"  SelectedIndex="{Binding StartVoltageUnits}" ItemsSource="{Binding VoltItems}">
                 </ComboBox>
@@ -108,9 +109,9 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Label Content="Top" Grid.Row="0" Grid.Column="0"  />
-                    <views:NumericSpinner  Value="{Binding RangeTopdB}" Grid.Row="0" Grid.Column="1"   />
+                    <xctk:IntegerUpDown  Value="{Binding RangeTopdB}" Grid.Row="0" Grid.Column="1"   />
                     <Label Content="Bottom" Grid.Row="1" Grid.Column="0"  />
-                    <views:NumericSpinner  Value="{Binding RangeBottomdB}" Grid.Row="1" Grid.Column="1"  />
+                    <xctk:IntegerUpDown  Value="{Binding RangeBottomdB}" Grid.Row="1" Grid.Column="1"  />
                     <Button Content="Autofit" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Center" Grid.ColumnSpan="2"  />
                 </Grid>
             </GroupBox>

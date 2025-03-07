@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:views="clr-namespace:QA40xPlot.Views"
              xmlns:vm="clr-namespace:QA40xPlot.ViewModels"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
              xmlns:local="clr-namespace:QA40xPlot"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Background="MintCream">
@@ -88,7 +89,7 @@
                                SelectedValue="{Binding Smoothing}" ItemsSource="{Binding Smoothings}">
                     </ComboBox>
                     <Label Content="Averages" Grid.Column="0" Grid.Row="5"  />
-                    <views:NumericSpinner Value="{Binding Averages}" MinValue="1" MaxValue="6" VerticalAlignment="Center" Grid.Column="1" Grid.Row="5"  />
+                    <xctk:IntegerUpDown Value="{Binding Averages}" Minimum="1" Maximum="6" VerticalAlignment="Center" Grid.Column="1" Grid.Row="5"  />
                     <CheckBox Content="Right channel is reference" IsChecked="{Binding RightChannel}" 
                               HorizontalAlignment="Center"
                               Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2"/>
@@ -113,9 +114,9 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Label Content="Top" Grid.Row="0" Grid.Column="0"  />
-                    <views:NumericSpinner  Value="{Binding RangeTopdB}" Grid.Row="0" Grid.Column="1"   />
+                    <xctk:IntegerUpDown  Value="{Binding RangeTopdB}" Grid.Row="0" Grid.Column="1"   />
                     <Label Content="Bottom" Grid.Row="1" Grid.Column="0"  />
-                    <views:NumericSpinner  Value="{Binding RangeBottomdB}" Grid.Row="1" Grid.Column="1"  />
+                    <xctk:IntegerUpDown  Value="{Binding RangeBottomdB}" Grid.Row="1" Grid.Column="1"  />
                     <Button Content="Autofit" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center"  />
                 </Grid>
             </GroupBox>
