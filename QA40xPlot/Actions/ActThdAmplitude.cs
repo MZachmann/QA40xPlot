@@ -554,7 +554,6 @@ namespace QA40xPlot.Actions
 			{
 				if (yValues.Count == 0) return;
 				Scatter? plot = null;
-				var xmax = 1;
 				if( thdAmp.ShowPercent)
 				{
 					var vals = yValues.Select(x => 2 + x / 20).ToArray();		// convert to volts then 100 then back to log10

@@ -523,14 +523,16 @@ namespace QA40xPlot.Actions
         /// Plot the THD % graph
         /// </summary>
         /// <param name="data"></param>
-        void PlotThd(SpectrumMeasurementResult measurementResult, int measurementNr, bool showLeftChannel, bool showRightChannel)
+        void PlotValues(SpectrumMeasurementResult measurementResult, int measurementNr, bool showLeftChannel, bool showRightChannel)
         {
-			var specVm = ViewSettings.Singleton.SpectrumVm;
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			myPlot.Clear();
+
+			var specVm = ViewSettings.Singleton.SpectrumVm;
+			bool leftChannelEnabled = specVm.ShowLeft && showLeftChannel;	// dynamically update these
+			bool rightChannelEnabled = specVm.ShowRight && showRightChannel;
+
 			var fftData = MeasurementResult.FrequencySteps[0].fftData;
-			bool leftChannelEnabled = specVm.ShowLeft;
-			bool rightChannelEnabled = specVm.ShowRight;
 
 			List<double> freqX = [];
 			List<double> dBV_Left_Y = [];
@@ -543,17 +545,33 @@ namespace QA40xPlot.Actions
 			{
 				frequency += fftData.Df;
 				freqX.Add(frequency);
-				if (leftChannelEnabled)
+				if(specVm.ShowPercent)
 				{
-					var lv = fftData.Left[f];       // V of input data
-					var lvp = 100 * lv / maxleft;
-					dBV_Left_Y.Add(Math.Log10(lvp));
+					if (leftChannelEnabled)
+					{
+						var lv = fftData.Left[f];       // V of input data
+						var lvp = 100 * lv / maxleft;
+						dBV_Left_Y.Add(Math.Log10(lvp));
+					}
+					if (rightChannelEnabled)
+					{
+						var lv = fftData.Right[f];       // V of input data
+						var lvp = 100 * lv / maxright;
+						dBV_Right_Y.Add(Math.Log10(lvp));
+					}
 				}
-				if (rightChannelEnabled)
+				else
 				{
-					var lv = fftData.Right[f];       // V of input data
-					var lvp = 100 * lv / maxright;
-					dBV_Right_Y.Add(Math.Log10(lvp));
+					if (leftChannelEnabled)
+					{
+						var lv = fftData.Left[f];       // V of input data
+						dBV_Left_Y.Add(20*Math.Log10(lv));
+					}
+					if (rightChannelEnabled)
+					{
+						var lv = fftData.Right[f];       // V of input data
+						dBV_Right_Y.Add(20*Math.Log10(lv));
+					}
 				}
 			}
 
@@ -562,10 +580,12 @@ namespace QA40xPlot.Actions
 			double[] logHTot_Left_Y = dBV_Left_Y.ToArray();
 			double[] logHTot_Right_Y = dBV_Right_Y.ToArray();
 
+			var showThick = ViewSettings.Singleton.SpectrumVm.ShowThickLines;	// so it dynamically updates
+
 			if (leftChannelEnabled)
 			{
 				Scatter plotTot_Left = myPlot.Add.Scatter(logFreqX, logHTot_Left_Y);
-				plotTot_Left.LineWidth = specVm.ShowThickLines ? _Thickness : 1;
+				plotTot_Left.LineWidth = showThick ? _Thickness : 1;
 				plotTot_Left.Color = new ScottPlot.Color(1, 97, 170, 255);  // Blue
 				plotTot_Left.MarkerSize = 1;
 			}
@@ -573,7 +593,7 @@ namespace QA40xPlot.Actions
 			if (rightChannelEnabled)
 			{
 				Scatter plotTot_Right = myPlot.Add.Scatter(logFreqX, logHTot_Right_Y);
-				plotTot_Right.LineWidth = specVm.ShowThickLines ? _Thickness : 1;
+				plotTot_Right.LineWidth = showThick ? _Thickness : 1;
 				if (leftChannelEnabled)
 					plotTot_Right.Color = new ScottPlot.Color(220, 5, 46, 120); // Red transparant
 				else
@@ -602,63 +622,6 @@ namespace QA40xPlot.Actions
 
             fftPlot.Refresh();
         }
-
-
-        /// <summary>
-        /// Plot the magnitude graph
-        /// </summary>
-        /// <param name="measurementResult">Data to plot</param>
-        void PlotMagnitude(SpectrumMeasurementResult measurementResult, int measurementNr, bool showLeftChannel, bool showRightChannel)
-        {
-			var specVm = ViewSettings.Singleton.SpectrumVm;
-			ScottPlot.Plot myPlot = fftPlot.ThePlot;
-			myPlot.Clear();
-            var fftData = MeasurementResult.FrequencySteps[0].fftData;
-            bool leftChannelEnabled = specVm.ShowLeft;
-            bool rightChannelEnabled = specVm.ShowRight;
-
-			List<double> freqX = [];
-			List<double> dBV_Left_Y = [];
-			List<double> dBV_Right_Y = [];
-			double frequency = 0;
-
-			for (int f = 1; f < fftData.Left.Length; f++)   // Skip dc bin
-			{
-				frequency += fftData.Df;
-				freqX.Add(frequency);
-				if (leftChannelEnabled)
-					dBV_Left_Y.Add(20 * Math.Log10(fftData.Left[f]));
-				if (rightChannelEnabled)
-					dBV_Right_Y.Add(20 * Math.Log10(fftData.Right[f]));
-			}
-
-			// add a scatter plot to the plot
-			double[] logFreqX = freqX.Select(Math.Log10).ToArray();
-			double[] logHTot_Left_Y = dBV_Left_Y.ToArray();
-			double[] logHTot_Right_Y = dBV_Right_Y.ToArray();
-
-			if (leftChannelEnabled)
-			{
-				Scatter plotTot_Left = myPlot.Add.Scatter(logFreqX, logHTot_Left_Y);
-				plotTot_Left.LineWidth = specVm.ShowThickLines ? _Thickness : 1;
-				plotTot_Left.Color = new ScottPlot.Color(1, 97, 170, 255);  // Blue
-				plotTot_Left.MarkerSize = 1;
-			}
-
-			if (rightChannelEnabled)
-			{
-				Scatter plotTot_Right = myPlot.Add.Scatter(logFreqX, logHTot_Right_Y);
-				plotTot_Right.LineWidth = specVm.ShowThickLines ? _Thickness : 1;
-				if (leftChannelEnabled)
-					plotTot_Right.Color = new ScottPlot.Color(220, 5, 46, 120); // Red transparant
-				else
-					plotTot_Right.Color = new ScottPlot.Color(220, 5, 46, 255); // Red
-				plotTot_Right.MarkerSize = 1;
-			}
-
-			fftPlot.Refresh();
-		}
-
 
         /// <summary>
         ///  Start measurement button click
@@ -773,7 +736,8 @@ namespace QA40xPlot.Actions
 
                 foreach (var result in Data.Measurements.Where(m => m.Show))
                 {
-                    PlotMagnitude(result, resultNr++, thd.LeftChannel, thd.RightChannel);
+					SpectrumViewModel mvs = result.MeasurementSettings;
+					PlotValues(result, resultNr++, mvs.LeftChannel, mvs.RightChannel);
                 }
             }
             else
@@ -785,9 +749,10 @@ namespace QA40xPlot.Actions
           
                 foreach (var result in Data.Measurements.Where(m => m.Show))
                 {
-                    PlotThd(result, resultNr++, thd.ShowLeft, thd.ShowRight);
+					SpectrumViewModel mvs = result.MeasurementSettings;
+					PlotValues(result, resultNr++, mvs.LeftChannel, mvs.RightChannel);
 				}
-            }
+			}
 
             if( MeasurementResult.FrequencySteps.Count > 0)
             {
