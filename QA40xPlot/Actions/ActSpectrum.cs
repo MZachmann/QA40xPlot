@@ -15,7 +15,6 @@ namespace QA40xPlot.Actions
     public class ActSpectrum : ActBase
     {
         public SpectrumData Data { get; set; }                  // Data used in this form instance
-        public bool MeasurementBusy { get; set; }                   // Measurement busy state
 
         private readonly Views.PlotControl fftPlot;
 
@@ -285,7 +284,7 @@ namespace QA40xPlot.Actions
             await Qa40x.SetOutputSource(OutputSources.Off);
 
             // Show message
-			await showMessage($"Measurement stopped", 500);
+			await showMessage($"Measurement finished");
 
             return !ct.IsCancellationRequested;
         }
@@ -625,17 +624,17 @@ namespace QA40xPlot.Actions
         /// </summary>
         public async void StartMeasurement()
         {
-            if(MeasurementBusy)
+			var specVm = ViewSettings.Singleton.SpectrumVm;
+			if (specVm.IsRunning)
 			{
                 MessageBox.Show("Device is already running");
 				return;
 			}
-			MeasurementBusy = true;
+			specVm.IsRunning = true;
             ct = new();
-			var mSets = ViewSettings.Singleton.SpectrumVm;
 
 			// Clear measurement result
-			MeasurementResult = new(mSets)
+			MeasurementResult = new(specVm)
 			{
 				CreateDate = DateTime.Now,
 				Show = true,                                      // Show in graph
@@ -643,9 +642,9 @@ namespace QA40xPlot.Actions
 
             var rslt = true;
 			rslt = await PerformMeasurementSteps(MeasurementResult, ct.Token);
-            var fftsize = mSets.FftSize;
-            var sampleRate = mSets.SampleRate;
-            var atten = mSets.Attenuation;
+            var fftsize = specVm.FftSize;
+            var sampleRate = specVm.SampleRate;
+            var atten = specVm.Attenuation;
             if (rslt)
             {
                 await showMessage("Running");
@@ -654,12 +653,12 @@ namespace QA40xPlot.Actions
                     await Task.Delay(250);
                     if (ct.IsCancellationRequested)
                         break;
-                    if (mSets.FftSize != fftsize || mSets.SampleRate != sampleRate || mSets.Attenuation != atten)
+                    if (specVm.FftSize != fftsize || specVm.SampleRate != sampleRate || specVm.Attenuation != atten)
                     {
-						fftsize = mSets.FftSize;
-						sampleRate = mSets.SampleRate;
-						atten = mSets.Attenuation;
-						MeasurementResult = new(mSets)
+						fftsize = specVm.FftSize;
+						sampleRate = specVm.SampleRate;
+						atten = specVm.Attenuation;
+						MeasurementResult = new(specVm)
                         {
                             CreateDate = DateTime.Now,
                             Show = true,                                      // Show in graph
@@ -674,7 +673,8 @@ namespace QA40xPlot.Actions
 						break;
 				}
 			}
-			MeasurementBusy = false;
+			specVm.IsRunning = false;
+			await showMessage("");
         }
 
 

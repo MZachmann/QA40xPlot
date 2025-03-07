@@ -48,8 +48,8 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                        <Button Content="Start" FontSize="14" Command="{Binding DoStart}" Grid.Column="0" Grid.Row="0"  HorizontalAlignment="Center"></Button>
-                            <Button Content="Sto_p" FontSize="14" Command="{Binding DoStop}" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center"></Button>
+                        <Button Content="Start" IsEnabled="{Binding IsNotRunning}" FontSize="14" Command="{Binding DoStart}" Grid.Column="0" Grid.Row="0"  HorizontalAlignment="Center"></Button>
+                        <Button Content="Sto_p" IsEnabled="{Binding IsRunning}" FontSize="14" Command="{Binding DoStop}" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center"></Button>
                     </Grid>
                 </GroupBox>
                     <CheckBox Content="_Use Generator" IsChecked="{Binding UseGenerator}" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" HorizontalAlignment="Center"></CheckBox>

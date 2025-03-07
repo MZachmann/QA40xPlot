@@ -13,7 +13,6 @@ namespace QA40xPlot.Actions
 	public partial class ActThdAmplitude : ActBase
 	{
 		public ThdAmplitudeData Data { get; set; }       // Data used in this form instance
-		public bool MeasurementBusy { get; set; }                   // Measurement busy state
 		private readonly Views.PlotControl thdPlot;
 		private readonly Views.PlotControl fftPlot;
 		private readonly Views.PlotControl timePlot;
@@ -322,7 +321,7 @@ namespace QA40xPlot.Actions
 			await Qa40x.SetOutputSource(OutputSources.Off);
 
 			// Show message
-			await showMessage(ct.IsCancellationRequested ? $"Measurement cancelled!" : $"Measurement finished!", 500);
+			await showMessage(ct.IsCancellationRequested ? $"Measurement cancelled!" : $"Measurement finished!");
 
 			return true;
 		}
@@ -622,11 +621,12 @@ namespace QA40xPlot.Actions
 		/// <param name="e"></param>
 		public async void StartMeasurement()
 		{
-			MeasurementBusy = true;
+			var thdAmp = ViewSettings.Singleton.ThdAmp;
+			thdAmp.IsRunning = true;
 			ct = new();
 			await PerformMeasurementSteps(ct.Token);
 			await showMessage("Finished");
-			MeasurementBusy = false;
+			thdAmp.IsRunning = false;
 		}
 
 

@@ -17,6 +17,20 @@ namespace QA40xPlot.ViewModels
 		public List<String>	FftSizes { get => new List<string> { "64K", "128K", "256K", "512K", "1024K" }; }
 		public List<uint>	FftActualSizes { get => new List<uint> { 65536, 131072, 262144, 524288, 1048576 }; }
 		#endregion
+	#region Setters and Getters
+		private bool _IsRunning = false;         // type of alert
+		public bool IsRunning
+		{
+			get { return _IsRunning; }
+			set { SetProperty(ref _IsRunning, value); IsNotRunning = !value; }
+		}
+		private bool _IsNotRunning = true;         // type of alert
+		public bool IsNotRunning
+		{
+			get { return _IsNotRunning; }
+			private set { SetProperty(ref _IsNotRunning, value); }
+		}
+		#endregion
 
 		bool isBusy = false;
 		public bool IsBusy

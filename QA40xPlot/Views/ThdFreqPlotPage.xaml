@@ -43,8 +43,8 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Button Content="Start" Command="{Binding DoStart}" Grid.Column="0" HorizontalAlignment="Center"></Button>
-                    <Button Content="Stop" Command="{Binding DoStop}" Grid.Column="1" HorizontalAlignment="Center"></Button>
+                    <Button Content="Start" IsEnabled="{Binding IsNotRunning}" Command="{Binding DoStart}" Grid.Column="0" HorizontalAlignment="Center"></Button>
+                    <Button Content="Stop"  IsEnabled="{Binding IsRunning}" Command="{Binding DoStop}" Grid.Column="1" HorizontalAlignment="Center"></Button>
                 </Grid>
             </GroupBox>
             <GroupBox Header="Measurement Settings" >

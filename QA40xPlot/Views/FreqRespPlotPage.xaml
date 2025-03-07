@@ -48,8 +48,8 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
-                            <Button Content="Start" FontSize="14" Command="{Binding DoStart}" Grid.Column="0" Grid.Row="0"  HorizontalAlignment="Center"></Button>
-                            <Button Content="Stop" FontSize="14" Command="{Binding DoStop}" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center"></Button>
+                            <Button Content="Start" FontSize="14" IsEnabled="{Binding IsNotRunning}" Command="{Binding DoStart}" Grid.Column="0" Grid.Row="0"  HorizontalAlignment="Center"></Button>
+                            <Button Content="Stop" FontSize="14" IsEnabled="{Binding IsRunning}" Command="{Binding DoStop}" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center"></Button>
                         </Grid>
                     </GroupBox>
                 </StackPanel>

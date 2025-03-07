@@ -15,7 +15,6 @@ namespace QA40xPlot.Actions
     public class ActThdFrequency : ActBase
     {
         public ThdFrequencyData Data { get; set; }                  // Data used in this form instance
-        public bool MeasurementBusy { get; set; }                   // Measurement busy state
 
         private readonly Views.PlotControl thdPlot;
 		private readonly Views.PlotControl fftPlot;
@@ -334,7 +333,7 @@ namespace QA40xPlot.Actions
             await Qa40x.SetOutputSource(OutputSources.Off);
 
             // Show message
-            await showMessage( ct.IsCancellationRequested ? $"Measurement cancelled!" : $"Measurement finished!", 500);
+            await showMessage( ct.IsCancellationRequested ? $"Measurement cancelled!" : $"Measurement finished!");
 
             return true;
         }
@@ -708,11 +707,12 @@ namespace QA40xPlot.Actions
         /// </summary>
         public async void StartMeasurement()
         {
-            MeasurementBusy = true;
+			ThdFreqViewModel thd = ViewSettings.Singleton.ThdFreq;
+			thd.IsRunning = true;
             ct = new();
             await PerformMeasurementSteps(ct.Token);
             await showMessage("Finished");
-            MeasurementBusy = false;
+            thd.IsRunning = false;
         }
 
 

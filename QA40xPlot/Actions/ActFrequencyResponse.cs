@@ -13,7 +13,6 @@ namespace QA40xPlot.Actions
     public partial class ActFrequencyResponse : ActBase
     {
         public FrequencyResponseData Data { get; set; }       // Data used in this form instance
-        public bool MeasurementBusy { get; set; }                   // Measurement busy state
 		private readonly Views.PlotControl frqrsPlot;
 
 		private FrequencyResponseMeasurementResult MeasurementResult;
@@ -73,13 +72,13 @@ namespace QA40xPlot.Actions
 		public async void StartMeasurement()
 		{
 			var vm = ViewSettings.Singleton.FreqRespVm;
-			MeasurementBusy = true;
+            vm.IsRunning = true;
 			ct = new();
             UpdateGenAmplitude(vm.Gen1Voltage);   // convert gen1voltage to dbv
             UpdateGraph(true);
 			await PerformMeasurement(ct.Token, false);
 			await showMessage("Finished");
-			MeasurementBusy = false;
+			vm.IsRunning = false;
 		}
 
 
@@ -230,7 +229,7 @@ namespace QA40xPlot.Actions
                     if (ct.IsCancellationRequested)
 						break;
 
-					await showMessage($"Sweeping done", 200);
+					await showMessage($"Sweeping done");
                     MeasurementResult.FrequencyResponseData = lfrs;
                     MeasurementResult.GainData = CalculateGain(lfrs.FreqRslt);
                     UpdateGraph(false);
@@ -253,7 +252,7 @@ namespace QA40xPlot.Actions
             await Qa40x.SetOutputSource(OutputSources.Off);
 
             // Show message
-            await showMessage($"Measurement finished!", 500);
+            await showMessage($"Measurement finished!");
 
             UpdateGraph(false);
 
