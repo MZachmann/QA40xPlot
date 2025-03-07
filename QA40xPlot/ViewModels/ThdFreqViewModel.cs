@@ -303,6 +303,8 @@ namespace QA40xPlot.ViewModels
 
 		private static void StopIt(object parameter)
 		{
+			var vm = ViewModels.ViewSettings.Singleton.ThdFreq;
+			vm.actThd.DoCancel();
 		}
 
 		// the property change is used to trigger repaints of the graph

@@ -316,6 +316,8 @@ namespace QA40xPlot.ViewModels
 
 		private static void StopIt(object parameter)
 		{
+			var vm = ViewModels.ViewSettings.Singleton.ThdAmp;
+			vm.actThd.DoCancel();
 		}
 
 		public void SetAction(PlotControl plot, PlotControl plot1, PlotControl plot2)

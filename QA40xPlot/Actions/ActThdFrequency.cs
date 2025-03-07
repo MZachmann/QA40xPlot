@@ -124,6 +124,11 @@ namespace QA40xPlot.Actions
 			await vm.SetProgressBar(progress, delay);
 		}
 
+		public void DoCancel()
+		{
+			ct.Cancel();
+		}
+
 		/// <summary>
 		/// Perform the measurement
 		/// </summary>
@@ -285,7 +290,7 @@ namespace QA40xPlot.Actions
 
                     LeftRightSeries lrfs = await QaLibrary.DoAcquisitions(thd.Averages, ct);
                     if (ct.IsCancellationRequested)
-                        return false;
+						break;
 
                     uint fundamentalBin = QaLibrary.GetBinOfFrequency(stepBinFrequencies[f], binSize);
                     if (fundamentalBin >= lrfs.FreqRslt.Left.Length)               // Check in bin within range
@@ -316,8 +321,7 @@ namespace QA40xPlot.Actions
                     // Check if cancel button pressed
                     if (ct.IsCancellationRequested)
                     {
-                        await Qa40x.SetOutputSource(OutputSources.Off);                                             // Be sure to switch gen off
-                        return false;
+						break;
                     }
                 }
             }
@@ -330,7 +334,7 @@ namespace QA40xPlot.Actions
             await Qa40x.SetOutputSource(OutputSources.Off);
 
             // Show message
-            await showMessage($"Measurement finished!", 500);
+            await showMessage( ct.IsCancellationRequested ? $"Measurement cancelled!" : $"Measurement finished!", 500);
 
             return true;
         }

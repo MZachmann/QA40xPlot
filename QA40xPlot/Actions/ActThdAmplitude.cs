@@ -96,6 +96,10 @@ namespace QA40xPlot.Actions
 			vm.EndVoltage = QaLibrary.ConvertVoltage(vm.EndAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)vm.EndVoltageUnits);
 		}
 
+		public void DoCancel()
+		{
+			ct.Cancel();
+		}
 
 		/// <summary>
 		/// Perform the measurement
@@ -238,8 +242,6 @@ namespace QA40xPlot.Actions
 					try
 					{
 						lrfs = await QaLibrary.DoAcquisitions(thdAmp.Averages, ct);  // Do acquisitions
-						if (ct.IsCancellationRequested)
-							return false;
 					}
 					catch (HttpRequestException ex)
 					{
@@ -268,7 +270,12 @@ namespace QA40xPlot.Actions
 							}
 						}
 					}
+					if (ct.IsCancellationRequested)
+						break;
 				} while (lrfs == null);     // Loop until we have an acquisition result
+
+				if (lrfs == null)
+					break;
 
 				if (fundamentalBin >= lrfs.FreqRslt.Left.Length)                   // Check if bin within array bounds
 					break;
@@ -285,6 +292,12 @@ namespace QA40xPlot.Actions
 				QaLibrary.PlotMiniFftGraph(fftPlot, lrfs.FreqRslt, thdAmp.LeftChannel && thdAmp.ShowLeft, thdAmp.RightChannel && thdAmp.ShowRight);
 				QaLibrary.PlotMiniTimeGraph(timePlot, lrfs.TimeRslt, step.FundamentalFrequency, thdAmp.LeftChannel && thdAmp.ShowLeft, thdAmp.RightChannel && thdAmp.ShowRight);
 
+				// Check if cancel button pressed
+				if (ct.IsCancellationRequested)
+				{
+					break;
+				}
+
 				step.Left = ChannelCalculations(binSize, step.FundamentalFrequency, generatorVoltagedBV, lrfs.FreqRslt.Left, MeasurementResult.NoiseFloor.FreqRslt.Left, thdAmp.AmpLoad);
 				step.Right = ChannelCalculations(binSize, step.FundamentalFrequency, generatorVoltagedBV, lrfs.FreqRslt.Right, MeasurementResult.NoiseFloor.FreqRslt.Right, thdAmp.AmpLoad);
 
@@ -297,8 +310,7 @@ namespace QA40xPlot.Actions
 				// Check if cancel button pressed
 				if (ct.IsCancellationRequested)
 				{
-					await Qa40x.SetOutputSource(OutputSources.Off);                                             // Be sure to switch gen off
-					return false;
+					break;
 				}
 
 				// Get maximum signal for attenuation prediction of next step
@@ -310,7 +322,7 @@ namespace QA40xPlot.Actions
 			await Qa40x.SetOutputSource(OutputSources.Off);
 
 			// Show message
-			await showMessage($"Measurement finished!", 500);
+			await showMessage(ct.IsCancellationRequested ? $"Measurement cancelled!" : $"Measurement finished!", 500);
 
 			return true;
 		}
