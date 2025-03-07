@@ -148,9 +148,11 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Label Content="Top" Grid.Row="0" Grid.Column="0"  />
-                    <xctk:IntegerUpDown  Value="{Binding RangeTopdB}" Grid.Row="0" Grid.Column="1"   />
+                    <ComboBox IsEditable="True" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"  Text="{Binding RangeTopdB}" ItemsSource="{Binding TopDbs}">
+                    </ComboBox>
                     <Label Content="Bottom" Grid.Row="1" Grid.Column="0"  />
-                    <xctk:IntegerUpDown  Value="{Binding RangeBottomdB}" Grid.Row="1" Grid.Column="1"  />
+                    <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center"  Text="{Binding RangeBottomdB}" ItemsSource="{Binding BottomDbs}">
+                    </ComboBox>
                     <Button Content="Autofit" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center"  />
                 </Grid>
             </GroupBox>
@@ -188,10 +190,10 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Label Content="From" Grid.Row="0"  Grid.Column="0" />
-                    <ComboBox Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"  SelectedValue="{Binding GraphStartFreq}" ItemsSource="{Binding StartFrequencies}">
+                    <ComboBox  IsEditable="True" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"  Text="{Binding GraphStartFreq}" ItemsSource="{Binding StartFrequencies}">
                     </ComboBox>
                     <Label Content="To" Grid.Row="1" Grid.Column="0"  />
-                    <ComboBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" SelectedValue="{Binding GraphEndFreq}" ItemsSource="{Binding EndFrequencies}">
+                    <ComboBox  IsEditable="True" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Text="{Binding GraphEndFreq}" ItemsSource="{Binding EndFrequencies}">
                     </ComboBox>
                     <Button Content="Autofit" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Center" Grid.ColumnSpan="2"  />
                 </Grid>
