@@ -286,95 +286,15 @@ namespace QA40xPlot.Actions
         void InitializePlot()
         {
 			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
+            InitializeMagFreqPlot(myPlot);
+
 			var frqrsVm = ViewSettings.Singleton.FreqRespVm;
 
-			myPlot.Clear();
-
-            // create a minor tick generator that places log-distributed minor ticks
-            //ScottPlot.TickGenerators. minorTickGen = new();
-            //minorTickGen.Divisions = 1;
-
-            // create a numeric tick generator that uses our custom minor tick generator
-            ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGen = new(2);
-
-            ScottPlot.TickGenerators.NumericAutomatic tickGenY = new();
-            tickGenY.TargetTickCount = 21;
-            tickGenY.MinorTickGenerator = minorTickGen;
-
-			// tell the left axis to use our custom tick generator
-			myPlot.Axes.Left.TickGenerator = tickGenY;
-
-            // create a minor tick generator that places log-distributed minor ticks
-            ScottPlot.TickGenerators.LogMinorTickGenerator minorTickGenX = new();
-
-            // create a numeric tick generator that uses our custom minor tick generator
-            //ScottPlot.TickGenerators.NumericAutomatic tickGenX = new();
-            //tickGenX.MinorTickGenerator = minorTickGenX;
-
-            // create a manual tick generator and add ticks
-            ScottPlot.TickGenerators.NumericManual tickGenX = new();
-
-            // add major ticks with their labels
-            tickGenX.AddMajor(Math.Log10(1), "1");
-            tickGenX.AddMajor(Math.Log10(2), "2");
-            tickGenX.AddMajor(Math.Log10(5), "5");
-            tickGenX.AddMajor(Math.Log10(10), "10");
-            tickGenX.AddMajor(Math.Log10(20), "20");
-            tickGenX.AddMajor(Math.Log10(50), "50");
-            tickGenX.AddMajor(Math.Log10(100), "100");
-            tickGenX.AddMajor(Math.Log10(200), "200");
-            tickGenX.AddMajor(Math.Log10(500), "500");
-            tickGenX.AddMajor(Math.Log10(1000), "1k");
-            tickGenX.AddMajor(Math.Log10(2000), "2k");
-            tickGenX.AddMajor(Math.Log10(5000), "5k");
-            tickGenX.AddMajor(Math.Log10(10000), "10k");
-            tickGenX.AddMajor(Math.Log10(20000), "20k");
-            tickGenX.AddMajor(Math.Log10(50000), "50k");
-            tickGenX.AddMajor(Math.Log10(100000), "100k");
-
-            myPlot.Axes.Bottom.TickGenerator = tickGenX;
-
-            // show grid lines for major ticks
-            myPlot.Grid.MajorLineColor = Colors.Black.WithOpacity(.35);
-            myPlot.Grid.MajorLineWidth = 1;
-            myPlot.Grid.MinorLineColor = Colors.Black.WithOpacity(.15);
-            myPlot.Grid.MinorLineWidth = 1;
-
-
-            //thdPlot.Plot.Axes.AutoScale();
 			myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(frqrsVm.GraphStartFreq)), Math.Log10(Convert.ToInt32(frqrsVm.GraphEndFreq)), frqrsVm.RangeBottomdB, frqrsVm.RangeTopdB);
-
-			//if (GraphSettings.GraphType == E_FrequencyResponseGraphType.DBV)
 			myPlot.Title("Frequency Response (dBV)");
-            //else
-            //    myPlot.Title("Gain (dB)");
-
-            myPlot.Axes.Title.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
-
 			myPlot.XLabel("Frequency (Hz)");
-            myPlot.Axes.Bottom.Label.OffsetX = 330;
-            myPlot.Axes.Bottom.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
-			myPlot.Axes.Bottom.Label.Bold = false;
-
-			myPlot.Axes.Left.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
-
-			// configure tick labels
-			myPlot.Axes.Bottom.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
-			myPlot.Axes.Left.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
-
-            InitLegend(myPlot);
-			// Set axis rules
-
-			ScottPlot.AxisRules.MaximumBoundary rule = new(
-                xAxis: myPlot.Axes.Bottom,
-                yAxis: myPlot.Axes.Left,
-                limits: new AxisLimits(Math.Log10(1), Math.Log10(100000), -200, 100)
-                );
-
-            myPlot.Axes.Rules.Clear();
-            myPlot.Axes.Rules.Add(rule);
-
-            frqrsPlot.Refresh();
+			myPlot.YLabel("dBV");
+			frqrsPlot.Refresh();
         }
 
 

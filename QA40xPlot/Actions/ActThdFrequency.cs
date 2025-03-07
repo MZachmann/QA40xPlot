@@ -435,102 +435,15 @@ namespace QA40xPlot.Actions
         void InitializeThdPlot()
         {
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;
+			InitializePctFreqPlot(myPlot);
 
-			myPlot.Clear();
+			var thdFreq = ViewSettings.Singleton.ThdFreq;
 
-
-            ScottPlot.TickGenerators.LogMinorTickGenerator minorTickGenY = new();
-            minorTickGenY.Divisions = 10;
-
-            // create a numeric tick generator that uses our custom minor tick generator
-            ScottPlot.TickGenerators.NumericAutomatic tickGenY = new();
-            tickGenY.MinorTickGenerator = minorTickGenY;
-
-            // create a custom tick formatter to set the label text for each tick
-            static string LogTickLabelFormatter(double y) => $"{Math.Pow(10, Math.Round(y, 10)):#0.######}";
-
-            // tell our major tick generator to only show major ticks that are whole integers
-            tickGenY.IntegerTicksOnly = true;
-
-            // tell our custom tick generator to use our new label formatter
-            tickGenY.LabelFormatter = LogTickLabelFormatter;
-
-            // tell the left axis to use our custom tick generator
-            myPlot.Axes.Left.TickGenerator = tickGenY;
-
-            // ******* y-ticks ****
-            // create a minor tick generator that places log-distributed minor ticks
-            ScottPlot.TickGenerators.LogMinorTickGenerator minorTickGen = new();
-            minorTickGen.Divisions = 10;
-
-            // create a minor tick generator that places log-distributed minor ticks
-            ScottPlot.TickGenerators.LogMinorTickGenerator minorTickGenX = new();
-
-            // create a numeric tick generator that uses our custom minor tick generator
-            //ScottPlot.TickGenerators.NumericAutomatic tickGenX = new();
-            //tickGenX.MinorTickGenerator = minorTickGenX;
-
-            // create a manual tick generator and add ticks
-            ScottPlot.TickGenerators.NumericManual tickGenX = new();
-
-            // add major ticks with their labels
-            tickGenX.AddMajor(Math.Log10(1), "1");
-            tickGenX.AddMajor(Math.Log10(2), "2");
-            tickGenX.AddMajor(Math.Log10(5), "5");
-            tickGenX.AddMajor(Math.Log10(10), "10");
-            tickGenX.AddMajor(Math.Log10(20), "20");
-            tickGenX.AddMajor(Math.Log10(50), "50");
-            tickGenX.AddMajor(Math.Log10(100), "100");
-            tickGenX.AddMajor(Math.Log10(200), "200");
-            tickGenX.AddMajor(Math.Log10(500), "500");
-            tickGenX.AddMajor(Math.Log10(1000), "1k");
-            tickGenX.AddMajor(Math.Log10(2000), "2k");
-            tickGenX.AddMajor(Math.Log10(5000), "5k");
-            tickGenX.AddMajor(Math.Log10(10000), "10k");
-            tickGenX.AddMajor(Math.Log10(20000), "20k");
-            tickGenX.AddMajor(Math.Log10(50000), "50k");
-            tickGenX.AddMajor(Math.Log10(100000), "100k");
-
-
-            // tell our custom tick generator to use our new label formatter
-            //    tickGenX.LabelFormatter = LogTickLabelFormatterX;
-            myPlot.Axes.Bottom.TickGenerator = tickGenX;
-
-
-            // show grid lines for minor ticks
-            myPlot.Grid.MajorLineColor = Colors.Black.WithOpacity(.35);
-            myPlot.Grid.MajorLineWidth = 1;
-            myPlot.Grid.MinorLineColor = Colors.Black.WithOpacity(.15);
-            myPlot.Grid.MinorLineWidth = 1;
-
-
-            //myPlot.Axes.AutoScale();
-            ThdFreqViewModel thd = ViewSettings.Singleton.ThdFreq;
-            myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(thd.GraphStartFreq)), Math.Log10(Convert.ToInt32(thd.GraphEndFreq)), Math.Log10(Convert.ToDouble(thd.RangeBottom)) - 0.00000001, Math.Log10(Convert.ToDouble(thd.RangeTop)));  // - 0.000001 to force showing label
+            myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(thdFreq.GraphStartFreq)), Math.Log10(Convert.ToInt32(thdFreq.GraphEndFreq)), 
+                Math.Log10(Convert.ToDouble(thdFreq.RangeBottom)) - 0.00000001, Math.Log10(Convert.ToDouble(thdFreq.RangeTop)));  // - 0.000001 to force showing label
             myPlot.Title("Distortion vs Frequency (%)");
-            myPlot.Axes.Title.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
-
 			myPlot.XLabel("Frequency (Hz)");
-			myPlot.Axes.Bottom.Label.Alignment = Alignment.MiddleCenter;
-			myPlot.Axes.Bottom.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
 			myPlot.YLabel("Distortion (%)");
-			myPlot.Axes.Left.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
-
-			// configure tick labels
-			myPlot.Axes.Bottom.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
-			myPlot.Axes.Left.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
-
-			InitLegend(myPlot);
-
-			ScottPlot.AxisRules.MaximumBoundary rule = new(
-                xAxis: myPlot.Axes.Bottom,
-                yAxis: myPlot.Axes.Left,
-                limits: new AxisLimits(Math.Log10(1), Math.Log10(100000), -200, 100)
-                );
-
-            myPlot.Axes.Rules.Clear();
-            myPlot.Axes.Rules.Add(rule);
-
             thdPlot.Refresh();
         }
 
@@ -651,91 +564,15 @@ namespace QA40xPlot.Actions
         void InitializeMagnitudePlot()
         {
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;
+            InitializeMagFreqPlot(myPlot);
+
 			var thdFreq = ViewSettings.Singleton.ThdFreq;
 
-			myPlot.Clear();
-            //myPlot.Axes.Remove(Edge.Right);
-
-            // create a minor tick generator that places log-distributed minor ticks
-            //ScottPlot.TickGenerators. minorTickGen = new();
-            //minorTickGen.Divisions = 1;
-
-            // create a numeric tick generator that uses our custom minor tick generator
-            ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGen = new(2);
-
-            ScottPlot.TickGenerators.NumericAutomatic tickGenY = new();
-            tickGenY.TargetTickCount = 15;
-            tickGenY.MinorTickGenerator = minorTickGen;
-
-            // tell the left axis to use our custom tick generator
-            myPlot.Axes.Left.TickGenerator = tickGenY;
-
-            // create a minor tick generator that places log-distributed minor ticks
-            ScottPlot.TickGenerators.LogMinorTickGenerator minorTickGenX = new();
-
-            // create a numeric tick generator that uses our custom minor tick generator
-            //ScottPlot.TickGenerators.NumericAutomatic tickGenX = new();
-            //tickGenX.MinorTickGenerator = minorTickGenX;
-
-            // create a manual tick generator and add ticks
-            ScottPlot.TickGenerators.NumericManual tickGenX = new();
-
-            // add major ticks with their labels
-            tickGenX.AddMajor(Math.Log10(1), "1");
-            tickGenX.AddMajor(Math.Log10(2), "2");
-            tickGenX.AddMajor(Math.Log10(5), "5");
-            tickGenX.AddMajor(Math.Log10(10), "10");
-            tickGenX.AddMajor(Math.Log10(20), "20");
-            tickGenX.AddMajor(Math.Log10(50), "50");
-            tickGenX.AddMajor(Math.Log10(100), "100");
-            tickGenX.AddMajor(Math.Log10(200), "200");
-            tickGenX.AddMajor(Math.Log10(500), "500");
-            tickGenX.AddMajor(Math.Log10(1000), "1k");
-            tickGenX.AddMajor(Math.Log10(2000), "2k");
-            tickGenX.AddMajor(Math.Log10(5000), "5k");
-            tickGenX.AddMajor(Math.Log10(10000), "10k");
-            tickGenX.AddMajor(Math.Log10(20000), "20k");
-            tickGenX.AddMajor(Math.Log10(50000), "50k");
-            tickGenX.AddMajor(Math.Log10(100000), "100k");
-
-            myPlot.Axes.Bottom.TickGenerator = tickGenX;
-
-            // show grid lines for major ticks
-            myPlot.Grid.MajorLineColor = Colors.Black.WithOpacity(.35);
-            myPlot.Grid.MajorLineWidth = 1;
-            myPlot.Grid.MinorLineColor = Colors.Black.WithOpacity(.15);
-            myPlot.Grid.MinorLineWidth = 1;
-
-
-            //myPlot.Axes.AutoScale();
-			myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(thdFreq.GraphStartFreq)), Math.Log10(Convert.ToInt32(thdFreq.GraphEndFreq)), thdFreq.RangeBottomdB, thdFreq.RangeTopdB);
-
+			myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(thdFreq.GraphStartFreq)), Math.Log10(Convert.ToInt32(thdFreq.GraphEndFreq)), 
+                thdFreq.RangeBottomdB, thdFreq.RangeTopdB);
             myPlot.Title("Distortion vs Frequency (dB)");
-            myPlot.Axes.Title.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.TITLE_SIZE);
-
-
 			myPlot.XLabel("Frequency (Hz)");
-			myPlot.Axes.Bottom.Label.Alignment = Alignment.MiddleCenter;
-			myPlot.Axes.Bottom.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
 			myPlot.YLabel("Distortion (dB)");
-			myPlot.Axes.Left.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
-
-			// configure tick labels
-			myPlot.Axes.Bottom.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
-			myPlot.Axes.Left.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
-
-			// Legend
-			InitLegend(myPlot);
-
-			ScottPlot.AxisRules.MaximumBoundary rule = new(
-                xAxis: myPlot.Axes.Bottom,
-                yAxis: myPlot.Axes.Left,
-                limits: new AxisLimits(Math.Log10(1), Math.Log10(100000), -200, 100)
-                );
-
-            myPlot.Axes.Rules.Clear();
-            myPlot.Axes.Rules.Add(rule);
-
 
             thdPlot.Refresh();
         }

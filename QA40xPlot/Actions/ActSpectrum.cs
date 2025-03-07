@@ -240,7 +240,6 @@ namespace QA40xPlot.Actions
 
                     // Calculate the THD
                     {
-                        var mif = 20.0;
                         var maxf = 20000;   // the app seems to use 20,000 so not sampleRate/ 2.0;
 						var snrdb = await Qa40x.GetSnrDb(stepBinFrequencies[f], 20.0, maxf);
 						var thds = await Qa40x.GetThdDb(stepBinFrequencies[f], maxf);
@@ -302,20 +301,51 @@ namespace QA40xPlot.Actions
 			var fftsize = vm.FftActualSizes.ElementAt(vm.FftSizes.IndexOf(vm.FftSize));
 			int bin = (int)QaLibrary.GetBinOfFrequency(frequency, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
             double markVal = 0;
-            ScottPlot.Color markerCol = new ScottPlot.Color();
+			if( vm.ShowPercent)
+			{
+				if (!vm.ShowLeft)
+				{
+					double maxright = fmr.FrequencySteps[0].fftData.Left.Max();
+					markVal = 100 * fmr.FrequencySteps[0].fftData.Right[bin] / maxright;
+				}
+				else
+				{
+					double maxleft = fmr.FrequencySteps[0].fftData.Right.Max();
+					markVal = 100 * fmr.FrequencySteps[0].fftData.Left[bin] / maxleft;
+				}
+			}
+			else
+			{
+				if (!vm.ShowLeft)
+				{
+					markVal = 20 * Math.Log10(fmr.FrequencySteps[0].fftData.Right[bin]);
+				}
+				else
+				{
+					markVal = 20 * Math.Log10(fmr.FrequencySteps[0].fftData.Left[bin]);
+				}
+			}
+			ScottPlot.Color markerCol = new ScottPlot.Color();
             if( ! vm.ShowLeft)
             {
-				markVal = 20 * Math.Log10(fmr.FrequencySteps[0].fftData.Right[bin]);
                 markerCol = isred ? Colors.Green : Colors.DarkGreen;
 			}
             else
             {
-				markVal = 20 * Math.Log10(fmr.FrequencySteps[0].fftData.Left[bin]);
 				markerCol = isred ? Colors.Red : Colors.DarkOrange;
 			}
-			var mymark = myPlot.Add.Marker(Math.Log10(frequency), markVal,
-                MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), markerCol);
-			mymark.LegendText = string.Format("{1}: {0:F1}", markVal, (int)frequency);
+			if (vm.ShowPercent)
+			{
+				var mymark = myPlot.Add.Marker(Math.Log10(frequency), Math.Log10(markVal),
+					MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), markerCol);
+				mymark.LegendText = string.Format("{1}: {0:F6}", markVal, (int)frequency);
+			}
+			else
+			{
+				var mymark = myPlot.Add.Marker(Math.Log10(frequency), markVal,
+					MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), markerCol);
+				mymark.LegendText = string.Format("{1}: {0:F1}", markVal, (int)frequency);
+			}
 		}
 
 		private void ShowHarmonicMarkers(SpectrumMeasurementResult fmr)
@@ -477,100 +507,14 @@ namespace QA40xPlot.Actions
         void InitializefftPlot()
         {
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
+			InitializePctFreqPlot(myPlot);
+			var thdFreq = ViewSettings.Singleton.SpectrumVm;
 
-			myPlot.Clear();
-
-			ScottPlot.TickGenerators.LogMinorTickGenerator minorTickGenY = new();
-            minorTickGenY.Divisions = 10;
-
-            // create a numeric tick generator that uses our custom minor tick generator
-            ScottPlot.TickGenerators.NumericAutomatic tickGenY = new();
-            tickGenY.MinorTickGenerator = minorTickGenY;
-
-            // create a custom tick formatter to set the label text for each tick
-            static string LogTickLabelFormatter(double y) => $"{Math.Pow(10, Math.Round(y, 10)):#0.######}";
-
-            // tell our major tick generator to only show major ticks that are whole integers
-            tickGenY.IntegerTicksOnly = true;
-
-            // tell our custom tick generator to use our new label formatter
-            tickGenY.LabelFormatter = LogTickLabelFormatter;
-
-            // tell the left axis to use our custom tick generator
-            myPlot.Axes.Left.TickGenerator = tickGenY;
-
-            // ******* y-ticks ****
-            // create a minor tick generator that places log-distributed minor ticks
-            ScottPlot.TickGenerators.LogMinorTickGenerator minorTickGen = new();
-            minorTickGen.Divisions = 10;
-
-            // create a minor tick generator that places log-distributed minor ticks
-            ScottPlot.TickGenerators.LogMinorTickGenerator minorTickGenX = new();
-
-            // create a numeric tick generator that uses our custom minor tick generator
-            //ScottPlot.TickGenerators.NumericAutomatic tickGenX = new();
-            //tickGenX.MinorTickGenerator = minorTickGenX;
-
-            // create a manual tick generator and add ticks
-            ScottPlot.TickGenerators.NumericManual tickGenX = new();
-
-            // add major ticks with their labels
-            tickGenX.AddMajor(Math.Log10(1), "1");
-            tickGenX.AddMajor(Math.Log10(2), "2");
-            tickGenX.AddMajor(Math.Log10(5), "5");
-            tickGenX.AddMajor(Math.Log10(10), "10");
-            tickGenX.AddMajor(Math.Log10(20), "20");
-            tickGenX.AddMajor(Math.Log10(50), "50");
-            tickGenX.AddMajor(Math.Log10(100), "100");
-            tickGenX.AddMajor(Math.Log10(200), "200");
-            tickGenX.AddMajor(Math.Log10(500), "500");
-            tickGenX.AddMajor(Math.Log10(1000), "1k");
-            tickGenX.AddMajor(Math.Log10(2000), "2k");
-            tickGenX.AddMajor(Math.Log10(5000), "5k");
-            tickGenX.AddMajor(Math.Log10(10000), "10k");
-            tickGenX.AddMajor(Math.Log10(20000), "20k");
-            tickGenX.AddMajor(Math.Log10(50000), "50k");
-            tickGenX.AddMajor(Math.Log10(100000), "100k");
-
-
-            // tell our custom tick generator to use our new label formatter
-            //    tickGenX.LabelFormatter = LogTickLabelFormatterX;
-            myPlot.Axes.Bottom.TickGenerator = tickGenX;
-
-
-            // show grid lines for minor ticks
-            myPlot.Grid.MajorLineColor = Colors.Black.WithOpacity(.35);
-            myPlot.Grid.MajorLineWidth = 1;
-            myPlot.Grid.MinorLineColor = Colors.Black.WithOpacity(.15);
-            myPlot.Grid.MinorLineWidth = 1;
-
-
-            //myPlot.Axes.AutoScale();
             SpectrumViewModel thd = ViewSettings.Singleton.SpectrumVm;
             myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(thd.GraphStartFreq)), Math.Log10(Convert.ToInt32(thd.GraphEndFreq)), Math.Log10(Convert.ToDouble(thd.RangeBottom)) - 0.00000001, Math.Log10(Convert.ToDouble(thd.RangeTop)));  // - 0.000001 to force showing label
             myPlot.Title("Spectrum");
-            myPlot.Axes.Title.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
-
 			myPlot.XLabel("Frequency (Hz)");
-			myPlot.Axes.Bottom.Label.Alignment = Alignment.MiddleCenter;
-			myPlot.Axes.Bottom.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
-			myPlot.YLabel("dbV");
-			myPlot.Axes.Left.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
-
-			// configure tick labels
-			myPlot.Axes.Bottom.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
-			myPlot.Axes.Left.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
-
-			InitLegend(myPlot);
-
-			ScottPlot.AxisRules.MaximumBoundary rule = new(
-                xAxis: myPlot.Axes.Bottom,
-                yAxis: myPlot.Axes.Left,
-                limits: new AxisLimits(Math.Log10(1), Math.Log10(100000), -200, 100)
-                );
-
-            myPlot.Axes.Rules.Clear();
-            myPlot.Axes.Rules.Add(rule);
+			myPlot.YLabel("%");
 
 			fftPlot.Refresh();
         }
@@ -582,27 +526,35 @@ namespace QA40xPlot.Actions
         void PlotThd(SpectrumMeasurementResult measurementResult, int measurementNr, bool showLeftChannel, bool showRightChannel)
         {
 			var specVm = ViewSettings.Singleton.SpectrumVm;
-			//QaLibrary.PlotMiniFftGraph(fftPlot, MeasurementResult.FrequencySteps[0].fftData, specVm.LeftChannel, specVm.RightChannel);
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			myPlot.Clear();
-
 			var fftData = MeasurementResult.FrequencySteps[0].fftData;
-			bool leftChannelEnabled = specVm.LeftChannel;
-			bool rightChannelEnabled = specVm.RightChannel;
+			bool leftChannelEnabled = specVm.ShowLeft;
+			bool rightChannelEnabled = specVm.ShowRight;
 
 			List<double> freqX = [];
 			List<double> dBV_Left_Y = [];
 			List<double> dBV_Right_Y = [];
 			double frequency = 0;
+			double maxleft = fftData.Left.Max();
+			double maxright = fftData.Right.Max();
 
 			for (int f = 1; f < fftData.Left.Length; f++)   // Skip dc bin
 			{
 				frequency += fftData.Df;
 				freqX.Add(frequency);
 				if (leftChannelEnabled)
-					dBV_Left_Y.Add(20 * Math.Log10(fftData.Left[f]));
+				{
+					var lv = fftData.Left[f];       // V of input data
+					var lvp = 100 * lv / maxleft;
+					dBV_Left_Y.Add(Math.Log10(lvp));
+				}
 				if (rightChannelEnabled)
-					dBV_Right_Y.Add(20 * Math.Log10(fftData.Right[f]));
+				{
+					var lv = fftData.Right[f];       // V of input data
+					var lvp = 100 * lv / maxright;
+					dBV_Right_Y.Add(Math.Log10(lvp));
+				}
 			}
 
 			// add a scatter plot to the plot
@@ -629,23 +581,8 @@ namespace QA40xPlot.Actions
 				plotTot_Right.MarkerSize = 1;
 			}
 
-			var limitY = myPlot.Axes.GetLimits().YRange.Max;
-			var max_dBV_left = leftChannelEnabled ? dBV_Left_Y.Max(f => f) : -150;
-			var max_dBV_right = rightChannelEnabled ? dBV_Right_Y.Max(f => f) : -150;
-			var max_dBV = (max_dBV_left > max_dBV_right) ? max_dBV_left : max_dBV_right;
-			if (max_dBV + 10 > limitY)
-			{
-				limitY += 10;
-				myPlot.Axes.SetLimits(Math.Log10(10), Math.Log10(100000), -150, limitY);
-			}
-
-			myPlot.Legend.Orientation = ScottPlot.Orientation.Vertical;
-			myPlot.Legend.FontSize = GraphUtil.PtToPixels(PixelSizes.LEGEND_SIZE);
-
 			fftPlot.Refresh();
 		}
-
-
 
 		/// <summary>
 		/// Initialize the magnitude plot
@@ -653,91 +590,15 @@ namespace QA40xPlot.Actions
 		void InitializeMagnitudePlot()
         {
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
+            InitializeMagFreqPlot(myPlot);
+
 			var thdFreq = ViewSettings.Singleton.SpectrumVm;
 
-			myPlot.Clear();
-			//myPlot.Axes.Remove(Edge.Right);
-
-			// create a minor tick generator that places log-distributed minor ticks
-			//ScottPlot.TickGenerators. minorTickGen = new();
-			//minorTickGen.Divisions = 1;
-
-			// create a numeric tick generator that uses our custom minor tick generator
-			ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGen = new(2);
-
-            ScottPlot.TickGenerators.NumericAutomatic tickGenY = new();
-            tickGenY.TargetTickCount = 15;
-            tickGenY.MinorTickGenerator = minorTickGen;
-
-            // tell the left axis to use our custom tick generator
-            myPlot.Axes.Left.TickGenerator = tickGenY;
-
-            // create a minor tick generator that places log-distributed minor ticks
-            ScottPlot.TickGenerators.LogMinorTickGenerator minorTickGenX = new();
-
-            // create a numeric tick generator that uses our custom minor tick generator
-            //ScottPlot.TickGenerators.NumericAutomatic tickGenX = new();
-            //tickGenX.MinorTickGenerator = minorTickGenX;
-
-            // create a manual tick generator and add ticks
-            ScottPlot.TickGenerators.NumericManual tickGenX = new();
-
-            // add major ticks with their labels
-            tickGenX.AddMajor(Math.Log10(1), "1");
-            tickGenX.AddMajor(Math.Log10(2), "2");
-            tickGenX.AddMajor(Math.Log10(5), "5");
-            tickGenX.AddMajor(Math.Log10(10), "10");
-            tickGenX.AddMajor(Math.Log10(20), "20");
-            tickGenX.AddMajor(Math.Log10(50), "50");
-            tickGenX.AddMajor(Math.Log10(100), "100");
-            tickGenX.AddMajor(Math.Log10(200), "200");
-            tickGenX.AddMajor(Math.Log10(500), "500");
-            tickGenX.AddMajor(Math.Log10(1000), "1k");
-            tickGenX.AddMajor(Math.Log10(2000), "2k");
-            tickGenX.AddMajor(Math.Log10(5000), "5k");
-            tickGenX.AddMajor(Math.Log10(10000), "10k");
-            tickGenX.AddMajor(Math.Log10(20000), "20k");
-            tickGenX.AddMajor(Math.Log10(50000), "50k");
-            tickGenX.AddMajor(Math.Log10(100000), "100k");
-
-            myPlot.Axes.Bottom.TickGenerator = tickGenX;
-
-            // show grid lines for major ticks
-            myPlot.Grid.MajorLineColor = Colors.Black.WithOpacity(.35);
-            myPlot.Grid.MajorLineWidth = 1;
-            myPlot.Grid.MinorLineColor = Colors.Black.WithOpacity(.15);
-            myPlot.Grid.MinorLineWidth = 1;
-
-
-            //myPlot.Axes.AutoScale();
 			myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(thdFreq.GraphStartFreq)), Math.Log10(Convert.ToInt32(thdFreq.GraphEndFreq)), thdFreq.RangeBottomdB, thdFreq.RangeTopdB);
 
             myPlot.Title("Spectrum");
-            myPlot.Axes.Title.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.TITLE_SIZE);
-
-
 			myPlot.XLabel("Frequency (Hz)");
-			myPlot.Axes.Bottom.Label.Alignment = Alignment.MiddleCenter;
-			myPlot.Axes.Bottom.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
 			myPlot.YLabel("dBV");
-			myPlot.Axes.Left.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
-
-			// configure tick labels
-			myPlot.Axes.Bottom.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
-			myPlot.Axes.Left.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
-
-			// Legend
-			InitLegend(myPlot);
-
-			ScottPlot.AxisRules.MaximumBoundary rule = new(
-                xAxis: myPlot.Axes.Bottom,
-                yAxis: myPlot.Axes.Left,
-                limits: new AxisLimits(Math.Log10(1), Math.Log10(100000), -200, 100)
-                );
-
-            myPlot.Axes.Rules.Clear();
-            myPlot.Axes.Rules.Add(rule);
-
 
             fftPlot.Refresh();
         }
@@ -750,7 +611,6 @@ namespace QA40xPlot.Actions
         void PlotMagnitude(SpectrumMeasurementResult measurementResult, int measurementNr, bool showLeftChannel, bool showRightChannel)
         {
 			var specVm = ViewSettings.Singleton.SpectrumVm;
-			//QaLibrary.PlotMiniFftGraph(fftPlot, MeasurementResult.FrequencySteps[0].fftData, specVm.LeftChannel, specVm.RightChannel);
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			myPlot.Clear();
             var fftData = MeasurementResult.FrequencySteps[0].fftData;
@@ -796,15 +656,6 @@ namespace QA40xPlot.Actions
 				plotTot_Right.MarkerSize = 1;
 			}
 
-			var limitY = myPlot.Axes.GetLimits().YRange.Max;
-			var max_dBV_left = leftChannelEnabled ? dBV_Left_Y.Max(f => f) : -150;
-			var max_dBV_right = rightChannelEnabled ? dBV_Right_Y.Max(f => f) : -150;
-			var max_dBV = (max_dBV_left > max_dBV_right) ? max_dBV_left : max_dBV_right;
-			if (max_dBV + 10 > limitY)
-			{
-				limitY += 10;
-				myPlot.Axes.SetLimits(Math.Log10(10), Math.Log10(100000), -150, limitY);
-			}
 			fftPlot.Refresh();
 		}
 

@@ -405,8 +405,12 @@ namespace QA40xPlot.Libraries
 
             // You need to use NUGET to install System.Text.Json from MSFT
             var result = JsonSerializer.Deserialize<Dictionary<string, string>>(content);
+            if(result == null)
+			{
+				result = new Dictionary<string, string>();
+			}
 
-            return result;
+			return result;
         }
 
 

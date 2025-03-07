@@ -240,7 +240,7 @@ namespace QA40xPlot.Actions
 				if (i == 0)
 					await Qa40x.SetOutputSource(OutputSources.Sine);                // We need to call this the first time
 
-				LeftRightSeries lrfs = null;
+				LeftRightSeries? lrfs = null;
 				do
 				{
 					try
@@ -481,7 +481,7 @@ namespace QA40xPlot.Actions
 			myPlot.YLabel("Distortion (%)");
 			myPlot.Axes.Left.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
 
-			InitLegend(myPlot);
+			SetupLegend(myPlot);
 
 			ScottPlot.AxisRules.MaximumBoundary rule = new(
 				xAxis: myPlot.Axes.Bottom,
@@ -682,7 +682,7 @@ namespace QA40xPlot.Actions
 			myPlot.Axes.Left.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
 
 			// Legend
-			InitLegend(myPlot);
+			SetupLegend(myPlot);
 
 			ScottPlot.AxisRules.MaximumBoundary rule = new(
 				xAxis: myPlot.Axes.Bottom,

@@ -262,19 +262,19 @@ namespace QA40xPlot.ViewModels
 			get => _ShowNoiseFloor;
 			set => SetProperty(ref _ShowNoiseFloor, value);
 		}
-		private string _SampleRate;
+		private string _SampleRate = String.Empty;
 		public string SampleRate
 		{
 			get => _SampleRate;
 			set => SetProperty(ref _SampleRate, value);
 		}
-		private string _FftSize;
+		private string _FftSize = String.Empty;
 		public string FftSize
 		{
 			get => _FftSize;
 			set => SetProperty(ref _FftSize, value);
 		}
-		private string _Windowing;
+		private string _Windowing = String.Empty;
 		public string WindowingMethod
 		{
 			get => _Windowing;
