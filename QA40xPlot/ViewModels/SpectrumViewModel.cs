@@ -4,10 +4,8 @@ using QA40xPlot.Libraries;
 using QA40xPlot.Views;
 using ScottPlot;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Windows;
-using System.Windows.Controls;
 
 namespace QA40xPlot.ViewModels
 {
@@ -18,9 +16,8 @@ namespace QA40xPlot.ViewModels
 		public List<String> MeasureTypes { get => new List<string> { "Input Voltage", "Output Voltage", "Output Power" }; }
 		public List<String> GenFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "2000", "5000", "10000" }; }
 		public List<String> GenAmplitudes { get => new List<string> { "0.05", "0.1", "0.25", "0.5", "0.75", "1", "2", "5" }; }
-		public List<String> StartFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500" }; }
 		private ActSpectrum actSpec { get;  set; }
-		private ChannelInfo actInfo { get;  set; }
+		private ThdChannelInfo actInfo { get;  set; }
 		public RelayCommand SetAttenuate { get => new RelayCommand(SetAtten); }
 		public RelayCommand DoStart { get => new RelayCommand(StartIt); }
 		public RelayCommand DoStop { get => new RelayCommand(StopIt); }
@@ -372,7 +369,7 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		public void SetAction(PlotControl plot, ChannelInfo info)
+		public void SetAction(PlotControl plot, ThdChannelInfo info)
 		{
 			SpectrumData data = new SpectrumData();
 			actSpec = new ActSpectrum(ref data, plot);

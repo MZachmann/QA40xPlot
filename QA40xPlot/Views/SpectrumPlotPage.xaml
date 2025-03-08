@@ -130,7 +130,7 @@
         </StackPanel>
         <Grid Grid.Column="1">
             <views:PlotControl x:Name="WpfPlot1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
-            <views:ChannelInfo x:Name="Info1"  
+            <views:ThdChannelInfo x:Name="Info1"  
                   VerticalAlignment="Top" HorizontalAlignment="Left" Margin="80,50,0,0" />
         </Grid>
         <StackPanel Grid.Column="2" Orientation="Vertical">

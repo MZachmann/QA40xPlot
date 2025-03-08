@@ -17,11 +17,11 @@ using System.Windows.Shapes;
 namespace QA40xPlot.Views
 {
 	/// <summary>
-	/// Interaction logic for ChannelInfo.xaml
+	/// Interaction logic for ImdChannelInfo.xaml
 	/// </summary>
-	public partial class ChannelInfo : UserControl
+	public partial class ImdChannelInfo : UserControl
 	{
-		public ChannelInfo()
+		public ImdChannelInfo()
 		{
 			InitializeComponent();
 			SetDataContext(true);
@@ -29,17 +29,8 @@ namespace QA40xPlot.Views
 
 		public void SetDataContext(bool Leftright)
 		{
-			ChannelViewModel vm;
-			if (Leftright)
-			{
-				vm = ViewSettings.Singleton.ChannelLeft;
-				this.DataContext = vm;
-			}
-			else
-			{
-				vm = ViewSettings.Singleton.ChannelRight;
-				this.DataContext = vm;
-			}
+			var vm = Leftright ? ViewSettings.Singleton.ImdChannelLeft : ViewSettings.Singleton.ImdChannelRight;
+			this.DataContext = vm;
 		}
 	}
 }

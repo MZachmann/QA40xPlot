@@ -8,14 +8,20 @@ using System.Windows.Controls;
 
 namespace QA40xPlot.ViewModels
 {
-	public class ChannelViewModel : BaseViewModel
+	public class ImdChannelViewModel : BaseViewModel
 	{
 		//public string ChannelId { get; set; }
-		private double _FundamentalFrequency = 0;         // type of alert
-		public double FundamentalFrequency
+		private double _Gen1F = 0;         // type of alert
+		public double Gen1F
 		{
-			get => _FundamentalFrequency; 
-			set => SetProperty(ref _FundamentalFrequency, value);
+			get => _Gen1F; 
+			set => SetProperty(ref _Gen1F, value);
+		}
+		private double _Gen2F = 0;         // type of alert
+		public double Gen2F
+		{
+			get => _Gen2F;
+			set => SetProperty(ref _Gen2F, value);
 		}
 
 		private double _SNRatio = 0;         // type of alert
@@ -32,8 +38,8 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ENOB, value);
 		}
 
-		private ThdFrequencyStepChannel? _MyStep = null;         // type of alert
-		public ThdFrequencyStepChannel? MyStep
+		private ImdStepChannel? _MyStep = null;         // type of alert
+		public ImdStepChannel? MyStep
 		{
 			get => _MyStep;
 			set => SetProperty(ref _MyStep, value);
@@ -51,14 +57,15 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ThdInPercent, value);
 		}
 
-		public ChannelViewModel() 
+		public ImdChannelViewModel() 
 		{ 
 		}
 
-		public void CalculateChannelValues(ThdFrequencyStepChannel step, double Fundamental)
+		public void CalculateChannelValues(ImdStepChannel step, double gen1f, double gen2f)
 		{
 			MyStep = step;
-			FundamentalFrequency = Fundamental;
+			Gen1F = gen1f;
+			Gen2F = gen2f;
 			SNRatio = step.Snr_dB;
 			ENOB = (SNRatio - 1.76) / 6.02;
 			ThdIndB = step.Thd_dB;

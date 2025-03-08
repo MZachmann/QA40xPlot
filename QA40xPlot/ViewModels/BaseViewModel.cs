@@ -8,7 +8,7 @@ namespace QA40xPlot.ViewModels
 		// public INavigation ViewNavigator { get; set; }
 	#region Shared Properties
 		public List<String> EndFrequencies { get => new List<string> { "1000", "2000", "5000", "10000", "20000", "50000", "100000" }; }
-		public List<String> StartFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500" }; }
+		public List<String> StartFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "5000", "10000" }; }
 		public List<String> TopDbs { get => new List<string> { "-80", "-50", "0", "20", "50", "100" }; }
 		public List<String> BottomDbs { get => new List<string> { "-200", "-180", "-160", "-140", "-120", "-100", "-50", "0" }; }
 		public List<String> StartPercents { get => new List<string> { "100", "10", "1", "0.1", "0.01" }; }

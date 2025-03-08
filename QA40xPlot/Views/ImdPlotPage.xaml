@@ -167,7 +167,7 @@
         </StackPanel>
         <Grid Grid.Column="1">
             <views:PlotControl x:Name="WpfPlot1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
-            <views:ChannelInfo x:Name="Info1"  
+            <views:ImdChannelInfo x:Name="Info1"  
                   VerticalAlignment="Top" HorizontalAlignment="Left" Margin="80,50,0,0" />
         </Grid>
         <StackPanel Grid.Column="2" Orientation="Vertical">
@@ -243,7 +243,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <CheckBox Content="Summary Data" IsChecked="{Binding ShowSummary}" Grid.Row="0"  />
-                    <CheckBox Content="Harmonic Markers" IsChecked="{Binding ShowMarkers}" Grid.Row="1"  />
+                    <CheckBox Content="Intermod Markers" IsChecked="{Binding ShowMarkers}" Grid.Row="1"  />
                     <CheckBox Content="Power Markers" IsChecked="{Binding ShowPowerMarkers}" Grid.Row="2"  />
                 </Grid>
             </GroupBox>

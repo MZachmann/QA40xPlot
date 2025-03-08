@@ -13,8 +13,10 @@ namespace QA40xPlot.ViewModels
 		public ImdViewModel ImdVm { get; private set; }
 		public ThdFreqViewModel ThdFreq { get; private set; }
 		public ThdAmpViewModel ThdAmp { get; private set; }
-		public ChannelViewModel ChannelLeft { get; private set; }
-		public ChannelViewModel ChannelRight { get; private set; }
+		public ThdChannelViewModel ChannelLeft { get; private set; }
+		public ThdChannelViewModel ChannelRight { get; private set; }
+		public ImdChannelViewModel ImdChannelLeft { get; private set; }
+		public ImdChannelViewModel ImdChannelRight { get; private set; }
 		public FreqRespViewModel FreqRespVm { get; private set; }
 		public MainViewModel Main { get; private set; }
 		public string SerializeAll()
@@ -30,8 +32,10 @@ namespace QA40xPlot.ViewModels
 			ImdVm = new ImdViewModel();
 			ThdAmp = new ThdAmpViewModel();
 			ThdFreq = new ThdFreqViewModel();
-			ChannelLeft = new ChannelViewModel();
-			ChannelRight = new ChannelViewModel();
+			ChannelLeft = new ThdChannelViewModel();
+			ChannelRight = new ThdChannelViewModel();
+			ImdChannelLeft = new ImdChannelViewModel();
+			ImdChannelRight = new ImdChannelViewModel();
 			FreqRespVm = new FreqRespViewModel();
 
 			//var vout = SerializeAll();

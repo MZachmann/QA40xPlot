@@ -351,7 +351,7 @@ namespace QA40xPlot.Actions
         {
             uint fundamentalBin = QaLibrary.GetBinOfFrequency(fundamentalFrequency, binSize);
 
-            ThdFrequencyStepChannel channelData = new()
+			ThdFrequencyStepChannel channelData = new()
             {
                 Fundamental_V = fftData[fundamentalBin],
                 Fundamental_dBV = 20 * Math.Log10(fftData[fundamentalBin]),
@@ -372,7 +372,8 @@ namespace QA40xPlot.Actions
                 double harmonicFrequency = fundamentalFrequency * harmonicNumber;
                 uint bin = QaLibrary.GetBinOfFrequency(harmonicFrequency, binSize);        // Calculate bin of the harmonic frequency
 
-                if (bin >= fftData.Length) break;                                          // Invalid bin, skip harmonic
+                if (bin >= fftData.Length) 
+                    break;                                          // Invalid bin, skip harmonic
 
                 double amplitude_V = fftData[bin];
                 double amplitude_dBV = 20 * Math.Log10(amplitude_V);

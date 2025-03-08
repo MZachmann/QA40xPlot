@@ -2,13 +2,9 @@
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.Views;
-using ScottPlot;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Windows;
-using System.Windows.Controls;
-using Windows.Storage.BulkAccess;
 
 namespace QA40xPlot.ViewModels
 {
@@ -19,12 +15,11 @@ namespace QA40xPlot.ViewModels
 		public List<String> MeasureTypes { get => new List<string> { "Input Voltage", "Output Voltage", "Output Power" }; }
 		public List<String> GenFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "2000", "5000", "10000" }; }
 		public List<String> GenAmplitudes { get => new List<string> { "0.05", "0.1", "0.25", "0.5", "0.75", "1", "2", "5" }; }
-		public List<String> StartFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500" }; }
 		public List<String> IntermodTypes { get => new List<string> { "Custom", "SMPTE (60Hz.7KHz 4:1)", "DIN (250Hz.8KHz 4:1",
 			"CCIF (19KHz.20KHz 1:1)", "AES-17 MD (41Hz.7993Hz 4:1)", "AES-17 DFD (18KHz.20KHz 1:1)",
 			"TDFD Phono (3005Hz.4462Hz 1:1)" }; }
 		private ActImd actImd { get;  set; }
-		private ChannelInfo actInfo { get;  set; }
+		private ImdChannelInfo actInfo { get;  set; }
 		public RelayCommand SetAttenuate { get => new RelayCommand(SetAtten); }
 		public RelayCommand DoStart { get => new RelayCommand(StartIt); }
 		public RelayCommand DoStop { get => new RelayCommand(StopIt); }
@@ -411,7 +406,7 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		public void SetAction(PlotControl plot, ChannelInfo info)
+		public void SetAction(PlotControl plot, ImdChannelInfo info)
 		{
 			ImdData data = new ImdData();
 			actImd = new ActImd(ref data, plot);
@@ -548,9 +543,9 @@ namespace QA40xPlot.ViewModels
 			GeneratorAmplitude = -20;       // this is the unitless (dbV) amplitude of the generator
 			Gen1Voltage = QaLibrary.ConvertVoltage(GeneratorAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)GeneratorUnits).ToString();
 			Gen2Voltage = "0.1";
-			Gen2Frequency = "2000";
+			Gen2Frequency = "20000";
 			MeasureType = 0;
-			Gen1Frequency = "1000";
+			Gen1Frequency = "19000";
 			UseGenerator = false;
 			UseGenerator2 = false;
 

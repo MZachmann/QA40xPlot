@@ -1,9 +1,9 @@
 ﻿using QA40xPlot.Data;
-
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
+using System.ComponentModel;
 using System.Data;
 using System.Windows;
 
@@ -12,7 +12,7 @@ using System.Windows;
 namespace QA40xPlot.Actions
 {
 
-    public class ActImd : ActBase
+	public class ActImd : ActBase
     {
         public ImdData Data { get; set; }                  // Data used in this form instance
 
@@ -228,33 +228,16 @@ namespace QA40xPlot.Actions
 
                     ImdStep step = new()
                     {
-                        FundamentalFrequency = stepBinFrequencies[0],
-                        GeneratorVoltage = QaLibrary.ConvertVoltage(amplitudeSetpoint1dBV, E_VoltageUnit.dBV, E_VoltageUnit.Volt),
-                        fftData = lrfs.FreqRslt,
+						Gen1Freq = stepBinFrequencies[0],
+						Gen2Freq = stepBinFrequencies[1],
+						Gen1Volts = QaLibrary.ConvertVoltage(amplitudeSetpoint1dBV, E_VoltageUnit.dBV, E_VoltageUnit.Volt),
+						Gen2Volts = QaLibrary.ConvertVoltage(amplitudeSetpoint2dBV, E_VoltageUnit.dBV, E_VoltageUnit.Volt),
+						fftData = lrfs.FreqRslt,
                         timeData = lrfs.TimeRslt
                     };
                   
-                    step.Left = ChannelCalculations(binSize, step.FundamentalFrequency, amplitudeSetpoint1dBV, lrfs.FreqRslt.Left, msr.NoiseFloor.FreqRslt.Left, thd.AmpLoad);
-                    step.Right = ChannelCalculations(binSize, step.FundamentalFrequency, amplitudeSetpoint1dBV, lrfs.FreqRslt.Right, msr.NoiseFloor.FreqRslt.Right, thd.AmpLoad);
-
-                    // Calculate the THD
-                    {
-                        var maxf = 20000;   // the app seems to use 20,000 so not sampleRate/ 2.0;
-						var snrdb = await Qa40x.GetSnrDb(stepBinFrequencies[0], 20.0, maxf);
-						var thds = await Qa40x.GetThdDb(stepBinFrequencies[0], maxf);
-						var thdN = await Qa40x.GetThdnDb(stepBinFrequencies[0], 20.0, maxf);
-
-						step.Left.Thd_dBN = thdN.Left;
-						step.Right.Thd_dBN = thdN.Right;
-						step.Left.Thd_dB = thds.Left;
-						step.Right.Thd_dB = thds.Right;
-						step.Left.Snr_dB = snrdb.Left;
-						step.Right.Snr_dB = snrdb.Right;
-                        step.Left.Thd_Percent = 100*Math.Pow(10, thds.Left / 20);
-						step.Right.Thd_Percent = 100 * Math.Pow(10, thds.Right / 20);
-                        step.Left.Thd_PercentN = 100 * Math.Pow(10, thdN.Left / 20);
-						step.Right.Thd_PercentN = 100 * Math.Pow(10, thdN.Right / 20);
-					}
+                    step.Left = ChannelCalculations(binSize, step.Gen1Freq, step.Gen2Freq, amplitudeSetpoint1dBV, lrfs.FreqRslt.Left, msr.NoiseFloor.FreqRslt.Left, thd.AmpLoad);
+                    step.Right = ChannelCalculations(binSize, step.Gen1Freq, step.Gen2Freq, amplitudeSetpoint1dBV, lrfs.FreqRslt.Right, msr.NoiseFloor.FreqRslt.Right, thd.AmpLoad);
 
 					// Add step data to list
 					msr.FrequencySteps.Clear();
@@ -342,9 +325,10 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			if ( vm.ShowMarkers)
             {
-                AddAMarker(fmr, fmr.FrequencySteps[0].FundamentalFrequency);
-
-                for(int i=0; i<6; i++)
+                AddAMarker(fmr, fmr.FrequencySteps[0].Gen1Freq);
+				AddAMarker(fmr, fmr.FrequencySteps[0].Gen2Freq);
+				var cn = fmr.FrequencySteps[0].Left.Harmonics.Count;
+				for (int i=0; i<cn; i++)
                 {
                     var frq = fmr.FrequencySteps[0].Left.Harmonics[i].Frequency;
 					AddAMarker(fmr, frq);
@@ -387,6 +371,34 @@ namespace QA40xPlot.Actions
 			}
 		}
 
+		private void Addif(ref List<double> frqs, double dval )
+		{
+			if( dval > 0)
+				frqs.Add(dval);
+		}
+
+		private double[] MakeHarmonics(double f1, double f2)
+		{
+			List<double> harmFreqs = new List<double>();
+			if( f1 > f2)
+			{
+				var a = f2;
+				f2 = f1;
+				f1 = f2;
+			}
+			Addif(ref harmFreqs, f2 - f1);
+			Addif(ref harmFreqs, f2 + f1);
+			Addif(ref harmFreqs, 2*f1 - f2);
+			Addif(ref harmFreqs, 2*f2 - f1);
+			Addif(ref harmFreqs, 3*f1 - 2*f2);
+			Addif(ref harmFreqs, 3*f2 - 2*f1);
+			Addif(ref harmFreqs, 4 * f1 - 3 * f2);
+			Addif(ref harmFreqs, 4 * f2 - 3 * f1);
+			Addif(ref harmFreqs, 3 * f2 - f1);
+			Addif(ref harmFreqs, 3 * f1 - f2);
+			return harmFreqs.ToArray();
+		}
+
 		/// <summary>
 		/// Perform the calculations of a single channel (left or right)
 		/// </summary>
@@ -396,15 +408,18 @@ namespace QA40xPlot.Actions
 		/// <param name="fftData"></param>
 		/// <param name="noiseFloorFftData"></param>
 		/// <returns></returns>
-		private ThdFrequencyStepChannel ChannelCalculations(double binSize, double fundamentalFrequency, double generatorAmplitudeDbv, double[] fftData, double[] noiseFloorFftData, double load)
+		private ImdStepChannel ChannelCalculations(double binSize, double gen1F, double gen2F, double generatorAmplitudeDbv, double[] fftData, double[] noiseFloorFftData, double load)
         {
-            uint fundamentalBin = QaLibrary.GetBinOfFrequency(fundamentalFrequency, binSize);
+            uint fundamental1Bin = QaLibrary.GetBinOfFrequency(gen1F, binSize);
+			uint fundamental2Bin = QaLibrary.GetBinOfFrequency(gen2F, binSize);
 
-            ThdFrequencyStepChannel channelData = new()
+			ImdStepChannel channelData = new()
             {
-                Fundamental_V = fftData[fundamentalBin],
-                Fundamental_dBV = 20 * Math.Log10(fftData[fundamentalBin]),
-                Gain_dB = 20 * Math.Log10(fftData[fundamentalBin] / Math.Pow(10, generatorAmplitudeDbv / 20))
+                Fundamental1_V = fftData[fundamental1Bin],
+                Fundamental1_dBV = 20 * Math.Log10(fftData[fundamental1Bin]),
+				Fundamental2_V = fftData[fundamental2Bin],
+				Fundamental2_dBV = 20 * Math.Log10(fftData[fundamental2Bin]),
+				Gain_dB = 20 * Math.Log10(fftData[fundamental1Bin] / Math.Pow(10, generatorAmplitudeDbv / 20))
             };
 			// Calculate average noise floor
 			uint ABin = QaLibrary.GetBinOfFrequency(500, binSize);
@@ -417,22 +432,37 @@ namespace QA40xPlot.Actions
 			double distortionSqrtTotal = 0;
 			double distortionSqrtTotalN = 0;
 			double distortionD6plus = 0;
-
+			double voltagetotal = 0;
+			var binlist = new List<uint> { fundamental1Bin - 1, fundamental1Bin, fundamental1Bin + 1, fundamental2Bin - 1, fundamental2Bin, fundamental2Bin + 1 };
+			for (uint i=0; i<fftData.Length; i++)
+			{
+				if( ! binlist.Contains(i))
+				{
+					voltagetotal += fftData[i] * fftData[i];		// squared sum
+				}
+			}
+			voltagetotal = Math.Sqrt(voltagetotal);
             // Loop through harmonics up tot the 12th
-            for (int harmonicNumber = 2; harmonicNumber <= 12; harmonicNumber++)                                                  // For now up to 12 harmonics, start at 2nd
+			var vsum = Math.Sqrt(channelData.Fundamental1_V * channelData.Fundamental1_V + channelData.Fundamental2_V * channelData.Fundamental2_V);
+
+			channelData.Snr_dB = 20 * Math.Log10(voltagetotal / vsum);
+			var harmonicFreq = MakeHarmonics(gen1F, gen2F);
+			var maxfreq = binSize * fftData.Count();
+
+			for (int harmonicNumber = 0; harmonicNumber < harmonicFreq.Length; harmonicNumber++)                                                  // For now up to 12 harmonics, start at 2nd
             {
-                double harmonicFrequency = fundamentalFrequency * harmonicNumber;
+                double harmonicFrequency = harmonicFreq[harmonicNumber];
+				if (harmonicFrequency >= maxfreq)
+					continue;
+
                 uint bin = QaLibrary.GetBinOfFrequency(harmonicFrequency, binSize);        // Calculate bin of the harmonic frequency
 
-                if (bin >= fftData.Length) break;                                          // Invalid bin, skip harmonic
-
-                double amplitude_V = fftData[bin];
+                double amplitude_V = (bin >= fftData.Length) ? 0 : fftData[bin];
                 double noise_V = channelData.TotalNoiseFloor_V;
 
 				double amplitude_dBV = 20 * Math.Log10(amplitude_V);
-                double thd_Percent = 0;
-                thd_Percent = (amplitude_V / channelData.Fundamental_V) * 100;
-				double thdN_Percent = ((amplitude_V - noiseFloorFftData[bin]) / channelData.Fundamental_V) * 100;
+                double thd_Percent = (amplitude_V / vsum) * 100;
+				double thdN_Percent = ((amplitude_V - ((bin >= fftData.Length) ? 0 : noiseFloorFftData[bin])) / vsum) * 100;
 
 				HarmonicData harmonic = new()
                 {
@@ -443,7 +473,7 @@ namespace QA40xPlot.Actions
                     Thd_Percent = thd_Percent,
 					Thd_dB = 20 * Math.Log10(thd_Percent / 100.0),
 					Thd_dBN = 20 * Math.Log10(thdN_Percent / 100.0),
-					NoiseAmplitude_V = noiseFloorFftData[bin]
+					NoiseAmplitude_V = (bin >= fftData.Length) ? 0 : noiseFloorFftData[bin]
                 };
 
                 if (harmonicNumber >= 6)
@@ -454,27 +484,27 @@ namespace QA40xPlot.Actions
 				channelData.Harmonics.Add(harmonic);
             }
 
-            // Calculate THD
-   //         if (distortionSqrtTotal != 0)
-   //         {
-   //             channelData.Thd_Percent = (Math.Sqrt(distortionSqrtTotal) / channelData.Fundamental_V) * 100;
-   //             channelData.Thd_PercentN = = (Math.Sqrt(distortionSqrtTotal) / channelData.Fundamental_V) * 100;
-			//	channelData.Thd_dB = 20 * Math.Log10(channelData.Thd_Percent / 100.0);
-			//	var Thdn_Percent = (Math.Sqrt(distortionSqrtTotalN) / channelData.Fundamental_V) * 100;
-			//	channelData.Thd_dBN = 20 * Math.Log10(Thdn_Percent / 100.0);
-			//}
+			// Calculate THD
+			if (distortionSqrtTotal != 0)
+			{
+				channelData.Thd_Percent = (Math.Sqrt(distortionSqrtTotal) / vsum) * 100;
+				channelData.Thd_PercentN = (Math.Sqrt(distortionSqrtTotal) / vsum) * 100;
+				channelData.Thd_dB = 20 * Math.Log10(channelData.Thd_Percent / 100.0);
+				var Thdn_Percent = (Math.Sqrt(distortionSqrtTotalN) / vsum) * 100;
+				channelData.Thd_dBN = 20 * Math.Log10(Thdn_Percent / 100.0);
+			}
 
 			// Calculate D6+ (D6 - D12)
 			if (distortionD6plus != 0)
             {
                 channelData.D6Plus_dBV = 20 * Math.Log10(Math.Sqrt(distortionD6plus));
-                channelData.ThdPercent_D6plus = Math.Sqrt(distortionD6plus / Math.Pow(channelData.Fundamental_V, 2)) * 100;
+                channelData.ThdPercent_D6plus = 100 * Math.Sqrt(distortionD6plus) / vsum;
                 channelData.ThdDbD6plus = 20 * Math.Log10(channelData.ThdPercent_D6plus / 100.0);
             }
 
             // If load not zero then calculate load power
             if (load != 0)
-                channelData.Power_Watt = Math.Pow(channelData.Fundamental_V, 2) / load;
+                channelData.Power_Watt = Math.Pow(vsum, 2) / load;
 
             return channelData;
         }
@@ -511,7 +541,8 @@ namespace QA40xPlot.Actions
 			var imdVm = ViewSettings.Singleton.ImdVm;
 
             ImdViewModel thd = ViewSettings.Singleton.ImdVm;
-            myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(thd.GraphStartFreq)), Math.Log10(Convert.ToInt32(thd.GraphEndFreq)), Math.Log10(Convert.ToDouble(thd.RangeBottom)) - 0.00000001, Math.Log10(Convert.ToDouble(thd.RangeTop)));  // - 0.000001 to force showing label
+            myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(thd.GraphStartFreq)), Math.Log10(Convert.ToInt32(thd.GraphEndFreq)), 
+				Math.Log10(Convert.ToDouble(thd.RangeBottom)) - 0.00000001, Math.Log10(Convert.ToDouble(thd.RangeTop)));  // - 0.000001 to force showing label
 			SetTheTitle(myPlot);
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel("%");
@@ -653,9 +684,6 @@ namespace QA40xPlot.Actions
                 await showMessage("Running");
                 while (!ct.IsCancellationRequested)
                 {
-                    await Task.Delay(250);
-                    if (ct.IsCancellationRequested)
-                        break;
                     if (imdVm.FftSize != fftsize || imdVm.SampleRate != sampleRate || imdVm.Attenuation != atten)
                     {
 						fftsize = imdVm.FftSize;
@@ -707,9 +735,8 @@ namespace QA40xPlot.Actions
         public void DrawChannelInfoTable()
         {
 			ImdViewModel thd = ViewSettings.Singleton.ImdVm;
-			var vm = ViewSettings.Singleton.ChannelLeft;
-            vm.FundamentalFrequency = 0;
-            vm.CalculateChannelValues(MeasurementResult.FrequencySteps[0].Left, Convert.ToDouble( thd.Gen1Frequency));
+			var vm = ViewSettings.Singleton.ImdChannelLeft;
+            vm.CalculateChannelValues(MeasurementResult.FrequencySteps[0].Left, Convert.ToDouble( thd.Gen1Frequency), Convert.ToDouble(thd.Gen2Frequency));
 		}
 
 		public void UpdateGraph(bool settingsChanged)
