@@ -8,10 +8,11 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using Windows.Storage.BulkAccess;
 
 namespace QA40xPlot.ViewModels
 {
-	public class SpectrumViewModel : BaseViewModel
+	public class ImdViewModel : BaseViewModel
 	{
 		public List<String> WindowingTypes { get => new List<string> { "Rectangle", "Hann", "FlatTop" }; }
 		public List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
@@ -19,7 +20,10 @@ namespace QA40xPlot.ViewModels
 		public List<String> GenFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "2000", "5000", "10000" }; }
 		public List<String> GenAmplitudes { get => new List<string> { "0.05", "0.1", "0.25", "0.5", "0.75", "1", "2", "5" }; }
 		public List<String> StartFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500" }; }
-		private ActSpectrum actSpec { get;  set; }
+		public List<String> IntermodTypes { get => new List<string> { "Custom", "SMPTE (60Hz.7KHz 4:1)", "DIN (250Hz.8KHz 4:1",
+			"CCIF (19KHz.20KHz 1:1)", "AES-17 MD (41Hz.7993Hz 4:1)", "AES-17 DFD (18KHz.20KHz 1:1)",
+			"TDFD Phono (3005Hz.4462Hz 1:1)" }; }
+		private ActImd actImd { get;  set; }
 		private ChannelInfo actInfo { get;  set; }
 		public RelayCommand SetAttenuate { get => new RelayCommand(SetAtten); }
 		public RelayCommand DoStart { get => new RelayCommand(StartIt); }
@@ -56,6 +60,19 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _Gen1Voltage;
 			set => SetProperty(ref _Gen1Voltage, value);
+		}
+		private string _Gen2Frequency;
+		public string Gen2Frequency
+		{
+			get => _Gen2Frequency;
+			set => SetProperty(ref _Gen2Frequency, value);
+		}
+
+		private string _Gen2Voltage;
+		public string Gen2Voltage
+		{
+			get => _Gen2Voltage;
+			set => SetProperty(ref _Gen2Voltage, value);
 		}
 		private string _GraphStartFreq;
 		public string GraphStartFreq
@@ -316,6 +333,20 @@ namespace QA40xPlot.ViewModels
 			get => _UseGenerator2;
 			set => SetProperty(ref _UseGenerator2, value);
 		}
+		private bool _IsImdCustom;
+		public bool IsImdCustom
+		{
+			get => _IsImdCustom;
+			set => SetProperty(ref _IsImdCustom, value);
+		}
+
+		private string _IntermodType;
+		public string IntermodType
+		{
+			get => _IntermodType;
+			set => SetProperty(ref _IntermodType, value);
+		}
+		
 		#endregion
 
 
@@ -325,27 +356,35 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
+				case "Gen1Voltage":
+					if(! IsImdCustom)
+					{
+						// synchronize voltage 2
+						SetImType();
+					}
+					break;
 				case "OutputUnits":
-					actSpec?.UpdateAmpOutputVoltageDisplay();
+					actImd?.UpdateAmpOutputVoltageDisplay();
 					break;
 				case "GeneratorUnits":
-					actSpec?.UpdateGeneratorVoltageDisplay();
+					actImd?.UpdateGeneratorVoltageDisplay();
 					break;
 				case "Voltage":
 				case "MeasureType":
 				case "VoltageUnits":
-					actSpec?.UpdateGeneratorParameters();
+					actImd?.UpdateGeneratorParameters();
 					break;
 				case "ShowPercent":
 					ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
 					ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;
-					actSpec?.UpdateGraph(true);
+					actImd?.UpdateGraph(true);
 					break;
 				case "ShowSummary":
 					ShowChannelInfo = ShowSummary;
 					if (actInfo != null)
 						actInfo.Visibility = ShowSummary ? Visibility.Visible : Visibility.Hidden;
 					break;
+				case "IntermodType":
 				case "GraphStartFreq":
 				case "GraphEndFreq":
 				case "RangeBottomdB":
@@ -365,7 +404,7 @@ namespace QA40xPlot.ViewModels
 				case "ShowThickLines":
 				case "ShowMarkers":
 				case "ShowPowerMarkers":
-					actSpec?.UpdateGraph(true);
+					actImd?.UpdateGraph(true);
 					break;
 				default:
 					break;
@@ -374,14 +413,14 @@ namespace QA40xPlot.ViewModels
 
 		public void SetAction(PlotControl plot, ChannelInfo info)
 		{
-			SpectrumData data = new SpectrumData();
-			actSpec = new ActSpectrum(ref data, plot);
+			ImdData data = new ImdData();
+			actImd = new ActImd(ref data, plot);
 			actInfo = info;
 		}
 
 		private static void SetAtten(object parameter)
 		{
-			var vm = ViewSettings.Singleton.SpectrumVm;
+			var vm = ViewSettings.Singleton.ImdVm;
 			var atten = MathUtil.ParseTextToDouble(parameter.ToString(), vm.Attenuation);
 			vm.Attenuation = atten;
 		}
@@ -389,14 +428,14 @@ namespace QA40xPlot.ViewModels
 		private static void StartIt(object parameter)
 		{
 			// Implement the logic to start the measurement process
-			var vm = ViewModels.ViewSettings.Singleton.SpectrumVm;
-			vm.actSpec.StartMeasurement();
+			var vm = ViewModels.ViewSettings.Singleton.ImdVm;
+			vm.actImd.StartMeasurement();
 		}
 
 		private static void StopIt(object parameter)
 		{
-			var vm = ViewModels.ViewSettings.Singleton.SpectrumVm;
-			vm.actSpec.DoCancel();
+			var vm = ViewModels.ViewSettings.Singleton.ImdVm;
+			vm.actImd.DoCancel();
 		}
 
 		public string SerializeAll()
@@ -406,12 +445,58 @@ namespace QA40xPlot.ViewModels
 			return jsonString;
 		}
 
-		~SpectrumViewModel()
+		private void ExecIm(int df1, int df2, int divisor)
+		{
+			var ax = IntermodType;
+			this.Gen2Voltage = (Convert.ToDouble(this.Gen1Voltage) / divisor).ToString();
+			this.Gen1Frequency = df1.ToString();
+			this.Gen2Frequency = df2.ToString();
+			IntermodType = ax;
+		}
+
+		public void SetImType()
+		{
+			var tt = IntermodType;
+			if (tt == null)
+				return;
+
+			IsImdCustom = (tt == "Custom");
+			// if custom, we're done
+			if (IsImdCustom)
+				return;
+
+			if( tt.Contains("SMPTE "))
+			{
+				ExecIm(60, 7000, 4);
+			}
+			else if(tt.Contains("DIN "))
+			{
+				ExecIm(250, 8000, 4);
+			}
+			else if (tt.Contains("CCIF "))
+			{
+				ExecIm(19000, 20000, 1);
+			}
+			else if (tt.Contains("AES-17 MD"))
+			{
+				ExecIm(41, 7993, 4);
+			}
+			else if (tt.Contains("AES-17 DFD"))
+			{
+				ExecIm(18000, 20000, 1);
+			}
+			else if (tt.Contains("TDFD Phono"))
+			{
+				ExecIm(3005, 4462, 1);
+			}
+		}
+
+		~ImdViewModel()
 		{
 			PropertyChanged -= CheckPropertyChanged;
 		}
 
-		public SpectrumViewModel()
+		public ImdViewModel()
 		{
 			PropertyChanged += CheckPropertyChanged;
 
@@ -462,6 +547,8 @@ namespace QA40xPlot.ViewModels
 			GeneratorUnits = (int)E_VoltageUnit.Volt;
 			GeneratorAmplitude = -20;       // this is the unitless (dbV) amplitude of the generator
 			Gen1Voltage = QaLibrary.ConvertVoltage(GeneratorAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)GeneratorUnits).ToString();
+			Gen2Voltage = "0.1";
+			Gen2Frequency = "2000";
 			MeasureType = 0;
 			Gen1Frequency = "1000";
 			UseGenerator = false;
@@ -469,6 +556,9 @@ namespace QA40xPlot.ViewModels
 
 			Attenuation = 42;
 			AttenCheck = true;
+
+			IntermodType = "Custom";
+			IsImdCustom = true;
 		}
 	}
 }

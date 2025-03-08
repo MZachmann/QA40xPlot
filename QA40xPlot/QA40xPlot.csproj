@@ -31,6 +31,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Views\ImdPlotPage.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\ThdAmpPlotPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -40,6 +43,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Page Update="Views\ImdPlotPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Views\ThdAmpPlotPage.xaml">
       <SubType>Designer</SubType>
     </Page>
@@ -47,10 +53,6 @@
 
   <ItemGroup>
     <Folder Include="Images\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Include="Views\ThmColors.xaml.not" />
   </ItemGroup>
 
 </Project>

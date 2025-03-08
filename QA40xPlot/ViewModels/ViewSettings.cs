@@ -10,6 +10,7 @@ namespace QA40xPlot.ViewModels
 	{
 		public static ViewSettings Singleton { get; private set; } = new ViewSettings();
 		public SpectrumViewModel SpectrumVm { get; private set; }
+		public ImdViewModel ImdVm { get; private set; }
 		public ThdFreqViewModel ThdFreq { get; private set; }
 		public ThdAmpViewModel ThdAmp { get; private set; }
 		public ChannelViewModel ChannelLeft { get; private set; }
@@ -24,13 +25,14 @@ namespace QA40xPlot.ViewModels
 
 		public ViewSettings() 
 		{
+			Main = new MainViewModel();
 			SpectrumVm = new SpectrumViewModel();
+			ImdVm = new ImdViewModel();
 			ThdAmp = new ThdAmpViewModel();
 			ThdFreq = new ThdFreqViewModel();
 			ChannelLeft = new ChannelViewModel();
 			ChannelRight = new ChannelViewModel();
 			FreqRespVm = new FreqRespViewModel();
-			Main = new MainViewModel();
 
 			//var vout = SerializeAll();
 			//Console.WriteLine(vout);

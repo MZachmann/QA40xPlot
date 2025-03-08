@@ -8,16 +8,12 @@
         public string Title { get; set; }
         public DateTime CreateDate { get; set; }
 
-        public ThdAmplitudeMeasurementSettings MeasurementSettings { get; set; }
-        public ThdAmplitudeGraphSettings GraphSettings { get; set; }
         public List<ThdAmplitudeMeasurementResult> Measurements { get; set; }
 
 
         public ThdAmplitudeData()
         {
             Measurements = [];
-            MeasurementSettings = new();
-            GraphSettings = new();
         }
     }
 }           

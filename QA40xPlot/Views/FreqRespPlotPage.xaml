@@ -164,18 +164,6 @@
                     <Button Content="Autofit" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Center" Grid.ColumnSpan="2"  />
                 </Grid>
             </GroupBox>
-            <GroupBox Header="Graph Data">
-                <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <CheckBox Content="Summary Data" IsChecked="{Binding ShowSummary}" Grid.Row="0"  />
-                    <CheckBox Content="Harmonic Markers" IsChecked="{Binding ShowMarkers}" Grid.Row="1"  />
-                    <CheckBox Content="Power Markers" IsChecked="{Binding ShowPowerMarkers}" Grid.Row="2"  />
-                </Grid>
-            </GroupBox>
             <GroupBox Header="Options">
                 <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
                     <Grid.RowDefinitions>

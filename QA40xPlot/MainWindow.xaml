@@ -21,6 +21,11 @@
                     <views:SpectrumPlotPage  />
                 </Grid>
             </TabItem>
+            <TabItem Header="Intermodulation">
+                <Grid Background="#FF35E5E5">
+                    <views:ImdPlotPage  />
+                </Grid>
+            </TabItem>
             <TabItem Header="Thd vs Freq">
                 <Grid Background="#FFE5E5E5">
                     <views:ThdFreqPlotPage  />

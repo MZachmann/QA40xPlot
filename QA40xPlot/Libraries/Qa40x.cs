@@ -166,8 +166,13 @@ namespace QA40xPlot.Libraries
             await Put(string.Format("/Settings/AudioGen/Gen1/{0}/{1}/{2}", enabled ? "On" : "Off", freqHz.ToString(), ampDbv.ToString()));
         }
 
+		static public async Task SetGen2(double freqHz, double ampDbv, bool enabled)
+		{
+			await Put(string.Format("/Settings/AudioGen/Gen2/{0}/{1}/{2}", enabled ? "On" : "Off", freqHz.ToString(), ampDbv.ToString()));
+		}
 
-        static public async Task SetNoiseGen(double ampDbv)
+
+		static public async Task SetNoiseGen(double ampDbv)
         {
             await Put(string.Format("/Settings/NoiseGen/{0}", ampDbv.ToString()));
         }

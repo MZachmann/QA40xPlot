@@ -133,20 +133,6 @@ public class FreqRespViewModel : BaseViewModel
 		set => SetProperty(ref _ShowSummary, value);
 	}
 
-	private bool _ShowMarkers = true;
-	public bool ShowMarkers
-	{
-		get => _ShowMarkers;
-		set => SetProperty(ref _ShowMarkers, value);
-	}
-
-	private bool _ShowPowerMarkers = false;
-	public bool ShowPowerMarkers
-	{
-		get => _ShowPowerMarkers;
-		set => SetProperty(ref _ShowPowerMarkers, value);
-	}
-
 	private bool _ShowPercent;
 	public bool ShowPercent
 	{
@@ -255,7 +241,6 @@ public class FreqRespViewModel : BaseViewModel
 			case "ShowRight":
 			case "ShowLeft":
 			case "ShowThickLines":
-			case "ShowMarkers":
 			case "ShowGain":
 				actFreq?.UpdateGraph(true);
 				break;
@@ -320,9 +305,6 @@ public class FreqRespViewModel : BaseViewModel
 
 		RangeTopdB = 20;
 		RangeBottomdB = -180;
-
-		ShowMarkers = true;
-		ShowPowerMarkers = false;
 
 		ToShowRange = Visibility.Visible;
 		ToShowdB = Visibility.Visible;

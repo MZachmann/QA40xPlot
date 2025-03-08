@@ -8,16 +8,12 @@
         public string Title { get; set; }
         public DateTime CreateDate { get; set; }
 
-        public ThdFrequencyMeasurementSettings MeasurementSettings { get; set; }
-        public ThdFrequencyGraphSettings GraphSettings { get; set; }
         public List<SpectrumMeasurementResult> Measurements { get; set; }
 
         
         public SpectrumData()
         {
             Measurements = [];
-            MeasurementSettings = new();
-            GraphSettings = new();
         }
     }
 }           

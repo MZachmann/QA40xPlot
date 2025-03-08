@@ -12,13 +12,13 @@ using System.Windows;
 namespace QA40xPlot.Actions
 {
 
-    public class ActSpectrum : ActBase
+    public class ActImd : ActBase
     {
-        public SpectrumData Data { get; set; }                  // Data used in this form instance
+        public ImdData Data { get; set; }                  // Data used in this form instance
 
         private readonly Views.PlotControl fftPlot;
 
-        private SpectrumMeasurementResult MeasurementResult;
+        private ImdMeasurementResult MeasurementResult;
 
         private float _Thickness = 2.0f;
 
@@ -27,7 +27,7 @@ namespace QA40xPlot.Actions
         /// <summary>
         /// Constructor
         /// </summary>
-        public ActSpectrum(ref SpectrumData data, Views.PlotControl graphFft)
+        public ActImd(ref ImdData data, Views.PlotControl graphFft)
         {
             Data = data;
             
@@ -36,7 +36,7 @@ namespace QA40xPlot.Actions
 			ct = new CancellationTokenSource();
 
             // TODO: depends on graph settings which graph is shown
-            MeasurementResult = new(ViewSettings.Singleton.SpectrumVm);
+            MeasurementResult = new(ViewSettings.Singleton.ImdVm);
 			UpdateGraph(true);
         }
 
@@ -51,7 +51,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		public void UpdateGeneratorVoltageDisplay()
         {
-			var vm = ViewSettings.Singleton.SpectrumVm;
+			var vm = ViewSettings.Singleton.ImdVm;
 			vm.Gen1Voltage = QaLibrary.ConvertVoltage(vm.GeneratorAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)vm.GeneratorUnits).ToString();
         }
 
@@ -61,7 +61,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		public void UpdateAmpOutputVoltageDisplay()
         {
-			var vm = ViewSettings.Singleton.SpectrumVm;
+			var vm = ViewSettings.Singleton.ImdVm;
 			switch (vm.OutputUnits)
             {
                 case 0: // mV
@@ -81,7 +81,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		public void UpdateGeneratorParameters()
         {
-            var vm = ViewSettings.Singleton.SpectrumVm;
+            var vm = ViewSettings.Singleton.ImdVm;
 			switch (vm.MeasureType)
             {
                 case 0: // Input voltage
@@ -126,14 +126,15 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="ct">Cancellation token</param>
 		/// <returns>result. false if cancelled</returns>
-		async Task<bool> PerformMeasurementSteps(SpectrumMeasurementResult msr, CancellationToken ct)
+		async Task<bool> PerformMeasurementSteps(ImdMeasurementResult msr, CancellationToken ct)
         {
 			// Setup
-			SpectrumViewModel thd = msr.MeasurementSettings;
+			ImdViewModel thd = msr.MeasurementSettings;
 
 			var freq = MathUtil.ParseTextToDouble(thd.Gen1Frequency, 0);
+			var freq2 = MathUtil.ParseTextToDouble(thd.Gen2Frequency, 0);
 			var sampleRate = MathUtil.ParseTextToUint(thd.SampleRate, 0);
-			if (freq == 0 || sampleRate == 0 || !thd.FftSizes.Contains(thd.FftSize))
+			if (freq == 0 || freq2 == 0 || sampleRate == 0 || !thd.FftSizes.Contains(thd.FftSize))
             {
                 MessageBox.Show("Invalid settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 				return false;
@@ -176,7 +177,7 @@ namespace QA40xPlot.Actions
                 // ********************************************************************
                 var binSize = QaLibrary.CalcBinSize(sampleRate, fftsize);
 				// Generate a list of frequencies
-				double[] stepFrequencies = [freq];
+				double[] stepFrequencies = [freq, freq2];
                 // Translate the generated list to bin center frequencies
                 var stepBinFrequencies = QaLibrary.TranslateToBinFrequencies(stepFrequencies, sampleRate, fftsize).ToArray();
 
@@ -195,7 +196,9 @@ namespace QA40xPlot.Actions
 				}
 
 				var genVolt = MathUtil.ParseTextToDouble(thd.Gen1Voltage, 0.001);
-				double amplitudeSetpointdBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+				double amplitudeSetpoint1dBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+				genVolt = MathUtil.ParseTextToDouble(thd.Gen2Voltage, 0.001);
+				double amplitudeSetpoint2dBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
 				// ********************************************************************
 				// Do a spectral sweep once
@@ -207,9 +210,10 @@ namespace QA40xPlot.Actions
 					await showProgress(0);
 
                     // Set the generators
-                    await Qa40x.SetGen1(stepBinFrequencies[0], amplitudeSetpointdBV, thd.UseGenerator);
+                    await Qa40x.SetGen1(stepBinFrequencies[0], amplitudeSetpoint1dBV, thd.UseGenerator);
+					await Qa40x.SetGen2(stepBinFrequencies[1], amplitudeSetpoint2dBV, thd.UseGenerator2);
 					// for the first go around, turn on the generator
-					if ( thd.UseGenerator )
+					if ( thd.UseGenerator || thd.UseGenerator2)
                     {
 						await Qa40x.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
 					}
@@ -222,16 +226,16 @@ namespace QA40xPlot.Actions
                     if (fundamentalBin >= lrfs.FreqRslt.Left.Length)               // Check in bin within range
                         break;
 
-                    ThdFrequencyStep step = new()
+                    ImdStep step = new()
                     {
                         FundamentalFrequency = stepBinFrequencies[0],
-                        GeneratorVoltage = QaLibrary.ConvertVoltage(amplitudeSetpointdBV, E_VoltageUnit.dBV, E_VoltageUnit.Volt),
+                        GeneratorVoltage = QaLibrary.ConvertVoltage(amplitudeSetpoint1dBV, E_VoltageUnit.dBV, E_VoltageUnit.Volt),
                         fftData = lrfs.FreqRslt,
                         timeData = lrfs.TimeRslt
                     };
                   
-                    step.Left = ChannelCalculations(binSize, step.FundamentalFrequency, amplitudeSetpointdBV, lrfs.FreqRslt.Left, msr.NoiseFloor.FreqRslt.Left, thd.AmpLoad);
-                    step.Right = ChannelCalculations(binSize, step.FundamentalFrequency, amplitudeSetpointdBV, lrfs.FreqRslt.Right, msr.NoiseFloor.FreqRslt.Right, thd.AmpLoad);
+                    step.Left = ChannelCalculations(binSize, step.FundamentalFrequency, amplitudeSetpoint1dBV, lrfs.FreqRslt.Left, msr.NoiseFloor.FreqRslt.Left, thd.AmpLoad);
+                    step.Right = ChannelCalculations(binSize, step.FundamentalFrequency, amplitudeSetpoint1dBV, lrfs.FreqRslt.Right, msr.NoiseFloor.FreqRslt.Right, thd.AmpLoad);
 
                     // Calculate the THD
                     {
@@ -277,9 +281,9 @@ namespace QA40xPlot.Actions
             return !ct.IsCancellationRequested;
         }
 
-        private void AddAMarker(SpectrumMeasurementResult fmr, double frequency, bool isred = false)
+        private void AddAMarker(ImdMeasurementResult fmr, double frequency, bool isred = false)
 		{
-			var vm = ViewSettings.Singleton.SpectrumVm;
+			var vm = ViewSettings.Singleton.ImdVm;
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			var sampleRate = Convert.ToUInt32(vm.SampleRate);
 			var fftsize = vm.FftActualSizes.ElementAt(vm.FftSizes.IndexOf(vm.FftSize));
@@ -332,9 +336,9 @@ namespace QA40xPlot.Actions
 			}
 		}
 
-		private void ShowHarmonicMarkers(SpectrumMeasurementResult fmr)
+		private void ShowHarmonicMarkers(ImdMeasurementResult fmr)
         {
-            var vm = ViewSettings.Singleton.SpectrumVm;
+            var vm = ViewSettings.Singleton.ImdVm;
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			if ( vm.ShowMarkers)
             {
@@ -348,9 +352,9 @@ namespace QA40xPlot.Actions
 			}
 		}
 
-		private void ShowPowerMarkers(SpectrumMeasurementResult fmr)
+		private void ShowPowerMarkers(ImdMeasurementResult fmr)
 		{
-			var vm = ViewSettings.Singleton.SpectrumVm;
+			var vm = ViewSettings.Singleton.ImdVm;
             List<double> freqchecks = new List<double> { 50, 60 };
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			if (vm.ShowPowerMarkers)
@@ -485,18 +489,30 @@ namespace QA40xPlot.Actions
             fftPlot.Refresh();
         }
 
-        /// <summary>
-        /// Ititialize the THD % plot
-        /// </summary>
-        void InitializefftPlot()
+		void SetTheTitle(ScottPlot.Plot myPlot)
+		{
+			var imdVm = ViewSettings.Singleton.ImdVm;
+			if( imdVm.IntermodType == "Custom")
+				myPlot.Title("Intermodulation Distortion");
+			else
+			{
+				var vsa = imdVm.IntermodType.Split('(').First();
+				myPlot.Title(String.Format("{0} Intermodulation Distortion", vsa ));
+			}
+		}
+
+		/// <summary>
+		/// Ititialize the THD % plot
+		/// </summary>
+		void InitializefftPlot()
         {
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			InitializePctFreqPlot(myPlot);
-			var thdFreq = ViewSettings.Singleton.SpectrumVm;
+			var imdVm = ViewSettings.Singleton.ImdVm;
 
-            SpectrumViewModel thd = ViewSettings.Singleton.SpectrumVm;
+            ImdViewModel thd = ViewSettings.Singleton.ImdVm;
             myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(thd.GraphStartFreq)), Math.Log10(Convert.ToInt32(thd.GraphEndFreq)), Math.Log10(Convert.ToDouble(thd.RangeBottom)) - 0.00000001, Math.Log10(Convert.ToDouble(thd.RangeTop)));  // - 0.000001 to force showing label
-            myPlot.Title("Spectrum");
+			SetTheTitle(myPlot);
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel("%");
 
@@ -507,14 +523,14 @@ namespace QA40xPlot.Actions
         /// Plot the THD % graph
         /// </summary>
         /// <param name="data"></param>
-        void PlotValues(SpectrumMeasurementResult measurementResult, int measurementNr, bool showLeftChannel, bool showRightChannel)
+        void PlotValues(ImdMeasurementResult measurementResult, int measurementNr, bool showLeftChannel, bool showRightChannel)
         {
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			myPlot.Clear();
 
-			var specVm = ViewSettings.Singleton.SpectrumVm;
-			bool leftChannelEnabled = specVm.ShowLeft && showLeftChannel;	// dynamically update these
-			bool rightChannelEnabled = specVm.ShowRight && showRightChannel;
+			var imdVm = ViewSettings.Singleton.ImdVm;
+			bool leftChannelEnabled = imdVm.ShowLeft && showLeftChannel;	// dynamically update these
+			bool rightChannelEnabled = imdVm.ShowRight && showRightChannel;
 
 			var fftData = MeasurementResult.FrequencySteps[0].fftData;
 
@@ -529,7 +545,7 @@ namespace QA40xPlot.Actions
 			{
 				frequency += fftData.Df;
 				freqX.Add(frequency);
-				if(specVm.ShowPercent)
+				if(imdVm.ShowPercent)
 				{
 					if (leftChannelEnabled)
 					{
@@ -564,7 +580,7 @@ namespace QA40xPlot.Actions
 			double[] logHTot_Left_Y = dBV_Left_Y.ToArray();
 			double[] logHTot_Right_Y = dBV_Right_Y.ToArray();
 
-			var showThick = ViewSettings.Singleton.SpectrumVm.ShowThickLines;	// so it dynamically updates
+			var showThick = ViewSettings.Singleton.ImdVm.ShowThickLines;	// so it dynamically updates
 
 			if (leftChannelEnabled)
 			{
@@ -596,11 +612,10 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
             InitializeMagFreqPlot(myPlot);
 
-			var thdFreq = ViewSettings.Singleton.SpectrumVm;
+			var imdVm = ViewSettings.Singleton.ImdVm;
 
-			myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(thdFreq.GraphStartFreq)), Math.Log10(Convert.ToInt32(thdFreq.GraphEndFreq)), thdFreq.RangeBottomdB, thdFreq.RangeTopdB);
-
-            myPlot.Title("Spectrum");
+			myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(imdVm.GraphStartFreq)), Math.Log10(Convert.ToInt32(imdVm.GraphEndFreq)), imdVm.RangeBottomdB, imdVm.RangeTopdB);
+			SetTheTitle(myPlot);
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel("dBV");
 
@@ -612,17 +627,17 @@ namespace QA40xPlot.Actions
         /// </summary>
         public async void StartMeasurement()
         {
-			var specVm = ViewSettings.Singleton.SpectrumVm;
-			if (specVm.IsRunning)
+			var imdVm = ViewSettings.Singleton.ImdVm;
+			if (imdVm.IsRunning)
 			{
                 MessageBox.Show("Device is already running");
 				return;
 			}
-			specVm.IsRunning = true;
+			imdVm.IsRunning = true;
             ct = new();
 
 			// Clear measurement result
-			MeasurementResult = new(specVm)
+			MeasurementResult = new(imdVm)
 			{
 				CreateDate = DateTime.Now,
 				Show = true,                                      // Show in graph
@@ -630,9 +645,9 @@ namespace QA40xPlot.Actions
 
             var rslt = true;
 			rslt = await PerformMeasurementSteps(MeasurementResult, ct.Token);
-            var fftsize = specVm.FftSize;
-            var sampleRate = specVm.SampleRate;
-            var atten = specVm.Attenuation;
+            var fftsize = imdVm.FftSize;
+            var sampleRate = imdVm.SampleRate;
+            var atten = imdVm.Attenuation;
             if (rslt)
             {
                 await showMessage("Running");
@@ -641,12 +656,12 @@ namespace QA40xPlot.Actions
                     await Task.Delay(250);
                     if (ct.IsCancellationRequested)
                         break;
-                    if (specVm.FftSize != fftsize || specVm.SampleRate != sampleRate || specVm.Attenuation != atten)
+                    if (imdVm.FftSize != fftsize || imdVm.SampleRate != sampleRate || imdVm.Attenuation != atten)
                     {
-						fftsize = specVm.FftSize;
-						sampleRate = specVm.SampleRate;
-						atten = specVm.Attenuation;
-						MeasurementResult = new(specVm)
+						fftsize = imdVm.FftSize;
+						sampleRate = imdVm.SampleRate;
+						atten = imdVm.Attenuation;
+						MeasurementResult = new(imdVm)
                         {
                             CreateDate = DateTime.Now,
                             Show = true,                                      // Show in graph
@@ -654,14 +669,14 @@ namespace QA40xPlot.Actions
                     }
                     else
                     {
-                        ViewSettings.Singleton.SpectrumVm.CopyPropertiesTo(MeasurementResult.MeasurementSettings);
+                        ViewSettings.Singleton.ImdVm.CopyPropertiesTo(MeasurementResult.MeasurementSettings);
                     }
 					rslt = await PerformMeasurementSteps(MeasurementResult, ct.Token);
 					if (ct.IsCancellationRequested || !rslt)
 						break;
 				}
 			}
-			specVm.IsRunning = false;
+			imdVm.IsRunning = false;
 			await showMessage("");
         }
 
@@ -683,7 +698,7 @@ namespace QA40xPlot.Actions
         // user entered a new voltage, update the generator amplitude
         public void UpdateGenAmplitude(string value)
         {
-			SpectrumViewModel thd = ViewSettings.Singleton.SpectrumVm;
+			ImdViewModel thd = ViewSettings.Singleton.ImdVm;
             var val = MathUtil.ParseTextToDouble(value, Convert.ToDouble(thd.Gen1Voltage));
 			thd.GeneratorAmplitude = QaLibrary.ConvertVoltage(val, (E_VoltageUnit)thd.GeneratorUnits, E_VoltageUnit.dBV);
 		}
@@ -691,7 +706,7 @@ namespace QA40xPlot.Actions
         // show the latest step values in the table
         public void DrawChannelInfoTable()
         {
-			SpectrumViewModel thd = ViewSettings.Singleton.SpectrumVm;
+			ImdViewModel thd = ViewSettings.Singleton.ImdVm;
 			var vm = ViewSettings.Singleton.ChannelLeft;
             vm.FundamentalFrequency = 0;
             vm.CalculateChannelValues(MeasurementResult.FrequencySteps[0].Left, Convert.ToDouble( thd.Gen1Frequency));
@@ -702,7 +717,7 @@ namespace QA40xPlot.Actions
             fftPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
 			fftPlot.ThePlot.Remove<Marker>();             // Remove all current lines
 			int resultNr = 0;
-			SpectrumViewModel thd = ViewSettings.Singleton.SpectrumVm;
+			ImdViewModel thd = ViewSettings.Singleton.ImdVm;
 
 			if (!thd.ShowPercent)
             {
@@ -713,7 +728,7 @@ namespace QA40xPlot.Actions
 
                 foreach (var result in Data.Measurements.Where(m => m.Show))
                 {
-					SpectrumViewModel mvs = result.MeasurementSettings;
+					ImdViewModel mvs = result.MeasurementSettings;
 					PlotValues(result, resultNr++, mvs.ShowLeft, mvs.ShowRight);
                 }
             }
@@ -726,7 +741,7 @@ namespace QA40xPlot.Actions
           
                 foreach (var result in Data.Measurements.Where(m => m.Show))
                 {
-					SpectrumViewModel mvs = result.MeasurementSettings;
+					ImdViewModel mvs = result.MeasurementSettings;
 					PlotValues(result, resultNr++, mvs.ShowLeft, mvs.ShowRight);
 				}
 			}
