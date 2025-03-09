@@ -1,4 +1,5 @@
-﻿using QA40xPlot.Data;
+﻿using FftSharp;
+using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using ScottPlot;
@@ -120,12 +121,34 @@ namespace QA40xPlot.Actions
 			await vm.SetProgressBar(progress, delay);
 		}
 
-		/// <summary>
-		/// Perform the measurement
-		/// </summary>
-		/// <param name="ct">Cancellation token</param>
-		/// <returns>result. false if cancelled</returns>
-		async Task<bool> PerformMeasurementSteps(SpectrumMeasurementResult msr, CancellationToken ct)
+		// create a blob with F,Left,Right data for export
+		public DataBlob? CreateExportData()
+		{
+			DataBlob db = new();
+			var vf = this.MeasurementResult?.FrequencySteps;
+			if (vf == null || vf.Count == 0)
+				return null;
+			var vm = ViewSettings.Singleton.SpectrumVm;
+			var sampleRate = MathUtil.ParseTextToUint(vm.SampleRate, 0);
+			var fftsize = vf[0].fftData.Left.Length;
+			var binSize = QaLibrary.CalcBinSize(sampleRate, (uint)fftsize);
+			if (vf != null && vf.Count > 0)
+			{
+				db.LeftData = vf[0].fftData.Left.ToList();
+				db.RightData = vf[0].fftData.Right.ToList();
+				var frqs = Enumerable.Range(0, fftsize).ToList();
+				var frequencies = frqs.Select(x => x * binSize).ToList(); // .Select(x => x * binSize);
+				db.FreqData = frequencies;
+			}
+			return db;
+		}
+
+			/// <summary>
+			/// Perform the measurement
+			/// </summary>
+			/// <param name="ct">Cancellation token</param>
+			/// <returns>result. false if cancelled</returns>
+			async Task<bool> PerformMeasurementSteps(SpectrumMeasurementResult msr, CancellationToken ct)
         {
 			// Setup
 			SpectrumViewModel thd = msr.MeasurementSettings;
@@ -140,6 +163,7 @@ namespace QA40xPlot.Actions
 			var fftsize = thd.FftActualSizes.ElementAt(thd.FftSizes.IndexOf(thd.FftSize));
 
 			// For now clear measurements to allow only one until we have a UI to manage them.
+			ViewSettings.Singleton.SpectrumVm.HasExport = false;
 			Data.Measurements.Clear();
 
             // Add to list
@@ -257,6 +281,7 @@ namespace QA40xPlot.Actions
 
 					ClearPlot();
 					UpdateGraph(false);
+					ViewSettings.Singleton.SpectrumVm.HasExport = true;
 
 					// we always run this exactly once
                     break;
@@ -665,7 +690,9 @@ namespace QA40xPlot.Actions
 			}
 			specVm.IsRunning = false;
 			await showMessage("");
-        }
+			ViewSettings.Singleton.SpectrumVm.HasExport = this.MeasurementResult.FrequencySteps.Count > 0;
+			ViewSettings.Singleton.Main.CurrentView = ViewSettings.Singleton.SpectrumVm;
+		}
 
 
         /// <summary>

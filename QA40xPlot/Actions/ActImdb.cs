@@ -121,6 +121,27 @@ namespace QA40xPlot.Actions
 			await vm.SetProgressBar(progress, delay);
 		}
 
+		// create a blob with F,Left,Right data for export
+		public DataBlob CreateExportData()
+		{
+			DataBlob db = new();
+			var vf = this.MeasurementResult?.FrequencySteps;
+			var vm = ViewSettings.Singleton.SpectrumVm;
+			var sampleRate = MathUtil.ParseTextToUint(vm.SampleRate, 0);
+			var fftsize = vf[0].fftData.Left.Length;
+			var binSize = QaLibrary.CalcBinSize(sampleRate, (uint)fftsize);
+			if (vf != null && vf.Count > 0)
+			{
+				db.LeftData = vf[0].fftData.Left.ToList();
+				db.RightData = vf[0].fftData.Right.ToList();
+				var frqs = Enumerable.Range(0, fftsize).ToList();
+				var frequencies = frqs.Select(x => x * binSize).ToList(); // .Select(x => x * binSize);
+				db.FreqData = frequencies;
+			}
+			return db;
+		}
+
+
 		/// <summary>
 		/// Perform the measurement
 		/// </summary>
@@ -142,6 +163,7 @@ namespace QA40xPlot.Actions
 			var fftsize = thd.FftActualSizes.ElementAt(thd.FftSizes.IndexOf(thd.FftSize));
 
 			// For now clear measurements to allow only one until we have a UI to manage them.
+			ViewSettings.Singleton.ImdVm.HasExport = false;
 			Data.Measurements.Clear();
 
             // Add to list
@@ -242,6 +264,7 @@ namespace QA40xPlot.Actions
 					// Add step data to list
 					msr.FrequencySteps.Clear();
 					msr.FrequencySteps.Add(step);
+					ViewSettings.Singleton.ImdVm.HasExport = true;
 
 					ClearPlot();
 					UpdateGraph(false);
@@ -707,25 +730,27 @@ namespace QA40xPlot.Actions
 			}
 			imdVm.IsRunning = false;
 			await showMessage("");
-        }
+			ViewSettings.Singleton.ImdVm.HasExport = this.MeasurementResult.FrequencySteps.Count > 0;
+			ViewSettings.Singleton.Main.CurrentView = ViewSettings.Singleton.ImdVm;
+		}
 
 
-        /// <summary>
-        /// Validate the generator voltage and show red text if invalid
-        /// </summary>
-        /// <param name="sender"></param>
-        //private void ValidateGeneratorAmplitude(object sender)
-        //{
-        //    if (cmbGeneratorVoltageUnit.SelectedIndex == (int)E_VoltageUnit.MilliVolt)
-        //        QaLibrary.ValidateRangeAdorner(sender, QaLibrary.MINIMUM_GENERATOR_VOLTAGE_MV, QaLibrary.MAXIMUM_GENERATOR_VOLTAGE_MV);        // mV
-        //    else if (cmbGeneratorVoltageUnit.SelectedIndex == (int)E_VoltageUnit.Volt)
-        //        QaLibrary.ValidateRangeAdorner(sender, QaLibrary.MINIMUM_GENERATOR_VOLTAGE_V, QaLibrary.MAXIMUM_GENERATOR_VOLTAGE_V);     // V
-        //    else
-        //        QaLibrary.ValidateRangeAdorner(sender, QaLibrary.MINIMUM_GENERATOR_VOLTAGE_DBV, QaLibrary.MAXIMUM_GENERATOR_VOLTAGE_DBV);       // dBV
-        //}
-        
-        // user entered a new voltage, update the generator amplitude
-        public void UpdateGenAmplitude(string value)
+		/// <summary>
+		/// Validate the generator voltage and show red text if invalid
+		/// </summary>
+		/// <param name="sender"></param>
+		//private void ValidateGeneratorAmplitude(object sender)
+		//{
+		//    if (cmbGeneratorVoltageUnit.SelectedIndex == (int)E_VoltageUnit.MilliVolt)
+		//        QaLibrary.ValidateRangeAdorner(sender, QaLibrary.MINIMUM_GENERATOR_VOLTAGE_MV, QaLibrary.MAXIMUM_GENERATOR_VOLTAGE_MV);        // mV
+		//    else if (cmbGeneratorVoltageUnit.SelectedIndex == (int)E_VoltageUnit.Volt)
+		//        QaLibrary.ValidateRangeAdorner(sender, QaLibrary.MINIMUM_GENERATOR_VOLTAGE_V, QaLibrary.MAXIMUM_GENERATOR_VOLTAGE_V);     // V
+		//    else
+		//        QaLibrary.ValidateRangeAdorner(sender, QaLibrary.MINIMUM_GENERATOR_VOLTAGE_DBV, QaLibrary.MAXIMUM_GENERATOR_VOLTAGE_DBV);       // dBV
+		//}
+
+		// user entered a new voltage, update the generator amplitude
+		public void UpdateGenAmplitude(string value)
         {
 			ImdViewModel thd = ViewSettings.Singleton.ImdVm;
             var val = MathUtil.ParseTextToDouble(value, Convert.ToDouble(thd.Gen1Voltage));

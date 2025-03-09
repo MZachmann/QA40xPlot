@@ -39,6 +39,13 @@ namespace QA40xPlot.ViewModels
 			set { SetProperty(ref isBusy, value); }
 		}
 
+		private bool _HasExport = false;
+		public bool HasExport
+		{
+			get { return _HasExport; }
+			set { SetProperty(ref _HasExport, value); }
+		}
+
 		protected bool SetProperty<T>(ref T backingStore, T value,
 			[CallerMemberName] string propertyName = "",
 			Action? onChanged = null)

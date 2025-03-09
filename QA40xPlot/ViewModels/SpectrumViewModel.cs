@@ -369,6 +369,11 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
+		public DataBlob? GetFftData()
+		{
+			return actSpec.CreateExportData();
+		}
+
 		public void SetAction(PlotControl plot, ThdChannelInfo info)
 		{
 			SpectrumData data = new SpectrumData();

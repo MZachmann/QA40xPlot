@@ -24,7 +24,17 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _ScreenDpi; set => SetProperty(ref _ScreenDpi, value);
 		}
-#endregion
+		private BaseViewModel? _CurrentView = null;
+		public BaseViewModel? CurrentView
+		{
+			get { return _CurrentView; }
+			set { 
+				SetProperty(ref _CurrentView, value);
+				OnPropertyChanged("HasExport");	// always update this
+				}
+			}
+
+		#endregion
 
 		public async Task SetProgressMessage(String message, int delay = 0)
 		{
