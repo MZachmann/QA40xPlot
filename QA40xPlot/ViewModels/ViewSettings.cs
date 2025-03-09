@@ -9,8 +9,8 @@ namespace QA40xPlot.ViewModels
 {
 	public class ViewSettings
 	{
-		private string _ProductTitle = "QA40xPlot v0.04";	// very first in the serialization list...
-		public string ProductTitle { get => _ProductTitle; }
+		private Dictionary<string, string> _ProductTitle = new Dictionary<string, string>() { { "Name", "QA40xPlot" }, { "Version", "0.04"} };
+		public Dictionary<string,string> Product { get { return _ProductTitle; } private set { _ProductTitle = value; } }
 
 
 		public static ViewSettings Singleton { get; private set; } = new ViewSettings();
