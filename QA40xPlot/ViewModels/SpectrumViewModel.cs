@@ -299,12 +299,6 @@ namespace QA40xPlot.ViewModels
 			get => _ReadOutVoltage;
 			set => SetProperty(ref _ReadOutVoltage, value);
 		}
-		private bool _AttenCheck;
-		public bool AttenCheck
-		{
-			get => _AttenCheck;
-			set => SetProperty(ref _AttenCheck, value);
-		}
 		private bool _UseGenerator;
 		public bool UseGenerator
 		{
@@ -467,7 +461,6 @@ namespace QA40xPlot.ViewModels
 			UseGenerator2 = false;
 
 			Attenuation = 42;
-			AttenCheck = true;
 		}
 	}
 }

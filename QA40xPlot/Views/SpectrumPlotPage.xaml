@@ -10,6 +10,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Background="MintCream">
     <UserControl.Resources>
+        <views:EnumBooleanConverter x:Key="EnumBooleanConverter"/>
         <Style TargetType="TextBox">
             <Setter Property="VerticalAlignment" Value="Center"/>
             <!-- Ensure the readonly property is visible -->
@@ -67,14 +68,30 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="0" Command="{Binding SetAttenuate}" CommandParameter="0" Grid.Row="0" Grid.Column="0" Margin="4"></RadioButton>
-                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="6" Command="{Binding SetAttenuate}" CommandParameter="6" Grid.Row="0" Grid.Column="1" Margin="4"></RadioButton>
-                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="12" Command="{Binding SetAttenuate}" CommandParameter="12" Grid.Row="0" Grid.Column="2" Margin="4"></RadioButton>
-                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="18" Command="{Binding SetAttenuate}" CommandParameter="18" Grid.Row="0" Grid.Column="3" Margin="4"></RadioButton>
-                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="24" Command="{Binding SetAttenuate}" CommandParameter="24" Grid.Row="1" Grid.Column="0" Margin="4"></RadioButton>
-                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="30" Command="{Binding SetAttenuate}" CommandParameter="30" Grid.Row="1" Grid.Column="1" Margin="4"></RadioButton>
-                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="36" Command="{Binding SetAttenuate}" CommandParameter="36" Grid.Row="1" Grid.Column="2" Margin="4"></RadioButton>
-                    <RadioButton IsChecked="{Binding AttenCheck}" Style="{StaticResource {x:Type ToggleButton}}" Content="42" Command="{Binding SetAttenuate}" CommandParameter="42" Grid.Row="1" Grid.Column="3" Margin="4"></RadioButton>
+                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="0" Command="{Binding SetAttenuate}" 
+                                 IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=0}"
+                                 CommandParameter="0" Grid.Row="0" Grid.Column="0" Margin="4"></RadioButton>
+                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="6" 
+                            IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=6}"
+                            Command="{Binding SetAttenuate}" CommandParameter="6" Grid.Row="0" Grid.Column="1" Margin="4"></RadioButton>
+                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="12" 
+                            IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=12}"
+                            Command="{Binding SetAttenuate}" CommandParameter="12" Grid.Row="0" Grid.Column="2" Margin="4"></RadioButton>
+                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="18" 
+                            IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=18}"
+                            Command="{Binding SetAttenuate}" CommandParameter="18" Grid.Row="0" Grid.Column="3" Margin="4"></RadioButton>
+                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="24" 
+                            IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=24}"
+                            Command="{Binding SetAttenuate}" CommandParameter="24" Grid.Row="1" Grid.Column="0" Margin="4"></RadioButton>
+                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="30" 
+                            IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=30}"
+                            Command="{Binding SetAttenuate}" CommandParameter="30" Grid.Row="1" Grid.Column="1" Margin="4"></RadioButton>
+                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="36" 
+                            IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=36}"
+                            Command="{Binding SetAttenuate}" CommandParameter="36" Grid.Row="1" Grid.Column="2" Margin="4"></RadioButton>
+                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="42" 
+                            IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=42}"
+                            Command="{Binding SetAttenuate}" CommandParameter="42" Grid.Row="1" Grid.Column="3" Margin="4"></RadioButton>
                 </Grid>
             </GroupBox>
             <GroupBox Header="Samples" >
