@@ -122,10 +122,14 @@ namespace QA40xPlot.Actions
 		}
 
 		// create a blob with F,Left,Right data for export
-		public DataBlob CreateExportData()
+		public DataBlob? CreateExportData()
 		{
 			DataBlob db = new();
 			var vf = this.MeasurementResult?.FrequencySteps;
+			if( vf == null )
+			{
+				return null;
+			}
 			var vm = ViewSettings.Singleton.SpectrumVm;
 			var sampleRate = MathUtil.ParseTextToUint(vm.SampleRate, 0);
 			var fftsize = vf[0].fftData.Left.Length;
@@ -155,12 +159,12 @@ namespace QA40xPlot.Actions
 			var freq = MathUtil.ParseTextToDouble(thd.Gen1Frequency, 0);
 			var freq2 = MathUtil.ParseTextToDouble(thd.Gen2Frequency, 0);
 			var sampleRate = MathUtil.ParseTextToUint(thd.SampleRate, 0);
-			if (freq == 0 || freq2 == 0 || sampleRate == 0 || !thd.FftSizes.Contains(thd.FftSize))
+			if (freq == 0 || freq2 == 0 || sampleRate == 0 || !FreqRespViewModel.FftSizes.Contains(thd.FftSize))
             {
                 MessageBox.Show("Invalid settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 				return false;
 			}
-			var fftsize = thd.FftActualSizes.ElementAt(thd.FftSizes.IndexOf(thd.FftSize));
+			var fftsize = FreqRespViewModel.FftActualSizes.ElementAt(FreqRespViewModel.FftSizes.IndexOf(thd.FftSize));
 
             // Check if REST interface is available and device connected
             if (await QaLibrary.CheckDeviceConnected() == false)
@@ -290,7 +294,7 @@ namespace QA40xPlot.Actions
 			var vm = ViewSettings.Singleton.ImdVm;
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			var sampleRate = Convert.ToUInt32(vm.SampleRate);
-			var fftsize = vm.FftActualSizes.ElementAt(vm.FftSizes.IndexOf(vm.FftSize));
+			var fftsize = ImdViewModel.FftActualSizes.ElementAt(ImdViewModel.FftSizes.IndexOf(vm.FftSize));
 			int bin = (int)QaLibrary.GetBinOfFrequency(frequency, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
             double markVal = 0;
 			if( vm.ShowPercent)
@@ -366,7 +370,7 @@ namespace QA40xPlot.Actions
 			if (vm.ShowPowerMarkers)
 			{
 				var sampleRate = Convert.ToUInt32(vm.SampleRate);
-				var fftsize = vm.FftActualSizes.ElementAt(vm.FftSizes.IndexOf(vm.FftSize));
+				var fftsize = ImdViewModel.FftActualSizes.ElementAt(ImdViewModel.FftSizes.IndexOf(vm.FftSize));
                 var nfloor = MeasurementResult.FrequencySteps[0].Left.Average_NoiseFloor_dBV;   // Average noise floor in dBVolts after the fundamental
                 double fsel = 0;
                 double maxdata = -10;

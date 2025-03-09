@@ -1,5 +1,5 @@
 ﻿using QA40xPlot.Libraries;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace QA40xPlot.Data
 {

@@ -1,7 +1,7 @@
 ﻿using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Text.Json;
+using Newtonsoft.Json;
 using System.Web;
 
 // Note! Install System.Text.Json via NuGet if you are taking Qa402.cs into another project!
@@ -409,7 +409,7 @@ namespace QA40xPlot.Libraries
             content = response.Content.ReadAsStringAsync().Result;
 
             // You need to use NUGET to install System.Text.Json from MSFT
-            var result = JsonSerializer.Deserialize<Dictionary<string, string>>(content);
+            var result = JsonConvert.DeserializeObject<Dictionary<string, string>>(content);
             if(result == null)
 			{
 				result = new Dictionary<string, string>();

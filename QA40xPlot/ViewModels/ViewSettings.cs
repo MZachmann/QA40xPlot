@@ -2,27 +2,68 @@
 
 // this aggregates the settings somewhere static, which does mean only one of each
 
-using System.Text.Json;
+using System.Reflection;
+using Newtonsoft.Json;
 
 namespace QA40xPlot.ViewModels
 {
 	public class ViewSettings
 	{
+		private string _ProductTitle = "QA40xPlot v0.04";	// very first in the serialization list...
+		public string ProductTitle { get => _ProductTitle; }
+
+
 		public static ViewSettings Singleton { get; private set; } = new ViewSettings();
 		public SpectrumViewModel SpectrumVm { get; private set; }
 		public ImdViewModel ImdVm { get; private set; }
 		public ThdFreqViewModel ThdFreq { get; private set; }
 		public ThdAmpViewModel ThdAmp { get; private set; }
-		public ThdChannelViewModel ChannelLeft { get; private set; }
-		public ThdChannelViewModel ChannelRight { get; private set; }
-		public ImdChannelViewModel ImdChannelLeft { get; private set; }
-		public ImdChannelViewModel ImdChannelRight { get; private set; }
 		public FreqRespViewModel FreqRespVm { get; private set; }
 		public MainViewModel Main { get; private set; }
-		public string SerializeAll()
+		// these are output only and don't need serializing
+		[JsonIgnore]
+		public ThdChannelViewModel ChannelLeft { get; private set; }
+		[JsonIgnore]
+		public ThdChannelViewModel ChannelRight { get; private set; }
+		[JsonIgnore]
+		public ImdChannelViewModel ImdChannelLeft { get; private set; }
+		[JsonIgnore]
+		public ImdChannelViewModel ImdChannelRight { get; private set; }
+
+		public static void GetPropertiesFrom(Dictionary<string, object> vws, object dest)
 		{
-			string jsonString = JsonSerializer.Serialize(this);
-			return jsonString;
+			if (vws == null || dest == null)
+				return;
+
+			Type type = dest.GetType();
+			PropertyInfo[] properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+			foreach (PropertyInfo property in properties)
+			{
+				if (property.CanRead && property.CanWrite)
+				{
+					if (vws.ContainsKey(property.Name))
+					{
+						object value = vws[property.Name];
+						try
+						{
+							property.SetValue(dest, Convert.ChangeType(value, property.PropertyType));
+						}
+						catch (Exception ex) { }	// for now ignore this
+					}
+				}
+			}
+		}
+
+
+		public void GetSettingsFrom( Dictionary<string, Dictionary<string,object>> vws)
+		{
+			GetPropertiesFrom(vws["Main"],Main);
+			GetPropertiesFrom(vws["SpectrumVm"],SpectrumVm);
+			GetPropertiesFrom(vws["ImdVm"],ImdVm);
+			GetPropertiesFrom(vws["ThdAmp"],ThdAmp);
+			GetPropertiesFrom(vws["ThdFreq"],ThdFreq);
+			GetPropertiesFrom(vws["FreqRespVm"],FreqRespVm);
 		}
 
 		public ViewSettings() 
@@ -37,9 +78,6 @@ namespace QA40xPlot.ViewModels
 			ImdChannelLeft = new ImdChannelViewModel();
 			ImdChannelRight = new ImdChannelViewModel();
 			FreqRespVm = new FreqRespViewModel();
-
-			//var vout = SerializeAll();
-			//Console.WriteLine(vout);
 		}
 	}
 }

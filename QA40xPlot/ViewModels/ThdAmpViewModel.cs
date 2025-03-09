@@ -6,6 +6,7 @@ using ScottPlot;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using Newtonsoft.Json;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -13,12 +14,14 @@ namespace QA40xPlot.ViewModels
 {
 	public class ThdAmpViewModel : BaseViewModel
 	{
-		public List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
-		public List<String> MeasureTypes { get => new List<string> { "Input Voltage", "Output Voltage", "Output Power" }; }
-		public List<String> StartVoltages { get => new List<string> { "0.0001", "0.0002", "0.0005", "0.001", "0.002", "0.005", "0.01", "0.02", "0.05", "0.1", "0.2", "0.5" }; }
-		public List<String> EndVoltages { get => new List<string> { "1", "2", "5", "10", "20", "50", "100", "200" }; }
+		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
+		public static List<String> MeasureTypes { get => new List<string> { "Input Voltage", "Output Voltage", "Output Power" }; }
+		public static List<String> StartVoltages { get => new List<string> { "0.0001", "0.0002", "0.0005", "0.001", "0.002", "0.005", "0.01", "0.02", "0.05", "0.1", "0.2", "0.5" }; }
+		public static List<String> EndVoltages { get => new List<string> { "1", "2", "5", "10", "20", "50", "100", "200" }; }
 		private ActThdAmplitude actThd { get; set; }
+		[JsonIgnore]
 		public RelayCommand DoStart { get => new RelayCommand(StartIt); }
+		[JsonIgnore]
 		public RelayCommand DoStop { get => new RelayCommand(StopIt); }
 
 		#region Setters and Getters
@@ -332,13 +335,6 @@ namespace QA40xPlot.ViewModels
 		public void OnEndVoltageChanged(string news)
 		{
 			actThd.UpdateEndAmplitude(news);
-		}
-
-		public string SerializeAll()
-		{
-			string jsonString = JsonSerializer.Serialize(this);
-			//Console.WriteLine(jsonString);
-			return jsonString;
 		}
 
 		~ThdAmpViewModel()

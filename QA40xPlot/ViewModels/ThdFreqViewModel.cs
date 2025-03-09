@@ -2,21 +2,20 @@
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.Views;
-using ScottPlot;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Text.Json;
+using Newtonsoft.Json;
 using System.Windows;
-using System.Windows.Controls;
 
 namespace QA40xPlot.ViewModels
 {
 	public class ThdFreqViewModel : BaseViewModel
 	{
-		public List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
-		public List<String> MeasureTypes { get => new List<string> { "Input Voltage", "Output Voltage", "Output Power" }; }
+		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
+		public static List<String> MeasureTypes { get => new List<string> { "Input Voltage", "Output Voltage", "Output Power" }; }
 		private ActThdFrequency actThd { get; set; }
+		[JsonIgnore]
 		public RelayCommand DoStart { get => new RelayCommand(StartIt); }
+		[JsonIgnore]
 		public RelayCommand DoStop { get => new RelayCommand(StopIt); }
 
 		#region Setters and Getters
@@ -366,13 +365,6 @@ namespace QA40xPlot.ViewModels
 		public void OnAmpVoltageChanged(string news)
 		{
 			actThd.UpdateAmpAmplitude(news);
-		}
-
-		public string SerializeAll()
-		{
-			string jsonString = JsonSerializer.Serialize(this);
-			//Console.WriteLine(jsonString);
-			return jsonString;
 		}
 
 		~ThdFreqViewModel()

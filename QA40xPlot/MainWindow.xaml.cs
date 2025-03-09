@@ -1,4 +1,5 @@
 ﻿using Microsoft.Win32;
+using Newtonsoft.Json;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
@@ -23,12 +24,6 @@ namespace QA40xPlot
 		[DllImport("User32.dll")]
 		public static extern uint GetDpiForSystem();
 
-		private uint _ImageCount = 0;
-		private uint ImageCount { get { return _ImageCount; } set { _ImageCount = value; } }
-
-		private uint _ExportCount = 0;
-		private uint ExportCount { get { return _ExportCount; } set { _ExportCount = value; } }
-
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -36,6 +31,14 @@ namespace QA40xPlot
 			this.DataContext = vm;
 			vm.ProgressMessage = "Hello, World!";
 			vm.ScreenDpi = TestGetDpi();
+		}
+
+		private string FileAddon()
+		{
+			DateTime now = DateTime.Now;
+			string formattedDate = $"{now:yyyy-MM-dd_HH-mm-ss}";
+			return formattedDate;
+
 		}
 
 		public uint TestGetDpi()
@@ -61,9 +64,36 @@ namespace QA40xPlot
 				if (png2 != null)
 				{
 					File.WriteAllBytes(filename, png2);
-					ImageCount++;
 				}
 			}
+		}
+
+		public void SaveToSettings(string filename)
+		{
+			var pngData = ViewSettings.Singleton;
+			// Serialize the object to a JSON string
+			string jsonString = JsonConvert.SerializeObject(pngData, Formatting.Indented);
+
+			// Write the JSON string to a file
+			File.WriteAllText(filename, jsonString);
+		}
+
+		public void LoadFromSettings(string filename)
+		{
+			try
+			{
+				var pngData = ViewSettings.Singleton;
+				// Read the JSON file into a string
+				string jsonContent = File.ReadAllText(filename);
+				// Deserialize the JSON string into an object
+				var jsonObject = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(jsonContent);
+				ViewSettings.Singleton.GetSettingsFrom(jsonObject);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, "A load error occurred.", MessageBoxButton.OK, MessageBoxImage.Information);
+			}
+
 		}
 
 		public void SaveToFrd(string filename)
@@ -94,7 +124,6 @@ namespace QA40xPlot
 					sout += string.Format("{0:F0},{1:F4}\r\n", vmf.FreqData[i], 20 * Math.Log10(vmf.LeftData[i]));
 				}
 				File.WriteAllBytes(filename, System.Text.Encoding.UTF8.GetBytes(sout));
-				ExportCount++;
 			}
 			else
 			{
@@ -110,7 +139,7 @@ namespace QA40xPlot
 			await vm.SetProgressMessage("QA40xPlot Screen Capture at " + formattedDate); 
 			SaveFileDialog saveFileDialog = new SaveFileDialog
 			{
-				FileName = String.Format("QAImg{0}", ImageCount), // Default file name
+				FileName = String.Format("QAImg{0}", FileAddon()), // Default file name
 				DefaultExt = ".png", // Default file extension
 				Filter = "PNG files (.png)|*.png|All files (*.*)|*.*" // Filter files by extension
 			};
@@ -132,7 +161,7 @@ namespace QA40xPlot
 		{
 			SaveFileDialog saveFileDialog = new SaveFileDialog
 			{
-				FileName = String.Format("QaData", ExportCount), // Default file name
+				FileName = String.Format("QaData{0}", FileAddon()), // Default file name
 				DefaultExt = ".frd", // Default file extension
 				Filter = "FRD files (.frd)|*.frd|All files (*.*)|*.*" // Filter files by extension
 			};
@@ -146,6 +175,49 @@ namespace QA40xPlot
 				// Save document
 				string filename = saveFileDialog.FileName;
 				SaveToFrd(filename);
+			}
+		}
+
+		private void OnSave(object sender, RoutedEventArgs e)
+		{
+			SaveFileDialog saveFileDialog = new SaveFileDialog
+			{
+				FileName = String.Format("QaSettings{0}", FileAddon()), // Default file name
+				DefaultExt = ".cfg", // Default file extension
+				Filter = "Settings files (.cfg)|*.cfg|All files (*.*)|*.*" // Filter files by extension
+			};
+
+			// Show save file dialog box
+			bool? result = saveFileDialog.ShowDialog();
+
+			// Process save file dialog box results
+			if (result == true)
+			{
+				// Save document
+				string filename = saveFileDialog.FileName;
+				SaveToSettings(filename);
+			}
+
+		}
+
+		private void OnLoad(object sender, RoutedEventArgs e)
+		{
+			OpenFileDialog openFileDialog = new OpenFileDialog
+			{
+				FileName = String.Format("QaSettings{0}", FileAddon()), // Default file name
+				DefaultExt = ".cfg", // Default file extension
+				Filter = "Settings files (.cfg)|*.cfg|All files (*.*)|*.*" // Filter files by extension
+			};
+
+			// Show save file dialog box
+			bool? result = openFileDialog.ShowDialog();
+
+			// Process save file dialog box results
+			if (result == true)
+			{
+				// Save document
+				string filename = openFileDialog.FileName;
+				LoadFromSettings(filename);
 			}
 		}
 
@@ -173,5 +245,6 @@ namespace QA40xPlot
 					break;
 			}
 		}
+
 	}
 }

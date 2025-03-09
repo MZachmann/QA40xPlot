@@ -1,6 +1,6 @@
 ﻿using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace QA40xPlot.Data
 {

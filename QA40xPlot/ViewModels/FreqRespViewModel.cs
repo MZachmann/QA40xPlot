@@ -5,18 +5,21 @@ using QA40xPlot.ViewModels;
 using QA40xPlot.Views;
 using System.Windows;
 using System.ComponentModel;
-using System.Text.Json;
-using System;
+using Newtonsoft.Json;
 
 public class FreqRespViewModel : BaseViewModel
 {
-	public List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
-	public List<String> MeasureTypes { get => new List<string> { "Input Voltage", "Output Voltage" }; }
-	public List<String> GenAmplitudes { get => new List<string> { "0.05", "0.1", "0.25", "0.5", "0.75", "1", "2", "5" }; }
-	public List<String> Smoothings { get => new List<string> { "None", "1/24", "1/6" }; }
+	public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
+	public static List<String> MeasureTypes { get => new List<string> { "Input Voltage", "Output Voltage" }; }
+	public static List<String> GenAmplitudes { get => new List<string> { "0.05", "0.1", "0.25", "0.5", "0.75", "1", "2", "5" }; }
+	public static List<String> Smoothings { get => new List<string> { "None", "1/24", "1/6" }; }
+
 	private ActFrequencyResponse actFreq { get;  set; }
+	[JsonIgnore]
 	public RelayCommand DoStart { get => new RelayCommand(StartIt); }
+	[JsonIgnore]
 	public RelayCommand DoStop { get => new RelayCommand(StopIt); }
+	[JsonIgnore]
 	public RelayCommand ToggleGenerator { get => new RelayCommand(StopIt); }
 
 
@@ -278,13 +281,6 @@ public class FreqRespViewModel : BaseViewModel
 	~FreqRespViewModel()
 	{
 		PropertyChanged -= CheckPropertyChanged;
-	}
-
-	public string SerializeAll()
-	{
-		string jsonString = JsonSerializer.Serialize(this);
-		//Console.WriteLine(jsonString);
-		return jsonString;
 	}
 
 	public FreqRespViewModel()

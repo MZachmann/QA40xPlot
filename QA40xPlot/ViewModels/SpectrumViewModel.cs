@@ -2,25 +2,29 @@
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.Views;
-using ScottPlot;
 using System.ComponentModel;
-using System.Text.Json;
+using Newtonsoft.Json;
 using System.Windows;
 
 namespace QA40xPlot.ViewModels
 {
 	public class SpectrumViewModel : BaseViewModel
 	{
-		public List<String> WindowingTypes { get => new List<string> { "Rectangle", "Hann", "FlatTop" }; }
-		public List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
-		public List<String> MeasureTypes { get => new List<string> { "Input Voltage", "Output Voltage", "Output Power" }; }
-		public List<String> GenFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "2000", "5000", "10000" }; }
-		public List<String> GenAmplitudes { get => new List<string> { "0.05", "0.1", "0.25", "0.5", "0.75", "1", "2", "5" }; }
+		public static List<String> WindowingTypes { get => new List<string> { "Rectangle", "Hann", "FlatTop" }; }
+		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
+		public static List<String> MeasureTypes { get => new List<string> { "Input Voltage", "Output Voltage", "Output Power" }; }
+		public static List<String> GenFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "2000", "5000", "10000" }; }
+		public static List<String> GenAmplitudes { get => new List<string> { "0.05", "0.1", "0.25", "0.5", "0.75", "1", "2", "5" }; }
+
 		private ActSpectrum actSpec { get;  set; }
 		private ThdChannelInfo actInfo { get;  set; }
+		[JsonIgnore]
 		public RelayCommand SetAttenuate { get => new RelayCommand(SetAtten); }
+		[JsonIgnore]
 		public RelayCommand DoStart { get => new RelayCommand(StartIt); }
+		[JsonIgnore]
 		public RelayCommand DoStop { get => new RelayCommand(StopIt); }
+		[JsonIgnore]
 		public RelayCommand ToggleGenerator { get => new RelayCommand(StopIt); }
 
 		#region Setters and Getters
@@ -399,13 +403,6 @@ namespace QA40xPlot.ViewModels
 		{
 			var vm = ViewModels.ViewSettings.Singleton.SpectrumVm;
 			vm.actSpec.DoCancel();
-		}
-
-		public string SerializeAll()
-		{
-			string jsonString = JsonSerializer.Serialize(this);
-			//Console.WriteLine(jsonString);
-			return jsonString;
 		}
 
 		~SpectrumViewModel()

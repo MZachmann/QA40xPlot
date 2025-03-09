@@ -1,4 +1,3 @@
-using System;
 using System.Windows.Input;
 
 namespace QA40xPlot.ViewModels
@@ -8,11 +7,11 @@ namespace QA40xPlot.ViewModels
         private readonly Action<object> _execute;
         private readonly Predicate<object> _canExecute;
 
-        public RelayCommand(Action<object> execute) : this(execute, null)
+		public RelayCommand(Action<object> execute) : this(execute, null)
         {
         }
 
-        public RelayCommand(Action<object> execute, Predicate<object> canExecute)
+		public RelayCommand(Action<object> execute, Predicate<object> canExecute)
         {
             _execute = execute ?? throw new ArgumentNullException(nameof(execute));
             _canExecute = canExecute;

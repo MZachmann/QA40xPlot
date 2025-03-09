@@ -144,12 +144,12 @@ namespace QA40xPlot.Actions
 			// ********************************************************************
 			// Setup the device
 			var sampleRate = MathUtil.ParseTextToUint(mrs.SampleRate, 0);
-			if (sampleRate == 0 || !frqrsVm.FftSizes.Contains(mrs.FftSize))
+			if (sampleRate == 0 || !FreqRespViewModel.FftSizes.Contains(mrs.FftSize))
 			{
 				MessageBox.Show("Invalid settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 				return false;
 			}
-			var fftsize = frqrsVm.FftActualSizes.ElementAt(frqrsVm.FftSizes.IndexOf(mrs.FftSize));
+			var fftsize = FreqRespViewModel.FftActualSizes.ElementAt(FreqRespViewModel.FftSizes.IndexOf(mrs.FftSize));
 
 			await Qa40x.SetDefaults();
             await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make it turn on or off

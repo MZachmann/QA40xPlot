@@ -19,23 +19,33 @@
                 <RowDefinition/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="0" >
-                <Button Content="Photo" Click="OnPhoto" Margin="12,0,12,2">
+            <StackPanel Orientation="Horizontal" Grid.Column="1" Grid.Row="0" >
+                <Button Content="Photo" Click="OnPhoto" Margin="4,2,4,2">
                     <Button.ToolTip>
                         <ToolTip Content="Save a photo of the entire app" />
                     </Button.ToolTip>
                 </Button>
-                <Button Content="Export" Click="OnExport" IsEnabled="{Binding CurrentView.HasExport}" Margin="12,0,12,2">
+                <Button Content="Export" Click="OnExport" IsEnabled="{Binding CurrentView.HasExport}" Margin="4,2,4,2">
                     <Button.ToolTip>
                         <ToolTip Content="Export data to a text file" />
                     </Button.ToolTip>
                 </Button>
+                <Button Content="Save" Click="OnSave" Margin="4,2,4,2">
+                    <Button.ToolTip>
+                        <ToolTip Content="Save current settings to file" />
+                    </Button.ToolTip>
+                </Button>
+                <Button Content="Load" Click="OnLoad" Margin="4,2,4,2">
+                    <Button.ToolTip>
+                        <ToolTip Content="Open settings from a file" />
+                    </Button.ToolTip>
+                </Button>
             </StackPanel>
-            <Label Grid.Row="0" Grid.Column="1" Content="{Binding ProgressMessage}"/>
-            <ProgressBar Grid.Row="1" Grid.Column="1" Minimum="0" Maximum="100" MinHeight="5" Value="{Binding ProgressAmount}" />
+            <Label Grid.Row="0" Grid.Column="0" Content="{Binding ProgressMessage}"/>
+            <ProgressBar Grid.Row="1" Grid.Column="0" Minimum="0" Maximum="100" MinHeight="5" Value="{Binding ProgressAmount}" />
         </Grid>
         <TabControl Grid.Row="2" SelectionChanged="OnNewTab">
             <TabItem Header="Spectrum">

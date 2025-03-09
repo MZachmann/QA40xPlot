@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 
@@ -39,6 +40,7 @@ namespace QA40xPlot.ViewModels
 		}
 
 		private ImdStepChannel? _MyStep = null;         // type of alert
+		[JsonIgnore]
 		public ImdStepChannel? MyStep
 		{
 			get => _MyStep;
