@@ -339,9 +339,11 @@ namespace QA40xPlot.Actions
             {
                 AddAMarker(fmr, fmr.FrequencySteps[0].FundamentalFrequency);
 
-                for(int i=0; i<6; i++)
-                {
-                    var frq = fmr.FrequencySteps[0].Left.Harmonics[i].Frequency;
+				var flist = fmr.FrequencySteps[0].Left.Harmonics.OrderBy(x => x.Frequency).ToArray();
+				var cn = flist.Length;
+				for (int i = 0; i < cn; i++)
+				{
+					var frq = flist[i].Frequency;
 					AddAMarker(fmr, frq);
 				}
 			}

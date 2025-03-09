@@ -327,10 +327,11 @@ namespace QA40xPlot.Actions
             {
                 AddAMarker(fmr, fmr.FrequencySteps[0].Gen1Freq);
 				AddAMarker(fmr, fmr.FrequencySteps[0].Gen2Freq);
-				var cn = fmr.FrequencySteps[0].Left.Harmonics.Count;
+				var flist = fmr.FrequencySteps[0].Left.Harmonics.OrderBy(x => x.Frequency).ToArray();
+				var cn = flist.Length;
 				for (int i=0; i<cn; i++)
                 {
-                    var frq = fmr.FrequencySteps[0].Left.Harmonics[i].Frequency;
+                    var frq = flist[i].Frequency;
 					AddAMarker(fmr, frq);
 				}
 			}
