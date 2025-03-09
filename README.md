@@ -1,14 +1,17 @@
 QA40xPlot
 
-This application is a loose Fork of https://github.com/breedj/qa40x-audio-analyser, an excellent Windows Forms application
-that interfaces with the QA40x audio analyser.
+This Audio Analysis application is a loose Fork of https://github.com/breedj/qa40x-audio-analyser, an excellent Windows Forms application
+that interfaces with the QuantAsylum QA40x audio analyser.
 
-The changes here are twofold. First, it is using WPF instead of Windows Forms. 
+The analyzer contains 
 
-Second, it contains :
+- a spectral plot
+- an intermodulation distortion plot
+- a frequency response analyzer
+- a chart of THD vs Frequency 
+- a chart of THD vs Amplitude.
 
-- an additional plot called Spectrum that is the usual QA40x spectral power plot but with a simpler user interface
-- an IMD test that's fairly simple, like the spectral sweep
+The code is based on C# and WPF (Windows Presentation Foundation).
 
 Before starting this application, first start the QA40x program. Minimize it if you want, but it is used for the
 REST interface. 
