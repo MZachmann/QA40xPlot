@@ -6,6 +6,7 @@ using QA40xPlot.Views;
 using System.Windows;
 using System.ComponentModel;
 using System.Text.Json;
+using System;
 
 public class FreqRespViewModel : BaseViewModel
 {
@@ -266,6 +267,12 @@ public class FreqRespViewModel : BaseViewModel
 	{
 		var vm = QA40xPlot.ViewModels.ViewSettings.Singleton.FreqRespVm;
 		vm.actFreq.DoCancel();
+	}
+
+	public DataBlob? GetFftData()
+	{
+		var vm = QA40xPlot.ViewModels.ViewSettings.Singleton.FreqRespVm;
+		return vm.actFreq.CreateExportData();
 	}
 
 	~FreqRespViewModel()

@@ -48,24 +48,24 @@
                     <views:ImdPlotPage  />
                 </Grid>
             </TabItem>
-            <TabItem Header="Thd vs Freq">
+            <TabItem Header="THD vs Frequency">
                 <Grid Background="#FFE5E5E5">
                     <views:ThdFreqPlotPage  />
                 </Grid> 
             </TabItem>
-            <TabItem Header="Thd vs Amp">
+            <TabItem Header="THD vs Amplitude">
                 <Grid Background="#FFE5E5E5">
                     <views:ThdAmpPlotPage  />
                 </Grid>
             </TabItem>
-            <TabItem Header="Freq Response">
+            <TabItem Header="Frequency Response">
                 <Grid Background="#FFE5E5E5">
                     <views:FreqRespPlotPage  />
                 </Grid>
             </TabItem>
-            <TabItem Header="Bode Plot">
+            <!--<TabItem Header="Bode Plot">
                 <Grid Background="#FFE5E5E5"/>
-            </TabItem>
+            </TabItem>-->
         </TabControl>
     </Grid>
 </Window>

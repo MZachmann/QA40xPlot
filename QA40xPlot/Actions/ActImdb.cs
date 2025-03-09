@@ -162,14 +162,6 @@ namespace QA40xPlot.Actions
 			}
 			var fftsize = thd.FftActualSizes.ElementAt(thd.FftSizes.IndexOf(thd.FftSize));
 
-			// For now clear measurements to allow only one until we have a UI to manage them.
-			ViewSettings.Singleton.ImdVm.HasExport = false;
-			Data.Measurements.Clear();
-
-            // Add to list
-            Data.Measurements.Add(MeasurementResult);
-
-
             // Check if REST interface is available and device connected
             if (await QaLibrary.CheckDeviceConnected() == false)
                 return false;
@@ -264,7 +256,13 @@ namespace QA40xPlot.Actions
 					// Add step data to list
 					msr.FrequencySteps.Clear();
 					msr.FrequencySteps.Add(step);
+
+					// For now clear measurements to allow only one until we have a UI to manage them.
 					ViewSettings.Singleton.ImdVm.HasExport = true;
+					Data.Measurements.Clear();
+
+					// Add to list
+					Data.Measurements.Add(msr);
 
 					ClearPlot();
 					UpdateGraph(false);

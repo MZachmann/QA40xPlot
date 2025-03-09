@@ -131,7 +131,7 @@ namespace QA40xPlot.Actions
 			var vm = ViewSettings.Singleton.SpectrumVm;
 			var sampleRate = MathUtil.ParseTextToUint(vm.SampleRate, 0);
 			var fftsize = vf[0].fftData.Left.Length;
-			var binSize = QaLibrary.CalcBinSize(sampleRate, (uint)fftsize);
+			var binSize = vf[0].fftData.Df;
 			if (vf != null && vf.Count > 0)
 			{
 				db.LeftData = vf[0].fftData.Left.ToList();
@@ -161,14 +161,6 @@ namespace QA40xPlot.Actions
 				return false;
 			}
 			var fftsize = thd.FftActualSizes.ElementAt(thd.FftSizes.IndexOf(thd.FftSize));
-
-			// For now clear measurements to allow only one until we have a UI to manage them.
-			ViewSettings.Singleton.SpectrumVm.HasExport = false;
-			Data.Measurements.Clear();
-
-            // Add to list
-            Data.Measurements.Add(MeasurementResult);
-
 
             // Check if REST interface is available and device connected
             if (await QaLibrary.CheckDeviceConnected() == false)
@@ -278,6 +270,11 @@ namespace QA40xPlot.Actions
 					// Add step data to list
 					msr.FrequencySteps.Clear();
 					msr.FrequencySteps.Add(step);
+
+					// For now clear measurements to allow only one until we have a UI to manage them.
+					Data.Measurements.Clear();
+					// Add to list
+					Data.Measurements.Add(MeasurementResult);
 
 					ClearPlot();
 					UpdateGraph(false);

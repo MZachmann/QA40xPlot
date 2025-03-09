@@ -72,13 +72,15 @@ namespace QA40xPlot.Actions
 		public async void StartMeasurement()
 		{
 			var vm = ViewSettings.Singleton.FreqRespVm;
-            vm.IsRunning = true;
+			vm.HasExport = false;
+			vm.IsRunning = true;
 			ct = new();
             UpdateGenAmplitude(vm.Gen1Voltage);   // convert gen1voltage to dbv
             UpdateGraph(true);
 			await PerformMeasurement(ct.Token, false);
 			await showMessage("Finished");
 			vm.IsRunning = false;
+			vm.HasExport = Data.Measurements.Count > 0;
 		}
 
 
@@ -90,6 +92,25 @@ namespace QA40xPlot.Actions
         {
 			var vm = ViewSettings.Singleton.FreqRespVm;
 			vm.Gen1Voltage = QaLibrary.ConvertVoltage(vm.GeneratorAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)vm.GeneratorUnits).ToString();
+		}
+
+		// create a blob with F,Left,Right data for export
+		public DataBlob? CreateExportData()
+		{
+			DataBlob db = new();
+			var vf = this.MeasurementResult?.FrequencyResponseData;
+            if (vf == null)
+                return null;
+			var vm = ViewSettings.Singleton.SpectrumVm;
+			var sampleRate = MathUtil.ParseTextToUint(vm.SampleRate, 0);
+            var fftsize = vf.FreqRslt.Left.Length;
+			var binSize = QaLibrary.CalcBinSize(sampleRate, (uint)fftsize);
+			db.LeftData = vf.FreqRslt.Left.ToList();
+			db.RightData = vf.FreqRslt.Right.ToList();
+			var frqs = Enumerable.Range(0, fftsize).ToList();
+			var frequencies = frqs.Select(x => x * binSize).ToList(); // .Select(x => x * binSize);
+			db.FreqData = frequencies;
+			return db;
 		}
 
 		/// <summary>
@@ -107,15 +128,8 @@ namespace QA40xPlot.Actions
                 CreateDate = DateTime.Now,
                 Show = true,                                      // Show in graph
 			};
-            var frqrsVm = MeasurementResult.MeasurementSettings;
-
-            // For now clear measurements to allow only one until we have a UI to manage them.
-            Data.Measurements.Clear();
-
-            // Add to list
-            Data.Measurements.Add(MeasurementResult);
-
-            var mrs = MeasurementResult.MeasurementSettings;    // cached version of the settings
+            var frqrsVm = ViewSettings.Singleton.FreqRespVm;
+            var mrs = MeasurementResult.MeasurementSettings;
 
 			// UpdateGraphChannelSelectors();
 
@@ -234,6 +248,9 @@ namespace QA40xPlot.Actions
 					await showMessage($"Sweeping done");
                     MeasurementResult.FrequencyResponseData = lfrs;
                     MeasurementResult.GainData = CalculateGain(lfrs.FreqRslt, frqrsVm.RightChannel);
+                    // just one result to show
+                    Data.Measurements.Clear();
+                    Data.Measurements.Add(MeasurementResult);
                     UpdateGraph(false);
                     ShowLastMeasurementCursorTexts();
 

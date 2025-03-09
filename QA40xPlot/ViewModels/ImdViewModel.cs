@@ -341,10 +341,14 @@ namespace QA40xPlot.ViewModels
 			get => _IntermodType;
 			set => SetProperty(ref _IntermodType, value);
 		}
-		
+
 		#endregion
 
 
+		public DataBlob? GetFftData()
+		{
+			return actImd.CreateExportData();
+		}
 
 		// the property change is used to trigger repaints of the graph
 		private void CheckPropertyChanged(object sender, PropertyChangedEventArgs e)

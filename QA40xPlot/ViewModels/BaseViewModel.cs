@@ -59,6 +59,11 @@ namespace QA40xPlot.ViewModels
 			return true;
 		}
 
+		public 	BaseViewModel()
+		{
+			HasExport = false;
+		}
+
 		#region INotifyPropertyChanged
 		public event PropertyChangedEventHandler? PropertyChanged;
 		protected void OnPropertyChanged([CallerMemberName] string? propertyName = "")

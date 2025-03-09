@@ -1,4 +1,5 @@
 ﻿using Microsoft.Win32;
+using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using System.IO;
@@ -67,8 +68,21 @@ namespace QA40xPlot
 
 		public void SaveToFrd(string filename)
 		{
-			var vma = ViewSettings.Singleton.SpectrumVm;
-			var vmf = vma.GetFftData();
+			var vma = ViewSettings.Singleton.Main.CurrentView;
+			DataBlob? vmf = null;
+			if (vma is SpectrumViewModel)
+			{
+				vmf = ((SpectrumViewModel)vma).GetFftData();
+			}
+			else if (vma is ImdViewModel)
+			{
+				vmf = ((ImdViewModel)vma).GetFftData();
+			}
+			else if (vma is FreqRespViewModel)
+			{
+				vmf = ((FreqRespViewModel)vma).GetFftData();
+			}
+
 			if (vmf != null && vmf.LeftData.Count > 0)
 			{
 				string sout = string.Empty;
@@ -76,10 +90,15 @@ namespace QA40xPlot
 				{
 					var va = vmf.FreqData[i];
 					var vb = vmf.LeftData[i];
-					sout += string.Format("{0:F0},{1:F4},{2:F4}\r\n", vmf.FreqData[i], 20 * Math.Log10(vmf.LeftData[i]), 20 * Math.Log10(vmf.RightData[i]));
+					//sout += string.Format("{0:F0},{1:F4},{2:F4}\r\n", vmf.FreqData[i], 20 * Math.Log10(vmf.LeftData[i]), 20 * Math.Log10(vmf.RightData[i]));
+					sout += string.Format("{0:F0},{1:F4}\r\n", vmf.FreqData[i], 20 * Math.Log10(vmf.LeftData[i]));
 				}
 				File.WriteAllBytes(filename, System.Text.Encoding.UTF8.GetBytes(sout));
 				ExportCount++;
+			}
+			else
+			{
+				ViewSettings.Singleton.Main.CurrentView = vma;
 			}
 		}
 
@@ -106,6 +125,7 @@ namespace QA40xPlot
 				string filename = saveFileDialog.FileName;
 				SaveToPng(filename);
 			}
+			await vm.SetProgressMessage(string.Empty);
 		}
 
 		private void OnExport(object sender, RoutedEventArgs e)
@@ -134,19 +154,24 @@ namespace QA40xPlot
 			var vm = ViewSettings.Singleton.Main;
 			var x = e.AddedItems[0] as TabItem;
 			string u = x?.Header.ToString();
-			if(u == "Spectrum")
+			switch(u)
 			{
-				vm.CurrentView = ViewSettings.Singleton.SpectrumVm;
+				case "Spectrum":
+					vm.CurrentView = ViewSettings.Singleton.SpectrumVm;
+					break;
+				case "Intermodulation":
+					vm.CurrentView = ViewSettings.Singleton.ImdVm;
+					break;
+				case "Frequency Response":
+					vm.CurrentView = ViewSettings.Singleton.FreqRespVm;
+					break;
+				case "THD vs Frequency":
+					vm.CurrentView = ViewSettings.Singleton.ThdFreq;
+					break;
+				case "THD vs Amplitude":
+					vm.CurrentView = ViewSettings.Singleton.ThdAmp;
+					break;
 			}
-			else if(u == "Intermodulation")
-			{
-				vm.CurrentView = ViewSettings.Singleton.ImdVm;
-			}
-			else
-			{
-				vm.CurrentView = ViewSettings.Singleton.FreqRespVm;
-			}
-
 		}
 	}
 }
