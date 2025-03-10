@@ -62,37 +62,54 @@ namespace QA40xPlot.Actions
 			minorTickGen.Divisions = 10;
 		}
 
+		// decade and offset for log
+		private string FormatLogger(double val)
+		{
+			if (val < 10000)
+				return val.ToString();
+			return ((int)val / 1000).ToString() + "K";
+		}
+
 		private void SetupFreqTics(ScottPlot.Plot myPlot)
 		{
-			// create a minor tick generator that places log-distributed minor ticks
-			ScottPlot.TickGenerators.LogMinorTickGenerator minorTickGenX = new();
+			ScottPlot.TickGenerators.NumericManual tickGenX = new();
+			myPlot.Axes.Bottom.TickGenerator = tickGenX;
+			// we start at a freq 0 of and end at 100000 I guess
+			for(int i=0; i<7; i++)
+			{
+				for(int j=1; j<=9; j++)
+				{
+					if(j==1 || j==2 || j==5)
+					{
+						var val = (int)(0.5 + Math.Pow(10, i + Math.Log10(j)));
+						tickGenX.AddMajor(i + Math.Log10(j), FormatLogger(val));
+					}
+					else
+					{
+						tickGenX.AddMinor(i + Math.Log10(j));
+					}
+				}
+			}
 
-			// create a numeric tick generator that uses our custom minor tick generator
+			//ScottPlot.TickGenerators.LogMinorTickGenerator minorTickGenX = new();
+			//minorTickGenX.Divisions = 10;
+
+			//// create a numeric tick generator that uses our custom minor tick generator
 			//ScottPlot.TickGenerators.NumericAutomatic tickGenX = new();
 			//tickGenX.MinorTickGenerator = minorTickGenX;
+			//tickGenX.MinimumTickSpacing = 10;
 
-			// create a manual tick generator and add ticks
-			ScottPlot.TickGenerators.NumericManual tickGenX = new();
+			//// create a custom tick formatter to set the label text for each tick
+			//static string LogTickLabelFormatter(double y) => $"{Math.Pow(10, Math.Round(y, 10)):#0.######}";
 
-			// add major ticks with their labels
-			tickGenX.AddMajor(Math.Log10(1), "1");
-			tickGenX.AddMajor(Math.Log10(2), "2");
-			tickGenX.AddMajor(Math.Log10(5), "5");
-			tickGenX.AddMajor(Math.Log10(10), "10");
-			tickGenX.AddMajor(Math.Log10(20), "20");
-			tickGenX.AddMajor(Math.Log10(50), "50");
-			tickGenX.AddMajor(Math.Log10(100), "100");
-			tickGenX.AddMajor(Math.Log10(200), "200");
-			tickGenX.AddMajor(Math.Log10(500), "500");
-			tickGenX.AddMajor(Math.Log10(1000), "1k");
-			tickGenX.AddMajor(Math.Log10(2000), "2k");
-			tickGenX.AddMajor(Math.Log10(5000), "5k");
-			tickGenX.AddMajor(Math.Log10(10000), "10k");
-			tickGenX.AddMajor(Math.Log10(20000), "20k");
-			tickGenX.AddMajor(Math.Log10(50000), "50k");
-			tickGenX.AddMajor(Math.Log10(100000), "100k");
+			//// tell our major tick generator to only show major ticks that are whole integers
+			//tickGenX.IntegerTicksOnly = true;
 
-			myPlot.Axes.Bottom.TickGenerator = tickGenX;
+			//// tell our custom tick generator to use our new label formatter
+			//tickGenX.LabelFormatter = LogTickLabelFormatter;
+
+			//// tell the left axis to use our custom tick generator
+			//myPlot.Axes.Bottom.TickGenerator = tickGenX;
 		}
 
 		private static void SetupAmpTics(ScottPlot.Plot myPlot)
@@ -107,7 +124,6 @@ namespace QA40xPlot.Actions
 
 			minorTickGenX.Divisions = 10;
 			tickGenX.MinorTickGenerator = minorTickGenX;
-
 			tickGenX.TargetTickCount = 25;
 			// tell our major tick generator to only show major ticks that are whole integers
 			tickGenX.IntegerTicksOnly = true;
