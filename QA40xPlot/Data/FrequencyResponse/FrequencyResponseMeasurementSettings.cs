@@ -6,7 +6,6 @@ namespace QA40xPlot.Data
     {
         public uint SampleRate { get; set; }
         public uint FftSize { get; set; }
-        public Windowing WindowingFunction { get; set; }
         public E_GeneratorType GeneratorType { get; set; }
         public double GeneratorAmplitude { get; set; }
         public E_VoltageUnit GeneratorAmplitudeUnit { get; set;}

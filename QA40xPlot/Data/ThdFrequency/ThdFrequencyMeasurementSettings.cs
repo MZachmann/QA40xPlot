@@ -6,7 +6,6 @@ namespace QA40xPlot.Data
         public uint SampleRate { get; set; }
         public uint FftSize { get; set; }
         public int InputRange { get; set; }
-        public Windowing WindowingFunction { get; set; }
         public uint StartFrequency { get; set; }
         public uint EndFrequency { get; set; }
         public uint StepsPerOctave { get; set; }

@@ -167,7 +167,7 @@ namespace QA40xPlot.Actions
             await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make it turn on or off
             await Qa40x.SetSampleRate(thd.SampleRate);
             await Qa40x.SetBufferSize(thd.FftSize);
-            await Qa40x.SetWindowing(thd.WindowingMethod.ToString());
+            await Qa40x.SetWindowing(thd.WindowingMethod);
             await Qa40x.SetRoundFrequencies(true);
 
             try

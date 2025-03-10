@@ -2,13 +2,11 @@
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.Views;
-using ScottPlot;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Text.Json;
 using Newtonsoft.Json;
 using System.Windows;
 using System.Windows.Controls;
+using FftSharp.Windows;
 
 namespace QA40xPlot.ViewModels
 {
@@ -238,8 +236,8 @@ namespace QA40xPlot.ViewModels
 			get => _FftSize;
 			set => SetProperty(ref _FftSize, value);
 		}
-		private Libraries.Windowing _Windowing;
-		public Libraries.Windowing WindowingMethod
+		private string _Windowing;
+		public string WindowingMethod
 		{
 			get => _Windowing;
 			set => SetProperty(ref _Windowing, value);
@@ -251,12 +249,14 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _XAxisType, value);
 		}
 		private Visibility _ToShowRange;
+		[JsonIgnore]
 		public Visibility ToShowRange
 		{
 			get => _ToShowRange;
 			set => SetProperty(ref _ToShowRange, value);
 		}
 		private Visibility _ToShowdB;
+		[JsonIgnore]
 		public Visibility ToShowdB
 		{
 			get => _ToShowdB;
@@ -374,7 +374,7 @@ namespace QA40xPlot.ViewModels
 
 			SampleRate = 96000;
 			FftSize = 65536;
-			WindowingMethod = 0;
+			WindowingMethod = "Hann";
 			RangeTopdB = 20;
 			RangeBottomdB = -180;
 

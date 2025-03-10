@@ -312,7 +312,7 @@ namespace QA40xPlot.Libraries
             LeftRightFrequencySeries lrfs = new LeftRightFrequencySeries() { Df = Convert.ToDouble(d["Dx"]), Left = ConvertBase64ToDoubles(d["Left"]), Right = ConvertBase64ToDoubles(d["Right"]) };
 
             double elapsedMs = DateTime.Now.Subtract(now).TotalMilliseconds;
-            Console.WriteLine($"Left Array Size: {lrfs.Left.Length}  Elapsed Ms: {elapsedMs:0.0}");
+            //Console.WriteLine($"Left Array Size: {lrfs.Left.Length}  Elapsed Ms: {elapsedMs:0.0}");
 
             return lrfs;
         }
@@ -325,7 +325,7 @@ namespace QA40xPlot.Libraries
             LeftRightFrequencySeries lrfs = new LeftRightFrequencySeries() { Df = Convert.ToDouble(d["Dx"]), Left = ConvertBase64ToDoubles(d["Left"]), Right = ConvertBase64ToDoubles(d["Right"]) };
 
             double elapsedMs = DateTime.Now.Subtract(now).TotalMilliseconds;
-            Console.WriteLine($"Left Array Size: {lrfs.Left.Length}  Elapsed Ms: {elapsedMs:0.0}");
+            //Console.WriteLine($"Left Array Size: {lrfs.Left.Length}  Elapsed Ms: {elapsedMs:0.0}");
 
             return lrfs;
         }

@@ -2,7 +2,9 @@
 
 // this aggregates the settings somewhere static, which does mean only one of each
 
+using System.Diagnostics;
 using System.Reflection;
+using System.Windows;
 using Newtonsoft.Json;
 
 namespace QA40xPlot.ViewModels
@@ -37,22 +39,30 @@ namespace QA40xPlot.ViewModels
 
 			Type type = dest.GetType();
 			PropertyInfo[] properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-
-			foreach (PropertyInfo property in properties)
+			try
 			{
-				if (property.CanRead && property.CanWrite)
+				foreach (PropertyInfo property in properties)
 				{
-					if (vws.ContainsKey(property.Name))
+					if (property.CanRead && property.CanWrite)
 					{
-						object value = vws[property.Name];
-						try
+						if (vws.ContainsKey(property.Name))
 						{
-							property.SetValue(dest, Convert.ChangeType(value, property.PropertyType));
+							object value = vws[property.Name];
+							try
+							{
+								//Debug.WriteLine("Property " + property.Name);
+								property.SetValue(dest, Convert.ChangeType(value, property.PropertyType));
+							}
+							catch (Exception ex) { }    // for now ignore this
 						}
-						catch (Exception ex) { }	// for now ignore this
 					}
 				}
 			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information); 
+			}
+
 		}
 
 

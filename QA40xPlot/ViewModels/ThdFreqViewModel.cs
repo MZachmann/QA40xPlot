@@ -245,8 +245,8 @@ namespace QA40xPlot.ViewModels
 			get => _FftSize;
 			set => SetProperty(ref _FftSize, value);
 		}
-		private Libraries.Windowing _Windowing;
-		public Libraries.Windowing WindowingMethod
+		private string _Windowing;
+		public string WindowingMethod
 		{
 			get => _Windowing;
 			set => SetProperty(ref _Windowing, value);
@@ -258,12 +258,14 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _InputRange, value);
 		}
 		private Visibility _ToShowRange;
+		[JsonIgnore]
 		public Visibility ToShowRange
 		{
 			get => _ToShowRange;
 			set => SetProperty(ref _ToShowRange, value);
 		}
 		private Visibility _ToShowdB;
+		[JsonIgnore]
 		public Visibility ToShowdB
 		{
 			get => _ToShowdB;
@@ -412,7 +414,7 @@ namespace QA40xPlot.ViewModels
 
 			SampleRate = 96000;
 			FftSize = 65536;
-			WindowingMethod = 0;
+			WindowingMethod = "Hann";
 
 			InputRange = 0;
 			RangeTopdB = 20;

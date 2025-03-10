@@ -203,12 +203,14 @@ public class FreqRespViewModel : BaseViewModel
 		set => SetProperty(ref _Show1dBBandwidth_R, value);
 	}
 	private Visibility _ToShowRange;
+	[JsonIgnore]
 	public Visibility ToShowRange
 	{
 		get => _ToShowRange;
 		set => SetProperty(ref _ToShowRange, value);
 	}
 	private Visibility _ToShowdB;
+	[JsonIgnore]
 	public Visibility ToShowdB
 	{
 		get => _ToShowdB;
