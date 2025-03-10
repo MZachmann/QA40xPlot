@@ -177,7 +177,7 @@ namespace QA40xPlot.Actions
             {
 				await Qa40x.SetDefaults();
 			}
-			await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make it turn on or off
+
 			await Qa40x.SetSampleRate(sampleRate);
             await Qa40x.SetBufferSize(fftsize);
 			await Qa40x.SetWindowing(thd.WindowingMethod);
@@ -234,6 +234,10 @@ namespace QA40xPlot.Actions
 					if ( thd.UseGenerator || thd.UseGenerator2)
                     {
 						await Qa40x.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
+					}
+					else
+					{
+						await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make the averages reset
 					}
 
 					LeftRightSeries lrfs = await QaLibrary.DoAcquisitions(thd.Averages, ct);

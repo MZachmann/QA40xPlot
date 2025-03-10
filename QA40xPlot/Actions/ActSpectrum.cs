@@ -220,12 +220,16 @@ namespace QA40xPlot.Actions
 					await showMessage($"Measuring spectrum.");
 					await showProgress(0);
 
-                    // Set the generators
-                    await Qa40x.SetGen1(stepBinFrequencies[0], amplitudeSetpointdBV, thd.UseGenerator);
+					// Set the generators
+					await Qa40x.SetGen1(stepBinFrequencies[0], amplitudeSetpointdBV, thd.UseGenerator);
 					// for the first go around, turn on the generator
 					if ( thd.UseGenerator )
                     {
 						await Qa40x.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
+					}
+					else
+					{
+						await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make the averages reset
 					}
 
 					LeftRightSeries lrfs = await QaLibrary.DoAcquisitions(thd.Averages, ct);

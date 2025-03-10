@@ -28,17 +28,17 @@
                         <ToolTip Content="Save a photo of the entire app" />
                     </Button.ToolTip>
                 </Button>
-                <Button Content="Export" Click="OnExport" IsEnabled="{Binding CurrentView.HasExport}" Margin="4,2,4,2">
+                <Button Content="Export" Command="{Binding DoExport}" IsEnabled="{Binding CurrentView.HasExport}" Margin="4,2,4,2">
                     <Button.ToolTip>
                         <ToolTip Content="Export data to a text file" />
                     </Button.ToolTip>
                 </Button>
-                <Button Content="Save" Click="OnSave" Margin="4,2,4,2">
+                <Button Content="Save" Command="{Binding DoSave}" Margin="4,2,4,2">
                     <Button.ToolTip>
                         <ToolTip Content="Save current settings to file" />
                     </Button.ToolTip>
                 </Button>
-                <Button Content="Load" Click="OnLoad" Margin="4,2,4,2">
+                <Button Content="Load" Command="{Binding DoLoad}" Margin="4,2,4,2">
                     <Button.ToolTip>
                         <ToolTip Content="Open settings from a file" />
                     </Button.ToolTip>
