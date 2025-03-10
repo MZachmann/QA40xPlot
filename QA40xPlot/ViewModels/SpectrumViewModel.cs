@@ -5,6 +5,8 @@ using QA40xPlot.Views;
 using System.ComponentModel;
 using Newtonsoft.Json;
 using System.Windows;
+using System.Drawing;
+using System.Windows.Media;
 
 namespace QA40xPlot.ViewModels
 {
@@ -28,6 +30,20 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand ToggleGenerator { get => new RelayCommand(StopIt); }
 
 		#region Setters and Getters
+
+		[JsonIgnore]
+		public string AttenColor
+		{
+			get => DoAutoAttn ? "#1800f000" : "Transparent";
+		}
+
+		private bool _DoAutoAttn = false;
+		public bool DoAutoAttn
+		{
+			get { return _DoAutoAttn; }
+			set { if ( SetProperty(ref _DoAutoAttn, value)) OnPropertyChanged("AttenColor"); }
+		}
+
 		private bool _ShowChannelInfo = false;
 		public bool ShowChannelInfo
 		{
@@ -314,8 +330,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _UseGenerator2, value);
 		}
 		#endregion
-
-
 
 		// the property change is used to trigger repaints of the graph
 		private void CheckPropertyChanged(object sender, PropertyChangedEventArgs e)

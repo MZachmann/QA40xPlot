@@ -50,6 +50,9 @@ namespace QA40xPlot
 		private void OnNewTab(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
 		{
 			var vm = ViewSettings.Singleton.Main;
+			if (e.AddedItems == null || e.AddedItems.Count == 0)
+				return;
+
 			var x = e.AddedItems[0] as TabItem;
 			string u = x?.Header.ToString();
 			switch(u)

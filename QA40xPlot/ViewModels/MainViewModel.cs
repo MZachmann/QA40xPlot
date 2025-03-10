@@ -216,7 +216,7 @@ namespace QA40xPlot.ViewModels
 		{
 			OpenFileDialog openFileDialog = new OpenFileDialog
 			{
-				FileName = String.Empty, // Default file name
+				FileName = string.Empty, // Default file name
 				DefaultExt = ".cfg", // Default file extension
 				Filter = "Settings files|*.cfg|All files|*.*" // Filter files by extension
 			};

@@ -5,6 +5,7 @@ using ScottPlot;
 using ScottPlot.Plottables;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Windows;
 
 // various things for the thd vs frequency activity
@@ -257,9 +258,9 @@ namespace QA40xPlot.Actions
 						fftData = lrfs.FreqRslt,
                         timeData = lrfs.TimeRslt
                     };
-                  
-                    step.Left = ChannelCalculations(binSize, step.Gen1Freq, step.Gen2Freq, amplitudeSetpoint1dBV, lrfs.FreqRslt.Left, msr.NoiseFloor.FreqRslt.Left, thd.AmpLoad);
-                    step.Right = ChannelCalculations(binSize, step.Gen1Freq, step.Gen2Freq, amplitudeSetpoint1dBV, lrfs.FreqRslt.Right, msr.NoiseFloor.FreqRslt.Right, thd.AmpLoad);
+
+					step.Left = ChannelCalculations(binSize, amplitudeSetpoint1dBV, step, msr, false);
+					step.Right = ChannelCalculations(binSize, amplitudeSetpoint1dBV, step, msr, true);
 
 					// Add step data to list
 					msr.FrequencySteps.Clear();
@@ -435,25 +436,32 @@ namespace QA40xPlot.Actions
 		/// <param name="fftData"></param>
 		/// <param name="noiseFloorFftData"></param>
 		/// <returns></returns>
-		private ImdStepChannel ChannelCalculations(double binSize, double gen1F, double gen2F, double generatorAmplitudeDbv, double[] fftData, double[] noiseFloorFftData, double load)
-        {
-            uint fundamental1Bin = QaLibrary.GetBinOfFrequency(gen1F, binSize);
-			uint fundamental2Bin = QaLibrary.GetBinOfFrequency(gen2F, binSize);
+		private ImdStepChannel ChannelCalculations(double binSize, double generatorAmplitudeDbv, ImdStep step, ImdMeasurementResult msr, bool isRight)
+		{
+            uint fundamental1Bin = QaLibrary.GetBinOfFrequency(step.Gen1Freq, binSize);
+			uint fundamental2Bin = QaLibrary.GetBinOfFrequency(step.Gen2Freq, binSize);
+			var ffts = isRight ? step.fftData.Right : step.fftData.Left;
+			var lfdata = step.timeData.Left;
+			double allvolts = Math.Sqrt(lfdata.Select(x => x * x).Sum() / lfdata.Count());  // use the time data for best accuracy gain math
 
 			ImdStepChannel channelData = new()
-            {
-                Fundamental1_V = fftData[fundamental1Bin],
-                Fundamental1_dBV = 20 * Math.Log10(fftData[fundamental1Bin]),
-				Fundamental2_V = fftData[fundamental2Bin],
-				Fundamental2_dBV = 20 * Math.Log10(fftData[fundamental2Bin]),
-				Gain_dB = 20 * Math.Log10(fftData[fundamental1Bin] / Math.Pow(10, generatorAmplitudeDbv / 20))
-            };
+			{
+				Fundamental1_V = ffts[fundamental1Bin],
+				Fundamental1_dBV = 20 * Math.Log10(ffts[fundamental1Bin]),
+				Fundamental2_V = ffts[fundamental2Bin],
+				Fundamental2_dBV = 20 * Math.Log10(ffts[fundamental2Bin]),
+				Total_V = allvolts,
+				Gain_dB = 20 * Math.Log10(ffts[fundamental1Bin] / Math.Pow(10, generatorAmplitudeDbv / 20))
+			};
 			// Calculate average noise floor
-			uint ABin = QaLibrary.GetBinOfFrequency(500, binSize);
-			channelData.Average_NoiseFloor_V = noiseFloorFftData.Average();   // Average noise floor in Volts after the fundamental
-            var v2 = noiseFloorFftData.Select(x => x*x).Sum() / (1.5 * fftData.Length);    // 1.5 for hann window Squared noise floor in Volts after the fundamental
-			channelData.TotalNoiseFloor_V = Math.Sqrt(v2);   // Average noise floor in Volts after the fundamental
-			channelData.Average_NoiseFloor_dBV = 20 * Math.Log10(channelData.TotalNoiseFloor_V);         // Average noise floor in dBV
+			var noiseFlr = (msr.NoiseFloor == null) ? null : (isRight ? msr.NoiseFloor.FreqRslt.Left : msr.NoiseFloor.FreqRslt.Right);
+			if (noiseFlr != null)
+			{
+				channelData.Average_NoiseFloor_V = noiseFlr.Average();   // Average noise floor in Volts after the fundamental
+				var v2 = noiseFlr.Select(x => x * x).Sum() / (1.5 * noiseFlr.Length);    // 1.5 for hann window Squared noise floor in Volts after the fundamental
+				channelData.TotalNoiseFloor_V = Math.Sqrt(v2);   // Average noise floor in Volts after the fundamental
+				channelData.Average_NoiseFloor_dBV = 20 * Math.Log10(channelData.TotalNoiseFloor_V);         // Average noise floor in dBV
+			}
 
 			// Reset harmonic distortion variables
 			double distortionSqrtTotal = 0;
@@ -461,11 +469,11 @@ namespace QA40xPlot.Actions
 			double distortionD6plus = 0;
 			double voltagetotal = 0;
 			var binlist = new List<uint> { fundamental1Bin - 1, fundamental1Bin, fundamental1Bin + 1, fundamental2Bin - 1, fundamental2Bin, fundamental2Bin + 1 };
-			for (uint i=0; i<fftData.Length; i++)
+			for (uint i=0; i<ffts.Length; i++)
 			{
 				if( ! binlist.Contains(i))
 				{
-					voltagetotal += fftData[i] * fftData[i];		// squared sum
+					voltagetotal += ffts[i] * ffts[i];		// squared sum
 				}
 			}
 			voltagetotal = Math.Sqrt(voltagetotal);
@@ -473,8 +481,8 @@ namespace QA40xPlot.Actions
 			var vsum = Math.Sqrt(channelData.Fundamental1_V * channelData.Fundamental1_V + channelData.Fundamental2_V * channelData.Fundamental2_V);
 
 			channelData.Snr_dB = 20 * Math.Log10(voltagetotal / vsum);
-			var harmonicFreq = MakeHarmonics(gen1F, gen2F);
-			var maxfreq = binSize * fftData.Count();
+			var harmonicFreq = MakeHarmonics(step.Gen1Freq, step.Gen2Freq);
+			var maxfreq = binSize * ffts.Count();
 
 			for (int harmonicNumber = 0; harmonicNumber < harmonicFreq.Length; harmonicNumber++)                                                  // For now up to 12 harmonics, start at 2nd
             {
@@ -484,12 +492,12 @@ namespace QA40xPlot.Actions
 
                 uint bin = QaLibrary.GetBinOfFrequency(harmonicFrequency, binSize);        // Calculate bin of the harmonic frequency
 
-                double amplitude_V = (bin >= fftData.Length) ? 0 : fftData[bin];
+                double amplitude_V = (bin >= ffts.Length) ? 0 : ffts[bin];
                 double noise_V = channelData.TotalNoiseFloor_V;
 
 				double amplitude_dBV = 20 * Math.Log10(amplitude_V);
                 double thd_Percent = (amplitude_V / vsum) * 100;
-				double thdN_Percent = ((amplitude_V - ((bin >= fftData.Length) ? 0 : noiseFloorFftData[bin])) / vsum) * 100;
+				double thdN_Percent = (noiseFlr == null || bin >= noiseFlr.Length) ? 0 : ((amplitude_V - noiseFlr[bin]) / vsum) * 100;
 
 				HarmonicData harmonic = new()
                 {
@@ -500,7 +508,7 @@ namespace QA40xPlot.Actions
                     Thd_Percent = thd_Percent,
 					Thd_dB = 20 * Math.Log10(thd_Percent / 100.0),
 					Thd_dBN = 20 * Math.Log10(thdN_Percent / 100.0),
-					NoiseAmplitude_V = (bin >= fftData.Length) ? 0 : noiseFloorFftData[bin]
+					NoiseAmplitude_V = (bin >= ffts.Length) ? 0 : noiseFlr[bin]
                 };
 
                 if (harmonicNumber >= 6)
@@ -530,8 +538,8 @@ namespace QA40xPlot.Actions
             }
 
             // If load not zero then calculate load power
-            if (load != 0)
-                channelData.Power_Watt = Math.Pow(vsum, 2) / load;
+            if (msr.MeasurementSettings.AmpLoad != 0)
+                channelData.Power_Watt = Math.Pow(vsum, 2) / msr.MeasurementSettings.AmpLoad;
 
             return channelData;
         }
@@ -680,10 +688,21 @@ namespace QA40xPlot.Actions
             fftPlot.Refresh();
         }
 
-        /// <summary>
-        ///  Start measurement button click
-        /// </summary>
-        public async void StartMeasurement()
+		// this calculates gain using all input voltage because we use it to set the attenuator
+		private async Task<double> CalculateInVolts()
+		{
+			var domore = await PerformMeasurementSteps(MeasurementResult, ct.Token);
+			if (domore && MeasurementResult.FrequencySteps?.Count > 0)
+			{
+				return MeasurementResult.FrequencySteps[0].Left.Total_V;
+			}
+			return 1.0;
+		}
+
+		/// <summary>
+		///  Start measurement button click
+		/// </summary>
+		public async void StartMeasurement()
         {
 			var imdVm = ViewSettings.Singleton.ImdVm;
 			if (imdVm.IsRunning)
@@ -701,6 +720,18 @@ namespace QA40xPlot.Actions
 				Show = true,                                      // Show in graph
 			};
 			Data.Measurements.Clear();
+
+			if (imdVm.DoAutoAttn)
+			{
+				double inpVolts = 0;
+				var msr = MeasurementResult.MeasurementSettings;
+				msr.Attenuation = 42;        // set to max attenuation
+				imdVm.Attenuation = 42;    // to update the gui while testing
+				inpVolts = await CalculateInVolts();
+				Debug.WriteLine("inpvolts={0}", inpVolts);
+				msr.Attenuation = QaLibrary.DetermineAttenuation(20 * Math.Log10(inpVolts));
+				imdVm.Attenuation = msr.Attenuation;    // to update the gui while testing
+			}
 
 			var rslt = true;
 			rslt = await PerformMeasurementSteps(MeasurementResult, ct.Token);

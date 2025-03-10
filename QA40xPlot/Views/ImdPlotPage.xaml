@@ -68,7 +68,10 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
+                    <Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{Binding AttenColor}" 
+                            Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Grid.ColumnSpan="4"/>
                     <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="0" Command="{Binding SetAttenuate}" 
                                  IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=0}"
                                  CommandParameter="0" Grid.Row="0" Grid.Column="0" Margin="4"></RadioButton>
@@ -93,6 +96,11 @@
                     <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="42" 
                             IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=42}"
                             Command="{Binding SetAttenuate}" CommandParameter="42" Grid.Row="1" Grid.Column="3" Margin="4"></RadioButton>
+                    <CheckBox Grid.Row="2" Grid.ColumnSpan="4" Content="Autorange on start" IsChecked="{Binding DoAutoAttn}" Margin="8,2,0,2">
+                        <CheckBox.ToolTip >
+                            <ToolTip Content="When the test is started a safe Attenuation value is calculated based on a test at 42." />
+                        </CheckBox.ToolTip>
+                    </CheckBox>
                 </Grid>
             </GroupBox>
             <GroupBox Header="Samples" >

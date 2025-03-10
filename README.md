@@ -11,6 +11,8 @@ The analyzer contains
 - a chart of THD vs Frequency 
 - a chart of THD vs Amplitude.
 
+The spectral and intermodulation tests include an option for autoranging. The THD vs xx plots autorange.
+
 The code is based on C# and WPF (Windows Presentation Foundation).
 
 Before starting this application, first start the QA40x program. Minimize it if you want, but it is used for the

@@ -30,6 +30,19 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand ToggleGenerator { get => new RelayCommand(StopIt); }
 
 		#region Setters and Getters
+		[JsonIgnore]
+		public string AttenColor
+		{
+			get => DoAutoAttn ? "#1800f000" : "Transparent";
+		}
+
+		private bool _DoAutoAttn = false;
+		public bool DoAutoAttn
+		{
+			get { return _DoAutoAttn; }
+			set { if(SetProperty(ref _DoAutoAttn, value)) OnPropertyChanged("AttenColor"); }
+		}
+
 		private bool _ShowChannelInfo = false;
 		public bool ShowChannelInfo
 		{
