@@ -219,7 +219,7 @@ namespace QA40xPlot.Actions
 				double amplitudeSetpoint2dBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
 				// ********************************************************************
-				// Do a spectral sweep once
+				// Do a spectral sweep once (ignore the true)
 				// ********************************************************************
 				while(true)
 				{
@@ -263,10 +263,10 @@ namespace QA40xPlot.Actions
 
 					// For now clear measurements to allow only one until we have a UI to manage them.
 					ViewSettings.Singleton.ImdVm.HasExport = true;
-					Data.Measurements.Clear();
 
-					// Add to list
-					Data.Measurements.Add(msr);
+					// the first one gets added. after that it's the same object
+					if (Data.Measurements.Count == 0)
+						Data.Measurements.Add(msr);
 
 					ClearPlot();
 					UpdateGraph(false);
@@ -279,9 +279,6 @@ namespace QA40xPlot.Actions
             {
                 MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
             }
-
-            // Turn the generator off
-            await Qa40x.SetOutputSource(OutputSources.Off);
 
             // Show message
 			await showMessage($"Measurement finished");
@@ -699,8 +696,9 @@ namespace QA40xPlot.Actions
 				CreateDate = DateTime.Now,
 				Show = true,                                      // Show in graph
 			};
+			Data.Measurements.Clear();
 
-            var rslt = true;
+			var rslt = true;
 			rslt = await PerformMeasurementSteps(MeasurementResult, ct.Token);
             var fftsize = imdVm.FftSize;
             var sampleRate = imdVm.SampleRate;
@@ -730,6 +728,9 @@ namespace QA40xPlot.Actions
 						break;
 				}
 			}
+			// Turn the generator off since we leave it on during the loop for settling
+			await Qa40x.SetOutputSource(OutputSources.Off);
+
 			imdVm.IsRunning = false;
 			await showMessage("");
 			ViewSettings.Singleton.ImdVm.HasExport = this.MeasurementResult.FrequencySteps.Count > 0;

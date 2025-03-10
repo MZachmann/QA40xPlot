@@ -273,28 +273,28 @@ namespace QA40xPlot.Actions
                 if (ct.IsCancellationRequested)
                     return false;
 
-                // ********************************************************************
-                // Step through the list of frequencies
-                // ********************************************************************
-                for (int f = 0; f < stepBinFrequencies.Length; f++)
+				// Set the generator
+				double amplitudeSetpointdBV = QaLibrary.ConvertVoltage(thd.GeneratorAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.dBV);
+				await Qa40x.SetGen1(stepBinFrequencies[0], amplitudeSetpointdBV, true);
+
+				await Qa40x.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
+
+																				// ********************************************************************
+																				// Step through the list of frequencies
+																				// ********************************************************************
+				for (int f = 0; f < stepBinFrequencies.Length; f++)
                 {
                     await showMessage($"Measuring step {f + 1} of {stepBinFrequencies.Length}.");
 					await showProgress(100*(f + 1)/ stepBinFrequencies.Length);
+					await Qa40x.SetGen1(stepBinFrequencies[f], amplitudeSetpointdBV, true);
 
-                    // Set the generator
-                    double amplitudeSetpointdBV = QaLibrary.ConvertVoltage(thd.GeneratorAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.dBV);
-                    await Qa40x.SetGen1(stepBinFrequencies[f], amplitudeSetpointdBV, true);
-                    if (f == 0)
-                        await Qa40x.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
-
-                    LeftRightSeries lrfs = await QaLibrary.DoAcquisitions(thd.Averages, ct);
+					LeftRightSeries lrfs = await QaLibrary.DoAcquisitions(thd.Averages, ct);
                     if (ct.IsCancellationRequested)
 						break;
 
                     uint fundamentalBin = QaLibrary.GetBinOfFrequency(stepBinFrequencies[f], binSize);
                     if (fundamentalBin >= lrfs.FreqRslt.Left.Length)               // Check in bin within range
                         break;
-
 
                     ThdFrequencyStep step = new()
                     {

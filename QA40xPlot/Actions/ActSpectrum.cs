@@ -173,7 +173,6 @@ namespace QA40xPlot.Actions
             {
 				await Qa40x.SetDefaults();
 			}
-			await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make it turn on or off
 			await Qa40x.SetSampleRate(sampleRate);
             await Qa40x.SetBufferSize(fftsize);
 			await Qa40x.SetWindowing(thd.WindowingMethod);
@@ -272,9 +271,8 @@ namespace QA40xPlot.Actions
 					msr.FrequencySteps.Add(step);
 
 					// For now clear measurements to allow only one until we have a UI to manage them.
-					Data.Measurements.Clear();
-					// Add to list
-					Data.Measurements.Add(MeasurementResult);
+					if( Data.Measurements.Count == 0)
+						Data.Measurements.Add(MeasurementResult);
 
 					ClearPlot();
 					UpdateGraph(false);
@@ -288,9 +286,6 @@ namespace QA40xPlot.Actions
             {
                 MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
             }
-
-            // Turn the generator off
-            await Qa40x.SetOutputSource(OutputSources.Off);
 
             // Show message
 			await showMessage($"Measurement finished");
@@ -651,8 +646,9 @@ namespace QA40xPlot.Actions
 				CreateDate = DateTime.Now,
 				Show = true,                                      // Show in graph
 			};
+			Data.Measurements.Clear();
 
-            var rslt = true;
+			var rslt = true;
 			rslt = await PerformMeasurementSteps(MeasurementResult, ct.Token);
             var fftsize = specVm.FftSize;
             var sampleRate = specVm.SampleRate;
@@ -685,6 +681,10 @@ namespace QA40xPlot.Actions
 						break;
 				}
 			}
+
+			// Turn the generator off since we leave it on during testing
+			await Qa40x.SetOutputSource(OutputSources.Off);
+
 			specVm.IsRunning = false;
 			await showMessage("");
 			ViewSettings.Singleton.SpectrumVm.HasExport = this.MeasurementResult.FrequencySteps.Count > 0;
