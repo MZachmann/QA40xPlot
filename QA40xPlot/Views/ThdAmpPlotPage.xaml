@@ -70,7 +70,7 @@
                 <Label Content="End voltage" Grid.Column="0" Grid.Row="2"   />
                 <Label Content="Amplifier Load" Grid.Column="0" Grid.Row="3"  />
                 <Label Content="Test Frequency" Grid.Column="0" Grid.Row="4"  />
-                    <ComboBox IsEditable="True" Text="{Binding TestFreq}" Grid.Column="1" Grid.Row="4" ItemsSource="{Binding StartFrequencies}"   />
+                    <ComboBox VerticalAlignment="Center" IsEditable="True" Text="{Binding TestFreq}" Grid.Column="1" Grid.Row="4" ItemsSource="{Binding StartFrequencies}"   />
                     <Label Content="Steps / Octave" Grid.Column="0" Grid.Row="5"  />
                 <Label Content="Averages" Grid.Column="0" Grid.Row="6"  />
                 <CheckBox Content="Left channel" IsChecked="{Binding LeftChannel}" Grid.Column="0" Grid.Row="7"  />
@@ -95,7 +95,7 @@
         </StackPanel>
         <views:PlotControl x:Name="WpfPlot1" Grid.Column="1" />
         <StackPanel Grid.Column="2" Orientation="Vertical">
-            <GroupBox Header="dB Range" Visibility="{Binding ToShowdB}">
+            <GroupBox Header="Y Axis (dB)" Visibility="{Binding ToShowdB}">
                 <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -116,7 +116,7 @@
                     </ComboBox>
                     <Button Content="Autofit" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center"  />                </Grid>
             </GroupBox>
-            <GroupBox Header="% Range" Visibility="{Binding ToShowRange}">
+            <GroupBox Header="Y Axis (%)" Visibility="{Binding ToShowRange}">
                 <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />

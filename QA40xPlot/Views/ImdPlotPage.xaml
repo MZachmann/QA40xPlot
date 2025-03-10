@@ -196,7 +196,7 @@
                   VerticalAlignment="Top" HorizontalAlignment="Left" Margin="80,50,0,0" />
         </Grid>
         <StackPanel Grid.Column="2" Orientation="Vertical">
-            <GroupBox Header="dB Range" Visibility="{Binding ToShowdB}">
+            <GroupBox Header="Y Axis (dB)" Visibility="{Binding ToShowdB}">
                 <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -218,7 +218,7 @@
                     <Button Content="Autofit" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center"  />
                 </Grid>
             </GroupBox>
-            <GroupBox Header="% Range" Visibility="{Binding ToShowRange}">
+            <GroupBox Header="Y Axis (%)" Visibility="{Binding ToShowRange}">
                 <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -238,7 +238,7 @@
                     <Button Content="Autofit" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Center" Grid.ColumnSpan="2"  />
                 </Grid>
             </GroupBox>
-            <GroupBox Header="Frequency Range">
+            <GroupBox Header="X Axis (Hz)">
                 <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
