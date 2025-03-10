@@ -156,7 +156,7 @@ namespace QA40xPlot.Actions
 			double generatorAmplitudedBV = Math.Max(thdAmp.EndAmplitude, thdAmp.StartAmplitude);	// use the largest amplitude
 			await showMessage($"Determining the best input attenuation for a generator voltage of {generatorAmplitudedBV:0.00#} dBV.");
 
-			double testFrequency = QaLibrary.GetNearestBinFrequency(thdAmp.TestFreq, thdAmp.SampleRate, thdAmp.FftSize);
+			double testFrequency = QaLibrary.GetNearestBinFrequency(MathUtil.ParseTextToDouble(thdAmp.TestFreq, 10), thdAmp.SampleRate, thdAmp.FftSize);
 			// Determine correct input attenuation
 			var result = await QaLibrary.DetermineAttenuationForGeneratorVoltageWithChirp(generatorAmplitudedBV, 42, thdAmp.LeftChannel, thdAmp.RightChannel, ct);
 			if (ct.IsCancellationRequested)

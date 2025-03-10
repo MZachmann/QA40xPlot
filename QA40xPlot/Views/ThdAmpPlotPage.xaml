@@ -70,7 +70,8 @@
                 <Label Content="End voltage" Grid.Column="0" Grid.Row="2"   />
                 <Label Content="Amplifier Load" Grid.Column="0" Grid.Row="3"  />
                 <Label Content="Test Frequency" Grid.Column="0" Grid.Row="4"  />
-                <Label Content="Steps / Octave" Grid.Column="0" Grid.Row="5"  />
+                    <ComboBox IsEditable="True" Text="{Binding TestFreq}" Grid.Column="1" Grid.Row="4" ItemsSource="{Binding StartFrequencies}"   />
+                    <Label Content="Steps / Octave" Grid.Column="0" Grid.Row="5"  />
                 <Label Content="Averages" Grid.Column="0" Grid.Row="6"  />
                 <CheckBox Content="Left channel" IsChecked="{Binding LeftChannel}" Grid.Column="0" Grid.Row="7"  />
                 <views:PlotControl x:Name="WpfPlot2" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="8" Width="150" />
@@ -80,7 +81,6 @@
                     <TextBox Text="{Binding StartVoltage, StringFormat={}{0:0.####}}" Grid.Column="1"  Grid.Row="1" LostFocus="OnStartVoltageChanged" />
                     <TextBox Text="{Binding EndVoltage, StringFormat={}{0:0.####}}" Grid.Column="1"  Grid.Row="2" LostFocus="OnEndVoltageChanged" />
                 <TextBox Text="{Binding AmpLoad}" Grid.Column="1"  Grid.Row="3"  />
-                <TextBox Text="{Binding TestFreq}" Grid.Column="1" Grid.Row="4"   />
                     <xctk:IntegerUpDown Value="{Binding StepsOctave}" Minimum="1" VerticalAlignment="Center" Grid.Column="1" Grid.Row="5"  />
                     <xctk:IntegerUpDown Value="{Binding Averages}" Minimum="1" Maximum="6" VerticalAlignment="Center" Grid.Column="1" Grid.Row="6"  />
                 <CheckBox Content="Right channel" IsChecked="{Binding RightChannel}" Grid.Column="1" Grid.Row="7"  />

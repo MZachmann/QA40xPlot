@@ -43,15 +43,15 @@ namespace QA40xPlot.ViewModels
 			get => _OutVoltage; set => SetProperty(ref _OutVoltage, value);
 		}
 
-		private double _StartFreq;
-		public double StartFreq
+		private string _StartFreq;
+		public string StartFreq
 		{
 			get => _StartFreq;
 			set => SetProperty(ref _StartFreq, value);
 		}
 
-		private double _EndFreq;
-		public double EndFreq
+		private string _EndFreq;
+		public string EndFreq
 		{
 			get => _EndFreq;
 			set => SetProperty(ref _EndFreq, value);
@@ -384,8 +384,8 @@ namespace QA40xPlot.ViewModels
 			AmpLoad = 8;
 			OutPower = 0.5;
 			OutVoltage = 0.5;
-			StartFreq = 20;
-			EndFreq = 20000;
+			StartFreq = "20";
+			EndFreq = "20000";
 			GraphStartFreq = "20";
 			GraphEndFreq = "20000";
 			StepsOctave = 1;

@@ -63,8 +63,8 @@ namespace QA40xPlot.ViewModels
 			get => _AmpLoad; set => SetProperty(ref _AmpLoad, value);
 		}
 
-		private double _TestFreq;         // type of alert
-		public double TestFreq
+		private string _TestFreq;         // type of alert
+		public string TestFreq
 		{
 			get => _TestFreq;
 			set => SetProperty(ref _TestFreq, value);
@@ -347,7 +347,7 @@ namespace QA40xPlot.ViewModels
 			PropertyChanged += CheckPropertyChanged;
 
 			AmpLoad = 8;
-			TestFreq = 1000;
+			TestFreq = "1000";
 			GraphStartVolts = "0.002";
 			GraphEndVolts = "10";
 			StepsOctave = 1;

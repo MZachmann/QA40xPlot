@@ -40,7 +40,8 @@ namespace QA40xPlot.Actions
 
             // Show empty graphs
             ThdFreqViewModel thd = ViewSettings.Singleton.ThdFreq;
-			QaLibrary.InitMiniFftPlot(fftPlot, thd.StartFreq, thd.EndFreq, -150, 20);
+			QaLibrary.InitMiniFftPlot(fftPlot, MathUtil.ParseTextToDouble(thd.StartFreq, 10), 
+                MathUtil.ParseTextToDouble(thd.EndFreq,20000), -150, 20);
             QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -1, 1);
 
             // TODO: depends on graph settings which graph is shown
@@ -153,7 +154,8 @@ namespace QA40xPlot.Actions
             Data.Measurements.Add(MeasurementResult);
 
 			// Init mini plots
-			QaLibrary.InitMiniFftPlot(fftPlot, thd.StartFreq, thd.EndFreq, -150, 20);
+			QaLibrary.InitMiniFftPlot(fftPlot, MathUtil.ParseTextToDouble(thd.StartFreq, 10),
+            	MathUtil.ParseTextToDouble(thd.EndFreq, 20000), -150, 20);
             QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -1, 1);
 
             // Check if REST interface is available and device connected
@@ -255,7 +257,8 @@ namespace QA40xPlot.Actions
                 // ********************************************************************
                 var binSize = QaLibrary.CalcBinSize(thd.SampleRate, thd.FftSize);
                 // Generate a list of frequencies
-                var stepFrequencies = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(thd.StartFreq, thd.EndFreq, thd.StepsOctave);
+                var stepFrequencies = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(
+                    MathUtil.ParseTextToDouble(thd.StartFreq,10), MathUtil.ParseTextToDouble(thd.EndFreq,10000), thd.StepsOctave);
                 // Translate the generated list to bin center frequencies
                 var stepBinFrequencies = QaLibrary.TranslateToBinFrequencies(stepFrequencies, thd.SampleRate, thd.FftSize);
                 stepBinFrequencies = stepBinFrequencies.Where(x => x >= 1 && x <= 95500)                // Filter out values that are out of range 
