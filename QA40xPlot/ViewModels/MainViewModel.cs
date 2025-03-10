@@ -153,7 +153,7 @@ namespace QA40xPlot.ViewModels
 			{
 				FileName = String.Format("QAImg{0}", FileAddon()), // Default file name
 				DefaultExt = ".png", // Default file extension
-				Filter = "PNG files (.png)|*.png|All files (*.*)|*.*" // Filter files by extension
+				Filter = "PNG files|*.png|All files|*.*" // Filter files by extension
 			};
 
 			// Show save file dialog box
@@ -175,7 +175,7 @@ namespace QA40xPlot.ViewModels
 			{
 				FileName = String.Format("QaData{0}", FileAddon()), // Default file name
 				DefaultExt = ".frd", // Default file extension
-				Filter = "FRD files (.frd)|*.frd|All files (*.*)|*.*" // Filter files by extension
+				Filter = "FRD files|*.frd|All files|*.*" // Filter files by extension
 			};
 
 			// Show save file dialog box
@@ -196,7 +196,7 @@ namespace QA40xPlot.ViewModels
 			{
 				FileName = String.Format("QaSettings{0}", FileAddon()), // Default file name
 				DefaultExt = ".cfg", // Default file extension
-				Filter = "Settings files (.cfg)|*.cfg|All files (*.*)|*.*" // Filter files by extension
+				Filter = "Settings files|*.cfg|All files|*.*" // Filter files by extension
 			};
 
 			// Show save file dialog box
@@ -216,9 +216,9 @@ namespace QA40xPlot.ViewModels
 		{
 			OpenFileDialog openFileDialog = new OpenFileDialog
 			{
-				FileName = String.Format("QaSettings{0}", FileAddon()), // Default file name
+				FileName = String.Empty, // Default file name
 				DefaultExt = ".cfg", // Default file extension
-				Filter = "Settings files (.cfg)|*.cfg|All files (*.*)|*.*" // Filter files by extension
+				Filter = "Settings files|*.cfg|All files|*.*" // Filter files by extension
 			};
 
 			// Show save file dialog box
