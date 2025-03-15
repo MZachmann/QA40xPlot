@@ -11,7 +11,7 @@ namespace QA40xPlot.ViewModels
 {
 	public class ViewSettings
 	{
-		private Dictionary<string, string> _ProductTitle = new Dictionary<string, string>() { { "Name", "QA40xPlot" }, { "Version", "0.04"} };
+		private Dictionary<string, string> _ProductTitle = new Dictionary<string, string>() { { "Name", "QA40xPlot" }, { "Version", "0.07"} };
 		public Dictionary<string,string> Product { get { return _ProductTitle; } private set { _ProductTitle = value; } }
 
 
