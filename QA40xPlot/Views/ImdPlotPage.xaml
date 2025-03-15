@@ -280,11 +280,13 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="0"  />
-                    <CheckBox Content="%" IsChecked="{Binding ShowPercent}" Grid.Row="2"  />
-                    <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="3"  />
-                    <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="4"  />
+                    <CheckBox Content="% - Y axis" IsChecked="{Binding ShowPercent}" Grid.Row="2"  />
+                    <CheckBox Content="% - Data Summary" IsChecked="{Binding ShowDataPercent}" Grid.Row="3"  />
+                    <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="4"  />
+                    <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="5"  />
                 </Grid>
             </GroupBox>
         </StackPanel>

@@ -193,6 +193,13 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowPowerMarkers, value);
 		}
 
+		private bool _ShowDataPercent;
+		public bool ShowDataPercent
+		{
+			get => _ShowDataPercent;
+			set => SetProperty(ref _ShowDataPercent, value);
+		}
+
 		private bool _ShowPercent;
 		public bool ShowPercent
 		{
@@ -436,7 +443,8 @@ namespace QA40xPlot.ViewModels
 
 			ShowThickLines = true;
 			ShowSummary = true;
-			ShowPercent = true;
+			ShowPercent = false;
+			ShowDataPercent = true;
 			ShowLeft = true;
 			ShowRight = false;
 			ShowTHD = true;
@@ -461,8 +469,6 @@ namespace QA40xPlot.ViewModels
 
 			ToShowRange = Visibility.Visible;
 			ToShowdB = Visibility.Visible;
-			// make a few things happen to synch the gui
-			Task.Delay(1000).ContinueWith(t => { ShowPercent = false; MeasureType = 0; });
 
 			ReadVoltage = true;
 			ReadOutPower = true;
@@ -477,6 +483,9 @@ namespace QA40xPlot.ViewModels
 			UseGenerator2 = false;
 
 			Attenuation = 42;
+
+			// make a few things happen to synch the gui
+			Task.Delay(1000).ContinueWith(t => { actSpec?.UpdateGraph(true); });
 		}
 	}
 }

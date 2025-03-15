@@ -479,6 +479,7 @@ namespace QA40xPlot.Actions
 			voltagetotal = Math.Sqrt(voltagetotal);
             // Loop through harmonics up tot the 12th
 			var vsum = Math.Sqrt(channelData.Fundamental1_V * channelData.Fundamental1_V + channelData.Fundamental2_V * channelData.Fundamental2_V);
+			channelData.Fundamental_AllV = vsum;
 
 			channelData.Snr_dB = 20 * Math.Log10(voltagetotal / vsum);
 			var harmonicFreq = MakeHarmonics(step.Gen1Freq, step.Gen2Freq);
@@ -800,7 +801,7 @@ namespace QA40xPlot.Actions
         {
 			ImdViewModel thd = ViewSettings.Singleton.ImdVm;
 			var vm = ViewSettings.Singleton.ImdChannelLeft;
-            vm.CalculateChannelValues(MeasurementResult.FrequencySteps[0].Left, Convert.ToDouble( thd.Gen1Frequency), Convert.ToDouble(thd.Gen2Frequency));
+            vm.CalculateChannelValues(MeasurementResult.FrequencySteps[0].Left, Convert.ToDouble( thd.Gen1Frequency), Convert.ToDouble(thd.Gen2Frequency), thd.ShowDataPercent);
 		}
 
 		public void UpdateGraph(bool settingsChanged)

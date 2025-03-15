@@ -58,12 +58,18 @@ namespace QA40xPlot.ViewModels
 			get => _ThdInPercent;
 			set => SetProperty(ref _ThdInPercent, value);
 		}
+		private bool _ShowDataPercents;
+		public bool ShowDataPercents
+		{
+			get => _ShowDataPercents;
+			set => SetProperty(ref _ShowDataPercents, value);
+		}
 
 		public ImdChannelViewModel() 
 		{ 
 		}
 
-		public void CalculateChannelValues(ImdStepChannel step, double gen1f, double gen2f)
+		public void CalculateChannelValues(ImdStepChannel step, double gen1f, double gen2f, bool showPercent)
 		{
 			MyStep = step;
 			Gen1F = gen1f;
@@ -72,6 +78,7 @@ namespace QA40xPlot.ViewModels
 			ENOB = (SNRatio - 1.76) / 6.02;
 			ThdIndB = step.Thd_dB;
 			ThdInPercent = 100*Math.Pow(10, step.Thd_dB / 20);
+			ShowDataPercents = showPercent;
 		}
 	}
 }

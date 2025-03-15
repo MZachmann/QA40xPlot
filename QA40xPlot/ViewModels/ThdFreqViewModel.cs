@@ -400,7 +400,7 @@ namespace QA40xPlot.ViewModels
 
 			ShowThickLines = true;
 			ShowPoints = false;
-			ShowPercent = true;
+			ShowPercent = false;
 			ShowLeft = true;
 			ShowRight = false;
 			ShowTHD = true;
@@ -422,8 +422,6 @@ namespace QA40xPlot.ViewModels
 
 			ToShowRange = Visibility.Visible;
 			ToShowdB = Visibility.Visible;
-			// make a few things happen to synch the gui
-			Task.Delay(1000).ContinueWith(t => { ShowPercent = false; MeasureType = 0; });
 
 			ReadVoltage = true;
 			ReadOutPower = true;
@@ -433,6 +431,9 @@ namespace QA40xPlot.ViewModels
 			AmpOutputAmplitude = -20;         // this is the unitless (dbV) amplitude of the amplifier output
 			GenVoltage = QaLibrary.ConvertVoltage(GeneratorAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)GeneratorUnits);
 			OutVoltage = QaLibrary.ConvertVoltage(AmpOutputAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)OutputUnits);
+
+			// make a few things happen to synch the gui. don't await this.
+			Task.Delay(1000).ContinueWith(t => { actThd?.UpdateGraph(true); });
 		}
 	}
 }

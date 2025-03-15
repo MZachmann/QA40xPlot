@@ -4,9 +4,12 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:QA40xPlot"
+             xmlns:views ="clr-namespace:QA40xPlot.Views"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="200" Background="MintCream">
     <UserControl.Resources>
+        <views:VtoPctConverter x:Key="VToPctConverter"/>
+        <views:VoltFormatter x:Key="VoltFormatter"/>
         <!-- hacky way to remove some white space from the labels -->
         <Style TargetType="Label">
             <Setter Property="Margin" Value="0,-4,0,0"/>
@@ -26,7 +29,7 @@
                 </Grid.RowDefinitions>
                 <Label Grid.Row="0" Grid.Column="0" Content="{Binding FundamentalFrequency}" ContentStringFormat="{}{0:F0} Hz"/>
                 <Label Grid.Row="0" Grid.Column="1" Content="{Binding MyStep.Fundamental_dBV}" ContentStringFormat="{}{0:F2} dBV"/>
-                <Label Grid.Row="0" Grid.Column="2" Content="{Binding MyStep.Fundamental_V}" ContentStringFormat="{}{0:F4} VRMS"/>
+                <Label Grid.Row="0" Grid.Column="2" Content="{Binding MyStep.Fundamental_V, Converter={StaticResource VoltFormatter}}"/>
                 <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Center" Content="{Binding MyStep.Gain_dB}" ContentStringFormat="Gain {0:F2} dB"/>
             </Grid>
             <Rectangle HorizontalAlignment="Stretch" Height="3" Fill="DarkGreen" />
@@ -43,7 +46,7 @@
                     </Grid.RowDefinitions>
                     <Label Grid.Row="0" Grid.Column="0" Content="N:" HorizontalAlignment="Right"/>
                     <Label Grid.Row="0" Grid.Column="1" Content="{Binding MyStep.Average_NoiseFloor_dBV}" ContentStringFormat="{}{0:F2} dBV"/>
-                    <Label Grid.Row="0" Grid.Column="2" Content="{Binding MyStep.TotalNoiseFloor_V}" ContentStringFormat="{}{0:F8} V"/>
+                <Label Grid.Row="0" Grid.Column="2" Content="{Binding MyStep.TotalNoiseFloor_V, Converter={StaticResource VoltFormatter}}" />
 
                     <Label Grid.Row="1" Grid.Column="0" Content="THD:" HorizontalAlignment="Right"/>
                     <Label Grid.Row="1" Grid.Column="1" Content="{Binding ThdIndB}" ContentStringFormat="{}{0:F2} dB"/>
@@ -73,18 +76,46 @@
                 <Label Grid.Row="0" Grid.Column="3" Content="{Binding ENOB}" ContentStringFormat="{}{0:F1} bits"/>
 
                 <Label Grid.Row="1" Grid.Column="0" Content="2nd:" HorizontalAlignment="Right"/>
-                <Label Grid.Row="1" Grid.Column="1" Content="{Binding MyStep.Harmonics[0].Thd_Percent}" ContentStringFormat="{}{0:0.######} %"/>
                 <Label Grid.Row="1" Grid.Column="2" Content="3rd:" HorizontalAlignment="Right"/>
-                <Label Grid.Row="1" Grid.Column="3" Content="{Binding MyStep.Harmonics[1].Thd_Percent}" ContentStringFormat="{}{0:0.######} %"/>
-
                 <Label Grid.Row="2" Grid.Column="0" Content="4th:" HorizontalAlignment="Right"/>
-                <Label Grid.Row="2" Grid.Column="1" Content="{Binding MyStep.Harmonics[2].Thd_Percent}" ContentStringFormat="{}{0:0.######} %"/>
                 <Label Grid.Row="2" Grid.Column="2" Content="5th:" HorizontalAlignment="Right"/>
-                <Label Grid.Row="2" Grid.Column="3" Content="{Binding MyStep.Harmonics[3].Thd_Percent}" ContentStringFormat="{}{0:0.######} %"/>
-
                 <Label Grid.Row="3" Grid.Column="0" Content="6th:" HorizontalAlignment="Right"/>
-                <Label Grid.Row="3" Grid.Column="1" Content="{Binding MyStep.Harmonics[4].Thd_Percent}" ContentStringFormat="{}{0:0.######} %"/>
 
+                <Label Grid.Row="1" Grid.Column="1" >
+                    <MultiBinding Converter="{StaticResource VToPctConverter}">
+                        <Binding Path="MyStep.Harmonics[0].Thd_Percent"/>
+                        <Binding Path="MyStep.Harmonics[0].Amplitude_V"/>
+                        <Binding Path="ShowDataPercents"/>
+                    </MultiBinding>
+                </Label>
+                <Label Grid.Row="1" Grid.Column="3"  >
+                    <MultiBinding Converter="{StaticResource VToPctConverter}">
+                        <Binding Path="MyStep.Harmonics[1].Thd_Percent"/>
+                        <Binding Path="MyStep.Harmonics[1].Amplitude_V"/>
+                        <Binding Path="ShowDataPercents"/>
+                    </MultiBinding>
+                </Label>
+                <Label Grid.Row="2" Grid.Column="1" >
+                    <MultiBinding Converter="{StaticResource VToPctConverter}">
+                        <Binding Path="MyStep.Harmonics[2].Thd_Percent"/>
+                        <Binding Path="MyStep.Harmonics[2].Amplitude_V"/>
+                        <Binding Path="ShowDataPercents"/>
+                    </MultiBinding>
+                </Label>
+                <Label Grid.Row="2" Grid.Column="3" >
+                    <MultiBinding Converter="{StaticResource VToPctConverter}">
+                        <Binding Path="MyStep.Harmonics[3].Thd_Percent"/>
+                        <Binding Path="MyStep.Harmonics[3].Amplitude_V"/>
+                        <Binding Path="ShowDataPercents"/>
+                    </MultiBinding>
+                </Label>
+                <Label Grid.Row="3" Grid.Column="1" >
+                    <MultiBinding Converter="{StaticResource VToPctConverter}">
+                        <Binding Path="MyStep.Harmonics[4].Thd_Percent"/>
+                        <Binding Path="MyStep.Harmonics[4].Amplitude_V"/>
+                        <Binding Path="ShowDataPercents"/>
+                    </MultiBinding>
+                </Label>
             </Grid>
     </StackPanel>
     </Border>

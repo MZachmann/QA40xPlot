@@ -458,8 +458,7 @@ namespace QA40xPlot.Actions
 				double noise_V = channelData.TotalNoiseFloor_V;
 
 				double amplitude_dBV = 20 * Math.Log10(amplitude_V);
-				double thd_Percent = 0;
-				thd_Percent = (amplitude_V / channelData.Fundamental_V) * 100;
+				double thd_Percent = (amplitude_V / channelData.Fundamental_V) * 100;
 				double thdN_Percent = (noiseFlr == null) ? 0 : ((amplitude_V - noiseFlr[bin]) / channelData.Fundamental_V) * 100;
 
 				HarmonicData harmonic = new()
@@ -760,7 +759,7 @@ namespace QA40xPlot.Actions
 			SpectrumViewModel thd = ViewSettings.Singleton.SpectrumVm;
 			var vm = ViewSettings.Singleton.ChannelLeft;
             vm.FundamentalFrequency = 0;
-            vm.CalculateChannelValues(MeasurementResult.FrequencySteps[0].Left, Convert.ToDouble( thd.Gen1Frequency));
+            vm.CalculateChannelValues(MeasurementResult.FrequencySteps[0].Left, Convert.ToDouble( thd.Gen1Frequency), thd.ShowDataPercent);
 		}
 
 		public void UpdateGraph(bool settingsChanged)

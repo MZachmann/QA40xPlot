@@ -301,7 +301,7 @@ public class FreqRespViewModel : BaseViewModel
 
 		ShowThickLines = true;
 		ShowSummary = true;
-		ShowPercent = true;
+		ShowPercent = false;
 		ShowLeft = true;
 		ShowRight = false;
 
@@ -313,8 +313,6 @@ public class FreqRespViewModel : BaseViewModel
 
 		ToShowRange = Visibility.Visible;
 		ToShowdB = Visibility.Visible;
-		// make a few things happen to synch the gui
-		Task.Delay(1000).ContinueWith(t => { ShowPercent = false; MeasureType = 0; });
 
 		GeneratorAmplitude = -20;
 		Gen1Voltage = QaLibrary.ConvertVoltage(GeneratorAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)GeneratorUnits).ToString();
@@ -323,5 +321,8 @@ public class FreqRespViewModel : BaseViewModel
 		Show3dBBandwidth_R = false;
 		Show1dBBandwidth_L = false;
 		Show1dBBandwidth_R = false;
+
+		// make a few things happen to synch the gui
+		Task.Delay(1000).ContinueWith(t => { actFreq?.UpdateGraph(true); });
 	}
 }

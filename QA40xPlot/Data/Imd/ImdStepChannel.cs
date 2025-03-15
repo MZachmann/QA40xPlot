@@ -5,6 +5,7 @@ namespace QA40xPlot.Data
 {
     public class ImdStepChannel
     {
+        public double Fundamental_AllV { get; set; }    // rms both fundamentals
         public double Fundamental1_V { get; set; }
         public double Fundamental1_dBV { get; set; }
 		public double Fundamental2_V { get; set; }
