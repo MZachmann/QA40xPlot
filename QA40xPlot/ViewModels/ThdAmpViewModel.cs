@@ -351,7 +351,7 @@ namespace QA40xPlot.ViewModels
 			GraphStartVolts = "0.002";
 			GraphEndVolts = "10";
 			StepsOctave = 1;
-			Averages = 1;
+			Averages = 3;
 			LeftChannel = true;
 			RightChannel = false;
 			MeasureType = 2;
@@ -373,7 +373,7 @@ namespace QA40xPlot.ViewModels
 			ShowNoiseFloor = true;
 
 			SampleRate = 96000;
-			FftSize = 65536;
+			FftSize = 65536*2;
 			WindowingMethod = "Hann";
 			RangeTopdB = 20;
 			RangeBottomdB = -180;

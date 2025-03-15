@@ -6,7 +6,7 @@
         xmlns:views="clr-namespace:QA40xPlot.Views"
         xmlns:local="clr-namespace:QA40xPlot"
         mc:Ignorable="d"
-        Title="Qa40x_Plot" Height="800" Width="1600" Background="MintCream">
+        Title="Qa40xPlot" Height="800" Width="1600" Background="MintCream">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
