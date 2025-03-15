@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -31,6 +32,7 @@ namespace QA40xPlot
 			this.DataContext = vm;
 			vm.ProgressMessage = "Hello, World!";
 			vm.ScreenDpi = TestGetDpi();
+			this.ContentRendered += DoContentRendered;
 		}
 
 		public uint TestGetDpi()
@@ -77,10 +79,26 @@ namespace QA40xPlot
 
 		private void OnPhoto(object sender, RoutedEventArgs e)
 		{
-			if( DataContext != null && DataContext is MainViewModel)
+			if ( DataContext != null && DataContext is MainViewModel)
 			{
 				((MainViewModel)DataContext).DoPhoto(this);
 			}
 		}
-	}
+
+		static bool bdone = false;
+		private void DoContentRendered(object sender, EventArgs e)
+		{
+			if(!bdone)
+			{
+				bdone = true;
+				// look for a default config file
+				var fpath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+				fpath += @"\QADefault.cfg";
+				if ( File.Exists(fpath))
+				{
+					ViewSettings.Singleton.Main.LoadFromSettings(fpath);
+				}
+			}
+		}
+		}
 }
