@@ -150,13 +150,13 @@ namespace QA40xPlot.Actions
 		}
 
 		// this sets the axes bounds for freq vs magnitude
-		public void SetPhaseFreqRule(ScottPlot.Plot myPlot)
+		public void AddPhaseFreqRule(ScottPlot.Plot myPlot)
 		{
-			myPlot.Axes.Rules.Clear();
+			// myPlot.Axes.Rules.Clear();
 			ScottPlot.AxisRules.MaximumBoundary rule = new(
 				xAxis: myPlot.Axes.Bottom,
 				yAxis: myPlot.Axes.Right,
-				limits: new AxisLimits(Math.Log10(1), Math.Log10(100000), -180, +180)
+				limits: new AxisLimits(Math.Log10(1), Math.Log10(100000), -360, 360)
 				);
 			myPlot.Axes.Rules.Add(rule);
 		}
@@ -190,6 +190,9 @@ namespace QA40xPlot.Actions
 		{
 			myPlot.Clear();
 
+			if( myPlot.Axes.Right != null ) 
+				myPlot.Axes.Right.RemoveTickGenerator();
+
 			// show grid lines for major ticks
 			myPlot.Grid.MajorLineColor = Colors.Black.WithOpacity(.35);
 			myPlot.Grid.MajorLineWidth = 1;
@@ -222,7 +225,7 @@ namespace QA40xPlot.Actions
 		public void AddPhasePlot(ScottPlot.Plot myPlot)
 		{
 			SetupPhaseTics(myPlot);
-			SetPhaseFreqRule(myPlot);
+			AddPhaseFreqRule(myPlot);
 		}
 
 		public void InitializePctFreqPlot(ScottPlot.Plot myPlot)

@@ -68,7 +68,7 @@
                     <views:ThdAmpPlotPage  />
                 </Grid>
             </TabItem>
-            <TabItem Header="Frequency Response">
+            <TabItem Header="{Binding FreqRespHdr}">
                 <Grid Background="#FFE5E5E5">
                     <views:FreqRespPlotPage  />
                 </Grid>

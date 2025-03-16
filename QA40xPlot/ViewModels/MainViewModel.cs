@@ -44,12 +44,21 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _ScreenDpi; set => SetProperty(ref _ScreenDpi, value);
 		}
+
 		private bool _ShowDataPercent = false;
 		[JsonIgnore]
 		public bool ShowDataPercent
 		{
 			get => _ShowDataPercent;
 			set => SetProperty(ref _ShowDataPercent, value);
+		}
+
+		private string _FreqRespHdr = "Impedance";
+		[JsonIgnore]
+		public string FreqRespHdr
+		{
+			get => _FreqRespHdr;
+			set => SetProperty(ref _FreqRespHdr, value);
 		}
 
 		private BaseViewModel? _CurrentView = null;

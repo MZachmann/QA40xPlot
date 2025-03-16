@@ -3,10 +3,12 @@ using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using ScottPlot;
+using ScottPlot.AxisRules;
 using ScottPlot.Plottables;
 using System.Data;
 using System.Numerics;
 using System.Windows;
+using static FreqRespViewModel;
 
 namespace QA40xPlot.Actions
 {
@@ -110,16 +112,21 @@ namespace QA40xPlot.Actions
 		}
 
         // run a capture to get complex gain at a frequency
-        async Task<Complex> GetGain(double showfreq, FreqRespViewModel msr)
+        async Task<Complex> GetGain(double showfreq, FreqRespViewModel msr, TestingType ttype)
         {
 			if (ct.Token.IsCancellationRequested)
 				return new();
-			var lfrs = await QaLibrary.DoAcquisitions(msr.Averages, ct.Token, false, true);
+			var lfrs = await QaLibrary.DoAcquisitions(1, ct.Token, false, true);
             if (lfrs == null)
                 return new();
 			MeasurementResult.FrequencyResponseData = lfrs;
-			var ga = CalculateGain(showfreq, lfrs.TimeRslt, msr.RightChannel); // gain,phase or gain1,gain2
+			var ga = CalculateGain(showfreq, lfrs, ttype == TestingType.Response); // gain,phase or gain1,gain2
             return ga;
+		}
+
+		public TestingType GetTestingType(string type)
+		{
+            return (TestingType)TestTypes.IndexOf(type);
 		}
 
 		/// <summary>
@@ -257,6 +264,8 @@ namespace QA40xPlot.Actions
 				Data.Measurements.Clear();
 				Data.Measurements.Add(MeasurementResult);
 
+                var ttype = GetTestingType(mrs.TestType);
+
 				do
 				{
                     if (ct.IsCancellationRequested)
@@ -272,16 +281,29 @@ namespace QA40xPlot.Actions
                         else
 							await Qa40x.SetGen1(1, voltagedBV, false);
 
-                        var total = new Complex(0, 0);
-
-                        for(int j = 0; j < mrs.Averages; j++)
-                            {
-	    						await showMessage(string.Format("Checking + {0:0}.{1}", dfreq, j));   // need a delay to actually see it
-    							var ga = await GetGain(dfreq, mrs);
-                                total += ga;
+                        if( mrs.Averages > 0)
+                        {
+							List<Complex> readings = new();
+							for (int j = 0; j < mrs.Averages; j++)
+							{
+								await showMessage(string.Format("Checking + {0:0}.{1}", dfreq, j));   // need a delay to actually see it
+								var ga = await GetGain(dfreq, mrs, ttype);
+								readings.Add(ga);
 							}
-						MeasurementResult.GainData.Add(total/mrs.Averages);
-                        MeasurementResult.GainFrequencies.Add(dfreq);
+							var total = new Complex(0, 0);
+							foreach (var f in readings)
+                            {
+                                total += f;
+                            }
+							MeasurementResult.GainData.Add(total / mrs.Averages);
+						}
+						else
+                        {
+							await showMessage(string.Format("Checking + {0:0}", dfreq));   // need a delay to actually see it
+							var ga = await GetGain(dfreq, mrs, ttype);
+							MeasurementResult.GainData.Add(ga);
+						}
+						MeasurementResult.GainFrequencies.Add(dfreq);
                         UpdateGraph(false);
                     }
 
@@ -305,13 +327,13 @@ namespace QA40xPlot.Actions
         }
 
 
-        private Complex CalculateGain(double dFreq, LeftRightTimeSeries data, bool useRight)
+        private Complex CalculateGain(double dFreq, LeftRightSeries data, bool showBoth)
         {
             Complex gain = new();
-            if( ViewSettings.Singleton.FreqRespVm.ShowPhase)
-                gain = QAMath.CalculateGainPhase(dFreq, data);
-            else
+            if(showBoth)
 				gain = QAMath.CalculateDualGain(dFreq, data);
+            else
+				gain = QAMath.CalculateGainPhase(dFreq, data);
 			return gain;
         }
 
@@ -328,25 +350,48 @@ namespace QA40xPlot.Actions
         void InitializePlot()
         {
 			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
-            InitializeMagFreqPlot(myPlot);
-            AddPhasePlot(myPlot);
-
 			var frqrsVm = ViewSettings.Singleton.FreqRespVm;
 
+			InitializeMagFreqPlot(myPlot);
+
 			myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(frqrsVm.GraphStartFreq)), Math.Log10(Convert.ToInt32(frqrsVm.GraphEndFreq)), frqrsVm.RangeBottomdB, frqrsVm.RangeTopdB);
-			myPlot.Title("Frequency Response (dBV)");
+            var ttype = GetTestingType(frqrsVm.TestType);
+            switch( ttype)
+            {
+                case TestingType.Response:
+					myPlot.Title("Frequency Response (dBV)");
+					myPlot.YLabel("dBV");
+					myPlot.Axes.Right.Label.Text = string.Empty;
+					break;
+				case TestingType.Gain:
+					AddPhasePlot(myPlot);
+					myPlot.Title("Gain");
+					myPlot.YLabel("dB");
+					myPlot.Axes.Right.Label.Text = "Phase (Deg)";
+					break;
+				case TestingType.Impedance:
+					AddPhasePlot(myPlot);
+					myPlot.Title("Impedance");
+					myPlot.YLabel("|Z| Ohms");
+					myPlot.Axes.Right.Label.Text = "Phase (Deg)";
+					break;
+			}
 			myPlot.XLabel("Frequency (Hz)");
-			myPlot.YLabel("dBV");
-			myPlot.Axes.Right.Label.Text = "Phase";
 			frqrsPlot.Refresh();
         }
 
+        private Complex ToImpedance(Complex z)
+        {
+			var xtest = z / ((new Complex(1, 0)) - z);  // do the math
+            return xtest;
+		}
 
-        /// <summary>
-        /// Plot the magnitude graph
-        /// </summary>
-        /// <param name="measurementResult">Data to plot</param>
-        void PlotGraph(FrequencyResponseMeasurementResult measurementResult, int measurementNr, bool showLeftChannel, bool showRightChannel, E_FrequencyResponseGraphType graphType)
+
+		/// <summary>
+		/// Plot the magnitude graph
+		/// </summary>
+		/// <param name="measurementResult">Data to plot</param>
+		void PlotGraph(FrequencyResponseMeasurementResult measurementResult, int measurementNr, bool showLeftChannel, bool showRightChannel, E_FrequencyResponseGraphType graphType)
         {
 			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
 			var frqrsVm = ViewSettings.Singleton.FreqRespVm;
@@ -368,43 +413,62 @@ namespace QA40xPlot.Actions
 
             var colors = new GraphColors();
             int color = measurementNr * 2;
+            var ttype = GetTestingType(frqrsVm.TestType);
 
             // var magValues = gainY.Select(x => x.Magnitude).ToArray();
-            double[] logYValues = null;
-            if( frqrsVm.ShowPhase)
-                logYValues = gainY.Select(x => 20*Math.Log10(x.Magnitude)).ToArray();
-            else
-				logYValues = gainY.Select(x => 20 * Math.Log10(x.Real)).ToArray();
+            double[] YValues = [];
+            double[] phaseValues = [];
+            double rref = Convert.ToDouble(frqrsVm.ZReference);
+            string legendname = string.Empty;
+            switch(ttype)
+            {
+                case TestingType.Gain:
+					YValues = gainY.Select(x => 20 * Math.Log10(x.Magnitude)).ToArray();
+					phaseValues = gainY.Select(x => 180 * x.Phase / Math.PI).ToArray();
+                    legendname = "Gain";
+					break;
+				case TestingType.Response:
+					YValues = gainY.Select(x => 20 * Math.Log10(x.Real)).ToArray(); // real is the left gain
+					phaseValues = gainY.Select(x => 20 * Math.Log10(x.Imaginary)).ToArray();
+					legendname = "dBV";
+					break;
+				case TestingType.Impedance:
+					YValues = gainY.Select(x => rref * ToImpedance(x).Magnitude).ToArray();
+					// YValues = gainY.Select(x => rref * x.Magnitude/(1-x.Magnitude)).ToArray();
+					phaseValues = gainY.Select(x => 180 * ToImpedance(x).Phase / Math.PI).ToArray();
+					legendname = "|Z| Ohms";
+					var rule = myPlot.Axes.Rules.First();
+                    if( rule is MaximumBoundary)
+                    {
+                        // change to an impedance set of limits
+                        var myrule = ((MaximumBoundary)rule);
+						var oldlimit = myrule.Limits;
+                        AxisLimits axs = new AxisLimits(oldlimit.Left, oldlimit.Right, 0, 2000);
+                        myrule.Limits = axs;
+					}
+					break;
+			}
 			//SetMagFreqRule(myPlot);
-			var plot = myPlot.Add.Scatter(logFreqX, logYValues);
+			var plot = myPlot.Add.Scatter(logFreqX, YValues);
 			plot.LineWidth = lineWidth;
 			plot.Color = colors.GetColor(0, color);
 			plot.MarkerSize = markerSize;
-			plot.LegendText = string.Empty;
+            plot.LegendText = legendname;
 			plot.LinePattern = LinePattern.Solid;
-            if( frqrsVm.ShowPhase)
+            if( ttype != TestingType.Response || frqrsVm.ShowRight)
             {
-				//SetPhaseFreqRule(myPlot);
-				var phaseYValues = gainY.Select(x => 180 * x.Phase / Math.PI).ToArray();
-				plot = myPlot.Add.Scatter(logFreqX, phaseYValues);
-				plot.Axes.YAxis = myPlot.Axes.Right;
+				plot = myPlot.Add.Scatter(logFreqX, phaseValues);
+                if(ttype == TestingType.Gain || ttype == TestingType.Impedance)
+                {
+					plot.Axes.YAxis = myPlot.Axes.Right;
+					plot.LegendText = "Phase (Deg)";
+				}
 				plot.LineWidth = lineWidth;
 				plot.Color = colors.GetColor(3, color);
 				plot.MarkerSize = markerSize;
-				plot.LegendText = string.Empty;
 				plot.LinePattern = LinePattern.Solid;
 			}
-            else if(frqrsVm.ShowRight)
-            {
-				var phaseYValues = gainY.Select(x => x.Imaginary).ToArray();
-				plot = myPlot.Add.Scatter(logFreqX, phaseYValues);
-				//plot.Axes.YAxis = myPlot.Axes.Right;
-				plot.LineWidth = lineWidth;
-				plot.Color = colors.GetColor(3, color);
-				plot.MarkerSize = markerSize;
-				plot.LegendText = string.Empty;
-				plot.LinePattern = LinePattern.Solid;
-			}
+
 			frqrsPlot.Refresh();
         }
 

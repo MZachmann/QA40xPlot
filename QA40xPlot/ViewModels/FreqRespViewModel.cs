@@ -13,7 +13,17 @@ public class FreqRespViewModel : BaseViewModel
 	public static List<String> MeasureTypes { get => new List<string> { "Input Voltage", "Output Voltage" }; }
 	public static List<String> GenAmplitudes { get => new List<string> { "0.05", "0.1", "0.25", "0.5", "0.75", "1", "2", "5" }; }
 	public static List<String> Smoothings { get => new List<string> { "None", "1/24", "1/6" }; }
+	public static List<String> Impedances { get => new List<string> { "5", "8", "10", "20", "100", "500", "1000" }; }
+	public static List<String> TestTypes { get => new List<string> { "Response", "Impedance", "Gain" }; }
 
+	public enum TestingType
+	{
+		Response,
+		Impedance,
+		Gain
+	}
+
+	[JsonIgnore]
 	private ActFrequencyResponse actFreq { get;  set; }
 	[JsonIgnore]
 	public RelayCommand DoStart { get => new RelayCommand(StartIt); }
@@ -24,6 +34,20 @@ public class FreqRespViewModel : BaseViewModel
 
 
 	#region Setters and Getters
+
+	private string _TestType = string.Empty;
+	public string TestType
+	{
+		get => _TestType;
+		set => SetProperty(ref _TestType, value);
+	}
+
+	private string _ZReference;
+	public string ZReference
+	{
+		get => _ZReference;
+		set => SetProperty(ref _ZReference, value);
+	}
 
 	private string _StartFreq;
 	public string StartFreq
@@ -178,12 +202,6 @@ public class FreqRespViewModel : BaseViewModel
 		get => _ShowRight;
 		set => SetProperty(ref _ShowRight, value);
 	}
-	private bool _ShowPhase;
-	public bool ShowPhase
-	{
-		get => _ShowPhase;
-		set => SetProperty(ref _ShowPhase, value);
-	}
 
 	private string _SampleRate;
 	public string SampleRate
@@ -259,6 +277,13 @@ public class FreqRespViewModel : BaseViewModel
 				ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;
 				actFreq?.UpdateGraph(true);
 				break;
+			case "TestType":
+				if( ViewSettings.Singleton != null && ViewSettings.Singleton.Main != null && ViewSettings.Singleton.Main.FreqRespHdr != null)
+				{
+					ViewSettings.Singleton.Main.FreqRespHdr = TestType;
+				}
+				actFreq?.UpdateGraph(true);
+				break;
 			case "GraphStartFreq":
 			case "GraphEndFreq":
 			case "RangeBottomdB":
@@ -268,7 +293,6 @@ public class FreqRespViewModel : BaseViewModel
 			case "ShowRight":
 			case "ShowLeft":
 			case "ShowThickLines":
-			case "ShowPhase":
 			case "StepsOctave":
 				actFreq?.UpdateGraph(true);
 				break;
@@ -327,7 +351,6 @@ public class FreqRespViewModel : BaseViewModel
 		ShowPercent = false;
 		ShowLeft = true;
 		ShowRight = false;
-		ShowPhase = true;
 
 		SampleRate = "96000";
 		FftSize = "64K";
@@ -342,6 +365,9 @@ public class FreqRespViewModel : BaseViewModel
 		Show3dBBandwidth_R = false;
 		Show1dBBandwidth_L = false;
 		Show1dBBandwidth_R = false;
+		ShowPoints = true;
+		ZReference = "8";
+		TestType = "Impedance";
 
 		StartFreq = "20";
 		EndFreq = "20000";
