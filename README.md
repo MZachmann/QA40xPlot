@@ -24,6 +24,11 @@ the needed signature so the download has to be *kept*.
 At startup the program looks in your My Documents folder and if it finds a file named
 QADefault.cfg then that file is loaded.
 
+Three tests: impedance testing, frequency response, and gain (bode plot) are wrapped in a single tab whose name
+will dynamically change between the 3 (Impedance, Response, Gain) based on your selection in the tab.
+
+The impedance test (and gain test) assume the DUT is connected in series with a reference resistor. The base of the DUT is ground, the top of the DUT goes to the left channel and the top of the reference resistor goes to both the input and the right channel.
+
 ![spectrum](QA40xPlot/Images/SpectralPlot.png)
 ![imd](QA40xPlot/Images/CCIFImdPlot.png)
 ![thd vs freq](QA40xPlot/Images/ThdVsFreq.png)
