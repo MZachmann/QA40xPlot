@@ -808,7 +808,7 @@ namespace QA40xPlot.Libraries
             if (max_dBV + 10 > limitY)
             {
                 limitY += 10;
-                myPlot.Axes.SetLimits(Math.Log10(10), Math.Log10(100000), -150, limitY);
+                myPlot.Axes.SetLimits(Math.Log10(10), Math.Log10(100000), -180, limitY);
             }
 
             plot.Refresh();

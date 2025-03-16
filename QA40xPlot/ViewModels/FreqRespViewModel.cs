@@ -301,10 +301,10 @@ public class FreqRespViewModel : BaseViewModel
 		}
 	}
 
-	public void SetAction(PlotControl plot)
+	public void SetAction(PlotControl plot, PlotControl plot2, PlotControl plot3)
 	{
 		FrequencyResponseData data = new FrequencyResponseData();
-		actFreq = new ActFrequencyResponse(ref data, plot);
+		actFreq = new ActFrequencyResponse(ref data, plot, plot2, plot3);
 	}
 
 	private static void StartIt(object parameter)

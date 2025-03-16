@@ -8,7 +8,7 @@
              xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
              xmlns:local="clr-namespace:QA40xPlot"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800" Background="MintCream">
+             d:DesignHeight="750" d:DesignWidth="800" Background="MintCream">
     <UserControl.Resources>
         <Style TargetType="TextBox">
             <Setter Property="VerticalAlignment" Value="Center"/>
@@ -141,10 +141,14 @@
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Label Content="Reference Z" Grid.Column="0" Grid.Row="0"  />
                     <ComboBox VerticalAlignment="Center" IsEditable="True" Text="{Binding ZReference}" Grid.Column="1" Grid.Row="0" ItemsSource="{Binding Impedances}"  />
                     <Label Content="Ohms" Grid.Column="2" Grid.Row="0"  />
+                    <views:PlotControl x:Name="WpfPlot2" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1" Width="150" Height="100" Margin="0,4,0,0" />
+                    <views:PlotControl x:Name="WpfPlot3" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" Width="150"  Height="100" Margin="0,4" />
                 </Grid>
             </GroupBox>
         </StackPanel>
@@ -224,10 +228,9 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="0"  />
-                    <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="1"  />
-                    <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="2"  />
-                    <CheckBox Content="Data Points" IsChecked="{Binding ShowPoints}" Grid.Row="3"  />
+                    <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="0"  />
+                    <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="1"  />
+                    <CheckBox Content="Data Points" IsChecked="{Binding ShowPoints}" Grid.Row="2"  />
                 </Grid>
             </GroupBox>
         </StackPanel>

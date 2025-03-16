@@ -9,6 +9,7 @@ using System.Data;
 using System.Numerics;
 using System.Windows;
 using static FreqRespViewModel;
+using static SkiaSharp.HarfBuzz.SKShaper;
 
 namespace QA40xPlot.Actions
 {
@@ -17,6 +18,8 @@ namespace QA40xPlot.Actions
     {
         public FrequencyResponseData Data { get; set; }       // Data used in this form instance
 		private readonly Views.PlotControl frqrsPlot;
+		private readonly Views.PlotControl fftPlot;
+		private readonly Views.PlotControl timePlot;
 
 		private FrequencyResponseMeasurementResult MeasurementResult;
 
@@ -25,10 +28,16 @@ namespace QA40xPlot.Actions
         /// <summary>
         /// Constructor
         /// </summary>
-        public ActFrequencyResponse(ref FrequencyResponseData data, Views.PlotControl graphFreq)
-        {
+        public ActFrequencyResponse(ref FrequencyResponseData data, Views.PlotControl graphFreq, Views.PlotControl graphFft, Views.PlotControl graphTime)
+		{
             Data = data;
             frqrsPlot = graphFreq;
+			fftPlot = graphFft;
+			timePlot = graphTime;
+
+			// Show empty graphs
+			QaLibrary.InitMiniFftPlot(fftPlot, 10, 100000, -180, 20);
+			QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -2, 2);
 
 			MeasurementResult = new(ViewSettings.Singleton.FreqRespVm); // TODO. Add to list
             ct = new CancellationTokenSource();
@@ -74,7 +83,12 @@ namespace QA40xPlot.Actions
 			vm.IsRunning = true;
 			ct = new();
             UpdateGenAmplitude(vm.Gen1Voltage);   // convert gen1voltage to dbv
+												  // Show empty graphs
+			QaLibrary.InitMiniFftPlot(fftPlot, 10, 40000, -180, 20);
+			QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -2, 2); 
+            
             UpdateGraph(true);
+
 			await PerformMeasurement(ct.Token, false);
 			await showMessage("Finished");
 			vm.IsRunning = false;
@@ -116,7 +130,7 @@ namespace QA40xPlot.Actions
         {
 			if (ct.Token.IsCancellationRequested)
 				return new();
-			var lfrs = await QaLibrary.DoAcquisitions(1, ct.Token, false, true);
+			var lfrs = await QaLibrary.DoAcquisitions(1, ct.Token, true, true);
             if (lfrs == null)
                 return new();
 			MeasurementResult.FrequencyResponseData = lfrs;
@@ -303,6 +317,11 @@ namespace QA40xPlot.Actions
 							var ga = await GetGain(dfreq, mrs, ttype);
 							MeasurementResult.GainData.Add(ga);
 						}
+                        if(MeasurementResult.FrequencyResponseData.FreqRslt != null)
+                        {
+							QaLibrary.PlotMiniFftGraph(fftPlot, MeasurementResult.FrequencyResponseData.FreqRslt, true, false);
+							QaLibrary.PlotMiniTimeGraph(timePlot, MeasurementResult.FrequencyResponseData.TimeRslt, dfreq, true, false);
+						}
 						MeasurementResult.GainFrequencies.Add(dfreq);
                         UpdateGraph(false);
                     }
@@ -430,7 +449,7 @@ namespace QA40xPlot.Actions
 				case TestingType.Response:
 					YValues = gainY.Select(x => 20 * Math.Log10(x.Real)).ToArray(); // real is the left gain
 					phaseValues = gainY.Select(x => 20 * Math.Log10(x.Imaginary)).ToArray();
-					legendname = "dBV";
+					legendname = "Left dBV";
 					break;
 				case TestingType.Impedance:
 					YValues = gainY.Select(x => rref * ToImpedance(x).Magnitude).ToArray();
@@ -478,6 +497,10 @@ namespace QA40xPlot.Actions
                 {
 					plot.Axes.YAxis = myPlot.Axes.Right;
 					plot.LegendText = "Phase (Deg)";
+				}
+                else
+                {
+					plot.LegendText = "Right dBV";
 				}
 				plot.LineWidth = lineWidth;
 				plot.Color = colors.GetColor(3, color);

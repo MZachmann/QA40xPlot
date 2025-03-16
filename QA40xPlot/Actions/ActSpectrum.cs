@@ -682,8 +682,11 @@ namespace QA40xPlot.Actions
 				double inpVolts = 0;
 				var msr = MeasurementResult.MeasurementSettings;
 				msr.Attenuation = 42;        // set to max attenuation
-				specVm.Attenuation = 42;	// to update the gui while testing
+				specVm.Attenuation = 42;    // to update the gui while testing
+				var aves = msr.Averages;
+				msr.Averages = 1;
 				inpVolts = await CalculateInVolts();
+				msr.Averages = aves;
 				msr.Attenuation = QaLibrary.DetermineAttenuation(20*Math.Log10(inpVolts));
 				specVm.Attenuation = msr.Attenuation;    // to update the gui while testing
 			}
