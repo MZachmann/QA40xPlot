@@ -437,15 +437,31 @@ namespace QA40xPlot.Actions
 					// YValues = gainY.Select(x => rref * x.Magnitude/(1-x.Magnitude)).ToArray();
 					phaseValues = gainY.Select(x => 180 * ToImpedance(x).Phase / Math.PI).ToArray();
 					legendname = "|Z| Ohms";
-					var rule = myPlot.Axes.Rules.First();
-                    if( rule is MaximumBoundary)
+                    if (myPlot.Axes.Rules.Count > 0)
                     {
-                        // change to an impedance set of limits
-                        var myrule = ((MaximumBoundary)rule);
-						var oldlimit = myrule.Limits;
-                        AxisLimits axs = new AxisLimits(oldlimit.Left, oldlimit.Right, 0, 2000);
-                        myrule.Limits = axs;
+                        var rule = myPlot.Axes.Rules.First();
+                        if (rule is MaximumBoundary)
+                        {
+                            // change to an impedance set of limits
+                            var myrule = ((MaximumBoundary)rule);
+                            var oldlimit = myrule.Limits;
+                            AxisLimits axs = new AxisLimits(oldlimit.Left, oldlimit.Right, 0, 2000);
+                            myrule.Limits = axs;
+                        }
+                    }
+					if (myPlot.Axes.Rules.Count > 1)
+					{
+						var rule = myPlot.Axes.Rules.Last();
+						if (rule is MaximumBoundary)
+						{
+							// change to an impedance set of limits
+							var myrule = ((MaximumBoundary)rule);
+							var oldlimit = myrule.Limits;
+							AxisLimits axs = new AxisLimits(oldlimit.Left, oldlimit.Right, -360, 360);
+							myrule.Limits = axs;
+						}
 					}
+
 					break;
 			}
 			//SetMagFreqRule(myPlot);

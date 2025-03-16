@@ -33,4 +33,8 @@ The impedance test (and gain test) assume the DUT is connected in series with a 
 ![imd](QA40xPlot/Images/CCIFImdPlot.png)
 ![thd vs freq](QA40xPlot/Images/ThdVsFreq.png)
 
+This next image is an impedance test of a Dayton Audio SIG-150 loudspeaker. 
+See here: https://www.parts-express.com/pedocs/specs/295-652--dayton-audio-sig150-4-spec-sheet.pdf
 
+
+![impedance](QA40xPlot/Images/ImpedancePlot.png)

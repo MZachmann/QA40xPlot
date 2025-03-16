@@ -73,7 +73,6 @@ namespace QA40xPlot.Actions
 		private void SetupFreqTics(ScottPlot.Plot myPlot)
 		{
 			ScottPlot.TickGenerators.NumericManual tickGenX = new();
-			myPlot.Axes.Bottom.TickGenerator = tickGenX;
 			// we start at a freq 1 of and end at 100000 I guess
 			for(int i=0; i<7; i++)
 			{
@@ -90,6 +89,7 @@ namespace QA40xPlot.Actions
 					}
 				}
 			}
+			myPlot.Axes.Bottom.TickGenerator = tickGenX;
 		}
 
 		private static void SetupAmpTics(ScottPlot.Plot myPlot)
@@ -115,10 +115,10 @@ namespace QA40xPlot.Actions
 		private void SetupPhaseTics(ScottPlot.Plot myPlot)
 		{
 			// create a numeric tick generator that uses our custom minor tick generator
-			ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGen = new(2);
+			ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGen = new(4);
 
 			ScottPlot.TickGenerators.NumericAutomatic tickGenY2 = new();
-			tickGenY2.TargetTickCount = 15;
+			tickGenY2.TargetTickCount = 12;
 			tickGenY2.MinorTickGenerator = minorTickGen;
 
 			// tell the left axis to use our custom tick generator
