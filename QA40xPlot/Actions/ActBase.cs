@@ -112,6 +112,19 @@ namespace QA40xPlot.Actions
 			myPlot.Axes.Bottom.TickGenerator = tickGenX;
 		}
 
+		private void SetupPhaseTics(ScottPlot.Plot myPlot)
+		{
+			// create a numeric tick generator that uses our custom minor tick generator
+			ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGen = new(2);
+
+			ScottPlot.TickGenerators.NumericAutomatic tickGenY2 = new();
+			tickGenY2.TargetTickCount = 15;
+			tickGenY2.MinorTickGenerator = minorTickGen;
+
+			// tell the left axis to use our custom tick generator
+			myPlot.Axes.Right.TickGenerator = tickGenY2;
+		}
+
 		// this sets the axes bounds for freq vs percent
 		private void AddPctFreqRule(ScottPlot.Plot myPlot)
 		{
@@ -125,13 +138,25 @@ namespace QA40xPlot.Actions
 		}
 
 		// this sets the axes bounds for freq vs magnitude
-		private void AddMagFreqRule(ScottPlot.Plot myPlot)
+		public void SetMagFreqRule(ScottPlot.Plot myPlot)
 		{
 			myPlot.Axes.Rules.Clear();
 			ScottPlot.AxisRules.MaximumBoundary rule = new(
 				xAxis: myPlot.Axes.Bottom,
 				yAxis: myPlot.Axes.Left,
 				limits: new AxisLimits(Math.Log10(1), Math.Log10(100000), -200, 100)
+				);
+			myPlot.Axes.Rules.Add(rule);
+		}
+
+		// this sets the axes bounds for freq vs magnitude
+		public void SetPhaseFreqRule(ScottPlot.Plot myPlot)
+		{
+			myPlot.Axes.Rules.Clear();
+			ScottPlot.AxisRules.MaximumBoundary rule = new(
+				xAxis: myPlot.Axes.Bottom,
+				yAxis: myPlot.Axes.Right,
+				limits: new AxisLimits(Math.Log10(1), Math.Log10(100000), -180, +180)
 				);
 			myPlot.Axes.Rules.Add(rule);
 		}
@@ -179,6 +204,8 @@ namespace QA40xPlot.Actions
 
 			myPlot.Axes.Left.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
 			myPlot.Axes.Left.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
+			myPlot.Axes.Right.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
+			myPlot.Axes.Right.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
 
 			// Legend
 			SetupLegend(myPlot);
@@ -189,7 +216,13 @@ namespace QA40xPlot.Actions
 			InitializeAPlot(myPlot);
 			SetupMagTics(myPlot);
 			SetupFreqTics(myPlot);
-			AddMagFreqRule(myPlot);
+			SetMagFreqRule(myPlot);
+		}
+
+		public void AddPhasePlot(ScottPlot.Plot myPlot)
+		{
+			SetupPhaseTics(myPlot);
+			SetPhaseFreqRule(myPlot);
 		}
 
 		public void InitializePctFreqPlot(ScottPlot.Plot myPlot)

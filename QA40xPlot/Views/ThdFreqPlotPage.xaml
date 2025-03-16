@@ -74,9 +74,9 @@
                 <Label Content="Output Power" Grid.Column="0" Grid.Row="3"  />
                 <Label Content="Output Voltage" Grid.Column="0" Grid.Row="4"   />
                 <Label Content="Start Frequency" Grid.Column="0" Grid.Row="5"  />
-                    <ComboBox VerticalAlignment="Center" IsEditable="True" Text="{Binding StartFreq}" Grid.Column="1" Grid.Row="5" ItemsSource="{Binding StartFrequencies}"  />
+                <ComboBox VerticalAlignment="Center" IsEditable="True" Text="{Binding StartFreq}" Grid.Column="1" Grid.Row="5" ItemsSource="{Binding StartFrequencies}"  />
                 <Label Content="End Frequency" Grid.Column="0" Grid.Row="6"  />
-                    <ComboBox VerticalAlignment="Center" IsEditable="True" Text="{Binding EndFreq}" Grid.Column="1" Grid.Row="6"  ItemsSource="{Binding EndFrequencies}"  />
+                <ComboBox VerticalAlignment="Center" IsEditable="True" Text="{Binding EndFreq}" Grid.Column="1" Grid.Row="6"  ItemsSource="{Binding EndFrequencies}"  />
                 <Label Content="Steps / Octave" Grid.Column="0" Grid.Row="7"  />
                 <Label Content="Averages" Grid.Column="0" Grid.Row="8"  />
                 <CheckBox Content="Left channel" IsChecked="{Binding LeftChannel}" Grid.Column="0" Grid.Row="9"  />
@@ -124,7 +124,7 @@
                     <Label Content="Bottom" Grid.Row="1" Grid.Column="0"  />
                     <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center"  Text="{Binding RangeBottomdB}" ItemsSource="{Binding BottomDbs}">
                     </ComboBox>
-                    <Button Content="Autofit" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center"  />
+                    <Button Content="Fit to data" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center"  />
                 </Grid>
             </GroupBox>
             <GroupBox Header="Y Axis (%)" Visibility="{Binding ToShowRange}">
@@ -144,7 +144,7 @@
                     <Label Content="Bottom" Grid.Row="1" Grid.Column="0"  />
                     <ComboBox Grid.Column="1"  Grid.Row="1" VerticalAlignment="Center"  SelectedValue="{Binding RangeBottom}" ItemsSource="{Binding EndPercents}">
                     </ComboBox>
-                    <Button Content="Autofit" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Center" Grid.ColumnSpan="2"  />
+                    <Button Content="Fit to data" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Center" Grid.ColumnSpan="2"  />
                 </Grid>
             </GroupBox>
             <GroupBox Header="X Axis (Hz)">
@@ -166,7 +166,7 @@
                     <Label Content="To" Grid.Row="1" Grid.Column="0"  />
                     <ComboBox  IsEditable="True" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Text="{Binding GraphEndFreq}" ItemsSource="{Binding EndFrequencies}">
                     </ComboBox>
-                    <Button Content="Autofit" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Center" Grid.ColumnSpan="2"  />
+                    <Button Content="Fit to data" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Center" Grid.ColumnSpan="2"  />
                 </Grid>
             </GroupBox>
             <GroupBox Header="Graph Data">

@@ -72,7 +72,8 @@
                 <Label Content="Test Frequency" Grid.Column="0" Grid.Row="4"  />
                     <ComboBox VerticalAlignment="Center" IsEditable="True" Text="{Binding TestFreq}" Grid.Column="1" Grid.Row="4" ItemsSource="{Binding StartFrequencies}"   />
                     <Label Content="Steps / Octave" Grid.Column="0" Grid.Row="5"  />
-                <Label Content="Averages" Grid.Column="0" Grid.Row="6"  />
+                    <xctk:IntegerUpDown Value="{Binding StepsOctave}" Minimum="1" VerticalAlignment="Center" Grid.Column="1" Grid.Row="5"  />
+                    <Label Content="Averages" Grid.Column="0" Grid.Row="6"  />
                 <CheckBox Content="Left channel" IsChecked="{Binding LeftChannel}" Grid.Column="0" Grid.Row="7"  />
                 <views:PlotControl x:Name="WpfPlot2" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="8" Width="150" />
                 <views:PlotControl x:Name="WpfPlot3" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="9" Width="150" />
@@ -81,7 +82,6 @@
                     <TextBox Text="{Binding StartVoltage, StringFormat={}{0:0.####}}" Grid.Column="1"  Grid.Row="1" LostFocus="OnStartVoltageChanged" />
                     <TextBox Text="{Binding EndVoltage, StringFormat={}{0:0.####}}" Grid.Column="1"  Grid.Row="2" LostFocus="OnEndVoltageChanged" />
                 <TextBox Text="{Binding AmpLoad}" Grid.Column="1"  Grid.Row="3"  />
-                    <xctk:IntegerUpDown Value="{Binding StepsOctave}" Minimum="1" VerticalAlignment="Center" Grid.Column="1" Grid.Row="5"  />
                     <xctk:IntegerUpDown Value="{Binding Averages}" Minimum="1" Maximum="6" VerticalAlignment="Center" Grid.Column="1" Grid.Row="6"  />
                 <CheckBox Content="Right channel" IsChecked="{Binding RightChannel}" Grid.Column="1" Grid.Row="7"  />
                 <ComboBox  Grid.Column="2" Grid.Row="1" VerticalAlignment="Center"  SelectedIndex="{Binding StartVoltageUnits}" ItemsSource="{Binding VoltItems}">
@@ -114,7 +114,7 @@
                     <Label Content="Bottom" Grid.Row="1" Grid.Column="0"  />
                     <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center"  Text="{Binding RangeBottomdB}" ItemsSource="{Binding BottomDbs}">
                     </ComboBox>
-                    <Button Content="Autofit" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center"  />                </Grid>
+                    <Button Content="Fit to data" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center"  />                </Grid>
             </GroupBox>
             <GroupBox Header="Y Axis (%)" Visibility="{Binding ToShowRange}">
                 <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
@@ -135,7 +135,7 @@
                     <Label Content="Bottom" Grid.Row="1" Grid.Column="0"  />
                     <ComboBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Center"  SelectedValue="{Binding RangeBottom}" ItemsSource="{Binding EndPercents}">
                     </ComboBox>
-                    <Button Content="Autofit" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Center" Grid.ColumnSpan="2"  />
+                    <Button Content="Fit to data" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Center" Grid.ColumnSpan="2"  />
                 </Grid>
             </GroupBox>
             <GroupBox Header="X-Axis">
@@ -161,7 +161,7 @@
                     <Label Content="To" Grid.Row="1" Grid.Column="0"  />
                     <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Text="{Binding GraphEndVolts}" ItemsSource="{Binding EndVoltages}">
                     </ComboBox>
-                    <Button Content="Autofit" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Center" Grid.ColumnSpan="2"  />
+                    <Button Content="Fit to data" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Center" Grid.ColumnSpan="2"  />
                 </Grid>
             </GroupBox>
             <GroupBox Header="Graph Data">

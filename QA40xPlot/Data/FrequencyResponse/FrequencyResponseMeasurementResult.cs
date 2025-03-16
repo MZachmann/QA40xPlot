@@ -11,7 +11,9 @@ namespace QA40xPlot.Data
         public bool Show { get; set; }                                                  // Show in graph
         public bool Saved { get; set; }                                                 // Has been saved
         public LeftRightSeries FrequencyResponseData { get; set; }                      // Measurement data
-        public double[] GainData { get; set; }                                          // Calculated gain over frequency
+        public List<System.Numerics.Complex> GainData { get; set; }
+        public List<double> GainFrequencies { get; set; }
+            // Calculated gain over frequency
         public FreqRespViewModel MeasurementSettings { get; set; }   //  Settings used for this measurement
 
         public FrequencyResponseMeasurementResult(FreqRespViewModel vm)

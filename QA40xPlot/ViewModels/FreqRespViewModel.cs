@@ -24,6 +24,27 @@ public class FreqRespViewModel : BaseViewModel
 
 
 	#region Setters and Getters
+
+	private string _StartFreq;
+	public string StartFreq
+	{
+		get => _StartFreq;
+		set => SetProperty(ref _StartFreq, value);
+	}
+
+	private string _EndFreq;
+	public string EndFreq
+	{
+		get => _EndFreq;
+		set => SetProperty(ref _EndFreq, value);
+	}
+
+	private uint _StepsOctave;         // type of alert
+	public uint StepsOctave
+	{
+		get => _StepsOctave; set => SetProperty(ref _StepsOctave, value);
+	}
+
 	private string _Smoothing;         // type of alert
 	public string Smoothing
 	{
@@ -157,11 +178,11 @@ public class FreqRespViewModel : BaseViewModel
 		get => _ShowRight;
 		set => SetProperty(ref _ShowRight, value);
 	}
-	private bool _ShowGain;
-	public bool ShowGain
+	private bool _ShowPhase;
+	public bool ShowPhase
 	{
-		get => _ShowGain;
-		set => SetProperty(ref _ShowGain, value);
+		get => _ShowPhase;
+		set => SetProperty(ref _ShowPhase, value);
 	}
 
 	private string _SampleRate;
@@ -247,7 +268,8 @@ public class FreqRespViewModel : BaseViewModel
 			case "ShowRight":
 			case "ShowLeft":
 			case "ShowThickLines":
-			case "ShowGain":
+			case "ShowPhase":
+			case "StepsOctave":
 				actFreq?.UpdateGraph(true);
 				break;
 			default:
@@ -291,6 +313,7 @@ public class FreqRespViewModel : BaseViewModel
 
 		GraphStartFreq = "20";
 		GraphEndFreq = "20000";
+		StepsOctave = 1;
 		Averages = 1;
 		LeftChannel = true;
 		RightChannel = false;
@@ -304,15 +327,13 @@ public class FreqRespViewModel : BaseViewModel
 		ShowPercent = false;
 		ShowLeft = true;
 		ShowRight = false;
+		ShowPhase = true;
 
 		SampleRate = "96000";
 		FftSize = "64K";
 
 		RangeTopdB = 20;
 		RangeBottomdB = -180;
-
-		ToShowRange = Visibility.Visible;
-		ToShowdB = Visibility.Visible;
 
 		GeneratorAmplitude = -20;
 		Gen1Voltage = QaLibrary.ConvertVoltage(GeneratorAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)GeneratorUnits).ToString();
@@ -322,6 +343,11 @@ public class FreqRespViewModel : BaseViewModel
 		Show1dBBandwidth_L = false;
 		Show1dBBandwidth_R = false;
 
+		StartFreq = "20";
+		EndFreq = "20000";
+
+		ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
+		ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;      
 		// make a few things happen to synch the gui
 		Task.Delay(1000).ContinueWith(t => { actFreq?.UpdateGraph(true); });
 	}

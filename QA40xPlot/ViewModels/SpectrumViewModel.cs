@@ -467,9 +467,6 @@ namespace QA40xPlot.ViewModels
 			ShowMarkers = false;
 			ShowPowerMarkers = false;
 
-			ToShowRange = Visibility.Visible;
-			ToShowdB = Visibility.Visible;
-
 			ReadVoltage = true;
 			ReadOutPower = true;
 			ReadOutVoltage = true;
@@ -483,6 +480,9 @@ namespace QA40xPlot.ViewModels
 			UseGenerator2 = false;
 
 			Attenuation = 42;
+
+			ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
+			ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;
 
 			// make a few things happen to synch the gui
 			Task.Delay(1000).ContinueWith(t => { actSpec?.UpdateGraph(true); });

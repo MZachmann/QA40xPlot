@@ -420,9 +420,6 @@ namespace QA40xPlot.ViewModels
 			RangeTopdB = 20;
 			RangeBottomdB = -180;
 
-			ToShowRange = Visibility.Visible;
-			ToShowdB = Visibility.Visible;
-
 			ReadVoltage = true;
 			ReadOutPower = true;
 			ReadOutVoltage = true;
@@ -432,6 +429,8 @@ namespace QA40xPlot.ViewModels
 			GenVoltage = QaLibrary.ConvertVoltage(GeneratorAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)GeneratorUnits);
 			OutVoltage = QaLibrary.ConvertVoltage(AmpOutputAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)OutputUnits);
 
+			ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
+			ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;          
 			// make a few things happen to synch the gui. don't await this.
 			Task.Delay(1000).ContinueWith(t => { actThd?.UpdateGraph(true); });
 		}

@@ -378,9 +378,6 @@ namespace QA40xPlot.ViewModels
 			RangeTopdB = 20;
 			RangeBottomdB = -180;
 
-			ToShowRange = Visibility.Visible;
-			ToShowdB = Visibility.Visible;
-
 			XAxisType = 0;
 			StartAmplitude = -10;       // this is the unitless (dbV) amplitude of the generator
 			EndAmplitude = 0;       // this is the unitless (dbV) amplitude of the generator
@@ -389,6 +386,8 @@ namespace QA40xPlot.ViewModels
 			StartVoltage = QaLibrary.ConvertVoltage(StartAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)StartVoltageUnits);
 			EndVoltage = QaLibrary.ConvertVoltage(EndAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)EndVoltageUnits);
 
+			ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
+			ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;          
 			// make a few things happen to synch the gui
 			Task.Delay(1000).ContinueWith(t => { actThd?.UpdateGraph(true); });
 		}

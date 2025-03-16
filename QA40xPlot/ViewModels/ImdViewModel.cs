@@ -548,11 +548,6 @@ namespace QA40xPlot.ViewModels
 			ShowMarkers = false;
 			ShowPowerMarkers = false;
 
-			ToShowRange = Visibility.Visible;
-			ToShowdB = Visibility.Visible;
-			// make a few things happen to synch the gui
-			Task.Delay(1000).ContinueWith(t => { actImd?.UpdateGraph(true); });
-
 			ReadVoltage = true;
 			ReadOutPower = true;
 			ReadOutVoltage = true;
@@ -571,6 +566,12 @@ namespace QA40xPlot.ViewModels
 
 			IntermodType = "Custom";
 			IsImdCustom = true;
+
+			ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
+			ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;
+
+			// make a few things happen to synch the gui
+			Task.Delay(1000).ContinueWith(t => { actImd?.UpdateGraph(true); });
 		}
 	}
 }
