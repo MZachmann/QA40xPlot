@@ -5,6 +5,9 @@ using QA40xPlot.Views;
 using System.ComponentModel;
 using Newtonsoft.Json;
 using System.Windows;
+using static FreqRespViewModel;
+using System.DirectoryServices.ActiveDirectory;
+using System.Windows.Input;
 
 namespace QA40xPlot.ViewModels
 {
@@ -12,7 +15,10 @@ namespace QA40xPlot.ViewModels
 	{
 		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 		public static List<String> MeasureTypes { get => new List<string> { "Input Voltage", "Output Voltage", "Output Power" }; }
+
+		private PlotControl actPlot { get; set; }
 		private ActThdFrequency actThd { get; set; }
+
 		[JsonIgnore]
 		public RelayCommand DoStart { get => new RelayCommand(StartIt); }
 		[JsonIgnore]
@@ -357,6 +363,7 @@ namespace QA40xPlot.ViewModels
 			ThdFrequencyData data = new ThdFrequencyData();
 			actThd = new ActThdFrequency(ref data, plot, plot1, plot2);
 			SetupMainPlot(plot);
+			actPlot = plot;
 		}
 
 
@@ -370,14 +377,62 @@ namespace QA40xPlot.ViewModels
 			actThd.UpdateAmpAmplitude(news);
 		}
 
+		// when the mouse moves in the plotcontrol window it sends a mouseevent to the parent view model (this)
+		// here's the tracker event handler
+		private static void DoMouseTracked(object sender, MouseEventArgs e)
+		{
+			var thdFreqVm = ViewSettings.Singleton.ThdFreq;
+			thdFreqVm.DoMouse(sender, e);
+		}
+
+		private void DoMouse(object sender, MouseEventArgs e)
+		{
+
+			if (e.LeftButton == MouseButtonState.Pressed && !IsMouseDown)
+			{
+				IsTracking = !IsTracking;
+				IsMouseDown = true;
+			}
+			else
+			if (e.LeftButton == MouseButtonState.Released && IsMouseDown)
+			{
+				IsMouseDown = false;
+			}
+			if (IsTracking)
+			{
+				var p = e.GetPosition(actPlot);
+				var cord = ConvertScottCoords(actPlot, p.X, p.Y);
+				FreqValue = Math.Pow(10, cord.Item1); // frequency
+			}
+			var zv = actThd.LookupX(FreqValue);
+			//var ttype = actThd.GetTestingType(TestType);
+			//FreqShow = zv.Item1.ToString("0.# Hz");
+			//switch (ttype)
+			//{
+			//	case TestingType.Response:
+			//		ZValue = "Left: " + (20 * Math.Log10(zv.Item2)).ToString("0.## dBV") + Environment.NewLine + "Right: " + (20 * Math.Log10(zv.Item3)).ToString("0.## dBV");
+			//		break;
+			//	case TestingType.Impedance:
+			//		ZValue = "Z: " + (20 * Math.Log10(zv.Item2)).ToString("0.## Ohms") + Environment.NewLine + "  " + zv.Item3.ToString("0.## Deg");
+			//		break;
+			//	case TestingType.Gain:
+			//		ZValue = "G: " + (20 * Math.Log10(zv.Item2)).ToString("0.## dB") + Environment.NewLine + "  " + zv.Item3.ToString("0.## Deg");
+			//		break;
+			//}
+		}
+
 		~ThdFreqViewModel()
 		{
 			PropertyChanged -= CheckPropertyChanged;
+			MouseTracked -= DoMouseTracked;
+
 		}
 
 		public ThdFreqViewModel()
 		{
 			PropertyChanged += CheckPropertyChanged;
+			MouseTracked += DoMouseTracked;
+
 
 			PropertyChanged += CheckPropertyChanged;
 

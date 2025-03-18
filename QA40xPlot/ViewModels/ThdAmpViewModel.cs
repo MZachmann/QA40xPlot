@@ -7,6 +7,9 @@ using Newtonsoft.Json;
 using System.Windows;
 using System.Windows.Controls;
 using FftSharp.Windows;
+using static FreqRespViewModel;
+using System.DirectoryServices.ActiveDirectory;
+using System.Windows.Input;
 
 namespace QA40xPlot.ViewModels
 {
@@ -16,7 +19,10 @@ namespace QA40xPlot.ViewModels
 		public static List<String> MeasureTypes { get => new List<string> { "Input Voltage", "Output Voltage", "Output Power" }; }
 		public static List<String> StartVoltages { get => new List<string> { "0.0001", "0.0002", "0.0005", "0.001", "0.002", "0.005", "0.01", "0.02", "0.05", "0.1", "0.2", "0.5" }; }
 		public static List<String> EndVoltages { get => new List<string> { "1", "2", "5", "10", "20", "50", "100", "200" }; }
+
 		private ActThdAmplitude actThd { get; set; }
+		private PlotControl actPlot {  get; set; }
+
 		[JsonIgnore]
 		public RelayCommand DoStart { get => new RelayCommand(StartIt); }
 		[JsonIgnore]
@@ -326,6 +332,7 @@ namespace QA40xPlot.ViewModels
 			ThdAmplitudeData data = new ThdAmplitudeData();
 			actThd = new ActThdAmplitude(ref data, plot, plot1, plot2);
 			SetupMainPlot(plot);
+			actPlot = plot;
 		}
 
 		public void OnStartVoltageChanged(string news)
@@ -338,14 +345,60 @@ namespace QA40xPlot.ViewModels
 			actThd.UpdateEndAmplitude(news);
 		}
 
+		// when the mouse moves in the plotcontrol window it sends a mouseevent to the parent view model (this)
+		// here's the tracker event handler
+		private static void DoMouseTracked(object sender, MouseEventArgs e)
+		{
+			var thdAmpVm = ViewSettings.Singleton.ThdAmp;
+			thdAmpVm.DoMouse(sender, e);
+		}
+
+		private void DoMouse(object sender, MouseEventArgs e)
+		{
+
+			if (e.LeftButton == MouseButtonState.Pressed && !IsMouseDown)
+			{
+				IsTracking = !IsTracking;
+				IsMouseDown = true;
+			}
+			else
+			if (e.LeftButton == MouseButtonState.Released && IsMouseDown)
+			{
+				IsMouseDown = false;
+			}
+			if (IsTracking)
+			{
+				var p = e.GetPosition(actPlot);
+				var cord = ConvertScottCoords(actPlot, p.X, p.Y);
+				FreqValue = Math.Pow(10, cord.Item1); // frequency
+			}
+			var zv = actThd.LookupX(FreqValue);
+			//var ttype = actThd.GetTestingType(TestType);
+			//FreqShow = zv.Item1.ToString("0.# Hz");
+			//switch (ttype)
+			//{
+			//	case TestingType.Response:
+			//		ZValue = "Left: " + (20 * Math.Log10(zv.Item2)).ToString("0.## dBV") + Environment.NewLine + "Right: " + (20 * Math.Log10(zv.Item3)).ToString("0.## dBV");
+			//		break;
+			//	case TestingType.Impedance:
+			//		ZValue = "Z: " + (20 * Math.Log10(zv.Item2)).ToString("0.## Ohms") + Environment.NewLine + "  " + zv.Item3.ToString("0.## Deg");
+			//		break;
+			//	case TestingType.Gain:
+			//		ZValue = "G: " + (20 * Math.Log10(zv.Item2)).ToString("0.## dB") + Environment.NewLine + "  " + zv.Item3.ToString("0.## Deg");
+			//		break;
+			//}
+		}
+
 		~ThdAmpViewModel()
 		{
 			PropertyChanged -= CheckPropertyChanged;
+			MouseTracked -= DoMouseTracked;
 		}
 
 		public ThdAmpViewModel()
 		{
 			PropertyChanged += CheckPropertyChanged;
+			MouseTracked += DoMouseTracked;
 
 			AmpLoad = 8;
 			TestFreq = "1000";

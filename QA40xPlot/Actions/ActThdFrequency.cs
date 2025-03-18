@@ -6,6 +6,7 @@ using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
 using System.Windows;
+using static FreqRespViewModel;
 
 // various things for the thd vs frequency activity
 
@@ -127,6 +128,45 @@ namespace QA40xPlot.Actions
 		public void DoCancel()
 		{
 			ct.Cancel();
+		}
+
+		public Dictionary<string,double> LookupX(double freq)
+		{
+			Dictionary<string, double> tup = new Dictionary<string, double>();
+			//LeftRightSeries vf = MeasurementResult?.FrequencyResponseData;
+			//if (vf != null)
+			//{
+			//	var freqs = MeasurementResult.GainFrequencies;
+			//	if (freqs != null && freqs.Count > 0)
+			//	{
+			//		var values = MeasurementResult.GainData;
+			//		// find nearest frequency from list
+			//		var bin = freqs.Count(x => x < freq) - 1;    // find first freq less than me
+			//		if (bin == -1)
+			//			bin = 0;
+			//		var fnearest = freqs[bin];
+			//		if (bin < (freqs.Count - 1) && Math.Abs(freq - fnearest) > Math.Abs(freq - freqs[bin + 1]))
+			//		{
+			//			bin++;
+			//		}
+
+			//		var frsqVm = ViewSettings.Singleton.FreqRespVm;
+			//		var ttype = GetTestingType(frsqVm.TestType);
+			//		switch (ttype)
+			//		{
+			//			case TestingType.Response:
+			//				tup = Tuple.Create(freqs[bin], values[bin].Real, values[bin].Imaginary);
+			//				break;
+			//			case TestingType.Impedance:
+			//				tup = Tuple.Create(freqs[bin], values[bin].Magnitude, 180 * values[bin].Phase / Math.PI);
+			//				break;
+			//			case TestingType.Gain:
+			//				tup = Tuple.Create(freqs[bin], values[bin].Magnitude, 180 * values[bin].Phase / Math.PI);
+			//				break;
+			//		}
+			//	}
+			//}
+			return tup;
 		}
 
 		/// <summary>
