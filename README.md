@@ -37,6 +37,10 @@ will dynamically change between the 3 (Impedance, Response, Gain) based on your 
 
 **The Gain test** assumes the reference is connected to the right channel and the signal with gain is connected to the left channel.
 
+Cursors are visible in the lower right of the screen, below graph options. When you move the mouse in the window
+the cursor values will track the displayed data. Click the mouse to stop changing frequency (fixing the value unless the program runs
+continuously). Click the mouse again to release the hold.
+
 ![spectrum](QA40xPlot/Images/SpectralPlot.png)
 ![imd](QA40xPlot/Images/CCIFImdPlot.png)
 ![thd vs freq](QA40xPlot/Images/ThdVsFreq.png)
