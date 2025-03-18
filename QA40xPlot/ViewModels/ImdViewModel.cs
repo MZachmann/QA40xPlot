@@ -5,6 +5,7 @@ using QA40xPlot.Views;
 using System.ComponentModel;
 using Newtonsoft.Json;
 using System.Windows;
+using System.Windows.Input;
 
 namespace QA40xPlot.ViewModels
 {
@@ -19,6 +20,7 @@ namespace QA40xPlot.ViewModels
 			"CCIF (19KHz.20KHz 1:1)", "AES-17 MD (41Hz.7993Hz 4:1)", "AES-17 DFD (18KHz.20KHz 1:1)",
 			"TDFD Phono (3005Hz.4462Hz 1:1)" }; }
 		private ActImd actImd { get;  set; }
+		private PlotControl actPlot { get; set; }
 		private ImdChannelInfo actInfo { get;  set; }
 		[JsonIgnore]
 		public RelayCommand SetAttenuate { get => new RelayCommand(SetAtten); }
@@ -435,6 +437,8 @@ namespace QA40xPlot.ViewModels
 			ImdData data = new ImdData();
 			actImd = new ActImd(ref data, plot);
 			actInfo = info;
+			SetupMainPlot(plot);
+			actPlot = plot;
 		}
 
 		private static void SetAtten(object parameter)
@@ -503,14 +507,51 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
+		// when the mouse moves in the plotcontrol window it sends a mouseevent to the parent view model (this)
+		// here's the tracker event handler
+		private static void DoMouseTracked(object sender, MouseEventArgs e)
+		{
+			var imdVm = ViewSettings.Singleton.ImdVm;
+			imdVm.DoMouse(sender, e);
+		}
+
+		private void DoMouse(object sender, MouseEventArgs e)
+		{
+
+			if (e.LeftButton == MouseButtonState.Pressed && !IsMouseDown)
+			{
+				IsTracking = !IsTracking;
+				IsMouseDown = true;
+			}
+			else
+			if (e.LeftButton == MouseButtonState.Released && IsMouseDown)
+			{
+				IsMouseDown = false;
+			}
+			if (IsTracking)
+			{
+				var p = e.GetPosition(actPlot);
+				var cord = ConvertScottCoords(actPlot, p.X, p.Y);
+				var xpos = cord.Item1;
+				var ypos = cord.Item2;
+				FreqValue = Math.Pow(10, xpos); // frequency
+			}
+
+			var zv = actImd.LookupX(FreqValue);
+			FreqShow = FreqValue.ToString("0.# Hz");
+			ZValue = (20 * Math.Log10(zv.Item2)).ToString("0.# dBV");
+		}
+
 		~ImdViewModel()
 		{
 			PropertyChanged -= CheckPropertyChanged;
+			MouseTracked -= DoMouseTracked;
 		}
 
 		public ImdViewModel()
 		{
 			PropertyChanged += CheckPropertyChanged;
+			MouseTracked += DoMouseTracked;
 
 			OutVoltage = 0.5;
 			GraphStartFreq = "20";

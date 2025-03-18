@@ -23,13 +23,17 @@ REST interface.
 The Release is currently a .msi file that just needs to be executed. For now it is missing
 the needed signature so the download has to be *kept*. This is next on the list.
 
-At startup the program looks in your My Documents folder (usually \Users\yourname\Documents) and if it finds a file named
-QADefault.cfg then that file is loaded.
+At startup the program looks in your My Documents folder (usually \Users\yourname\Documents) and if it finds 
+a saved configuration file named QADefault.cfg then that file is loaded.
 
 Three tests: impedance testing, frequency response, and gain (bode plot) are wrapped in a single tab whose name
 will dynamically change between the 3 (Impedance, Response, Gain) based on your selection in the tab.
 
-**The impedance test** assumes the DUT is connected in series with a reference resistor. The base of the DUT is ground, the top of the DUT goes to the left channel and the top of the reference resistor goes to both the input and the right channel.
+**The impedance test** assumes the DUT is connected in series with a reference resistor. 
+
+* The base of the DUT is ground, 
+* the top of the DUT goes to the left channel and the bottom of the reference resistor
+* the top of the reference resistor goes to both the input and the right channel.
 
 **The Gain test** assumes the reference is connected to the right channel and the signal with gain is connected to the left channel.
 

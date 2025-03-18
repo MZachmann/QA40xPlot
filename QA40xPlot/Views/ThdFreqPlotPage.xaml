@@ -101,9 +101,25 @@
                 <Label Content="Hz" Grid.Column="2" Grid.Row="5"  />
                 <Label Content="Hz" Grid.Column="2" Grid.Row="6"  />
             </Grid>
-        </GroupBox>
+            </GroupBox>
+            <GroupBox Header="Cursor" >
+                <Grid >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Label Content="Frequency" Grid.Row="0" Grid.Column="0" IsEnabled="{Binding IsTracking}" />
+                    <Label Content="{Binding FreqValue}" Grid.Row="0" Grid.Column="1" IsEnabled="{Binding IsTracking}" />
+                    <Label Content="dBV" Grid.Row="1" Grid.Column="0"  />
+                    <TextBox Text="{Binding ZValue}" Grid.Row="1" Grid.Column="1" TextWrapping="Wrap" AcceptsReturn="True" />
+                </Grid>
+            </GroupBox>
         </StackPanel>
-        <views:PlotControl x:Name="WpfPlot1" Grid.Column="1" />
+        <views:PlotControl x:Name="WpfPlot1"  Grid.Column="1" />
         <StackPanel Grid.Column="2" Orientation="Vertical">
             <GroupBox Header="Y Axis (dB)" Visibility="{Binding ToShowdB}">
                 <Grid HorizontalAlignment="Left" VerticalAlignment="Top">

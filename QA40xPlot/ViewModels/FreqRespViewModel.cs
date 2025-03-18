@@ -6,6 +6,7 @@ using QA40xPlot.Views;
 using System.Windows;
 using System.ComponentModel;
 using Newtonsoft.Json;
+using System.Windows.Input;
 
 public class FreqRespViewModel : BaseViewModel
 {
@@ -23,7 +24,7 @@ public class FreqRespViewModel : BaseViewModel
 		Gain
 	}
 
-	[JsonIgnore]
+	private PlotControl actPlot { get; set; }
 	private ActFrequencyResponse actFreq { get;  set; }
 	[JsonIgnore]
 	public RelayCommand DoStart { get => new RelayCommand(StartIt); }
@@ -305,6 +306,8 @@ public class FreqRespViewModel : BaseViewModel
 	{
 		FrequencyResponseData data = new FrequencyResponseData();
 		actFreq = new ActFrequencyResponse(ref data, plot, plot2, plot3);
+		SetupMainPlot(plot);
+		actPlot = plot;
 	}
 
 	private static void StartIt(object parameter)
@@ -326,14 +329,60 @@ public class FreqRespViewModel : BaseViewModel
 		return vm.actFreq.CreateExportData();
 	}
 
+	// when the mouse moves in the plotcontrol window it sends a mouseevent to the parent view model (this)
+	// here's the tracker event handler
+	private static void DoMouseTracked(object sender, MouseEventArgs e)
+	{
+		var freqVm = ViewSettings.Singleton.FreqRespVm;
+		freqVm.DoMouse(sender, e);
+	}
+
+	private void DoMouse(object sender, MouseEventArgs e)
+	{
+
+		if (e.LeftButton == MouseButtonState.Pressed && !IsMouseDown)
+		{
+			IsTracking = !IsTracking;
+			IsMouseDown = true;
+		}
+		else
+		if (e.LeftButton == MouseButtonState.Released && IsMouseDown)
+		{
+			IsMouseDown = false;
+		}
+		if (IsTracking)
+		{
+			var p = e.GetPosition(actPlot);
+			var cord = ConvertScottCoords(actPlot, p.X, p.Y);
+			FreqValue = Math.Pow(10, cord.Item1); // frequency
+		}
+		var zv = actFreq.LookupX(FreqValue);
+		var ttype = actFreq.GetTestingType(TestType);
+		FreqShow = zv.Item1.ToString("0.# Hz");
+		switch ( ttype)
+		{
+			case TestingType.Response:
+				ZValue = "Left: " + (20 * Math.Log10(zv.Item2)).ToString("0.## dBV") + Environment.NewLine + "Right: " + (20 * Math.Log10(zv.Item3)).ToString("0.## dBV");
+				break;
+			case TestingType.Impedance:
+				ZValue = "Z: " + (20 * Math.Log10(zv.Item2)).ToString("0.## Ohms") + Environment.NewLine + "  " + zv.Item3.ToString("0.## Deg");
+				break;
+			case TestingType.Gain:
+				ZValue = "G: " + (20 * Math.Log10(zv.Item2)).ToString("0.## dB") + Environment.NewLine + "  " + zv.Item3.ToString("0.## Deg");
+				break;
+		}
+	}
+
 	~FreqRespViewModel()
 	{
 		PropertyChanged -= CheckPropertyChanged;
+		MouseTracked -= DoMouseTracked;
 	}
 
 	public FreqRespViewModel()
 	{
 		PropertyChanged += CheckPropertyChanged;
+		MouseTracked += DoMouseTracked;
 
 		GraphStartFreq = "20";
 		GraphEndFreq = "20000";

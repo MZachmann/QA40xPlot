@@ -233,8 +233,42 @@ namespace QA40xPlot.Actions
 						await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make the averages reset
 					}
 
-					LeftRightSeries lrfs = await QaLibrary.DoAcquisitions(thd.Averages, ct);
-                    if (ct.IsCancellationRequested)
+					bool useFactoryFft = true;
+					LeftRightSeries lrfs = await QaLibrary.DoAcquisitions(thd.Averages, ct, useFactoryFft, true);
+					if (!useFactoryFft)
+					{
+						for (int astep = 1; astep < thd.Averages; astep++)
+						{
+							LeftRightSeries lrfs2 = await QaLibrary.DoAcquisitions(thd.Averages, ct, false, true);
+							lrfs.TimeRslt.Left = lrfs.TimeRslt.Left.Zip(lrfs2.TimeRslt.Left, (a, b) => a + b).ToArray();
+							lrfs.TimeRslt.Right = lrfs.TimeRslt.Right.Zip(lrfs2.TimeRslt.Right, (a, b) => a + b).ToArray();
+							// var rslt = Array.ConvertAll(lrfs.TimeRslt.Left, (x, index) => (double)x + lrfs2.FreqRslt.Left[index]);
+						}
+						if (thd.Averages > 1)
+						{
+							lrfs.TimeRslt.Left = lrfs.TimeRslt.Left.Select(x => x / thd.Averages).ToArray();
+							lrfs.TimeRslt.Right = lrfs.TimeRslt.Right.Select(x => x / thd.Averages).ToArray();
+						}
+
+						//var old = lrfs.FreqRslt;
+						if (lrfs.FreqRslt == null || lrfs.FreqRslt.Left == null)
+						{
+							var window = new FftSharp.Windows.Hanning();
+							double[] windowed_measured = window.Apply(lrfs.TimeRslt.Left, true);
+							System.Numerics.Complex[] spectrum_measured = FFT.Forward(windowed_measured);
+
+							double[] windowed_ref = window.Apply(lrfs.TimeRslt.Right, true);
+							System.Numerics.Complex[] spectrum_ref = FFT.Forward(windowed_ref);
+
+							lrfs.FreqRslt = new();
+							lrfs.FreqRslt.Left = spectrum_measured.Select(x => x.Magnitude * Math.Sqrt(2)).ToArray();
+							lrfs.FreqRslt.Right = spectrum_ref.Select(x => x.Magnitude * Math.Sqrt(2)).ToArray();
+							var nca2 = (int)(0.01 + 1 / lrfs.TimeRslt.dt);      // total time in tics = sample rate
+							lrfs.FreqRslt.Df = nca2 / (double)spectrum_measured.Length; // ???
+						}
+					}
+
+					if (ct.IsCancellationRequested)
                         break;
 
 					uint fundamentalBin = QaLibrary.GetBinOfFrequency(stepBinFrequencies[0], binSize);
@@ -281,6 +315,10 @@ namespace QA40xPlot.Actions
 
 					ClearPlot();
 					UpdateGraph(false);
+					if(! thd.IsTracking)
+					{
+						thd.RaiseMouseTracked("track");
+					}
 					ViewSettings.Singleton.SpectrumVm.HasExport = true;
 
 					// we always run this exactly once
@@ -511,6 +549,36 @@ namespace QA40xPlot.Actions
 
             return channelData;
         }
+
+		public Tuple<double,double> LookupX(double freq)
+		{
+			var x = MeasurementResult.FrequencySteps;
+			if (freq <= 0)
+				return Tuple.Create(0.0,0.0);
+
+			try
+			{
+				if (x != null && x.Count > 0)
+				{
+					var fftdata = x.First().fftData;
+					var ffs = fftdata.Left;
+					if (ffs != null && ffs.Length > 0)
+					{
+						var vm = ViewSettings.Singleton.SpectrumVm;
+						var sampleRate = Convert.ToUInt32(vm.SampleRate);
+						var fftsize = SpectrumViewModel.FftActualSizes.ElementAt(SpectrumViewModel.FftSizes.IndexOf(vm.FftSize));
+						int bin = (int)QaLibrary.GetBinOfFrequency(freq, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
+						if( bin < ffs.Length)
+							return Tuple.Create(bin*fftdata.Df, ffs[bin]);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+			}
+			return Tuple.Create(0.0,0.0);
+		}
+
 
 
         /// <summary>

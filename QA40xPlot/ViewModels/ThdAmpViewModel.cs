@@ -325,6 +325,7 @@ namespace QA40xPlot.ViewModels
 		{
 			ThdAmplitudeData data = new ThdAmplitudeData();
 			actThd = new ActThdAmplitude(ref data, plot, plot1, plot2);
+			SetupMainPlot(plot);
 		}
 
 		public void OnStartVoltageChanged(string news)

@@ -153,7 +153,7 @@
             </GroupBox>
         </StackPanel>
         <Grid Grid.Column="1">
-            <views:PlotControl x:Name="WpfPlot1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
+            <views:PlotControl x:Name="WpfPlot1"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
         </Grid>
         <StackPanel Grid.Column="2" Orientation="Vertical">
             <GroupBox Header="Y Axis" Visibility="{Binding ToShowdB}">
@@ -231,6 +231,21 @@
                     <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="0"  />
                     <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="1"  />
                     <CheckBox Content="Data Points" IsChecked="{Binding ShowPoints}" Grid.Row="2"  />
+                </Grid>
+            </GroupBox>
+            <GroupBox Header="Cursor" >
+                <Grid >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Label Content="Frequency" Grid.Row="0" Grid.Column="0" IsEnabled="{Binding IsTracking}" />
+                    <Label Content="{Binding FreqShow}" Grid.Row="0" Grid.Column="1" IsEnabled="{Binding IsTracking}" Width="70" />
+                    <TextBox Text="{Binding ZValue}" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" TextWrapping="Wrap" AcceptsReturn="True" Width="120" HorizontalAlignment="Left" />
                 </Grid>
             </GroupBox>
         </StackPanel>

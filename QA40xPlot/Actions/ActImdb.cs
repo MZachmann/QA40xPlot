@@ -146,6 +146,36 @@ namespace QA40xPlot.Actions
 			return db;
 		}
 
+		public Tuple<double, double> LookupX(double freq)
+		{
+			var x = MeasurementResult.FrequencySteps;
+			if (freq <= 0)
+				return Tuple.Create(0.0, 0.0);
+
+			try
+			{
+				if (x != null && x.Count > 0)
+				{
+					var fftdata = x.First().fftData;
+					var ffs = fftdata.Left;
+					if (ffs != null && ffs.Length > 0)
+					{
+						var vm = ViewSettings.Singleton.SpectrumVm;
+						var sampleRate = Convert.ToUInt32(vm.SampleRate);
+						var fftsize = SpectrumViewModel.FftActualSizes.ElementAt(SpectrumViewModel.FftSizes.IndexOf(vm.FftSize));
+						int bin = (int)QaLibrary.GetBinOfFrequency(freq, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
+						if (bin < ffs.Length)
+							return Tuple.Create(bin * fftdata.Df, ffs[bin]);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+			}
+			return Tuple.Create(0.0, 0.0);
+		}
+
+
 
 		/// <summary>
 		/// Perform the measurement
@@ -275,9 +305,14 @@ namespace QA40xPlot.Actions
 
 					ClearPlot();
 					UpdateGraph(false);
-
+					var imdVm = ViewSettings.Singleton.ImdVm;
+					if (!imdVm.IsTracking)
+					{
+						// if we're not tracking the mouse, update the fixed frequency piece
+						imdVm.RaiseMouseTracked("track");
+					}
 					// we always run this exactly once
-                    break;
+					break;
                 }
             }
             catch (Exception ex)

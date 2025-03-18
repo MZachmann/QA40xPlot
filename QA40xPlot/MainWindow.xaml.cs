@@ -3,11 +3,13 @@ using Newtonsoft.Json;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
+using SkiaSharp;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
 
@@ -57,7 +59,7 @@ namespace QA40xPlot
 
 			var x = e.AddedItems[0] as TabItem;
 			string u = x?.Header.ToString();
-			switch(u)
+			switch (u)
 			{
 				case "Spectrum":
 					vm.CurrentView = ViewSettings.Singleton.SpectrumVm;
@@ -79,7 +81,7 @@ namespace QA40xPlot
 
 		private void OnPhoto(object sender, RoutedEventArgs e)
 		{
-			if ( DataContext != null && DataContext is MainViewModel)
+			if (DataContext != null && DataContext is MainViewModel)
 			{
 				((MainViewModel)DataContext).DoPhoto(this);
 			}
@@ -88,17 +90,18 @@ namespace QA40xPlot
 		static bool bdone = false;
 		private void DoContentRendered(object sender, EventArgs e)
 		{
-			if(!bdone)
+			if (!bdone)
 			{
 				bdone = true;
 				// look for a default config file
 				var fpath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 				fpath += @"\QADefault.cfg";
-				if ( File.Exists(fpath))
+				if (File.Exists(fpath))
 				{
 					ViewSettings.Singleton.Main.LoadFromSettings(fpath);
 				}
 			}
 		}
-		}
+
+	}
 }

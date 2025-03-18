@@ -93,7 +93,7 @@
             </Grid>
         </GroupBox>
         </StackPanel>
-        <views:PlotControl x:Name="WpfPlot1" Grid.Column="1" />
+        <views:PlotControl x:Name="WpfPlot1"  Grid.Column="1" />
         <StackPanel Grid.Column="2" Orientation="Vertical">
             <GroupBox Header="Y Axis (dB)" Visibility="{Binding ToShowdB}">
                 <Grid HorizontalAlignment="Left" VerticalAlignment="Top">

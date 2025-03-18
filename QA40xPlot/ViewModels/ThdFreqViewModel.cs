@@ -356,6 +356,7 @@ namespace QA40xPlot.ViewModels
 		{
 			ThdFrequencyData data = new ThdFrequencyData();
 			actThd = new ActThdFrequency(ref data, plot, plot1, plot2);
+			SetupMainPlot(plot);
 		}
 
 

@@ -191,7 +191,7 @@
             </GroupBox>
         </StackPanel>
         <Grid Grid.Column="1">
-            <views:PlotControl x:Name="WpfPlot1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
+            <views:PlotControl x:Name="WpfPlot1"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
             <views:ImdChannelInfo x:Name="Info1"  
                   VerticalAlignment="Top" HorizontalAlignment="Left" Margin="80,50,0,0" />
         </Grid>
@@ -287,6 +287,23 @@
                     <CheckBox Content="% - Data Summary" IsChecked="{Binding ShowDataPercent}" Grid.Row="3"  />
                     <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="4"  />
                     <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="5"  />
+                </Grid>
+            </GroupBox>
+            <GroupBox Header="Cursor" >
+                <Grid >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Label Content="Frequency" Grid.Row="0" Grid.Column="0" IsEnabled="{Binding IsTracking}" />
+                    <Label Content="{Binding FreqShow}" Grid.Row="0" Grid.Column="1" IsEnabled="{Binding IsTracking}" Width="70" />
+                    <Label Content="dBV" Grid.Row="1" Grid.Column="0"  />
+                    <Label Content="{Binding ZValue}" Grid.Row="1" Grid.Column="1" Width="70" />
                 </Grid>
             </GroupBox>
         </StackPanel>

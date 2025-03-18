@@ -7,6 +7,10 @@ using Newtonsoft.Json;
 using System.Windows;
 using System.Drawing;
 using System.Windows.Media;
+using System.Windows.Input;
+using OpenTK.Windowing.Common;
+using ScottPlot;
+using ScottPlot.Plottables;
 
 namespace QA40xPlot.ViewModels
 {
@@ -18,6 +22,7 @@ namespace QA40xPlot.ViewModels
 		public static List<String> GenFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "2000", "5000", "10000" }; }
 		public static List<String> GenAmplitudes { get => new List<string> { "0.05", "0.1", "0.25", "0.5", "0.75", "1", "2", "5" }; }
 
+		private PlotControl actPlot {  get; set; }
 		private ActSpectrum actSpec { get;  set; }
 		private ThdChannelInfo actInfo { get;  set; }
 		[JsonIgnore]
@@ -400,6 +405,8 @@ namespace QA40xPlot.ViewModels
 			SpectrumData data = new SpectrumData();
 			actSpec = new ActSpectrum(ref data, plot);
 			actInfo = info;
+			SetupMainPlot(plot);
+			actPlot = plot;
 		}
 
 		private static void SetAtten(object parameter)
@@ -422,14 +429,51 @@ namespace QA40xPlot.ViewModels
 			vm.actSpec.DoCancel();
 		}
 
+		// when the mouse moves in the plotcontrol window it sends a mouseevent to the parent view model (this)
+		// here's the tracker event handler
+		private static void DoMouseTracked(object sender, MouseEventArgs e)
+		{
+			var specVm = ViewSettings.Singleton.SpectrumVm;
+			specVm.DoMouse(sender, e);
+		}
+
+		private void DoMouse(object sender, MouseEventArgs e)
+		{ 
+
+			if (e.LeftButton == MouseButtonState.Pressed && !IsMouseDown)
+			{
+				IsTracking = !IsTracking;
+				IsMouseDown = true;
+			}
+			else
+			if (e.LeftButton == MouseButtonState.Released && IsMouseDown)
+			{
+				IsMouseDown = false;
+			}
+			if (IsTracking)
+			{
+				var p = e.GetPosition(actPlot);
+				var cord = ConvertScottCoords(actPlot, p.X, p.Y);
+				var xpos = cord.Item1;
+				var ypos = cord.Item2;
+				FreqValue = Math.Pow(10, xpos);
+
+				var zv = actSpec.LookupX(FreqValue);
+				FreqShow = FreqValue.ToString("0.# Hz");
+				ZValue = (20 * Math.Log10(zv.Item2)).ToString("0.# dBV");
+			}
+		}
+
 		~SpectrumViewModel()
 		{
 			PropertyChanged -= CheckPropertyChanged;
+			MouseTracked -= DoMouseTracked;
 		}
 
 		public SpectrumViewModel()
 		{
 			PropertyChanged += CheckPropertyChanged;
+			MouseTracked += DoMouseTracked;
 
 			OutVoltage = 0.5;
 			GraphStartFreq = "20";
