@@ -110,18 +110,6 @@ namespace QA40xPlot.Actions
             }
         }
 
-        private async Task showMessage(String msg, int delay = 0)
-        {
-            var vm = ViewModels.ViewSettings.Singleton.Main;
-            await vm.SetProgressMessage(msg, delay);
-		}
-
-		private async Task showProgress(int progress, int delay = 0)
-		{
-			var vm = ViewModels.ViewSettings.Singleton.Main;
-			await vm.SetProgressBar(progress, delay);
-		}
-
 		// create a blob with F,Left,Right data for export
 		public DataBlob? CreateExportData()
 		{

@@ -1,6 +1,7 @@
 ﻿using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using Newtonsoft.Json;
+using QA40xPlot.Actions;
 
 namespace QA40xPlot.Data
 {
@@ -13,13 +14,18 @@ namespace QA40xPlot.Data
         public bool Saved { get; set; }                                                 // Has been saved
         public List<ThdAmplitudeStep> AmplitudeSteps { get; set; }                      // Measurement data
         public ThdAmpViewModel MeasurementSettings { get; set; }        //  Settings used for this measurement
+        public List<ThdColumn> LeftColumns { get; set; }
+		public List<ThdColumn> RightColumns { get; set; }
 
-        [JsonIgnore]
+		[JsonIgnore]
         public LeftRightSeries NoiseFloor { get; set; }                                 // Noise floor measurement
 
         public ThdAmplitudeMeasurementResult(ThdAmpViewModel vm)
         {
             AmplitudeSteps = [];
+            LeftColumns = new List<ThdColumn>();
+			RightColumns = new List<ThdColumn>();
+
 			MeasurementSettings = new();
 			vm.CopyPropertiesTo(MeasurementSettings);
 			Title = string.Empty;

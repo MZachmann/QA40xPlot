@@ -5,6 +5,7 @@ using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
 using System.Net.Http;
+using System.Net.NetworkInformation;
 using System.Windows;
 using static FreqRespViewModel;
 
@@ -47,19 +48,6 @@ namespace QA40xPlot.Actions
 			UpdateGraph(true);
 		}
 
-		private async Task showMessage(String msg, int delay = 0)
-		{
-			var vm = ViewModels.ViewSettings.Singleton.Main;
-			await vm.SetProgressMessage(msg, delay);
-		}
-
-		private async Task showProgress(int progress, int delay = 0)
-		{
-			var vm = ViewModels.ViewSettings.Singleton.Main;
-			await vm.SetProgressBar(progress, delay);
-		}
-
-
 		// user entered a new voltage, update the generator amplitude
 		public void UpdateStartAmplitude(string value)
 		{
@@ -101,45 +89,80 @@ namespace QA40xPlot.Actions
 			ct.Cancel();
 		}
 
-		public Dictionary<string, double> LookupX(double freq)
+		public Tuple<ThdColumn?, ThdColumn?> LookupX(double amp)
 		{
-			var vf = MeasurementResult?.AmplitudeSteps;
-			//vf.
-			Dictionary<string,double> tup = new Dictionary<string, double>();
-			//if (vf != null)
-			//{
-			//	var freqs = MeasurementResult.GainFrequencies;
-			//	if (freqs != null && freqs.Count > 0)
-			//	{
-			//		var values = MeasurementResult.GainData;
-			//		// find nearest frequency from list
-			//		var bin = freqs.Count(x => x < freq) - 1;    // find first freq less than me
-			//		if (bin == -1)
-			//			bin = 0;
-			//		var fnearest = freqs[bin];
-			//		if (bin < (freqs.Count - 1) && Math.Abs(freq - fnearest) > Math.Abs(freq - freqs[bin + 1]))
-			//		{
-			//			bin++;
-			//		}
+			var vm = ViewModels.ViewSettings.Singleton.ThdAmp;
+			var vf = vm.ShowLeft ? MeasurementResult?.LeftColumns : MeasurementResult?.RightColumns;
+			if (vf == null || vf.Count == 0)
+			{
+				return Tuple.Create((ThdColumn?)null, (ThdColumn?)null);
+			}
 
-			//		var frsqVm = ViewSettings.Singleton.FreqRespVm;
-			//		var ttype = GetTestingType(frsqVm.TestType);
-			//		switch (ttype)
-			//		{
-			//			case TestingType.Response:
-			//				tup = Tuple.Create(freqs[bin], values[bin].Real, values[bin].Imaginary);
-			//				break;
-			//			case TestingType.Impedance:
-			//				tup = Tuple.Create(freqs[bin], values[bin].Magnitude, 180 * values[bin].Phase / Math.PI);
-			//				break;
-			//			case TestingType.Gain:
-			//				tup = Tuple.Create(freqs[bin], values[bin].Magnitude, 180 * values[bin].Phase / Math.PI);
-			//				break;
-			//		}
-			//	}
-			//}
-			return tup;
+			// find nearest amplitude (both left and right will be identical here if scanned)
+			var ampl = 20 * Math.Log10(amp);
+			var bin = vf.Count(x => x.Amplitude < ampl) - 1;    // find first freq less than me
+			if (bin == -1)
+				bin = 0;
+			var anearest = vf[bin].Amplitude;
+			if (bin < (vf.Count - 1) && Math.Abs(ampl - anearest) > Math.Abs(ampl - vf[bin + 1].Amplitude))
+			{
+				bin++;
+			}
+
+			ThdColumn? mf1 = null;
+			ThdColumn? mf2 = null;
+
+			if( vm.ShowLeft)
+				mf1 = MeasurementResult?.LeftColumns?.ElementAt(bin);
+			if (vm.ShowRight)
+				mf2 = MeasurementResult?.RightColumns?.ElementAt(bin);
+
+			return Tuple.Create(mf1, mf2);
 		}
+
+		private ThdColumn? MakeColumn(ThdFrequencyStepChannel chan)
+		{
+			if (chan == null)
+				return null;
+			var cl = new ThdColumn();
+			cl.Mag = chan.Fundamental_dBV;
+			cl.THD = chan.Thd_dB;
+			cl.D2 = cl.D3 = cl.D4 = cl.D5 = -180;
+			try
+			{
+				cl.D2 = chan.Harmonics[0].Thd_dB;
+				cl.D3 = chan.Harmonics[1].Thd_dB;
+				cl.D4 = chan.Harmonics[2].Thd_dB;
+				cl.D5 = chan.Harmonics[3].Thd_dB;
+			}
+			catch { }
+
+			cl.D6P = chan.D6Plus_dBV;
+			cl.Noise = chan.Average_NoiseFloor_dBV;
+			//
+			cl.Freq = MathUtil.ParseTextToDouble(MeasurementResult.MeasurementSettings.TestFreq, 10);
+			cl.Amplitude = chan.Fundamental_dBV;
+			return cl;
+		}
+
+		private void AddColumn(ThdAmplitudeStep step)
+		{
+			var f = MeasurementResult?.LeftColumns;
+			if (f != null)
+			{
+				var cl = MakeColumn(step.Left);
+				if (cl != null)
+					MeasurementResult.LeftColumns.Add(cl);
+			}
+			f = MeasurementResult?.RightColumns;
+			if (f != null)
+			{
+				var cl = MakeColumn(step.Right);
+				if (cl != null)
+					MeasurementResult.RightColumns.Add(cl);
+			}
+		}
+
 
 		/// <summary>
 		/// Perform the measurement
@@ -148,12 +171,7 @@ namespace QA40xPlot.Actions
 		/// <returns>result. false if cancelled</returns>
 		async Task<bool> PerformMeasurementSteps(CancellationToken ct)
 		{
-
 			ClearPlot();
-			//ClearCursorTexts();
-
-			//var _measurementSettings = MeasurementSettings.Copy();             // Create snapshot so it is not changed during measuring
-
 			// Clear measurement result
 			MeasurementResult = new(ViewSettings.Singleton.ThdAmp)
 			{
@@ -167,10 +185,6 @@ namespace QA40xPlot.Actions
 
 			// Add to list
 			Data.Measurements.Add(MeasurementResult);
-
-			//UpdateGraphChannelSelectors();
-
-			//markerIndex = -1;       // Reset marker
 
 			// Init mini plots
 			QaLibrary.InitMiniFftPlot(fftPlot, 10, 100000, -150, 20);
@@ -190,7 +204,6 @@ namespace QA40xPlot.Actions
 			await Qa40x.SetWindowing(thdAmp.WindowingMethod);
 			await Qa40x.SetRoundFrequencies(true);
 
-
 			// ********************************************************************
 			// Determine attenuation level
 			// ********************************************************************
@@ -199,16 +212,20 @@ namespace QA40xPlot.Actions
 
 			double testFrequency = QaLibrary.GetNearestBinFrequency(MathUtil.ParseTextToDouble(thdAmp.TestFreq, 10), thdAmp.SampleRate, thdAmp.FftSize);
 			// Determine correct input attenuation
-			var result = await QaLibrary.DetermineAttenuationForGeneratorVoltageWithChirp(generatorAmplitudedBV, 42, thdAmp.LeftChannel, thdAmp.RightChannel, ct);
-			if (ct.IsCancellationRequested)
-				return false;
-			QaLibrary.PlotMiniFftGraph(fftPlot, result.Item3.FreqRslt, thdAmp.LeftChannel, thdAmp.RightChannel);
-			QaLibrary.PlotMiniTimeGraph(timePlot, result.Item3.TimeRslt, testFrequency, thdAmp.LeftChannel, thdAmp.RightChannel, true);
-			var prevInputAmplitudedBV = result.Item2;
-			// Set attenuation
-			await Qa40x.SetInputRange(result.Item1);
-
-			await showMessage($"Found correct input attenuation of {result.Item1:0.00#} dBV for an amplifier amplitude of {result.Item2:0.00#} dBV.", 500);
+			var attenuation = 42;
+			{
+				// check for allowed attenuation
+				var result = await QaLibrary.DetermineAttenuationForGeneratorVoltageWithChirp(generatorAmplitudedBV, attenuation, true, true, ct);
+				if (ct.IsCancellationRequested)
+					return false;
+				QaLibrary.PlotMiniFftGraph(fftPlot, result.Item3.FreqRslt, thdAmp.ShowLeft, thdAmp.ShowRight);
+				QaLibrary.PlotMiniTimeGraph(timePlot, result.Item3.TimeRslt, testFrequency, thdAmp.ShowLeft, thdAmp.ShowRight, true);
+				// var prevInputAmplitudedBV = result.Item2; // maximum reading
+				// Set attenuation
+				attenuation = result.Item1;
+				await showMessage($"Found correct input attenuation of {result.Item1:0.00#} dBV for an input of {result.Item2:0.00#} dBV.", 500);
+			}
+			await Qa40x.SetInputRange(attenuation);
 
 			if (ct.IsCancellationRequested)
 				return false;
@@ -216,10 +233,13 @@ namespace QA40xPlot.Actions
 			// ********************************************************************
 			// Generate a list of voltages evenly spaced in log scale
 			// ********************************************************************
-			var startAmplitudeV = QaLibrary.ConvertVoltage(thdAmp.StartAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
-			var prevGeneratorVoltagedBV = thdAmp.StartAmplitude;
-			var endAmplitudeV = QaLibrary.ConvertVoltage(thdAmp.EndAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
-			var stepVoltages = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(startAmplitudeV, endAmplitudeV, thdAmp.StepsOctave);
+			double[] stepVoltages;
+			{
+				var startAmplitudeV = QaLibrary.ConvertVoltage(thdAmp.StartAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
+				var prevGeneratorVoltagedBV = thdAmp.StartAmplitude;
+				var endAmplitudeV = QaLibrary.ConvertVoltage(thdAmp.EndAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
+				stepVoltages = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(startAmplitudeV, endAmplitudeV, thdAmp.StepsOctave);
+			}
 
 			// ********************************************************************
 			// Do noise floor measurement
@@ -229,14 +249,13 @@ namespace QA40xPlot.Actions
 			MeasurementResult.NoiseFloor = await QaLibrary.DoAcquisitions(thdAmp.Averages, ct);
 			if (ct.IsCancellationRequested)
 				return false;
-			QaLibrary.PlotMiniFftGraph(fftPlot, MeasurementResult.NoiseFloor.FreqRslt, thdAmp.LeftChannel, thdAmp.RightChannel);
-			QaLibrary.PlotMiniTimeGraph(timePlot, MeasurementResult.NoiseFloor.TimeRslt, testFrequency, thdAmp.LeftChannel && thdAmp.ShowLeft, thdAmp.RightChannel && thdAmp.ShowRight);
+			QaLibrary.PlotMiniFftGraph(fftPlot, MeasurementResult.NoiseFloor.FreqRslt, thdAmp.ShowLeft, thdAmp.ShowRight);
+			QaLibrary.PlotMiniTimeGraph(timePlot, MeasurementResult.NoiseFloor.TimeRslt, testFrequency, thdAmp.ShowLeft, thdAmp.ShowRight);
 
 			var binSize = QaLibrary.CalcBinSize(thdAmp.SampleRate, thdAmp.FftSize);
 			uint fundamentalBin = QaLibrary.GetBinOfFrequency(testFrequency, binSize);
+			await Qa40x.SetOutputSource(OutputSources.Sine);                // We need to call this before all the testing
 
-			var newAttenuation = 0;
-			var prevAttenuation = 0;
 			// ********************************************************************
 			// Step through the list of voltages
 			// ********************************************************************
@@ -249,30 +268,8 @@ namespace QA40xPlot.Actions
 				var generatorVoltageV = stepVoltages[i];
 				var generatorVoltagedBV = QaLibrary.ConvertVoltage(generatorVoltageV, E_VoltageUnit.Volt, E_VoltageUnit.dBV);   // Convert to dBV
 
-				// Determine attanuation needed
-				var voltageDiffdBV = generatorVoltagedBV - prevGeneratorVoltagedBV;             // Calculate voltage rise of amplifier output
-				var predictedAttenuation = QaLibrary.DetermineAttenuation(prevInputAmplitudedBV + voltageDiffdBV); // Predict attenuation
-				newAttenuation = predictedAttenuation > newAttenuation ? predictedAttenuation : newAttenuation;
-				await Qa40x.SetInputRange(newAttenuation);                          // Set attenuation
-				prevGeneratorVoltagedBV = generatorVoltagedBV;
-				if (newAttenuation > prevAttenuation && newAttenuation == 24)
-				{
-					// Attenuation changed. Get new noise floor
-					await showMessage($"Attenuation changed. Measuring new noise floor.");
-					await Qa40x.SetOutputSource(OutputSources.Off);
-					MeasurementResult.NoiseFloor = await QaLibrary.DoAcquisitions(thdAmp.Averages, ct);
-					if (ct.IsCancellationRequested)
-						return false;
-					QaLibrary.PlotMiniFftGraph(fftPlot, MeasurementResult.NoiseFloor.FreqRslt, thdAmp.LeftChannel, thdAmp.RightChannel);
-					QaLibrary.PlotMiniTimeGraph(timePlot, MeasurementResult.NoiseFloor.TimeRslt, testFrequency, thdAmp.LeftChannel && thdAmp.ShowLeft, thdAmp.RightChannel && thdAmp.ShowRight);
-					await Qa40x.SetOutputSource(OutputSources.Sine);
-				}
-				prevAttenuation = newAttenuation;
-
 				// Set generator
 				await Qa40x.SetGen1(testFrequency, generatorVoltagedBV, true);      // Set the generator in dBV
-				if (i == 0)
-					await Qa40x.SetOutputSource(OutputSources.Sine);                // We need to call this the first time
 
 				LeftRightSeries? lrfs = null;
 				do
@@ -286,16 +283,17 @@ namespace QA40xPlot.Actions
 						if (ex.Message.Contains("400 (Acquisition Overload)"))
 						{
 							// Detected overload. Increase attenuation to next step.
-							newAttenuation += 6;
+							var newAttenuation = 6 + attenuation;
 							if (newAttenuation > 42)
 							{
 								MessageBox.Show($"Maximum attenuation reached.\nMeasurements are stopped", "Maximum attenuation reached", MessageBoxButton.OK, MessageBoxImage.Information);
 								await Qa40x.SetOutputSource(OutputSources.Off);
 								return false;
 							}
-							await Qa40x.SetInputRange(newAttenuation);
+							attenuation = newAttenuation;
+							await Qa40x.SetInputRange(attenuation);
 
-							if (newAttenuation == 24)
+							if (attenuation == 24)
 							{
 								// Attenuation changed. Get new noise floor
 								await showMessage($"Attenuation changed. Measuring new noise floor.");
@@ -327,8 +325,8 @@ namespace QA40xPlot.Actions
 				};
 
 				// Plot the mini graphs
-				QaLibrary.PlotMiniFftGraph(fftPlot, lrfs.FreqRslt, thdAmp.LeftChannel && thdAmp.ShowLeft, thdAmp.RightChannel && thdAmp.ShowRight);
-				QaLibrary.PlotMiniTimeGraph(timePlot, lrfs.TimeRslt, step.FundamentalFrequency, thdAmp.LeftChannel && thdAmp.ShowLeft, thdAmp.RightChannel && thdAmp.ShowRight);
+				QaLibrary.PlotMiniFftGraph(fftPlot, lrfs.FreqRslt, thdAmp.ShowLeft, thdAmp.ShowRight);
+				QaLibrary.PlotMiniTimeGraph(timePlot, lrfs.TimeRslt, step.FundamentalFrequency, thdAmp.ShowLeft, thdAmp.ShowRight);
 
 				// Check if cancel button pressed
 				if (ct.IsCancellationRequested)
@@ -341,9 +339,9 @@ namespace QA40xPlot.Actions
 
 				// Add step data to list
 				MeasurementResult.AmplitudeSteps.Add(step);
+				AddColumn(step);
 
 				UpdateGraph(false);
-				//ShowLastMeasurementCursorTexts();
 
 				// Check if cancel button pressed
 				if (ct.IsCancellationRequested)
@@ -352,8 +350,8 @@ namespace QA40xPlot.Actions
 				}
 
 				// Get maximum signal for attenuation prediction of next step
-				prevInputAmplitudedBV = 20 * Math.Log10(lrfs.FreqRslt.Left.Max());
-				prevInputAmplitudedBV = Math.Max(prevInputAmplitudedBV, 20 * Math.Log10(lrfs.FreqRslt.Left.Max()));
+				//prevInputAmplitudedBV = 20 * Math.Log10(lrfs.FreqRslt.Left.Max());
+				//prevInputAmplitudedBV = Math.Max(prevInputAmplitudedBV, 20 * Math.Log10(lrfs.FreqRslt.Left.Max()));
 				if (!thdAmp.IsTracking)
 				{
 					thdAmp.RaiseMouseTracked("track");
@@ -452,6 +450,19 @@ namespace QA40xPlot.Actions
 			thdPlot.Refresh();
 		}
 
+		private void SetPlotLabels()
+		{
+			ScottPlot.Plot myPlot = thdPlot.ThePlot;
+			var thdAmp = ViewSettings.Singleton.ThdAmp;
+			if (thdAmp.XAxisType == (int)E_X_AxisType.INPUT_VOLTAGE)
+				myPlot.XLabel("Input voltage (Vrms)");
+			else if (thdAmp.XAxisType == (int)E_X_AxisType.OUTPUT_VOLTAGE)
+				myPlot.XLabel("Output voltage (Vrms)");
+			else if (thdAmp.XAxisType == (int)E_X_AxisType.OUTPUT_POWER)
+				myPlot.XLabel("Output power (W)");
+			myPlot.Title("Distortion vs Amplitude");
+		}
+
 		/// <summary>
 		/// Initialize the THD % plot
 		/// </summary>
@@ -459,20 +470,11 @@ namespace QA40xPlot.Actions
 		{
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;
 			InitializePctAmpPlot(myPlot);
-
 			var thdAmp = ViewSettings.Singleton.ThdAmp;
 			myPlot.Axes.SetLimits(Math.Log10(Convert.ToDouble(thdAmp.GraphStartVolts)), Math.Log10(Convert.ToDouble(thdAmp.GraphEndVolts)),
 				Math.Log10(Convert.ToDouble(thdAmp.RangeBottom)), Math.Log10(Convert.ToDouble(thdAmp.RangeTop)));
-			myPlot.Title("Distortion vs Amplitude (%)");
-
-			if (thdAmp.XAxisType == (int)E_X_AxisType.INPUT_VOLTAGE)
-				myPlot.XLabel("Input voltage (Vrms)");
-			else if (thdAmp.XAxisType == (int)E_X_AxisType.OUTPUT_VOLTAGE)
-				myPlot.XLabel("Output voltage (Vrms)");
-			else if (thdAmp.XAxisType == (int)E_X_AxisType.OUTPUT_POWER)
-				myPlot.XLabel("Output power (W)");
+			SetPlotLabels();
 			myPlot.YLabel("Distortion (%)");
-
 			thdPlot.Refresh();
 		}
 
@@ -484,21 +486,10 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;
 			InitializeMagAmpPlot(myPlot);
 			var thdAmp = ViewSettings.Singleton.ThdAmp;
-
-			myPlot.Axes.SetLimits(Math.Log10(Convert.ToDouble(thdAmp.GraphStartVolts)), Math.Log10(Convert.ToDouble(thdAmp.GraphEndVolts)), 
-				thdAmp.RangeBottomdB, thdAmp.RangeTopdB);
-
-			myPlot.Title("Distortion vs Amplitude (dB)");
-
-			if (thdAmp.XAxisType == (int)E_X_AxisType.INPUT_VOLTAGE)
-				myPlot.XLabel("Input voltage (Vrms)");
-			else if (thdAmp.XAxisType == (int)E_X_AxisType.OUTPUT_VOLTAGE)
-				myPlot.XLabel("Output voltage (Vrms)");
-			else if (thdAmp.XAxisType == (int)E_X_AxisType.OUTPUT_POWER)
-				myPlot.XLabel("Output power (W)");
-
+			myPlot.Axes.SetLimits(Math.Log10(Convert.ToDouble(thdAmp.GraphStartVolts)), Math.Log10(Convert.ToDouble(thdAmp.GraphEndVolts)),
+				Convert.ToDouble(thdAmp.RangeBottomdB), Convert.ToDouble(thdAmp.RangeTopdB));
+			SetPlotLabels();
 			myPlot.YLabel("Distortion (dB)");
-
 			thdPlot.Refresh();
 		}
 
@@ -507,97 +498,12 @@ namespace QA40xPlot.Actions
 		/// Plot the  THD magnitude (dB) data
 		/// </summary>
 		/// <param name="data">The data to plot</param>
-		void PlotValues(ThdAmplitudeMeasurementResult measurementResult, int measurementNr, bool showLeftChannel, bool showRightChannel)
+		private void PlotValues(ThdAmplitudeMeasurementResult measurementResult, int measurementNr, bool showLeftChannel, bool showRightChannel)
 		{
+			if (!showLeftChannel && !showRightChannel)
+				return;
+
 			var thdAmp = ViewSettings.Singleton.ThdAmp;
-			// Create lists for line data
-			var amplitudeX_L = new List<double>();
-			var amplitudeX_R = new List<double>();
-			var magnY_left = new List<double>();
-			var hTotY_left = new List<double>();
-			var h2Y_left = new List<double>();
-			var h3Y_left = new List<double>();
-			var h4Y_left = new List<double>();
-			var h5Y_left = new List<double>();
-			var h6Y_left = new List<double>();
-			var noiseY_left = new List<double>();
-
-			var magnY_right = new List<double>();
-			var hTotY_right = new List<double>();
-			var h2Y_right = new List<double>();
-			var h3Y_right = new List<double>();
-			var h4Y_right = new List<double>();
-			var h5Y_right = new List<double>();
-			var h6Y_right = new List<double>();
-			var noiseY_right = new List<double>();
-
-			// Add data to the line lists
-			foreach (var step in measurementResult.AmplitudeSteps)
-			{
-				double xValue_L = (E_X_AxisType)thdAmp.XAxisType switch
-				{
-					E_X_AxisType.OUTPUT_VOLTAGE => step.Left.Fundamental_V,
-					E_X_AxisType.OUTPUT_POWER => step.Left.Power_Watt,
-					_ => step.GeneratorVoltage
-				};
-				amplitudeX_L.Add(xValue_L);
-
-				double xValue_R = (E_X_AxisType)thdAmp.XAxisType switch
-				{
-					E_X_AxisType.OUTPUT_VOLTAGE => step.Right.Fundamental_V,
-					E_X_AxisType.OUTPUT_POWER => step.Right.Power_Watt,
-					_ => step.GeneratorVoltage
-				};
-				amplitudeX_R.Add(xValue_R);
-
-				if (showLeftChannel && measurementResult.MeasurementSettings.LeftChannel)
-				{
-					if (thdAmp.ShowMagnitude)
-						magnY_left.Add(step.Left.Gain_dB);
-
-					if (step.Left.Harmonics.Count > 0)
-					{
-						hTotY_left.Add(step.Left.Thd_dB + step.Left.Gain_dB);
-						h2Y_left.Add(step.Left.Harmonics[0].Amplitude_dBV - step.Left.Fundamental_dBV + step.Left.Gain_dB);
-					}
-					if (step.Left.Harmonics.Count > 1)
-						h3Y_left.Add(step.Left.Harmonics[1].Amplitude_dBV - step.Left.Fundamental_dBV + step.Left.Gain_dB);
-					if (step.Left.Harmonics.Count > 2)
-						h4Y_left.Add(step.Left.Harmonics[2].Amplitude_dBV - step.Left.Fundamental_dBV + step.Left.Gain_dB);
-					if (step.Left.Harmonics.Count > 3)
-						h5Y_left.Add(step.Left.Harmonics[3].Amplitude_dBV - step.Left.Fundamental_dBV + step.Left.Gain_dB);
-					if (step.Left.D6Plus_dBV != 0 && step.Left.Harmonics.Count > 4 && thdAmp.ShowD6)
-						h6Y_left.Add(step.Left.D6Plus_dBV - step.Left.Fundamental_dBV + step.Left.Gain_dB);
-					if (thdAmp.ShowNoiseFloor)
-						noiseY_left.Add(step.Left.Average_NoiseFloor_dBV - step.Left.Fundamental_dBV + step.Left.Gain_dB);
-				}
-
-				if (showRightChannel && measurementResult.MeasurementSettings.RightChannel)
-				{
-					if (thdAmp.ShowMagnitude)
-						magnY_right.Add(step.Right.Gain_dB);
-
-					if (step.Right.Harmonics.Count > 0)
-					{
-						hTotY_right.Add(step.Right.Thd_dB + step.Right.Gain_dB);
-						h2Y_right.Add(step.Right.Harmonics[0].Amplitude_dBV - step.Right.Fundamental_dBV + step.Right.Gain_dB);
-					}
-					if (step.Right.Harmonics.Count > 1)
-						h3Y_right.Add(step.Right.Harmonics[1].Amplitude_dBV - step.Right.Fundamental_dBV + step.Right.Gain_dB);
-					if (step.Right.Harmonics.Count > 2)
-						h4Y_right.Add(step.Right.Harmonics[2].Amplitude_dBV - step.Right.Fundamental_dBV + step.Right.Gain_dB);
-					if (step.Right.Harmonics.Count > 3)
-						h5Y_right.Add(step.Right.Harmonics[3].Amplitude_dBV - step.Right.Fundamental_dBV + step.Right.Gain_dB);
-					if (step.Right.D6Plus_dBV != 0 && step.Right.Harmonics.Count > 4 && thdAmp.ShowD6)
-						h6Y_right.Add(step.Right.D6Plus_dBV - step.Right.Fundamental_dBV + step.Right.Gain_dB);
-					if (thdAmp.ShowNoiseFloor)
-						noiseY_right.Add(step.Right.Average_NoiseFloor_dBV - step.Right.Fundamental_dBV + step.Right.Gain_dB);
-				}
-			}
-
-			// add a scatter plot to the plot
-			double[] logAmplitudeX_L = amplitudeX_L.Select(Math.Log10).ToArray();
-			double[] logAmplitudeX_R = amplitudeX_R.Select(Math.Log10).ToArray();
 			float lineWidth = thdAmp.ShowThickLines ? 1.6f : 1;
 			float markerSize = thdAmp.ShowPoints ? lineWidth + 3 : 1;
 
@@ -625,38 +531,52 @@ namespace QA40xPlot.Actions
 				plot.LinePattern = linePattern;
 			}
 
-			if (showLeftChannel)
+			// which columns are we displaying? left, right or both
+			List<ThdColumn>[] columns;
+			if(showLeftChannel && showRightChannel)
 			{
-				if (thdAmp.ShowMagnitude) AddPlot(logAmplitudeX_L, magnY_left, 9, showRightChannel ? "Magn-L" : "Magn", LinePattern.DenselyDashed);
-				if (thdAmp.ShowTHD) AddPlot(logAmplitudeX_L, hTotY_left, 8, showRightChannel ? "THD-L" : "THD", LinePattern.Solid);
-				if (thdAmp.ShowD2) AddPlot(logAmplitudeX_L, h2Y_left, 0, showRightChannel ? "H2-L" : "H2", LinePattern.Solid);
-				if (thdAmp.ShowD3) AddPlot(logAmplitudeX_L, h3Y_left, 1, showRightChannel ? "H3-L" : "H3", LinePattern.Solid);
-				if (thdAmp.ShowD4) AddPlot(logAmplitudeX_L, h4Y_left, 2, showRightChannel ? "H4-L" : "H4", LinePattern.Solid);
-				if (thdAmp.ShowD5) AddPlot(logAmplitudeX_L, h5Y_left, 3, showRightChannel ? "H5-L" : "H5", LinePattern.Solid);
-				if (thdAmp.ShowD6) AddPlot(logAmplitudeX_L, h6Y_left, 4, showRightChannel ? "H6+-L" : "H6+", LinePattern.Solid);
-				if (thdAmp.ShowNoiseFloor) AddPlot(logAmplitudeX_L, noiseY_left, 9, showRightChannel ? "Noise-L" : "Noise", showRightChannel ? LinePattern.Solid : LinePattern.Dotted);
+				columns = [MeasurementResult.LeftColumns, MeasurementResult.RightColumns];
+			}
+			else if(!showRightChannel)
+			{
+				columns = [MeasurementResult.LeftColumns];
+			}
+			else
+			{
+				columns = [MeasurementResult.RightColumns];
 			}
 
-			if (showRightChannel)
-			{
-				if (thdAmp.ShowMagnitude) AddPlot(logAmplitudeX_R, magnY_right, 9, showLeftChannel ? "Magn-R" : "Magn", showLeftChannel ? LinePattern.Dotted : LinePattern.DenselyDashed);
-				if (thdAmp.ShowTHD) AddPlot(logAmplitudeX_R, hTotY_right, 8, showLeftChannel ? "THD-R" : "THD", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
-				if (thdAmp.ShowD2) AddPlot(logAmplitudeX_R, h2Y_right, 0, showLeftChannel ? "H2-R" : "H2", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
-				if (thdAmp.ShowD3) AddPlot(logAmplitudeX_R, h3Y_right, 1, showLeftChannel ? "H3-R" : "H3", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
-				if (thdAmp.ShowD4) AddPlot(logAmplitudeX_R, h4Y_right, 2, showLeftChannel ? "H4-R" : "H4", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
-				if (thdAmp.ShowD5) AddPlot(logAmplitudeX_R, h5Y_right, 3, showLeftChannel ? "H5-R" : "H5", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
-				if (thdAmp.ShowD6) AddPlot(logAmplitudeX_R, h6Y_right, 4, showLeftChannel ? "H6+-R" : "H6+", showLeftChannel ? LinePattern.DenselyDashed : LinePattern.Solid);
-				if (thdAmp.ShowNoiseFloor) AddPlot(logAmplitudeX_R, noiseY_right, 9, showLeftChannel ? "Noise-R" : "Noise", LinePattern.Dotted);
-			}
+			string suffix = string.Empty;
+			var lp = LinePattern.Solid;
+			if (showRightChannel && showLeftChannel)
+				suffix = "-L";
 
-			// If marker selected draw marker line
-			//if (markerIndex != -1)
-			//    QaLibrary.PlotCursorMarker(thdPlot, lineWidth, LinePattern.Solid, markerDataPoint);
+			// copy the vector of columns into vectors of values
+			foreach (var col in columns)
+			{
+				var amps = col.Select(x => x.Amplitude/20).ToArray();
+				if (thdAmp.ShowMagnitude)
+					AddPlot(amps, col.Select(x => x.Mag).ToList(), 9, "Mag" + suffix, LinePattern.DenselyDashed);
+				if (thdAmp.ShowTHD)
+					AddPlot(amps, col.Select(x => x.THD).ToList(), 8, "THD" + suffix, lp);
+				if (thdAmp.ShowD2)
+					AddPlot(amps, col.Select(x => x.D2).ToList(), 0, "D2" + suffix, lp);
+				if (thdAmp.ShowD3)
+					AddPlot(amps, col.Select(x => x.D3).ToList(), 1, "D3" + suffix, lp);
+				if (thdAmp.ShowD4)
+					AddPlot(amps, col.Select(x => x.D4).ToList(), 2, "D4" + suffix, lp);
+				if (thdAmp.ShowD5)
+					AddPlot(amps, col.Select(x => x.D5).ToList(), 3, "D5" + suffix, lp);
+				if (thdAmp.ShowD6)
+					AddPlot(amps, col.Select(x => x.D6P).ToList(), 3, "D6+" + suffix, lp);
+				if (thdAmp.ShowNoiseFloor)
+					AddPlot(amps, col.Select(x => x.Noise).ToList(), 3, "Noise" + suffix, LinePattern.Dotted);
+				suffix = "-R";			// second pass iff there are both channels
+				lp = LinePattern.DenselyDashed;
+			}
 
 			thdPlot.Refresh();
 		}
-
-
 
 		/// <summary>
 		/// Start measurement button clicked

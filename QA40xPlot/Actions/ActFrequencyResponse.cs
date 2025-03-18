@@ -51,18 +51,6 @@ namespace QA40xPlot.Actions
             ct.Cancel();
 		}
 
-		private async Task showMessage(String msg, int delay = 0)
-		{
-			var vm = ViewModels.ViewSettings.Singleton.Main;
-			await vm.SetProgressMessage(msg, delay);
-		}
-
-		private async Task showProgress(int progress, int delay = 0)
-		{
-			var vm = ViewModels.ViewSettings.Singleton.Main;
-			await vm.SetProgressBar(progress, delay);
-		}
-
 		// user entered a new voltage, update the generator amplitude
 		public void UpdateGenAmplitude(string value)
 		{

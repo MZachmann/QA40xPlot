@@ -22,6 +22,19 @@ namespace QA40xPlot.Actions
 			myPlot.ShowLegend();
 		}
 
+		protected async Task showMessage(String msg, int delay = 0)
+		{
+			var vm = ViewModels.ViewSettings.Singleton.Main;
+			await vm.SetProgressMessage(msg, delay);
+		}
+
+		protected async Task showProgress(int progress, int delay = 0)
+		{
+			var vm = ViewModels.ViewSettings.Singleton.Main;
+			await vm.SetProgressBar(progress, delay);
+		}
+
+
 		private void SetupMagTics(ScottPlot.Plot myPlot)
 		{
 			// create a numeric tick generator that uses our custom minor tick generator
@@ -45,7 +58,7 @@ namespace QA40xPlot.Actions
 			tickGenY.MinorTickGenerator = minorTickGenY;
 
 			// create a custom tick formatter to set the label text for each tick
-			static string LogTickLabelFormatter(double y) => $"{Math.Pow(10, Math.Round(y, 10)):#0.######}";
+			static string LogTickLabelFormatter(double y) => MathUtil.FormatLogger(Math.Pow(10,y));
 
 			// tell our major tick generator to only show major ticks that are whole integers
 			tickGenY.IntegerTicksOnly = true;
@@ -62,14 +75,6 @@ namespace QA40xPlot.Actions
 			minorTickGen.Divisions = 10;
 		}
 
-		// decade and offset for log
-		private string FormatLogger(double val)
-		{
-			if (val < 10000)
-				return val.ToString();
-			return ((int)val / 1000).ToString() + "K";
-		}
-
 		private void SetupFreqTics(ScottPlot.Plot myPlot)
 		{
 			ScottPlot.TickGenerators.NumericManual tickGenX = new();
@@ -81,7 +86,7 @@ namespace QA40xPlot.Actions
 					if(j==1 || j==2 || j==5)
 					{
 						var val = (int)(0.5 + Math.Pow(10, i + Math.Log10(j)));
-						tickGenX.AddMajor(i + Math.Log10(j), FormatLogger(val));
+						tickGenX.AddMajor(i + Math.Log10(j), MathUtil.FormatLogger(val));
 					}
 					else
 					{
@@ -92,23 +97,25 @@ namespace QA40xPlot.Actions
 			myPlot.Axes.Bottom.TickGenerator = tickGenX;
 		}
 
-		private static void SetupAmpTics(ScottPlot.Plot myPlot)
+		private void SetupAmpTics(ScottPlot.Plot myPlot)
 		{
-			// create a minor tick generator that places log-distributed minor ticks
-			ScottPlot.TickGenerators.LogMinorTickGenerator minorTickGenX = new();
-			// create a numeric tick generator that uses our custom minor tick generator
-			ScottPlot.TickGenerators.NumericAutomatic tickGenX = new();
-
-			// create a custom tick formatter to set the label text for each tick
-			static string LogTickLabelFormatter(double y) => $"{Math.Pow(10, Math.Round(y, 10)):#0.######}";
-
-			minorTickGenX.Divisions = 10;
-			tickGenX.MinorTickGenerator = minorTickGenX;
-			tickGenX.TargetTickCount = 25;
-			// tell our major tick generator to only show major ticks that are whole integers
-			tickGenX.IntegerTicksOnly = true;
-			// tell our custom tick generator to use our new label formatter
-			tickGenX.LabelFormatter = LogTickLabelFormatter;
+			ScottPlot.TickGenerators.NumericManual tickGenX = new();
+			// we start at an amp of 1mV of and end at 1000 I guess
+			for (int i = -3; i < 4; i++)
+			{
+				for (int j = 1; j <= 9; j++)
+				{
+					if (j == 1 || j == 2 || j == 5)
+					{
+						var val = Math.Pow(10, i + Math.Log10(j));
+						tickGenX.AddMajor(i + Math.Log10(j), MathUtil.FormatLogger(val));
+					}
+					else
+					{
+						tickGenX.AddMinor(i + Math.Log10(j));
+					}
+				}
+			}
 			myPlot.Axes.Bottom.TickGenerator = tickGenX;
 		}
 
@@ -168,7 +175,7 @@ namespace QA40xPlot.Actions
 			ScottPlot.AxisRules.MaximumBoundary rule = new(
 				xAxis: myPlot.Axes.Bottom,
 				yAxis: myPlot.Axes.Left,
-				limits: new AxisLimits(Math.Log10(0.0001), Math.Log10(100000), Math.Log10(0.00000001), Math.Log10(100))
+				limits: new AxisLimits(Math.Log10(0.0001), Math.Log10(1000), Math.Log10(0.00000001), Math.Log10(100))
 				);
 			myPlot.Axes.Rules.Add(rule);
 		}
@@ -180,7 +187,7 @@ namespace QA40xPlot.Actions
 			ScottPlot.AxisRules.MaximumBoundary rule = new(
 				xAxis: myPlot.Axes.Bottom,
 				yAxis: myPlot.Axes.Left,
-				limits: new AxisLimits(Math.Log10(0.0001), Math.Log10(100000), -200, 100)
+				limits: new AxisLimits(Math.Log10(0.0001), Math.Log10(1000), -200, 100)
 				);
 			myPlot.Axes.Rules.Add(rule);
 		}

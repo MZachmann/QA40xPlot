@@ -377,6 +377,46 @@ namespace QA40xPlot.ViewModels
 			actThd.UpdateAmpAmplitude(news);
 		}
 
+		private string FormatValue(double value)
+		{
+			if (!ShowPercent)
+				return MathUtil.FormatLogger(value) + " dBV";
+			return MathUtil.FormatPercent(Math.Pow(10, value / 20 + 2)) + " %";
+		}
+
+		private string FormatColumn(ThdColumn column)
+		{
+			var vm = ViewSettings.Singleton.ThdFreq;
+			string sout = "Mag: ";
+			if (ShowPercent)
+			{
+				var MagValue = Math.Pow(10, column.Mag / 20);
+				sout += MathUtil.FormatVoltage(MagValue);
+			}
+			else
+			{
+				sout += MathUtil.FormatLogger(column.Mag) + " dBV";
+			}
+			sout += Environment.NewLine;
+
+			if (vm.ShowTHD)
+				sout += "THD: " + FormatValue(column.THD) + Environment.NewLine;
+			if (vm.ShowNoiseFloor)
+				sout += "Noise: " + FormatValue(column.Noise) + Environment.NewLine;
+			if (vm.ShowD2)
+				sout += "D2: " + FormatValue(column.D2) + Environment.NewLine;
+			if (vm.ShowD3)
+				sout += "D3: " + FormatValue(column.D3) + Environment.NewLine;
+			if (vm.ShowD4)
+				sout += "D4: " + FormatValue(column.D4) + Environment.NewLine;
+			if (vm.ShowD5)
+				sout += "D5: " + FormatValue(column.D5) + Environment.NewLine;
+			if (vm.ShowD6)
+				sout += "D6+: " + FormatValue(column.D6P) + Environment.NewLine;
+			return sout;
+		}
+
+
 		// when the mouse moves in the plotcontrol window it sends a mouseevent to the parent view model (this)
 		// here's the tracker event handler
 		private static void DoMouseTracked(object sender, MouseEventArgs e)
@@ -405,20 +445,22 @@ namespace QA40xPlot.ViewModels
 				FreqValue = Math.Pow(10, cord.Item1); // frequency
 			}
 			var zv = actThd.LookupX(FreqValue);
-			//var ttype = actThd.GetTestingType(TestType);
-			//FreqShow = zv.Item1.ToString("0.# Hz");
-			//switch (ttype)
-			//{
-			//	case TestingType.Response:
-			//		ZValue = "Left: " + (20 * Math.Log10(zv.Item2)).ToString("0.## dBV") + Environment.NewLine + "Right: " + (20 * Math.Log10(zv.Item3)).ToString("0.## dBV");
-			//		break;
-			//	case TestingType.Impedance:
-			//		ZValue = "Z: " + (20 * Math.Log10(zv.Item2)).ToString("0.## Ohms") + Environment.NewLine + "  " + zv.Item3.ToString("0.## Deg");
-			//		break;
-			//	case TestingType.Gain:
-			//		ZValue = "G: " + (20 * Math.Log10(zv.Item2)).ToString("0.## dB") + Environment.NewLine + "  " + zv.Item3.ToString("0.## Deg");
-			//		break;
-			//}
+			ZValue = string.Empty;
+			if (zv.Item1 != null)
+			{
+				FreqShow = MathUtil.FormatLogger(zv.Item1.Freq);
+				if (zv.Item2 != null)
+					ZValue += "Left: " + Environment.NewLine;
+				ZValue += FormatColumn(zv.Item1);
+			}
+			if (zv.Item2 != null)
+			{
+				if (zv.Item1 == null)
+					FreqShow = MathUtil.FormatLogger(zv.Item2.Freq);
+				else
+					ZValue += "Right: " + Environment.NewLine;
+				ZValue += FormatColumn(zv.Item2);
+			}
 		}
 
 		~ThdFreqViewModel()
@@ -432,7 +474,6 @@ namespace QA40xPlot.ViewModels
 		{
 			PropertyChanged += CheckPropertyChanged;
 			MouseTracked += DoMouseTracked;
-
 
 			PropertyChanged += CheckPropertyChanged;
 
