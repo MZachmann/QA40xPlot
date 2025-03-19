@@ -125,8 +125,15 @@ namespace QA40xPlot.Actions
 			var binSize = QaLibrary.CalcBinSize(sampleRate, (uint)fftsize);
 			if (vf != null && vf.Count > 0)
 			{
-				db.LeftData = vf[0].fftData.Left.ToList();
-				db.RightData = vf[0].fftData.Right.ToList();
+				if(vm.ShowRight && ! vm.ShowLeft)
+				{
+					db.LeftData = vf[0].fftData.Right.ToList();
+				}
+				else
+				{
+					db.LeftData = vf[0].fftData.Left.ToList();
+				}
+				// db.RightData = vf[0].fftData.Right.ToList();
 				var frqs = Enumerable.Range(0, fftsize).ToList();
 				var frequencies = frqs.Select(x => x * binSize).ToList(); // .Select(x => x * binSize);
 				db.FreqData = frequencies;
@@ -792,8 +799,7 @@ namespace QA40xPlot.Actions
 
 			imdVm.IsRunning = false;
 			await showMessage("");
-			ViewSettings.Singleton.ImdVm.HasExport = this.MeasurementResult.FrequencySteps.Count > 0;
-			ViewSettings.Singleton.Main.CurrentView = ViewSettings.Singleton.ImdVm;
+			ViewSettings.Singleton.ImdVm.HasExport = MeasurementResult.FrequencySteps.Count > 0;
 		}
 
 

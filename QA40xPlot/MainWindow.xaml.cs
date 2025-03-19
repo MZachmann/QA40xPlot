@@ -54,29 +54,7 @@ namespace QA40xPlot
 		private void OnNewTab(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
 		{
 			var vm = ViewSettings.Singleton.Main;
-			if (e.AddedItems == null || e.AddedItems.Count == 0)
-				return;
-
-			var x = e.AddedItems[0] as TabItem;
-			string u = x?.Header.ToString();
-			switch (u)
-			{
-				case "Spectrum":
-					vm.CurrentView = ViewSettings.Singleton.SpectrumVm;
-					break;
-				case "Intermodulation":
-					vm.CurrentView = ViewSettings.Singleton.ImdVm;
-					break;
-				case "Frequency Response":
-					vm.CurrentView = ViewSettings.Singleton.FreqRespVm;
-					break;
-				case "THD vs Frequency":
-					vm.CurrentView = ViewSettings.Singleton.ThdFreq;
-					break;
-				case "THD vs Amplitude":
-					vm.CurrentView = ViewSettings.Singleton.ThdAmp;
-					break;
-			}
+			vm.DoNewTab(sender, e);
 		}
 
 		private void OnPhoto(object sender, RoutedEventArgs e)

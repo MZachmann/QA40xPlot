@@ -586,6 +586,7 @@ namespace QA40xPlot.Actions
 		public async void StartMeasurement()
 		{
 			var thdAmp = ViewSettings.Singleton.ThdAmp;
+
 			thdAmp.IsRunning = true;
 			ct = new();
 			await PerformMeasurementSteps(ct.Token);

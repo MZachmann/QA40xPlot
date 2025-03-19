@@ -123,8 +123,14 @@ namespace QA40xPlot.Actions
 			var binSize = vf[0].fftData.Df;
 			if (vf != null && vf.Count > 0)
 			{
-				db.LeftData = vf[0].fftData.Left.ToList();
-				db.RightData = vf[0].fftData.Right.ToList();
+				if (vm.ShowRight && !vm.ShowLeft)
+				{
+					db.LeftData = vf[0].fftData.Right.ToList();
+				}
+				else
+				{
+					db.LeftData = vf[0].fftData.Left.ToList();
+				}
 				var frqs = Enumerable.Range(0, fftsize).ToList();
 				var frequencies = frqs.Select(x => x * binSize).ToList(); // .Select(x => x * binSize);
 				db.FreqData = frequencies;
@@ -786,7 +792,6 @@ namespace QA40xPlot.Actions
 			specVm.IsRunning = false;
 			await showMessage("");
 			ViewSettings.Singleton.SpectrumVm.HasExport = this.MeasurementResult.FrequencySteps.Count > 0;
-			ViewSettings.Singleton.Main.CurrentView = ViewSettings.Singleton.SpectrumVm;
 		}
 
 

@@ -68,6 +68,7 @@ namespace QA40xPlot.Actions
 		public async void StartMeasurement()
 		{
 			var vm = ViewSettings.Singleton.FreqRespVm;
+
 			vm.HasExport = false;
 			vm.IsRunning = true;
 			ct = new();
@@ -81,7 +82,7 @@ namespace QA40xPlot.Actions
 			await PerformMeasurement(ct.Token, false);
 			await showMessage("Finished");
 			vm.IsRunning = false;
-			vm.HasExport = Data.Measurements.Count > 0;
+            vm.HasExport = MeasurementResult.GainFrequencies.Count > 0;
 		}
 
 
@@ -99,18 +100,31 @@ namespace QA40xPlot.Actions
 		public DataBlob? CreateExportData()
 		{
 			DataBlob db = new();
-			var vf = this.MeasurementResult?.FrequencyResponseData;
-            if (vf == null)
+            var frsqVm = ViewSettings.Singleton.FreqRespVm;
+			var freqs = this.MeasurementResult?.GainFrequencies;
+            if (freqs == null || freqs.Count == 0)
                 return null;
-			var vm = ViewSettings.Singleton.SpectrumVm;
-			var sampleRate = MathUtil.ParseTextToUint(vm.SampleRate, 0);
-            var fftsize = vf.FreqRslt.Left.Length;
-			var binSize = QaLibrary.CalcBinSize(sampleRate, (uint)fftsize);
-			db.LeftData = vf.FreqRslt.Left.ToList();
-			db.RightData = vf.FreqRslt.Right.ToList();
-			var frqs = Enumerable.Range(0, fftsize).ToList();
-			var frequencies = frqs.Select(x => x * binSize).ToList(); // .Select(x => x * binSize);
-			db.FreqData = frequencies;
+
+            db.FreqData = freqs;        // test frequencies
+            var ttype = GetTestingType(MeasurementResult.MeasurementSettings.TestType);
+            switch( ttype)
+            {
+                case TestingType.Response:
+					if (frsqVm.ShowRight && !frsqVm.ShowLeft)
+					{
+						db.LeftData = MeasurementResult.GainData.Select(x => x.Imaginary).ToList();
+					}
+					else
+					{
+						db.LeftData = MeasurementResult.GainData.Select(x => x.Real).ToList();
+					}
+					break;
+                case TestingType.Gain:
+				case TestingType.Impedance:
+					db.LeftData = MeasurementResult.GainData.Select(x => x.Magnitude).ToList();
+					db.PhaseData = MeasurementResult.GainData.Select(x => x.Phase).ToList();
+					break;
+            }
 			return db;
 		}
 
@@ -373,8 +387,9 @@ namespace QA40xPlot.Actions
             await showMessage($"Measurement finished!");
 
             UpdateGraph(false);
+			ViewSettings.Singleton.FreqRespVm.HasExport = true;
 
-            return ct.IsCancellationRequested;
+			return ct.IsCancellationRequested;
         }
 
 

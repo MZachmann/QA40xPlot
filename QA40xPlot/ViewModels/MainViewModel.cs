@@ -150,8 +150,14 @@ namespace QA40xPlot.ViewModels
 				{
 					var va = vmf.FreqData[i];
 					var vb = vmf.LeftData[i];
-					//sout += string.Format("{0:F0},{1:F4},{2:F4}\r\n", vmf.FreqData[i], 20 * Math.Log10(vmf.LeftData[i]), 20 * Math.Log10(vmf.RightData[i]));
-					sout += string.Format("{0:F0},{1:F4}\r\n", vmf.FreqData[i], 20 * Math.Log10(vmf.LeftData[i]));
+					if( vmf.PhaseData.Count > 0 )
+					{
+						sout += string.Format("{0:F0}, {1:F4}, {2:F4}\r\n", vmf.FreqData[i], 20 * Math.Log10(vmf.LeftData[i]), vmf.PhaseData[i]);
+					}
+					else
+					{
+						sout += string.Format("{0:F0}, {1:F4}\r\n", vmf.FreqData[i], 20 * Math.Log10(vmf.LeftData[i]));
+					}
 				}
 				File.WriteAllBytes(filename, System.Text.Encoding.UTF8.GetBytes(sout));
 			}
@@ -192,7 +198,7 @@ namespace QA40xPlot.ViewModels
 			{
 				FileName = String.Format("QaData{0}", FileAddon()), // Default file name
 				DefaultExt = ".frd", // Default file extension
-				Filter = "FRD files|*.frd|All files|*.*" // Filter files by extension
+				Filter = "FRD files|*.frd|ZMA files|*.zma|All files|*.*" // Filter files by extension
 			};
 
 			// Show save file dialog box
@@ -250,7 +256,7 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		private void OnNewTab(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+		public void DoNewTab(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
 		{
 			var vm = ViewSettings.Singleton.Main;
 			var x = e.AddedItems[0] as TabItem;
@@ -263,7 +269,9 @@ namespace QA40xPlot.ViewModels
 				case "Intermodulation":
 					vm.CurrentView = ViewSettings.Singleton.ImdVm;
 					break;
-				case "Frequency Response":
+				case "Response":
+				case "Gain":
+				case "Impedance":
 					vm.CurrentView = ViewSettings.Singleton.FreqRespVm;
 					break;
 				case "THD vs Frequency":
