@@ -68,11 +68,21 @@
                     <RowDefinition Height="100" />
                     <RowDefinition Height="100" />
                 </Grid.RowDefinitions>
-                <Label Content="Set generator by" Grid.Column="0" Grid.Row="0"  />
-                <Label Content="Gen voltage" Grid.Column="0" Grid.Row="1"   />
-                <Label Content="Amplifier Load" Grid.Column="0" Grid.Row="2"  />
+                <Label Content="Set Generator by" Grid.Column="0" Grid.Row="0"  />
+                <Label Content="Gen Voltage" Grid.Column="0" Grid.Row="1"   />
+                <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" IsEnabled="{Binding ReadVoltage}" 
+                            Text="{Binding GenVoltage}" ItemsSource="{Binding GenVoltages}" >
+                </ComboBox>
+                    <Label Content="V" Grid.Column="2" Grid.Row="1"  />
+                    <Label Content="Amplifier Load" Grid.Column="0" Grid.Row="2"  />
                 <Label Content="Output Power" Grid.Column="0" Grid.Row="3"  />
-                <Label Content="Output Voltage" Grid.Column="0" Grid.Row="4"   />
+                    <ComboBox IsEditable="True" Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" IsEnabled="{Binding ReadOutPower}" 
+                            Text="{Binding OutPower}" ItemsSource="{Binding GenVoltages}" />
+                    <Label Content="Output Voltage" Grid.Column="0" Grid.Row="4"   />
+                    <ComboBox IsEditable="True" Grid.Row="4" Grid.Column="1" VerticalAlignment="Center" IsEnabled="{Binding ReadOutVoltage}" 
+                         Text="{Binding OutVoltage}" ItemsSource="{Binding GenVoltages}" >
+                </ComboBox>
+                <Label Content="V" Grid.Column="2" Grid.Row="4"  />
                 <Label Content="Start Frequency" Grid.Column="0" Grid.Row="5"  />
                 <ComboBox VerticalAlignment="Center" IsEditable="True" Text="{Binding StartFreq}" Grid.Column="1" Grid.Row="5" ItemsSource="{Binding StartFrequencies}"  />
                 <Label Content="End Frequency" Grid.Column="0" Grid.Row="6"  />
@@ -85,19 +95,12 @@
                 <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  
                            SelectedIndex="{Binding MeasureType}" ItemsSource="{Binding MeasureTypes}">
                 </ComboBox>
-                <TextBox Text="{Binding GenVoltage, StringFormat={}{0:0.####}}" Grid.Column="1"  Grid.Row="1" IsReadOnly="{Binding ReadVoltage}" LostFocus="OnVoltageChanged" />
                 <TextBox Text="{Binding AmpLoad}" Grid.Column="1"  Grid.Row="2"  />
-                <TextBox Text="{Binding OutPower}"  Grid.Column="1" Grid.Row="3"  IsReadOnly="{Binding ReadOutPower}"   />
-                    <TextBox Text="{Binding OutVoltage, StringFormat={}{0:0.####}}" Grid.Column="1" Grid.Row="4" IsReadOnly="{Binding ReadOutVoltage}"  LostFocus="OnAmpVoltageChanged"   />
                     <xctk:IntegerUpDown Value="{Binding StepsOctave}" Minimum="1" VerticalAlignment="Center" Grid.Column="1" Grid.Row="7"  />
                     <xctk:IntegerUpDown Value="{Binding Averages}" Minimum="1" Maximum="6" VerticalAlignment="Center" Grid.Column="1" Grid.Row="8"  />
                 <CheckBox Content="Right channel" IsChecked="{Binding RightChannel}" Grid.Column="1" Grid.Row="9"  />
-                <ComboBox  Grid.Column="2" Grid.Row="1" VerticalAlignment="Center"  SelectedIndex="{Binding GeneratorUnits}" ItemsSource="{Binding VoltItems}">
-                </ComboBox>
                 <Label Content="Ohm" Grid.Column="2" Grid.Row="2"  />
                 <Label Content="Watt" Grid.Column="2" Grid.Row="3"  />
-                <ComboBox  Grid.Column="2" Grid.Row="4" VerticalAlignment="Center"  SelectedIndex="{Binding OutputUnits}" ItemsSource="{Binding VoltItems}">
-                </ComboBox>
                 <Label Content="Hz" Grid.Column="2" Grid.Row="5"  />
                 <Label Content="Hz" Grid.Column="2" Grid.Row="6"  />
             </Grid>

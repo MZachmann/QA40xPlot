@@ -50,37 +50,6 @@ namespace QA40xPlot.Actions
         }
 
         /// <summary>
-        /// Update the generator voltage in the textbox based on the selected unit.
-        /// If the unit changes then the voltage will be converted
-        /// </summary>
-        public void UpdateGeneratorVoltageDisplay()
-        {
-            var vm = ViewSettings.Singleton.ThdFreq;
-            vm.GenVoltage = QaLibrary.ConvertVoltage(vm.GeneratorAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)vm.GeneratorUnits);
-        }
-
-        /// <summary>
-        /// Update the amplifier output voltage in the textbox based on the selected unit.
-        /// If the unit changes then the voltage will be converted
-        /// </summary>
-        public void UpdateAmpOutputVoltageDisplay()
-        {
-            var vm = ViewSettings.Singleton.ThdFreq;
-            switch (vm.OutputUnits)
-            {
-                case 0: // mV
-                    vm.OutVoltage = ((int)QaLibrary.ConvertVoltage(vm.AmpOutputAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.MilliVolt));
-                    break;
-                case 1: // V
-                    vm.OutVoltage = QaLibrary.ConvertVoltage(vm.AmpOutputAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
-                    break;
-                case 2: // dB
-                    vm.OutVoltage = QaLibrary.ConvertVoltage(vm.AmpOutputAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.dBV);
-                    break;
-            }
-        }
-
-        /// <summary>
         /// Generator type changed
         /// </summary>
         public void UpdateGeneratorParameters()
@@ -89,26 +58,19 @@ namespace QA40xPlot.Actions
             switch (vm.MeasureType)
             {
                 case 0: // Input voltage
-                    vm.ReadVoltage = false;
-                    vm.ReadOutPower = true;
-                    vm.ReadOutVoltage = true;
-                    UpdateGeneratorVoltageDisplay();
-                    break;
-                case 1: // Output voltage
-                    vm.ReadVoltage = true;
-                    vm.ReadOutPower = true;
-                    vm.ReadOutVoltage = false;
-                    UpdateGeneratorVoltageDisplay();
-                    break;
-                case 2: // Output power
                     vm.ReadVoltage = true;
                     vm.ReadOutPower = false;
+                    vm.ReadOutVoltage = false;
+                    break;
+                case 1: // Output voltage
+                    vm.ReadVoltage = false;
+                    vm.ReadOutPower = false;
                     vm.ReadOutVoltage = true;
-                    //vm.OutPower = MathUtil.ParseTextToDouble(txtAmplifierOutputPower.Text, MeasurementSettings.AmpOutputPower);
-                    //vm.AmpLoad = MathUtil.ParseTextToDouble(txtOutputLoad.Text, MeasurementSettings.Load);
-                    //vm.Voltage = Math.Sqrt(MeasurementSettings.AmpOutputPower * MeasurementSettings.Load);      // Expected output DUT amplitude in Volts
-                    vm.GeneratorUnits = (int)E_VoltageUnit.Volt;                                           // Expected output DUT amplitude in dBV
-                    UpdateAmpOutputVoltageDisplay();
+                    break;
+                case 2: // Output power
+                    vm.ReadVoltage = false;
+                    vm.ReadOutPower = true;
+                    vm.ReadOutVoltage = false;
                     break;
             }
         }
@@ -198,13 +160,29 @@ namespace QA40xPlot.Actions
 		}
 
 
-		/// <summary>
-		/// Perform the measurement
-		/// </summary>
-		/// <param name="ct">Cancellation token</param>
-		/// <returns>result. false if cancelled</returns>
-		async Task<bool> PerformMeasurementSteps(CancellationToken ct)
+        /// <summary>
+        /// Perform the measurement
+        /// </summary>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>result. false if cancelled</returns>
+        async Task<bool> PerformMeasurementSteps(CancellationToken ct)
         {
+            bool rslt = false;
+            try
+            {
+				rslt = await PerformSteps(ct);
+			}
+            catch (Exception )
+            {
+
+            }
+			// Turn the generator off no matter what, since there are random returns in the perform code
+			await Qa40x.SetOutputSource(OutputSources.Off);
+			return rslt;
+		}
+
+		async Task<bool> PerformSteps(CancellationToken ct)
+        { 
             ClearPlot();
             // Clear measurement result
             MeasurementResult = new(ViewSettings.Singleton.ThdFreq)
@@ -248,11 +226,11 @@ namespace QA40xPlot.Actions
                 E_GeneratorType etp = (E_GeneratorType)thd.MeasureType;
                 if (etp == E_GeneratorType.OUTPUT_VOLTAGE || etp == E_GeneratorType.OUTPUT_POWER)     // Based on output
                 {
-                    double amplifierOutputVoltagedBV = QaLibrary.ConvertVoltage(thd.OutVoltage, (E_VoltageUnit)thd.OutputUnits, E_VoltageUnit.dBV);
+                    double amplifierOutputVoltagedBV = QaLibrary.ConvertVoltage(Convert.ToDouble(thd.OutVoltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
                     if (etp == E_GeneratorType.OUTPUT_VOLTAGE)
                         await showMessage($"Determining generator amplitude to get an output amplitude of {amplifierOutputVoltagedBV:0.00#} dBV.");
                     else
-                        await showMessage($"Determining generator amplitude to get an output power of {thd.OutPower:0.00#} W.");
+                        await showMessage($"Determining generator amplitude to get an output power of {thd.OutPower} W.");
 
                     // Get input voltage based on desired output voltage
                     thd.InputRange = QaLibrary.DetermineAttenuation(amplifierOutputVoltagedBV);
@@ -260,12 +238,12 @@ namespace QA40xPlot.Actions
                     var result = await QaLibrary.DetermineGenAmplitudeByOutputAmplitudeWithChirp(startAmplitude, amplifierOutputVoltagedBV, thd.LeftChannel, thd.RightChannel, ct);
                     if (ct.IsCancellationRequested)
                         return false;
-                    thd.GeneratorAmplitude = result.Item1;
+                    var generatorAmp = result.Item1;
                     QaLibrary.PlotMiniFftGraph(fftPlot, result.Item2.FreqRslt, thd.LeftChannel && thd.ShowLeft, thd.RightChannel && thd.ShowRight);                                             // Plot fft data in mini graph
                     QaLibrary.PlotMiniTimeGraph(timePlot, result.Item2.TimeRslt, testFrequency, thd.LeftChannel && thd.ShowLeft, thd.RightChannel && thd.ShowRight, true);                                      // Plot time data in mini graph
-                    if (thd.GeneratorAmplitude == -150)
+                    if (generatorAmp == -150)
                     {
-                        await showMessage($"Could not determine a valid generator amplitude. The amplitude would be {thd.GeneratorAmplitude:0.00#} dBV.");
+                        await showMessage($"Could not determine a valid generator amplitude. The amplitude would be {generatorAmp:0.00#} dBV.");
                         return false;
                     }
 
@@ -274,31 +252,32 @@ namespace QA40xPlot.Actions
                         return false;
 
                     // Check if amplitude found within the generator range
-                    if (thd.GeneratorAmplitude < 18)
+                    if (generatorAmp < 18)
                     {
-                        await showMessage($"Found an input amplitude of {thd.GeneratorAmplitude:0.00#} dBV. Doing second pass.");
+                        await showMessage($"Found an input amplitude of {generatorAmp:0.00#} dBV. Doing second pass.");
 
                         // 2nd time for extra accuracy
-                        result = await QaLibrary.DetermineGenAmplitudeByOutputAmplitudeWithChirp(thd.GeneratorAmplitude, amplifierOutputVoltagedBV, thd.LeftChannel, thd.RightChannel, ct);
+                        result = await QaLibrary.DetermineGenAmplitudeByOutputAmplitudeWithChirp(generatorAmp, amplifierOutputVoltagedBV, thd.LeftChannel, thd.RightChannel, ct);
                         if (ct.IsCancellationRequested)
                             return false;
-                        thd.GeneratorAmplitude = result.Item1;
+						generatorAmp = result.Item1;
                         QaLibrary.PlotMiniFftGraph(fftPlot, result.Item2.FreqRslt, thd.LeftChannel && thd.ShowLeft, thd.RightChannel && thd.ShowRight);                                             // Plot fft data in mini graph
                         QaLibrary.PlotMiniTimeGraph(timePlot, result.Item2.TimeRslt, testFrequency, thd.LeftChannel && thd.ShowLeft, thd.RightChannel && thd.ShowRight, true);                                      // Plot time data in mini graph
-                        if (thd.GeneratorAmplitude == -150)
+                        if (generatorAmp == -150)
                         {
-                            await showMessage($"Could not determine a valid generator amplitude. The amplitude would be {thd.GeneratorAmplitude:0.00#} dBV.");
+                            await showMessage($"Could not determine a valid generator amplitude. The amplitude would be {generatorAmp:0.00#} dBV.");
                             return false;
                         }
                     }
 
-                    //UpdateGeneratorVoltageDisplay();
+					thd.GenVoltage = QaLibrary.ConvertVoltage( generatorAmp, E_VoltageUnit.dBV, E_VoltageUnit.Volt).ToString();
+					//UpdateGeneratorVoltageDisplay();
 
-                    await showMessage($"Found an input amplitude of {thd.GeneratorAmplitude:0.00#} dBV.");
+					await showMessage($"Found an input amplitude of {generatorAmp:0.00#} dBV.");
                 }
                 else if (etp == E_GeneratorType.INPUT_VOLTAGE)                         // Based on input voltage
                 {
-                    double genVoltagedBV = QaLibrary.ConvertVoltage(thd.GeneratorAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.dBV);
+                    double genVoltagedBV = QaLibrary.ConvertVoltage(Convert.ToDouble(thd.GenVoltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
                     await showMessage($"Determining the best input attenuation for a generator voltage of {genVoltagedBV:0.00#} dBV.");
 
                     // Determine correct input attenuation
@@ -344,7 +323,7 @@ namespace QA40xPlot.Actions
                     return false;
 
                 // Set the generator
-                double amplitudeSetpointdBV = QaLibrary.ConvertVoltage(thd.GeneratorAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.dBV);
+                double amplitudeSetpointdBV = QaLibrary.ConvertVoltage(Convert.ToDouble(thd.GenVoltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
                 await Qa40x.SetGen1(stepBinFrequencies[0], amplitudeSetpointdBV, true);
 
                 await Qa40x.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
@@ -637,22 +616,6 @@ namespace QA40xPlot.Actions
         //    else
         //        QaLibrary.ValidateRangeAdorner(sender, QaLibrary.MINIMUM_GENERATOR_VOLTAGE_DBV, QaLibrary.MAXIMUM_GENERATOR_VOLTAGE_DBV);       // dBV
         //}
-
-        // user entered a new voltage, update the generator amplitude
-        public void UpdateGenAmplitude(string value)
-        {
-            ThdFreqViewModel thd = ViewSettings.Singleton.ThdFreq;
-            var val = MathUtil.ParseTextToDouble(value, thd.GenVoltage);
-            thd.GeneratorAmplitude = QaLibrary.ConvertVoltage(val, (E_VoltageUnit)thd.GeneratorUnits, E_VoltageUnit.dBV);
-        }
-
-        // user entered a new voltage, update the generator amplitude
-        public void UpdateAmpAmplitude(string value)
-        {
-            ThdFreqViewModel thd = ViewSettings.Singleton.ThdFreq;
-            var val = MathUtil.ParseTextToDouble(value, thd.OutVoltage);
-            thd.AmpOutputAmplitude = QaLibrary.ConvertVoltage(val, (E_VoltageUnit)thd.OutputUnits, E_VoltageUnit.dBV);
-        }
 
         public void UpdateGraph(bool settingsChanged)
         {

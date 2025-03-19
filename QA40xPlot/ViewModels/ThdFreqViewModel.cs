@@ -25,8 +25,8 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand DoStop { get => new RelayCommand(StopIt); }
 
 		#region Setters and Getters
-		private double _GenVoltage;
-		public double GenVoltage
+		private string _GenVoltage;
+		public string GenVoltage
 		{
 			get => _GenVoltage; set => SetProperty(ref _GenVoltage, value);
 		}
@@ -37,14 +37,14 @@ namespace QA40xPlot.ViewModels
 			get => _AmpLoad; set => SetProperty(ref _AmpLoad, value);
 		}
 
-		private double _OutPower;
-		public double OutPower
+		private string _OutPower;
+		public string OutPower
 		{
 			get => _OutPower; set => SetProperty(ref _OutPower, value);
 		}
 
-		private double _OutVoltage;
-		public double OutVoltage
+		private string _OutVoltage;
+		public string OutVoltage
 		{
 			get => _OutVoltage; set => SetProperty(ref _OutVoltage, value);
 		}
@@ -105,30 +105,6 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _MeasureType;
 			set => SetProperty(ref _MeasureType, value);
-		}
-		private int _OutputUnits;
-		public int OutputUnits
-		{
-			get => _OutputUnits;
-			set => SetProperty(ref _OutputUnits, value);
-		}
-		private double _AmpOutputAmplitude;
-		public double AmpOutputAmplitude
-		{
-			get => _AmpOutputAmplitude;
-			set => SetProperty(ref _AmpOutputAmplitude, value);
-		}
-		private double _GeneratorAmplitude;
-		public double GeneratorAmplitude
-		{
-			get => _GeneratorAmplitude;
-			set => SetProperty(ref _GeneratorAmplitude, value);
-		}
-		private int _GeneratorUnits;
-		public int GeneratorUnits
-		{
-			get => _GeneratorUnits;
-			set => SetProperty(ref _GeneratorUnits, value);
 		}
 		private string _rangeTop;
 		public string RangeTop
@@ -315,12 +291,6 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
-				case "OutputUnits":
-					actThd?.UpdateAmpOutputVoltageDisplay();
-					break;
-				case "GeneratorUnits":
-					actThd?.UpdateGeneratorVoltageDisplay();
-					break;
 				case "Voltage":
 				case "AmpLoad":
 				case "OutPower":
@@ -366,16 +336,6 @@ namespace QA40xPlot.ViewModels
 			actPlot = plot;
 		}
 
-
-		public void OnVoltageChanged(string news)
-		{
-			actThd.UpdateGenAmplitude(news);
-		}
-
-		public void OnAmpVoltageChanged(string news)
-		{
-			actThd.UpdateAmpAmplitude(news);
-		}
 
 		private string FormatValue(double value)
 		{
@@ -477,10 +437,9 @@ namespace QA40xPlot.ViewModels
 
 			PropertyChanged += CheckPropertyChanged;
 
-			GenVoltage = 0.03;
 			AmpLoad = 8;
-			OutPower = 0.5;
-			OutVoltage = 0.5;
+			OutPower = "0.5";
+			OutVoltage = "0.5";
 			StartFreq = "20";
 			EndFreq = "20000";
 			GraphStartFreq = "20";
@@ -490,8 +449,6 @@ namespace QA40xPlot.ViewModels
 			LeftChannel = true;
 			RightChannel = false;
 			MeasureType = 2;
-			OutputUnits = 0;
-			GeneratorUnits = 0;
 			RangeTop = "1";             // when graphing percents distortion this is logarithmic 0.01....
 			RangeBottom = "0.001";
 
@@ -521,10 +478,7 @@ namespace QA40xPlot.ViewModels
 			ReadOutPower = true;
 			ReadOutVoltage = true;
 
-			GeneratorAmplitude = -20;       // this is the unitless (dbV) amplitude of the generator
-			AmpOutputAmplitude = -20;         // this is the unitless (dbV) amplitude of the amplifier output
-			GenVoltage = QaLibrary.ConvertVoltage(GeneratorAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)GeneratorUnits);
-			OutVoltage = QaLibrary.ConvertVoltage(AmpOutputAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)OutputUnits);
+			GenVoltage = "0.10";
 
 			ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
 			ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;          

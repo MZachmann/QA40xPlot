@@ -21,6 +21,8 @@ namespace QA40xPlot.ViewModels
 		public static List<String> SampleRates { get => new List<string> { "48000", "96000", "192000", "384000" }; }
 		public static List<String>	FftSizes { get => new List<string> { "64K", "128K", "256K", "512K", "1024K" }; }
 		public static List<uint>	FftActualSizes { get => new List<uint> { 65536, 131072, 262144, 524288, 1048576 }; }
+		public static List<String> GenVoltages { get => new List<string> { "0.05", "0.1", "0.25", "0.5", "0.75", "1", "2", "5" }; }
+
 		#endregion
 
 		#region Setters and Getters

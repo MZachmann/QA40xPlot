@@ -101,9 +101,6 @@ namespace QA40xPlot.Actions
 					vm.ReadVoltage = true;
 					vm.ReadOutPower = false;
 					vm.ReadOutVoltage = true;
-					//vm.OutPower = MathUtil.ParseTextToDouble(txtAmplifierOutputPower.Text, MeasurementSettings.AmpOutputPower);
-					//vm.AmpLoad = MathUtil.ParseTextToDouble(txtOutputLoad.Text, MeasurementSettings.Load);
-					//vm.Voltage = Math.Sqrt(MeasurementSettings.AmpOutputPower * MeasurementSettings.Load);      // Expected output DUT amplitude in Volts
 					vm.GeneratorUnits = (int)E_VoltageUnit.Volt;                                           // Expected output DUT amplitude in dBV
                     UpdateAmpOutputVoltageDisplay();
                     break;
@@ -114,6 +111,7 @@ namespace QA40xPlot.Actions
 		public DataBlob? CreateExportData()
 		{
 			DataBlob db = new();
+
 			var vf = this.MeasurementResult?.FrequencySteps;
 			if( vf == null )
 			{

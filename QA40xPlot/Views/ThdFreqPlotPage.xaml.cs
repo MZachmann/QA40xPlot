@@ -35,18 +35,5 @@ namespace QA40xPlot.Views
 			vm.SetAction(this.WpfPlot1, this.WpfPlot2, this.WpfPlot3);
 		}
 
-		private void OnVoltageChanged(object sender, RoutedEventArgs e)
-		{
-			var vm = ViewModels.ViewSettings.Singleton.ThdFreq;
-			var u = ((TextBox)sender).Text;
-			vm.OnVoltageChanged(u);
-		}
-
-		private void OnAmpVoltageChanged(object sender, RoutedEventArgs e)
-		{
-			var vm = ViewModels.ViewSettings.Singleton.ThdFreq;
-			var u = ((TextBox)sender).Text;
-			vm.OnAmpVoltageChanged(u);
-		}
 	}
 }

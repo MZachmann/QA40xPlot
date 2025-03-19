@@ -148,7 +148,7 @@
                     </ComboBox>
                     <Label Content="_Voltage" Grid.Row="1" Grid.Column="0" Target="{Binding ElementName=cbVolt}"  />
                     <ComboBox x:Name="cbVolt" IsEditable="True" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Center"  
-                              Text="{Binding Gen1Voltage}" ItemsSource="{Binding GenAmplitudes}">
+                              Text="{Binding Gen1Voltage}" ItemsSource="{Binding GenVoltages}">
                     </ComboBox>
                 </Grid>
             </GroupBox>
