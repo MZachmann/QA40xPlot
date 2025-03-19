@@ -345,7 +345,7 @@ namespace QA40xPlot.ViewModels
 		private string FormatValue(double value)
 		{
 			if( ! ShowPercent)
-				return MathUtil.FormatLogger(value) + " dBV";
+				return MathUtil.FormatLogger(value) + " dB";
 			return MathUtil.FormatPercent(Math.Pow(10,value/20 + 2)) + " %";
 		}
 

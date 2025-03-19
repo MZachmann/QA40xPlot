@@ -362,10 +362,13 @@ public class FreqRespViewModel : BaseViewModel
 		switch ( ttype)
 		{
 			case TestingType.Response:
-				ZValue = "Left: " + (20 * Math.Log10(zv.Item2)).ToString("0.## dBV") + Environment.NewLine + "Right: " + (20 * Math.Log10(zv.Item3)).ToString("0.## dBV");
+				ZValue = "Left: " + (20 * Math.Log10(zv.Item2)).ToString("0.## dB") + Environment.NewLine + "Right: " + (20 * Math.Log10(zv.Item3)).ToString("0.## dB");
 				break;
 			case TestingType.Impedance:
-				ZValue = "Z: " + (20 * Math.Log10(zv.Item2)).ToString("0.## Ohms") + Environment.NewLine + "  " + zv.Item3.ToString("0.## Deg");
+				{
+
+					ZValue = "Z: " + zv.Item2.ToString("0.## Ohms") + Environment.NewLine + "  " + zv.Item3.ToString("0.## Deg");
+				}
 				break;
 			case TestingType.Gain:
 				ZValue = "G: " + (20 * Math.Log10(zv.Item2)).ToString("0.## dB") + Environment.NewLine + "  " + zv.Item3.ToString("0.## Deg");

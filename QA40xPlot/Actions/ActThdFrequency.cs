@@ -693,7 +693,6 @@ namespace QA40xPlot.Actions
         public async void StartMeasurement()
         {
             ThdFreqViewModel thd = ViewSettings.Singleton.ThdFreq;
-			ViewSettings.Singleton.Main.CurrentView = thd;
 			thd.IsRunning = true;
             ct = new();
             await PerformMeasurementSteps(ct.Token);

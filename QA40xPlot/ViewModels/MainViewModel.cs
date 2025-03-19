@@ -152,7 +152,7 @@ namespace QA40xPlot.ViewModels
 					var vb = vmf.LeftData[i];
 					if( vmf.PhaseData.Count > 0 )
 					{
-						sout += string.Format("{0:F0}, {1:F4}, {2:F4}\r\n", vmf.FreqData[i], 20 * Math.Log10(vmf.LeftData[i]), vmf.PhaseData[i]);
+						sout += string.Format("{0:F0}, {1:F4}, {2:F4}\r\n", vmf.FreqData[i], 20 * Math.Log10(vmf.LeftData[i]), 180 * vmf.PhaseData[i] / Math.PI);
 					}
 					else
 					{
@@ -256,29 +256,28 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
+		// this is called when the user switches to a different tab item
+		// the tabs are named for consistent lookup
 		public void DoNewTab(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
 		{
-			var vm = ViewSettings.Singleton.Main;
 			var x = e.AddedItems[0] as TabItem;
-			string u = x?.Header.ToString();
+			string u = x?.Name;
 			switch (u)
 			{
-				case "Spectrum":
-					vm.CurrentView = ViewSettings.Singleton.SpectrumVm;
+				case "spectrum":
+					CurrentView = ViewSettings.Singleton.SpectrumVm;
 					break;
-				case "Intermodulation":
-					vm.CurrentView = ViewSettings.Singleton.ImdVm;
+				case "intermod":
+					CurrentView = ViewSettings.Singleton.ImdVm;
 					break;
-				case "Response":
-				case "Gain":
-				case "Impedance":
-					vm.CurrentView = ViewSettings.Singleton.FreqRespVm;
+				case "freqresp":
+					CurrentView = ViewSettings.Singleton.FreqRespVm;
 					break;
-				case "THD vs Frequency":
-					vm.CurrentView = ViewSettings.Singleton.ThdFreq;
+				case "tvf":
+					CurrentView = ViewSettings.Singleton.ThdFreq;
 					break;
-				case "THD vs Amplitude":
-					vm.CurrentView = ViewSettings.Singleton.ThdAmp;
+				case "tva":
+					CurrentView = ViewSettings.Singleton.ThdAmp;
 					break;
 			}
 		}

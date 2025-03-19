@@ -7,28 +7,28 @@ that interfaces with the QuantAsylum QA40x audio analyser.
 
 The analyzer contains 
 
-- a spectral plot
-- an intermodulation distortion plot
+- a spectral sweep
+- an intermodulation distortion test
 - a frequency response analyzer
-- a chart of THD vs Frequency 
-- a chart of THD vs Amplitude.
-- an impedance (amplitude and phase) vs frequency sweep
-- a bode plot (swept gain and phase)
+- a THD vs Frequency sweep
+- a THD vs Amplitude sweep
+- an impedance vs frequency sweep with amplitude and phase
+- a bode plot sweep (swept gain and phase)
 
 ## Code
 The code is based on C# and WPF (Windows Presentation Foundation).
 
+## To Run
+
+The Release is currently a zipped signed .msi file that just needs to be executed. Ignore the security warning.
+
 Before starting this application, first start the QA40x program. Minimize it if you want, but it is used for the
 REST interface. 
 
-## To Run
-
-The Release is currently a zipped signed .msi file that just needs to be executed. Ignore the unknown provider (me) security warning.
-
-## Running
-
-At startup the program looks in your My Documents folder (usually \Users\yourname\Documents) and if it finds 
+**At startup** the program looks in your My Documents folder (usually \Users\yourname\Documents) and if it finds 
 a saved configuration file named **QADefault.cfg** then that file is loaded.
+
+## General Info
 
 The spectral and intermodulation tests include an option for autoranging. The THD vs xx plots autorange.
 
@@ -39,7 +39,7 @@ will dynamically change between the 3 (Impedance, Response, Gain) based on your 
 the cursor values will track the displayed data. Click the mouse to stop changing frequency (fixing the value unless the program runs
 continuously). Click the mouse again to release the hold.
 
-## Impedance and Gain Tests
+## Impedance and Gain Test Connection
 **The Impedance Test** assumes the DUT is connected in series with a reference resistor. 
 
 * The base of the DUT is ground, 

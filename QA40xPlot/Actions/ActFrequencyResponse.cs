@@ -120,9 +120,16 @@ namespace QA40xPlot.Actions
 					}
 					break;
                 case TestingType.Gain:
-				case TestingType.Impedance:
 					db.LeftData = MeasurementResult.GainData.Select(x => x.Magnitude).ToList();
 					db.PhaseData = MeasurementResult.GainData.Select(x => x.Phase).ToList();
+					break;
+				case TestingType.Impedance:
+                    {
+						double rref = Convert.ToDouble(MeasurementResult.MeasurementSettings.ZReference);
+						db.LeftData = MeasurementResult.GainData.Select(x => rref * ToImpedance(x).Magnitude).ToList();
+						// YValues = gainY.Select(x => rref * x.Magnitude/(1-x.Magnitude)).ToArray();
+						db.PhaseData = MeasurementResult.GainData.Select(x => 180 * ToImpedance(x).Phase / Math.PI).ToList();
+					}
 					break;
             }
 			return db;
@@ -148,39 +155,41 @@ namespace QA40xPlot.Actions
 
         public Tuple<double, double, double> LookupX(double freq)
         {
-			LeftRightSeries vf = MeasurementResult?.FrequencyResponseData;
+			var freqs = MeasurementResult.GainFrequencies;
 			Tuple<double, double, double> tup = Tuple.Create(1.0,1.0,1.0);
-			if (vf != null)
+			if (freqs != null && freqs.Count > 0)
             {
-				var freqs = MeasurementResult.GainFrequencies;
-				if (freqs != null && freqs.Count > 0)
-				{
-                    var values = MeasurementResult.GainData;
-                    // find nearest frequency from list
-                    var bin = freqs.Count(x => x < freq)-1;    // find first freq less than me
-                    if (bin == -1)
-                        bin = 0;
-                    var fnearest = freqs[bin];
-                    if (bin < (freqs.Count-1) && Math.Abs(freq - fnearest) > Math.Abs(freq - freqs[bin + 1]))
-                    {
-                        bin++;
-                    }
+                var values = MeasurementResult.GainData;
+                // find nearest frequency from list
+                var bin = freqs.Count(x => x < freq)-1;    // find first freq less than me
+                if (bin == -1)
+                    bin = 0;
+                var fnearest = freqs[bin];
+                if (bin < (freqs.Count-1) && Math.Abs(freq - fnearest) > Math.Abs(freq - freqs[bin + 1]))
+                {
+                    bin++;
+                }
 
-                    var frsqVm = ViewSettings.Singleton.FreqRespVm;
-                    var ttype = GetTestingType(frsqVm.TestType);
-                    switch(ttype)
-                    {
-                        case TestingType.Response:
-                            tup = Tuple.Create(freqs[bin], values[bin].Real, values[bin].Imaginary);
-                            break;
-                        case TestingType.Impedance:
+                var frsqVm = ViewSettings.Singleton.FreqRespVm;
+                var ttype = GetTestingType(frsqVm.TestType);
+                switch(ttype)
+                {
+                    case TestingType.Response:
+						// send freq, gain, gain2
+						tup = Tuple.Create(freqs[bin], values[bin].Real, values[bin].Imaginary);
+                        break;
+                    case TestingType.Impedance:
+                        {   // send freq, ohms, phasedeg
+							double rref = Convert.ToDouble(MeasurementResult.MeasurementSettings.ZReference);
+							var ohms = rref * ToImpedance(MeasurementResult.GainData[bin]).Magnitude;
+							tup = Tuple.Create(freqs[bin], ohms, 180 * values[bin].Phase / Math.PI);
+						}
+						break;
+                    case TestingType.Gain:
+						    // send freq, gain, phasedeg
 							tup = Tuple.Create(freqs[bin], values[bin].Magnitude, 180 * values[bin].Phase / Math.PI);
-							break;
-                        case TestingType.Gain:
-							tup = Tuple.Create(freqs[bin], values[bin].Magnitude, 180 * values[bin].Phase / Math.PI);
-							break;
-                    }
-				}
+						break;
+                }
 			}
 			return tup;
         }
@@ -401,13 +410,6 @@ namespace QA40xPlot.Actions
             else
 				gain = QAMath.CalculateGainPhase(dFreq, data);
 			return gain;
-        }
-
-        void ShowLastMeasurementCursorTexts()
-        {
-            if (MeasurementResult == null)
-                return;
-
         }
 
         /// <summary>

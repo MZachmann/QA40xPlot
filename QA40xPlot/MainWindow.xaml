@@ -48,27 +48,27 @@
             <ProgressBar Grid.Row="1" Grid.Column="0" Minimum="0" Maximum="100" MinHeight="5" Value="{Binding ProgressAmount}" />
         </Grid>
         <TabControl Grid.Row="2" SelectionChanged="OnNewTab">
-            <TabItem Header="Spectrum">
+            <TabItem Header="Spectrum" Name="spectrum">
                 <Grid Background="#FF35E5E5">
                     <views:SpectrumPlotPage  />
                 </Grid>
             </TabItem>
-            <TabItem Header="Intermodulation">
+            <TabItem Header="Intermodulation" Name="intermod">
                 <Grid Background="#FF35E5E5">
                     <views:ImdPlotPage  />
                 </Grid>
             </TabItem>
-            <TabItem Header="THD vs Frequency">
+            <TabItem Header="THD vs Frequency" Name="tvf">
                 <Grid Background="#FFE5E5E5">
                     <views:ThdFreqPlotPage  />
                 </Grid> 
             </TabItem>
-            <TabItem Header="THD vs Amplitude">
+            <TabItem Header="THD vs Amplitude" Name="tva">
                 <Grid Background="#FFE5E5E5">
                     <views:ThdAmpPlotPage  />
                 </Grid>
             </TabItem>
-            <TabItem Header="{Binding FreqRespHdr}">
+            <TabItem Header="{Binding FreqRespHdr}" Name="freqresp" >
                 <Grid Background="#FFE5E5E5">
                     <views:FreqRespPlotPage  />
                 </Grid>

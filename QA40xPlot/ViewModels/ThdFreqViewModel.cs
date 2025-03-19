@@ -384,7 +384,7 @@ namespace QA40xPlot.ViewModels
 			return MathUtil.FormatPercent(Math.Pow(10, value / 20 + 2)) + " %";
 		}
 
-		private string FormatColumn(ThdColumn column)
+		private string FormatCursor(ThdColumn column)
 		{
 			var vm = ViewSettings.Singleton.ThdFreq;
 			string sout = "Mag: ";
@@ -451,7 +451,7 @@ namespace QA40xPlot.ViewModels
 				FreqShow = MathUtil.FormatLogger(zv.Item1.Freq);
 				if (zv.Item2 != null)
 					ZValue += "Left: " + Environment.NewLine;
-				ZValue += FormatColumn(zv.Item1);
+				ZValue += FormatCursor(zv.Item1);
 			}
 			if (zv.Item2 != null)
 			{
@@ -459,7 +459,7 @@ namespace QA40xPlot.ViewModels
 					FreqShow = MathUtil.FormatLogger(zv.Item2.Freq);
 				else
 					ZValue += "Right: " + Environment.NewLine;
-				ZValue += FormatColumn(zv.Item2);
+				ZValue += FormatCursor(zv.Item2);
 			}
 		}
 
