@@ -15,13 +15,13 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_701192128F3A4B8ABED7801665CC4A60"
+        "MsmKey" = "8:_4CCA4AF471CC462E9342FC4560D28F80"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_B9F37BFF8C864EC3919BAB9E3D81C214"
+        "MsmKey" = "8:_52DA882DCDDD4EC9BF842BCEFDC2B1EF"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -122,7 +122,7 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B9F37BFF8C864EC3919BAB9E3D81C214"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4CCA4AF471CC462E9342FC4560D28F80"
             {
             "SourcePath" = "8:..\\QA40xPlot\\Images\\favicon.ico"
             "TargetName" = "8:favicon.ico"
@@ -199,7 +199,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:QA40xPlotSetup"
         "ProductCode" = "8:{0B96A4F8-8812-4E5E-B520-C45EB5A63AC1}"
-        "PackageCode" = "8:{402FF02C-FE11-4E63-BE3A-2B1036B714FA}"
+        "PackageCode" = "8:{05EC56E5-531D-4400-A8F1-86AE73368BB8}"
         "UpgradeCode" = "8:{86BC0B1C-E735-4767-A04B-BE32123F0CF9}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
@@ -216,7 +216,7 @@
         "Keywords" = "8:"
         "ARPCOMMENTS" = "8:"
         "ARPURLINFOABOUT" = "8:https://github.com/MZachmann/QA40xPlot"
-        "ARPPRODUCTICON" = "8:_B9F37BFF8C864EC3919BAB9E3D81C214"
+        "ARPPRODUCTICON" = "8:_4CCA4AF471CC462E9342FC4560D28F80"
         "ARPIconIndex" = "3:0"
         "SearchPath" = "8:"
         "UseSystemSearchPath" = "11:TRUE"
@@ -319,7 +319,7 @@
         }
         "Shortcut"
         {
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_CD1D9E575BFF43A59478A0FF8069A39C"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_E4E18982088C48CB902BA5FEF056D52B"
             {
             "Name" = "8:QA40xPlot"
             "Arguments" = "8:"
@@ -327,13 +327,13 @@
             "ShowCmd" = "3:1"
             "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_701192128F3A4B8ABED7801665CC4A60"
+            "Target" = "8:_52DA882DCDDD4EC9BF842BCEFDC2B1EF"
             "Folder" = "8:_EF83749687C04A03969881C2D224C9A0"
             "WorkingFolder" = "8:_4F7152FE83094C7BA1E65A9542DF4D84"
-            "Icon" = "8:_B9F37BFF8C864EC3919BAB9E3D81C214"
+            "Icon" = "8:_4CCA4AF471CC462E9342FC4560D28F80"
             "Feature" = "8:"
             }
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_D4FA275F38E5441FBF731314928F034A"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_E873C4026742450AB09BFA84DFD0E089"
             {
             "Name" = "8:QA40xPlot"
             "Arguments" = "8:"
@@ -341,10 +341,10 @@
             "ShowCmd" = "3:1"
             "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_701192128F3A4B8ABED7801665CC4A60"
+            "Target" = "8:_52DA882DCDDD4EC9BF842BCEFDC2B1EF"
             "Folder" = "8:_7B06A9D516FB464793299AAADDCB02DA"
             "WorkingFolder" = "8:_4F7152FE83094C7BA1E65A9542DF4D84"
-            "Icon" = "8:_B9F37BFF8C864EC3919BAB9E3D81C214"
+            "Icon" = "8:_4CCA4AF471CC462E9342FC4560D28F80"
             "Feature" = "8:"
             }
         }
@@ -746,7 +746,7 @@
         }
         "ProjectOutput"
         {
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_701192128F3A4B8ABED7801665CC4A60"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_52DA882DCDDD4EC9BF842BCEFDC2B1EF"
             {
             "SourcePath" = "8:..\\QA40xPlot\\obj\\x64\\Release\\net8.0-windows10.0.17763.0\\win-x64\\apphost.exe"
             "TargetName" = "8:"
@@ -766,7 +766,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             "ProjectOutputGroupRegister" = "3:1"
-            "OutputConfiguration" = "8:"
+            "OutputConfiguration" = "8:Release|x64"
             "OutputGroupCanonicalName" = "8:PublishItems"
             "OutputProjectGuid" = "8:{C3FAA3B2-601C-4B93-9C53-60BB437717B4}"
             "ShowKeyOutput" = "11:TRUE"
