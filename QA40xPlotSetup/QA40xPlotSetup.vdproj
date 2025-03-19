@@ -199,7 +199,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:QA40xPlotSetup"
         "ProductCode" = "8:{0B96A4F8-8812-4E5E-B520-C45EB5A63AC1}"
-        "PackageCode" = "8:{05EC56E5-531D-4400-A8F1-86AE73368BB8}"
+        "PackageCode" = "8:{04767306-24FF-4608-8AB9-4E36B4E7737B}"
         "UpgradeCode" = "8:{86BC0B1C-E735-4767-A04B-BE32123F0CF9}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
@@ -770,6 +770,7 @@
             "OutputGroupCanonicalName" = "8:PublishItems"
             "OutputProjectGuid" = "8:{C3FAA3B2-601C-4B93-9C53-60BB437717B4}"
             "ShowKeyOutput" = "11:TRUE"
+            "PublishProfilePath" = "8:Properties\\PublishProfiles\\ClickOnceProfile.pubxml"
                 "ExcludeFilters"
                 {
                 }

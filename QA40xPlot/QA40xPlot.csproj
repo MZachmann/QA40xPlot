@@ -12,10 +12,16 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SignAssembly>True</SignAssembly>
     <DelaySign>False</DelaySign>
-    <AssemblyOriginatorKeyFile>sgKey.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>Keys\sgKey.snk</AssemblyOriginatorKeyFile>
     <ApplicationIcon>Images\favicon.ico</ApplicationIcon>
     <UseWindowsForms>False</UseWindowsForms>
 	</PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Batches\build.cmd" />
+    <None Remove="Batches\newcert.cmd" />
+    <None Remove="Batches\signit.cmd" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.7.25104.5739" />
@@ -58,6 +64,10 @@
     <Page Update="Views\ThdAmpPlotPage.xaml">
       <SubType>Designer</SubType>
     </Page>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Batches\" />
   </ItemGroup>
 
 </Project>
