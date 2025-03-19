@@ -770,7 +770,6 @@
             "OutputGroupCanonicalName" = "8:PublishItems"
             "OutputProjectGuid" = "8:{C3FAA3B2-601C-4B93-9C53-60BB437717B4}"
             "ShowKeyOutput" = "11:TRUE"
-            "PublishProfilePath" = "8:Properties\\PublishProfiles\\ClickOnceProfile.pubxml"
                 "ExcludeFilters"
                 {
                 }
