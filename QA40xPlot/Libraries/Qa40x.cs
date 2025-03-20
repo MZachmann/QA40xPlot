@@ -69,7 +69,7 @@ namespace QA40xPlot.Libraries
         static public async Task<double> GetVersion()
         {
             string s = await Get("/Status/Version", "Value");
-            return Convert.ToDouble(s);
+            return MathUtil.ToDouble(s);
         }
 
         static public async Task<bool> IsConnected()
@@ -250,7 +250,7 @@ namespace QA40xPlot.Libraries
         {
             Dictionary<string, string> d = await Get(string.Format("/ThdDb/{0}/{1}", fundFreq, maxFreq));
 
-            LeftRightPair lrp = new LeftRightPair() { Left = Convert.ToDouble(d["Left"]), Right = Convert.ToDouble(d["Right"]) };
+            LeftRightPair lrp = new LeftRightPair() { Left = MathUtil.ToDouble(d["Left"]), Right = MathUtil.ToDouble(d["Right"]) };
             return lrp;
         }
 
@@ -258,7 +258,7 @@ namespace QA40xPlot.Libraries
         {
             Dictionary<string, string> d = await Get(string.Format("/SnrDb/{0}/{1}/{2}", fundFreq, minFreq, maxFreq));
 
-            LeftRightPair lrp = new LeftRightPair() { Left = Convert.ToDouble(d["Left"]), Right = Convert.ToDouble(d["Right"]) };
+            LeftRightPair lrp = new LeftRightPair() { Left = MathUtil.ToDouble(d["Left"]), Right = MathUtil.ToDouble(d["Right"]) };
             return lrp;
         }
 
@@ -266,7 +266,7 @@ namespace QA40xPlot.Libraries
         {
             Dictionary<string, string> d = await Get(string.Format("/ThdnDb/{0}/{1}/{2}", fundFreq, minFreq, maxFreq));
 
-            LeftRightPair lrp = new LeftRightPair() { Left = Convert.ToDouble(d["Left"]), Right = Convert.ToDouble(d["Right"]) };
+            LeftRightPair lrp = new LeftRightPair() { Left = MathUtil.ToDouble(d["Left"]), Right = MathUtil.ToDouble(d["Right"]) };
             return lrp;
         }
 
@@ -274,7 +274,7 @@ namespace QA40xPlot.Libraries
         {
             Dictionary<string, string> d = await Get(string.Format("/RmsDbv/{0}/{1}",  startFreq, endFreq));
 
-            LeftRightPair lrp = new LeftRightPair() { Left = Convert.ToDouble(d["Left"]), Right = Convert.ToDouble(d["Right"]) };
+            LeftRightPair lrp = new LeftRightPair() { Left = MathUtil.ToDouble(d["Left"]), Right = MathUtil.ToDouble(d["Right"]) };
             return lrp;
         }
 
@@ -282,7 +282,7 @@ namespace QA40xPlot.Libraries
         {
             Dictionary<string, string> d = await Get(string.Format("/PeakDbv/{0}/{1}", startFreq, endFreq));
 
-            LeftRightPair lrp = new LeftRightPair() { Left = Convert.ToDouble(d["Left"]), Right = Convert.ToDouble(d["Right"]) };
+            LeftRightPair lrp = new LeftRightPair() { Left = MathUtil.ToDouble(d["Left"]), Right = MathUtil.ToDouble(d["Right"]) };
             return lrp;
         }
 
@@ -290,7 +290,7 @@ namespace QA40xPlot.Libraries
         {
             Dictionary<string, string> d = await Get(string.Format("/Data/Time/Input"));
 
-            LeftRightTimeSeries lrts = new LeftRightTimeSeries() { dt = Convert.ToDouble(d["Dx"]), Left = ConvertBase64ToDoubles(d["Left"]), Right = ConvertBase64ToDoubles(d["Right"]) };
+            LeftRightTimeSeries lrts = new LeftRightTimeSeries() { dt = MathUtil.ToDouble(d["Dx"]), Left = ConvertBase64ToDoubles(d["Left"]), Right = ConvertBase64ToDoubles(d["Right"]) };
 
             return lrts;
         }
@@ -299,7 +299,7 @@ namespace QA40xPlot.Libraries
         {
             Dictionary<string, string> d = await Get(string.Format("/Data/Time/Output"));
 
-            LeftRightTimeSeries lrts = new LeftRightTimeSeries() { dt = Convert.ToDouble(d["Dx"]), Left = ConvertBase64ToDoubles(d["Left"]), Right = ConvertBase64ToDoubles(d["Right"]) };
+            LeftRightTimeSeries lrts = new LeftRightTimeSeries() { dt = MathUtil.ToDouble(d["Dx"]), Left = ConvertBase64ToDoubles(d["Left"]), Right = ConvertBase64ToDoubles(d["Right"]) };
 
             return lrts;
         }
@@ -309,7 +309,7 @@ namespace QA40xPlot.Libraries
             DateTime now = DateTime.Now;
 
             Dictionary<string, string> d = await Get(string.Format("/Data/Frequency/Input"));
-            LeftRightFrequencySeries lrfs = new LeftRightFrequencySeries() { Df = Convert.ToDouble(d["Dx"]), Left = ConvertBase64ToDoubles(d["Left"]), Right = ConvertBase64ToDoubles(d["Right"]) };
+            LeftRightFrequencySeries lrfs = new LeftRightFrequencySeries() { Df = MathUtil.ToDouble(d["Dx"]), Left = ConvertBase64ToDoubles(d["Left"]), Right = ConvertBase64ToDoubles(d["Right"]) };
 
             double elapsedMs = DateTime.Now.Subtract(now).TotalMilliseconds;
             //Console.WriteLine($"Left Array Size: {lrfs.Left.Length}  Elapsed Ms: {elapsedMs:0.0}");
@@ -322,7 +322,7 @@ namespace QA40xPlot.Libraries
             DateTime now = DateTime.Now;
 
             Dictionary<string, string> d = await Get(string.Format("/Data/Frequency/Output"));
-            LeftRightFrequencySeries lrfs = new LeftRightFrequencySeries() { Df = Convert.ToDouble(d["Dx"]), Left = ConvertBase64ToDoubles(d["Left"]), Right = ConvertBase64ToDoubles(d["Right"]) };
+            LeftRightFrequencySeries lrfs = new LeftRightFrequencySeries() { Df = MathUtil.ToDouble(d["Dx"]), Left = ConvertBase64ToDoubles(d["Left"]), Right = ConvertBase64ToDoubles(d["Right"]) };
 
             double elapsedMs = DateTime.Now.Subtract(now).TotalMilliseconds;
             //Console.WriteLine($"Left Array Size: {lrfs.Left.Length}  Elapsed Ms: {elapsedMs:0.0}");
@@ -335,7 +335,7 @@ namespace QA40xPlot.Libraries
         {
             Dictionary<string, string> d = await Get(string.Format("/Data/Frequency/Input"));
 
-            LeftRightFrequencySeries lrfs = new LeftRightFrequencySeries() { df = Convert.ToDouble(d["Dx"]), Left = ConvertBase64ToDoubles(d["Left"]), Right = ConvertBase64ToDoubles(d["Right"]) };
+            LeftRightFrequencySeries lrfs = new LeftRightFrequencySeries() { df = MathUtil.ToDouble(d["Dx"]), Left = ConvertBase64ToDoubles(d["Left"]), Right = ConvertBase64ToDoubles(d["Right"]) };
 
             return lrfs;
         }*/

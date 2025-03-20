@@ -105,7 +105,7 @@ namespace QA40xPlot.Actions
 					break;
 				case TestingType.Impedance:
                     {
-						double rref = Convert.ToDouble(MeasurementResult.MeasurementSettings.ZReference);
+						double rref = MathUtil.ToDouble(MeasurementResult.MeasurementSettings.ZReference);
 						db.LeftData = MeasurementResult.GainData.Select(x => rref * ToImpedance(x).Magnitude).ToList();
 						// YValues = gainY.Select(x => rref * x.Magnitude/(1-x.Magnitude)).ToArray();
 						db.PhaseData = MeasurementResult.GainData.Select(x => 180 * ToImpedance(x).Phase / Math.PI).ToList();
@@ -160,7 +160,7 @@ namespace QA40xPlot.Actions
                         break;
                     case TestingType.Impedance:
                         {   // send freq, ohms, phasedeg
-							double rref = Convert.ToDouble(MeasurementResult.MeasurementSettings.ZReference);
+							double rref = MathUtil.ToDouble(MeasurementResult.MeasurementSettings.ZReference);
 							var ohms = rref * ToImpedance(MeasurementResult.GainData[bin]).Magnitude;
 							tup = Tuple.Create(freqs[bin], ohms, 180 * values[bin].Phase / Math.PI);
 						}
@@ -219,7 +219,7 @@ namespace QA40xPlot.Actions
 			// ********************************************************************
 			var binSize = QaLibrary.CalcBinSize(sampleRate, fftsize);
 			// Generate a list of frequencies
-			var stepFrequencies = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(Convert.ToDouble(mrs.StartFreq), Convert.ToDouble(mrs.EndFreq), mrs.StepsOctave);
+			var stepFrequencies = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(MathUtil.ToDouble(mrs.StartFreq), MathUtil.ToDouble(mrs.EndFreq), mrs.StepsOctave);
 			// Translate the generated list to bin center frequencies
 			var stepBinFrequencies = QaLibrary.TranslateToBinFrequencies(stepFrequencies, sampleRate, fftsize);
 			stepBinFrequencies = stepBinFrequencies.Where(x => x >= 1 && x <= 95500)                // Filter out values that are out of range 
@@ -239,7 +239,7 @@ namespace QA40xPlot.Actions
 
 				if (etp == E_GeneratorType.OUTPUT_VOLTAGE)     // Based on output
                 {
-                    double amplifierOutputVoltagedBV = QaLibrary.ConvertVoltage(Convert.ToDouble(mrs.Gen1Voltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+                    double amplifierOutputVoltagedBV = QaLibrary.ConvertVoltage(MathUtil.ToDouble(mrs.Gen1Voltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 					await showMessage($"Determining generator amplitude to get an output amplitude of {amplifierOutputVoltagedBV:0.00#} dBV.");
 
                     // Get input voltage based on desired output voltage
@@ -281,7 +281,7 @@ namespace QA40xPlot.Actions
                 }
                 else
                 {
-                    genVoltagedBV = QaLibrary.ConvertVoltage(Convert.ToDouble(mrs.Gen1Voltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+                    genVoltagedBV = QaLibrary.ConvertVoltage(MathUtil.ToDouble(mrs.Gen1Voltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 					await showMessage($"Determining the best input attenuation for a generator voltage of {genVoltagedBV:0.00#} dBV.");
 
                     // Determine correct input attenuation
@@ -315,7 +315,7 @@ namespace QA40xPlot.Actions
 				{
                     if (ct.IsCancellationRequested)
                         break;
-                    var voltagedBV = 20*Math.Log10(Convert.ToDouble(frqrsVm.Gen1Voltage));
+                    var voltagedBV = 20*Math.Log10(MathUtil.ToDouble(frqrsVm.Gen1Voltage));
                     for( int steps = 0; steps < stepBinFrequencies.Count(); steps++)
                     {
                         if (ct.IsCancellationRequested)
@@ -469,7 +469,7 @@ namespace QA40xPlot.Actions
             // var magValues = gainY.Select(x => x.Magnitude).ToArray();
             double[] YValues = [];
             double[] phaseValues = [];
-            double rref = Convert.ToDouble(frqrsVm.ZReference);
+            double rref = MathUtil.ToDouble(frqrsVm.ZReference);
             string legendname = string.Empty;
             switch(ttype)
             {
@@ -550,7 +550,19 @@ namespace QA40xPlot.Actions
 
 			int resultNr = 0;
 
-            
+            switch(GetTestingType(frqsrVm.TestType))
+            {
+                case TestingType.Response:
+					frqsrVm.GraphUnit = "dBV";
+                    break;
+				case TestingType.Impedance:
+					frqsrVm.GraphUnit = "Ohms";
+					break;
+				case TestingType.Gain:
+					frqsrVm.GraphUnit = "dB";
+					break;
+			}
+
             if (settingsChanged)
             {
                 InitializePlot();

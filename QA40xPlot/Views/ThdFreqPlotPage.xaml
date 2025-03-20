@@ -91,11 +91,12 @@
         </StackPanel>
         <views:PlotControl x:Name="WpfPlot1"  Grid.Column="1" />
         <StackPanel Grid.Column="2" Orientation="Vertical">
-            <GroupBox Header="Y Axis (dB)" Visibility="{Binding ToShowdB}">
+            <GroupBox Header="Y Axis" Visibility="{Binding ToShowdB}">
                 <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -107,17 +108,20 @@
                     <Label Content="Top" Grid.Row="0" Grid.Column="0"  />
                     <ComboBox IsEditable="True" Grid.Row="0" Grid.Column="1"  Text="{Binding RangeTopdB}" ItemsSource="{Binding TopDbs}">
                     </ComboBox>
+                    <Label Content="dBV" Grid.Row="0" Grid.Column="2"  />
                     <Label Content="Bottom" Grid.Row="1" Grid.Column="0"  />
                     <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1"  Text="{Binding RangeBottomdB}" ItemsSource="{Binding BottomDbs}">
                     </ComboBox>
+                    <Label Content="dBV" Grid.Row="1" Grid.Column="2"  />
                     <Button Content="Fit to data" Margin="0,4,0,0" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center"  />
                 </Grid>
             </GroupBox>
-            <GroupBox Header="Y Axis (%)" Visibility="{Binding ToShowRange}">
+            <GroupBox Header="Y Axis" Visibility="{Binding ToShowRange}">
                 <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -127,9 +131,11 @@
                     <Label Content="Top" Grid.Row="0" Grid.Column="0"  />
                     <ComboBox Grid.Column="1"  Grid.Row="0"  SelectedValue="{Binding RangeTop}" ItemsSource="{Binding StartPercents}">
                     </ComboBox>
+                    <Label Content="%" Grid.Row="0" Grid.Column="2"  />
                     <Label Content="Bottom" Grid.Row="1" Grid.Column="0"  />
                     <ComboBox Grid.Column="1"  Grid.Row="1"  SelectedValue="{Binding RangeBottom}" ItemsSource="{Binding EndPercents}">
                     </ComboBox>
+                    <Label Content="%" Grid.Row="1" Grid.Column="2"  />
                     <Button Content="Fit to data" Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Center" Grid.ColumnSpan="2"  />
                 </Grid>
             </GroupBox>
@@ -138,6 +144,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -149,9 +156,11 @@
                     <Label Content="From" Grid.Row="0"  Grid.Column="0" />
                     <ComboBox  IsEditable="True" Grid.Row="0" Grid.Column="1"  Text="{Binding GraphStartFreq}" ItemsSource="{Binding StartFrequencies}">
                     </ComboBox>
+                    <Label Content="Hz" Grid.Row="0"  Grid.Column="2" />
                     <Label Content="To" Grid.Row="1" Grid.Column="0"  />
                     <ComboBox  IsEditable="True" Grid.Row="1" Grid.Column="1" Text="{Binding GraphEndFreq}" ItemsSource="{Binding EndFrequencies}">
                     </ComboBox>
+                    <Label Content="Hz" Grid.Row="1"  Grid.Column="2" />
                     <Button Content="Fit to data" Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Center" Grid.ColumnSpan="2"  />
                 </Grid>
             </GroupBox>

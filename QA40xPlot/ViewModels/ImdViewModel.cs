@@ -423,7 +423,7 @@ namespace QA40xPlot.ViewModels
 		private void ExecIm(int df1, int df2, int divisor)
 		{
 			var ax = IntermodType;
-			this.Gen2Voltage = (Convert.ToDouble(this.Gen1Voltage) / divisor).ToString();
+			this.Gen2Voltage = (MathUtil.ToDouble(this.Gen1Voltage) / divisor).ToString();
 			this.Gen1Frequency = df1.ToString();
 			this.Gen2Frequency = df2.ToString();
 			IntermodType = ax;

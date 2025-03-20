@@ -220,7 +220,7 @@ namespace QA40xPlot.Actions
                 E_GeneratorType etp = (E_GeneratorType)thd.MeasureType;
                 if (etp == E_GeneratorType.OUTPUT_VOLTAGE || etp == E_GeneratorType.OUTPUT_POWER)     // Based on output
                 {
-                    double amplifierOutputVoltagedBV = QaLibrary.ConvertVoltage(Convert.ToDouble(thd.OutVoltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+                    double amplifierOutputVoltagedBV = QaLibrary.ConvertVoltage(MathUtil.ToDouble(thd.OutVoltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
                     if (etp == E_GeneratorType.OUTPUT_VOLTAGE)
                         await showMessage($"Determining generator amplitude to get an output amplitude of {amplifierOutputVoltagedBV:0.00#} dBV.");
                     else
@@ -271,7 +271,7 @@ namespace QA40xPlot.Actions
                 }
                 else if (etp == E_GeneratorType.INPUT_VOLTAGE)                         // Based on input voltage
                 {
-                    double genVoltagedBV = QaLibrary.ConvertVoltage(Convert.ToDouble(thd.GenVoltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+                    double genVoltagedBV = QaLibrary.ConvertVoltage(MathUtil.ToDouble(thd.GenVoltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
                     await showMessage($"Determining the best input attenuation for a generator voltage of {genVoltagedBV:0.00#} dBV.");
 
                     // Determine correct input attenuation
@@ -317,7 +317,7 @@ namespace QA40xPlot.Actions
                     return false;
 
                 // Set the generator
-                double amplitudeSetpointdBV = QaLibrary.ConvertVoltage(Convert.ToDouble(thd.GenVoltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+                double amplitudeSetpointdBV = QaLibrary.ConvertVoltage(MathUtil.ToDouble(thd.GenVoltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
                 await Qa40x.SetGen1(stepBinFrequencies[0], amplitudeSetpointdBV, true);
 
                 await Qa40x.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
@@ -488,7 +488,7 @@ namespace QA40xPlot.Actions
             var thdFreq = ViewSettings.Singleton.ThdFreq;
 
             myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(thdFreq.GraphStartFreq)), Math.Log10(Convert.ToInt32(thdFreq.GraphEndFreq)),
-                Math.Log10(Convert.ToDouble(thdFreq.RangeBottom)) - 0.00000001, Math.Log10(Convert.ToDouble(thdFreq.RangeTop)));  // - 0.000001 to force showing label
+                Math.Log10(MathUtil.ToDouble(thdFreq.RangeBottom)) - 0.00000001, Math.Log10(MathUtil.ToDouble(thdFreq.RangeTop)));  // - 0.000001 to force showing label
             myPlot.Title("Distortion vs Frequency (%)");
             myPlot.XLabel("Frequency (Hz)");
             myPlot.YLabel("Distortion (%)");

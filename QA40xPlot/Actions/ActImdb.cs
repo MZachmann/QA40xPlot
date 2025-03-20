@@ -554,7 +554,7 @@ namespace QA40xPlot.Actions
 
             ImdViewModel thd = ViewSettings.Singleton.ImdVm;
             myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(thd.GraphStartFreq)), Math.Log10(Convert.ToInt32(thd.GraphEndFreq)), 
-				Math.Log10(Convert.ToDouble(thd.RangeBottom)) - 0.00000001, Math.Log10(Convert.ToDouble(thd.RangeTop)));  // - 0.000001 to force showing label
+				Math.Log10(MathUtil.ToDouble(thd.RangeBottom)) - 0.00000001, Math.Log10(MathUtil.ToDouble(thd.RangeTop)));  // - 0.000001 to force showing label
 			SetTheTitle(myPlot);
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel("%");
@@ -768,7 +768,7 @@ namespace QA40xPlot.Actions
         {
 			ImdViewModel thd = ViewSettings.Singleton.ImdVm;
 			var vm = ViewSettings.Singleton.ImdChannelLeft;
-            vm.CalculateChannelValues(MeasurementResult.FrequencySteps[0].Left, Convert.ToDouble( thd.Gen1Frequency), Convert.ToDouble(thd.Gen2Frequency), thd.ShowDataPercent);
+            vm.CalculateChannelValues(MeasurementResult.FrequencySteps[0].Left, MathUtil.ToDouble( thd.Gen1Frequency), MathUtil.ToDouble(thd.Gen2Frequency), thd.ShowDataPercent);
 		}
 
 		public void UpdateGraph(bool settingsChanged)

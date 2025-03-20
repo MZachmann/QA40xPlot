@@ -171,8 +171,8 @@ namespace QA40xPlot.Actions
 			// ********************************************************************
 			// Determine attenuation level
 			// ********************************************************************
-			double startAmpl = QaLibrary.ConvertVoltage(Convert.ToDouble(thdAmp.StartVoltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-			double endAmpl = QaLibrary.ConvertVoltage(Convert.ToDouble(thdAmp.EndVoltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+			double startAmpl = QaLibrary.ConvertVoltage(MathUtil.ToDouble(thdAmp.StartVoltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+			double endAmpl = QaLibrary.ConvertVoltage(MathUtil.ToDouble(thdAmp.EndVoltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 			double generatorAmplitudedBV = Math.Max(startAmpl, endAmpl);	// use the largest amplitude
 			await showMessage($"Determining the best input attenuation for a generator voltage of {generatorAmplitudedBV:0.00#} dBV.");
 
@@ -437,8 +437,8 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;
 			InitializePctAmpPlot(myPlot);
 			var thdAmp = ViewSettings.Singleton.ThdAmp;
-			myPlot.Axes.SetLimits(Math.Log10(Convert.ToDouble(thdAmp.GraphStartVolts)), Math.Log10(Convert.ToDouble(thdAmp.GraphEndVolts)),
-				Math.Log10(Convert.ToDouble(thdAmp.RangeBottom)), Math.Log10(Convert.ToDouble(thdAmp.RangeTop)));
+			myPlot.Axes.SetLimits(Math.Log10(MathUtil.ToDouble(thdAmp.GraphStartVolts)), Math.Log10(MathUtil.ToDouble(thdAmp.GraphEndVolts)),
+				Math.Log10(MathUtil.ToDouble(thdAmp.RangeBottom)), Math.Log10(MathUtil.ToDouble(thdAmp.RangeTop)));
 			SetPlotLabels();
 			myPlot.YLabel("Distortion (%)");
 			thdPlot.Refresh();
@@ -452,8 +452,8 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;
 			InitializeMagAmpPlot(myPlot);
 			var thdAmp = ViewSettings.Singleton.ThdAmp;
-			myPlot.Axes.SetLimits(Math.Log10(Convert.ToDouble(thdAmp.GraphStartVolts)), Math.Log10(Convert.ToDouble(thdAmp.GraphEndVolts)),
-				Convert.ToDouble(thdAmp.RangeBottomdB), Convert.ToDouble(thdAmp.RangeTopdB));
+			myPlot.Axes.SetLimits(Math.Log10(MathUtil.ToDouble(thdAmp.GraphStartVolts)), Math.Log10(MathUtil.ToDouble(thdAmp.GraphEndVolts)),
+				thdAmp.RangeBottomdB, thdAmp.RangeTopdB);
 			SetPlotLabels();
 			myPlot.YLabel("Distortion (dB)");
 			thdPlot.Refresh();

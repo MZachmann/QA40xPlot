@@ -35,6 +35,14 @@ public class FreqRespViewModel : BaseViewModel
 
 	#region Setters and Getters
 
+	private string _GraphUnit = string.Empty;
+	[JsonIgnore]
+	public string GraphUnit
+	{
+		get => _GraphUnit;
+		set => SetProperty(ref _GraphUnit, value);
+	}
+
 	private string _TestType = string.Empty;
 	public string TestType
 	{
@@ -263,6 +271,7 @@ public class FreqRespViewModel : BaseViewModel
 				actFreq?.UpdateGraph(true);
 				break;
 			case "TestType":
+				// set the tab header as we change type
 				if( ViewSettings.Singleton != null && ViewSettings.Singleton.Main != null && ViewSettings.Singleton.Main.FreqRespHdr != null)
 				{
 					ViewSettings.Singleton.Main.FreqRespHdr = TestType;
@@ -402,6 +411,8 @@ public class FreqRespViewModel : BaseViewModel
 		ShowPoints = true;
 		ZReference = "8";
 		TestType = "Impedance";
+
+		GraphUnit = "dBV";
 
 		StartFreq = "20";
 		EndFreq = "20000";

@@ -6,6 +6,7 @@ using QA40xPlot.ViewModels;
 using SkiaSharp;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -27,12 +28,34 @@ namespace QA40xPlot
 		[DllImport("User32.dll")]
 		public static extern uint GetDpiForSystem();
 
+		// Modify the GetVersionInfo method
+		static string GetVersionInfo()
+		{
+			// Get the current assembly
+			Assembly assembly = Assembly.GetExecutingAssembly();
+			string productVersion = string.Empty;
+
+			// Get the product version
+			object[] attributes = assembly.GetCustomAttributes(typeof(AssemblyFileVersionAttribute), false);
+			if (attributes.Length > 0)
+			{
+				AssemblyFileVersionAttribute versionAttribute = (AssemblyFileVersionAttribute)attributes[0];
+				productVersion = versionAttribute.Version;
+				Debug.WriteLine("Product Version: " + productVersion);
+			}
+			else
+			{
+				Debug.WriteLine("Product Version not found.");
+			}
+			return new string(productVersion.TakeWhile(x => x != '+').ToArray());
+		}
+
 		public MainWindow()
 		{
 			InitializeComponent();
 			var vm = ViewModels.ViewSettings.Singleton.Main;
 			this.DataContext = vm;
-			vm.ProgressMessage = "Hello, World!";
+			vm.ProgressMessage = "Welcome to QA40xPlot v" + GetVersionInfo();
 			vm.ScreenDpi = TestGetDpi();
 			this.ContentRendered += DoContentRendered;
 		}

@@ -24,6 +24,11 @@ namespace QA40xPlot.Libraries
 			return fallback;
 		}
 
+		public static double ToDouble(string? text)
+		{
+			return ParseTextToDouble(text, 1e-6);
+		}
+
 		/// <summary>
 		/// Parse text to double. Return fallback texts if failed
 		/// </summary>

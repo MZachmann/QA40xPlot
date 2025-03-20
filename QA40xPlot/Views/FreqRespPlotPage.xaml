@@ -74,6 +74,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -91,9 +92,10 @@
                     <ComboBox ToolTip="Input Voltage = DUT Input (Generator Output), Output Voltage = DUT Output (QA40x Input)" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  SelectedIndex="{Binding MeasureType}" ItemsSource="{Binding MeasureTypes}">
                     </ComboBox>
                     <Label Content="Voltage" Grid.Row="1" Grid.Column="0"  />
-                    <ComboBox IsEditable="True" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Center"  
+                    <ComboBox IsEditable="True" Grid.Column="1" Grid.Row="1" VerticalAlignment="Center"  
                                Text="{Binding Gen1Voltage}" ItemsSource="{Binding GenVoltages}">
                     </ComboBox>
+                    <Label Content="Hz" Grid.Column="2" Grid.Row="1"  />
                     <Label Content="Sample Rate" Grid.Row="2" Grid.Column="0"  />
                     <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="2" VerticalAlignment="Center"  
                                SelectedValue="{Binding SampleRate}" ItemsSource="{Binding SampleRates}">
@@ -118,6 +120,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -126,8 +129,10 @@
                     </Grid.RowDefinitions>
                     <Label Content="Start Frequency" Grid.Column="0" Grid.Row="0"  />
                     <ComboBox VerticalAlignment="Center" IsEditable="True" Text="{Binding StartFreq}" Grid.Column="1" Grid.Row="0" ItemsSource="{Binding StartFrequencies}"  />
+                    <Label Content="Hz" Grid.Column="2" Grid.Row="0"  />
                     <Label Content="End Frequency" Grid.Column="0" Grid.Row="1"  />
                     <ComboBox VerticalAlignment="Center" IsEditable="True" Text="{Binding EndFreq}" Grid.Column="1" Grid.Row="1"  ItemsSource="{Binding EndFrequencies}"  />
+                    <Label Content="Hz" Grid.Column="2" Grid.Row="1"  />
                     <Label Content="Steps / Octave" Grid.Column="0" Grid.Row="2"  />
                     <xctk:IntegerUpDown Value="{Binding StepsOctave}" Minimum="1" VerticalAlignment="Center" Grid.Column="1" Grid.Row="2"  />
                 </Grid>
@@ -147,10 +152,10 @@
                     <Label Content="Reference Z" Grid.Column="0" Grid.Row="0"  />
                     <ComboBox VerticalAlignment="Center" IsEditable="True" Text="{Binding ZReference}" Grid.Column="1" Grid.Row="0" ItemsSource="{Binding Impedances}"  />
                     <Label Content="Ohms" Grid.Column="2" Grid.Row="0"  />
-                    <views:PlotControl x:Name="WpfPlot2" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1" Width="150" Height="100" Margin="0,4,0,0" />
-                    <views:PlotControl x:Name="WpfPlot3" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" Width="150"  Height="100" Margin="0,4" />
                 </Grid>
             </GroupBox>
+            <views:PlotControl x:Name="WpfPlot2" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1" Width="150" Height="100" Margin="0,4,0,0" />
+            <views:PlotControl x:Name="WpfPlot3" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" Width="150"  Height="100" Margin="0,4" />
         </StackPanel>
         <Grid Grid.Column="1">
             <views:PlotControl x:Name="WpfPlot1"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
@@ -161,6 +166,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -172,9 +178,11 @@
                     <Label Content="Top" Grid.Row="0" Grid.Column="0"  />
                     <ComboBox IsEditable="True" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"  Text="{Binding RangeTopdB}" ItemsSource="{Binding TopDbs}">
                     </ComboBox>
+                    <Label Content="{Binding GraphUnit}" Grid.Row="0" Grid.Column="2"  />
                     <Label Content="Bottom" Grid.Row="1" Grid.Column="0"  />
                     <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center"  Text="{Binding RangeBottomdB}" ItemsSource="{Binding BottomDbs}">
                     </ComboBox>
+                    <Label Content="{Binding GraphUnit}" Grid.Row="1" Grid.Column="2"  />
                     <Button Content="Fit to data" Margin="0,4,0,0" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" />
                 </Grid>
             </GroupBox>
@@ -203,6 +211,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -214,9 +223,11 @@
                     <Label Content="From" Grid.Row="0"  Grid.Column="0" />
                     <ComboBox IsEditable="True" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"  Text="{Binding GraphStartFreq}" ItemsSource="{Binding StartFrequencies}">
                     </ComboBox>
+                    <Label Content="Hz" Grid.Row="0"  Grid.Column="2" />
                     <Label Content="To" Grid.Row="1" Grid.Column="0"  />
                     <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Text="{Binding GraphEndFreq}" ItemsSource="{Binding EndFrequencies}">
                     </ComboBox>
+                    <Label Content="Hz" Grid.Row="1"  Grid.Column="2" />
                     <Button Content="Fit to data" Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Center" Grid.ColumnSpan="2" />
                 </Grid>
             </GroupBox>

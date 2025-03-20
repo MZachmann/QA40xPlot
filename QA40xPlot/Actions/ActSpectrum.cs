@@ -539,7 +539,7 @@ namespace QA40xPlot.Actions
 			var thdFreq = ViewSettings.Singleton.SpectrumVm;
 
             SpectrumViewModel thd = ViewSettings.Singleton.SpectrumVm;
-            myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(thd.GraphStartFreq)), Math.Log10(Convert.ToInt32(thd.GraphEndFreq)), Math.Log10(Convert.ToDouble(thd.RangeBottom)) - 0.00000001, Math.Log10(Convert.ToDouble(thd.RangeTop)));  // - 0.000001 to force showing label
+            myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(thd.GraphStartFreq)), Math.Log10(Convert.ToInt32(thd.GraphEndFreq)), Math.Log10(MathUtil.ToDouble(thd.RangeBottom)) - 0.00000001, Math.Log10(MathUtil.ToDouble(thd.RangeTop)));  // - 0.000001 to force showing label
             myPlot.Title("Spectrum");
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel("%");
@@ -760,7 +760,7 @@ namespace QA40xPlot.Actions
 			SpectrumViewModel thd = ViewSettings.Singleton.SpectrumVm;
 			var vm = ViewSettings.Singleton.ChannelLeft;
             vm.FundamentalFrequency = 0;
-            vm.CalculateChannelValues(MeasurementResult.FrequencySteps[0].Left, Convert.ToDouble( thd.Gen1Frequency), thd.ShowDataPercent);
+            vm.CalculateChannelValues(MeasurementResult.FrequencySteps[0].Left, MathUtil.ToDouble( thd.Gen1Frequency), thd.ShowDataPercent);
 		}
 
 		public void UpdateGraph(bool settingsChanged)
