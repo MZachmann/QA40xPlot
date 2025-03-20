@@ -11,6 +11,7 @@ using System.Windows.Input;
 using OpenTK.Windowing.Common;
 using ScottPlot;
 using ScottPlot.Plottables;
+using System.Runtime.InteropServices;
 
 namespace QA40xPlot.ViewModels
 {
@@ -370,6 +371,7 @@ namespace QA40xPlot.ViewModels
 			specVm.DoMouse(sender, e);
 		}
 
+		private static Marker? MyMark = null;
 		private void DoMouse(object sender, MouseEventArgs e)
 		{ 
 
@@ -383,18 +385,30 @@ namespace QA40xPlot.ViewModels
 			{
 				IsMouseDown = false;
 			}
-			if (IsTracking)
-			{
-				var p = e.GetPosition(actPlot);
-				var cord = ConvertScottCoords(actPlot, p.X, p.Y);
-				var xpos = cord.Item1;
-				var ypos = cord.Item2;
-				FreqValue = Math.Pow(10, xpos);
 
-				var zv = actSpec.LookupX(FreqValue);
-				FreqShow = FreqValue.ToString("0.# Hz");
-				ZValue = (20 * Math.Log10(zv.Item2)).ToString("0.# dBV");
+			if (!IsTracking)
+				return;
+
+			var p = e.GetPosition(actPlot);
+			var cord = ConvertScottCoords(actPlot, p.X, p.Y);
+			var xpos = cord.Item1;
+			var ypos = cord.Item2;
+			FreqValue = Math.Pow(10, xpos);
+
+			var zv = actSpec.LookupXY(FreqValue, ypos, ShowRight && !ShowLeft);
+			var valdBV = 20 * Math.Log10(zv.Item2);
+			// - this may be too slow, but for now....
+			if (MyMark != null)
+			{
+				actPlot.ThePlot.Remove(MyMark);
+				MyMark = null;
 			}
+			MyMark = actPlot.ThePlot.Add.Marker(Math.Log10(zv.Item1), valdBV,
+				MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), ScottPlot.Colors.Red);
+			actPlot.Refresh();
+
+			FreqShow = zv.Item1.ToString("0.# Hz");
+			ZValue = valdBV.ToString("0.# dBV");
 		}
 
 		~SpectrumViewModel()

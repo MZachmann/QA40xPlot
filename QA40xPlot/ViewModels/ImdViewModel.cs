@@ -6,6 +6,8 @@ using System.ComponentModel;
 using Newtonsoft.Json;
 using System.Windows;
 using System.Windows.Input;
+using ScottPlot;
+using ScottPlot.Plottables;
 
 namespace QA40xPlot.ViewModels
 {
@@ -472,6 +474,7 @@ namespace QA40xPlot.ViewModels
 			imdVm.DoMouse(sender, e);
 		}
 
+		private static Marker? MyMark = null;
 		private void DoMouse(object sender, MouseEventArgs e)
 		{
 
@@ -485,17 +488,29 @@ namespace QA40xPlot.ViewModels
 			{
 				IsMouseDown = false;
 			}
-			if (IsTracking)
-			{
-				var p = e.GetPosition(actPlot);
-				var cord = ConvertScottCoords(actPlot, p.X, p.Y);
-				var xpos = cord.Item1;
-				var ypos = cord.Item2;
-				FreqValue = Math.Pow(10, xpos); // frequency
-			}
 
-			var zv = actImd.LookupX(FreqValue);
-			FreqShow = FreqValue.ToString("0.# Hz");
+			if (!IsTracking)
+				return;
+
+			var p = e.GetPosition(actPlot);
+			var cord = ConvertScottCoords(actPlot, p.X, p.Y);
+			var xpos = cord.Item1;
+			var ypos = cord.Item2;
+			FreqValue = Math.Pow(10, xpos); // frequency
+
+			var zv = actImd.LookupXY(FreqValue, ypos, ShowRight && !ShowLeft);
+			var valdBV = 20 * Math.Log10(zv.Item2);
+			// - this may be too slow, but for now....
+			if (MyMark != null)
+			{
+				actPlot.ThePlot.Remove(MyMark);
+				MyMark = null;
+			}
+			MyMark = actPlot.ThePlot.Add.Marker(Math.Log10(zv.Item1), valdBV,
+				MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), ScottPlot.Colors.Red);
+			actPlot.Refresh();
+
+			FreqShow = zv.Item1.ToString("0.# Hz");
 			ZValue = (20 * Math.Log10(zv.Item2)).ToString("0.# dBV");
 		}
 
@@ -503,6 +518,7 @@ namespace QA40xPlot.ViewModels
 		{
 			PropertyChanged -= CheckPropertyChanged;
 			MouseTracked -= DoMouseTracked;
+			 
 		}
 
 		public ImdViewModel()

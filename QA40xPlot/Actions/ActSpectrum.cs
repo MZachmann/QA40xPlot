@@ -4,8 +4,10 @@ using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
+using System;
 using System.Data;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Windows;
 
 // various things for the thd vs frequency activity
@@ -480,27 +482,36 @@ namespace QA40xPlot.Actions
             return channelData;
         }
 
-		public Tuple<double,double> LookupX(double freq)
+		// here posn is in dBV
+		public Tuple<double,double> LookupXY(double freq, double posndBV, bool useRight)
 		{
-			var x = MeasurementResult.FrequencySteps;
-			if (freq <= 0)
+			var steps = MeasurementResult.FrequencySteps;
+			if (freq <= 0 || steps == null || steps.Count == 0)
 				return Tuple.Create(0.0,0.0);
 
 			try
 			{
-				if (x != null && x.Count > 0)
+				// get the data to look through
+				var fftdata = steps.First().fftData;
+				var ffs = useRight ? fftdata.Right : fftdata.Left;
+				if (ffs != null && ffs.Length > 0)
 				{
-					var fftdata = x.First().fftData;
-					var ffs = fftdata.Left;
-					if (ffs != null && ffs.Length > 0)
-					{
-						var vm = ViewSettings.Singleton.SpectrumVm;
-						var sampleRate = Convert.ToUInt32(vm.SampleRate);
-						var fftsize = SpectrumViewModel.FftActualSizes.ElementAt(SpectrumViewModel.FftSizes.IndexOf(vm.FftSize));
-						int bin = (int)QaLibrary.GetBinOfFrequency(freq, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
-						if( bin < ffs.Length)
-							return Tuple.Create(bin*fftdata.Df, ffs[bin]);
-					}
+					int bin = 0;
+					ScottPlot.Plot myPlot = fftPlot.ThePlot;
+					var pixel = myPlot.GetPixel(new Coordinates(Math.Log10(freq), posndBV));
+
+					// get screen coords for some of the data
+					int abin = (int)(freq / fftdata.Df);       // apporoximate bin
+					var binmin = Math.Max(1, abin - 200);            // random....
+					var binmax = Math.Min(ffs.Length - 1, abin + 200);           // random....
+					var distsx = ffs.Skip(binmin).Take(binmax - binmin).Select((fftd, index) => myPlot.GetPixel(new Coordinates(Math.Log10((index+binmin) * fftdata.Df), 20 * Math.Log10(ffs[binmin+index]))));
+					var distx = distsx.Select(x => Math.Pow(x.X - pixel.X, 2) + Math.Pow(x.Y - pixel.Y, 2));
+					var dlist = distx.ToList(); // no dc
+					bin = binmin + dlist.IndexOf(dlist.Min());
+
+					var vm = ViewSettings.Singleton.SpectrumVm;
+					if ( bin < ffs.Length)
+						return Tuple.Create(bin*fftdata.Df, ffs[bin]);
 				}
 			}
 			catch (Exception )
@@ -508,8 +519,6 @@ namespace QA40xPlot.Actions
 			}
 			return Tuple.Create(0.0,0.0);
 		}
-
-
 
         /// <summary>
         /// Clear the plot
@@ -794,7 +803,8 @@ namespace QA40xPlot.Actions
 				ShowPowerMarkers(MeasurementResult);
 				DrawChannelInfoTable();
 			}
-		}
 
+			fftPlot.Refresh();
+		}
 	}
 }
