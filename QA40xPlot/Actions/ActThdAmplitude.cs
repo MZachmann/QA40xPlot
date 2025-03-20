@@ -48,42 +48,6 @@ namespace QA40xPlot.Actions
 			UpdateGraph(true);
 		}
 
-		// user entered a new voltage, update the generator amplitude
-		public void UpdateStartAmplitude(string value)
-		{
-			ThdAmpViewModel thd = ViewSettings.Singleton.ThdAmp;
-			var val = MathUtil.ParseTextToDouble(value, thd.StartVoltage);
-			thd.StartAmplitude = QaLibrary.ConvertVoltage(val, (E_VoltageUnit)thd.StartVoltageUnits, E_VoltageUnit.dBV);
-		}
-
-		// user entered a new voltage, update the generator amplitude
-		public void UpdateEndAmplitude(string value)
-		{
-			ThdAmpViewModel thd = ViewSettings.Singleton.ThdAmp;
-			var val = MathUtil.ParseTextToDouble(value, thd.EndVoltage);
-			thd.EndAmplitude = QaLibrary.ConvertVoltage(val, (E_VoltageUnit)thd.EndVoltageUnits, E_VoltageUnit.dBV);
-		}
-
-		/// <summary>
-		/// Update the start voltage in the textbox based on the selected unit.
-		/// If the unit changes then the voltage will be converted
-		/// </summary>
-		public void UpdateStartVoltageDisplay()
-		{
-			var vm = ViewModels.ViewSettings.Singleton.ThdAmp;
-			vm.StartVoltage = QaLibrary.ConvertVoltage(vm.StartAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)vm.StartVoltageUnits);
-		}
-
-		/// <summary>
-		/// Update the end voltage in the textbox based on the selected unit.
-		/// If the unit changes then the voltage will be converted
-		/// </summary>
-		public void UpdateEndVoltageDisplay()
-		{
-			var vm = ViewModels.ViewSettings.Singleton.ThdAmp;
-			vm.EndVoltage = QaLibrary.ConvertVoltage(vm.EndAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)vm.EndVoltageUnits);
-		}
-
 		public void DoCancel()
 		{
 			ct.Cancel();
@@ -207,7 +171,9 @@ namespace QA40xPlot.Actions
 			// ********************************************************************
 			// Determine attenuation level
 			// ********************************************************************
-			double generatorAmplitudedBV = Math.Max(thdAmp.EndAmplitude, thdAmp.StartAmplitude);	// use the largest amplitude
+			double startAmpl = QaLibrary.ConvertVoltage(Convert.ToDouble(thdAmp.StartVoltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+			double endAmpl = QaLibrary.ConvertVoltage(Convert.ToDouble(thdAmp.EndVoltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+			double generatorAmplitudedBV = Math.Max(startAmpl, endAmpl);	// use the largest amplitude
 			await showMessage($"Determining the best input attenuation for a generator voltage of {generatorAmplitudedBV:0.00#} dBV.");
 
 			double testFrequency = QaLibrary.GetNearestBinFrequency(MathUtil.ParseTextToDouble(thdAmp.TestFreq, 10), thdAmp.SampleRate, thdAmp.FftSize);
@@ -235,9 +201,9 @@ namespace QA40xPlot.Actions
 			// ********************************************************************
 			double[] stepVoltages;
 			{
-				var startAmplitudeV = QaLibrary.ConvertVoltage(thdAmp.StartAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
-				var prevGeneratorVoltagedBV = thdAmp.StartAmplitude;
-				var endAmplitudeV = QaLibrary.ConvertVoltage(thdAmp.EndAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
+				var startAmplitudeV = QaLibrary.ConvertVoltage(startAmpl, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
+				var prevGeneratorVoltagedBV = startAmpl;
+				var endAmplitudeV = QaLibrary.ConvertVoltage(endAmpl, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
 				stepVoltages = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(startAmplitudeV, endAmplitudeV, thdAmp.StepsOctave);
 			}
 

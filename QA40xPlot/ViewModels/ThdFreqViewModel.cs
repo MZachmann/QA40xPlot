@@ -254,18 +254,21 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ToShowdB, value);
 		}
 		private bool _ReadVoltage;
+		[JsonIgnore]
 		public bool ReadVoltage
 		{
 			get => _ReadVoltage;
 			set => SetProperty(ref _ReadVoltage, value);
 		}
 		private bool _ReadOutPower;
+		[JsonIgnore]
 		public bool ReadOutPower
 		{
 			get => _ReadOutPower;
 			set => SetProperty(ref _ReadOutPower, value);
 		}
 		private bool _ReadOutVoltage;
+		[JsonIgnore]
 		public bool ReadOutVoltage
 		{
 			get => _ReadOutVoltage;

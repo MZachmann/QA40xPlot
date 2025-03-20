@@ -46,70 +46,6 @@ namespace QA40xPlot.Actions
             ct.Cancel();
 		}
 
-		/// <summary>
-		/// Update the generator voltage in the textbox based on the selected unit.
-		/// If the unit changes then the voltage will be converted
-		/// </summary>
-		public void UpdateGeneratorVoltageDisplay()
-        {
-			var vm = ViewSettings.Singleton.SpectrumVm;
-			vm.Gen1Voltage = QaLibrary.ConvertVoltage(vm.GeneratorAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)vm.GeneratorUnits).ToString();
-        }
-
-		/// <summary>
-		/// Update the amplifier output voltage in the textbox based on the selected unit.
-		/// If the unit changes then the voltage will be converted
-		/// </summary>
-		public void UpdateAmpOutputVoltageDisplay()
-        {
-			var vm = ViewSettings.Singleton.SpectrumVm;
-			switch (vm.OutputUnits)
-            {
-                case 0: // mV
-                    vm.OutVoltage = ((int)QaLibrary.ConvertVoltage(vm.AmpOutputAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.MilliVolt));
-                    break;
-                case 1: // V
-					vm.OutVoltage = QaLibrary.ConvertVoltage(vm.AmpOutputAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
-                    break;
-                case 2: // dB
-					vm.OutVoltage = QaLibrary.ConvertVoltage(vm.AmpOutputAmplitude, E_VoltageUnit.dBV, E_VoltageUnit.dBV);
-                    break;
-            }
-        }
-
-		/// <summary>
-		/// Generator type changed
-		/// </summary>
-		public void UpdateGeneratorParameters()
-        {
-            var vm = ViewSettings.Singleton.SpectrumVm;
-			switch (vm.MeasureType)
-            {
-                case 0: // Input voltage
-					vm.ReadVoltage = false;
-					vm.ReadOutPower = true;
-					vm.ReadOutVoltage = true;
-					UpdateGeneratorVoltageDisplay();
-					break;
-				case 1: // Output voltage
-					vm.ReadVoltage = true;
-					vm.ReadOutPower = true;
-					vm.ReadOutVoltage = false;
-					UpdateGeneratorVoltageDisplay();
-					break;
-				case 2: // Output power
-					vm.ReadVoltage = true;
-					vm.ReadOutPower = false;
-					vm.ReadOutVoltage = true;
-					//vm.OutPower = MathUtil.ParseTextToDouble(txtAmplifierOutputPower.Text, MeasurementSettings.AmpOutputPower);
-					//vm.AmpLoad = MathUtil.ParseTextToDouble(txtOutputLoad.Text, MeasurementSettings.Load);
-					//vm.Voltage = Math.Sqrt(MeasurementSettings.AmpOutputPower * MeasurementSettings.Load);      // Expected output DUT amplitude in Volts
-					vm.GeneratorUnits = (int)E_VoltageUnit.Volt;                                           // Expected output DUT amplitude in dBV
-                    UpdateAmpOutputVoltageDisplay();
-                    break;
-            }
-        }
-
 		// create a blob with F,Left,Right data for export
 		public DataBlob? CreateExportData()
 		{
@@ -809,14 +745,6 @@ namespace QA40xPlot.Actions
         //        QaLibrary.ValidateRangeAdorner(sender, QaLibrary.MINIMUM_GENERATOR_VOLTAGE_DBV, QaLibrary.MAXIMUM_GENERATOR_VOLTAGE_DBV);       // dBV
         //}
         
-        // user entered a new voltage, update the generator amplitude
-        public void UpdateGenAmplitude(string value)
-        {
-			SpectrumViewModel thd = ViewSettings.Singleton.SpectrumVm;
-            var val = MathUtil.ParseTextToDouble(value, Convert.ToDouble(thd.Gen1Voltage));
-			thd.GeneratorAmplitude = QaLibrary.ConvertVoltage(val, (E_VoltageUnit)thd.GeneratorUnits, E_VoltageUnit.dBV);
-		}
-
         // show the latest step values in the table
         public void DrawChannelInfoTable()
         {

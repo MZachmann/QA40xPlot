@@ -13,7 +13,6 @@ namespace QA40xPlot.ViewModels
 	{
 		public static List<String> WindowingTypes { get => new List<string> { "Rectangle", "Hann", "FlatTop" }; }
 		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
-		public static List<String> MeasureTypes { get => new List<string> { "Input Voltage", "Output Voltage", "Output Power" }; }
 		public static List<String> GenFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "2000", "5000", "10000" }; }
 		public static List<String> IntermodTypes { get => new List<string> { "Custom", "SMPTE (60Hz.7KHz 4:1)", "DIN (250Hz.8KHz 4:1",
 			"CCIF (19KHz.20KHz 1:1)", "AES-17 MD (41Hz.7993Hz 4:1)", "AES-17 DFD (18KHz.20KHz 1:1)",
@@ -115,41 +114,11 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _Averages, value);
 		}
 
-		private int _MeasureType;
-		public int MeasureType
-		{
-			get => _MeasureType;
-			set => SetProperty(ref _MeasureType, value);
-		}
-		private int _OutputUnits;
-		public int OutputUnits
-		{
-			get => _OutputUnits;
-			set => SetProperty(ref _OutputUnits, value);
-		}
 		private double _Attenuation;
 		public double Attenuation
 		{
 			get => _Attenuation;
 			set => SetProperty(ref _Attenuation, value);
-		}
-		private double _AmpOutputAmplitude;
-		public double AmpOutputAmplitude
-		{
-			get => _AmpOutputAmplitude;
-			set => SetProperty(ref _AmpOutputAmplitude, value);
-		}
-		private double _GeneratorAmplitude;
-		public double GeneratorAmplitude
-		{
-			get => _GeneratorAmplitude;
-			set => SetProperty(ref _GeneratorAmplitude, value);
-		}
-		private int _GeneratorUnits;
-		public int GeneratorUnits
-		{
-			get => _GeneratorUnits;
-			set => SetProperty(ref _GeneratorUnits, value);
 		}
 		private string _rangeTop;
 		public string RangeTop
@@ -383,17 +352,6 @@ namespace QA40xPlot.ViewModels
 						SetImType();
 					}
 					break;
-				case "OutputUnits":
-					actImd?.UpdateAmpOutputVoltageDisplay();
-					break;
-				case "GeneratorUnits":
-					actImd?.UpdateGeneratorVoltageDisplay();
-					break;
-				case "Voltage":
-				case "MeasureType":
-				case "VoltageUnits":
-					actImd?.UpdateGeneratorParameters();
-					break;
 				case "ShowPercent":
 					ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
 					ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;
@@ -557,8 +515,6 @@ namespace QA40xPlot.ViewModels
 			GraphEndFreq = "20000";
 			StepsOctave = 1;
 			Averages = 1;
-			MeasureType = 2;
-			OutputUnits = 0;
 			RangeTop = "1";             // when graphing percents distortion this is logarithmic 0.01....
 			RangeBottom = "0.001";
 
@@ -591,13 +547,9 @@ namespace QA40xPlot.ViewModels
 			ReadVoltage = true;
 			ReadOutPower = true;
 			ReadOutVoltage = true;
-			AmpOutputAmplitude = -20;         // this is the unitless (dbV) amplitude of the amplifier output
-			GeneratorUnits = (int)E_VoltageUnit.Volt;
-			GeneratorAmplitude = -20;       // this is the unitless (dbV) amplitude of the generator
-			Gen1Voltage = QaLibrary.ConvertVoltage(GeneratorAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)GeneratorUnits).ToString();
+			Gen1Voltage = "0.1";
 			Gen2Voltage = "0.1";
 			Gen2Frequency = "20000";
-			MeasureType = 0;
 			Gen1Frequency = "19000";
 			UseGenerator = false;
 			UseGenerator2 = false;

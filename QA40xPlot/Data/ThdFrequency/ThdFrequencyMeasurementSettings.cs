@@ -15,8 +15,6 @@ namespace QA40xPlot.Data
         public uint Averages { get; set; }
         public double Load { get; set; }       
         public double AmpOutputPower { get; set; }
-        public double AmpOutputAmplitude { get; set; }      
-        public E_VoltageUnit AmpOutputAmplitudeUnit { get; set; }
         public bool EnableLeftChannel { get; set; }
         public bool EnableRightChannel { get; set; }
 

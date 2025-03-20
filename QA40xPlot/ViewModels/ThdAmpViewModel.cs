@@ -29,38 +29,28 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand DoStop { get => new RelayCommand(StopIt); }
 
 		#region Setters and Getters
-		private double _StartVoltage;         // type of alert
-		public double StartVoltage
+		private string _StartVoltage;         // type of alert
+		public string StartVoltage
 		{
 			get => _StartVoltage; set => SetProperty(ref _StartVoltage, value);
 		}
 
-		private double _StartAmplitude;         // type of alert
-		public double StartAmplitude
-		{
-			get => _StartAmplitude; set => SetProperty(ref _StartAmplitude, value);
-		}
-		private uint _StartVoltageUnits;         // type of alert
-		public uint StartVoltageUnits
-		{
-			get => _StartVoltageUnits; set => SetProperty(ref _StartVoltageUnits, value);
-		}
-
-		private double _EndVoltage;         // type of alert
-		public double EndVoltage
+		private string _EndVoltage;         // type of alert
+		public string EndVoltage
 		{
 			get => _EndVoltage; set => SetProperty(ref _EndVoltage, value);
 		}
 
-		private double _EndAmplitude;         // type of alert
-		public double EndAmplitude
+		private string _StartPower;         // type of alert
+		public string StartPower
 		{
-			get => _EndAmplitude; set => SetProperty(ref _EndAmplitude, value);
+			get => _StartPower; set => SetProperty(ref _StartPower, value);
 		}
-		private uint _EndVoltageUnits;         // type of alert
-		public uint EndVoltageUnits
+
+		private string _EndPower;         // type of alert
+		public string EndPower
 		{
-			get => _EndVoltageUnits; set => SetProperty(ref _EndVoltageUnits, value);
+			get => _EndPower; set => SetProperty(ref _EndPower, value);
 		}
 
 		private double _AmpLoad;         // type of alert
@@ -108,6 +98,22 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _MeasureType;
 			set => SetProperty(ref _MeasureType, value);
+		}
+
+		private bool _ReadVoltage;
+		[JsonIgnore]
+		public bool ReadVoltage
+		{
+			get => _ReadVoltage;
+			set => SetProperty(ref _ReadVoltage, value);
+		}
+
+		private bool _ReadPower;
+		[JsonIgnore]
+		public bool ReadPower
+		{
+			get => _ReadPower;
+			set => SetProperty(ref _ReadPower, value);
 		}
 
 		private string _rangeTop;
@@ -259,18 +265,38 @@ namespace QA40xPlot.ViewModels
 		}
 		#endregion
 
+		/// <summary>
+		/// Generator type changed
+		/// </summary>
+		private void UpdateGeneratorParameters()
+		{
+			switch (MeasureType)
+			{
+				case 0: // Input voltage
+				case 1: // Output voltage
+					ReadVoltage = true;
+					ReadPower = false;
+					break;
+				case 2: // Output power
+					ReadVoltage = false;
+					ReadPower = true;
+					break;
+			}
+		}
+
 		// the property change is used to trigger repaints of the graph
 		private void CheckPropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
 			switch (e.PropertyName)
 			{
+				case "MeasureType":
+					UpdateGeneratorParameters(); 
+					break;
 				case "StartVoltage":
-				case "StartVoltageUnits":
-					actThd?.UpdateStartVoltageDisplay();
+					//actThd?.UpdateStartVoltageDisplay();
 					break;
 				case "EndVoltage":
-				case "EndVoltageUnits":
-					actThd?.UpdateEndVoltageDisplay();
+					//actThd?.UpdateEndVoltageDisplay();
 					break;
 				case "ShowPercent":
 					ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
@@ -322,16 +348,6 @@ namespace QA40xPlot.ViewModels
 			actThd = new ActThdAmplitude(ref data, plot, plot1, plot2);
 			SetupMainPlot(plot);
 			actPlot = plot;
-		}
-
-		public void OnStartVoltageChanged(string news)
-		{
-			actThd.UpdateStartAmplitude(news);
-		}
-
-		public void OnEndVoltageChanged(string news)
-		{
-			actThd.UpdateEndAmplitude(news);
 		}
 
 		// when the mouse moves in the plotcontrol window it sends a mouseevent to the parent view model (this)
@@ -436,7 +452,11 @@ namespace QA40xPlot.ViewModels
 			GraphEndVolts = "10";
 			StepsOctave = 1;
 			Averages = 3;
-			MeasureType = 2;
+
+			MeasureType = 0;
+			ReadVoltage = true;
+			ReadPower = false;
+
 			RangeTop = "1";             // when graphing percents distortion this is logarithmic 0.01....
 			RangeBottom = "0.001";
 
@@ -461,12 +481,10 @@ namespace QA40xPlot.ViewModels
 			RangeBottomdB = -180;
 
 			XAxisType = 0;
-			StartAmplitude = -10;       // this is the unitless (dbV) amplitude of the generator
-			EndAmplitude = 0;       // this is the unitless (dbV) amplitude of the generator
-			StartVoltageUnits = 1;
-			EndVoltageUnits = 1;
-			StartVoltage = QaLibrary.ConvertVoltage(StartAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)StartVoltageUnits);
-			EndVoltage = QaLibrary.ConvertVoltage(EndAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)EndVoltageUnits);
+			StartVoltage = "0.1";
+			EndVoltage = "1";
+			StartPower = "0.5";
+			EndPower = "5";
 
 			ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
 			ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;          

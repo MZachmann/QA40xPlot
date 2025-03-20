@@ -12,21 +12,9 @@
     <UserControl.Resources>
         <Style TargetType="TextBox">
             <Setter Property="VerticalAlignment" Value="Center"/>
-            <!-- Ensure the readonly property is visible -->
-            <Style.Triggers>
-                <Trigger Property="IsReadOnly" Value="True">
-                    <Setter Property="Background" Value="LightGray" />
-                </Trigger>
-                <Trigger Property="IsReadOnly" Value="True">
-                    <Setter Property="Foreground" Value="DarkGray" />
-                </Trigger>
-                <Trigger Property="IsReadOnly" Value="False">
-                    <Setter Property="Background" Value="White" />
-                </Trigger>
-                <Trigger Property="IsReadOnly" Value="False">
-                    <Setter Property="Foreground" Value="Black" />
-                </Trigger>
-            </Style.Triggers>
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
     </UserControl.Resources>
     <Grid Height="Auto" Width="Auto">
@@ -62,33 +50,43 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="100" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="100" />
                     <RowDefinition Height="100" />
                 </Grid.RowDefinitions>
-                <Label Content="Set generator by" Grid.Column="0" Grid.Row="0"  />
-                <Label Content="Start voltage" Grid.Column="0" Grid.Row="1"   />
-                <Label Content="End voltage" Grid.Column="0" Grid.Row="2"   />
-                <Label Content="Amplifier Load" Grid.Column="0" Grid.Row="3"  />
-                <Label Content="Test Frequency" Grid.Column="0" Grid.Row="4"  />
-                 <ComboBox VerticalAlignment="Center" IsEditable="True" Text="{Binding TestFreq}" Grid.Column="1" Grid.Row="4" ItemsSource="{Binding StartFrequencies}"   />
-                    <Label Content="Steps / Octave" Grid.Column="0" Grid.Row="5"  />
-                    <xctk:IntegerUpDown Value="{Binding StepsOctave}" Minimum="1" VerticalAlignment="Center" Grid.Column="1" Grid.Row="5"  />
-                    <Label Content="Averages" Grid.Column="0" Grid.Row="6"  />
-                <views:PlotControl x:Name="WpfPlot2" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="8" Width="150" />
-                <views:PlotControl x:Name="WpfPlot3" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="9" Width="150" />
-                <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  SelectedIndex="{Binding MeasureType}" ItemsSource="{Binding MeasureTypes}">
-                </ComboBox>
-                    <TextBox Text="{Binding StartVoltage, StringFormat={}{0:0.####}}" Grid.Column="1"  Grid.Row="1" LostFocus="OnStartVoltageChanged" />
-                    <TextBox Text="{Binding EndVoltage, StringFormat={}{0:0.####}}" Grid.Column="1"  Grid.Row="2" LostFocus="OnEndVoltageChanged" />
-                <TextBox Text="{Binding AmpLoad}" Grid.Column="1"  Grid.Row="3"  />
-                    <xctk:IntegerUpDown Value="{Binding Averages}" Minimum="1" Maximum="6" VerticalAlignment="Center" Grid.Column="1" Grid.Row="6"  />
-                <ComboBox  Grid.Column="2" Grid.Row="1" VerticalAlignment="Center"  SelectedIndex="{Binding StartVoltageUnits}" ItemsSource="{Binding VoltItems}">
-                </ComboBox>
-                    <ComboBox  Grid.Column="2" Grid.Row="2" VerticalAlignment="Center"  SelectedIndex="{Binding EndVoltageUnits}" ItemsSource="{Binding VoltItems}">
-                </ComboBox>
-                <Label Content="Ohm" Grid.Column="3" Grid.Row="3"  />
-                <Label Content="Hz" Grid.Column="2" Grid.Row="4"  />
-            </Grid>
+                    <Label Content="Set Generator by" Grid.Column="0" Grid.Row="0"  />
+                    <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0"  SelectedIndex="{Binding MeasureType}" ItemsSource="{Binding MeasureTypes}">
+                    </ComboBox>
+                    <Label Content="Start Voltage" Grid.Column="0" Grid.Row="1"   />
+                    <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1"  IsEnabled="{Binding ReadVoltage}"
+                            Text="{Binding StartVoltage}" ItemsSource="{Binding GenVoltages}" />
+                    <Label Content="V" Grid.Column="2" Grid.Row="1"   />
+                    <Label Content="End Voltage" Grid.Column="0" Grid.Row="2"   />
+                    <ComboBox IsEditable="True" Grid.Row="2" Grid.Column="1"  IsEnabled="{Binding ReadVoltage}"
+                            Text="{Binding EndVoltage}" ItemsSource="{Binding GenVoltages}" />
+                    <Label Content="V" Grid.Column="2" Grid.Row="2"   />
+                    <Label Content="Start Power" Grid.Column="0" Grid.Row="3"   />
+                    <ComboBox IsEditable="True" Grid.Row="3" Grid.Column="1"  IsEnabled="{Binding ReadPower}"
+                            Text="{Binding StartPower}" ItemsSource="{Binding GenPowers}" />
+                    <Label Content="W" Grid.Column="2" Grid.Row="3"   />
+                    <Label Content="End Power" Grid.Column="0" Grid.Row="4"   />
+                    <ComboBox IsEditable="True" Grid.Row="4" Grid.Column="1"  IsEnabled="{Binding ReadPower}"
+                            Text="{Binding EndPower}" ItemsSource="{Binding GenPowers}" />
+                    <Label Content="W" Grid.Column="2" Grid.Row="4"   />
+                    <Label Content="Amplifier Load" Grid.Column="0" Grid.Row="5"  />
+                    <TextBox Text="{Binding AmpLoad}" Grid.Column="1"  Grid.Row="5"  />
+                    <Label Content="Ohm" Grid.Column="3" Grid.Row="5"  />
+                    <Label Content="Test Frequency" Grid.Column="0" Grid.Row="6"  />
+                    <ComboBox IsEditable="True" Text="{Binding TestFreq}" Grid.Column="1" Grid.Row="6" ItemsSource="{Binding StartFrequencies}"   />
+                    <Label Content="Hz" Grid.Column="2" Grid.Row="6"  />
+                    <Label Content="Steps / Octave" Grid.Column="0" Grid.Row="7"  />
+                    <xctk:IntegerUpDown VerticalAlignment="Center" Value="{Binding StepsOctave}" Minimum="1" Grid.Column="1" Grid.Row="7"  />
+                    <Label Content="Averages" Grid.Column="0" Grid.Row="8"  />
+                    <xctk:IntegerUpDown VerticalAlignment="Center" Value="{Binding Averages}" Minimum="1" Maximum="6" Grid.Column="1" Grid.Row="8"  />
+                    <views:PlotControl x:Name="WpfPlot2" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="10" Width="150" />
+                    <views:PlotControl x:Name="WpfPlot3" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="11" Width="150" />
+                </Grid>
         </GroupBox>
         </StackPanel>
         <views:PlotControl x:Name="WpfPlot1"  Grid.Column="1" />
@@ -107,10 +105,10 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Label Content="Top" Grid.Row="0" Grid.Column="0"  />
-                    <ComboBox IsEditable="True" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"  Text="{Binding RangeTopdB}" ItemsSource="{Binding TopDbs}">
+                    <ComboBox IsEditable="True" Grid.Row="0" Grid.Column="1"  Text="{Binding RangeTopdB}" ItemsSource="{Binding TopDbs}">
                     </ComboBox>
                     <Label Content="Bottom" Grid.Row="1" Grid.Column="0"  />
-                    <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center"  Text="{Binding RangeBottomdB}" ItemsSource="{Binding BottomDbs}">
+                    <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1"  Text="{Binding RangeBottomdB}" ItemsSource="{Binding BottomDbs}">
                     </ComboBox>
                     <Button Content="Fit to data" Margin="0,4,0,0" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center"  />                </Grid>
             </GroupBox>
@@ -128,16 +126,16 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Label Content="Top" Grid.Row="0" Grid.Column="0"  />
-                    <ComboBox Grid.Row="0" Grid.Column="1"  VerticalAlignment="Center"  SelectedValue="{Binding RangeTop}" ItemsSource="{Binding StartPercents}">
+                    <ComboBox Grid.Row="0" Grid.Column="1"   SelectedValue="{Binding RangeTop}" ItemsSource="{Binding StartPercents}">
                     </ComboBox>
                     <Label Content="Bottom" Grid.Row="1" Grid.Column="0"  />
-                    <ComboBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Center"  SelectedValue="{Binding RangeBottom}" ItemsSource="{Binding EndPercents}">
+                    <ComboBox Grid.Row="1" Grid.Column="1"  SelectedValue="{Binding RangeBottom}" ItemsSource="{Binding EndPercents}">
                     </ComboBox>
                     <Button Content="Fit to data" Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Center" Grid.ColumnSpan="2"  />
                 </Grid>
             </GroupBox>
             <GroupBox Header="X-Axis">
-                <ComboBox Grid.Row="3" VerticalAlignment="Center"  SelectedIndex="{Binding XAxisType}" ItemsSource="{Binding MeasureTypes}">
+                <ComboBox Grid.Row="3"  SelectedIndex="{Binding XAxisType}" ItemsSource="{Binding MeasureTypes}">
                 </ComboBox>
             </GroupBox>
             <GroupBox Header="Voltage Range">
@@ -154,10 +152,10 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Label Content="From" Grid.Row="0" Grid.Column="0"  />
-                    <ComboBox IsEditable="True" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"  Text="{Binding GraphStartVolts}" ItemsSource="{Binding StartVoltages}">
+                    <ComboBox IsEditable="True" Grid.Row="0" Grid.Column="1"  Text="{Binding GraphStartVolts}" ItemsSource="{Binding StartVoltages}">
                     </ComboBox>
                     <Label Content="To" Grid.Row="1" Grid.Column="0"  />
-                    <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Text="{Binding GraphEndVolts}" ItemsSource="{Binding EndVoltages}">
+                    <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1" Text="{Binding GraphEndVolts}" ItemsSource="{Binding EndVoltages}">
                     </ComboBox>
                     <Button Content="Fit to data" Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Center" Grid.ColumnSpan="2"  />
                 </Grid>

@@ -87,7 +87,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <Label Content="Set generator by" Grid.Row="0" Grid.Column="0"  />
+                    <Label Content="Set Generator by" Grid.Row="0" Grid.Column="0"  />
                     <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  SelectedIndex="{Binding MeasureType}" ItemsSource="{Binding MeasureTypes}">
                     </ComboBox>
                     <Label Content="Voltage" Grid.Row="1" Grid.Column="0"  />

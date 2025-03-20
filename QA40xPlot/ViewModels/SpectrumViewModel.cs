@@ -18,7 +18,6 @@ namespace QA40xPlot.ViewModels
 	{
 		public static List<String> WindowingTypes { get => new List<string> { "Rectangle", "Hann", "FlatTop" }; }
 		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
-		public static List<String> MeasureTypes { get => new List<string> { "Input Voltage", "Output Voltage", "Output Power" }; }
 		public static List<String> GenFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "2000", "5000", "10000" }; }
 
 		private PlotControl actPlot {  get; set; }
@@ -106,41 +105,11 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _Averages, value);
 		}
 
-		private int _MeasureType;
-		public int MeasureType
-		{
-			get => _MeasureType;
-			set => SetProperty(ref _MeasureType, value);
-		}
-		private int _OutputUnits;
-		public int OutputUnits
-		{
-			get => _OutputUnits;
-			set => SetProperty(ref _OutputUnits, value);
-		}
 		private double _Attenuation;
 		public double Attenuation
 		{
 			get => _Attenuation;
 			set => SetProperty(ref _Attenuation, value);
-		}
-		private double _AmpOutputAmplitude;
-		public double AmpOutputAmplitude
-		{
-			get => _AmpOutputAmplitude;
-			set => SetProperty(ref _AmpOutputAmplitude, value);
-		}
-		private double _GeneratorAmplitude;
-		public double GeneratorAmplitude
-		{
-			get => _GeneratorAmplitude;
-			set => SetProperty(ref _GeneratorAmplitude, value);
-		}
-		private int _GeneratorUnits;
-		public int GeneratorUnits
-		{
-			get => _GeneratorUnits;
-			set => SetProperty(ref _GeneratorUnits, value);
 		}
 		private string _rangeTop;
 		public string RangeTop
@@ -310,35 +279,11 @@ namespace QA40xPlot.ViewModels
 			get => _ToShowdB;
 			set => SetProperty(ref _ToShowdB, value);
 		}
-		private bool _ReadVoltage;
-		public bool ReadVoltage
-		{
-			get => _ReadVoltage;
-			set => SetProperty(ref _ReadVoltage, value);
-		}
-		private bool _ReadOutPower;
-		public bool ReadOutPower
-		{
-			get => _ReadOutPower;
-			set => SetProperty(ref _ReadOutPower, value);
-		}
-		private bool _ReadOutVoltage;
-		public bool ReadOutVoltage
-		{
-			get => _ReadOutVoltage;
-			set => SetProperty(ref _ReadOutVoltage, value);
-		}
 		private bool _UseGenerator;
 		public bool UseGenerator
 		{
 			get => _UseGenerator;
 			set => SetProperty(ref _UseGenerator, value);
-		}
-		private bool _UseGenerator2;
-		public bool UseGenerator2
-		{
-			get => _UseGenerator2;
-			set => SetProperty(ref _UseGenerator2, value);
 		}
 		#endregion
 
@@ -347,17 +292,6 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
-				case "OutputUnits":
-					actSpec?.UpdateAmpOutputVoltageDisplay();
-					break;
-				case "GeneratorUnits":
-					actSpec?.UpdateGeneratorVoltageDisplay();
-					break;
-				case "Voltage":
-				case "MeasureType":
-				case "VoltageUnits":
-					actSpec?.UpdateGeneratorParameters();
-					break;
 				case "ShowPercent":
 					ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
 					ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;
@@ -479,8 +413,6 @@ namespace QA40xPlot.ViewModels
 			GraphEndFreq = "20000";
 			StepsOctave = 1;
 			Averages = 1;
-			MeasureType = 2;
-			OutputUnits = 0;
 			RangeTop = "1";             // when graphing percents distortion this is logarithmic 0.01....
 			RangeBottom = "0.001";
 
@@ -510,17 +442,9 @@ namespace QA40xPlot.ViewModels
 			ShowMarkers = false;
 			ShowPowerMarkers = false;
 
-			ReadVoltage = true;
-			ReadOutPower = true;
-			ReadOutVoltage = true;
-			AmpOutputAmplitude = -20;         // this is the unitless (dbV) amplitude of the amplifier output
-			GeneratorUnits = (int)E_VoltageUnit.Volt;
-			GeneratorAmplitude = -20;       // this is the unitless (dbV) amplitude of the generator
-			Gen1Voltage = QaLibrary.ConvertVoltage(GeneratorAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)GeneratorUnits).ToString();
-			MeasureType = 0;
+			Gen1Voltage = "0.1";
 			Gen1Frequency = "1000";
 			UseGenerator = false;
-			UseGenerator2 = false;
 
 			Attenuation = 42;
 

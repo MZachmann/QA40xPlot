@@ -54,9 +54,12 @@ namespace QA40xPlot
 		private void OnNewTab(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
 		{
 			var vm = ViewSettings.Singleton.Main;
-			var x = e.AddedItems[0] as TabItem; 
-			if(x != null)
-				vm.DoNewTab(sender, e);
+			if (e.AddedItems.Count > 0)
+			{
+				var x = e.AddedItems[0];
+				if (x is TabItem)
+					vm.DoNewTab(sender, e);
+			}
 		}
 
 		private void OnPhoto(object sender, RoutedEventArgs e)
