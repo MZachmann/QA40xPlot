@@ -553,7 +553,7 @@ namespace QA40xPlot.Actions
 			var imdVm = ViewSettings.Singleton.ImdVm;
 
             ImdViewModel thd = ViewSettings.Singleton.ImdVm;
-            myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(thd.GraphStartFreq)), Math.Log10(Convert.ToInt32(thd.GraphEndFreq)), 
+            myPlot.Axes.SetLimits(Math.Log10(MathUtil.ToDouble(thd.GraphStartFreq)), Math.Log10(MathUtil.ToDouble(thd.GraphEndFreq)), 
 				Math.Log10(MathUtil.ToDouble(thd.RangeBottom)) - 0.00000001, Math.Log10(MathUtil.ToDouble(thd.RangeTop)));  // - 0.000001 to force showing label
 			SetTheTitle(myPlot);
 			myPlot.XLabel("Frequency (Hz)");
@@ -657,7 +657,8 @@ namespace QA40xPlot.Actions
 
 			var imdVm = ViewSettings.Singleton.ImdVm;
 
-			myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(imdVm.GraphStartFreq)), Math.Log10(Convert.ToInt32(imdVm.GraphEndFreq)), imdVm.RangeBottomdB, imdVm.RangeTopdB);
+			myPlot.Axes.SetLimits(Math.Log10(MathUtil.ToDouble(imdVm.GraphStartFreq, 20)), Math.Log10(MathUtil.ToDouble(imdVm.GraphEndFreq, 20000)),
+				MathUtil.ToDouble(imdVm.RangeBottomdB, -20), MathUtil.ToDouble(imdVm.RangeTopdB, 180));
 			SetTheTitle(myPlot);
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel("dBV");

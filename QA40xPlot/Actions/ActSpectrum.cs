@@ -539,7 +539,7 @@ namespace QA40xPlot.Actions
 			var thdFreq = ViewSettings.Singleton.SpectrumVm;
 
             SpectrumViewModel thd = ViewSettings.Singleton.SpectrumVm;
-            myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(thd.GraphStartFreq)), Math.Log10(Convert.ToInt32(thd.GraphEndFreq)), Math.Log10(MathUtil.ToDouble(thd.RangeBottom)) - 0.00000001, Math.Log10(MathUtil.ToDouble(thd.RangeTop)));  // - 0.000001 to force showing label
+            myPlot.Axes.SetLimits(Math.Log10(MathUtil.ToDouble(thd.GraphStartFreq)), Math.Log10(MathUtil.ToDouble(thd.GraphEndFreq)), Math.Log10(MathUtil.ToDouble(thd.RangeBottom)) - 0.00000001, Math.Log10(MathUtil.ToDouble(thd.RangeTop)));  // - 0.000001 to force showing label
             myPlot.Title("Spectrum");
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel("%");
@@ -642,7 +642,8 @@ namespace QA40xPlot.Actions
 
 			var thdFreq = ViewSettings.Singleton.SpectrumVm;
 
-			myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(thdFreq.GraphStartFreq)), Math.Log10(Convert.ToInt32(thdFreq.GraphEndFreq)), thdFreq.RangeBottomdB, thdFreq.RangeTopdB);
+			myPlot.Axes.SetLimits(Math.Log10(MathUtil.ToDouble(thdFreq.GraphStartFreq)), Math.Log10(MathUtil.ToDouble(thdFreq.GraphEndFreq)), 
+				MathUtil.ToDouble(thdFreq.RangeBottomdB), MathUtil.ToDouble(thdFreq.RangeTopdB));
 
             myPlot.Title("Spectrum");
 			myPlot.XLabel("Frequency (Hz)");

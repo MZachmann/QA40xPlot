@@ -487,7 +487,7 @@ namespace QA40xPlot.Actions
 
             var thdFreq = ViewSettings.Singleton.ThdFreq;
 
-            myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(thdFreq.GraphStartFreq)), Math.Log10(Convert.ToInt32(thdFreq.GraphEndFreq)),
+            myPlot.Axes.SetLimits(Math.Log10(MathUtil.ToDouble(thdFreq.GraphStartFreq)), Math.Log10(MathUtil.ToDouble(thdFreq.GraphEndFreq)),
                 Math.Log10(MathUtil.ToDouble(thdFreq.RangeBottom)) - 0.00000001, Math.Log10(MathUtil.ToDouble(thdFreq.RangeTop)));  // - 0.000001 to force showing label
             myPlot.Title("Distortion vs Frequency (%)");
             myPlot.XLabel("Frequency (Hz)");
@@ -503,8 +503,8 @@ namespace QA40xPlot.Actions
             ScottPlot.Plot myPlot = thdPlot.ThePlot;
             InitializeMagFreqPlot(myPlot);
             var thdFreq = ViewSettings.Singleton.ThdFreq;
-            myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(thdFreq.GraphStartFreq)), Math.Log10(Convert.ToInt32(thdFreq.GraphEndFreq)),
-                thdFreq.RangeBottomdB, thdFreq.RangeTopdB);
+            myPlot.Axes.SetLimits(Math.Log10(MathUtil.ToDouble(thdFreq.GraphStartFreq)), Math.Log10(MathUtil.ToDouble(thdFreq.GraphEndFreq)),
+                MathUtil.ToDouble(thdFreq.RangeBottomdB), MathUtil.ToDouble(thdFreq.RangeTopdB));
             myPlot.Title("Distortion vs Frequency (dB)");
             myPlot.XLabel("Frequency (Hz)");
             myPlot.YLabel("Distortion (dB)");

@@ -453,7 +453,7 @@ namespace QA40xPlot.Actions
 			InitializeMagAmpPlot(myPlot);
 			var thdAmp = ViewSettings.Singleton.ThdAmp;
 			myPlot.Axes.SetLimits(Math.Log10(MathUtil.ToDouble(thdAmp.GraphStartVolts)), Math.Log10(MathUtil.ToDouble(thdAmp.GraphEndVolts)),
-				thdAmp.RangeBottomdB, thdAmp.RangeTopdB);
+				MathUtil.ToDouble(thdAmp.RangeBottomdB), MathUtil.ToDouble(thdAmp.RangeTopdB));
 			SetPlotLabels();
 			myPlot.YLabel("Distortion (dB)");
 			thdPlot.Refresh();

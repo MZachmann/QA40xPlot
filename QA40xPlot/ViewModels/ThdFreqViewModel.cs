@@ -119,15 +119,15 @@ namespace QA40xPlot.ViewModels
 			get { return _rangeBottom; }
 			set => SetProperty(ref _rangeBottom, value);
 		}
-		private int _rangeTopdB;
-		public int RangeTopdB
+		private string _rangeTopdB;
+		public string RangeTopdB
 		{
 			get { return _rangeTopdB; }
 			set => SetProperty(ref _rangeTopdB, value);
 		}
 
-		private int _rangeBottomdB;
-		public int RangeBottomdB
+		private string _rangeBottomdB;
+		public string RangeBottomdB
 		{
 			get { return _rangeBottomdB; }
 			set => SetProperty(ref _rangeBottomdB, value);
@@ -467,8 +467,8 @@ namespace QA40xPlot.ViewModels
 			WindowingMethod = "Hann";
 
 			InputRange = 0;
-			RangeTopdB = 20;
-			RangeBottomdB = -180;
+			RangeTopdB = "20";
+			RangeBottomdB = "-180";
 
 			ReadVoltage = true;
 			ReadPower = false;
