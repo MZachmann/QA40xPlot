@@ -198,15 +198,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:QA40xPlotSetup"
-        "ProductCode" = "8:{E3D5ED96-AB12-4913-88BC-BC7C055BD3B7}"
-        "PackageCode" = "8:{DB11DE00-A60C-453D-9C14-129B6BFBED75}"
+        "ProductCode" = "8:{6F69B7A1-A4B1-4C99-8ABB-A32AB2914C09}"
+        "PackageCode" = "8:{4EAD43A8-0E3D-4809-B411-D69567798278}"
         "UpgradeCode" = "8:{86BC0B1C-E735-4767-A04B-BE32123F0CF9}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:0.0.11"
+        "ProductVersion" = "8:0.0.12"
         "Manufacturer" = "8:Audua"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:https://github.com/MZachmann/QA40xPlot"
@@ -748,7 +748,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_52DA882DCDDD4EC9BF842BCEFDC2B1EF"
             {
-            "SourcePath" = "8:..\\QA40xPlot\\obj\\x64\\Release\\net8.0-windows10.0.17763.0\\win-x64\\apphost.exe"
+            "SourcePath" = "8:..\\QA40xPlot\\obj\\x64\\Release\\net9.0-windows10.0.17763.0\\win-x64\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_4F7152FE83094C7BA1E65A9542DF4D84"
