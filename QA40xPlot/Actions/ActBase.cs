@@ -144,7 +144,7 @@ namespace QA40xPlot.Actions
 			myPlot.Axes.Rules.Add(rule);
 		}
 
-		// this sets the axes bounds for freq vs magnitude
+		// this sets the axes bounds for freq vs magnitude while zooming in and out
 		public void SetMagFreqRule(ScottPlot.Plot myPlot)
 		{
 			myPlot.Axes.Rules.Clear();
@@ -156,7 +156,7 @@ namespace QA40xPlot.Actions
 			myPlot.Axes.Rules.Add(rule);
 		}
 
-		// this sets the axes bounds for freq vs magnitude
+		// this sets the axes bounds for phase while zooming. bottom is as above...
 		public void AddPhaseFreqRule(ScottPlot.Plot myPlot)
 		{
 			// myPlot.Axes.Rules.Clear();
@@ -197,6 +197,7 @@ namespace QA40xPlot.Actions
 		{
 			myPlot.Clear();
 
+			// sometimes we don't show phase so remove it
 			if( myPlot.Axes.Right != null ) 
 				myPlot.Axes.Right.RemoveTickGenerator();
 
@@ -216,6 +217,8 @@ namespace QA40xPlot.Actions
 			myPlot.Axes.Left.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
 			myPlot.Axes.Right.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
 			myPlot.Axes.Right.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
+			var range = myPlot.Axes.Right.Range;
+			var x = 12;
 
 			// Legend
 			SetupLegend(myPlot);

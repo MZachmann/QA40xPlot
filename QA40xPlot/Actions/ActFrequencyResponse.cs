@@ -402,7 +402,10 @@ namespace QA40xPlot.Actions
 
 			InitializeMagFreqPlot(myPlot);
 
-			myPlot.Axes.SetLimits(Math.Log10(Convert.ToInt32(frqrsVm.GraphStartFreq)), Math.Log10(Convert.ToInt32(frqrsVm.GraphEndFreq)), frqrsVm.RangeBottomdB, frqrsVm.RangeTopdB);
+            myPlot.Axes.SetLimitsX(Math.Log10(Convert.ToInt32(frqrsVm.GraphStartFreq)), Math.Log10(Convert.ToInt32(frqrsVm.GraphEndFreq)), myPlot.Axes.Bottom);
+			myPlot.Axes.SetLimitsY(frqrsVm.RangeBottomdB, frqrsVm.RangeTopdB, myPlot.Axes.Left);
+            myPlot.Axes.SetLimitsY(-360, 360, myPlot.Axes.Right);
+
             var ttype = GetTestingType(frqrsVm.TestType);
             switch( ttype)
             {

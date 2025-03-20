@@ -49,11 +49,10 @@ continuously). Click the mouse again to release the hold.
 **The Gain Test** assumes the reference is connected to the right channel and the signal with gain is connected to the left channel.
 
 ## Photos
-![spectrum](./QA40xPlot/Images/SpectralPlot.png)
-![imd](./QA40xPlot/Images/CCIFImdPlot.png)
-![thd vs freq](./QA40xPlot/Images/ThdVsFreq.png)
+__note__: The impedance test below shows a Dayton Audio SIG-150 loudspeaker. 
+See here: [SIG-150 specs.](https://www.parts-express.com/pedocs/specs/295-652--dayton-audio-sig150-4-spec-sheet.pdf)
 
-This next image is an impedance test of a Dayton Audio SIG-150 loudspeaker. 
-See here: https://www.parts-express.com/pedocs/specs/295-652--dayton-audio-sig150-4-spec-sheet.pdf
-
-![impedance](./QA40xPlot/Images/ImpedancePlot.png)
+![spectrum](./QA40xPlot/Images/SpectralPlot.png){width=600}
+![imd](./QA40xPlot/Images/CCIFImdPlot.png){width=600}
+![thd vs freq](./QA40xPlot/Images/ThdVsFreq.png){width=600}
+![impedance](./QA40xPlot/Images/ImpedancePlot.png){width=600}
