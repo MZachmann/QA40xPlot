@@ -51,15 +51,6 @@ namespace QA40xPlot.Actions
             ct.Cancel();
 		}
 
-		// user entered a new voltage, update the generator amplitude
-		public void UpdateGenAmplitude(string value)
-		{
-			FreqRespViewModel frqrsVm = ViewSettings.Singleton.FreqRespVm;
-            var oldv = MathUtil.ParseTextToDouble(frqrsVm.Gen1Voltage, 0.1);    // random default
-			var val = MathUtil.ParseTextToDouble(value, oldv);
-			frqrsVm.GeneratorAmplitude = QaLibrary.ConvertVoltage(val, (E_VoltageUnit)frqrsVm.GeneratorUnits, E_VoltageUnit.dBV);
-		}
-
 		/// <summary>
 		/// Start measurement button clicked
 		/// </summary>
@@ -72,7 +63,6 @@ namespace QA40xPlot.Actions
 			vm.HasExport = false;
 			vm.IsRunning = true;
 			ct = new();
-            UpdateGenAmplitude(vm.Gen1Voltage);   // convert gen1voltage to dbv
 												  // Show empty graphs
 			QaLibrary.InitMiniFftPlot(fftPlot, 10, 40000, -180, 20);
 			QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -2, 2); 
@@ -85,16 +75,6 @@ namespace QA40xPlot.Actions
             vm.HasExport = MeasurementResult.GainFrequencies.Count > 0;
 		}
 
-
-		/// <summary>
-		/// Update the start voltage in the textbox based on the selected unit.
-		/// If the unit changes then the voltage will be converted
-		/// </summary>
-		public void UpdateGeneratorVoltageDisplay()
-        {
-			var vm = ViewSettings.Singleton.FreqRespVm;
-			vm.Gen1Voltage = QaLibrary.ConvertVoltage(vm.GeneratorAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)vm.GeneratorUnits).ToString();
-		}
 
 		// create a blob with F,Left,Right data for export
 		public DataBlob? CreateExportData()
@@ -259,7 +239,7 @@ namespace QA40xPlot.Actions
 
 				if (etp == E_GeneratorType.OUTPUT_VOLTAGE)     // Based on output
                 {
-                    double amplifierOutputVoltagedBV = mrs.GeneratorAmplitude;
+                    double amplifierOutputVoltagedBV = QaLibrary.ConvertVoltage(Convert.ToDouble(mrs.Gen1Voltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 					await showMessage($"Determining generator amplitude to get an output amplitude of {amplifierOutputVoltagedBV:0.00#} dBV.");
 
                     // Get input voltage based on desired output voltage
@@ -301,8 +281,8 @@ namespace QA40xPlot.Actions
                 }
                 else
                 {
-                    genVoltagedBV = frqrsVm.GeneratorAmplitude;
-                    await showMessage($"Determining the best input attenuation for a generator voltage of {genVoltagedBV:0.00#} dBV.");
+                    genVoltagedBV = QaLibrary.ConvertVoltage(Convert.ToDouble(mrs.Gen1Voltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+					await showMessage($"Determining the best input attenuation for a generator voltage of {genVoltagedBV:0.00#} dBV.");
 
                     // Determine correct input attenuation
                     var result = await QaLibrary.DetermineAttenuationForGeneratorVoltageWithChirp(genVoltagedBV, QaLibrary.MAXIMUM_DEVICE_ATTENUATION, true, frqrsVm.RightChannel, ct);

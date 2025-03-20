@@ -260,19 +260,12 @@ namespace QA40xPlot.ViewModels
 			get => _ReadVoltage;
 			set => SetProperty(ref _ReadVoltage, value);
 		}
-		private bool _ReadOutPower;
+		private bool _ReadPower;
 		[JsonIgnore]
-		public bool ReadOutPower
+		public bool ReadPower
 		{
-			get => _ReadOutPower;
-			set => SetProperty(ref _ReadOutPower, value);
-		}
-		private bool _ReadOutVoltage;
-		[JsonIgnore]
-		public bool ReadOutVoltage
-		{
-			get => _ReadOutVoltage;
-			set => SetProperty(ref _ReadOutVoltage, value);
+			get => _ReadPower;
+			set => SetProperty(ref _ReadPower, value);
 		}
 		#endregion
 
@@ -451,7 +444,7 @@ namespace QA40xPlot.ViewModels
 			Averages = 1;
 			LeftChannel = true;
 			RightChannel = false;
-			MeasureType = 2;
+			MeasureType = 0;
 			RangeTop = "1";             // when graphing percents distortion this is logarithmic 0.01....
 			RangeBottom = "0.001";
 
@@ -478,8 +471,7 @@ namespace QA40xPlot.ViewModels
 			RangeBottomdB = -180;
 
 			ReadVoltage = true;
-			ReadOutPower = true;
-			ReadOutVoltage = true;
+			ReadPower = false;
 
 			GenVoltage = "0.10";
 

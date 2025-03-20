@@ -122,18 +122,6 @@ public class FreqRespViewModel : BaseViewModel
 		set => SetProperty(ref _MeasureType, value);
 	}
 
-	private double _GeneratorAmplitude;
-	public double GeneratorAmplitude
-	{
-		get => _GeneratorAmplitude;
-		set => SetProperty(ref _GeneratorAmplitude, value);
-	}
-	private int _GeneratorUnits;
-	public int GeneratorUnits
-	{
-		get => _GeneratorUnits;
-		set => SetProperty(ref _GeneratorUnits, value);
-	}
 	private string _rangeTop;
 	public string RangeTop
 	{
@@ -262,9 +250,6 @@ public class FreqRespViewModel : BaseViewModel
 	{
 		switch (e.PropertyName)
 		{
-			case "GeneratorUnits":
-				actFreq?.UpdateGeneratorVoltageDisplay();
-				break;
 			case "Voltage":
 			case "AmpLoad":
 			case "OutPower":
@@ -392,8 +377,7 @@ public class FreqRespViewModel : BaseViewModel
 		Averages = 1;
 		LeftChannel = true;
 		RightChannel = false;
-		MeasureType = 2;
-		GeneratorUnits = (int)E_VoltageUnit.Volt;
+		MeasureType = 0;
 		RangeTop = "1";             // when graphing percents distortion this is logarithmic 0.01....
 		RangeBottom = "0.001";
 
@@ -409,8 +393,7 @@ public class FreqRespViewModel : BaseViewModel
 		RangeTopdB = 20;
 		RangeBottomdB = -180;
 
-		GeneratorAmplitude = -20;
-		Gen1Voltage = QaLibrary.ConvertVoltage(GeneratorAmplitude, E_VoltageUnit.dBV, (E_VoltageUnit)GeneratorUnits).ToString();
+		Gen1Voltage = "0.1";
 		Smoothing = "None";
 		Show3dBBandwidth_L = true;
 		Show3dBBandwidth_R = false;

@@ -58,19 +58,13 @@ namespace QA40xPlot.Actions
             switch (vm.MeasureType)
             {
                 case 0: // Input voltage
-                    vm.ReadVoltage = true;
-                    vm.ReadOutPower = false;
-                    vm.ReadOutVoltage = false;
-                    break;
-                case 1: // Output voltage
-                    vm.ReadVoltage = false;
-                    vm.ReadOutPower = false;
-                    vm.ReadOutVoltage = true;
+				case 1: // Output voltage
+					vm.ReadVoltage = true;
+                    vm.ReadPower = false;
                     break;
                 case 2: // Output power
                     vm.ReadVoltage = false;
-                    vm.ReadOutPower = true;
-                    vm.ReadOutVoltage = false;
+                    vm.ReadPower = true;
                     break;
             }
         }
