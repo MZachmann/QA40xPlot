@@ -583,14 +583,14 @@ namespace QA40xPlot.Actions
         /// Plot the THD % graph
         /// </summary>
         /// <param name="data"></param>
-        void PlotValues(ImdMeasurementResult measurementResult, int measurementNr, bool showLeftChannel, bool showRightChannel)
+        void PlotValues(ImdMeasurementResult measurementResult, int measurementNr)
         {
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			myPlot.Clear();
 
 			var imdVm = ViewSettings.Singleton.ImdVm;
-			bool leftChannelEnabled = imdVm.ShowLeft && showLeftChannel;	// dynamically update these
-			bool rightChannelEnabled = imdVm.ShowRight && showRightChannel;
+			bool leftChannelEnabled = imdVm.ShowLeft;	// dynamically update these
+			bool rightChannelEnabled = imdVm.ShowRight;
 
 			var fftData = MeasurementResult.FrequencySteps[0].fftData;
 			if (fftData == null)
@@ -808,7 +808,7 @@ namespace QA40xPlot.Actions
                 foreach (var result in Data.Measurements.Where(m => m.Show))
                 {
 					ImdViewModel mvs = result.MeasurementSettings;
-					PlotValues(result, resultNr++, mvs.ShowLeft, mvs.ShowRight);
+					PlotValues(result, resultNr++);
                 }
             }
             else
@@ -821,7 +821,7 @@ namespace QA40xPlot.Actions
                 foreach (var result in Data.Measurements.Where(m => m.Show))
                 {
 					ImdViewModel mvs = result.MeasurementSettings;
-					PlotValues(result, resultNr++, mvs.ShowLeft, mvs.ShowRight);
+					PlotValues(result, resultNr++);
 				}
 			}
 

@@ -531,14 +531,14 @@ namespace QA40xPlot.Actions
         /// Plot the THD % graph
         /// </summary>
         /// <param name="data"></param>
-        void PlotValues(SpectrumMeasurementResult measurementResult, int measurementNr, bool showLeftChannel, bool showRightChannel)
+        void PlotValues(SpectrumMeasurementResult measurementResult, int measurementNr)
         {
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			myPlot.Clear();
 
 			var specVm = ViewSettings.Singleton.SpectrumVm;
-			bool leftChannelEnabled = specVm.ShowLeft && showLeftChannel;	// dynamically update these
-			bool rightChannelEnabled = specVm.ShowRight && showRightChannel;
+			bool leftChannelEnabled = specVm.ShowLeft;	// dynamically update these
+			bool rightChannelEnabled = specVm.ShowRight;
 
 			var fftData = MeasurementResult.FrequencySteps[0].fftData;
 			if (fftData == null)
@@ -763,7 +763,7 @@ namespace QA40xPlot.Actions
                 foreach (var result in Data.Measurements.Where(m => m.Show))
                 {
 					SpectrumViewModel mvs = result.MeasurementSettings;
-					PlotValues(result, resultNr++, mvs.ShowLeft, mvs.ShowRight);
+					PlotValues(result, resultNr++);
                 }
             }
             else
@@ -776,7 +776,7 @@ namespace QA40xPlot.Actions
                 foreach (var result in Data.Measurements.Where(m => m.Show))
                 {
 					SpectrumViewModel mvs = result.MeasurementSettings;
-					PlotValues(result, resultNr++, mvs.ShowLeft, mvs.ShowRight);
+					PlotValues(result, resultNr++);
 				}
 			}
 

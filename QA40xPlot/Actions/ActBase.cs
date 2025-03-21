@@ -156,6 +156,18 @@ namespace QA40xPlot.Actions
 			myPlot.Axes.Rules.Add(rule);
 		}
 
+		// this sets the axes bounds for freq vs magnitude while zooming in and out
+		public void SetOhmFreqRule(ScottPlot.Plot myPlot)
+		{
+			myPlot.Axes.Rules.Clear();
+			ScottPlot.AxisRules.MaximumBoundary rule = new(
+				xAxis: myPlot.Axes.Bottom,
+				yAxis: myPlot.Axes.Left,
+				limits: new AxisLimits(Math.Log10(1), Math.Log10(100000), -200, 10000)
+				);
+			myPlot.Axes.Rules.Add(rule);
+		}
+
 		// this sets the axes bounds for phase while zooming. bottom is as above...
 		public void AddPhaseFreqRule(ScottPlot.Plot myPlot)
 		{
@@ -224,18 +236,18 @@ namespace QA40xPlot.Actions
 			SetupLegend(myPlot);
 		}
 
+		public void AddPhasePlot(ScottPlot.Plot myPlot)
+		{
+			SetupPhaseTics(myPlot);
+			AddPhaseFreqRule(myPlot);
+		}
+
 		public void InitializeMagFreqPlot(ScottPlot.Plot myPlot)
 		{
 			InitializeAPlot(myPlot);
 			SetupMagTics(myPlot);
 			SetupFreqTics(myPlot);
 			SetMagFreqRule(myPlot);
-		}
-
-		public void AddPhasePlot(ScottPlot.Plot myPlot)
-		{
-			SetupPhaseTics(myPlot);
-			AddPhaseFreqRule(myPlot);
 		}
 
 		public void InitializePctFreqPlot(ScottPlot.Plot myPlot)

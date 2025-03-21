@@ -401,6 +401,8 @@ namespace QA40xPlot.Actions
 			var frqrsVm = ViewSettings.Singleton.FreqRespVm;
 
 			InitializeMagFreqPlot(myPlot);
+            SetOhmFreqRule(myPlot);
+            AddPhaseFreqRule(myPlot);
 
             myPlot.Axes.SetLimitsX(Math.Log10(MathUtil.ToDouble(frqrsVm.GraphStartFreq, 20.0)), Math.Log10(MathUtil.ToDouble(frqrsVm.GraphEndFreq, 20000)), myPlot.Axes.Bottom);
 			myPlot.Axes.SetLimitsY(MathUtil.ToDouble(frqrsVm.RangeBottomdB, -20), MathUtil.ToDouble(frqrsVm.RangeTopdB, 180), myPlot.Axes.Left);
@@ -466,7 +468,6 @@ namespace QA40xPlot.Actions
             int color = measurementNr * 2;
             var ttype = GetTestingType(frqrsVm.TestType);
 
-            // var magValues = gainY.Select(x => x.Magnitude).ToArray();
             double[] YValues = [];
             double[] phaseValues = [];
             double rref = MathUtil.ToDouble(frqrsVm.ZReference);
