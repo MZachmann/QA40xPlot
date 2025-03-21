@@ -117,7 +117,8 @@ namespace QA40xPlot.ViewModels
 				string jsonContent = File.ReadAllText(filename);
 				// Deserialize the JSON string into an object
 				var jsonObject = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(jsonContent);
-				ViewSettings.Singleton.GetSettingsFrom(jsonObject);
+				if( jsonObject != null)
+					ViewSettings.Singleton.GetSettingsFrom(jsonObject);
 			}
 			catch (Exception ex)
 			{
@@ -129,6 +130,7 @@ namespace QA40xPlot.ViewModels
 		public static void SaveToFrd(string filename)
 		{
 			var vma = ViewSettings.Singleton.Main.CurrentView;
+			bool isImpedance = false;
 			DataBlob? vmf = null;
 			if (vma is SpectrumViewModel)
 			{
@@ -141,6 +143,7 @@ namespace QA40xPlot.ViewModels
 			else if (vma is FreqRespViewModel)
 			{
 				vmf = ((FreqRespViewModel)vma).GetFftData();
+				isImpedance = ((FreqRespViewModel)vma).TestType == "Impedance";
 			}
 
 			if (vmf != null && vmf.LeftData.Count > 0)
@@ -150,7 +153,11 @@ namespace QA40xPlot.ViewModels
 				{
 					var va = vmf.FreqData[i];
 					var vb = vmf.LeftData[i];
-					if( vmf.PhaseData.Count > 0 )
+					if( isImpedance)
+					{
+						sout += string.Format("{0:F0}, {1:F4}, {2:F4}\r\n", vmf.FreqData[i], vmf.LeftData[i], 180 * vmf.PhaseData[i] / Math.PI);
+					}
+					else if ( vmf.PhaseData.Count > 0 )
 					{
 						sout += string.Format("{0:F0}, {1:F4}, {2:F4}\r\n", vmf.FreqData[i], 20 * Math.Log10(vmf.LeftData[i]), 180 * vmf.PhaseData[i] / Math.PI);
 					}
@@ -261,7 +268,7 @@ namespace QA40xPlot.ViewModels
 		public void DoNewTab(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
 		{
 			var x = e.AddedItems[0] as TabItem;
-			string u = x?.Name;
+			string? u = x?.Name;
 			switch (u)
 			{
 				case "spectrum":

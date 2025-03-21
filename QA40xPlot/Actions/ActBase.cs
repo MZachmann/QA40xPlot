@@ -198,8 +198,12 @@ namespace QA40xPlot.Actions
 			myPlot.Clear();
 
 			// sometimes we don't show phase so remove it
-			if( myPlot.Axes.Right != null ) 
+			if( myPlot.Axes.Right != null )
+			{
 				myPlot.Axes.Right.RemoveTickGenerator();
+				myPlot.Axes.Right.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
+				myPlot.Axes.Right.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
+			}
 
 			// show grid lines for major ticks
 			myPlot.Grid.MajorLineColor = Colors.Black.WithOpacity(.35);
@@ -215,10 +219,6 @@ namespace QA40xPlot.Actions
 
 			myPlot.Axes.Left.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
 			myPlot.Axes.Left.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
-			myPlot.Axes.Right.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
-			myPlot.Axes.Right.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
-			var range = myPlot.Axes.Right.Range;
-			var x = 12;
 
 			// Legend
 			SetupLegend(myPlot);

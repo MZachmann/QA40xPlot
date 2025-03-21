@@ -51,7 +51,7 @@ namespace QA40xPlot.ViewModels
 								//Debug.WriteLine("Property " + property.Name);
 								property.SetValue(dest, Convert.ChangeType(value, property.PropertyType));
 							}
-							catch (Exception ex) { }    // for now ignore this
+							catch (Exception ) { }    // for now ignore this
 						}
 					}
 				}

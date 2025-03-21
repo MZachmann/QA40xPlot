@@ -43,7 +43,7 @@ namespace QA40xPlot.ViewModels
 		}
 		#endregion
 
-		private string _XPos;
+		private string _XPos = string.Empty;
 		[JsonIgnore]
 		public string XPos
 		{
@@ -51,7 +51,7 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _XPos, value);
 		}
 
-		private string _ZValue;
+		private string _ZValue = string.Empty;
 		[JsonIgnore]
 		public string ZValue
 		{
@@ -59,7 +59,7 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ZValue, value);
 		}
 
-		private double _FreqValue;
+		private double _FreqValue = 0.0;
 		[JsonIgnore]
 		public double FreqValue
 		{
@@ -67,7 +67,7 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _FreqValue, value);
 		}
 
-		private string _FreqShow;
+		private string _FreqShow = string.Empty;
 		[JsonIgnore]
 		public string FreqShow
 		{

@@ -52,27 +52,29 @@ namespace QA40xPlot.Actions
 		public DataBlob? CreateExportData()
 		{
 			DataBlob db = new();
-			var vf = this.MeasurementResult?.FrequencySteps;
+			var vf = this.MeasurementResult.FrequencySteps;
 			if (vf == null || vf.Count == 0)
 				return null;
+
+			var ffs = vf[0].fftData;
+			if (ffs == null)
+				return null;
+
 			var vm = ViewSettings.Singleton.SpectrumVm;
 			var sampleRate = MathUtil.ParseTextToUint(vm.SampleRate, 0);
-			var fftsize = vf[0].fftData.Left.Length;
-			var binSize = vf[0].fftData.Df;
-			if (vf != null && vf.Count > 0)
+			var fftsize = ffs.Left.Length;
+			var binSize = ffs.Df;
+			if (vm.ShowRight && !vm.ShowLeft)
 			{
-				if (vm.ShowRight && !vm.ShowLeft)
-				{
-					db.LeftData = vf[0].fftData.Right.ToList();
-				}
-				else
-				{
-					db.LeftData = vf[0].fftData.Left.ToList();
-				}
-				var frqs = Enumerable.Range(0, fftsize).ToList();
-				var frequencies = frqs.Select(x => x * binSize).ToList(); // .Select(x => x * binSize);
-				db.FreqData = frequencies;
+				db.LeftData = ffs.Right.ToList();
 			}
+			else
+			{
+				db.LeftData = ffs.Left.ToList();
+			}
+			var frqs = Enumerable.Range(0, fftsize).ToList();
+			var frequencies = frqs.Select(x => x * binSize).ToList(); // .Select(x => x * binSize);
+			db.FreqData = frequencies;
 			return db;
 		}
 
@@ -165,46 +167,13 @@ namespace QA40xPlot.Actions
 						await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make the averages reset
 					}
 
-					bool useFactoryFft = true;
-					LeftRightSeries lrfs = await QaLibrary.DoAcquisitions(thd.Averages, ct, useFactoryFft, true);
-					if (!useFactoryFft)
-					{
-						for (int astep = 1; astep < thd.Averages; astep++)
-						{
-							LeftRightSeries lrfs2 = await QaLibrary.DoAcquisitions(thd.Averages, ct, false, true);
-							lrfs.TimeRslt.Left = lrfs.TimeRslt.Left.Zip(lrfs2.TimeRslt.Left, (a, b) => a + b).ToArray();
-							lrfs.TimeRslt.Right = lrfs.TimeRslt.Right.Zip(lrfs2.TimeRslt.Right, (a, b) => a + b).ToArray();
-							// var rslt = Array.ConvertAll(lrfs.TimeRslt.Left, (x, index) => (double)x + lrfs2.FreqRslt.Left[index]);
-						}
-						if (thd.Averages > 1)
-						{
-							lrfs.TimeRslt.Left = lrfs.TimeRslt.Left.Select(x => x / thd.Averages).ToArray();
-							lrfs.TimeRslt.Right = lrfs.TimeRslt.Right.Select(x => x / thd.Averages).ToArray();
-						}
-
-						//var old = lrfs.FreqRslt;
-						if (lrfs.FreqRslt == null || lrfs.FreqRslt.Left == null)
-						{
-							var window = new FftSharp.Windows.Hanning();
-							double[] windowed_measured = window.Apply(lrfs.TimeRslt.Left, true);
-							System.Numerics.Complex[] spectrum_measured = FFT.Forward(windowed_measured);
-
-							double[] windowed_ref = window.Apply(lrfs.TimeRslt.Right, true);
-							System.Numerics.Complex[] spectrum_ref = FFT.Forward(windowed_ref);
-
-							lrfs.FreqRslt = new();
-							lrfs.FreqRslt.Left = spectrum_measured.Select(x => x.Magnitude * Math.Sqrt(2)).ToArray();
-							lrfs.FreqRslt.Right = spectrum_ref.Select(x => x.Magnitude * Math.Sqrt(2)).ToArray();
-							var nca2 = (int)(0.01 + 1 / lrfs.TimeRslt.dt);      // total time in tics = sample rate
-							lrfs.FreqRslt.Df = nca2 / (double)spectrum_measured.Length; // ???
-						}
-					}
+					LeftRightSeries lrfs = await QaLibrary.DoAcquisitions(thd.Averages, ct, true, true);
 
 					if (ct.IsCancellationRequested)
                         break;
 
 					uint fundamentalBin = QaLibrary.GetBinOfFrequency(stepBinFrequencies[0], binSize);
-                    if (fundamentalBin >= lrfs.FreqRslt.Left.Length)               // Check in bin within range
+                    if (fundamentalBin >= (lrfs.FreqRslt?.Left.Length ?? -1))               // Check in bin within range
                         break;
 
                     ThdFrequencyStep step = new()
@@ -275,29 +244,32 @@ namespace QA40xPlot.Actions
 			var sampleRate = Convert.ToUInt32(vm.SampleRate);
 			var fftsize = SpectrumViewModel.FftActualSizes.ElementAt(SpectrumViewModel.FftSizes.IndexOf(vm.FftSize));
 			int bin = (int)QaLibrary.GetBinOfFrequency(frequency, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
-            double markVal = 0;
+			var leftData = fmr.FrequencySteps[0].fftData?.Left;
+			var rightData = fmr.FrequencySteps[0].fftData?.Right;
+
+			double markVal = 0;
 			if( vm.ShowPercent)
 			{
-				if (!vm.ShowLeft)
+				if (rightData != null && !vm.ShowLeft)
 				{
-					double maxright = fmr.FrequencySteps[0].fftData.Left.Max();
-					markVal = 100 * fmr.FrequencySteps[0].fftData.Right[bin] / maxright;
+					double maxright = rightData.Max();
+					markVal = 100 * rightData[bin] / maxright;
 				}
-				else
+				else if(leftData != null)
 				{
-					double maxleft = fmr.FrequencySteps[0].fftData.Right.Max();
-					markVal = 100 * fmr.FrequencySteps[0].fftData.Left[bin] / maxleft;
+					double maxleft = leftData.Max();
+					markVal = 100 * leftData[bin] / maxleft;
 				}
 			}
 			else
 			{
-				if (!vm.ShowLeft)
+				if (rightData != null && !vm.ShowLeft)
 				{
-					markVal = 20 * Math.Log10(fmr.FrequencySteps[0].fftData.Right[bin]);
+					markVal = 20 * Math.Log10(rightData[bin]);
 				}
-				else
+				else if(leftData != null )
 				{
-					markVal = 20 * Math.Log10(fmr.FrequencySteps[0].fftData.Left[bin]);
+					markVal = 20 * Math.Log10(leftData[bin]);
 				}
 			}
 			ScottPlot.Color markerCol = new ScottPlot.Color();
@@ -353,12 +325,15 @@ namespace QA40xPlot.Actions
                 var nfloor = MeasurementResult.FrequencySteps[0].Left.Average_NoiseFloor_dBV;   // Average noise floor in dBVolts after the fundamental
                 double fsel = 0;
                 double maxdata = -10;
-                // find if 50 or 60hz is higher, indicating power line frequency
-				foreach(double freq in freqchecks)
+				var fftdata = vm.ShowLeft ? fmr.FrequencySteps[0].fftData?.Left : fmr.FrequencySteps[0].fftData?.Right;
+				if (fftdata == null)
+					return;
+				// find if 50 or 60hz is higher, indicating power line frequency
+				foreach (double freq in freqchecks)
 				{
 					var actfreq = QaLibrary.GetNearestBinFrequency(freq, sampleRate, fftsize);
 					int bin = (int)QaLibrary.GetBinOfFrequency(actfreq, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
-					var data = vm.ShowLeft ? fmr.FrequencySteps[0].fftData.Left[bin] : fmr.FrequencySteps[0].fftData.Right[bin];
+					var data = fftdata[bin];
                     if(data > maxdata)
                     {
                         fsel = freq;
@@ -369,7 +344,7 @@ namespace QA40xPlot.Actions
                 {
                     var actfreq = QaLibrary.GetNearestBinFrequency(fsel * i, sampleRate, fftsize);
 					int bin = (int)QaLibrary.GetBinOfFrequency(actfreq, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
-                    var data = vm.ShowLeft ? fmr.FrequencySteps[0].fftData.Left[bin] : fmr.FrequencySteps[0].fftData.Right[bin];
+                    var data = fftdata[bin];
                     double udif = 20 * Math.Log10(data);
                     AddAMarker(fmr, actfreq, true);
 				}
@@ -388,8 +363,13 @@ namespace QA40xPlot.Actions
 		private ThdFrequencyStepChannel ChannelCalculations(double binSize, double generatorAmplitudeDbv, ThdFrequencyStep step, SpectrumMeasurementResult msr, bool isRight)
 		{
 			uint fundamentalBin = QaLibrary.GetBinOfFrequency(step.FundamentalFrequency, binSize);
-			var ffts = isRight ? step.fftData.Right : step.fftData.Left;
-			var lfdata = step.timeData.Left;
+			var ffts = isRight ? step.fftData?.Right : step.fftData?.Left;
+			var lfdata = step.timeData?.Left;
+
+			// this should never happen
+			if (ffts == null || lfdata == null)
+				return new();
+
 			double allvolts = Math.Sqrt(lfdata.Select(x => x * x ).Sum() / lfdata.Count());	// use the time data for best accuracy gain math
 
 			ThdFrequencyStepChannel channelData = new()
@@ -401,7 +381,7 @@ namespace QA40xPlot.Actions
 
 			};
 			// Calculate average noise floor
-			var noiseFlr = (msr.NoiseFloor == null) ? null : (isRight ? msr.NoiseFloor.FreqRslt.Left : msr.NoiseFloor.FreqRslt.Right);
+			var noiseFlr = (msr.NoiseFloor == null) ? null : (isRight ? msr.NoiseFloor.FreqRslt?.Left : msr.NoiseFloor.FreqRslt?.Right);
 			if (noiseFlr != null)
 			{
 				channelData.Average_NoiseFloor_V = noiseFlr.Average();   // Average noise floor in Volts after the fundamental
@@ -493,8 +473,8 @@ namespace QA40xPlot.Actions
 			{
 				// get the data to look through
 				var fftdata = steps.First().fftData;
-				var ffs = useRight ? fftdata.Right : fftdata.Left;
-				if (ffs != null && ffs.Length > 0)
+				var ffs = useRight ? fftdata?.Right : fftdata?.Left;
+				if (fftdata != null && ffs != null && ffs.Length > 0)
 				{
 					int bin = 0;
 					ScottPlot.Plot myPlot = fftPlot.ThePlot;
@@ -561,6 +541,8 @@ namespace QA40xPlot.Actions
 			bool rightChannelEnabled = specVm.ShowRight && showRightChannel;
 
 			var fftData = MeasurementResult.FrequencySteps[0].fftData;
+			if (fftData == null)
+				return;
 
 			List<double> freqX = [];
 			List<double> dBV_Left_Y = [];

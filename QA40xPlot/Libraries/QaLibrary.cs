@@ -208,26 +208,26 @@ namespace QA40xPlot.Libraries
 
         static public async Task<LeftRightSeries> DoAcquisitions(uint averages, CancellationToken ct, bool getFrequencySeries = true, bool getTimeSeries = true)
         {
-            LeftRightSeries leftRightSeries = new LeftRightSeries();
+            LeftRightSeries lrfs = new LeftRightSeries();
 
             await Qa40x.DoAcquisition();
-            if (ct.IsCancellationRequested)
-                return null;
+            if (ct.IsCancellationRequested || lrfs.FreqRslt == null)
+                return lrfs;
             if (getFrequencySeries)
             {
-                leftRightSeries.FreqRslt = await Qa40x.GetInputFrequencySeries();
-                if (ct.IsCancellationRequested)
-                    return null;
+                lrfs.FreqRslt = await Qa40x.GetInputFrequencySeries();
+                if (ct.IsCancellationRequested || lrfs.FreqRslt == null)
+                    return lrfs;
             }
             if (getTimeSeries)
             {
-                leftRightSeries.TimeRslt = await Qa40x.GetInputTimeSeries();
-                if (ct.IsCancellationRequested)
-                    return null;
+                lrfs.TimeRslt = await Qa40x.GetInputTimeSeries();
+                if (ct.IsCancellationRequested || lrfs.TimeRslt == null)
+                    return lrfs;
             }
 
-            if (averages <= 1)
-                return leftRightSeries;        // Only one measurement
+            if (averages <= 1  || lrfs.TimeRslt == null)
+                return lrfs;        // Only one measurement
 
             if (getFrequencySeries)
             {
@@ -235,25 +235,24 @@ namespace QA40xPlot.Libraries
                 {
                     await Qa40x.DoAcquisition();
                     if (ct.IsCancellationRequested)
-                        return null;
-                    LeftRightSeries leftRightSeries2 = new LeftRightSeries();
-                    leftRightSeries2.FreqRslt = await Qa40x.GetInputFrequencySeries();
-
-                    for (int j = 0; j < leftRightSeries2.FreqRslt.Left.Length; j++)
+                        return lrfs;
+                    LeftRightSeries lrfs2 = new LeftRightSeries();
+                    lrfs2.FreqRslt = await Qa40x.GetInputFrequencySeries();
+                    for (int j = 0; j < lrfs.FreqRslt.Left.Length; j++)
                     {
-                        leftRightSeries.FreqRslt.Left[j] += leftRightSeries2.FreqRslt.Left[j];
-                        leftRightSeries.FreqRslt.Right[j] += leftRightSeries2.FreqRslt.Right[j];
+                        lrfs.FreqRslt.Left[j] += lrfs2.FreqRslt.Left[j];
+                        lrfs.FreqRslt.Right[j] += lrfs2.FreqRslt.Right[j];
                     }
                 }
 
-                for (int j = 0; j < leftRightSeries.FreqRslt.Left.Length; j++)
+                for (int j = 0; j < lrfs.FreqRslt.Left.Length; j++)
                 {
-                    leftRightSeries.FreqRslt.Left[j] = leftRightSeries.FreqRslt.Left[j] / averages;
-                    leftRightSeries.FreqRslt.Right[j] = leftRightSeries.FreqRslt.Right[j] / averages;
+                    lrfs.FreqRslt.Left[j] = lrfs.FreqRslt.Left[j] / averages;
+                    lrfs.FreqRslt.Right[j] = lrfs.FreqRslt.Right[j] / averages;
                 }
             }
 
-            return leftRightSeries;
+            return lrfs;
         }
 
         /// <summary>
@@ -375,7 +374,7 @@ namespace QA40xPlot.Libraries
 
         public static bool DetermineAttenuationFromLeftRightSeriesData(bool leftChannelEnabled, bool rightChannelEnabled, LeftRightSeries acqData, out double peak_dBV, out int attenuation)
         {
-            if (acqData == null || acqData.FreqRslt == null)
+            if (acqData == null || acqData.TimeRslt == null)
             {
                 peak_dBV = 0;
                 attenuation = 42;
@@ -757,8 +756,11 @@ namespace QA40xPlot.Libraries
         }
 
 
-        public static void PlotMiniFftGraph(PlotControl plot, LeftRightFrequencySeries fftData, bool leftChannelEnabled, bool rightChannelEnabled)
+        public static void PlotMiniFftGraph(PlotControl plot, LeftRightFrequencySeries? fftData, bool leftChannelEnabled, bool rightChannelEnabled)
         {
+            if (null == fftData)
+                return;
+
 			ScottPlot.Plot myPlot = plot.ThePlot;
 			myPlot.Clear();
 
@@ -865,8 +867,13 @@ namespace QA40xPlot.Libraries
         }
 
 
-        public static void PlotMiniTimeGraph(PlotControl plot, LeftRightTimeSeries timeData, double fundamantalFrequency, bool leftChannelEnabled, bool rightChannelEnabled, bool plotChirp = false)
+        public static void PlotMiniTimeGraph(PlotControl plot, LeftRightTimeSeries? timeData, double fundamantalFrequency, bool leftChannelEnabled, bool rightChannelEnabled, bool plotChirp = false)
         {
+            if (null == timeData)
+            {
+                return;
+            }
+
 			ScottPlot.Plot myPlot = plot.ThePlot;
 			myPlot.Clear();
 

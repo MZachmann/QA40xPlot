@@ -44,6 +44,7 @@ namespace QA40xPlot.Actions
             QaLibrary.InitMiniFftPlot(fftPlot, MathUtil.ParseTextToDouble(thd.StartFreq, 10),
                 MathUtil.ParseTextToDouble(thd.EndFreq, 20000), -150, 20);
             QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -1, 1);
+            MeasurementResult = new(thd);
 
             // TODO: depends on graph settings which graph is shown
             UpdateGraph(true);
@@ -101,7 +102,7 @@ namespace QA40xPlot.Actions
 
         private void AddColumn(ThdFrequencyStep step)
         {
-            var f = MeasurementResult?.LeftColumns;
+            var f = MeasurementResult.LeftColumns;
             if (f != null)
             {
                 var cl = MakeColumn(step.Left);
@@ -111,7 +112,7 @@ namespace QA40xPlot.Actions
                     MeasurementResult.LeftColumns.Add(cl);
                 }
             }
-            f = MeasurementResult?.RightColumns;
+            f = MeasurementResult.RightColumns;
             if (f != null)
             {
                 var cl = MakeColumn(step.Right);
@@ -126,7 +127,7 @@ namespace QA40xPlot.Actions
 		public Tuple<ThdColumn?, ThdColumn?> LookupX(double freq)
 		{
 			var vm = ViewModels.ViewSettings.Singleton.ThdFreq;
-			var vf = vm.ShowLeft ? MeasurementResult?.LeftColumns : MeasurementResult?.RightColumns;
+			var vf = vm.ShowLeft ? MeasurementResult.LeftColumns : MeasurementResult.RightColumns;
 			if (vf == null || vf.Count == 0)
 			{
 				return Tuple.Create((ThdColumn?)null, (ThdColumn?)null);
@@ -146,9 +147,9 @@ namespace QA40xPlot.Actions
 			ThdColumn? mf2 = null;
 
 			if (vm.ShowLeft)
-				mf1 = MeasurementResult?.LeftColumns?.ElementAt(bin);
+				mf1 = MeasurementResult.LeftColumns?.ElementAt(bin);
 			if (vm.ShowRight)
-				mf2 = MeasurementResult?.RightColumns?.ElementAt(bin);
+				mf2 = MeasurementResult.RightColumns?.ElementAt(bin);
 
 			return Tuple.Create(mf1, mf2);
 		}
@@ -233,8 +234,8 @@ namespace QA40xPlot.Actions
                     if (ct.IsCancellationRequested)
                         return false;
                     var generatorAmp = result.Item1;
-                    QaLibrary.PlotMiniFftGraph(fftPlot, result.Item2.FreqRslt, thd.LeftChannel && thd.ShowLeft, thd.RightChannel && thd.ShowRight);                                             // Plot fft data in mini graph
-                    QaLibrary.PlotMiniTimeGraph(timePlot, result.Item2.TimeRslt, testFrequency, thd.LeftChannel && thd.ShowLeft, thd.RightChannel && thd.ShowRight, true);                                      // Plot time data in mini graph
+                    QaLibrary.PlotMiniFftGraph(fftPlot, result.Item2?.FreqRslt, thd.LeftChannel && thd.ShowLeft, thd.RightChannel && thd.ShowRight);                                             // Plot fft data in mini graph
+                    QaLibrary.PlotMiniTimeGraph(timePlot, result.Item2?.TimeRslt, testFrequency, thd.LeftChannel && thd.ShowLeft, thd.RightChannel && thd.ShowRight, true);                                      // Plot time data in mini graph
                     if (generatorAmp == -150)
                     {
                         await showMessage($"Could not determine a valid generator amplitude. The amplitude would be {generatorAmp:0.00#} dBV.");
@@ -255,8 +256,8 @@ namespace QA40xPlot.Actions
                         if (ct.IsCancellationRequested)
                             return false;
 						generatorAmp = result.Item1;
-                        QaLibrary.PlotMiniFftGraph(fftPlot, result.Item2.FreqRslt, thd.LeftChannel && thd.ShowLeft, thd.RightChannel && thd.ShowRight);                                             // Plot fft data in mini graph
-                        QaLibrary.PlotMiniTimeGraph(timePlot, result.Item2.TimeRslt, testFrequency, thd.LeftChannel && thd.ShowLeft, thd.RightChannel && thd.ShowRight, true);                                      // Plot time data in mini graph
+                        QaLibrary.PlotMiniFftGraph(fftPlot, result.Item2?.FreqRslt, thd.LeftChannel && thd.ShowLeft, thd.RightChannel && thd.ShowRight);                                             // Plot fft data in mini graph
+                        QaLibrary.PlotMiniTimeGraph(timePlot, result.Item2?.TimeRslt, testFrequency, thd.LeftChannel && thd.ShowLeft, thd.RightChannel && thd.ShowRight, true);                                      // Plot time data in mini graph
                         if (generatorAmp == -150)
                         {
                             await showMessage($"Could not determine a valid generator amplitude. The amplitude would be {generatorAmp:0.00#} dBV.");
@@ -336,7 +337,7 @@ namespace QA40xPlot.Actions
                         break;
 
                     uint fundamentalBin = QaLibrary.GetBinOfFrequency(stepBinFrequencies[f], binSize);
-                    if (fundamentalBin >= lrfs.FreqRslt.Left.Length)               // Check in bin within range
+                    if (lrfs.FreqRslt == null || fundamentalBin >= lrfs.FreqRslt.Left.Length)               // Check in bin within range
                         break;
 
                     ThdFrequencyStep step = new()
@@ -351,8 +352,8 @@ namespace QA40xPlot.Actions
                     QaLibrary.PlotMiniFftGraph(fftPlot, lrfs.FreqRslt, thd.LeftChannel && thd.ShowLeft, thd.RightChannel && thd.ShowRight);
                     QaLibrary.PlotMiniTimeGraph(timePlot, lrfs.TimeRslt, step.FundamentalFrequency, thd.LeftChannel && thd.ShowLeft, thd.RightChannel && thd.ShowRight);
 
-                    step.Left = ChannelCalculations(binSize, step.FundamentalFrequency, amplitudeSetpointdBV, lrfs.FreqRslt.Left, MeasurementResult.NoiseFloor.FreqRslt.Left, thd.AmpLoad);
-                    step.Right = ChannelCalculations(binSize, step.FundamentalFrequency, amplitudeSetpointdBV, lrfs.FreqRslt.Right, MeasurementResult.NoiseFloor.FreqRslt.Right, thd.AmpLoad);
+                    step.Left = ChannelCalculations(binSize, step.FundamentalFrequency, amplitudeSetpointdBV, lrfs.FreqRslt.Left, MeasurementResult.NoiseFloor?.FreqRslt?.Left, thd.AmpLoad);
+                    step.Right = ChannelCalculations(binSize, step.FundamentalFrequency, amplitudeSetpointdBV, lrfs.FreqRslt.Right, MeasurementResult.NoiseFloor?.FreqRslt?.Right, thd.AmpLoad);
 
                     // Add step data to list
                     MeasurementResult.FrequencySteps.Add(step);
@@ -391,7 +392,7 @@ namespace QA40xPlot.Actions
         /// <param name="fftData"></param>
         /// <param name="noiseFloorFftData"></param>
         /// <returns></returns>
-        private ThdFrequencyStepChannel ChannelCalculations(double binSize, double fundamentalFrequency, double generatorAmplitudeDbv, double[] fftData, double[] noiseFloorFftData, double load)
+        private ThdFrequencyStepChannel ChannelCalculations(double binSize, double fundamentalFrequency, double generatorAmplitudeDbv, double[] fftData, double[]? noiseFloorFftData, double load)
         {
             uint fundamentalBin = QaLibrary.GetBinOfFrequency(fundamentalFrequency, binSize);
 
@@ -402,12 +403,19 @@ namespace QA40xPlot.Actions
                 Gain_dB = 20 * Math.Log10(fftData[fundamentalBin] / Math.Pow(10, generatorAmplitudeDbv / 20))
             };
             // Calculate average noise floor
-            channelData.Average_NoiseFloor_V = noiseFloorFftData.Skip((int)fundamentalBin + 1).Average();   // Average noise floor in Volts after the fundamental
-            channelData.Average_NoiseFloor_dBV = 20 * Math.Log10(channelData.Average_NoiseFloor_V);         // Average noise floor in dBV
+            if (noiseFloorFftData != null)
+            {
+				channelData.Average_NoiseFloor_V = noiseFloorFftData.Skip((int)fundamentalBin + 1).Average();   // Average noise floor in Volts after the fundamental
+				channelData.Average_NoiseFloor_dBV = 20 * Math.Log10(channelData.Average_NoiseFloor_V);         // Average noise floor in dBV
+			}
+            else
+            {
+				channelData.Average_NoiseFloor_V = 1e-4;    // Average noise floor in Volts after the fundamental
+				channelData.Average_NoiseFloor_dBV = -100;  // Average noise floor in dBV
+			}
 
-
-            // Reset harmonic distortion variables
-            double distortionSqrtTotal = 0;
+			// Reset harmonic distortion variables
+			double distortionSqrtTotal = 0;
             double distortionD6plus = 0;
 
             // Loop through harmonics up tot the 12th
@@ -431,10 +439,12 @@ namespace QA40xPlot.Actions
                     Amplitude_dBV = amplitude_dBV,
                     Thd_Percent = thd_Percent,
                     Thd_dB = 20 * Math.Log10(thd_Percent / 100.0),
-                    NoiseAmplitude_V = noiseFloorFftData[bin]
+                    NoiseAmplitude_V = 0
                 };
+                if (noiseFloorFftData != null)
+					harmonic.NoiseAmplitude_V = noiseFloorFftData[bin];
 
-                if (harmonicNumber >= 6)
+				if (harmonicNumber >= 6)
                     distortionD6plus += Math.Pow(amplitude_V, 2);
 
                 distortionSqrtTotal += Math.Pow(amplitude_V, 2);

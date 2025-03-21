@@ -16,7 +16,7 @@ namespace QA40xPlot.Views
 		public ScottPlot.Plot ThePlot { get; set; }
 		private WpfPlot _plot;
 		public WpfPlot Plot { get { return _plot; } set { _plot = value; ThePlot = value.Plot; } }
-		public BaseViewModel GrandParent { get; set; }
+		public BaseViewModel? GrandParent { get; set; }
 
 		private bool _TrackMouse = true;
 		public bool TrackMouse
@@ -47,25 +47,19 @@ namespace QA40xPlot.Views
 		{
 			if (e.ChangedButton == MouseButton.Left)
 			{
-				if (GrandParent != null)
-				{
-					GrandParent.RaiseMouseTracked("off");
-				}
+				GrandParent?.RaiseMouseTracked("off");
 			}
 		}
 
 		private void OnMouseMove(object sender, MouseEventArgs e)
 		{
 			// Get the mouse position relative to the Canvas
-			Point position = e.GetPosition(this);
-			var coords = this.ThePlot.GetCoordinates(new Pixel(position.X, position.Y));
-			var cx = Math.Pow(10, coords.X);
-			var cy = Math.Pow(10, coords.Y);
-			int x = 12;
-			if (GrandParent != null)
-			{
-				GrandParent.RaiseMouseTracked("helo");
-			}
+			//Point position = e.GetPosition(this);
+			//var coords = this.ThePlot.GetCoordinates(new Pixel(position.X, position.Y));
+			//var cx = Math.Pow(10, coords.X);
+			//var cy = Math.Pow(10, coords.Y);
+			GrandParent?.RaiseMouseTracked("helo");
+
 			// Display the position in a TextBlock
 			//MousePositionTextBlock.Text = $"X: {position.X}, Y: {position.Y}";
 		}

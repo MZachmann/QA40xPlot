@@ -81,7 +81,7 @@ namespace QA40xPlot.Actions
 		{
 			DataBlob db = new();
             var frsqVm = ViewSettings.Singleton.FreqRespVm;
-			var freqs = this.MeasurementResult?.GainFrequencies;
+			var freqs = this.MeasurementResult.GainFrequencies;
             if (freqs == null || freqs.Count == 0)
                 return null;
 
@@ -108,7 +108,7 @@ namespace QA40xPlot.Actions
 						double rref = MathUtil.ToDouble(MeasurementResult.MeasurementSettings.ZReference);
 						db.LeftData = MeasurementResult.GainData.Select(x => rref * ToImpedance(x).Magnitude).ToList();
 						// YValues = gainY.Select(x => rref * x.Magnitude/(1-x.Magnitude)).ToArray();
-						db.PhaseData = MeasurementResult.GainData.Select(x => 180 * ToImpedance(x).Phase / Math.PI).ToList();
+						db.PhaseData = MeasurementResult.GainData.Select(x => ToImpedance(x).Phase).ToList();
 					}
 					break;
             }
@@ -335,7 +335,7 @@ namespace QA40xPlot.Actions
 								var ga = await GetGain(dfreq, mrs, ttype);
 								readings.Add(ga);
 							}
-							var total = new Complex(0, 0);
+							var total = Complex.Zero;
 							foreach (var f in readings)
                             {
                                 total += f;
@@ -660,9 +660,9 @@ namespace QA40xPlot.Actions
                 // Gain BW
                 if (MeasurementResult.MeasurementSettings.LeftChannel)
                 {
-                    var gainBW3dB = CalculateBandwidth(-3, MeasurementResult.GainData.Select(x => x.Magnitude).ToArray(), MeasurementResult.FrequencyResponseData.FreqRslt.Df);        // Volts is gain
+                    var gainBW3dB = CalculateBandwidth(-3, MeasurementResult.GainData.Select(x => x.Magnitude).ToArray(), MeasurementResult.FrequencyResponseData.FreqRslt?.Df ?? 1);        // Volts is gain
 
-                    var gainBW1dB = CalculateBandwidth(-1, MeasurementResult.GainData.Select(x => x.Magnitude).ToArray(), MeasurementResult.FrequencyResponseData.FreqRslt.Df);
+                    var gainBW1dB = CalculateBandwidth(-1, MeasurementResult.GainData.Select(x => x.Magnitude).ToArray(), MeasurementResult.FrequencyResponseData.FreqRslt?.Df ?? 1);
 
                     // Draw bandwidth lines
                     var colors = new GraphColors();
@@ -687,25 +687,31 @@ namespace QA40xPlot.Actions
 
         class BandwidthChannelData
         {
-            public double LowestAmplitudeVolt;
-            public double LowestAmplitudeFreq;
+            public double LowestAmplitudeVolt = 0;
+            public double LowestAmplitudeFreq = 0;
 
-            public double HighestAmplitudeVolt;
-            public double HighestAmplitudeFreq;
+            public double HighestAmplitudeVolt = 0;
+            public double HighestAmplitudeFreq = 0;
 
-            public double LowerFreq;
-            public double LowerFreqAmplitudeVolt;
+            public double LowerFreq = 0;
+            public double LowerFreqAmplitudeVolt = 0;
 
-            public double UpperFreq;
-            public double UpperFreqAmplitudeVolt;
+            public double UpperFreq = 0;
+            public double UpperFreqAmplitudeVolt = 0;
 
-            public double Bandwidth;
+            public double Bandwidth = 0;
         }
 
         class BandwidthData
         {
             public BandwidthChannelData Left;
             public BandwidthChannelData Right;
+
+            public BandwidthData()
+            {
+                Left = new BandwidthChannelData();
+                Right = new BandwidthChannelData();
+            }
         }
 
         /// <summary>

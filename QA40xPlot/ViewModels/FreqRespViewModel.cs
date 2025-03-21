@@ -50,21 +50,21 @@ public class FreqRespViewModel : BaseViewModel
 		set => SetProperty(ref _TestType, value);
 	}
 
-	private string _ZReference;
+	private string _ZReference = string.Empty;
 	public string ZReference
 	{
 		get => _ZReference;
 		set => SetProperty(ref _ZReference, value);
 	}
 
-	private string _StartFreq;
+	private string _StartFreq = string.Empty;
 	public string StartFreq
 	{
 		get => _StartFreq;
 		set => SetProperty(ref _StartFreq, value);
 	}
 
-	private string _EndFreq;
+	private string _EndFreq = string.Empty;
 	public string EndFreq
 	{
 		get => _EndFreq;
@@ -77,28 +77,28 @@ public class FreqRespViewModel : BaseViewModel
 		get => _StepsOctave; set => SetProperty(ref _StepsOctave, value);
 	}
 
-	private string _Smoothing;         // type of alert
+	private string _Smoothing = string.Empty;         // type of alert
 	public string Smoothing
 	{
 		get => _Smoothing;
 		set => SetProperty(ref _Smoothing, value);
 	}
 
-	private string _Gen1Voltage;         // type of alert
+	private string _Gen1Voltage = string.Empty;         // type of alert
 	public string Gen1Voltage
 	{
 		get => _Gen1Voltage;
 		set => SetProperty(ref _Gen1Voltage, value);
 	}
 
-	private string _GraphStartFreq;         // type of alert
+	private string _GraphStartFreq = string.Empty;         // type of alert
 	public string GraphStartFreq
 	{
 		get => _GraphStartFreq;
 		set => SetProperty(ref _GraphStartFreq, value);
 	}
 
-	private string _GraphEndFreq;         // type of alert
+	private string _GraphEndFreq = string.Empty;         // type of alert
 	public string GraphEndFreq
 	{
 		get => _GraphEndFreq;
@@ -130,27 +130,27 @@ public class FreqRespViewModel : BaseViewModel
 		set => SetProperty(ref _MeasureType, value);
 	}
 
-	private string _rangeTop;
+	private string _rangeTop = string.Empty;
 	public string RangeTop
 	{
 		get { return _rangeTop; }
 		set => SetProperty(ref _rangeTop, value);
 	}
 
-	private string _rangeBottom;
+	private string _rangeBottom = string.Empty;
 	public string RangeBottom
 	{
 		get { return _rangeBottom; }
 		set => SetProperty(ref _rangeBottom, value);
 	}
-	private string _rangeTopdB;
+	private string _rangeTopdB = string.Empty;
 	public string RangeTopdB
 	{
 		get { return _rangeTopdB; }
 		set => SetProperty(ref _rangeTopdB, value);
 	}
 
-	private string _rangeBottomdB;
+	private string _rangeBottomdB = string.Empty;
 	public string RangeBottomdB
 	{
 		get { return _rangeBottomdB; }
@@ -199,13 +199,13 @@ public class FreqRespViewModel : BaseViewModel
 		set => SetProperty(ref _ShowRight, value);
 	}
 
-	private string _SampleRate;
+	private string _SampleRate = string.Empty;
 	public string SampleRate
 	{
 		get => _SampleRate;
 		set => SetProperty(ref _SampleRate, value);
 	}
-	private string _FftSize;
+	private string _FftSize = string.Empty;
 	public string FftSize
 	{
 		get => _FftSize;
@@ -254,7 +254,7 @@ public class FreqRespViewModel : BaseViewModel
 	#endregion
 
 	// the property change is used to trigger repaints of the graph
-	private void CheckPropertyChanged(object sender, PropertyChangedEventArgs e)
+	private void CheckPropertyChanged(object? sender, PropertyChangedEventArgs e)
 	{
 		switch (e.PropertyName)
 		{
@@ -379,6 +379,9 @@ public class FreqRespViewModel : BaseViewModel
 	{
 		PropertyChanged += CheckPropertyChanged;
 		MouseTracked += DoMouseTracked;
+
+		actPlot = default!;
+		actFreq = default!;
 
 		GraphStartFreq = "20";
 		GraphEndFreq = "20000";

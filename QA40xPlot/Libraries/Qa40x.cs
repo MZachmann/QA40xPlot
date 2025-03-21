@@ -28,6 +28,14 @@ namespace QA40xPlot.Libraries
         public double dt { get; set; }
         public double[] Left { get; set; }
         public double[] Right { get; set; }
+
+        // to avoid warnings. Note this never doesn't get set during real 'new'
+        public LeftRightTimeSeries()
+        {
+            dt = 0.0;
+            Left = new double[0];
+            Right = new double[0];
+        }
     }
 
     public class LeftRightFrequencySeries
@@ -38,13 +46,21 @@ namespace QA40xPlot.Libraries
         public double Df { get; set; }
         public double[] Left { get; set; }
         public double[] Right { get; set; }
+
+        // this is only invoked with real data during an acquisition, so ignore the init
+        public LeftRightFrequencySeries()
+        {
+            Df = 1.0;
+            Left = new double[0];
+            Right = new double[0];
+        }
     }
 
     public class LeftRightSeries
     {
   
-        public LeftRightFrequencySeries FreqRslt;
-        public LeftRightTimeSeries TimeRslt;
+        public LeftRightFrequencySeries? FreqRslt;
+        public LeftRightTimeSeries? TimeRslt;
     }
 
     public class Qa40x
@@ -54,17 +70,12 @@ namespace QA40xPlot.Libraries
 
         static Qa40x()
         {
-            SetRootUrl("http://localhost:9402");
-        }
-
-        static void SetRootUrl(string rootUrl)
-        {
-            RootUrl = rootUrl;
-            Client = new HttpClient
-            {
-                BaseAddress = new Uri(RootUrl)
-            };
-        }
+			RootUrl = "http://localhost:9402";
+			Client = new HttpClient
+			{
+				BaseAddress = new Uri(RootUrl)
+			};
+		}
 
         static public async Task<double> GetVersion()
         {

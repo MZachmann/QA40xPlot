@@ -13,6 +13,8 @@
 
 		public SpectrumData()
 		{
+			Title = string.Empty;
+			CreateDate = DateTime.Now;
 			Measurements = [];
 		}
 	}

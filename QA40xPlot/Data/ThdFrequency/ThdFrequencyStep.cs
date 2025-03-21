@@ -11,11 +11,13 @@ namespace QA40xPlot.Data
         public ThdFrequencyStepChannel Right { get; set; }
 
         [JsonIgnore]
-        public LeftRightFrequencySeries fftData { get; set; }
+        public LeftRightFrequencySeries? fftData { get; set; }
         [JsonIgnore]
-        public LeftRightTimeSeries timeData { get; set; }
+        public LeftRightTimeSeries? timeData { get; set; }
 
         public ThdFrequencyStep() {
+            FundamentalFrequency = 100;
+            GeneratorVoltage = 1.0;
             Left = new ThdFrequencyStepChannel();
             Right = new ThdFrequencyStepChannel();
         }

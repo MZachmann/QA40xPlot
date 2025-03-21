@@ -18,7 +18,7 @@ namespace QA40xPlot.Data
 		public List<ThdColumn> RightColumns { get; set; }
 
 		[JsonIgnore]
-        public LeftRightSeries NoiseFloor { get; set; }                                 // Noise floor measurement
+        public LeftRightSeries? NoiseFloor { get; set; }                                 // Noise floor measurement
 
         public ThdAmplitudeMeasurementResult(ThdAmpViewModel vm)
         {

@@ -17,6 +17,9 @@ namespace QA40xPlot.Libraries
 		public static System.Numerics.Complex CalculateGainPhase(double fundamentalFreq, LeftRightSeries measuredSeries)
 		{
 			var measuredTimeSeries = measuredSeries.TimeRslt;
+			if(measuredTimeSeries == null)
+				return Complex.Zero;
+
 			var m2 = Math.Sqrt(2);
 			// Left channel
 			var window = new FftSharp.Windows.Hanning();
@@ -56,6 +59,9 @@ namespace QA40xPlot.Libraries
 		public static System.Numerics.Complex CalculateDualGain(double fundamentalFreq, LeftRightSeries measuredSeries)
 		{
 			var measuredTimeSeries = measuredSeries.TimeRslt;
+			if( measuredTimeSeries == null)
+				return Complex.Zero;
+
 			var m2 = Math.Sqrt(2);
 			// Left channel
 			var window = new FftSharp.Windows.Hanning();

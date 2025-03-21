@@ -94,7 +94,7 @@ namespace QA40xPlot
 		}
 
 		static bool bdone = false;
-		private void DoContentRendered(object sender, EventArgs e)
+		private void DoContentRendered(object? sender, EventArgs e)
 		{
 			if (!bdone)
 			{

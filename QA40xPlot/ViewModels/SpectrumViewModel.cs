@@ -65,27 +65,27 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _OutVoltage; set => SetProperty(ref _OutVoltage, value);
 		}
-		private string _Gen1Frequency;
+		private string _Gen1Frequency = string.Empty;
 		public string Gen1Frequency
 		{
 			get => _Gen1Frequency;
 			set => SetProperty(ref _Gen1Frequency, value);
 		}
 
-		private string _Gen1Voltage;
+		private string _Gen1Voltage = string.Empty;
 		public string Gen1Voltage
 		{
 			get => _Gen1Voltage;
 			set => SetProperty(ref _Gen1Voltage, value);
 		}
-		private string _GraphStartFreq;
+		private string _GraphStartFreq = string.Empty;
 		public string GraphStartFreq
 		{
 			get => _GraphStartFreq;
 			set => SetProperty(ref _GraphStartFreq, value);
 		}
 
-		private string _GraphEndFreq;
+		private string _GraphEndFreq = string.Empty;
 		public string GraphEndFreq
 		{
 			get => _GraphEndFreq;
@@ -112,27 +112,27 @@ namespace QA40xPlot.ViewModels
 			get => _Attenuation;
 			set => SetProperty(ref _Attenuation, value);
 		}
-		private string _rangeTop;
+		private string _rangeTop = string.Empty;
 		public string RangeTop
 		{
 			get { return _rangeTop; }
 			set => SetProperty(ref _rangeTop, value);
 		}
 
-		private string _rangeBottom;
+		private string _rangeBottom = string.Empty;
 		public string RangeBottom
 		{
 			get { return _rangeBottom; }
 			set => SetProperty(ref _rangeBottom, value);
 		}
-		private string _rangeTopdB;
+		private string _rangeTopdB = string.Empty;
 		public string RangeTopdB
 		{
 			get { return _rangeTopdB; }
 			set => SetProperty(ref _rangeTopdB, value);
 		}
 
-		private string _rangeBottomdB;
+		private string _rangeBottomdB = string.Empty;
 		public string RangeBottomdB
 		{
 			get { return _rangeBottomdB; }
@@ -289,7 +289,7 @@ namespace QA40xPlot.ViewModels
 		#endregion
 
 		// the property change is used to trigger repaints of the graph
-		private void CheckPropertyChanged(object sender, PropertyChangedEventArgs e)
+		private void CheckPropertyChanged(object? sender, PropertyChangedEventArgs e)
 		{
 			switch (e.PropertyName)
 			{
@@ -331,7 +331,7 @@ namespace QA40xPlot.ViewModels
 
 		public DataBlob? GetFftData()
 		{
-			return actSpec.CreateExportData();
+			return actSpec?.CreateExportData();
 		}
 
 		public void SetAction(PlotControl plot, ThdChannelInfo info)
@@ -354,25 +354,25 @@ namespace QA40xPlot.ViewModels
 		{
 			// Implement the logic to start the measurement process
 			var vm = ViewModels.ViewSettings.Singleton.SpectrumVm;
-			vm.actSpec.StartMeasurement();
+			vm.actSpec?.StartMeasurement();
 		}
 
 		private static void StopIt(object parameter)
 		{
 			var vm = ViewModels.ViewSettings.Singleton.SpectrumVm;
-			vm.actSpec.DoCancel();
+			vm.actSpec?.DoCancel();
 		}
 
 		// when the mouse moves in the plotcontrol window it sends a mouseevent to the parent view model (this)
 		// here's the tracker event handler
-		private static void DoMouseTracked(object sender, MouseEventArgs e)
+		private static void DoMouseTracked(object? sender, MouseEventArgs e)
 		{
 			var specVm = ViewSettings.Singleton.SpectrumVm;
 			specVm.DoMouse(sender, e);
 		}
 
 		private static Marker? MyMark = null;
-		private void DoMouse(object sender, MouseEventArgs e)
+		private void DoMouse(object? sender, MouseEventArgs e)
 		{ 
 
 			if (e.LeftButton == MouseButtonState.Pressed && !IsMouseDown)
@@ -421,6 +421,10 @@ namespace QA40xPlot.ViewModels
 		{
 			PropertyChanged += CheckPropertyChanged;
 			MouseTracked += DoMouseTracked;
+
+			this.actPlot = default!;
+			this.actInfo = default!;
+			this.actSpec = default!;
 
 			OutVoltage = 0.5;
 			GraphStartFreq = "20";

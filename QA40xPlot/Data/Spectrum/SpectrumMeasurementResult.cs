@@ -19,6 +19,11 @@ namespace QA40xPlot.Data
 
 		public SpectrumMeasurementResult(SpectrumViewModel vm)
 		{
+			Title = string.Empty;
+			Description = string.Empty;
+			CreateDate = DateTime.Now;
+			Show = false;
+			Saved = false;
 			FrequencySteps = [];
 			MeasurementSettings = new();
 			vm.CopyPropertiesTo(MeasurementSettings);

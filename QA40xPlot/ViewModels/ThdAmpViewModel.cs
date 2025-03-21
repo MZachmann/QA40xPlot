@@ -29,25 +29,25 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand DoStop { get => new RelayCommand(StopIt); }
 
 		#region Setters and Getters
-		private string _StartVoltage;         // type of alert
+		private string _StartVoltage = string.Empty;         // type of alert
 		public string StartVoltage
 		{
 			get => _StartVoltage; set => SetProperty(ref _StartVoltage, value);
 		}
 
-		private string _EndVoltage;         // type of alert
+		private string _EndVoltage = string.Empty;         // type of alert
 		public string EndVoltage
 		{
 			get => _EndVoltage; set => SetProperty(ref _EndVoltage, value);
 		}
 
-		private string _StartPower;         // type of alert
+		private string _StartPower = string.Empty;         // type of alert
 		public string StartPower
 		{
 			get => _StartPower; set => SetProperty(ref _StartPower, value);
 		}
 
-		private string _EndPower;         // type of alert
+		private string _EndPower = string.Empty;         // type of alert
 		public string EndPower
 		{
 			get => _EndPower; set => SetProperty(ref _EndPower, value);
@@ -59,21 +59,21 @@ namespace QA40xPlot.ViewModels
 			get => _AmpLoad; set => SetProperty(ref _AmpLoad, value);
 		}
 
-		private string _TestFreq;         // type of alert
+		private string _TestFreq = string.Empty;         // type of alert
 		public string TestFreq
 		{
 			get => _TestFreq;
 			set => SetProperty(ref _TestFreq, value);
 		}
 
-		private string _GraphStartVolts;         // type of alert
+		private string _GraphStartVolts = string.Empty;         // type of alert
 		public string GraphStartVolts
 		{
 			get => _GraphStartVolts;
 			set => SetProperty(ref _GraphStartVolts, value);
 		}
 
-		private string _GraphEndVolts;         // type of alert
+		private string _GraphEndVolts = string.Empty;         // type of alert
 		public string GraphEndVolts
 		{
 			get => _GraphEndVolts;
@@ -116,27 +116,27 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ReadPower, value);
 		}
 
-		private string _rangeTop;
+		private string _rangeTop = string.Empty;
 		public string RangeTop
 		{
 			get { return _rangeTop; }
 			set => SetProperty(ref _rangeTop, value);
 		}
 
-		private string _rangeBottom;
+		private string _rangeBottom = string.Empty;
 		public string RangeBottom
 		{
 			get { return _rangeBottom; }
 			set => SetProperty(ref _rangeBottom, value);
 		}
-		private string _rangeTopdB;
+		private string _rangeTopdB = string.Empty;
 		public string RangeTopdB
 		{
 			get { return _rangeTopdB; }
 			set => SetProperty(ref _rangeTopdB, value);
 		}
 
-		private string _rangeBottomdB;
+		private string _rangeBottomdB = string.Empty;
 		public string RangeBottomdB
 		{
 			get { return _rangeBottomdB; }
@@ -237,7 +237,7 @@ namespace QA40xPlot.ViewModels
 			get => _FftSize;
 			set => SetProperty(ref _FftSize, value);
 		}
-		private string _Windowing;
+		private string _Windowing = string.Empty;
 		public string WindowingMethod
 		{
 			get => _Windowing;
@@ -285,7 +285,7 @@ namespace QA40xPlot.ViewModels
 		}
 
 		// the property change is used to trigger repaints of the graph
-		private void CheckPropertyChanged(object sender, PropertyChangedEventArgs e)
+		private void CheckPropertyChanged(object? sender, PropertyChangedEventArgs e)
 		{
 			switch (e.PropertyName)
 			{
@@ -445,6 +445,9 @@ namespace QA40xPlot.ViewModels
 		{
 			PropertyChanged += CheckPropertyChanged;
 			MouseTracked += DoMouseTracked;
+
+			actPlot = default!;
+			actThd = default!;
 
 			AmpLoad = 8;
 			TestFreq = "1000";

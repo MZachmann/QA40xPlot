@@ -13,6 +13,8 @@
         
         public ThdFrequencyData()
         {
+            Title = string.Empty;
+            CreateDate = DateTime.Now;
             Measurements = [];
         }
     }

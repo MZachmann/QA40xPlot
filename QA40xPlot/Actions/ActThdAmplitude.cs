@@ -56,7 +56,7 @@ namespace QA40xPlot.Actions
 		public Tuple<ThdColumn?, ThdColumn?> LookupX(double amp)
 		{
 			var vm = ViewModels.ViewSettings.Singleton.ThdAmp;
-			var vf = vm.ShowLeft ? MeasurementResult?.LeftColumns : MeasurementResult?.RightColumns;
+			var vf = vm.ShowLeft ? MeasurementResult.LeftColumns : MeasurementResult.RightColumns;
 			if (vf == null || vf.Count == 0)
 			{
 				return Tuple.Create((ThdColumn?)null, (ThdColumn?)null);
@@ -77,9 +77,9 @@ namespace QA40xPlot.Actions
 			ThdColumn? mf2 = null;
 
 			if( vm.ShowLeft)
-				mf1 = MeasurementResult?.LeftColumns?.ElementAt(bin);
+				mf1 = MeasurementResult.LeftColumns?.ElementAt(bin);
 			if (vm.ShowRight)
-				mf2 = MeasurementResult?.RightColumns?.ElementAt(bin);
+				mf2 = MeasurementResult.RightColumns?.ElementAt(bin);
 
 			return Tuple.Create(mf1, mf2);
 		}
@@ -111,14 +111,14 @@ namespace QA40xPlot.Actions
 
 		private void AddColumn(ThdAmplitudeStep step)
 		{
-			var f = MeasurementResult?.LeftColumns;
+			var f = MeasurementResult.LeftColumns;
 			if (f != null)
 			{
 				var cl = MakeColumn(step.Left);
 				if (cl != null)
 					MeasurementResult.LeftColumns.Add(cl);
 			}
-			f = MeasurementResult?.RightColumns;
+			f = MeasurementResult.RightColumns;
 			if (f != null)
 			{
 				var cl = MakeColumn(step.Right);
@@ -213,7 +213,7 @@ namespace QA40xPlot.Actions
 			await showMessage($"Determining noise floor.");
 			await Qa40x.SetOutputSource(OutputSources.Off);
 			MeasurementResult.NoiseFloor = await QaLibrary.DoAcquisitions(thdAmp.Averages, ct);
-			if (ct.IsCancellationRequested)
+			if (ct.IsCancellationRequested || MeasurementResult.NoiseFloor == null)
 				return false;
 			QaLibrary.PlotMiniFftGraph(fftPlot, MeasurementResult.NoiseFloor.FreqRslt, thdAmp.ShowLeft, thdAmp.ShowRight);
 			QaLibrary.PlotMiniTimeGraph(timePlot, MeasurementResult.NoiseFloor.TimeRslt, testFrequency, thdAmp.ShowLeft, thdAmp.ShowRight);
@@ -276,7 +276,7 @@ namespace QA40xPlot.Actions
 						break;
 				} while (lrfs == null);     // Loop until we have an acquisition result
 
-				if (lrfs == null)
+				if (lrfs == null || lrfs.FreqRslt == null || MeasurementResult.NoiseFloor?.FreqRslt == null)
 					break;
 
 				if (fundamentalBin >= lrfs.FreqRslt.Left.Length)                   // Check if bin within array bounds

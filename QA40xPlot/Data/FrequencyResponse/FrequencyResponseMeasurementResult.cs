@@ -18,8 +18,15 @@ namespace QA40xPlot.Data
 
         public FrequencyResponseMeasurementResult(FreqRespViewModel vm)
         {
+            Title = string.Empty;
+            Description = string.Empty;
+            Show = false;
+            Saved = false;
+            CreateDate = DateTime.Now;
             FrequencyResponseData = new();
 			MeasurementSettings = new();        // make a static copy of the settings so we don't worry about threads
+            GainData = new();
+            GainFrequencies = new();
 			vm.CopyPropertiesTo(MeasurementSettings);
 		}
     }

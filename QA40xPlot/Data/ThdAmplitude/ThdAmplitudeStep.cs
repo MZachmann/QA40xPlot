@@ -11,9 +11,9 @@ namespace QA40xPlot.Data
         public ThdFrequencyStepChannel Right { get; set; }
 
         [JsonIgnore]
-        public LeftRightFrequencySeries fftData { get; set; }
+        public LeftRightFrequencySeries? fftData { get; set; }
         [JsonIgnore]
-        public LeftRightTimeSeries timeData { get; set; }
+        public LeftRightTimeSeries? timeData { get; set; }
 
         public ThdAmplitudeStep()
         {

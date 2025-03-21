@@ -13,6 +13,8 @@
 
 		public ImdData()
 		{
+			Title = string.Empty;
+			CreateDate = DateTime.Now;
 			Measurements = [];
 		}
 	}

@@ -18,13 +18,15 @@ namespace QA40xPlot.Data
 		public List<ThdColumn> RightColumns { get; set; }
 
 		[JsonIgnore]
-        public LeftRightSeries NoiseFloor { get; set; }                                 // Noise floor measurement
+        public LeftRightSeries? NoiseFloor { get; set; }                                 // Noise floor measurement
 
         public ThdFrequencyMeasurementResult(ThdFreqViewModel vm)
         {
             FrequencySteps = [];
 			LeftColumns = new List<ThdColumn>();
 			RightColumns = new List<ThdColumn>();
+            Title = string.Empty;
+            Description = string.Empty;
 
 			MeasurementSettings = new();
 			vm.CopyPropertiesTo(MeasurementSettings);

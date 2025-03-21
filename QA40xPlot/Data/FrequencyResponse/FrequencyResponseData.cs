@@ -15,6 +15,9 @@
 
         public FrequencyResponseData()
         {
+            Title = string.Empty;
+            MeasurementType = string.Empty;
+            CreateDate = DateTime.Now;
             Measurements = [];
             MeasurementSettings = new();
             GraphSettings = new();

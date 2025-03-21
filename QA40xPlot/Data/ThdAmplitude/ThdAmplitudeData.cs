@@ -13,6 +13,7 @@
 
         public ThdAmplitudeData()
         {
+            Title = string.Empty;
             Measurements = [];
         }
     }

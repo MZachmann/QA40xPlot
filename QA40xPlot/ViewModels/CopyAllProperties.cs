@@ -26,7 +26,7 @@ namespace QA40xPlot.ViewModels
 			{
 				if (property.CanRead && property.CanWrite)
 				{
-					object value = property.GetValue(source);
+					object? value = property.GetValue(source);
 					property.SetValue(destination, value);
 				}
 			}
