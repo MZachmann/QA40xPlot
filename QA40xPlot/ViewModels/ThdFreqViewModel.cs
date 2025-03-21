@@ -8,6 +8,7 @@ using System.Windows;
 using static FreqRespViewModel;
 using System.DirectoryServices.ActiveDirectory;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
 
 namespace QA40xPlot.ViewModels
 {
@@ -269,14 +270,14 @@ namespace QA40xPlot.ViewModels
 		}
 		#endregion
 
-		private static void StartIt(object parameter)
+		private static void StartIt()
 		{
 			// Implement the logic to start the measurement process
 			var vm = ViewModels.ViewSettings.Singleton.ThdFreq;
 			vm.actThd.StartMeasurement();
 		}
 
-		private static void StopIt(object parameter)
+		private static void StopIt()
 		{
 			var vm = ViewModels.ViewSettings.Singleton.ThdFreq;
 			vm.actThd.DoCancel();

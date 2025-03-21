@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Input;
 using ScottPlot;
 using ScottPlot.Plottables;
+using CommunityToolkit.Mvvm.Input;
 
 namespace QA40xPlot.ViewModels
 {
@@ -23,7 +24,7 @@ namespace QA40xPlot.ViewModels
 		private PlotControl actPlot { get; set; }
 		private ImdChannelInfo actInfo { get;  set; }
 		[JsonIgnore]
-		public RelayCommand SetAttenuate { get => new RelayCommand(SetAtten); }
+		public RelayCommand<object> SetAttenuate { get => new RelayCommand<object>(SetAtten); }
 		[JsonIgnore]
 		public RelayCommand DoStart { get => new RelayCommand(StartIt); }
 		[JsonIgnore]
@@ -401,21 +402,21 @@ namespace QA40xPlot.ViewModels
 			actPlot = plot;
 		}
 
-		private static void SetAtten(object parameter)
+		private static void SetAtten(object? parameter)
 		{
 			var vm = ViewSettings.Singleton.ImdVm;
-			var atten = MathUtil.ParseTextToDouble(parameter.ToString(), vm.Attenuation);
+			var atten = MathUtil.ParseTextToDouble(parameter?.ToString() ?? string.Empty, vm.Attenuation);
 			vm.Attenuation = atten;
 		}
 
-		private static void StartIt(object parameter)
+		private static void StartIt()
 		{
 			// Implement the logic to start the measurement process
 			var vm = ViewModels.ViewSettings.Singleton.ImdVm;
 			vm?.actImd?.StartMeasurement();
 		}
 
-		private static void StopIt(object parameter)
+		private static void StopIt()
 		{
 			var vm = ViewModels.ViewSettings.Singleton.ImdVm;
 			vm?.actImd?.DoCancel();

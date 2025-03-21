@@ -7,6 +7,7 @@ using System.Windows;
 using System.ComponentModel;
 using Newtonsoft.Json;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
 
 public class FreqRespViewModel : BaseViewModel
 {
@@ -303,14 +304,14 @@ public class FreqRespViewModel : BaseViewModel
 		actPlot = plot;
 	}
 
-	private static void StartIt(object parameter)
+	private static void StartIt()
 	{
 		// Implement the logic to start the measurement process
 		var vm = QA40xPlot.ViewModels.ViewSettings.Singleton.FreqRespVm;
 		vm.actFreq.StartMeasurement();
 	}
 
-	private static void StopIt(object parameter)
+	private static void StopIt()
 	{
 		var vm = QA40xPlot.ViewModels.ViewSettings.Singleton.FreqRespVm;
 		vm.actFreq.DoCancel();

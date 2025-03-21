@@ -15,9 +15,13 @@
     <AssemblyOriginatorKeyFile>Keys\sgKey.snk</AssemblyOriginatorKeyFile>
     <ApplicationIcon>Images\favicon.ico</ApplicationIcon>
     <UseWindowsForms>False</UseWindowsForms>
-    <AssemblyVersion>0.0.14</AssemblyVersion>
-    <FileVersion>0.0.14</FileVersion>
+    <AssemblyVersion>0.0.15</AssemblyVersion>
+    <FileVersion>0.0.15</FileVersion>
 	</PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="ViewModels\RelayCommand.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Remove="Batches\build.cmd" />
@@ -26,6 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.7.25104.5739" />
     <PackageReference Include="FftSharp" Version="2.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

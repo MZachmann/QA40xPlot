@@ -7,6 +7,7 @@ using System.Windows.Interop;
 using System.Windows.Media.Imaging;
 using System.Windows;
 using System.IO;
+using CommunityToolkit.Mvvm.Input;
 
 namespace QA40xPlot.ViewModels
 {
@@ -74,7 +75,7 @@ namespace QA40xPlot.ViewModels
 
 		#endregion
 
-		private static void StopIt(object parameter)
+		private static void StopIt()
 		{
 		}
 
@@ -199,7 +200,7 @@ namespace QA40xPlot.ViewModels
 			await SetProgressMessage(string.Empty);
 		}
 
-		private static void OnExport(object parameter)
+		private static void OnExport()
 		{
 			SaveFileDialog saveFileDialog = new SaveFileDialog
 			{
@@ -220,7 +221,7 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		private void OnSave(object parameter)
+		private void OnSave()
 		{
 			SaveFileDialog saveFileDialog = new SaveFileDialog
 			{
@@ -242,7 +243,7 @@ namespace QA40xPlot.ViewModels
 
 		}
 
-		private void OnLoad(object sender)
+		private void OnLoad()
 		{
 			OpenFileDialog openFileDialog = new OpenFileDialog
 			{
