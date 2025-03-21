@@ -21,8 +21,10 @@ namespace QA40xPlot.ViewModels
 
 			Type type = typeof(T);
 			PropertyInfo[] properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-
-			foreach (PropertyInfo property in properties)
+			// since stuff is being loaded while we do this, and setting a property can cause side effects, so
+			// make a clone incase it changes so we don't crash...
+			var props = (PropertyInfo[])properties.Clone();
+			foreach (PropertyInfo property in props)
 			{
 				if (property.CanRead && property.CanWrite)
 				{
