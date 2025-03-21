@@ -8,7 +8,7 @@
              xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
              xmlns:local="clr-namespace:QA40xPlot"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800" Background="MintCream">
+             d:DesignHeight="750" d:DesignWidth="800" Background="MintCream">
     <UserControl.Resources>
         <views:EnumBooleanConverter x:Key="EnumBooleanConverter"/>
         <Style TargetType="TextBox">
@@ -37,26 +37,25 @@
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0" Orientation="Vertical">
-            <GroupBox Header="" >
-                <StackPanel>
-                <GroupBox Grid.Column="0" Grid.Row="0" >
-                    <Grid >
+            <GroupBox Header=""  >
+                <Grid >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="15" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                        <Button Content="Start" IsEnabled="{Binding IsNotRunning}" FontSize="14" Command="{Binding DoStart}" Grid.Column="0" Grid.Row="0"  HorizontalAlignment="Center"></Button>
-                        <Button Content="Sto_p" IsEnabled="{Binding IsRunning}" FontSize="14" Command="{Binding DoStop}" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center"></Button>
-                    </Grid>
-                </GroupBox>
-                    <CheckBox Content="_Use Generator 1" IsChecked="{Binding UseGenerator}" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" HorizontalAlignment="Center"></CheckBox>
-                    <CheckBox Content="_Use Generator 2" IsChecked="{Binding UseGenerator2}" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" HorizontalAlignment="Center"></CheckBox>
-                </StackPanel>
+                    <Button Content="Start" IsEnabled="{Binding IsNotRunning}" FontSize="14" 
+                            Command="{Binding DoStart}" Grid.Column="0" Grid.Row="0"  HorizontalAlignment="Right"></Button>
+                    <Button Content="Sto_p" IsEnabled="{Binding IsRunning}" FontSize="14" 
+                            Command="{Binding DoStop}" Grid.Column="2" Grid.Row="0" HorizontalAlignment="Left"></Button>
+                </Grid>
             </GroupBox>
+            <CheckBox Content="_Use Generator 1" IsChecked="{Binding UseGenerator}"  HorizontalAlignment="Center"></CheckBox>
+            <CheckBox Content="_Use Generator 2" IsChecked="{Binding UseGenerator2}" HorizontalAlignment="Center"></CheckBox>
             <GroupBox Header="Attenuation" >
                 <Grid>
                     <Grid.ColumnDefinitions>

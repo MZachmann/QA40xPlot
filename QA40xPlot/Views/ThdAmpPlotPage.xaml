@@ -8,7 +8,7 @@
              xmlns:local="clr-namespace:QA40xPlot"
              xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800" Background="MintCream">
+             d:DesignHeight="750" d:DesignWidth="800" Background="MintCream">
     <UserControl.Resources>
         <Style TargetType="TextBox">
             <Setter Property="VerticalAlignment" Value="Center"/>
@@ -28,10 +28,11 @@
                 <Grid >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="15" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Button Content="Start" IsEnabled="{Binding IsNotRunning}" Command="{Binding DoStart}" Grid.Column="0" HorizontalAlignment="Center"></Button>
-                    <Button Content="Stop"  IsEnabled="{Binding IsRunning}" Command="{Binding DoStop}" Grid.Column="1" HorizontalAlignment="Center"></Button>
+                    <Button Content="Start" IsEnabled="{Binding IsNotRunning}" Command="{Binding DoStart}" Grid.Column="0" HorizontalAlignment="Right"></Button>
+                    <Button Content="Stop"  IsEnabled="{Binding IsRunning}" Command="{Binding DoStop}" Grid.Column="2" HorizontalAlignment="Left"></Button>
                 </Grid>
             </GroupBox>
             <GroupBox Header="Measurement Settings" >
@@ -50,10 +51,8 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="100" />
-                    <RowDefinition Height="100" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                     <Label Content="Set Generator by" Grid.Column="0" Grid.Row="0"  />
                     <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0"  SelectedIndex="{Binding MeasureType}" ItemsSource="{Binding MeasureTypes}"
@@ -85,10 +84,10 @@
                     <xctk:IntegerUpDown VerticalAlignment="Center" Value="{Binding StepsOctave}" Minimum="1" Grid.Column="1" Grid.Row="7"  />
                     <Label Content="Averages" Grid.Column="0" Grid.Row="8"  />
                     <xctk:IntegerUpDown VerticalAlignment="Center" Value="{Binding Averages}" Minimum="1" Maximum="6" Grid.Column="1" Grid.Row="8"  />
-                    <views:PlotControl x:Name="WpfPlot2" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="10" Width="150" />
-                    <views:PlotControl x:Name="WpfPlot3" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="11" Width="150" />
                 </Grid>
         </GroupBox>
+            <views:PlotControl x:Name="WpfPlot2" Width="150" Height="100" Margin="0,4,0,0" />
+            <views:PlotControl x:Name="WpfPlot3" Width="150"  Height="100" Margin="0,4" />
         </StackPanel>
         <views:PlotControl x:Name="WpfPlot1"  Grid.Column="1" />
         <StackPanel Grid.Column="2" Orientation="Vertical">
