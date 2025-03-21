@@ -211,8 +211,8 @@ namespace QA40xPlot.Libraries
             LeftRightSeries lrfs = new LeftRightSeries();
 
             await Qa40x.DoAcquisition();
-            if (ct.IsCancellationRequested || lrfs.FreqRslt == null)
-                return lrfs;
+            if (ct.IsCancellationRequested || lrfs == null)
+                return lrfs ?? new();
             if (getFrequencySeries)
             {
                 lrfs.FreqRslt = await Qa40x.GetInputFrequencySeries();
@@ -222,19 +222,19 @@ namespace QA40xPlot.Libraries
             if (getTimeSeries)
             {
                 lrfs.TimeRslt = await Qa40x.GetInputTimeSeries();
-                if (ct.IsCancellationRequested || lrfs.TimeRslt == null)
+                if (ct.IsCancellationRequested)
                     return lrfs;
             }
 
-            if (averages <= 1  || lrfs.TimeRslt == null)
+            if (averages <= 1)
                 return lrfs;        // Only one measurement
 
-            if (getFrequencySeries)
+            if (getFrequencySeries && lrfs.FreqRslt != null)
             {
                 for (int i = 1; i < averages; i++)
                 {
                     await Qa40x.DoAcquisition();
-                    if (ct.IsCancellationRequested)
+                    if (ct.IsCancellationRequested )
                         return lrfs;
                     LeftRightSeries lrfs2 = new LeftRightSeries();
                     lrfs2.FreqRslt = await Qa40x.GetInputFrequencySeries();
