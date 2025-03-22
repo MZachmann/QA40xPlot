@@ -417,7 +417,7 @@ namespace QA40xPlot.ViewModels
 				var cord = ConvertScottCoords(actPlot, p.X, p.Y);
 				FreqValue = Math.Pow(10, cord.Item1); // amplitude actually
 			}
-			Tuple<ThdColumn?, ThdColumn?> zv = actThd.LookupX(FreqValue);
+			var zv = actThd.LookupX(FreqValue);
 			ZValue = string.Empty;
 			if( zv.Item1 != null )
 			{

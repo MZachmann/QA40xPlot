@@ -343,7 +343,7 @@ namespace QA40xPlot.ViewModels
 		private static void SetAtten(object? parameter)
 		{
 			var vm = ViewSettings.Singleton.SpectrumVm;
-			var atten = MathUtil.ParseTextToDouble(parameter?.ToString() ?? string.Empty, vm.Attenuation);
+			var atten = MathUtil.ToDouble(parameter?.ToString() ?? string.Empty, vm.Attenuation);
 			vm.Attenuation = atten;
 		}
 

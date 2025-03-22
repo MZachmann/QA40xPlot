@@ -61,7 +61,7 @@ namespace QA40xPlot.Actions
 				return null;
 
 			var vm = ViewSettings.Singleton.SpectrumVm;
-			var sampleRate = MathUtil.ParseTextToUint(vm.SampleRate, 0);
+			var sampleRate = MathUtil.ToUint(vm.SampleRate, 0);
 			var fftsize = vfs.Left.Length;
 			var binSize = QaLibrary.CalcBinSize(sampleRate, (uint)fftsize);
 			if (vf != null && vf.Count > 0)
@@ -83,11 +83,11 @@ namespace QA40xPlot.Actions
 		}
 
 		// here posn is in dBV
-		public Tuple<double, double> LookupXY(double freq, double posndBV, bool useRight)
+		public ValueTuple<double, double> LookupXY(double freq, double posndBV, bool useRight)
 		{
 			var steps = MeasurementResult.FrequencySteps;
 			if (freq <= 0 || steps == null || steps.Count == 0)
-				return Tuple.Create(0.0, 0.0);
+				return ValueTuple.Create(0.0, 0.0);
 
 			try
 			{
@@ -113,13 +113,13 @@ namespace QA40xPlot.Actions
 
 					var vm = ViewSettings.Singleton.SpectrumVm;
 					if (bin < ffs.Length)
-						return Tuple.Create(bin * fftdata.Df, ffs[bin]);
+						return ValueTuple.Create(bin * fftdata.Df, ffs[bin]);
 				}
 			}
 			catch (Exception)
 			{
 			}
-			return Tuple.Create(0.0, 0.0);
+			return ValueTuple.Create(0.0, 0.0);
 		}
 
 		/// <summary>
@@ -132,9 +132,9 @@ namespace QA40xPlot.Actions
 			// Setup
 			ImdViewModel thd = msr.MeasurementSettings;
 
-			var freq = MathUtil.ParseTextToDouble(thd.Gen1Frequency, 0);
-			var freq2 = MathUtil.ParseTextToDouble(thd.Gen2Frequency, 0);
-			var sampleRate = MathUtil.ParseTextToUint(thd.SampleRate, 0);
+			var freq = MathUtil.ToDouble(thd.Gen1Frequency, 0);
+			var freq2 = MathUtil.ToDouble(thd.Gen2Frequency, 0);
+			var sampleRate = MathUtil.ToUint(thd.SampleRate, 0);
 			if (freq == 0 || freq2 == 0 || sampleRate == 0 || !FreqRespViewModel.FftSizes.Contains(thd.FftSize))
             {
                 MessageBox.Show("Invalid settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -189,9 +189,9 @@ namespace QA40xPlot.Actions
 						return false;
 				}
 
-				var genVolt = MathUtil.ParseTextToDouble(thd.Gen1Voltage, 0.001);
+				var genVolt = MathUtil.ToDouble(thd.Gen1Voltage, 0.001);
 				double amplitudeSetpoint1dBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-				genVolt = MathUtil.ParseTextToDouble(thd.Gen2Voltage, 0.001);
+				genVolt = MathUtil.ToDouble(thd.Gen2Voltage, 0.001);
 				double amplitudeSetpoint2dBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
 				// ********************************************************************
@@ -331,14 +331,22 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			if ( vm.ShowMarkers)
             {
-                AddAMarker(fmr, fmr.FrequencySteps[0].Gen1Freq);
-				AddAMarker(fmr, fmr.FrequencySteps[0].Gen2Freq);
-				var flist = fmr.FrequencySteps[0].Left.Harmonics.OrderBy(x => x.Frequency).ToArray();
-				var cn = flist.Length;
-				for (int i=0; i<cn; i++)
-                {
-                    var frq = flist[i].Frequency;
-					AddAMarker(fmr, frq);
+				ImdStepChannel? step = null;
+				if (vm.ShowLeft)
+					step = fmr.FrequencySteps[0].Left;
+				else if(vm.ShowRight)
+					step = fmr.FrequencySteps[0].Right;
+				if (step != null)
+				{
+					AddAMarker(fmr, fmr.FrequencySteps[0].Gen1Freq);
+					AddAMarker(fmr, fmr.FrequencySteps[0].Gen2Freq);
+					var flist = step.Harmonics.OrderBy(x => x.Frequency).ToArray();
+					var cn = flist.Length;
+					for (int i = 0; i < cn; i++)
+					{
+						var frq = flist[i].Frequency;
+						AddAMarker(fmr, frq);
+					}
 				}
 			}
 		}

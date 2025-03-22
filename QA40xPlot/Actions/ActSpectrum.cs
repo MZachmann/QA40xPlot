@@ -61,7 +61,7 @@ namespace QA40xPlot.Actions
 				return null;
 
 			var vm = ViewSettings.Singleton.SpectrumVm;
-			var sampleRate = MathUtil.ParseTextToUint(vm.SampleRate, 0);
+			var sampleRate = MathUtil.ToUint(vm.SampleRate, 0);
 			var fftsize = ffs.Left.Length;
 			var binSize = ffs.Df;
 			if (vm.ShowRight && !vm.ShowLeft)
@@ -88,8 +88,8 @@ namespace QA40xPlot.Actions
 			// Setup
 			SpectrumViewModel thd = msr.MeasurementSettings;
 
-			var freq = MathUtil.ParseTextToDouble(thd.Gen1Frequency, 0);
-			var sampleRate = MathUtil.ParseTextToUint(thd.SampleRate, 0);
+			var freq = MathUtil.ToDouble(thd.Gen1Frequency, 0);
+			var sampleRate = MathUtil.ToUint(thd.SampleRate, 0);
 			if (freq == 0 || sampleRate == 0 || !SpectrumViewModel.FftSizes.Contains(thd.FftSize))
             {
                 MessageBox.Show("Invalid settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -143,7 +143,7 @@ namespace QA40xPlot.Actions
 						return false;
 				}
 
-				var genVolt = MathUtil.ParseTextToDouble(thd.Gen1Voltage, 0.001);
+				var genVolt = MathUtil.ToDouble(thd.Gen1Voltage, 0.001);
 				double amplitudeSetpointdBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
 				// ********************************************************************
@@ -296,19 +296,26 @@ namespace QA40xPlot.Actions
 		}
 
 		private void ShowHarmonicMarkers(SpectrumMeasurementResult fmr)
-        {
-            var vm = ViewSettings.Singleton.SpectrumVm;
+		{
+			var vm = ViewSettings.Singleton.SpectrumVm;
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
-			if ( vm.ShowMarkers)
-            {
-                AddAMarker(fmr, fmr.FrequencySteps[0].FundamentalFrequency);
-
-				var flist = fmr.FrequencySteps[0].Left.Harmonics.OrderBy(x => x.Frequency).ToArray();
-				var cn = flist.Length;
-				for (int i = 0; i < cn; i++)
+			if (vm.ShowMarkers)
+			{
+				ThdFrequencyStepChannel? step = null;
+				if (vm.ShowLeft)
+					step = fmr.FrequencySteps[0].Left;
+				else if (vm.ShowRight)
+					step = fmr.FrequencySteps[0].Right;
+				if (step != null)
 				{
-					var frq = flist[i].Frequency;
-					AddAMarker(fmr, frq);
+					AddAMarker(fmr, fmr.FrequencySteps[0].FundamentalFrequency);
+					var flist = step.Harmonics.OrderBy(x => x.Frequency).ToArray();
+					var cn = flist.Length;
+					for (int i = 0; i < cn; i++)
+					{
+						var frq = flist[i].Frequency;
+						AddAMarker(fmr, frq);
+					}
 				}
 			}
 		}
@@ -316,13 +323,17 @@ namespace QA40xPlot.Actions
 		private void ShowPowerMarkers(SpectrumMeasurementResult fmr)
 		{
 			var vm = ViewSettings.Singleton.SpectrumVm;
+			if (!vm.ShowLeft && !vm.ShowRight)
+				return;
+
             List<double> freqchecks = new List<double> { 50, 60 };
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			if (vm.ShowPowerMarkers)
 			{
 				var sampleRate = Convert.ToUInt32(vm.SampleRate);
 				var fftsize = SpectrumViewModel.FftActualSizes.ElementAt(SpectrumViewModel.FftSizes.IndexOf(vm.FftSize));
-                var nfloor = MeasurementResult.FrequencySteps[0].Left.Average_NoiseFloor_dBV;   // Average noise floor in dBVolts after the fundamental
+				var steps = vm.ShowLeft ? MeasurementResult.FrequencySteps[0].Left : MeasurementResult.FrequencySteps[0].Right;
+				var nfloor = steps.Average_NoiseFloor_dBV;   // Average noise floor in dBVolts after the fundamental
                 double fsel = 0;
                 double maxdata = -10;
 				var fftdata = vm.ShowLeft ? fmr.FrequencySteps[0].fftData?.Left : fmr.FrequencySteps[0].fftData?.Right;
@@ -463,11 +474,11 @@ namespace QA40xPlot.Actions
         }
 
 		// here posn is in dBV
-		public Tuple<double,double> LookupXY(double freq, double posndBV, bool useRight)
+		public ValueTuple<double,double> LookupXY(double freq, double posndBV, bool useRight)
 		{
 			var steps = MeasurementResult.FrequencySteps;
 			if (freq <= 0 || steps == null || steps.Count == 0)
-				return Tuple.Create(0.0,0.0);
+				return ValueTuple.Create(0.0,0.0);
 
 			try
 			{
@@ -491,13 +502,13 @@ namespace QA40xPlot.Actions
 
 					var vm = ViewSettings.Singleton.SpectrumVm;
 					if ( bin < ffs.Length)
-						return Tuple.Create(bin*fftdata.Df, ffs[bin]);
+						return ValueTuple.Create(bin*fftdata.Df, ffs[bin]);
 				}
 			}
 			catch (Exception )
 			{
 			}
-			return Tuple.Create(0.0,0.0);
+			return ValueTuple.Create(0.0,0.0);
 		}
 
         /// <summary>

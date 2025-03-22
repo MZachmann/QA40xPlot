@@ -53,13 +53,13 @@ namespace QA40xPlot.Actions
 			ct.Cancel();
 		}
 
-		public Tuple<ThdColumn?, ThdColumn?> LookupX(double amp)
+		public ValueTuple<ThdColumn?, ThdColumn?> LookupX(double amp)
 		{
 			var vm = ViewModels.ViewSettings.Singleton.ThdAmp;
 			var vf = vm.ShowLeft ? MeasurementResult.LeftColumns : MeasurementResult.RightColumns;
 			if (vf == null || vf.Count == 0)
 			{
-				return Tuple.Create((ThdColumn?)null, (ThdColumn?)null);
+				return ValueTuple.Create((ThdColumn?)null, (ThdColumn?)null);
 			}
 
 			// find nearest amplitude (both left and right will be identical here if scanned)
@@ -81,7 +81,7 @@ namespace QA40xPlot.Actions
 			if (vm.ShowRight)
 				mf2 = MeasurementResult.RightColumns?.ElementAt(bin);
 
-			return Tuple.Create(mf1, mf2);
+			return ValueTuple.Create(mf1, mf2);
 		}
 
 		private ThdColumn? MakeColumn(ThdFrequencyStepChannel chan)
@@ -104,7 +104,7 @@ namespace QA40xPlot.Actions
 			cl.D6P = chan.D6Plus_dBV;
 			cl.Noise = chan.Average_NoiseFloor_dBV;
 			//
-			cl.Freq = MathUtil.ParseTextToDouble(MeasurementResult.MeasurementSettings.TestFreq, 10);
+			cl.Freq = MathUtil.ToDouble(MeasurementResult.MeasurementSettings.TestFreq, 10);
 			cl.Amplitude = chan.Fundamental_dBV;
 			return cl;
 		}
@@ -176,7 +176,7 @@ namespace QA40xPlot.Actions
 			double generatorAmplitudedBV = Math.Max(startAmpl, endAmpl);	// use the largest amplitude
 			await showMessage($"Determining the best input attenuation for a generator voltage of {generatorAmplitudedBV:0.00#} dBV.");
 
-			double testFrequency = QaLibrary.GetNearestBinFrequency(MathUtil.ParseTextToDouble(thdAmp.TestFreq, 10), thdAmp.SampleRate, thdAmp.FftSize);
+			double testFrequency = QaLibrary.GetNearestBinFrequency(MathUtil.ToDouble(thdAmp.TestFreq, 10), thdAmp.SampleRate, thdAmp.FftSize);
 			// Determine correct input attenuation
 			var attenuation = 42;
 			{

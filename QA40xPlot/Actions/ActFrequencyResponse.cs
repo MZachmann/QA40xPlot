@@ -133,10 +133,10 @@ namespace QA40xPlot.Actions
             return (TestingType)TestTypes.IndexOf(type);
 		}
 
-        public Tuple<double, double, double> LookupX(double freq)
+        public ValueTuple<double, double, double> LookupX(double freq)
         {
 			var freqs = MeasurementResult.GainFrequencies;
-			Tuple<double, double, double> tup = Tuple.Create(1.0,1.0,1.0);
+			ValueTuple<double, double, double> tup = ValueTuple.Create(1.0,1.0,1.0);
 			if (freqs != null && freqs.Count > 0)
             {
                 var values = MeasurementResult.GainData;
@@ -156,18 +156,18 @@ namespace QA40xPlot.Actions
                 {
                     case TestingType.Response:
 						// send freq, gain, gain2
-						tup = Tuple.Create(freqs[bin], values[bin].Real, values[bin].Imaginary);
+						tup = ValueTuple.Create(freqs[bin], values[bin].Real, values[bin].Imaginary);
                         break;
                     case TestingType.Impedance:
                         {   // send freq, ohms, phasedeg
 							double rref = MathUtil.ToDouble(MeasurementResult.MeasurementSettings.ZReference);
 							var ohms = rref * ToImpedance(MeasurementResult.GainData[bin]).Magnitude;
-							tup = Tuple.Create(freqs[bin], ohms, 180 * values[bin].Phase / Math.PI);
+							tup = ValueTuple.Create(freqs[bin], ohms, 180 * values[bin].Phase / Math.PI);
 						}
 						break;
                     case TestingType.Gain:
 						    // send freq, gain, phasedeg
-							tup = Tuple.Create(freqs[bin], values[bin].Magnitude, 180 * values[bin].Phase / Math.PI);
+							tup = ValueTuple.Create(freqs[bin], values[bin].Magnitude, 180 * values[bin].Phase / Math.PI);
 						break;
                 }
 			}
@@ -199,7 +199,7 @@ namespace QA40xPlot.Actions
 
 			// ********************************************************************
 			// Setup the device
-			var sampleRate = MathUtil.ParseTextToUint(mrs.SampleRate, 0);
+			var sampleRate = MathUtil.ToUint(mrs.SampleRate, 0);
 			if (sampleRate == 0 || !FreqRespViewModel.FftSizes.Contains(mrs.FftSize))
 			{
 				MessageBox.Show("Invalid settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);

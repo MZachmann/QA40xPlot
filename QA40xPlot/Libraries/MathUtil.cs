@@ -10,23 +10,17 @@ namespace QA40xPlot.Libraries
 	public interface MathUtil
 	{
 		/// <summary>
-		/// Parse text to double. Return fallback texts if failed
+		/// Parse text to double. Return fallback double if failed
 		/// </summary>
 		/// <param name="text">Text to parse</param>
 		/// <param name="fallback">Fallback text</param>
 		/// <returns></returns>
-		public static double ParseTextToDouble(string? text, double fallback)
+		public static double ToDouble(string? text, double fallback = 1e-6)
 		{
-
 			if (double.TryParse(text, NumberStyles.Any, CultureInfo.CurrentCulture, out double value))
 				return value;     // return parsed value
 
 			return fallback;
-		}
-
-		public static double ToDouble(string? text, double fallback = 1e-6)
-		{
-			return ParseTextToDouble(text, fallback);
 		}
 
 		/// <summary>
@@ -35,7 +29,7 @@ namespace QA40xPlot.Libraries
 		/// <param name="text">Text to parse</param>
 		/// <param name="fallback">Fallback text</param>
 		/// <returns></returns>
-		public static int ParseTextToInt(string? text, int fallback)
+		public static int ToInt(string? text, int fallback)
 		{
 
 			if (int.TryParse(text, NumberStyles.Any, CultureInfo.CurrentCulture, out int value))
@@ -50,7 +44,7 @@ namespace QA40xPlot.Libraries
 		/// <param name="text">Text to parse</param>
 		/// <param name="fallback">Fallback text</param>
 		/// <returns></returns>
-		public static uint ParseTextToUint(string? text, uint fallback)
+		public static uint ToUint(string? text, uint fallback)
 		{
 
 			if (uint.TryParse(text, NumberStyles.Any, CultureInfo.CurrentCulture, out uint value))

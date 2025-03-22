@@ -10,9 +10,6 @@
              mc:Ignorable="d" 
              d:DesignHeight="750" d:DesignWidth="800" Background="MintCream">
     <UserControl.Resources>
-        <Style TargetType="TextBox">
-            <Setter Property="VerticalAlignment" Value="Center"/>
-        </Style>
         <Style TargetType="ComboBox">
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
@@ -75,7 +72,7 @@
                             Text="{Binding EndPower}" ItemsSource="{Binding GenPowers}" />
                     <Label Content="W" Grid.Column="2" Grid.Row="4"   />
                     <Label Content="Amplifier Load" Grid.Column="0" Grid.Row="5"  />
-                    <TextBox Text="{Binding AmpLoad}" Grid.Column="1"  Grid.Row="5"  />
+                    <TextBox Text="{Binding AmpLoad}" Grid.Column="1"  Grid.Row="5" VerticalAlignment="Center"  />
                     <Label Content="Ohm" Grid.Column="3" Grid.Row="5"  />
                     <Label Content="Test Frequency" Grid.Column="0" Grid.Row="6"  />
                     <ComboBox IsEditable="True" Text="{Binding TestFreq}" Grid.Column="1" Grid.Row="6" ItemsSource="{Binding StartFrequencies}"   />

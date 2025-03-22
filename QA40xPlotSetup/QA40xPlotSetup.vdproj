@@ -198,8 +198,8 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:QA40xPlotSetup"
-        "ProductCode" = "8:{A6D8781C-AE3C-4BAE-B50B-C83705083BDC}"
-        "PackageCode" = "8:{76FEF3D9-93AB-4E92-BBFA-80AF76DBBA44}"
+        "ProductCode" = "8:{9EE6C189-5EC1-4774-A34A-28AB0A74E4EC}"
+        "PackageCode" = "8:{B2783030-B253-456A-A1DE-E45BD4F30CF3}"
         "UpgradeCode" = "8:{86BC0B1C-E735-4767-A04B-BE32123F0CF9}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
