@@ -181,7 +181,7 @@ namespace QA40xPlot.Actions
 			var attenuation = 42;
 			{
 				// check for allowed attenuation
-				var result = await QaLibrary.DetermineAttenuationForGeneratorVoltageWithChirp(generatorAmplitudedBV, attenuation, true, true, ct);
+				var result = await QaLibrary.DetermineAttenuationWithChirp(generatorAmplitudedBV, attenuation, true, true, ct);
 				if (ct.IsCancellationRequested)
 					return false;
 				QaLibrary.PlotMiniFftGraph(fftPlot, result.Item3.FreqRslt, thdAmp.ShowLeft, thdAmp.ShowRight);

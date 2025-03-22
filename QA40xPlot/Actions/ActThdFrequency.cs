@@ -230,7 +230,7 @@ namespace QA40xPlot.Actions
                     // Get input voltage based on desired output voltage
                     thd.InputRange = QaLibrary.DetermineAttenuation(amplifierOutputVoltagedBV);
                     double startAmplitude = -40;  // We start a measurement with a 10 mV signal.
-                    var result = await QaLibrary.DetermineGenAmplitudeByOutputAmplitudeWithChirp(startAmplitude, amplifierOutputVoltagedBV, thd.LeftChannel, thd.RightChannel, ct);
+                    var result = await QaLibrary.DetermineGenAmplitudeWithChirp(startAmplitude, amplifierOutputVoltagedBV, thd.LeftChannel, thd.RightChannel, ct);
                     if (ct.IsCancellationRequested)
                         return false;
                     var generatorAmp = result.Item1;
@@ -252,7 +252,7 @@ namespace QA40xPlot.Actions
                         await showMessage($"Found an input amplitude of {generatorAmp:0.00#} dBV. Doing second pass.");
 
                         // 2nd time for extra accuracy
-                        result = await QaLibrary.DetermineGenAmplitudeByOutputAmplitudeWithChirp(generatorAmp, amplifierOutputVoltagedBV, thd.LeftChannel, thd.RightChannel, ct);
+                        result = await QaLibrary.DetermineGenAmplitudeWithChirp(generatorAmp, amplifierOutputVoltagedBV, thd.LeftChannel, thd.RightChannel, ct);
                         if (ct.IsCancellationRequested)
                             return false;
 						generatorAmp = result.Item1;
@@ -276,7 +276,7 @@ namespace QA40xPlot.Actions
                     await showMessage($"Determining the best input attenuation for a generator voltage of {genVoltagedBV:0.00#} dBV.");
 
                     // Determine correct input attenuation
-                    var result = await QaLibrary.DetermineAttenuationForGeneratorVoltageWithChirp(genVoltagedBV, QaLibrary.MAXIMUM_DEVICE_ATTENUATION, thd.LeftChannel, thd.RightChannel, ct);
+                    var result = await QaLibrary.DetermineAttenuationWithChirp(genVoltagedBV, QaLibrary.MAXIMUM_DEVICE_ATTENUATION, thd.LeftChannel, thd.RightChannel, ct);
                     if (ct.IsCancellationRequested)
                         return false;
                     thd.InputRange = result.Item1;

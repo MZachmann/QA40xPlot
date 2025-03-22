@@ -44,7 +44,7 @@ namespace QA40xPlot.Libraries
 		/// <param name="text">Text to parse</param>
 		/// <param name="fallback">Fallback text</param>
 		/// <returns></returns>
-		public static uint ToUint(string? text, uint fallback)
+		public static uint ToUint(string? text, uint fallback = 0)
 		{
 
 			if (uint.TryParse(text, NumberStyles.Any, CultureInfo.CurrentCulture, out uint value))

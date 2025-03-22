@@ -1,12 +1,9 @@
-﻿using System.Globalization;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 using ScottPlot.Plottables;
 using ScottPlot;
-using System.Drawing;
 using QA40xPlot.Data;
 using QA40xPlot.Views;
 using System.Windows;
-using System.Windows.Controls;
 
 namespace QA40xPlot.Libraries
 {
@@ -102,58 +99,6 @@ namespace QA40xPlot.Libraries
 
             return binOfFreq * binSize;
         }
-
-
-        /// <summary>
-        /// Get the start and end frequency to use with PeakDbv for measuring a harmonic.
-        /// </summary>
-        /// <param name="fundamental">The fundamental frequency in [Hz] i.e. 1000 Hz</param>
-        /// <param name="harmonic">The harmonic to measure. i.e. 2 for second harminic</param>
-        /// <param name="binSize">The current bin size</param>
-        /// <param name="fftSize">The current fft buffer size</param>
-        /// <returns></returns>
-        static public StartEndFrequencyPair PeakSearchFrequencySpan(double fundamental, int harmonic, float binSize, uint fftSize)
-        {
-            double harmonicFrequency = fundamental * harmonic;
-
-            uint harmonicBin = GetBinOfFrequency(harmonicFrequency, binSize);
-
-            StartEndFrequencyPair result = new StartEndFrequencyPair();
-            result.StartFrequency = (double)((harmonicBin - 1.1) * binSize);
-            result.EndFrequency = (double)((harmonicBin + 1.1) * binSize);
-            return result;
-        }
-
-        /// <summary>
-        /// Get a list of x frequencies per decade between a start and stop frequency in a way that they are spaced equally on a graph with logarithmic scale.
-        /// </summary>
-        /// <param name="startFrequency">Start frequency</param>
-        /// <param name="stopFrequency">Stop frequency</param>
-        /// <param name="stepsPerDecade">Stepe per decade</param>
-        /// <returns></returns>
-        public static double[] GetLineairSpacedLogarithmicValuesPerDecade(double start, double stop, int stepsPerDecade)
-        {
-            // Calculate the logarithmic start and stop values
-            double logStart = Math.Log10(start);
-            double logStop = Math.Log10(stop);
-
-            // Calculate the number of total steps based on the steps per decade
-            int totalSteps = (int)(stepsPerDecade * (logStop - logStart));
-
-            // Calculate the increment in logarithmic space
-            double logStep = (logStop - logStart) / totalSteps;
-
-            // Generate the frequencies array
-            double[] values = new double[totalSteps + 1];
-            for (int i = 0; i <= totalSteps; i++)
-            {
-                // Calculate the frequency by raising 10 to the power of the current log position
-                values[i] = Math.Pow(10, logStart + i * logStep);
-            }
-
-            return values;
-        }
-
 
         /// <summary>
         /// Get a list of x frequencies per octave between a start and stop frequency in a way that they are spaced equally on a graph with logarithmic scale.
@@ -253,14 +198,37 @@ namespace QA40xPlot.Libraries
             }
 
             return lrfs;
-        }
+		}
 
-        /// <summary>
-        /// Determine the attenuation needed for the input signal to be in the range of the hardware
-        /// </summary>
-        /// <param name="dBV">The maximum level in dBV</param>
-        /// <returns>The attenuation in dB</returns>
-        public static int DetermineAttenuation(double dBV)
+		static public async Task<LeftRightSeries> DoAcquireChirp(CancellationToken ct, double[] left, double[] right, bool getFrequencySeries = true, bool getTimeSeries = true)
+		{
+			LeftRightSeries lrfs = new LeftRightSeries();
+            //await Qa40x.SetOutputSource("Off");
+			await Qa40x.DoAcquisition(left, right);
+			if (ct.IsCancellationRequested || lrfs == null)
+				return lrfs ?? new();
+			if (getFrequencySeries)
+			{
+				lrfs.FreqRslt = await Qa40x.GetInputFrequencySeries();
+				if (ct.IsCancellationRequested || lrfs.FreqRslt == null)
+					return lrfs;
+			}
+			if (getTimeSeries)
+			{
+				lrfs.TimeRslt = await Qa40x.GetInputTimeSeries();
+				if (ct.IsCancellationRequested)
+					return lrfs;
+			}
+
+			return lrfs;        // Only one measurement
+		}
+
+		/// <summary>
+		/// Determine the attenuation needed for the input signal to be in the range of the hardware
+		/// </summary>
+		/// <param name="dBV">The maximum level in dBV</param>
+		/// <returns>The attenuation in dB</returns>
+		public static int DetermineAttenuation(double dBV)
         {
             double testdBV = dBV + 5; // Add 5 dBV extra for better thd measurement
             if (testdBV <= 0) return 0;
@@ -328,7 +296,7 @@ namespace QA40xPlot.Libraries
         /// <param name="testFrequency">The generator frequency</param>
         /// <param name="testAttenuation">The test attenuation</param>
         /// <returns>The attanuation determined by the test</returns>
-        public static async Task<(int, double, LeftRightSeries)> DetermineAttenuationForGeneratorVoltageWithSine(double voltageDbv, double testFrequency, int testAttenuation, bool leftChannelEnable, bool rightChannelEnabled, CancellationToken ct)
+        public static async Task<(int, double, LeftRightSeries)> DetermineAttenuationWithSine(double voltageDbv, double testFrequency, int testAttenuation, bool leftChannelEnable, bool rightEnabled, CancellationToken ct)
         {
             await Qa40x.SetInputRange(testAttenuation);                         // Set input range to initial range
             await Qa40x.SetGen1(testFrequency, voltageDbv, true);               // Enable generator at set voltage
@@ -338,7 +306,7 @@ namespace QA40xPlot.Libraries
             
             // Determine highest channel value
             double peak_dBV = 0;
-            if (leftChannelEnable && rightChannelEnabled)
+            if (leftChannelEnable && rightEnabled)
                 peak_dBV = (plrp.Left > plrp.Right) ? plrp.Left : plrp.Right;
             else if (leftChannelEnable)
                 peak_dBV = plrp.Left;
@@ -359,20 +327,20 @@ namespace QA40xPlot.Libraries
         /// <param name="testFrequency">The generator frequency</param>
         /// <param name="testAttenuation">The test attenuation</param>
         /// <returns>The attanuation determined by the test</returns>
-        public static async Task<(int, double, LeftRightSeries)> DetermineAttenuationForGeneratorVoltageWithChirp(double voltageDbv, int testAttenuation, bool leftChannelEnabled, bool rightChannelEnabled, CancellationToken ct)
+        public static async Task<(int, double, LeftRightSeries)> DetermineAttenuationWithChirp(double voltageDbv, int testAttenuation, bool leftEnabled, bool rightEnabled, CancellationToken ct)
         {
             await Qa40x.SetInputRange(testAttenuation);                         // Set input range to initial range
             await Qa40x.SetExpoChirpGen(voltageDbv, 0, 28, false);
             await Qa40x.SetOutputSource(OutputSources.ExpoChirp);
             LeftRightSeries acqData = await DoAcquisitions(1, ct);        // Do acquisition
 
-            DetermineAttenuationFromLeftRightSeriesData(leftChannelEnabled, rightChannelEnabled, acqData, out double peak_dBV, out int attenuation);
+            DetermineAttenuationFromSeriesData(leftEnabled, rightEnabled, acqData, out double peak_dBV, out int attenuation);
             await Qa40x.SetOutputSource(OutputSources.Off);                     // Disable generator
 
             return (attenuation, peak_dBV, acqData);       // Return attenuation, measured amplitude in dBV and acquisition data
         }
 
-        public static bool DetermineAttenuationFromLeftRightSeriesData(bool leftChannelEnabled, bool rightChannelEnabled, LeftRightSeries acqData, out double peak_dBV, out int attenuation)
+        public static bool DetermineAttenuationFromSeriesData(bool leftEnabled, bool rightEnabled, LeftRightSeries acqData, out double peak_dBV, out int attenuation)
         {
             if (acqData == null || acqData.TimeRslt == null)
             {
@@ -384,9 +352,9 @@ namespace QA40xPlot.Libraries
             // Determine highest channel value
             double peak_left = -150;
             double peak_right = -150;
-            if (leftChannelEnabled)
+            if (leftEnabled)
                 peak_left = acqData.TimeRslt.Left.Max();
-            if (rightChannelEnabled)
+            if (rightEnabled)
                 peak_right = acqData.TimeRslt.Right.Max();
 
             peak_dBV = 20 * Math.Log10(Math.Max(peak_left, peak_right));
@@ -399,26 +367,26 @@ namespace QA40xPlot.Libraries
         /// <summary>
         /// Determine the generator voltage in dBV for the desired output voltage
         /// </summary>
-        /// <param name="startGeneratorAmplitude">The amplitude to start with. Should be small but the output should be detectable</param>
-        /// <param name="desiredOutputAmplitude">The desired output amplitude</param>
+        /// <param name="generatordBV">The amplitude to start with. Should be small but the output should be detectable</param>
+        /// <param name="outputdBV">The desired output amplitude</param>
         /// <returns>Generator amplitude in dBV</returns>
-        public static async Task<(double, LeftRightSeries)> DetermineGenAmplitudeByOutputAmplitudeWithSine(double testFrequency, double startGeneratorAmplitude, double desiredOutputAmplitude, bool leftChannelEnable, bool rightChannelEnabled, CancellationToken ct)
+        public static async Task<(double, LeftRightSeries)> DetermineGenAmplitudeWithSine(double testFrequency, double generatordBV, double outputdBV, bool leftChannelEnable, bool rightEnabled, CancellationToken ct)
         {
-            await Qa40x.SetGen1(testFrequency, startGeneratorAmplitude, true);           // Enable generator with start amplitude at 1 kHz
+            await Qa40x.SetGen1(testFrequency, generatordBV, true);           // Enable generator with start amplitude at 1 kHz
             await Qa40x.SetOutputSource(OutputSources.Sine);                    // Set sine wave
             LeftRightSeries acqData = await DoAcquisitions(1, ct);            // Do a single aqcuisition
             LeftRightPair plrp = await Qa40x.GetPeakDbv(testFrequency - 5, testFrequency + 5);             // Get peak amplitude around 1 kHz
 
             // Determine highest channel value
             double peak_dBV = 0;
-            if (leftChannelEnable && rightChannelEnabled)
+            if (leftChannelEnable && rightEnabled)
                 peak_dBV = (plrp.Left > plrp.Right) ? plrp.Left : plrp.Right;
             else if (leftChannelEnable)
                 peak_dBV = plrp.Left;
             else
                 peak_dBV = plrp.Right;
 
-            double amplitude = startGeneratorAmplitude + (desiredOutputAmplitude - peak_dBV);    // Determine amplitude for desired output amplitude based on measurement
+            double amplitude = generatordBV + (outputdBV - peak_dBV);    // Determine amplitude for desired output amplitude based on measurement
             // Check if amplitude not too high or too low.
             if (amplitude >= 18)
             {
@@ -453,12 +421,12 @@ namespace QA40xPlot.Libraries
         /// <summary>
         /// Determine the generator voltage in dBV for the desired output voltage
         /// </summary>
-        /// <param name="startGeneratorAmplitude">The amplitude to start with. Should be small but the output should be detectable</param>
-        /// <param name="desiredOutputAmplitude">The desired output amplitude</param>
+        /// <param name="generatordBV">The amplitude to start with. Should be small but the output should be detectable</param>
+        /// <param name="outputdBV">The desired output amplitude</param>
         /// <returns>Generator amplitude in dBV</returns>
-        public static async Task<(double, LeftRightSeries?)> DetermineGenAmplitudeByOutputAmplitudeWithChirp(double startGeneratorAmplitude, double desiredOutputAmplitude, bool leftChannelEnabled, bool rightChannelEnabled, CancellationToken ct)
+        public static async Task<(double, LeftRightSeries?)> DetermineGenAmplitudeWithChirp(double generatordBV, double outputdBV, bool leftEnabled, bool rightEnabled, CancellationToken ct)
         {
-            await Qa40x.SetExpoChirpGen(startGeneratorAmplitude, 0, 48, false);
+            await Qa40x.SetExpoChirpGen(generatordBV, 0, 48, false);
             await Qa40x.SetOutputSource(OutputSources.ExpoChirp);                   // Set sine wave
             LeftRightSeries acqData = await DoAcquisitions(1, ct);                  // Do a single aqcuisition
             if (acqData == null || acqData.FreqRslt == null)
@@ -476,14 +444,14 @@ namespace QA40xPlot.Libraries
             // Determine highest channel value
             double peak_left = -150;
             double peak_right = -150;
-            if (leftChannelEnabled)
+            if (leftEnabled)
                 peak_left = acqData.FreqRslt.Left.Skip(binsToSkip).Take(binsToTake).Max();
-            if (rightChannelEnabled)
+            if (rightEnabled)
                 peak_right = acqData.FreqRslt.Right.Skip(binsToSkip).Take(binsToTake).Max();
 
             double peak_dBV = 20 * Math.Log10(Math.Max(peak_left, peak_right));
 
-            double amplitude = startGeneratorAmplitude + (desiredOutputAmplitude - peak_dBV);    // Determine amplitude for desired output amplitude based on measurement
+            double amplitude = generatordBV + (outputdBV - peak_dBV);    // Determine amplitude for desired output amplitude based on measurement
                                                                                                  // Check if amplitude not too high or too low.
             if (amplitude >= 18)
             {
@@ -548,128 +516,19 @@ namespace QA40xPlot.Libraries
 
         }
 
-
-        /// <summary>
-        /// Function to allow only numeric input (integers or decimals)
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        /// <param name="integersOnly"></param>
-        //public static void AllowNumericInput(object sender, KeyPressEventArgs e, bool integersOnly = false)
-        //{
-        //    var textBox = sender as System.Windows.Forms.TextBox;
-
-        //    // Allow control keys (e.g., backspace)
-        //    if (char.IsControl(e.KeyChar))
-        //    {
-        //        return;
-        //    }
-
-        //    // Replace comma with decimal point
-        //    if (e.KeyChar == ',')
-        //    {
-        //        e.KeyChar = '.';
-        //    }
-
-        //    // Check if the key is a decimal point
-        //    if (e.KeyChar == '.')
-        //    {
-        //        // If there's already a decimal point, prevent input
-
-        //        if (textBox.Text.Contains("."))
-        //        {
-        //            e.Handled = true;
-        //            return;
-        //        }
-        //    }
-
-        //    // Handle negative sign
-        //    if (e.KeyChar == '-')
-        //    {
-        //        // Allow the negative sign only at the beginning of the text
-        //        if (textBox.SelectionStart != 0 || textBox.Text.Contains("-"))
-        //        {
-        //            e.Handled = true; // Reject if not at the start or already present
-        //        }
-        //    }
-
-        //    if (integersOnly && e.KeyChar == '.' && e.KeyChar != '-')
-        //    {
-        //        e.Handled = true; // Reject invalid characters
-        //    }
-
-        //    // Allow only digits and optionally the decimal separator
-        //    if (!char.IsDigit(e.KeyChar) && e.KeyChar != '.' && e.KeyChar != '-')
-        //    {
-        //        e.Handled = true; // Reject invalid characters
-        //    }
-        //}
-
-        ///// <summary>
-        ///// Function to check range and update text color
-        ///// </summary>
-        ///// <param name="sender"></param>
-        ///// <param name="minimal"></param>
-        ///// <param name="maximum"></param>
-        //public static void ValidateRangeAdorner(object sender, double minimal, double maximum)
-        //{
-        //    // Get the TextBox object
-        //    var textBox = sender as System.Windows.Forms.TextBox;
-        //    if (textBox == null) return;
-
-        //    // Determine the culture-specific decimal separator
-        //    char decimalSeparator = Convert.ToChar(CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
-
-        //    // Replace ',' with '.' if applicable
-        //    string text = textBox.Text.Replace(',', decimalSeparator).Replace('.', decimalSeparator);
-
-        //    // Try to parse the text as a double
-        //    if (double.TryParse(text, NumberStyles.Any, CultureInfo.CurrentCulture, out double value))
-        //    {
-        //        // Check if the value is within the range
-        //        if (value >= minimal && value <= maximum)
-        //        {
-        //            textBox.ForeColor = System.Drawing.Color.Black; // Valid input
-        //        }
-        //        else
-        //        {
-        //            textBox.ForeColor = System.Drawing.Color.Red; // Out of range
-        //        }
-        //    }
-        //    else
-        //    {
-        //        textBox.ForeColor = System.Drawing.Color.Red; // Invalid input
-        //    }
-        //}
-
-        ///// <summary>
-        ///// Parse text to unsigned int. Return fallback texts if failed
-        ///// </summary>
-        ///// <param name="text">Text to parse</param>
-        ///// <param name="fallback">Fallback text</param>
-        ///// <returns></returns>
-        //public static uint ToUint(string text, uint fallback)
-        //{
-
-        //    if (uint.TryParse(text, NumberStyles.Any, CultureInfo.CurrentCulture, out uint value))
-        //        return value;     // return parsed value
-
-        //    return fallback;
-        //}
-
         /// <summary>
         /// Plots a vertical cursor marker line 
         /// </summary>
         /// <param name="lineWidth">Line width of the marker</param>
         /// <param name="linePattern">Pattern of the line</param>
         /// <param name="point">Data point to draw the line at</param>
-        public static void PlotCursorMarker(PlotControl plot, float lineWidth, LinePattern linePattern, DataPoint point)
+        public static void PlotCursorLine(PlotControl plot, float lineWidth, LinePattern linePattern, DataPoint point)
         {
 			ScottPlot.Plot myPlot = plot.ThePlot;
 
 			myPlot.Remove<Crosshair>();               // Remove any current marker
 
-            var myCrosshair = myPlot.Add.Crosshair(point.Coordinates.X, point.Coordinates.Y);
+            var myCrosshair = myPlot.Add.Crosshair(point.X, point.Y);
             myCrosshair.IsVisible = true;
             myCrosshair.LineWidth = lineWidth;
             myCrosshair.LineColor = Colors.Magenta;
@@ -756,7 +615,7 @@ namespace QA40xPlot.Libraries
         }
 
 
-        public static void PlotMiniFftGraph(PlotControl plot, LeftRightFrequencySeries? fftData, bool leftChannelEnabled, bool rightChannelEnabled)
+        public static void PlotMiniFftGraph(PlotControl plot, LeftRightFrequencySeries? fftData, bool leftEnabled, bool rightEnabled)
         {
             if (null == fftData)
                 return;
@@ -773,9 +632,9 @@ namespace QA40xPlot.Libraries
             {
                 frequency += fftData.Df;
                 freqX.Add(frequency);
-                if (leftChannelEnabled)
+                if (leftEnabled)
                     dBV_Left_Y.Add(20 * Math.Log10(fftData.Left[f]));
-                if (rightChannelEnabled)
+                if (rightEnabled)
                     dBV_Right_Y.Add(20 * Math.Log10(fftData.Right[f]));
             }
 
@@ -784,7 +643,7 @@ namespace QA40xPlot.Libraries
             double[] logHTot_Left_Y = dBV_Left_Y.ToArray();
             double[] logHTot_Right_Y = dBV_Right_Y.ToArray();
 
-            if (leftChannelEnabled)
+            if (leftEnabled)
             {
 				Scatter plotTot_Left = myPlot.Add.Scatter(logFreqX, logHTot_Left_Y);
                 plotTot_Left.LineWidth = 1;
@@ -792,11 +651,11 @@ namespace QA40xPlot.Libraries
                 plotTot_Left.MarkerSize = 1;
             }
 
-            if (rightChannelEnabled)
+            if (rightEnabled)
             {
 				Scatter plotTot_Right = myPlot.Add.Scatter(logFreqX, logHTot_Right_Y);
                 plotTot_Right.LineWidth = 1;
-                if (leftChannelEnabled)
+                if (leftEnabled)
                     plotTot_Right.Color = new ScottPlot.Color(220, 5, 46, 120); // Red transparant
                 else
                     plotTot_Right.Color = new ScottPlot.Color(220, 5, 46, 255); // Red
@@ -804,8 +663,8 @@ namespace QA40xPlot.Libraries
             }
 
             var limitY = myPlot.Axes.GetLimits().YRange.Max;
-            var max_dBV_left = leftChannelEnabled ? dBV_Left_Y.Max(f => f) : -150;
-            var max_dBV_right = rightChannelEnabled ? dBV_Right_Y.Max(f => f): -150;
+            var max_dBV_left = leftEnabled ? dBV_Left_Y.Max(f => f) : -150;
+            var max_dBV_right = rightEnabled ? dBV_Right_Y.Max(f => f): -150;
             var max_dBV = (max_dBV_left > max_dBV_right) ? max_dBV_left : max_dBV_right;
             if (max_dBV + 10 > limitY)
             {
@@ -867,7 +726,7 @@ namespace QA40xPlot.Libraries
         }
 
 
-        public static void PlotMiniTimeGraph(PlotControl plot, LeftRightTimeSeries? timeData, double fundamantalFrequency, bool leftChannelEnabled, bool rightChannelEnabled, bool plotChirp = false)
+        public static void PlotMiniTimeGraph(PlotControl plot, LeftRightTimeSeries? timeData, double fundamantalFrequency, bool leftEnabled, bool rightEnabled, bool plotChirp = false)
         {
             if (null == timeData)
             {
@@ -896,7 +755,7 @@ namespace QA40xPlot.Libraries
             int startStep = 0;
             if (!plotChirp)
             {
-                if (leftChannelEnabled)
+                if (leftEnabled)
                 {
                     for (int f = 1; f < timeData.Left.Length; f++)
                     {
@@ -959,7 +818,7 @@ namespace QA40xPlot.Libraries
             else if (maxVolt > 0.00001)
                 maxVolt = Math.Ceiling(maxVolt * 100000) / 100000;
 
-            if (leftChannelEnabled)
+            if (leftEnabled)
             {
 				Scatter plot_left = myPlot.Add.Scatter(timeX, voltY_left);
                 plot_left.LineWidth = 1;
@@ -967,11 +826,11 @@ namespace QA40xPlot.Libraries
                 plot_left.MarkerSize = 2;
             }
 
-            if (rightChannelEnabled)
+            if (rightEnabled)
             {
 				Scatter plot_right = myPlot.Add.Scatter(timeX, voltY_right);
                 plot_right.LineWidth = 1;
-                if (leftChannelEnabled)
+                if (leftEnabled)
                     plot_right.Color = new ScottPlot.Color(220, 5, 46, 120); // Red transparant if left channel behind it
                 else
                     plot_right.Color = new ScottPlot.Color(220, 5, 46, 255); // Red
@@ -981,52 +840,6 @@ namespace QA40xPlot.Libraries
             myPlot.Axes.SetLimits(0, time, -maxVolt, maxVolt);
 
             plot.Refresh();
-        }
-
-
-
-
-
-        public static System.Drawing.Image CopyControlToImage(Control theControl)
-        {
-            // Copy the whole control to a clicp board
-            //Bitmap bm = new Bitmap(theControl.Width, theControl.Height);
-            //theControl.DrawToBitmap(bm, new System.Drawing.Rectangle(0, 0, theControl.Width, theControl.Height));
-            //return bm;
-            return new Bitmap(20, 30);
-        }
-
-        //public static void BitmapToClipboard(System.Drawing.Image bm)
-        //{
-        //    Clipboard.SetImage(bm);
-        //}
-
-        public static double GetPhaseBetweenSignals(uint sampleRate, double frequency, double[] referenceSignal, double[] analyzedSignal)
-        {
-            //if (frequency < 50000)
-                return GetPhaseByFft(sampleRate, frequency, referenceSignal, analyzedSignal);               // Get phase by fft. Is faster than correlation but maybe less accurate at high frequencies. We need to test this.
-            
-            //return GetPhaseByCorrelation(sampleRate, frequency, referenceSignal, analyzedSignal);         // Get phase by correlation
-        }
-
-        public static double GetPhaseByFft(uint sampleRate, double frequency, double[] referenceSignal, double[] analyzedSignal)
-        {
-            var window = new FftSharp.Windows.Hanning();
-            double[] windowed_l = window.Apply(analyzedSignal);
-            System.Numerics.Complex[] spectrum_l = FftSharp.FFT.Forward(windowed_l);
-
-            double[] windowed_r = window.Apply(referenceSignal);
-            System.Numerics.Complex[] spectrum_r = FftSharp.FFT.Forward(windowed_r);
-
-            var fundamentalBin = GetBinOfFrequency(frequency, sampleRate, (uint)referenceSignal.Length);
-            var phase = (180 / Math.PI) * (spectrum_l[fundamentalBin].Phase - spectrum_r[fundamentalBin].Phase);
-
-            if (phase < -180)
-                phase = phase + 360;
-            else if (phase > 180)
-                phase = phase - 360;
-
-            return phase;
         }
 
         /// <summary>

@@ -199,7 +199,7 @@ namespace QA40xPlot.Actions
 
 			// ********************************************************************
 			// Setup the device
-			var sampleRate = MathUtil.ToUint(mrs.SampleRate, 0);
+			var sampleRate = MathUtil.ToUint(mrs.SampleRate);
 			if (sampleRate == 0 || !FreqRespViewModel.FftSizes.Contains(mrs.FftSize))
 			{
 				MessageBox.Show("Invalid settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -245,7 +245,7 @@ namespace QA40xPlot.Actions
                     // Get input voltage based on desired output voltage
                     attenuation = QaLibrary.DetermineAttenuation(amplifierOutputVoltagedBV);
                     double startAmplitude = -40;  // We start a measurement with a 10 mV signal.
-                    var result = await QaLibrary.DetermineGenAmplitudeByOutputAmplitudeWithChirp(startAmplitude, amplifierOutputVoltagedBV, true, mrs.RightChannel, ct);
+                    var result = await QaLibrary.DetermineGenAmplitudeWithChirp(startAmplitude, amplifierOutputVoltagedBV, true, mrs.RightChannel, ct);
                     if (ct.IsCancellationRequested)
                         return false;
                     genVoltagedBV = result.Item1;
@@ -266,7 +266,7 @@ namespace QA40xPlot.Actions
                         await showMessage($"Found an input amplitude of {genVoltagedBV:0.00#} dBV. Doing second pass.");
 
                         // 2nd time for extra accuracy
-                        result = await QaLibrary.DetermineGenAmplitudeByOutputAmplitudeWithChirp(genVoltagedBV, amplifierOutputVoltagedBV, true, mrs.RightChannel, ct);
+                        result = await QaLibrary.DetermineGenAmplitudeWithChirp(genVoltagedBV, amplifierOutputVoltagedBV, true, mrs.RightChannel, ct);
                         if (ct.IsCancellationRequested)
                             return false;
                         genVoltagedBV = result.Item1;
@@ -285,7 +285,7 @@ namespace QA40xPlot.Actions
 					await showMessage($"Determining the best input attenuation for a generator voltage of {genVoltagedBV:0.00#} dBV.");
 
                     // Determine correct input attenuation
-                    var result = await QaLibrary.DetermineAttenuationForGeneratorVoltageWithChirp(genVoltagedBV, QaLibrary.MAXIMUM_DEVICE_ATTENUATION, true, frqrsVm.RightChannel, ct);
+                    var result = await QaLibrary.DetermineAttenuationWithChirp(genVoltagedBV, QaLibrary.MAXIMUM_DEVICE_ATTENUATION, true, frqrsVm.RightChannel, ct);
                     if (ct.IsCancellationRequested)
                         return false;
                     attenuation = result.Item1;

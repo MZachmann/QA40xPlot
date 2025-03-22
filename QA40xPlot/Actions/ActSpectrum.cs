@@ -61,7 +61,7 @@ namespace QA40xPlot.Actions
 				return null;
 
 			var vm = ViewSettings.Singleton.SpectrumVm;
-			var sampleRate = MathUtil.ToUint(vm.SampleRate, 0);
+			var sampleRate = MathUtil.ToUint(vm.SampleRate);
 			var fftsize = ffs.Left.Length;
 			var binSize = ffs.Df;
 			if (vm.ShowRight && !vm.ShowLeft)
@@ -89,7 +89,7 @@ namespace QA40xPlot.Actions
 			SpectrumViewModel thd = msr.MeasurementSettings;
 
 			var freq = MathUtil.ToDouble(thd.Gen1Frequency, 0);
-			var sampleRate = MathUtil.ToUint(thd.SampleRate, 0);
+			var sampleRate = MathUtil.ToUint(thd.SampleRate);
 			if (freq == 0 || sampleRate == 0 || !SpectrumViewModel.FftSizes.Contains(thd.FftSize))
             {
                 MessageBox.Show("Invalid settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -158,8 +158,8 @@ namespace QA40xPlot.Actions
 					// Set the generators
 					await Qa40x.SetGen1(stepBinFrequencies[0], amplitudeSetpointdBV, thd.UseGenerator);
 					// for the first go around, turn on the generator
-					if ( thd.UseGenerator )
-                    {
+					if (thd.UseGenerator)
+					{
 						await Qa40x.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
 					}
 					else
@@ -168,9 +168,11 @@ namespace QA40xPlot.Actions
 					}
 
 					LeftRightSeries lrfs = await QaLibrary.DoAcquisitions(thd.Averages, ct, true, true);
+					//var crp = QAMath.CalculateChirp(20, 20000, 1000, sampleRate);
+					//LeftRightSeries lrfs = await QaLibrary.DoAcquireChirp(ct, crp.ToArray(), crp.ToArray());
 
-					if (ct.IsCancellationRequested)
-                        break;
+					//if (ct.IsCancellationRequested)
+					//                   break;
 
 					uint fundamentalBin = QaLibrary.GetBinOfFrequency(stepBinFrequencies[0], binSize);
                     if (fundamentalBin >= (lrfs.FreqRslt?.Left.Length ?? -1))               // Check in bin within range
@@ -241,7 +243,7 @@ namespace QA40xPlot.Actions
 		{
 			var vm = ViewSettings.Singleton.SpectrumVm;
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
-			var sampleRate = Convert.ToUInt32(vm.SampleRate);
+			var sampleRate = MathUtil.ToUint(vm.SampleRate);
 			var fftsize = SpectrumViewModel.FftActualSizes.ElementAt(SpectrumViewModel.FftSizes.IndexOf(vm.FftSize));
 			int bin = (int)QaLibrary.GetBinOfFrequency(frequency, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
 			var leftData = fmr.FrequencySteps[0].fftData?.Left;
@@ -330,7 +332,7 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			if (vm.ShowPowerMarkers)
 			{
-				var sampleRate = Convert.ToUInt32(vm.SampleRate);
+				var sampleRate = MathUtil.ToUint(vm.SampleRate);
 				var fftsize = SpectrumViewModel.FftActualSizes.ElementAt(SpectrumViewModel.FftSizes.IndexOf(vm.FftSize));
 				var steps = vm.ShowLeft ? MeasurementResult.FrequencySteps[0].Left : MeasurementResult.FrequencySteps[0].Right;
 				var nfloor = steps.Average_NoiseFloor_dBV;   // Average noise floor in dBVolts after the fundamental

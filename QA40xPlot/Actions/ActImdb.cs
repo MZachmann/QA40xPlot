@@ -61,7 +61,7 @@ namespace QA40xPlot.Actions
 				return null;
 
 			var vm = ViewSettings.Singleton.SpectrumVm;
-			var sampleRate = MathUtil.ToUint(vm.SampleRate, 0);
+			var sampleRate = MathUtil.ToUint(vm.SampleRate);
 			var fftsize = vfs.Left.Length;
 			var binSize = QaLibrary.CalcBinSize(sampleRate, (uint)fftsize);
 			if (vf != null && vf.Count > 0)
@@ -134,7 +134,7 @@ namespace QA40xPlot.Actions
 
 			var freq = MathUtil.ToDouble(thd.Gen1Frequency, 0);
 			var freq2 = MathUtil.ToDouble(thd.Gen2Frequency, 0);
-			var sampleRate = MathUtil.ToUint(thd.SampleRate, 0);
+			var sampleRate = MathUtil.ToUint(thd.SampleRate);
 			if (freq == 0 || freq2 == 0 || sampleRate == 0 || !FreqRespViewModel.FftSizes.Contains(thd.FftSize))
             {
                 MessageBox.Show("Invalid settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -271,7 +271,7 @@ namespace QA40xPlot.Actions
 		{
 			var vm = ViewSettings.Singleton.ImdVm;
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
-			var sampleRate = Convert.ToUInt32(vm.SampleRate);
+			var sampleRate = MathUtil.ToUint(vm.SampleRate);
 			var fftsize = ImdViewModel.FftActualSizes.ElementAt(ImdViewModel.FftSizes.IndexOf(vm.FftSize));
 			int bin = (int)QaLibrary.GetBinOfFrequency(frequency, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
 			var leftData = fmr.FrequencySteps[0].fftData?.Left;
@@ -358,7 +358,7 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			if (vm.ShowPowerMarkers)
 			{
-				var sampleRate = Convert.ToUInt32(vm.SampleRate);
+				var sampleRate = MathUtil.ToUint(vm.SampleRate);
 				var fftsize = ImdViewModel.FftActualSizes.ElementAt(ImdViewModel.FftSizes.IndexOf(vm.FftSize));
                 var nfloor = MeasurementResult.FrequencySteps[0].Left.Average_NoiseFloor_dBV;   // Average noise floor in dBVolts after the fundamental
                 double fsel = 0;
