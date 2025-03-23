@@ -141,7 +141,7 @@ namespace QA40xPlot.Actions
 				return false;
 			}
 			var fftsize = FreqRespViewModel.FftActualSizes.ElementAt(FreqRespViewModel.FftSizes.IndexOf(thd.FftSize));
-			if (false == await QaLibrary.InitializeDevice(sampleRate, fftsize, thd.WindowingMethod, (int)thd.Attenuation, msr.FrequencySteps.Count == 0))
+			if (true != await QaLibrary.InitializeDevice(sampleRate, fftsize, thd.WindowingMethod, (int)thd.Attenuation, msr.FrequencySteps.Count == 0))
 				return false;
 			await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make it turn on or off
 
@@ -559,7 +559,7 @@ namespace QA40xPlot.Actions
 		void InitializefftPlot()
         {
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
-			InitializePctFreqPlot(myPlot);
+			PlotUtil.InitializePctFreqPlot(myPlot);
 			var imdVm = ViewSettings.Singleton.ImdVm;
 
             ImdViewModel thd = ViewSettings.Singleton.ImdVm;
@@ -665,7 +665,7 @@ namespace QA40xPlot.Actions
 		void InitializeMagnitudePlot()
         {
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
-            InitializeMagFreqPlot(myPlot);
+            PlotUtil.InitializeMagFreqPlot(myPlot);
 
 			var imdVm = ViewSettings.Singleton.ImdVm;
 

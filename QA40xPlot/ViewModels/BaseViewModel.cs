@@ -35,6 +35,12 @@ namespace QA40xPlot.ViewModels
 			get => _GenDirection;
 			set => SetProperty(ref _GenDirection, value);
 		}
+		private double _Attenuation;
+		public double Attenuation
+		{
+			get => _Attenuation;
+			set => SetProperty(ref _Attenuation, value);
+		}
 		#endregion
 
 		#region Output Setters and Getters

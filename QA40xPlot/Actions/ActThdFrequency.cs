@@ -199,7 +199,7 @@ namespace QA40xPlot.Actions
                 MathUtil.ToDouble(thd.EndFreq, 20000), -150, 20);
             QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -1, 1);
 
-			if (false == await QaLibrary.InitializeDevice(thd.SampleRate, thd.FftSize, thd.WindowingMethod, QaLibrary.DEVICE_MAX_ATTENUATION, true))
+			if (true != await QaLibrary.InitializeDevice(thd.SampleRate, thd.FftSize, thd.WindowingMethod, QaLibrary.DEVICE_MAX_ATTENUATION, true))
 			{
 				return false;
 			}
@@ -485,7 +485,7 @@ namespace QA40xPlot.Actions
         void InitializeThdPlot()
         {
             ScottPlot.Plot myPlot = thdPlot.ThePlot;
-            InitializePctFreqPlot(myPlot);
+            PlotUtil.InitializePctFreqPlot(myPlot);
 
             var thdFreq = ViewSettings.Singleton.ThdFreq;
 
@@ -503,7 +503,7 @@ namespace QA40xPlot.Actions
         void InitializeMagnitudePlot()
         {
             ScottPlot.Plot myPlot = thdPlot.ThePlot;
-            InitializeMagFreqPlot(myPlot);
+            PlotUtil.InitializeMagFreqPlot(myPlot);
             var thdFreq = ViewSettings.Singleton.ThdFreq;
             myPlot.Axes.SetLimits(Math.Log10(MathUtil.ToDouble(thdFreq.GraphStartFreq)), Math.Log10(MathUtil.ToDouble(thdFreq.GraphEndFreq)),
                 MathUtil.ToDouble(thdFreq.RangeBottomdB), MathUtil.ToDouble(thdFreq.RangeTopdB));

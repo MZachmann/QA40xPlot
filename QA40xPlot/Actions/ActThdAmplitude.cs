@@ -152,7 +152,7 @@ namespace QA40xPlot.Actions
 			QaLibrary.InitMiniFftPlot(fftPlot, 10, 100000, -150, 20);
 			QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -1, 1);
 
-			if (false == await QaLibrary.InitializeDevice(thdAmp.SampleRate, thdAmp.FftSize, thdAmp.WindowingMethod, QaLibrary.DEVICE_MAX_ATTENUATION, true))
+			if (true != await QaLibrary.InitializeDevice(thdAmp.SampleRate, thdAmp.FftSize, thdAmp.WindowingMethod, QaLibrary.DEVICE_MAX_ATTENUATION, true))
 			{
 				return false;
 			}
@@ -433,7 +433,7 @@ namespace QA40xPlot.Actions
 		void InitializeThdPlot()
 		{
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;
-			InitializePctAmpPlot(myPlot);
+			PlotUtil.InitializePctAmpPlot(myPlot);
 			var thdAmp = ViewSettings.Singleton.ThdAmp;
 			myPlot.Axes.SetLimits(Math.Log10(MathUtil.ToDouble(thdAmp.GraphStartVolts)), Math.Log10(MathUtil.ToDouble(thdAmp.GraphEndVolts)),
 				Math.Log10(MathUtil.ToDouble(thdAmp.RangeBottom)), Math.Log10(MathUtil.ToDouble(thdAmp.RangeTop)));
@@ -448,7 +448,7 @@ namespace QA40xPlot.Actions
 		void InitializeMagnitudePlot()
 		{
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;
-			InitializeMagAmpPlot(myPlot);
+			PlotUtil.InitializeMagAmpPlot(myPlot);
 			var thdAmp = ViewSettings.Singleton.ThdAmp;
 			myPlot.Axes.SetLimits(Math.Log10(MathUtil.ToDouble(thdAmp.GraphStartVolts)), Math.Log10(MathUtil.ToDouble(thdAmp.GraphEndVolts)),
 				MathUtil.ToDouble(thdAmp.RangeBottomdB), MathUtil.ToDouble(thdAmp.RangeTopdB));

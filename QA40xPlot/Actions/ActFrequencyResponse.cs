@@ -199,7 +199,7 @@ namespace QA40xPlot.Actions
 				return false;
 			}
 			var fftsize = FreqRespViewModel.FftActualSizes.ElementAt(FreqRespViewModel.FftSizes.IndexOf(mrs.FftSize));
-            if( false == await QaLibrary.InitializeDevice(sampleRate, fftsize, "Hann", QaLibrary.DEVICE_MAX_ATTENUATION, true))
+            if(true != await QaLibrary.InitializeDevice(sampleRate, fftsize, "Hann", QaLibrary.DEVICE_MAX_ATTENUATION, true))
             {
                 return false; 
             }
@@ -391,9 +391,9 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
 			var frqrsVm = ViewSettings.Singleton.FreqRespVm;
 
-			InitializeMagFreqPlot(myPlot);
-            SetOhmFreqRule(myPlot);
-            AddPhaseFreqRule(myPlot);
+			PlotUtil.InitializeMagFreqPlot(myPlot);
+			PlotUtil.SetOhmFreqRule(myPlot);
+			PlotUtil.AddPhaseFreqRule(myPlot);
 
             myPlot.Axes.SetLimitsX(Math.Log10(MathUtil.ToDouble(frqrsVm.GraphStartFreq, 20.0)), Math.Log10(MathUtil.ToDouble(frqrsVm.GraphEndFreq, 20000)), myPlot.Axes.Bottom);
 			myPlot.Axes.SetLimitsY(MathUtil.ToDouble(frqrsVm.RangeBottomdB, -20), MathUtil.ToDouble(frqrsVm.RangeTopdB, 180), myPlot.Axes.Left);
@@ -408,13 +408,13 @@ namespace QA40xPlot.Actions
 					myPlot.Axes.Right.Label.Text = string.Empty;
 					break;
 				case TestingType.Gain:
-					AddPhasePlot(myPlot);
+					PlotUtil.AddPhasePlot(myPlot);
 					myPlot.Title("Gain");
 					myPlot.YLabel("dB");
 					myPlot.Axes.Right.Label.Text = "Phase (Deg)";
 					break;
 				case TestingType.Impedance:
-					AddPhasePlot(myPlot);
+					PlotUtil.AddPhasePlot(myPlot);
 					myPlot.Title("Impedance");
 					myPlot.YLabel("|Z| Ohms");
 					myPlot.Axes.Right.Label.Text = "Phase (Deg)";

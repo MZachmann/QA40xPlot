@@ -89,19 +89,19 @@ namespace QA40xPlot.Actions
 			// Setup
 			SpectrumViewModel thd = msr.MeasurementSettings;
 
-			var freq = MathUtil.ToDouble(thd.Gen1Frequency, 0);
-			var sampleRate = MathUtil.ToUint(thd.SampleRate);
-			if (freq == 0 || sampleRate == 0 || !SpectrumViewModel.FftSizes.Contains(thd.FftSize))
+			var freq = MathUtil.ToDouble(msr.MeasurementSettings.Gen1Frequency, 0);
+			var sampleRate = MathUtil.ToUint(msr.MeasurementSettings.SampleRate);
+			if (freq == 0 || sampleRate == 0 || !SpectrumViewModel.FftSizes.Contains(msr.MeasurementSettings.FftSize))
             {
                 MessageBox.Show("Invalid settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 				return false;
 			}
-			var fftsize = SpectrumViewModel.FftActualSizes.ElementAt(SpectrumViewModel.FftSizes.IndexOf(thd.FftSize));
+			var fftsize = SpectrumViewModel.FftActualSizes.ElementAt(SpectrumViewModel.FftSizes.IndexOf(msr.MeasurementSettings.FftSize));
 
-            // ********************************************************************  
-            // Load a settings we want
-            // ********************************************************************  
-			if (false == await QaLibrary.InitializeDevice(sampleRate, fftsize, thd.WindowingMethod, (int)thd.Attenuation, msr.FrequencySteps.Count == 0))
+			// ********************************************************************  
+			// Load a settings we want
+			// ********************************************************************  
+			if (true != await QaLibrary.InitializeDevice(sampleRate, fftsize, msr.MeasurementSettings.WindowingMethod, (int)msr.MeasurementSettings.Attenuation, msr.FrequencySteps.Count == 0))
 				return false;
 
 			try
@@ -133,7 +133,20 @@ namespace QA40xPlot.Actions
 						return false;
 				}
 
-				var genVolt = MathUtil.ToDouble(thd.Gen1Voltage, 0.001);
+				var genVolt = MathUtil.ToDouble(msr.MeasurementSettings.Gen1Voltage, 0.001);
+				var genType = thd.ToDirection(msr.MeasurementSettings.GenDirection);
+				if (LRGains != null && genType == E_GeneratorDirection.OUTPUT_VOLTAGE)
+				{
+					if (thd.ShowLeft)
+						genVolt /= LRGains.Left[0];
+					else
+						genVolt /= LRGains.Right[0];
+				}
+				if(genVolt > 5)
+				{
+					await showMessage($"Requesting input voltage of {genVolt} volts, check connection and settings");
+					genVolt = 0.01;
+				}
 				double amplitudeSetpointdBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
 				// ********************************************************************
@@ -158,12 +171,6 @@ namespace QA40xPlot.Actions
 					}
 
 					LeftRightSeries lrfs = await QaLibrary.DoAcquisitions(thd.Averages, ct, true, true);
-					//var crp = QAMath.CalculateChirp(20, 20000, 1000, sampleRate);
-					//LeftRightSeries lrfs = await QaLibrary.DoAcquireChirp(ct, crp.ToArray(), crp.ToArray());
-
-					//if (ct.IsCancellationRequested)
-					//                   break;
-
 					uint fundamentalBin = QaLibrary.GetBinOfFrequency(stepBinFrequencies[0], binSize);
                     if (fundamentalBin >= (lrfs.FreqRslt?.Left.Length ?? -1))               // Check in bin within range
                         break;
@@ -198,7 +205,7 @@ namespace QA40xPlot.Actions
 						step.Right.Thd_PercentN = 100 * Math.Pow(10, thdN.Right / 20);
 					}
 
-					// Add step data to list
+					// Here we replace the last frequency step with the new one
 					msr.FrequencySteps.Clear();
 					msr.FrequencySteps.Add(step);
 
@@ -518,7 +525,7 @@ namespace QA40xPlot.Actions
         void InitializefftPlot()
         {
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
-			InitializePctFreqPlot(myPlot);
+			PlotUtil.InitializePctFreqPlot(myPlot);
 			var thdFreq = ViewSettings.Singleton.SpectrumVm;
 
             SpectrumViewModel thd = ViewSettings.Singleton.SpectrumVm;
@@ -623,7 +630,7 @@ namespace QA40xPlot.Actions
 		void InitializeMagnitudePlot()
         {
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
-            InitializeMagFreqPlot(myPlot);
+            PlotUtil.InitializeMagFreqPlot(myPlot);
 
 			var thdFreq = ViewSettings.Singleton.SpectrumVm;
 
@@ -636,17 +643,6 @@ namespace QA40xPlot.Actions
 
             fftPlot.Refresh();
         }
-
-		// this calculates gain using all input voltage because we use it to set the attenuator
-		private async Task<double> CalculateInVolts()
-		{
-			var domore = await PerformMeasurementSteps(MeasurementResult, ct.Token);
-			if( domore && MeasurementResult.FrequencySteps?.Count > 0)
-			{
-				return MeasurementResult.FrequencySteps[0].Left.Total_V;
-			}
-			return 1.0;
-		}
 
         /// <summary>
         ///  Start measurement button click
@@ -666,18 +662,27 @@ namespace QA40xPlot.Actions
 			};
 			Data.Measurements.Clear();
 
-			if(specVm.DoAutoAttn)
+			var genType = specVm.ToDirection(specVm.GenDirection);
+			// if we're doing adjusting here
+			if (specVm.DoAutoAttn || genType != E_GeneratorDirection.INPUT_VOLTAGE)
 			{
-				double inpVolts = 0;
-				var msr = MeasurementResult.MeasurementSettings;
-				msr.Attenuation = 42;        // set to max attenuation
-				specVm.Attenuation = 42;    // to update the gui while testing
-				var aves = msr.Averages;
-				msr.Averages = 1;
-				inpVolts = await CalculateInVolts();
-				msr.Averages = aves;
-				msr.Attenuation = QaLibrary.DetermineAttenuation(20*Math.Log10(inpVolts));
-				specVm.Attenuation = msr.Attenuation;    // to update the gui while testing
+				// show that we're autoing...
+				if (specVm.DoAutoAttn)
+					specVm.Attenuation = QaLibrary.DEVICE_MAX_ATTENUATION;
+				LRGains = await DetermineGainAtFreq(MathUtil.ToDouble(specVm.Gen1Frequency));
+			}
+
+			if (specVm.DoAutoAttn)
+			{
+				var vtest = MathUtil.ToDouble(specVm.Gen1Voltage);
+				// depends on how we count...
+				if(LRGains != null && genType == E_GeneratorDirection.INPUT_VOLTAGE) 
+				{
+					vtest *= Math.Max(LRGains.Left.Max(), LRGains.Right.Max());	// max expected DUT output voltage
+				}
+				var vdbv = QaLibrary.ConvertVoltage( vtest, E_VoltageUnit.Volt, E_VoltageUnit.dBV );
+				specVm.Attenuation = QaLibrary.DetermineAttenuation(vdbv);
+				MeasurementResult.MeasurementSettings.Attenuation = specVm.Attenuation;	// update the specVm to update the gui, then this for the steps
 			}
 
 			bool rslt = await PerformMeasurementSteps(MeasurementResult, ct.Token);
@@ -689,9 +694,18 @@ namespace QA40xPlot.Actions
                 await showMessage("Running");
                 while (!ct.IsCancellationRequested)
                 {
+					var msrSet = MeasurementResult.MeasurementSettings;
                     await Task.Delay(250);
                     if (ct.IsCancellationRequested)
                         break;
+					if( specVm.Gen1Frequency != msrSet.Gen1Frequency || msrSet.GenDirection != specVm.GenDirection)
+					{
+						msrSet.Gen1Frequency = specVm.Gen1Frequency;
+						msrSet.GenDirection = specVm.GenDirection;
+						var genoType = specVm.ToDirection(msrSet.GenDirection);
+						if (LRGains != null && genoType == E_GeneratorDirection.OUTPUT_VOLTAGE)
+							LRGains = await DetermineGainAtFreq(MathUtil.ToDouble(msrSet.Gen1Frequency, 1));
+					}
                     if (specVm.FftSize != fftsize || specVm.SampleRate != sampleRate || specVm.Attenuation != atten)
                     {
 						fftsize = specVm.FftSize;

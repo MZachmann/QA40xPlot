@@ -103,12 +103,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _Averages, value);
 		}
 
-		private double _Attenuation;
-		public double Attenuation
-		{
-			get => _Attenuation;
-			set => SetProperty(ref _Attenuation, value);
-		}
 		private string _rangeTop = string.Empty;
 		public string RangeTop
 		{

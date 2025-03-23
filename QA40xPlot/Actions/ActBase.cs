@@ -1,26 +1,18 @@
 ﻿using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
-using ScottPlot;
-using ScottPlot.Plottables;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
+using System.Xml.Linq;
 
 namespace QA40xPlot.Actions
 {
 	public class ActBase
 	{
-		public void SetupLegend(ScottPlot.Plot myPlot)
+		// this is the initial gain calculation so that we can get attenuation and input voltage settings
+		private LeftRightFrequencySeries? _LRGains = null;
+		public LeftRightFrequencySeries? LRGains
 		{
-			// Set up the legend
-			myPlot.Legend.IsVisible = true;
-			myPlot.Legend.Alignment = ScottPlot.Alignment.UpperRight;
-			myPlot.Legend.Orientation = ScottPlot.Orientation.Vertical;
-			myPlot.Legend.FontSize = GraphUtil.PtToPixels(PixelSizes.LEGEND_SIZE);
-			myPlot.ShowLegend();
+			get => _LRGains;
+			set => _LRGains = value;
 		}
 
 		/// <summary>
@@ -48,255 +40,142 @@ namespace QA40xPlot.Actions
 
 		protected async Task showMessage(String msg, int delay = 0)
 		{
-			var vm = ViewModels.ViewSettings.Singleton.Main;
+			var vm = ViewSettings.Singleton.Main;
 			await vm.SetProgressMessage(msg, delay);
 		}
 
 		protected async Task showProgress(int progress, int delay = 0)
 		{
-			var vm = ViewModels.ViewSettings.Singleton.Main;
+			var vm = ViewSettings.Singleton.Main;
 			await vm.SetProgressBar(progress, delay);
 		}
 
-
-		private void SetupMagTics(ScottPlot.Plot myPlot)
+		private static double GetFGain(double[] values, double inputV)
 		{
-			// create a numeric tick generator that uses our custom minor tick generator
-			ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGen = new(2);
-
-			ScottPlot.TickGenerators.NumericAutomatic tickGenY = new();
-			tickGenY.TargetTickCount = 15;
-			tickGenY.MinorTickGenerator = minorTickGen;
-
-			// tell the left axis to use our custom tick generator
-			myPlot.Axes.Left.TickGenerator = tickGenY;
+			return values.Skip(10).Max() / inputV;
 		}
 
-		void SetupPercentTics(ScottPlot.Plot myPlot)
+		protected async Task<LeftRightFrequencySeries?> DetermineGainAtFreq(double dfreq, int average = 3)
 		{
-			ScottPlot.TickGenerators.LogMinorTickGenerator minorTickGenY = new();
-			minorTickGenY.Divisions = 10;
+			await showMessage("Determining Input Voltage");
+			// initialize very quick run
+			var fftsize = BaseViewModel.FftActualSizes[0];
+			var sampleRate = MathUtil.ToUint(BaseViewModel.SampleRates[0]);
+			if (true != await QaLibrary.InitializeDevice(sampleRate, fftsize, "Hann", QaLibrary.DEVICE_MAX_ATTENUATION, true))
+				return null;
 
-			// create a numeric tick generator that uses our custom minor tick generator
-			ScottPlot.TickGenerators.NumericAutomatic tickGenY = new();
-			tickGenY.MinorTickGenerator = minorTickGenY;
+			// the simplest thing here is to do a chirp at a low value...
+			var generatorV = 0.01;          // random low test value
+			var generatordBV = 20 * Math.Log10(generatorV); // or -40
+			await Qa40x.SetGen1(dfreq, generatordBV, true);             // send a sine wave
+			await Qa40x.SetOutputSource(OutputSources.Sine);            // since we're single frequency
+			var ct = new CancellationTokenSource();
+			// do two and average them
+			LeftRightSeries acqData = await QaLibrary.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
+			if (acqData == null || acqData.FreqRslt == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
+				return null;
 
-			// create a custom tick formatter to set the label text for each tick
-			static string LogTickLabelFormatter(double y) => MathUtil.FormatLogger(Math.Pow(10,y));
+			// what's the maximum input here?
+			var maxl = GetFGain(acqData.FreqRslt.Left, generatorV);
+			var maxr = GetFGain(acqData.FreqRslt.Right, generatorV);
 
-			// tell our major tick generator to only show major ticks that are whole integers
-			tickGenY.IntegerTicksOnly = true;
-
-			// tell our custom tick generator to use our new label formatter
-			tickGenY.LabelFormatter = LogTickLabelFormatter;
-
-			// tell the left axis to use our custom tick generator
-			myPlot.Axes.Left.TickGenerator = tickGenY;
-
-			// ******* y-ticks ****
-			// create a minor tick generator that places log-distributed minor ticks
-			ScottPlot.TickGenerators.LogMinorTickGenerator minorTickGen = new();
-			minorTickGen.Divisions = 10;
-		}
-
-		private void SetupFreqTics(ScottPlot.Plot myPlot)
-		{
-			ScottPlot.TickGenerators.NumericManual tickGenX = new();
-			// we start at a freq 1 of and end at 100000 I guess
-			for(int i=0; i<7; i++)
+			var maxi = Math.Max(maxl, maxr);
+			// since we're running with 42db of attenuation...
+			if (maxi < 1)
 			{
-				for(int j=1; j<=9; j++)
+				// get some more accuracy with this
+				await Qa40x.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION - 24);
+				// do two and average them
+				acqData = await QaLibrary.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
+				if (acqData == null || acqData.FreqRslt == null || ct.IsCancellationRequested)
+					return null;
+			}
+
+			// calculate gain for each channel from frequency response
+			LeftRightFrequencySeries lrfs = new LeftRightFrequencySeries();
+			lrfs.Left = new double[] { GetFGain(acqData.FreqRslt.Left, generatorV) };
+			lrfs.Right = new double[] { GetFGain(acqData.FreqRslt.Right, generatorV) };
+			lrfs.Df = acqData.FreqRslt.Df;
+				
+			// if we're asking for averaging
+			for (int j = 1; j < average; j++)
+			{
+				acqData = await QaLibrary.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
+				if (acqData == null || acqData.FreqRslt == null || ct.IsCancellationRequested)
+					return null;
+
+				// calculate gain for each channel from frequency response
+				lrfs.Left[0] += GetFGain(acqData.FreqRslt.Left, generatorV);
+				lrfs.Right[0] += GetFGain(acqData.FreqRslt.Right, generatorV);
+			}
+			if (average > 1)
+			{
+				lrfs.Left = lrfs.Left.Select(x => x / average).ToArray();
+				lrfs.Right = lrfs.Right.Select(x => x / average).ToArray();
+			}
+			return lrfs;       // Return the new generator amplitude and acquisition data
+		}
+
+		protected static async Task<LeftRightFrequencySeries?> DetermineGainCurve(int average = 3)
+		{
+			// initialize very quick run
+			var fftsize = BaseViewModel.FftActualSizes[0];
+			var sampleRate = MathUtil.ToUint(BaseViewModel.SampleRates[0]);
+			if (true != await QaLibrary.InitializeDevice(sampleRate, fftsize, "Hann", QaLibrary.DEVICE_MAX_ATTENUATION, true))
+				return null;
+
+			{
+				// the simplest thing here is to do a chirp at a low value...
+				var generatorV = 0.01;			// random low test value
+				var generatordBV = 20*Math.Log10(generatorV);	// or -40
+				await Qa40x.SetExpoChirpGen(generatordBV, 0, 0, false);				// don't use right as reference on input
+				await Qa40x.SetOutputSource(OutputSources.ExpoChirp);                   // Set sine wave
+				var ct = new CancellationTokenSource();
+				// do two and average them
+				LeftRightSeries acqData = await QaLibrary.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
+				if (acqData == null || acqData.FreqRslt == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
+					return null;
+
+				// what's the maximum input here?
+				var maxl = acqData.TimeRslt.Left.Skip(10).Max();
+				var maxr = acqData.TimeRslt.Right.Skip(10).Max();
+
+				var maxi = Math.Max(maxl, maxr);
+				// since we're running with 42db of attenuation...
+				if( maxi < 1)
 				{
-					if(j==1 || j==2 || j==5)
-					{
-						var val = (int)(0.5 + Math.Pow(10, i + Math.Log10(j)));
-						tickGenX.AddMajor(i + Math.Log10(j), MathUtil.FormatLogger(val));
-					}
-					else
-					{
-						tickGenX.AddMinor(i + Math.Log10(j));
-					}
+					// get some more accuracy with this
+					await Qa40x.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION - 24);
+					// do two and average them
+					acqData = await QaLibrary.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
+					if (acqData == null || acqData.FreqRslt == null || ct.IsCancellationRequested)
+						return null;
 				}
-			}
-			myPlot.Axes.Bottom.TickGenerator = tickGenX;
-		}
 
-		private void SetupAmpTics(ScottPlot.Plot myPlot)
-		{
-			ScottPlot.TickGenerators.NumericManual tickGenX = new();
-			// we start at an amp of 1mV of and end at 1000 I guess
-			for (int i = -3; i < 4; i++)
-			{
-				for (int j = 1; j <= 9; j++)
+				// calculate gain for each channel from frequency response
+				LeftRightFrequencySeries lrfs = new LeftRightFrequencySeries();
+				lrfs.Left = acqData.FreqRslt.Left.Select(x => x / generatorV).ToArray();
+				lrfs.Right = acqData.FreqRslt.Right.Select(x => x / generatorV).ToArray();
+				lrfs.Df = acqData.FreqRslt.Df;
+				//
+				for(int j=1; j<average; j++)
 				{
-					if (j == 1 || j == 2 || j == 5)
-					{
-						var val = Math.Pow(10, i + Math.Log10(j));
-						tickGenX.AddMajor(i + Math.Log10(j), MathUtil.FormatLogger(val));
-					}
-					else
-					{
-						tickGenX.AddMinor(i + Math.Log10(j));
-					}
+					acqData = await QaLibrary.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
+					if (acqData == null || acqData.FreqRslt == null || ct.IsCancellationRequested)
+						return null;
+
+					// calculate gain for each channel from frequency response
+					lrfs.Left = acqData.FreqRslt.Left.Select((x, index) => ((lrfs.Left[index] + x / generatorV))).ToArray();
+					lrfs.Right = acqData.FreqRslt.Right.Select((x, index) => ((lrfs.Right[index] + x / generatorV))).ToArray();
 				}
+				if (average > 1)
+				{
+					lrfs.Left = lrfs.Left.Select(x => x/average).ToArray();
+					lrfs.Right = lrfs.Right.Select(x => x / average).ToArray();
+				}
+
+				return lrfs;       // Return the new generator amplitude and acquisition data
 			}
-			myPlot.Axes.Bottom.TickGenerator = tickGenX;
 		}
-
-		private void SetupPhaseTics(ScottPlot.Plot myPlot)
-		{
-			// create a numeric tick generator that uses our custom minor tick generator
-			ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGen = new(4);
-
-			ScottPlot.TickGenerators.NumericAutomatic tickGenY2 = new();
-			tickGenY2.TargetTickCount = 12;
-			tickGenY2.MinorTickGenerator = minorTickGen;
-
-			// tell the left axis to use our custom tick generator
-			myPlot.Axes.Right.TickGenerator = tickGenY2;
-		}
-
-		// this sets the axes bounds for freq vs percent
-		private void AddPctFreqRule(ScottPlot.Plot myPlot)
-		{
-			myPlot.Axes.Rules.Clear();
-			ScottPlot.AxisRules.MaximumBoundary rule = new(
-				xAxis: myPlot.Axes.Bottom,
-				yAxis: myPlot.Axes.Left,
-				limits: new AxisLimits(Math.Log10(1), Math.Log10(100000), Math.Log10(0.00000001), Math.Log10(100))
-				);
-			myPlot.Axes.Rules.Add(rule);
-		}
-
-		// this sets the axes bounds for freq vs magnitude while zooming in and out
-		public void SetMagFreqRule(ScottPlot.Plot myPlot)
-		{
-			myPlot.Axes.Rules.Clear();
-			ScottPlot.AxisRules.MaximumBoundary rule = new(
-				xAxis: myPlot.Axes.Bottom,
-				yAxis: myPlot.Axes.Left,
-				limits: new AxisLimits(Math.Log10(1), Math.Log10(100000), -200, 100)
-				);
-			myPlot.Axes.Rules.Add(rule);
-		}
-
-		// this sets the axes bounds for freq vs magnitude while zooming in and out
-		public void SetOhmFreqRule(ScottPlot.Plot myPlot)
-		{
-			myPlot.Axes.Rules.Clear();
-			ScottPlot.AxisRules.MaximumBoundary rule = new(
-				xAxis: myPlot.Axes.Bottom,
-				yAxis: myPlot.Axes.Left,
-				limits: new AxisLimits(Math.Log10(1), Math.Log10(100000), -200, 10000)
-				);
-			myPlot.Axes.Rules.Add(rule);
-		}
-
-		// this sets the axes bounds for phase while zooming. bottom is as above...
-		public void AddPhaseFreqRule(ScottPlot.Plot myPlot)
-		{
-			// myPlot.Axes.Rules.Clear();
-			ScottPlot.AxisRules.MaximumBoundary rule = new(
-				xAxis: myPlot.Axes.Bottom,
-				yAxis: myPlot.Axes.Right,
-				limits: new AxisLimits(Math.Log10(1), Math.Log10(100000), -360, 360)
-				);
-			myPlot.Axes.Rules.Add(rule);
-		}
-
-		// this sets the axes bounds for freq vs percent
-		private void AddPctAmpRule(ScottPlot.Plot myPlot)
-		{
-			myPlot.Axes.Rules.Clear();
-			ScottPlot.AxisRules.MaximumBoundary rule = new(
-				xAxis: myPlot.Axes.Bottom,
-				yAxis: myPlot.Axes.Left,
-				limits: new AxisLimits(Math.Log10(0.0001), Math.Log10(1000), Math.Log10(0.00000001), Math.Log10(100))
-				);
-			myPlot.Axes.Rules.Add(rule);
-		}
-
-		// this sets the axes bounds for freq vs magnitude
-		private void AddMagAmpRule(ScottPlot.Plot myPlot)
-		{
-			myPlot.Axes.Rules.Clear();
-			ScottPlot.AxisRules.MaximumBoundary rule = new(
-				xAxis: myPlot.Axes.Bottom,
-				yAxis: myPlot.Axes.Left,
-				limits: new AxisLimits(Math.Log10(0.0001), Math.Log10(1000), -200, 100)
-				);
-			myPlot.Axes.Rules.Add(rule);
-		}
-
-		// generic initialization of a plot basics
-		private void InitializeAPlot(ScottPlot.Plot myPlot)
-		{
-			myPlot.Clear();
-
-			// sometimes we don't show phase so remove it
-			if( myPlot.Axes.Right != null )
-			{
-				myPlot.Axes.Right.RemoveTickGenerator();
-				myPlot.Axes.Right.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
-				myPlot.Axes.Right.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
-			}
-
-			// show grid lines for major ticks
-			myPlot.Grid.MajorLineColor = Colors.Black.WithOpacity(.35);
-			myPlot.Grid.MajorLineWidth = 1;
-			myPlot.Grid.MinorLineColor = Colors.Black.WithOpacity(.15);
-			myPlot.Grid.MinorLineWidth = 1;
-
-			myPlot.Axes.Title.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.TITLE_SIZE);
-
-			myPlot.Axes.Bottom.Label.Alignment = Alignment.MiddleCenter;
-			myPlot.Axes.Bottom.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
-			myPlot.Axes.Bottom.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
-
-			myPlot.Axes.Left.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
-			myPlot.Axes.Left.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
-
-			// Legend
-			SetupLegend(myPlot);
-		}
-
-		public void AddPhasePlot(ScottPlot.Plot myPlot)
-		{
-			SetupPhaseTics(myPlot);
-			AddPhaseFreqRule(myPlot);
-		}
-
-		public void InitializeMagFreqPlot(ScottPlot.Plot myPlot)
-		{
-			InitializeAPlot(myPlot);
-			SetupMagTics(myPlot);
-			SetupFreqTics(myPlot);
-			SetMagFreqRule(myPlot);
-		}
-
-		public void InitializePctFreqPlot(ScottPlot.Plot myPlot)
-		{
-			InitializeAPlot(myPlot);
-			SetupPercentTics(myPlot);
-			SetupFreqTics(myPlot);
-			AddPctFreqRule(myPlot);
-		}
-
-		public void InitializePctAmpPlot(ScottPlot.Plot myPlot)
-		{
-			InitializeAPlot(myPlot);
-			SetupPercentTics(myPlot);
-			SetupAmpTics(myPlot);
-			AddPctAmpRule(myPlot);
-		}
-
-		public void InitializeMagAmpPlot(ScottPlot.Plot myPlot)
-		{
-			InitializeAPlot(myPlot);
-			SetupMagTics(myPlot);
-			SetupAmpTics(myPlot);
-			AddMagAmpRule(myPlot);
-		}
-
 	}
 }
