@@ -17,7 +17,6 @@ namespace QA40xPlot.ViewModels
 	public class ThdAmpViewModel : BaseViewModel
 	{
 		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
-		public static List<String> MeasureTypes { get => new List<string> { "Input Voltage", "Output Voltage", "Output Power" }; }
 		public static List<String> StartVoltages { get => new List<string> { "0.0001", "0.0002", "0.0005", "0.001", "0.002", "0.005", "0.01", "0.02", "0.05", "0.1", "0.2", "0.5" }; }
 		public static List<String> EndVoltages { get => new List<string> { "1", "2", "5", "10", "20", "50", "100", "200" }; }
 
@@ -92,13 +91,6 @@ namespace QA40xPlot.ViewModels
 		public uint Averages
 		{
 			get => _Averages; set => SetProperty(ref _Averages, value);
-		}
-
-		private int _MeasureType;
-		public int MeasureType
-		{
-			get => _MeasureType;
-			set => SetProperty(ref _MeasureType, value);
 		}
 
 		private bool _ReadVoltage;
@@ -244,12 +236,6 @@ namespace QA40xPlot.ViewModels
 			get => _Windowing;
 			set => SetProperty(ref _Windowing, value);
 		}
-		private int _XAxisType;
-		public int XAxisType
-		{
-			get => _XAxisType;
-			set => SetProperty(ref _XAxisType, value);
-		}
 		private Visibility _ToShowRange;
 		[JsonIgnore]
 		public Visibility ToShowRange
@@ -271,14 +257,15 @@ namespace QA40xPlot.ViewModels
 		/// </summary>
 		private void UpdateGeneratorParameters()
 		{
-			switch (MeasureType)
+			var tt = ToDirection(base.GenDirection);
+			switch (tt)
 			{
-				case 0: // Input voltage
-				case 1: // Output voltage
+				case E_GeneratorDirection.INPUT_VOLTAGE: // Input voltage
+				case E_GeneratorDirection.OUTPUT_VOLTAGE: // Output voltage
 					ReadVoltage = true;
 					ReadPower = false;
 					break;
-				case 2: // Output power
+				case E_GeneratorDirection.OUTPUT_POWER: // Output power
 					ReadVoltage = false;
 					ReadPower = true;
 					break;
@@ -290,8 +277,9 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
-				case "MeasureType":
-					UpdateGeneratorParameters(); 
+				case "GenDirection":
+					UpdateGeneratorParameters();
+					actThd?.UpdateGraph(true);
 					break;
 				case "StartVoltage":
 					//actThd?.UpdateStartVoltageDisplay();
@@ -457,7 +445,6 @@ namespace QA40xPlot.ViewModels
 			StepsOctave = 1;
 			Averages = 3;
 
-			MeasureType = 0;
 			ReadVoltage = true;
 			ReadPower = false;
 
@@ -484,7 +471,6 @@ namespace QA40xPlot.ViewModels
 			RangeTopdB = "20";
 			RangeBottomdB = "-180";
 
-			XAxisType = 0;
 			StartVoltage = "0.1";
 			EndVoltage = "1";
 			StartPower = "0.5";

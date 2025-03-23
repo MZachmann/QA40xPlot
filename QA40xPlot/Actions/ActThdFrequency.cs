@@ -56,14 +56,15 @@ namespace QA40xPlot.Actions
         public void UpdateGeneratorParameters()
         {
             var vm = ViewSettings.Singleton.ThdFreq;
-            switch (vm.MeasureType)
+            var tt = vm.ToDirection(vm.GenDirection);
+            switch (tt)
             {
-                case 0: // Input voltage
-				case 1: // Output voltage
+                case E_GeneratorDirection.INPUT_VOLTAGE: // Input voltage
+				case E_GeneratorDirection.OUTPUT_VOLTAGE: // Output voltage
 					vm.ReadVoltage = true;
                     vm.ReadPower = false;
                     break;
-                case 2: // Output power
+                case E_GeneratorDirection.OUTPUT_POWER: // Output power
                     vm.ReadVoltage = false;
                     vm.ReadPower = true;
                     break;
@@ -218,11 +219,11 @@ namespace QA40xPlot.Actions
                 // Determine input level
                 // ********************************************************************
                 double testFrequency = QaLibrary.GetNearestBinFrequency(1000, thd.SampleRate, thd.FftSize);
-                E_GeneratorType etp = (E_GeneratorType)thd.MeasureType;
-                if (etp == E_GeneratorType.OUTPUT_VOLTAGE || etp == E_GeneratorType.OUTPUT_POWER)     // Based on output
+                E_GeneratorDirection etp = thd.ToDirection(thd.GenDirection);
+                if (etp == E_GeneratorDirection.OUTPUT_VOLTAGE || etp == E_GeneratorDirection.OUTPUT_POWER)     // Based on output
                 {
                     double amplifierOutputVoltagedBV = QaLibrary.ConvertVoltage(MathUtil.ToDouble(thd.OutVoltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-                    if (etp == E_GeneratorType.OUTPUT_VOLTAGE)
+                    if (etp == E_GeneratorDirection.OUTPUT_VOLTAGE)
                         await showMessage($"Determining generator amplitude to get an output amplitude of {amplifierOutputVoltagedBV:0.00#} dBV.");
                     else
                         await showMessage($"Determining generator amplitude to get an output power of {thd.OutPower} W.");
@@ -270,7 +271,7 @@ namespace QA40xPlot.Actions
 
 					await showMessage($"Found an input amplitude of {generatorAmp:0.00#} dBV.");
                 }
-                else if (etp == E_GeneratorType.INPUT_VOLTAGE)                         // Based on input voltage
+                else if (etp == E_GeneratorDirection.INPUT_VOLTAGE)                         // Based on input voltage
                 {
                     double genVoltagedBV = QaLibrary.ConvertVoltage(MathUtil.ToDouble(thd.GenVoltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
                     await showMessage($"Determining the best input attenuation for a generator voltage of {genVoltagedBV:0.00#} dBV.");

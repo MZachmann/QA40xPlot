@@ -420,13 +420,22 @@ namespace QA40xPlot.Actions
 		{
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;
 			var thdAmp = ViewSettings.Singleton.ThdAmp;
-			if (thdAmp.XAxisType == (int)E_X_AxisType.INPUT_VOLTAGE)
+			var tt = thdAmp.ToDirection(thdAmp.GenDirection);
+			if (tt == E_GeneratorDirection.INPUT_VOLTAGE)
+			{
 				myPlot.XLabel("Input voltage (Vrms)");
-			else if (thdAmp.XAxisType == (int)E_X_AxisType.OUTPUT_VOLTAGE)
+				myPlot.Title("Distortion vs Voltage");
+			}
+			else if (tt == E_GeneratorDirection.OUTPUT_VOLTAGE)
+			{
 				myPlot.XLabel("Output voltage (Vrms)");
-			else if (thdAmp.XAxisType == (int)E_X_AxisType.OUTPUT_POWER)
+				myPlot.Title("Distortion vs Voltage");
+			}
+			else if (tt == E_GeneratorDirection.OUTPUT_POWER)
+			{
 				myPlot.XLabel("Output power (W)");
-			myPlot.Title("Distortion vs Amplitude");
+				myPlot.Title("Distortion vs Power");
+			}
 		}
 
 		/// <summary>

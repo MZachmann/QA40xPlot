@@ -3,12 +3,13 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
 using Newtonsoft.Json;
+using QA40xPlot.Data;
 using QA40xPlot.Views;
 using ScottPlot;
 
 namespace QA40xPlot.ViewModels
 {
-	public abstract class BaseViewModel : INotifyPropertyChanged, IMouseTracker
+	public abstract class BaseViewModel : FloorViewModel, IMouseTracker
 	{
 		// public INavigation ViewNavigator { get; set; }
 		#region Shared Properties
@@ -23,10 +24,21 @@ namespace QA40xPlot.ViewModels
 		public static List<uint>	FftActualSizes { get => new List<uint> { 65536, 131072, 262144, 524288, 1048576 }; }
 		public static List<String> GenVoltages { get => new List<string> { "0.05", "0.1", "0.25", "0.5", "0.75", "1", "2", "5" }; }
 		public static List<String> GenPowers { get => new List<string> { "0.05", "0.1", "0.25", "0.5", "0.75", "1", "2", "5", "10", "25" }; }
+		public static List<String> MeasureVolts { get => new List<string> { "Input Voltage", "Output Voltage" }; }
+		public static List<String> MeasureVoltsFull { get => new List<string> { "Input Voltage", "Output Voltage", "Output Power" }; }
 
 		#endregion
 
 		#region Setters and Getters
+		private string _GenDirection = string.Empty;
+		public string GenDirection
+		{
+			get => _GenDirection;
+			set => SetProperty(ref _GenDirection, value);
+		}
+		#endregion
+
+		#region Output Setters and Getters
 		private bool _IsRunning = false;         // type of alert
 		[JsonIgnore]
 		public bool IsRunning
@@ -41,7 +53,6 @@ namespace QA40xPlot.ViewModels
 			get { return _IsNotRunning; }
 			private set { SetProperty(ref _IsNotRunning, value); }
 		}
-		#endregion
 
 		private string _XPos = string.Empty;
 		[JsonIgnore]
@@ -106,23 +117,26 @@ namespace QA40xPlot.ViewModels
 			get { return _HasExport; }
 			set { SetProperty(ref _HasExport, value); }
 		}
+		#endregion
 
-		protected bool SetProperty<T>(ref T backingStore, T value,
-			[CallerMemberName] string propertyName = "",
-			Action? onChanged = null)
+		/// <summary>
+		/// Convert direction string to a direction type
+		/// this works for 2-value and 3-value answers
+		/// </summary>
+		/// <param name="direction"></param>
+		/// <returns></returns>
+		public E_GeneratorDirection ToDirection(string  direction)
 		{
-			if (EqualityComparer<T>.Default.Equals(backingStore, value))
-				return false;
-
-			backingStore = value;
-			onChanged?.Invoke();
-			OnPropertyChanged(propertyName);
-			return true;
+			var u = MeasureVoltsFull.IndexOf(direction);
+			if (u == -1)
+				u = 0;
+			return (E_GeneratorDirection)u;
 		}
 
 		public 	BaseViewModel()
 		{
 			HasExport = false;
+			GenDirection = MeasureVolts[0];
 		}
 
 		public void SetupMainPlot(PlotControl plot)
@@ -151,17 +165,8 @@ namespace QA40xPlot.ViewModels
 			return Tuple.Create(XPos, YPos);
 		}
 
-		#region INotifyPropertyChanged
-		public event PropertyChangedEventHandler? PropertyChanged;
+		#region IMouseHandler
 		public event MouseEventHandler? MouseTracked;
-
-		protected void OnPropertyChanged([CallerMemberName] string? propertyName = "")
-		{
-			var changed = PropertyChanged;
-			if (changed == null)
-				return;
-			changed.Invoke(this, new PropertyChangedEventArgs(propertyName));
-		}
 
 		// when the mouse moves we send it up to the actual view model
 		protected void OnMouseTracked([CallerMemberName] string? propertyName = "")
@@ -183,15 +188,6 @@ namespace QA40xPlot.ViewModels
 			OnMouseTracked(propertyName);
 		}
 
-		/// <summary>
-		/// RaisePropertyChanged
-		/// Tell the window a property has changed
-		/// </summary>
-		/// <param name="propertyName"></param>
-		protected void RaisePropertyChanged(string? propertyName = null)
-		{
-			OnPropertyChanged(propertyName);
-		}
 		#endregion
 	}
 }

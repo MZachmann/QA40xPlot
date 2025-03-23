@@ -40,123 +40,123 @@
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0" Orientation="Vertical">
-            <GroupBox  Header="" >
-                <Grid >
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="15" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Button Content="Start" IsEnabled="{Binding IsNotRunning}" FontSize="14" Command="{Binding DoStart}" Grid.Column="0" Grid.Row="0"  HorizontalAlignment="Right"></Button>
-                    <Button Content="Sto_p" IsEnabled="{Binding IsRunning}" FontSize="14" Command="{Binding DoStop}" Grid.Column="2" Grid.Row="0" HorizontalAlignment="Left"></Button>
-                </Grid>
+            <GroupBox BorderThickness="1">
+            <Grid >
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="15" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Button Content="Start" IsEnabled="{Binding IsNotRunning}" FontSize="14" Command="{Binding DoStart}" Grid.Column="0" Grid.Row="0"  HorizontalAlignment="Right"></Button>
+                <Button Content="Sto_p" IsEnabled="{Binding IsRunning}" FontSize="14" Command="{Binding DoStop}" Grid.Column="2" Grid.Row="0" HorizontalAlignment="Left"></Button>
+            </Grid>
             </GroupBox>
             <CheckBox Content="_Use Generator" IsChecked="{Binding UseGenerator}" HorizontalAlignment="Center"></CheckBox>
-            <GroupBox Header="Attenuation" >
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{Binding AttenColor}" 
+            <views:GroupHeader Header="Attenuation" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{Binding AttenColor}" 
                             Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Grid.ColumnSpan="4"/>
-                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="0" Command="{Binding SetAttenuate}" 
+                <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="0" Command="{Binding SetAttenuate}" 
                                  IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=0}"
                                  CommandParameter="0" Grid.Row="0" Grid.Column="0" Margin="4"></RadioButton>
-                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="6" 
+                <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="6" 
                             IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=6}"
                             Command="{Binding SetAttenuate}" CommandParameter="6" Grid.Row="0" Grid.Column="1" Margin="4"></RadioButton>
-                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="12" 
+                <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="12" 
                             IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=12}"
                             Command="{Binding SetAttenuate}" CommandParameter="12" Grid.Row="0" Grid.Column="2" Margin="4"></RadioButton>
-                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="18" 
+                <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="18" 
                             IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=18}"
                             Command="{Binding SetAttenuate}" CommandParameter="18" Grid.Row="0" Grid.Column="3" Margin="4"></RadioButton>
-                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="24" 
+                <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="24" 
                             IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=24}"
                             Command="{Binding SetAttenuate}" CommandParameter="24" Grid.Row="1" Grid.Column="0" Margin="4"></RadioButton>
-                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="30" 
+                <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="30" 
                             IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=30}"
                             Command="{Binding SetAttenuate}" CommandParameter="30" Grid.Row="1" Grid.Column="1" Margin="4"></RadioButton>
-                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="36" 
+                <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="36" 
                             IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=36}"
                             Command="{Binding SetAttenuate}" CommandParameter="36" Grid.Row="1" Grid.Column="2" Margin="4"></RadioButton>
-                    <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="42" 
+                <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="42" 
                             IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=42}"
                             Command="{Binding SetAttenuate}" CommandParameter="42" Grid.Row="1" Grid.Column="3" Margin="4"></RadioButton>
-                    <CheckBox Grid.Row="2" Grid.ColumnSpan="4" Content="Autorange on start" IsChecked="{Binding DoAutoAttn}" Margin="8,2,0,2">
-                        <CheckBox.ToolTip >
-                            <ToolTip Content="When the test is started a safe Attenuation value is calculated based on a test at 42." />
-                        </CheckBox.ToolTip>
-                    </CheckBox>
-                </Grid>
-            </GroupBox>
-            <GroupBox Header="Generator 1" >
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Label Content="Set by" Grid.Row="0" Grid.Column="0"  />
-                    <ComboBox ToolTip="Input Voltage = DUT Input (Generator Output), Output Voltage = DUT Output (QA40x Input)" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  SelectedIndex="{Binding MeasureType}" ItemsSource="{Binding MeasureTypes}">
-                    </ComboBox>
-                    <Label Content="Fre_quency" Grid.Row="1" Grid.Column="0" Target="{Binding ElementName=cbFreq}" />
-                    <ComboBox x:Name="cbFreq" Grid.Column="1" Grid.Row="1" VerticalAlignment="Center"  
-                               IsEditable="True" Text="{Binding Gen1Frequency}" ItemsSource="{Binding GenFrequencies}" MinWidth="80"/>
-                    <Label Content="Hz" Grid.Row="1" Grid.Column="2" />
-                    <Label Content="_Voltage" Grid.Row="2" Grid.Column="0" Target="{Binding ElementName=cbVolt}"  />
-                    <ComboBox x:Name="cbVolt" IsEditable="True" Grid.Column="1" Grid.Row="2" VerticalAlignment="Center"  
-                              Text="{Binding Gen1Voltage}" ItemsSource="{Binding GenVoltages}"/>
-                    <Label Content="V" Grid.Row="2" Grid.Column="2" />
-                </Grid>
-            </GroupBox>
-            <GroupBox Header="Sampling" >
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Label Content="_Sample Rate" Grid.Row="0" Grid.Column="0"  Target="{Binding ElementName=cbSampleRate}"  />
-                    <ComboBox x:Name="cbSampleRate"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  
-                               SelectedValue="{Binding SampleRate}" ItemsSource="{Binding SampleRates}">
-                    </ComboBox>
-                    <Label Content="_Fft Size" Grid.Row="1" Grid.Column="0" Target="{Binding ElementName=cbfftSize}"  />
-                    <ComboBox x:Name="cbfftSize"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Center"  
-                               SelectedValue="{Binding FftSize}" ItemsSource="{Binding FftSizes}">
-                    </ComboBox>
-                    <Label Content="_Averages" Grid.Column="0" Grid.Row="2" Target="{Binding ElementName=xcaverages}"  />
-                    <xctk:IntegerUpDown x:Name="xcaverages" Value="{Binding Averages}" Minimum="1" Maximum="6" VerticalAlignment="Center" Grid.Column="1" Grid.Row="2"  />
+                <CheckBox Grid.Row="2" Grid.ColumnSpan="4" Content="Autorange on start" IsChecked="{Binding DoAutoAttn}" Margin="8,2,0,2">
+                    <CheckBox.ToolTip >
+                        <ToolTip Content="When the test is started a safe Attenuation value is calculated based on a test at 42." />
+                    </CheckBox.ToolTip>
+                </CheckBox>
+            </Grid>
 
-                    <Label Content="_Window" Grid.Row="3" Grid.Column="0" Target="{Binding ElementName=cbWindow}"  />
-                    <ComboBox x:Name="cbWindow" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="3" VerticalAlignment="Center"  
+            <views:GroupHeader Header="Generator 1" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Label Content="Set by" Grid.Row="0" Grid.Column="0"  />
+                <ComboBox ToolTip="Input Voltage = DUT Input (Generator Output), Output Voltage = DUT Output (QA40x Input)" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVolts}">
+                </ComboBox>
+                <Label Content="Fre_quency" Grid.Row="1" Grid.Column="0" Target="{Binding ElementName=cbFreq}" />
+                <ComboBox x:Name="cbFreq" Grid.Column="1" Grid.Row="1" VerticalAlignment="Center"  
+                               IsEditable="True" Text="{Binding Gen1Frequency}" ItemsSource="{Binding GenFrequencies}" MinWidth="80"/>
+                <Label Content="Hz" Grid.Row="1" Grid.Column="2" />
+                <Label Content="_Voltage" Grid.Row="2" Grid.Column="0" Target="{Binding ElementName=cbVolt}"  />
+                <ComboBox x:Name="cbVolt" IsEditable="True" Grid.Column="1" Grid.Row="2" VerticalAlignment="Center"  
+                              Text="{Binding Gen1Voltage}" ItemsSource="{Binding GenVoltages}"/>
+                <Label Content="V" Grid.Row="2" Grid.Column="2" />
+            </Grid>
+
+            <views:GroupHeader Header="Sampling" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Label Content="_Sample Rate" Grid.Row="0" Grid.Column="0"  Target="{Binding ElementName=cbSampleRate}"  />
+                <ComboBox x:Name="cbSampleRate"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  
+                               SelectedValue="{Binding SampleRate}" ItemsSource="{Binding SampleRates}">
+                </ComboBox>
+                <Label Content="_Fft Size" Grid.Row="1" Grid.Column="0" Target="{Binding ElementName=cbfftSize}"  />
+                <ComboBox x:Name="cbfftSize"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Center"  
+                               SelectedValue="{Binding FftSize}" ItemsSource="{Binding FftSizes}">
+                </ComboBox>
+                <Label Content="_Averages" Grid.Column="0" Grid.Row="2" Target="{Binding ElementName=xcaverages}"  />
+                <xctk:IntegerUpDown x:Name="xcaverages" Value="{Binding Averages}" Minimum="1" Maximum="6" VerticalAlignment="Center" Grid.Column="1" Grid.Row="2"  />
+
+                <Label Content="_Window" Grid.Row="3" Grid.Column="0" Target="{Binding ElementName=cbWindow}"  />
+                <ComboBox x:Name="cbWindow" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="3" VerticalAlignment="Center"  
                                SelectedValue="{Binding WindowingMethod}" ItemsSource="{Binding WindowingTypes}">
-                    </ComboBox>
-                </Grid>
-            </GroupBox>
+                </ComboBox>
+            </Grid>
+
         </StackPanel>
         <Grid Grid.Column="1">
             <views:PlotControl x:Name="WpfPlot1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />

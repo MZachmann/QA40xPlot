@@ -12,7 +12,6 @@ using CommunityToolkit.Mvvm.Input;
 public class FreqRespViewModel : BaseViewModel
 {
 	public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
-	public static List<String> MeasureTypes { get => new List<string> { "Input Voltage", "Output Voltage" }; }
 	public static List<String> Smoothings { get => new List<string> { "None", "1/24", "1/6" }; }
 	public static List<String> Impedances { get => new List<string> { "5", "8", "10", "20", "100", "500", "1000" }; }
 	public static List<String> TestTypes { get => new List<string> { "Response", "Impedance", "Gain" }; }
@@ -124,13 +123,6 @@ public class FreqRespViewModel : BaseViewModel
 	{
 		get => _LeftChannel; set => SetProperty(ref _LeftChannel, value);
 	}
-	private int _MeasureType;
-	public int MeasureType
-	{
-		get => _MeasureType;
-		set => SetProperty(ref _MeasureType, value);
-	}
-
 	private string _rangeTop = string.Empty;
 	public string RangeTop
 	{
@@ -262,7 +254,7 @@ public class FreqRespViewModel : BaseViewModel
 			case "Voltage":
 			case "AmpLoad":
 			case "OutPower":
-			case "MeasureType":
+			case "GenDirection":
 			case "VoltageUnits":
 				//actFreq?.UpdateGeneratorParameters();
 				break;
@@ -390,7 +382,6 @@ public class FreqRespViewModel : BaseViewModel
 		Averages = 1;
 		LeftChannel = true;
 		RightChannel = false;
-		MeasureType = 0;
 		RangeTop = "1";             // when graphing percents distortion this is logarithmic 0.01....
 		RangeBottom = "0.001";
 

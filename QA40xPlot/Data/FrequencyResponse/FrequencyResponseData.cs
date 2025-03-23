@@ -8,10 +8,8 @@
         public string Title { get; set; }
         public DateTime CreateDate { get; set; }
 
-        public FrequencyResponseMeasurementSettings MeasurementSettings { get; set; }
         public FrequencyResponseGraphSettings GraphSettings { get; set; }
         public List<FrequencyResponseMeasurementResult> Measurements { get; set; }
-
 
         public FrequencyResponseData()
         {
@@ -19,7 +17,6 @@
             MeasurementType = string.Empty;
             CreateDate = DateTime.Now;
             Measurements = [];
-            MeasurementSettings = new();
             GraphSettings = new();
         }
     }

@@ -231,9 +231,9 @@ namespace QA40xPlot.Actions
                 var attenuation = QaLibrary.DEVICE_MAX_ATTENUATION;
                 double genVoltagedBV = -150;
 
-				E_GeneratorType etp = (E_GeneratorType)mrs.MeasureType;
+				E_GeneratorDirection etp = frqrsVm.ToDirection(mrs.GenDirection);
 
-				if (etp == E_GeneratorType.OUTPUT_VOLTAGE)     // Based on output
+				if (etp == E_GeneratorDirection.OUTPUT_VOLTAGE)     // Based on output
                 {
                     double amplifierOutputVoltagedBV = QaLibrary.ConvertVoltage(MathUtil.ToDouble(mrs.Gen1Voltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 					await showMessage($"Determining generator amplitude to get an output amplitude of {amplifierOutputVoltagedBV:0.00#} dBV.");

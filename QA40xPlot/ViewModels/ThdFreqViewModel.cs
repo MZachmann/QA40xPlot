@@ -15,7 +15,6 @@ namespace QA40xPlot.ViewModels
 	public class ThdFreqViewModel : BaseViewModel
 	{
 		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
-		public static List<String> MeasureTypes { get => new List<string> { "Input Voltage", "Output Voltage", "Output Power" }; }
 
 		private PlotControl actPlot { get; set; }
 		private ActThdFrequency actThd { get; set; }
@@ -100,12 +99,6 @@ namespace QA40xPlot.ViewModels
 		public bool LeftChannel
 		{
 			get => _LeftChannel; set => SetProperty(ref _LeftChannel, value);
-		}
-		private int _MeasureType;
-		public int MeasureType
-		{
-			get => _MeasureType;
-			set => SetProperty(ref _MeasureType, value);
 		}
 		private string _rangeTop = string.Empty;
 		public string RangeTop
@@ -291,7 +284,7 @@ namespace QA40xPlot.ViewModels
 				case "Voltage":
 				case "AmpLoad":
 				case "OutPower":
-				case "MeasureType":
+				case "GenDirection":
 				case "VoltageUnits":
 					actThd?.UpdateGeneratorParameters();
 					break;
@@ -448,7 +441,6 @@ namespace QA40xPlot.ViewModels
 			Averages = 1;
 			LeftChannel = true;
 			RightChannel = false;
-			MeasureType = 0;
 			RangeTop = "1";             // when graphing percents distortion this is logarithmic 0.01....
 			RangeBottom = "0.001";
 
