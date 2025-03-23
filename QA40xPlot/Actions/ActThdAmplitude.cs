@@ -5,9 +5,7 @@ using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
 using System.Net.Http;
-using System.Net.NetworkInformation;
 using System.Windows;
-using static FreqRespViewModel;
 
 namespace QA40xPlot.Actions
 {
@@ -154,19 +152,10 @@ namespace QA40xPlot.Actions
 			QaLibrary.InitMiniFftPlot(fftPlot, 10, 100000, -150, 20);
 			QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -1, 1);
 
-			// Check if webserver available and device connected
-			if (await QaLibrary.CheckDeviceConnected() == false)
+			if (false == await QaLibrary.InitializeDevice(thdAmp.SampleRate, thdAmp.FftSize, thdAmp.WindowingMethod, QaLibrary.DEVICE_MAX_ATTENUATION, true))
+			{
 				return false;
-
-			// ********************************************************************
-			// Check connection
-			// Load a settings file with the particulars we want
-			await Qa40x.SetDefaults();
-			await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make it turn on or off
-			await Qa40x.SetSampleRate(thdAmp.SampleRate);
-			await Qa40x.SetBufferSize(thdAmp.FftSize);
-			await Qa40x.SetWindowing(thdAmp.WindowingMethod);
-			await Qa40x.SetRoundFrequencies(true);
+			}
 
 			// ********************************************************************
 			// Determine attenuation level
@@ -563,6 +552,12 @@ namespace QA40xPlot.Actions
 			var thdAmp = ViewSettings.Singleton.ThdAmp;
 
 			thdAmp.IsRunning = true;
+			if (await QaLibrary.CheckDeviceConnected() == false)
+			{
+				thdAmp.IsRunning = false;
+				return;
+			}
+
 			ct = new();
 			await PerformMeasurementSteps(ct.Token);
 			await showMessage("Finished");

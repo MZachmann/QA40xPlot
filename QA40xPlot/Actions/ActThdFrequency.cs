@@ -6,7 +6,7 @@ using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
 using System.Windows;
-using static FreqRespViewModel;
+
 
 // various things for the thd vs frequency activity
 
@@ -199,19 +199,10 @@ namespace QA40xPlot.Actions
                 MathUtil.ToDouble(thd.EndFreq, 20000), -150, 20);
             QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -1, 1);
 
-            // Check if REST interface is available and device connected
-            if (await QaLibrary.CheckDeviceConnected() == false)
-                return false;
-
-            // ********************************************************************  
-            // Load a settings we want
-            // ********************************************************************  
-            await Qa40x.SetDefaults();
-            await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make it turn on or off
-            await Qa40x.SetSampleRate(thd.SampleRate);
-            await Qa40x.SetBufferSize(thd.FftSize);
-            await Qa40x.SetWindowing(thd.WindowingMethod);
-            await Qa40x.SetRoundFrequencies(true);
+			if (false == await QaLibrary.InitializeDevice(thd.SampleRate, thd.FftSize, thd.WindowingMethod, QaLibrary.DEVICE_MAX_ATTENUATION, true))
+			{
+				return false;
+			}
 
             try
             {
@@ -662,7 +653,12 @@ namespace QA40xPlot.Actions
         {
             ThdFreqViewModel thd = ViewSettings.Singleton.ThdFreq;
 			thd.IsRunning = true;
-            ct = new();
+			if (await QaLibrary.CheckDeviceConnected() == false)
+			{
+				thd.IsRunning = false;
+				return;
+			}
+			ct = new();
             await PerformMeasurementSteps(ct.Token);
             await showMessage("Finished");
             thd.IsRunning = false;

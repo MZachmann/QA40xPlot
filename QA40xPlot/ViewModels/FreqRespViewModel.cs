@@ -16,13 +16,6 @@ public class FreqRespViewModel : BaseViewModel
 	public static List<String> Impedances { get => new List<string> { "5", "8", "10", "20", "100", "500", "1000" }; }
 	public static List<String> TestTypes { get => new List<string> { "Response", "Impedance", "Gain" }; }
 
-	public enum TestingType
-	{
-		Response,
-		Impedance,
-		Gain
-	}
-
 	private PlotControl actPlot { get; set; }
 	private ActFrequencyResponse actFreq { get;  set; }
 	[JsonIgnore]
@@ -246,6 +239,12 @@ public class FreqRespViewModel : BaseViewModel
 	}
 	#endregion
 
+	public TestingType GetTestingType(string type)
+	{
+		var vm = ViewSettings.Singleton.FreqRespVm;
+		return (TestingType)TestTypes.IndexOf(type);
+	}
+
 	// the property change is used to trigger repaints of the graph
 	private void CheckPropertyChanged(object? sender, PropertyChangedEventArgs e)
 	{
@@ -343,7 +342,7 @@ public class FreqRespViewModel : BaseViewModel
 			FreqValue = Math.Pow(10, cord.Item1); // frequency
 		}
 		var zv = actFreq.LookupX(FreqValue);
-		var ttype = actFreq.GetTestingType(TestType);
+		var ttype = GetTestingType(TestType);
 		FreqShow = zv.Item1.ToString("0.# Hz");
 		switch ( ttype)
 		{

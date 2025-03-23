@@ -56,6 +56,7 @@ namespace QA40xPlot.Libraries
 						return false;
 
 					await Qa40x.SetDefaults();
+                    await Qa40x.SetOutputSource(OutputSources.Off);
 				}
 				await Qa40x.SetSampleRate(sampleRate);
 				await Qa40x.SetBufferSize(fftsize);

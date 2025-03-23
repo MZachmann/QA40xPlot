@@ -141,30 +141,15 @@ namespace QA40xPlot.Actions
 				return false;
 			}
 			var fftsize = FreqRespViewModel.FftActualSizes.ElementAt(FreqRespViewModel.FftSizes.IndexOf(thd.FftSize));
-
-            // Check if REST interface is available and device connected
-            if (await QaLibrary.CheckDeviceConnected() == false)
-                return false;
-
-            // ********************************************************************  
-            // Load a settings we want
-            // ********************************************************************  
-            if (msr.FrequencySteps.Count == 0)
-            {
-				await Qa40x.SetDefaults();
-			}
-
-			await Qa40x.SetSampleRate(sampleRate);
-            await Qa40x.SetBufferSize(fftsize);
-			await Qa40x.SetWindowing(thd.WindowingMethod);
-            await Qa40x.SetRoundFrequencies(true);
-			await Qa40x.SetInputRange((int)thd.Attenuation);
+			if (false == await QaLibrary.InitializeDevice(sampleRate, fftsize, thd.WindowingMethod, (int)thd.Attenuation, msr.FrequencySteps.Count == 0))
+				return false;
+			await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make it turn on or off
 
 			try
-            {
-                // Check if cancel button pressed
+			{
+				// Check if cancel button pressed
                 if (ct.IsCancellationRequested)
-                    return false;
+					return false;
 
                 // ********************************************************************
                 // Calculate frequency steps to do
@@ -717,6 +702,12 @@ namespace QA40xPlot.Actions
 			}
 			imdVm.IsRunning = true;
             ct = new();
+
+			if (await QaLibrary.CheckDeviceConnected() == false)
+			{
+				imdVm.IsRunning = false;
+				return;
+			}
 
 			// Clear measurement result
 			MeasurementResult = new(imdVm)

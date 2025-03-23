@@ -1,6 +1,4 @@
-﻿using FftSharp;
-using Newtonsoft.Json.Linq;
-using QA40xPlot.Data;
+﻿using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using ScottPlot;
@@ -9,8 +7,7 @@ using ScottPlot.Plottables;
 using System.Data;
 using System.Numerics;
 using System.Windows;
-using static FreqRespViewModel;
-using static SkiaSharp.HarfBuzz.SKShaper;
+
 
 namespace QA40xPlot.Actions
 {
@@ -62,6 +59,11 @@ namespace QA40xPlot.Actions
 
 			vm.HasExport = false;
 			vm.IsRunning = true;
+			if (await QaLibrary.CheckDeviceConnected() == false)
+			{
+				vm.IsRunning = false;
+				return;
+			}
 			ct = new();
 												  // Show empty graphs
 			QaLibrary.InitMiniFftPlot(fftPlot, 10, 40000, -180, 20);
@@ -86,7 +88,7 @@ namespace QA40xPlot.Actions
                 return null;
 
             db.FreqData = freqs;        // test frequencies
-            var ttype = GetTestingType(MeasurementResult.MeasurementSettings.TestType);
+            var ttype = frsqVm.GetTestingType(MeasurementResult.MeasurementSettings.TestType);
             switch( ttype)
             {
                 case TestingType.Response:
@@ -128,11 +130,6 @@ namespace QA40xPlot.Actions
             return ga;
 		}
 
-		public TestingType GetTestingType(string type)
-		{
-            return (TestingType)TestTypes.IndexOf(type);
-		}
-
         public ValueTuple<double, double, double> LookupX(double freq)
         {
 			var freqs = MeasurementResult.GainFrequencies;
@@ -151,7 +148,7 @@ namespace QA40xPlot.Actions
                 }
 
                 var frsqVm = ViewSettings.Singleton.FreqRespVm;
-                var ttype = GetTestingType(frsqVm.TestType);
+                var ttype = frsqVm.GetTestingType(frsqVm.TestType);
                 switch(ttype)
                 {
                     case TestingType.Response:
@@ -206,8 +203,10 @@ namespace QA40xPlot.Actions
 				return false;
 			}
 			var fftsize = FreqRespViewModel.FftActualSizes.ElementAt(FreqRespViewModel.FftSizes.IndexOf(mrs.FftSize));
-
-            await QaLibrary.InitializeDevice(sampleRate, fftsize, "Hann", QaLibrary.DEVICE_MAX_ATTENUATION, true);
+            if( false == await QaLibrary.InitializeDevice(sampleRate, fftsize, "Hann", QaLibrary.DEVICE_MAX_ATTENUATION, true))
+            {
+                return false; 
+            }
             await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make it turn on or off
 
 			// ********************************************************************
@@ -305,7 +304,7 @@ namespace QA40xPlot.Actions
 				Data.Measurements.Clear();
 				Data.Measurements.Add(MeasurementResult);
 
-                var ttype = GetTestingType(mrs.TestType);
+                var ttype = frqrsVm.GetTestingType(mrs.TestType);
 
 				do
 				{
@@ -404,7 +403,7 @@ namespace QA40xPlot.Actions
 			myPlot.Axes.SetLimitsY(MathUtil.ToDouble(frqrsVm.RangeBottomdB, -20), MathUtil.ToDouble(frqrsVm.RangeTopdB, 180), myPlot.Axes.Left);
             myPlot.Axes.SetLimitsY(-360, 360, myPlot.Axes.Right);
 
-            var ttype = GetTestingType(frqrsVm.TestType);
+            var ttype = frqrsVm.GetTestingType(frqrsVm.TestType);
             switch( ttype)
             {
                 case TestingType.Response:
@@ -462,7 +461,7 @@ namespace QA40xPlot.Actions
 
             var colors = new GraphColors();
             int color = measurementNr * 2;
-            var ttype = GetTestingType(frqrsVm.TestType);
+            var ttype = frqrsVm.GetTestingType(frqrsVm.TestType);
 
             double[] YValues = [];
             double[] phaseValues = [];
@@ -547,7 +546,7 @@ namespace QA40xPlot.Actions
 
 			int resultNr = 0;
 
-            switch(GetTestingType(frqsrVm.TestType))
+            switch(frqsrVm.GetTestingType(frqsrVm.TestType))
             {
                 case TestingType.Response:
 					frqsrVm.GraphUnit = "dBV";

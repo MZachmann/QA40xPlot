@@ -5,8 +5,6 @@ using QA40xPlot.Views;
 using System.ComponentModel;
 using Newtonsoft.Json;
 using System.Windows;
-using static FreqRespViewModel;
-using System.DirectoryServices.ActiveDirectory;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 

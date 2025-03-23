@@ -98,25 +98,14 @@ namespace QA40xPlot.Actions
 			}
 			var fftsize = SpectrumViewModel.FftActualSizes.ElementAt(SpectrumViewModel.FftSizes.IndexOf(thd.FftSize));
 
-            // Check if REST interface is available and device connected
-            if (await QaLibrary.CheckDeviceConnected() == false)
-                return false;
-
             // ********************************************************************  
             // Load a settings we want
             // ********************************************************************  
-            if (msr.FrequencySteps.Count == 0)
-            {
-				await Qa40x.SetDefaults();
-			}
-			await Qa40x.SetSampleRate(sampleRate);
-            await Qa40x.SetBufferSize(fftsize);
-			await Qa40x.SetWindowing(thd.WindowingMethod);
-            await Qa40x.SetRoundFrequencies(true);
-			await Qa40x.SetInputRange((int)thd.Attenuation);
+			if (false == await QaLibrary.InitializeDevice(sampleRate, fftsize, thd.WindowingMethod, (int)thd.Attenuation, msr.FrequencySteps.Count == 0))
+				return false;
 
 			try
-            {
+			{
                 // Check if cancel button pressed
                 if (ct.IsCancellationRequested)
                     return false;
@@ -671,8 +660,14 @@ namespace QA40xPlot.Actions
 				return;
 			}
 			specVm.IsRunning = true;
-            ct = new();
 
+			if (await QaLibrary.CheckDeviceConnected() == false)
+			{
+				specVm.IsRunning = false;
+				return;
+			}
+
+			ct = new();
 			// Clear measurement result
 			MeasurementResult = new(specVm)
 			{
