@@ -10,6 +10,9 @@
              mc:Ignorable="d" 
              d:DesignHeight="750" d:DesignWidth="800" Background="MintCream">
     <UserControl.Resources>
+        <Style TargetType="GroupBox">
+            <Setter Property="BorderThickness" Value="1,1,1,0"/>
+        </Style>
         <Style TargetType="TextBox">
             <Setter Property="VerticalAlignment" Value="Center"/>
             <!-- Ensure the readonly property is visible -->
@@ -85,7 +88,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <Label Content="Set Generator by" Grid.Row="0" Grid.Column="0"  />
+                    <Label Content="Set by" Grid.Row="0" Grid.Column="0"  />
                     <ComboBox ToolTip="Input Voltage = DUT Input (Generator Output), Output Voltage = DUT Output (QA40x Input)" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  SelectedIndex="{Binding MeasureType}" ItemsSource="{Binding MeasureTypes}">
                     </ComboBox>
                     <Label Content="Voltage" Grid.Row="1" Grid.Column="0"  />

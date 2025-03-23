@@ -9,6 +9,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Interop;
 
 // various things for the thd vs frequency activity
 

@@ -30,18 +30,53 @@ namespace QA40xPlot.Libraries
         public static double MINIMUM_DEVICE_INPUT_VOLTAGE_MV = 1E-3;
         public static double MAXIMUM_DEVICE_INPUT_VOLTAGE_MV = 40000;
 
-        public static int MINIMUM_DEVICE_ATTENUATION = 0;
-        public static int MAXIMUM_DEVICE_ATTENUATION = 42;
+        public static int DEVICE_MIN_ATTENUATION = 0;
+        public static int DEVICE_MAX_ATTENUATION = 42;
 
-   
+		/// <summary>
+		/// Do the startup of the QA40x, checking the rest interface for existance
+		/// </summary>
+		/// <param name="sampleRate"></param>
+		/// <param name="fftsize"></param>
+		/// <param name="Windowing"></param>
+		/// <param name="attenuation"></param>
+		/// <param name="setdefault">this may take a little time, so do it once?</param>
+		/// <returns>success true or false</returns>
+		public static async Task<bool> InitializeDevice(uint sampleRate, uint fftsize, string Windowing, int attenuation, bool setdefault = false)
+		{
+			try
+			{
+				// ********************************************************************  
+				// Load a settings we want
+				// ********************************************************************  
+				if (setdefault)
+				{
+					// Check if REST interface is available and device connected
+					if (await QaLibrary.CheckDeviceConnected() == false)
+						return false;
 
-        /// <summary>
-        /// Calculates fft bin size in Hz
-        /// </summary>
-        /// <param name="sampleRate">Sample rate in samples per second</param>
-        /// <param name="fftSize">fft buffer size</param>
-        /// <returns>The frequency span of a bin</returns>
-        static public double CalcBinSize(uint sampleRate, uint fftSize)
+					await Qa40x.SetDefaults();
+				}
+				await Qa40x.SetSampleRate(sampleRate);
+				await Qa40x.SetBufferSize(fftsize);
+				await Qa40x.SetWindowing(Windowing);
+				await Qa40x.SetRoundFrequencies(true);
+				await Qa40x.SetInputRange(attenuation);
+				return true;
+			}
+			catch (Exception)
+			{
+			}
+			return false;
+		}
+
+		/// <summary>
+		/// Calculates fft bin size in Hz
+		/// </summary>
+		/// <param name="sampleRate">Sample rate in samples per second</param>
+		/// <param name="fftSize">fft buffer size</param>
+		/// <returns>The frequency span of a bin</returns>
+		static public double CalcBinSize(uint sampleRate, uint fftSize)
         {
             return (double)sampleRate / (double)fftSize;
         }
@@ -204,7 +239,9 @@ namespace QA40xPlot.Libraries
 		{
 			LeftRightSeries lrfs = new LeftRightSeries();
             //await Qa40x.SetOutputSource("Off");
-			await Qa40x.DoAcquisition(left, right);
+            var dx = 1.0; //  fftsize / samplerate;
+            var sessid = 123;
+			await Qa40x.DoUserAcquisition(sessid, dx, left, right);
 			if (ct.IsCancellationRequested || lrfs == null)
 				return lrfs ?? new();
 			if (getFrequencySeries)

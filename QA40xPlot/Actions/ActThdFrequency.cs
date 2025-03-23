@@ -276,7 +276,7 @@ namespace QA40xPlot.Actions
                     await showMessage($"Determining the best input attenuation for a generator voltage of {genVoltagedBV:0.00#} dBV.");
 
                     // Determine correct input attenuation
-                    var result = await QaLibrary.DetermineAttenuationWithChirp(genVoltagedBV, QaLibrary.MAXIMUM_DEVICE_ATTENUATION, thd.LeftChannel, thd.RightChannel, ct);
+                    var result = await QaLibrary.DetermineAttenuationWithChirp(genVoltagedBV, QaLibrary.DEVICE_MAX_ATTENUATION, thd.LeftChannel, thd.RightChannel, ct);
                     if (ct.IsCancellationRequested)
                         return false;
                     thd.InputRange = result.Item1;

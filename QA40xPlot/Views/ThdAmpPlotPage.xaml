@@ -13,6 +13,9 @@
         <Style TargetType="ComboBox">
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
+        <Style TargetType="GroupBox">
+            <Setter Property="BorderThickness" Value="1,1,1,0"/>
+        </Style>
     </UserControl.Resources>
     <Grid Height="Auto" Width="Auto">
         <Grid.ColumnDefinitions>
@@ -32,7 +35,7 @@
                     <Button Content="Stop"  IsEnabled="{Binding IsRunning}" Command="{Binding DoStop}" Grid.Column="2" HorizontalAlignment="Left"></Button>
                 </Grid>
             </GroupBox>
-            <GroupBox Header="Measurement Settings" >
+            <GroupBox Header="Generator" >
                 <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -46,12 +49,8 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                    <Label Content="Set Generator by" Grid.Column="0" Grid.Row="0"  />
+                    <Label Content="Set by" Grid.Column="0" Grid.Row="0"  />
                     <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0"  SelectedIndex="{Binding MeasureType}" ItemsSource="{Binding MeasureTypes}"
                                ToolTip="Input Voltage = DUT Input (Generator Output), Output Voltage = DUT Output (QA40x Input)" >
                     </ComboBox>
@@ -74,15 +73,30 @@
                     <Label Content="Amplifier Load" Grid.Column="0" Grid.Row="5"  />
                     <TextBox Text="{Binding AmpLoad}" Grid.Column="1"  Grid.Row="5" VerticalAlignment="Center"  />
                     <Label Content="Ohm" Grid.Column="3" Grid.Row="5"  />
-                    <Label Content="Test Frequency" Grid.Column="0" Grid.Row="6"  />
-                    <ComboBox IsEditable="True" Text="{Binding TestFreq}" Grid.Column="1" Grid.Row="6" ItemsSource="{Binding StartFrequencies}"   />
-                    <Label Content="Hz" Grid.Column="2" Grid.Row="6"  />
-                    <Label Content="Steps / Octave" Grid.Column="0" Grid.Row="7"  />
-                    <xctk:IntegerUpDown VerticalAlignment="Center" Value="{Binding StepsOctave}" Minimum="1" Grid.Column="1" Grid.Row="7"  />
-                    <Label Content="Averages" Grid.Column="0" Grid.Row="8"  />
-                    <xctk:IntegerUpDown VerticalAlignment="Center" Value="{Binding Averages}" Minimum="1" Maximum="6" Grid.Column="1" Grid.Row="8"  />
                 </Grid>
         </GroupBox>
+            <GroupBox Header="Sweep" >
+                <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Label Content="Test Frequency" Grid.Column="0" Grid.Row="0"  />
+                    <ComboBox IsEditable="True" Text="{Binding TestFreq}" Grid.Column="1" Grid.Row="0" ItemsSource="{Binding StartFrequencies}"   />
+                    <Label Content="Hz" Grid.Column="2" Grid.Row="0"  />
+                    <Label Content="Steps / Octave" Grid.Column="0" Grid.Row="1"  />
+                    <xctk:IntegerUpDown VerticalAlignment="Center" Value="{Binding StepsOctave}" Minimum="1" Grid.Column="1" Grid.Row="1"  />
+                    <Label Content="Averages" Grid.Column="0" Grid.Row="2"  />
+                    <xctk:IntegerUpDown VerticalAlignment="Center" Value="{Binding Averages}" Minimum="1" Maximum="6" Grid.Column="1" Grid.Row="2"  />
+                    </Grid>
+            </GroupBox>
             <views:PlotControl x:Name="WpfPlot2" Width="150" Height="100" Margin="0,4,0,0" />
             <views:PlotControl x:Name="WpfPlot3" Width="150"  Height="100" Margin="0,4" />
         </StackPanel>

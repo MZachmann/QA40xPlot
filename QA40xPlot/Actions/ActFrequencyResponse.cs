@@ -207,12 +207,8 @@ namespace QA40xPlot.Actions
 			}
 			var fftsize = FreqRespViewModel.FftActualSizes.ElementAt(FreqRespViewModel.FftSizes.IndexOf(mrs.FftSize));
 
-			await Qa40x.SetDefaults();
+            await QaLibrary.InitializeDevice(sampleRate, fftsize, "Hann", QaLibrary.DEVICE_MAX_ATTENUATION, true);
             await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make it turn on or off
-            await Qa40x.SetSampleRate(sampleRate);
-            await Qa40x.SetBufferSize(fftsize);
-            await Qa40x.SetWindowing("Hann");
-            await Qa40x.SetRoundFrequencies(true);
 
 			// ********************************************************************
 			// Calculate frequency steps to do
@@ -232,7 +228,7 @@ namespace QA40xPlot.Actions
                 // ********************************************************************
                 // Determine input level
                 // ********************************************************************
-                var attenuation = QaLibrary.MAXIMUM_DEVICE_ATTENUATION;
+                var attenuation = QaLibrary.DEVICE_MAX_ATTENUATION;
                 double genVoltagedBV = -150;
 
 				E_GeneratorType etp = (E_GeneratorType)mrs.MeasureType;
@@ -285,7 +281,7 @@ namespace QA40xPlot.Actions
 					await showMessage($"Determining the best input attenuation for a generator voltage of {genVoltagedBV:0.00#} dBV.");
 
                     // Determine correct input attenuation
-                    var result = await QaLibrary.DetermineAttenuationWithChirp(genVoltagedBV, QaLibrary.MAXIMUM_DEVICE_ATTENUATION, true, frqrsVm.RightChannel, ct);
+                    var result = await QaLibrary.DetermineAttenuationWithChirp(genVoltagedBV, QaLibrary.DEVICE_MAX_ATTENUATION, true, frqrsVm.RightChannel, ct);
                     if (ct.IsCancellationRequested)
                         return false;
                     attenuation = result.Item1;

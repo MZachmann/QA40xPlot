@@ -206,12 +206,12 @@ namespace QA40xPlot.Libraries
         /// <param name="left"></param>
         /// <param name="right"></param>
         /// <returns></returns>
-        static public async Task DoAcquisition(double[] left, double[] right)
+        static public async Task DoUserAcquisition(int session, double dx, double[] left, double[] right)
         {
-            string l = Convert.ToBase64String(GetBytes(left));
-            string r = Convert.ToBase64String(GetBytes(right));
+            string l = Convert.ToBase64String(GetBytes(left), Base64FormattingOptions.None);
+            string r = Convert.ToBase64String(GetBytes(right), Base64FormattingOptions.None);
 
-            string s = $"{{ \"Left\":\"{l}\", \"Right\":\"{r}\" }}";
+            string s = $"{{ \"SessionId\":\"{session}\", \"Dx\":\"{dx}\", \"Left\":\"{l}\", \"Right\":\"{r}\" }}";
 
             await Post("/Acquisition", s);
         }
@@ -429,7 +429,6 @@ namespace QA40xPlot.Libraries
 			return result;
         }
 
-
         static private async Task<string> Get(string url, string token)
         {
             Dictionary<string, string> dict = await Get(url);
@@ -438,7 +437,7 @@ namespace QA40xPlot.Libraries
 
         static byte[] GetBytes(double[] vals)
         {
-            var byteArray = new byte[vals.Length * sizeof(double)];
+			var byteArray = new byte[vals.Length * sizeof(double)];
             Buffer.BlockCopy(vals, 0, byteArray, 0, byteArray.Length);
             return byteArray;
         }
