@@ -56,14 +56,10 @@ namespace QA40xPlot.Actions
 		public async void StartMeasurement()
 		{
 			var vm = ViewSettings.Singleton.FreqRespVm;
+			if (!await StartAction(vm))
+				return;
 
 			vm.HasExport = false;
-			vm.IsRunning = true;
-			if (await QaLibrary.CheckDeviceConnected() == false)
-			{
-				vm.IsRunning = false;
-				return;
-			}
 			ct = new();
 												  // Show empty graphs
 			QaLibrary.InitMiniFftPlot(fftPlot, 10, 40000, -180, 20);
@@ -280,7 +276,7 @@ namespace QA40xPlot.Actions
 					await showMessage($"Determining the best input attenuation for a generator voltage of {genVoltagedBV:0.00#} dBV.");
 
                     // Determine correct input attenuation
-                    var result = await QaLibrary.DetermineAttenuationWithChirp(genVoltagedBV, QaLibrary.DEVICE_MAX_ATTENUATION, true, frqrsVm.RightChannel, ct);
+                    var result = await QaLibrary.DetermineAttenuationWithChirp(genVoltagedBV, QaLibrary.DEVICE_MAX_ATTENUATION, ct);
                     if (ct.IsCancellationRequested)
                         return false;
                     attenuation = result.Item1;

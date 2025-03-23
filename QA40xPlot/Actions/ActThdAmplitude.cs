@@ -170,7 +170,7 @@ namespace QA40xPlot.Actions
 			var attenuation = 42;
 			{
 				// check for allowed attenuation
-				var result = await QaLibrary.DetermineAttenuationWithChirp(generatorAmplitudedBV, attenuation, true, true, ct);
+				var result = await QaLibrary.DetermineAttenuationWithChirp(generatorAmplitudedBV, attenuation, ct);
 				if (ct.IsCancellationRequested)
 					return false;
 				QaLibrary.PlotMiniFftGraph(fftPlot, result.Item3.FreqRslt, thdAmp.ShowLeft, thdAmp.ShowRight);
@@ -550,13 +550,8 @@ namespace QA40xPlot.Actions
 		public async void StartMeasurement()
 		{
 			var thdAmp = ViewSettings.Singleton.ThdAmp;
-
-			thdAmp.IsRunning = true;
-			if (await QaLibrary.CheckDeviceConnected() == false)
-			{
-				thdAmp.IsRunning = false;
+			if (!await StartAction(thdAmp))
 				return;
-			}
 
 			ct = new();
 			await PerformMeasurementSteps(ct.Token);

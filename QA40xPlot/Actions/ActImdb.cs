@@ -695,19 +695,9 @@ namespace QA40xPlot.Actions
 		public async void StartMeasurement()
         {
 			var imdVm = ViewSettings.Singleton.ImdVm;
-			if (imdVm.IsRunning)
-			{
-                MessageBox.Show("Device is already running");
-				return;
-			}
-			imdVm.IsRunning = true;
+			if (!await StartAction(imdVm))
+				return; 
             ct = new();
-
-			if (await QaLibrary.CheckDeviceConnected() == false)
-			{
-				imdVm.IsRunning = false;
-				return;
-			}
 
 			// Clear measurement result
 			MeasurementResult = new(imdVm)

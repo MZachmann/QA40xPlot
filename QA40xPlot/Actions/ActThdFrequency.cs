@@ -268,7 +268,7 @@ namespace QA40xPlot.Actions
                     await showMessage($"Determining the best input attenuation for a generator voltage of {genVoltagedBV:0.00#} dBV.");
 
                     // Determine correct input attenuation
-                    var result = await QaLibrary.DetermineAttenuationWithChirp(genVoltagedBV, QaLibrary.DEVICE_MAX_ATTENUATION, thd.LeftChannel, thd.RightChannel, ct);
+                    var result = await QaLibrary.DetermineAttenuationWithChirp(genVoltagedBV, QaLibrary.DEVICE_MAX_ATTENUATION, ct);
                     if (ct.IsCancellationRequested)
                         return false;
                     thd.InputRange = result.Item1;
@@ -652,12 +652,8 @@ namespace QA40xPlot.Actions
         public async void StartMeasurement()
         {
             ThdFreqViewModel thd = ViewSettings.Singleton.ThdFreq;
-			thd.IsRunning = true;
-			if (await QaLibrary.CheckDeviceConnected() == false)
-			{
-				thd.IsRunning = false;
-				return;
-			}
+			if (!await StartAction(thd))
+				return; 
 			ct = new();
             await PerformMeasurementSteps(ct.Token);
             await showMessage("Finished");

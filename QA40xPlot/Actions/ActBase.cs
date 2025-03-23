@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace QA40xPlot.Actions
 {
@@ -20,6 +21,29 @@ namespace QA40xPlot.Actions
 			myPlot.Legend.Orientation = ScottPlot.Orientation.Vertical;
 			myPlot.Legend.FontSize = GraphUtil.PtToPixels(PixelSizes.LEGEND_SIZE);
 			myPlot.ShowLegend();
+		}
+
+		/// <summary>
+		/// Start an action by checking for device connected
+		/// If all ok set IsRunning bool and return true
+		/// </summary>
+		/// <param name="bvm">the local video model</param>
+		/// <returns>true if all good</returns>
+		public static async Task<bool> StartAction(BaseViewModel bvm)
+		{
+			if (bvm.IsRunning)
+			{
+				MessageBox.Show("Device is already running");
+				return false;
+			}
+			bvm.IsRunning = true;
+
+			if (await QaLibrary.CheckDeviceConnected() == false)
+			{
+				bvm.IsRunning = false;
+				return false;
+			}
+			return true;
 		}
 
 		protected async Task showMessage(String msg, int delay = 0)

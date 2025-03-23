@@ -334,7 +334,7 @@ namespace QA40xPlot.Libraries
         /// <param name="testFrequency">The generator frequency</param>
         /// <param name="testAttenuation">The test attenuation</param>
         /// <returns>The attanuation determined by the test</returns>
-        public static async Task<(int, double, LeftRightSeries)> DetermineAttenuationWithSine(double voltageDbv, double testFrequency, int testAttenuation, bool leftChannelEnable, bool rightEnabled, CancellationToken ct)
+        public static async Task<(int, double, LeftRightSeries)> DetermineAttenuationWithSine(double voltageDbv, double testFrequency, int testAttenuation, CancellationToken ct)
         {
             await Qa40x.SetInputRange(testAttenuation);                         // Set input range to initial range
             await Qa40x.SetGen1(testFrequency, voltageDbv, true);               // Enable generator at set voltage
@@ -344,12 +344,7 @@ namespace QA40xPlot.Libraries
             
             // Determine highest channel value
             double peak_dBV = 0;
-            if (leftChannelEnable && rightEnabled)
-                peak_dBV = (plrp.Left > plrp.Right) ? plrp.Left : plrp.Right;
-            else if (leftChannelEnable)
-                peak_dBV = plrp.Left;
-            else
-                peak_dBV = plrp.Right;
+            peak_dBV = (plrp.Left > plrp.Right) ? plrp.Left : plrp.Right;
 
             var attenuation = DetermineAttenuation(peak_dBV);         // Determine attenuation and set input range
             await Qa40x.SetOutputSource(OutputSources.Off);                     // Disable generator
@@ -365,20 +360,20 @@ namespace QA40xPlot.Libraries
         /// <param name="testFrequency">The generator frequency</param>
         /// <param name="testAttenuation">The test attenuation</param>
         /// <returns>The attanuation determined by the test</returns>
-        public static async Task<(int, double, LeftRightSeries)> DetermineAttenuationWithChirp(double voltageDbv, int testAttenuation, bool leftEnabled, bool rightEnabled, CancellationToken ct)
+        public static async Task<(int, double, LeftRightSeries)> DetermineAttenuationWithChirp(double voltageDbv, int testAttenuation, CancellationToken ct)
         {
             await Qa40x.SetInputRange(testAttenuation);                         // Set input range to initial range
             await Qa40x.SetExpoChirpGen(voltageDbv, 0, 28, false);
             await Qa40x.SetOutputSource(OutputSources.ExpoChirp);
             LeftRightSeries acqData = await DoAcquisitions(1, ct);        // Do acquisition
 
-            DetermineAttenuationFromSeriesData(leftEnabled, rightEnabled, acqData, out double peak_dBV, out int attenuation);
+            DetermineAttenuationFromSeriesData(acqData, out double peak_dBV, out int attenuation);
             await Qa40x.SetOutputSource(OutputSources.Off);                     // Disable generator
 
             return (attenuation, peak_dBV, acqData);       // Return attenuation, measured amplitude in dBV and acquisition data
         }
 
-        public static bool DetermineAttenuationFromSeriesData(bool leftEnabled, bool rightEnabled, LeftRightSeries acqData, out double peak_dBV, out int attenuation)
+        public static bool DetermineAttenuationFromSeriesData(LeftRightSeries acqData, out double peak_dBV, out int attenuation)
         {
             if (acqData == null || acqData.TimeRslt == null)
             {
@@ -388,14 +383,10 @@ namespace QA40xPlot.Libraries
             }
 
             // Determine highest channel value
-            double peak_left = -150;
-            double peak_right = -150;
-            if (leftEnabled)
-                peak_left = acqData.TimeRslt.Left.Max();
-            if (rightEnabled)
-                peak_right = acqData.TimeRslt.Right.Max();
+            double? peak_left = acqData.TimeRslt?.Left.Max();
+			double? peak_right = acqData.TimeRslt?.Right.Max();
 
-            peak_dBV = 20 * Math.Log10(Math.Max(peak_left, peak_right));
+            peak_dBV = 20 * Math.Log10(Math.Max(peak_left ?? 1e-20, peak_right ?? 1e-20));
             attenuation = DetermineAttenuation(peak_dBV);
 
             return true;

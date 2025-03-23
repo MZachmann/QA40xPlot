@@ -84,7 +84,7 @@ namespace QA40xPlot.Actions
 			/// </summary>
 			/// <param name="ct">Cancellation token</param>
 			/// <returns>result. false if cancelled</returns>
-			async Task<bool> PerformMeasurementSteps(SpectrumMeasurementResult msr, CancellationToken ct)
+		async Task<bool> PerformMeasurementSteps(SpectrumMeasurementResult msr, CancellationToken ct)
         {
 			// Setup
 			SpectrumViewModel thd = msr.MeasurementSettings;
@@ -654,18 +654,8 @@ namespace QA40xPlot.Actions
         public async void StartMeasurement()
         {
 			var specVm = ViewSettings.Singleton.SpectrumVm;
-			if (specVm.IsRunning)
-			{
-                MessageBox.Show("Device is already running");
+			if (!await StartAction(specVm))
 				return;
-			}
-			specVm.IsRunning = true;
-
-			if (await QaLibrary.CheckDeviceConnected() == false)
-			{
-				specVm.IsRunning = false;
-				return;
-			}
 
 			ct = new();
 			// Clear measurement result

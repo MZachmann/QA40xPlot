@@ -43,7 +43,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Update="Views\ImdChannelInfo.xaml.cs">
+    <Compile Update="Views\Subs\ImdChannelInfo.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\ImdPlotPage.xaml.cs">
