@@ -26,6 +26,7 @@ namespace QA40xPlot.ViewModels
 		public static List<String> GenPowers { get => new List<string> { "0.05", "0.1", "0.25", "0.5", "0.75", "1", "2", "5", "10", "25" }; }
 		public static List<String> MeasureVolts { get => new List<string> { "Input Voltage", "Output Voltage" }; }
 		public static List<String> MeasureVoltsFull { get => new List<string> { "Input Voltage", "Output Voltage", "Output Power" }; }
+		public static List<String> Impedances { get => new List<string> { "5", "8", "10", "20", "100", "500", "1000" }; }
 		#endregion
 
 		#region Setters and Getters

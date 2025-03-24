@@ -54,7 +54,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Label Content="Set by" Grid.Column="0" Grid.Row="0"  />
+                <Label Content="Set DUT" Grid.Column="0" Grid.Row="0"  />
                 <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0"  SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVoltsFull}"
                                ToolTip="Input Voltage = DUT Input (Generator Output), Output Voltage = DUT Output (QA40x Input)" >
                 </ComboBox>
@@ -75,7 +75,7 @@
                             Text="{Binding EndPower}" ItemsSource="{Binding GenPowers}" />
                 <Label Content="W" Grid.Column="2" Grid.Row="4"   />
                 <Label Content="Amplifier Load" Grid.Column="0" Grid.Row="5"  />
-                <TextBox Text="{Binding AmpLoad}" Grid.Column="1"  Grid.Row="5" VerticalAlignment="Center"  />
+                <TextBox x:Name="ZReference" Text="{Binding ReferenceImpedance}" Grid.Column="1"  Grid.Row="5" VerticalAlignment="Center"  />
                 <Label Content="Ohm" Grid.Column="3" Grid.Row="5"  />
             </Grid>
 

@@ -8,12 +8,12 @@ using System.ComponentModel;
 using Newtonsoft.Json;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
+using System.Windows.Navigation;
 
 public class FreqRespViewModel : BaseViewModel
 {
 	public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 	public static List<String> Smoothings { get => new List<string> { "None", "1/24", "1/6" }; }
-	public static List<String> Impedances { get => new List<string> { "5", "8", "10", "20", "100", "500", "1000" }; }
 	public static List<String> TestTypes { get => new List<string> { "Response", "Impedance", "Gain" }; }
 
 	private PlotControl actPlot { get; set; }
@@ -41,13 +41,6 @@ public class FreqRespViewModel : BaseViewModel
 	{
 		get => _TestType;
 		set => SetProperty(ref _TestType, value);
-	}
-
-	private string _ZReference = string.Empty;
-	public string ZReference
-	{
-		get => _ZReference;
-		set => SetProperty(ref _ZReference, value);
 	}
 
 	private string _StartFreq = string.Empty;
@@ -403,7 +396,6 @@ public class FreqRespViewModel : BaseViewModel
 		Show1dBBandwidth_L = false;
 		Show1dBBandwidth_R = false;
 		ShowPoints = true;
-		ZReference = "8";
 		TestType = "Impedance";
 
 		GraphUnit = "dBV";

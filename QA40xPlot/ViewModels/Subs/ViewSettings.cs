@@ -5,7 +5,10 @@
 using System.Diagnostics;
 using System.Reflection;
 using System.Windows;
+using System.Windows.Navigation;
 using Newtonsoft.Json;
+using QA40xPlot.Libraries;
+using QA40xPlot.Views;
 
 namespace QA40xPlot.ViewModels
 {
@@ -20,6 +23,7 @@ namespace QA40xPlot.ViewModels
 		public ThdAmpViewModel ThdAmp { get; private set; }
 		public FreqRespViewModel FreqRespVm { get; private set; }
 		public MainViewModel Main { get; private set; }
+		public SettingsViewModel SettingsVm { get; private set; }
 		// these are output only and don't need serializing
 		[JsonIgnore]
 		public ThdChannelViewModel ChannelLeft { get; private set; }
@@ -63,6 +67,8 @@ namespace QA40xPlot.ViewModels
 
 		}
 
+		[JsonIgnore]
+		public static double ReferenceImpedance { get => MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.ReferenceImpedance, 0); }
 
 		public void GetSettingsFrom( Dictionary<string, Dictionary<string,object>> vws)
 		{
@@ -76,15 +82,16 @@ namespace QA40xPlot.ViewModels
 
 		public ViewSettings() 
 		{
+			SettingsVm = new SettingsViewModel();
 			Main = new MainViewModel();
-			SpectrumVm = new SpectrumViewModel();
-			ImdVm = new ImdViewModel();
-			ThdAmp = new ThdAmpViewModel();
-			ThdFreq = new ThdFreqViewModel();
 			ChannelLeft = new ThdChannelViewModel();
 			ChannelRight = new ThdChannelViewModel();
 			ImdChannelLeft = new ImdChannelViewModel();
 			ImdChannelRight = new ImdChannelViewModel();
+			SpectrumVm = new SpectrumViewModel();
+			ImdVm = new ImdViewModel();
+			ThdAmp = new ThdAmpViewModel();
+			ThdFreq = new ThdFreqViewModel();
 			FreqRespVm = new FreqRespViewModel();
 		}
 	}

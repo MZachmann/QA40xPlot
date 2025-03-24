@@ -29,12 +29,6 @@ namespace QA40xPlot.ViewModels
 			get => _GenVoltage; set => SetProperty(ref _GenVoltage, value);
 		}
 
-		private double _AmpLoad;
-		public double AmpLoad
-		{
-			get => _AmpLoad; set => SetProperty(ref _AmpLoad, value);
-		}
-
 		private string _OutPower = string.Empty;
 		public string OutPower
 		{
@@ -280,7 +274,6 @@ namespace QA40xPlot.ViewModels
 			switch (e.PropertyName)
 			{
 				case "Voltage":
-				case "AmpLoad":
 				case "OutPower":
 				case "GenDirection":
 				case "VoltageUnits":
@@ -428,7 +421,6 @@ namespace QA40xPlot.ViewModels
 			this.actPlot = default!;
 			this.actThd = default!;
 
-			AmpLoad = 8;
 			OutPower = "0.5";
 			OutVoltage = "0.5";
 			StartFreq = "20";

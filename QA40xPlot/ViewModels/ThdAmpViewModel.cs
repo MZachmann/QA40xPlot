@@ -49,12 +49,6 @@ namespace QA40xPlot.ViewModels
 			get => _EndPower; set => SetProperty(ref _EndPower, value);
 		}
 
-		private double _AmpLoad;         // type of alert
-		public double AmpLoad
-		{
-			get => _AmpLoad; set => SetProperty(ref _AmpLoad, value);
-		}
-
 		private string _TestFreq = string.Empty;         // type of alert
 		public string TestFreq
 		{
@@ -434,7 +428,6 @@ namespace QA40xPlot.ViewModels
 			actPlot = default!;
 			actThd = default!;
 
-			AmpLoad = 8;
 			TestFreq = "1000";
 			GraphStartVolts = "0.002";
 			GraphEndVolts = "10";

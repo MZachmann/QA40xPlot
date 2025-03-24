@@ -102,7 +102,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Label Content="Set by" Grid.Row="0" Grid.Column="0"  />
+                <Label Content="Set DUT" Grid.Row="0" Grid.Column="0"  />
                 <ComboBox ToolTip="Input Voltage = DUT Input (Generator Output), Output Voltage = DUT Output (QA40x Input)" Grid.Column="1" 
                               Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVolts}"/>
                 <Label Content="Voltage" Grid.Row="1" Grid.Column="0"  />
@@ -153,7 +153,8 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Label Content="Reference Z" Grid.Column="0" Grid.Row="0"  />
-                <ComboBox VerticalAlignment="Center" IsEditable="True" Text="{Binding ZReference}" Grid.Column="1" Grid.Row="0" ItemsSource="{Binding Impedances}"  />
+                <ComboBox x:Name="ZReference" VerticalAlignment="Center" IsEditable="True" Text="{Binding ReferenceImpedance}" 
+                          Grid.Column="1" Grid.Row="0" ItemsSource="{Binding Impedances}"  />
                 <Label Content="Ohms" Grid.Column="2" Grid.Row="0"  />
             </Grid>
 

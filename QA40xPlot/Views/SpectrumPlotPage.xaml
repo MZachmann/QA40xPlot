@@ -115,8 +115,9 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Label Content="Set by" Grid.Row="0" Grid.Column="0"  />
-                <ComboBox ToolTip="Input Voltage = DUT Input (Generator Output), Output Voltage = DUT Output (QA40x Input)" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVolts}">
+                <Label Content="Set DUT" Grid.Row="0" Grid.Column="0"  />
+                <ComboBox ToolTip="Input Voltage = DUT Input (Generator Output), Output Voltage = DUT Output (QA40x Input)" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" 
+                          VerticalAlignment="Center"  SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVoltsFull}">
                 </ComboBox>
                 <Label Content="Fre_quency" Grid.Row="1" Grid.Column="0" Target="{Binding ElementName=cbFreq}" />
                 <ComboBox x:Name="cbFreq" Grid.Column="1" Grid.Row="1" VerticalAlignment="Center"  

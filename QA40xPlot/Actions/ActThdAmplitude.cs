@@ -289,8 +289,10 @@ namespace QA40xPlot.Actions
 					break;
 				}
 
-				step.Left = ChannelCalculations(binSize, step.FundamentalFrequency, generatorVoltagedBV, lrfs.FreqRslt.Left, MeasurementResult.NoiseFloor.FreqRslt.Left, thdAmp.AmpLoad);
-				step.Right = ChannelCalculations(binSize, step.FundamentalFrequency, generatorVoltagedBV, lrfs.FreqRslt.Right, MeasurementResult.NoiseFloor.FreqRslt.Right, thdAmp.AmpLoad);
+				step.Left = ChannelCalculations(binSize, step.FundamentalFrequency, generatorVoltagedBV, 
+					lrfs.FreqRslt.Left, MeasurementResult.NoiseFloor.FreqRslt.Left, ViewSettings.ReferenceImpedance);
+				step.Right = ChannelCalculations(binSize, step.FundamentalFrequency, generatorVoltagedBV, 
+					lrfs.FreqRslt.Right, MeasurementResult.NoiseFloor.FreqRslt.Right, ViewSettings.ReferenceImpedance);
 
 				// Add step data to list
 				MeasurementResult.AmplitudeSteps.Add(step);

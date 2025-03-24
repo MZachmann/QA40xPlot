@@ -73,6 +73,11 @@
                     <views:FreqRespPlotPage  />
                 </Grid>
             </TabItem>
+            <TabItem Header="Settings" Name="settings" >
+                <Grid Background="#FFE5E5E5">
+                    <views:SettingsPage  />
+                </Grid>
+            </TabItem>
             <!--<TabItem Header="Bode Plot">
                 <Grid Background="#FFE5E5E5"/>
             </TabItem>-->
