@@ -104,11 +104,11 @@
                 </Grid.RowDefinitions>
                 <Label Content="Set DUT" Grid.Row="0" Grid.Column="0"  />
                 <ComboBox ToolTip="Input Voltage = DUT Input (Generator Output), Output Voltage = DUT Output (QA40x Input)" Grid.Column="1" 
-                              Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVolts}"/>
-                <Label Content="Voltage" Grid.Row="1" Grid.Column="0"  />
-                <ComboBox IsEditable="True" Grid.Column="1" Grid.Row="1" VerticalAlignment="Center"  
-                               Text="{Binding Gen1Voltage}" ItemsSource="{Binding GenVoltages}"/>
-                <Label Content="V" Grid.Column="2" Grid.Row="1"  />
+                              Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVoltsFull}"/>
+                <Label Content="{Binding GenAmpDescript}" Grid.Row="1" Grid.Column="0"  />
+                <ComboBox IsEditable="True" Text="{Binding Gen1Voltage}" Grid.Column="1" Grid.Row="1" VerticalAlignment="Center"  
+                               ItemsSource="{Binding GenVoltages}"/>
+                <Label Content="{Binding GenAmpUnits}" Grid.Column="2" Grid.Row="1"  />
             </Grid>
 
             <views:GroupHeader Header="Sampling" />
@@ -153,7 +153,7 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Label Content="Reference Z" Grid.Column="0" Grid.Row="0"  />
-                <ComboBox x:Name="ZReference" VerticalAlignment="Center" IsEditable="True" Text="{Binding ReferenceImpedance}" 
+                <ComboBox VerticalAlignment="Center" IsEditable="True" Text="{Binding ZReference}" 
                           Grid.Column="1" Grid.Row="0" ItemsSource="{Binding Impedances}"  />
                 <Label Content="Ohms" Grid.Column="2" Grid.Row="0"  />
             </Grid>

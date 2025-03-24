@@ -1,9 +1,11 @@
 ﻿using System.ComponentModel;
+using System.Drawing.Drawing2D;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
 using Newtonsoft.Json;
 using QA40xPlot.Data;
+using QA40xPlot.Libraries;
 using QA40xPlot.Views;
 using ScottPlot;
 
@@ -30,11 +32,37 @@ namespace QA40xPlot.ViewModels
 		#endregion
 
 		#region Setters and Getters
+		// the power display variables, all readonly
+		[JsonIgnore]
+		public bool IsGenPower { get => (GenDirection == MeasureVoltsFull[2]); }
+		[JsonIgnore]
+		public string GenAmpDescript { get => (IsGenPower ? "Power" : "Voltage"); }
+		[JsonIgnore]
+		public string GenAmpUnits { get => (IsGenPower ? "W" : "V"); }
+
+		private bool _ShowLeft;
+		public bool ShowLeft
+		{
+			get => _ShowLeft;
+			set => SetProperty(ref _ShowLeft, value);
+		}
+
+		private bool _ShowRight;
+		public bool ShowRight
+		{
+			get => _ShowRight;
+			set => SetProperty(ref _ShowRight, value);
+		}
+
 		private string _GenDirection = string.Empty;
 		public string GenDirection
 		{
 			get => _GenDirection;
-			set => SetProperty(ref _GenDirection, value);
+			set { 
+				SetProperty(ref _GenDirection, value);
+				OnPropertyChanged("GenAmpDescript"); 
+				OnPropertyChanged("GenAmpUnits"); 
+			}
 		}
 		private double _Attenuation;
 		public double Attenuation
@@ -139,10 +167,71 @@ namespace QA40xPlot.ViewModels
 			return (E_GeneratorDirection)u;
 		}
 
+		private double GainForVolts(double frequency, LeftRightFrequencySeries? lrGains)
+		{
+			if (null == lrGains)
+				return 1.0;
+			if( frequency == 0 || lrGains.Left.Length == 1)
+			{
+				return Math.Max(lrGains.Left.Max(), lrGains.Right.Max());
+			}
+			// frequency non-zero search and we have a vector so find it
+			var bin = (int)Math.Floor(frequency / lrGains.Df);
+			// take +-2 bins also
+			var skips = Math.Max(0,bin - 2);
+			var takes = Math.Min(5, lrGains.Left.Length);
+			var mxl = lrGains.Left.Skip(skips).Take(takes).Max();
+			var mxr = lrGains.Right.Skip(skips).Take(takes).Max();
+			if( ShowLeft && !ShowRight)
+			{
+				return mxl;
+			}
+			return Math.Max(mxl, mxr);
+		}
+
+		/// <summary>
+		/// convert a string value in the gui to an input or output voltage
+		/// based on the current generator direction
+		/// </summary>
+		/// <param name="amplitude">string amplitude with type depending on generator direction</param>
+		/// <param name="frequency">frequency of interested or 0 for all</param>
+		/// <param name="isInput">dut input or dut output voltage</param>
+		/// <param name="lrGains">the gain calculations</param>
+		/// <returns></returns>
+		public double ToGenVoltage(string amplitude, double frequency, bool isInput, LeftRightFrequencySeries? lrGains)
+		{
+			var genType = ToDirection(GenDirection);
+			var vtest = MathUtil.ToDouble(amplitude, 4321);
+			if (vtest == 4321)
+				return 1e-5;
+			switch (genType)
+			{
+				case E_GeneratorDirection.INPUT_VOLTAGE:
+					if (lrGains != null && !isInput)
+					{
+						vtest *= Math.Max(lrGains.Left.Max(), lrGains.Right.Max()); // max expected DUT output voltage
+					}
+					break;
+				case E_GeneratorDirection.OUTPUT_VOLTAGE:
+					if (lrGains != null && isInput)
+						vtest /= Math.Max(lrGains.Left.Max(), lrGains.Right.Max()); // expected QA40x generator voltage
+					break;
+				case E_GeneratorDirection.OUTPUT_POWER:
+					// now vtest is actually power setting... so convert to voltage
+					vtest = Math.Sqrt(vtest * ViewSettings.AmplifierLoad);  // so sqrt(power * load) = output volts
+					if (lrGains != null && isInput)
+						vtest /= Math.Max(lrGains.Left.Max(), lrGains.Right.Max()); // expected QA40x generator voltage
+					break;
+			}
+			return vtest;
+		}
+
 		public 	BaseViewModel()
 		{
 			HasExport = false;
 			GenDirection = MeasureVolts[0];
+			ShowLeft = true;
+			ShowRight = true;
 		}
 
 		public void SetupMainPlot(PlotControl plot)

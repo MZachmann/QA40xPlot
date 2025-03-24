@@ -22,7 +22,6 @@ namespace QA40xPlot.Views
 			var vm = ViewModels.ViewSettings.Singleton.FreqRespVm;
 			this.DataContext = vm;
 			vm.SetAction(this.WpfPlot1, this.WpfPlot2, this.WpfPlot3);
-			this.ZReference.DataContext = ViewSettings.Singleton.SettingsVm;
 		}
 	}
 }

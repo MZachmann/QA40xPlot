@@ -75,7 +75,7 @@ namespace QA40xPlot.Actions
 			if (acqData == null || acqData.FreqRslt == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
 				return null;
 
-			// what's the maximum input here?
+			// what's the maximum reading here?
 			var maxl = GetFGain(acqData.FreqRslt.Left, generatorV);
 			var maxr = GetFGain(acqData.FreqRslt.Right, generatorV);
 
@@ -84,7 +84,7 @@ namespace QA40xPlot.Actions
 			if (maxi < 1)
 			{
 				// get some more accuracy with this
-				await Qa40x.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION - 24);
+				await Qa40x.SetInputRange(18);
 				// do two and average them
 				acqData = await QaLibrary.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
 				if (acqData == null || acqData.FreqRslt == null || ct.IsCancellationRequested)

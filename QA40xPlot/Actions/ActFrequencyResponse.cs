@@ -103,7 +103,7 @@ namespace QA40xPlot.Actions
 					break;
 				case TestingType.Impedance:
                     {
-						double rref = ViewSettings.ReferenceImpedance;
+						double rref = ViewSettings.AmplifierLoad;
 						db.LeftData = MeasurementResult.GainData.Select(x => rref * ToImpedance(x).Magnitude).ToList();
 						// YValues = gainY.Select(x => rref * x.Magnitude/(1-x.Magnitude)).ToArray();
 						db.PhaseData = MeasurementResult.GainData.Select(x => ToImpedance(x).Phase).ToList();
@@ -153,7 +153,7 @@ namespace QA40xPlot.Actions
                         break;
                     case TestingType.Impedance:
                         {   // send freq, ohms, phasedeg
-							double rref = ViewSettings.ReferenceImpedance;
+							double rref = ViewSettings.AmplifierLoad;
 							var ohms = rref * ToImpedance(MeasurementResult.GainData[bin]).Magnitude;
 							tup = ValueTuple.Create(freqs[bin], ohms, 180 * values[bin].Phase / Math.PI);
 						}
@@ -461,7 +461,7 @@ namespace QA40xPlot.Actions
 
             double[] YValues = [];
             double[] phaseValues = [];
-            double rref = ViewSettings.ReferenceImpedance;
+            double rref = ViewSettings.AmplifierLoad;
 			string legendname = string.Empty;
             switch(ttype)
             {

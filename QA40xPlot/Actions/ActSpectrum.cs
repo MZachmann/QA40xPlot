@@ -133,15 +133,7 @@ namespace QA40xPlot.Actions
 						return false;
 				}
 
-				var genVolt = MathUtil.ToDouble(msr.MeasurementSettings.Gen1Voltage, 0.001);
-				var genType = thd.ToDirection(msr.MeasurementSettings.GenDirection);
-				if (LRGains != null && genType == E_GeneratorDirection.OUTPUT_VOLTAGE)
-				{
-					if (thd.ShowLeft)
-						genVolt /= LRGains.Left[0];
-					else
-						genVolt /= LRGains.Right[0];
-				}
+				var genVolt = thd.ToGenVoltage(msr.MeasurementSettings.Gen1Voltage, freq, true, LRGains) ;
 				if(genVolt > 5)
 				{
 					await showMessage($"Requesting input voltage of {genVolt} volts, check connection and settings");
@@ -155,7 +147,7 @@ namespace QA40xPlot.Actions
 				while(true)
 				{
 					// now do the step measurement
-					await showMessage($"Measuring spectrum.");
+					await showMessage($"Measuring spectrum with input of {genVolt:G3}V.");
 					await showProgress(0);
 
 					// Set the generators
@@ -663,23 +655,19 @@ namespace QA40xPlot.Actions
 			Data.Measurements.Clear();
 
 			var genType = specVm.ToDirection(specVm.GenDirection);
+			var freq = MathUtil.ToDouble(specVm.Gen1Frequency, 1000);
 			// if we're doing adjusting here
 			if (specVm.DoAutoAttn || genType != E_GeneratorDirection.INPUT_VOLTAGE)
 			{
 				// show that we're autoing...
 				if (specVm.DoAutoAttn)
 					specVm.Attenuation = QaLibrary.DEVICE_MAX_ATTENUATION;
-				LRGains = await DetermineGainAtFreq(MathUtil.ToDouble(specVm.Gen1Frequency));
+				LRGains = await DetermineGainAtFreq(freq);
 			}
 
 			if (specVm.DoAutoAttn)
 			{
-				var vtest = MathUtil.ToDouble(specVm.Gen1Voltage);
-				// depends on how we count...
-				if(LRGains != null && genType == E_GeneratorDirection.INPUT_VOLTAGE) 
-				{
-					vtest *= Math.Max(LRGains.Left.Max(), LRGains.Right.Max());	// max expected DUT output voltage
-				}
+				var vtest = specVm.ToGenVoltage(specVm.Gen1Voltage, freq, false, LRGains);	// get output voltage
 				var vdbv = QaLibrary.ConvertVoltage( vtest, E_VoltageUnit.Volt, E_VoltageUnit.dBV );
 				specVm.Attenuation = QaLibrary.DetermineAttenuation(vdbv);
 				MeasurementResult.MeasurementSettings.Attenuation = specVm.Attenuation;	// update the specVm to update the gui, then this for the steps

@@ -143,11 +143,11 @@
                                IsEditable="True" Text="{Binding Gen1Frequency}" ItemsSource="{Binding GenFrequencies}" MinWidth="80" >
                     </ComboBox>
                     <Label Content="Hz" Grid.Row="2" Grid.Column="2" />
-                    <Label Content="_Voltage" Grid.Row="3" Grid.Column="0" Target="{Binding ElementName=cbVolt}"  />
+                    <Label Content="{Binding GenAmpDescript}" Grid.Row="3" Grid.Column="0" />
                     <ComboBox x:Name="cbVolt" IsEditable="True" Grid.Column="1" Grid.Row="3" VerticalAlignment="Center"  
                               Text="{Binding Gen1Voltage}" ItemsSource="{Binding GenVoltages}">
                     </ComboBox>
-                    <Label Content="V" Grid.Row="3" Grid.Column="2" />
+                    <Label Content="{Binding GenAmpUnits}" Grid.Row="3" Grid.Column="2" />
                 </Grid>
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -166,11 +166,12 @@
                                IsEditable="True" Text="{Binding Gen2Frequency}" ItemsSource="{Binding GenFrequencies}">
                     </ComboBox>
                     <Label Content="Hz" Grid.Row="1" Grid.Column="2" />
-                    <Label Content="_Voltage" Grid.Row="2" Grid.Column="0" Target="{Binding ElementName=cb2Volt}"  />
-                    <ComboBox IsEnabled="{Binding IsImdCustom}" x:Name="cb2Volt" IsEditable="True" Grid.Column="1" Grid.Row="2" VerticalAlignment="Center"  
-                              Text="{Binding Gen2Voltage}" ItemsSource="{Binding GenVoltages}">
+                    <Label Content="{Binding GenAmpDescript}" Grid.Row="2" Grid.Column="0" Target="{Binding ElementName=cb2Volt}"  />
+                    <ComboBox IsEnabled="{Binding IsImdCustom}" Text="{Binding Gen2Voltage}" x:Name="cb2Volt" IsEditable="True" 
+                              Grid.Column="1" Grid.Row="2" VerticalAlignment="Center"  
+                              ItemsSource="{Binding GenVoltages}">
                     </ComboBox>
-                    <Label Content="V" Grid.Row="2" Grid.Column="2" />
+                    <Label Content="{Binding GenAmpUnits}" Grid.Row="2" Grid.Column="2" />
                 </Grid>
             </StackPanel>
 

@@ -58,24 +58,17 @@
                 <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0"  SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVoltsFull}"
                                ToolTip="Input Voltage = DUT Input (Generator Output), Output Voltage = DUT Output (QA40x Input)" >
                 </ComboBox>
-                <Label Content="Start Voltage" Grid.Column="0" Grid.Row="1"   />
-                <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1"  IsEnabled="{Binding ReadVoltage}"
+                <Label Content="{Binding GenAmpDescript, Mode=OneWay}" ContentStringFormat="Start {0}" Grid.Column="0" Grid.Row="1"   />
+                <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1" 
                             Text="{Binding StartVoltage}" ItemsSource="{Binding GenVoltages}" />
-                <Label Content="V" Grid.Column="2" Grid.Row="1"   />
-                <Label Content="End Voltage" Grid.Column="0" Grid.Row="2"   />
-                <ComboBox IsEditable="True" Grid.Row="2" Grid.Column="1"  IsEnabled="{Binding ReadVoltage}"
+                <Label Content="{Binding GenAmpUnits, Mode=OneWay}" Grid.Column="2" Grid.Row="1"   />
+                <Label Content="{Binding GenAmpDescript, Mode=OneWay}" ContentStringFormat="End {0}" Grid.Column="0" Grid.Row="2"   />
+                <ComboBox IsEditable="True" Grid.Row="2" Grid.Column="1"
                             Text="{Binding EndVoltage}" ItemsSource="{Binding GenVoltages}" />
-                <Label Content="V" Grid.Column="2" Grid.Row="2"   />
-                <Label Content="Start Power" Grid.Column="0" Grid.Row="3"   />
-                <ComboBox IsEditable="True" Grid.Row="3" Grid.Column="1"  IsEnabled="{Binding ReadPower}"
-                            Text="{Binding StartPower}" ItemsSource="{Binding GenPowers}" />
-                <Label Content="W" Grid.Column="2" Grid.Row="3"   />
-                <Label Content="End Power" Grid.Column="0" Grid.Row="4"   />
-                <ComboBox IsEditable="True" Grid.Row="4" Grid.Column="1"  IsEnabled="{Binding ReadPower}"
-                            Text="{Binding EndPower}" ItemsSource="{Binding GenPowers}" />
-                <Label Content="W" Grid.Column="2" Grid.Row="4"   />
+                <Label Content="{Binding GenAmpUnits, Mode=OneWay}" Grid.Column="2" Grid.Row="2"   />
                 <Label Content="Amplifier Load" Grid.Column="0" Grid.Row="5"  />
-                <TextBox x:Name="ZReference" Text="{Binding ReferenceImpedance}" Grid.Column="1"  Grid.Row="5" VerticalAlignment="Center"  />
+                <ComboBox x:Name="AmpLoad" IsEditable="True" Grid.Row="5" Grid.Column="1" MinWidth="80" Text="{Binding AmplifierLoad}" 
+                      ItemsSource="{Binding Impedances}" />
                 <Label Content="Ohm" Grid.Column="3" Grid.Row="5"  />
             </Grid>
 

@@ -19,16 +19,16 @@
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Label Content="Reference Impedance: " Grid.Row="0" Grid.Column="0" />
-        <ComboBox IsEditable="True" Grid.Row="0" Grid.Column="1" MinWidth="80" SelectedValue="{Binding ReferenceImpedance}" 
+        <Label Content="Amplifier Load: " Grid.Row="0" Grid.Column="0" />
+        <ComboBox IsEditable="True" Grid.Row="0" Grid.Column="1" MinWidth="80" Text="{Binding AmplifierLoad}" 
                   ItemsSource="{Binding Impedances}" />
         <Label Content="Ohms" Grid.Row="0" Grid.Column="2" />
+        <Label Content="The amplifier load is used to convert power to voltage for all tests." Grid.Row="0" Grid.Column="4" />
     </Grid>
 </UserControl>

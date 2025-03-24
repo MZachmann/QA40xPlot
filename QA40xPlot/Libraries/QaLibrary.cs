@@ -4,6 +4,7 @@ using ScottPlot;
 using QA40xPlot.Data;
 using QA40xPlot.Views;
 using System.Windows;
+using System.Runtime.InteropServices;
 
 namespace QA40xPlot.Libraries
 {

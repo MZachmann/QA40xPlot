@@ -187,19 +187,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowPercent, value);
 		}
 
-		private bool _ShowLeft;
-		public bool ShowLeft
-		{
-			get => _ShowLeft;
-			set => SetProperty(ref _ShowLeft, value);
-		}
-
-		private bool _ShowRight;
-		public bool ShowRight
-		{
-			get => _ShowRight;
-			set => SetProperty(ref _ShowRight, value);
-		}
 		private bool _ShowTHD;
 		public bool ShowTHD
 		{
@@ -285,24 +272,6 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _ToShowdB;
 			set => SetProperty(ref _ToShowdB, value);
-		}
-		private bool _ReadVoltage;
-		public bool ReadVoltage
-		{
-			get => _ReadVoltage;
-			set => SetProperty(ref _ReadVoltage, value);
-		}
-		private bool _ReadOutPower;
-		public bool ReadOutPower
-		{
-			get => _ReadOutPower;
-			set => SetProperty(ref _ReadOutPower, value);
-		}
-		private bool _ReadOutVoltage;
-		public bool ReadOutVoltage
-		{
-			get => _ReadOutVoltage;
-			set => SetProperty(ref _ReadOutVoltage, value);
 		}
 		private bool _UseGenerator;
 		public bool UseGenerator
@@ -561,9 +530,6 @@ namespace QA40xPlot.ViewModels
 			ShowMarkers = false;
 			ShowPowerMarkers = false;
 
-			ReadVoltage = true;
-			ReadOutPower = true;
-			ReadOutVoltage = true;
 			Gen1Voltage = "0.1";
 			Gen2Voltage = "0.1";
 			Gen2Frequency = "20000";

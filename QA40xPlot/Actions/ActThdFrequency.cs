@@ -50,27 +50,6 @@ namespace QA40xPlot.Actions
             UpdateGraph(true);
         }
 
-        /// <summary>
-        /// Generator type changed
-        /// </summary>
-        public void UpdateGeneratorParameters()
-        {
-            var vm = ViewSettings.Singleton.ThdFreq;
-            var tt = vm.ToDirection(vm.GenDirection);
-            switch (tt)
-            {
-                case E_GeneratorDirection.INPUT_VOLTAGE: // Input voltage
-				case E_GeneratorDirection.OUTPUT_VOLTAGE: // Output voltage
-					vm.ReadVoltage = true;
-                    vm.ReadPower = false;
-                    break;
-                case E_GeneratorDirection.OUTPUT_POWER: // Output power
-                    vm.ReadVoltage = false;
-                    vm.ReadPower = true;
-                    break;
-            }
-        }
-
         public void DoCancel()
         {
             ct.Cancel();
@@ -345,9 +324,9 @@ namespace QA40xPlot.Actions
                     QaLibrary.PlotMiniTimeGraph(timePlot, lrfs.TimeRslt, step.FundamentalFrequency, thd.LeftChannel && thd.ShowLeft, thd.RightChannel && thd.ShowRight);
 
                     step.Left = ChannelCalculations(binSize, step.FundamentalFrequency, amplitudeSetpointdBV, 
-                        lrfs.FreqRslt.Left, MeasurementResult.NoiseFloor?.FreqRslt?.Left, ViewSettings.ReferenceImpedance);
+                        lrfs.FreqRslt.Left, MeasurementResult.NoiseFloor?.FreqRslt?.Left, ViewSettings.AmplifierLoad);
                     step.Right = ChannelCalculations(binSize, step.FundamentalFrequency, amplitudeSetpointdBV, 
-                        lrfs.FreqRslt.Right, MeasurementResult.NoiseFloor?.FreqRslt?.Right, ViewSettings.ReferenceImpedance);
+                        lrfs.FreqRslt.Right, MeasurementResult.NoiseFloor?.FreqRslt?.Right, ViewSettings.AmplifierLoad);
 
                     // Add step data to list
                     MeasurementResult.FrequencySteps.Add(step);

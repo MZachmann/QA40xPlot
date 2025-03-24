@@ -140,19 +140,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowPercent, value);
 		}
 
-		private bool _ShowLeft;
-		public bool ShowLeft
-		{
-			get => _ShowLeft;
-			set => SetProperty(ref _ShowLeft, value);
-		}
-
-		private bool _ShowRight;
-		public bool ShowRight
-		{
-			get => _ShowRight;
-			set => SetProperty(ref _ShowRight, value);
-		}
 		private bool _ShowTHD;
 		public bool ShowTHD
 		{
@@ -239,20 +226,6 @@ namespace QA40xPlot.ViewModels
 			get => _ToShowdB;
 			set => SetProperty(ref _ToShowdB, value);
 		}
-		private bool _ReadVoltage;
-		[JsonIgnore]
-		public bool ReadVoltage
-		{
-			get => _ReadVoltage;
-			set => SetProperty(ref _ReadVoltage, value);
-		}
-		private bool _ReadPower;
-		[JsonIgnore]
-		public bool ReadPower
-		{
-			get => _ReadPower;
-			set => SetProperty(ref _ReadPower, value);
-		}
 		#endregion
 
 		private static void StartIt()
@@ -277,7 +250,7 @@ namespace QA40xPlot.ViewModels
 				case "OutPower":
 				case "GenDirection":
 				case "VoltageUnits":
-					actThd?.UpdateGeneratorParameters();
+					//actThd?.UpdateGeneratorParameters();
 					break;
 				case "ShowPercent":
 					ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
@@ -455,9 +428,6 @@ namespace QA40xPlot.ViewModels
 			InputRange = 0;
 			RangeTopdB = "20";
 			RangeBottomdB = "-180";
-
-			ReadVoltage = true;
-			ReadPower = false;
 
 			GenVoltage = "0.10";
 

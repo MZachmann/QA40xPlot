@@ -83,22 +83,6 @@ namespace QA40xPlot.ViewModels
 			get => _Averages; set => SetProperty(ref _Averages, value);
 		}
 
-		private bool _ReadVoltage;
-		[JsonIgnore]
-		public bool ReadVoltage
-		{
-			get => _ReadVoltage;
-			set => SetProperty(ref _ReadVoltage, value);
-		}
-
-		private bool _ReadPower;
-		[JsonIgnore]
-		public bool ReadPower
-		{
-			get => _ReadPower;
-			set => SetProperty(ref _ReadPower, value);
-		}
-
 		private string _rangeTop = string.Empty;
 		public string RangeTop
 		{
@@ -147,19 +131,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowPercent, value);
 		}
 
-		private bool _ShowLeft;
-		public bool ShowLeft
-		{
-			get => _ShowLeft;
-			set => SetProperty(ref _ShowLeft, value);
-		}
-
-		private bool _ShowRight;
-		public bool ShowRight
-		{
-			get => _ShowRight;
-			set => SetProperty(ref _ShowRight, value);
-		}
 		private bool _ShowTHD;
 		public bool ShowTHD
 		{
@@ -242,33 +213,13 @@ namespace QA40xPlot.ViewModels
 		}
 		#endregion
 
-		/// <summary>
-		/// Generator type changed
-		/// </summary>
-		private void UpdateGeneratorParameters()
-		{
-			var tt = ToDirection(base.GenDirection);
-			switch (tt)
-			{
-				case E_GeneratorDirection.INPUT_VOLTAGE: // Input voltage
-				case E_GeneratorDirection.OUTPUT_VOLTAGE: // Output voltage
-					ReadVoltage = true;
-					ReadPower = false;
-					break;
-				case E_GeneratorDirection.OUTPUT_POWER: // Output power
-					ReadVoltage = false;
-					ReadPower = true;
-					break;
-			}
-		}
-
 		// the property change is used to trigger repaints of the graph
 		private void CheckPropertyChanged(object? sender, PropertyChangedEventArgs e)
 		{
 			switch (e.PropertyName)
 			{
 				case "GenDirection":
-					UpdateGeneratorParameters();
+					//UpdateGeneratorParameters();
 					actThd?.UpdateGraph(true);
 					break;
 				case "StartVoltage":
@@ -433,9 +384,6 @@ namespace QA40xPlot.ViewModels
 			GraphEndVolts = "10";
 			StepsOctave = 1;
 			Averages = 3;
-
-			ReadVoltage = true;
-			ReadPower = false;
 
 			RangeTop = "1";             // when graphing percents distortion this is logarithmic 0.01....
 			RangeBottom = "0.001";

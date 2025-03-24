@@ -68,7 +68,7 @@ namespace QA40xPlot.ViewModels
 		}
 
 		[JsonIgnore]
-		public static double ReferenceImpedance { get => MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.ReferenceImpedance, 0); }
+		public static double AmplifierLoad { get => MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.AmplifierLoad, 0); }
 
 		public void GetSettingsFrom( Dictionary<string, Dictionary<string,object>> vws)
 		{

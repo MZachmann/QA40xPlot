@@ -1,6 +1,5 @@
 ﻿using QA40xPlot.Actions;
 using QA40xPlot.Data;
-using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using QA40xPlot.Views;
 using System.Windows;
@@ -8,7 +7,7 @@ using System.ComponentModel;
 using Newtonsoft.Json;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
-using System.Windows.Navigation;
+
 
 public class FreqRespViewModel : BaseViewModel
 {
@@ -25,8 +24,13 @@ public class FreqRespViewModel : BaseViewModel
 	[JsonIgnore]
 	public RelayCommand ToggleGenerator { get => new RelayCommand(StopIt); }
 
-
 	#region Setters and Getters
+	private string _ZReference = string.Empty;
+	public string ZReference
+	{
+		get => _ZReference;
+		set => SetProperty(ref _ZReference, value);
+	}
 
 	private string _GraphUnit = string.Empty;
 	[JsonIgnore]
@@ -162,20 +166,6 @@ public class FreqRespViewModel : BaseViewModel
 	{
 		get => _ShowPercent;
 		set => SetProperty(ref _ShowPercent, value);
-	}
-
-	private bool _ShowLeft;
-	public bool ShowLeft
-	{
-		get => _ShowLeft;
-		set => SetProperty(ref _ShowLeft, value);
-	}
-
-	private bool _ShowRight;
-	public bool ShowRight
-	{
-		get => _ShowRight;
-		set => SetProperty(ref _ShowRight, value);
 	}
 
 	private string _SampleRate = string.Empty;

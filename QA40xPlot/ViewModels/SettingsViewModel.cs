@@ -10,13 +10,13 @@ namespace QA40xPlot.ViewModels
 	public class SettingsViewModel : BaseViewModel
 	{
 		#region setters and getters
-		private string _ReferenceImpedance = string.Empty;
-		public string ReferenceImpedance
+		private string _AmplifierLoad = string.Empty;
+		public string AmplifierLoad
 		{
-			get { return _ReferenceImpedance; }
+			get { return _AmplifierLoad; }
 			set
 			{
-				SetProperty(ref _ReferenceImpedance, value);
+				SetProperty(ref _AmplifierLoad, value);
 			}
 		}
 		#endregion
@@ -24,7 +24,7 @@ namespace QA40xPlot.ViewModels
 
 		public SettingsViewModel() 
 		{
-			this.ReferenceImpedance = "10";
+			this.AmplifierLoad = "10";
 		}
 	}
 }

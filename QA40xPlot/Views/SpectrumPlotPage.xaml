@@ -123,10 +123,10 @@
                 <ComboBox x:Name="cbFreq" Grid.Column="1" Grid.Row="1" VerticalAlignment="Center"  
                                IsEditable="True" Text="{Binding Gen1Frequency}" ItemsSource="{Binding GenFrequencies}" MinWidth="80"/>
                 <Label Content="Hz" Grid.Row="1" Grid.Column="2" />
-                <Label Content="_Voltage" Grid.Row="2" Grid.Column="0" Target="{Binding ElementName=cbVolt}"  />
-                <ComboBox x:Name="cbVolt" IsEditable="True" Grid.Column="1" Grid.Row="2" VerticalAlignment="Center"  
-                              Text="{Binding Gen1Voltage}" ItemsSource="{Binding GenVoltages}"/>
-                <Label Content="V" Grid.Row="2" Grid.Column="2" />
+                <Label Content="{Binding GenAmpDescript, Mode=OneWay}" Grid.Row="2" Grid.Column="0"  />
+                <ComboBox x:Name="cbVolt" Grid.Column="1" Grid.Row="2" VerticalAlignment="Center"  
+                              IsEditable="True" Text="{Binding Gen1Voltage}" ItemsSource="{Binding GenVoltages}"/>
+                <Label Content="{Binding GenAmpUnits, Mode=OneWay}" Grid.Row="2" Grid.Column="2" />
             </Grid>
 
             <views:GroupHeader Header="Sampling" />

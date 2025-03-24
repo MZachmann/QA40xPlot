@@ -172,19 +172,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowPercent, value);
 		}
 
-		private bool _ShowLeft;
-		public bool ShowLeft
-		{
-			get => _ShowLeft;
-			set => SetProperty(ref _ShowLeft, value);
-		}
-
-		private bool _ShowRight;
-		public bool ShowRight
-		{
-			get => _ShowRight;
-			set => SetProperty(ref _ShowRight, value);
-		}
 		private bool _ShowTHD;
 		public bool ShowTHD
 		{
