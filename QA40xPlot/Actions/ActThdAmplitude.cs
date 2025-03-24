@@ -140,7 +140,8 @@ namespace QA40xPlot.Actions
 				CreateDate = DateTime.Now,
 				Show = true,                       // Show in graph
 			};
-			var thdAmp = MeasurementResult.MeasurementSettings;
+			var msr = MeasurementResult.MeasurementSettings;
+			var thdaVm = ViewSettings.Singleton.ThdAmp;
 
 			// For now clear measurements to allow only one until we have a UI to manage them.
 			Data.Measurements.Clear();
@@ -152,113 +153,82 @@ namespace QA40xPlot.Actions
 			QaLibrary.InitMiniFftPlot(fftPlot, 10, 100000, -150, 20);
 			QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -1, 1);
 
-			if (true != await QaLibrary.InitializeDevice(thdAmp.SampleRate, thdAmp.FftSize, thdAmp.WindowingMethod, QaLibrary.DEVICE_MAX_ATTENUATION, true))
-			{
-				return false;
-			}
+			double testFreq = MathUtil.ToDouble(msr.TestFreq, 1000);
+			double testFrequency = QaLibrary.GetNearestBinFrequency(testFreq, msr.SampleRate, msr.FftSize);
+
+			await showMessage("Calculating attenuation");
+			LRGains = await DetermineGainAtFreq(testFrequency, true, 2);
 
 			// ********************************************************************
 			// Determine attenuation level
 			// ********************************************************************
-			double startAmpl = QaLibrary.ConvertVoltage(MathUtil.ToDouble(thdAmp.StartVoltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-			double endAmpl = QaLibrary.ConvertVoltage(MathUtil.ToDouble(thdAmp.EndVoltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-			double generatorAmplitudedBV = Math.Max(startAmpl, endAmpl);	// use the largest amplitude
-			await showMessage($"Determining the best input attenuation for a generator voltage of {generatorAmplitudedBV:0.00#} dBV.");
-
-			double testFrequency = QaLibrary.GetNearestBinFrequency(MathUtil.ToDouble(thdAmp.TestFreq, 10), thdAmp.SampleRate, thdAmp.FftSize);
-			// Determine correct input attenuation
-			var attenuation = 42;
-			{
-				// check for allowed attenuation
-				var result = await QaLibrary.DetermineAttenuationWithChirp(generatorAmplitudedBV, attenuation, ct);
-				if (ct.IsCancellationRequested)
-					return false;
-				QaLibrary.PlotMiniFftGraph(fftPlot, result.Item3.FreqRslt, thdAmp.ShowLeft, thdAmp.ShowRight);
-				QaLibrary.PlotMiniTimeGraph(timePlot, result.Item3.TimeRslt, testFrequency, thdAmp.ShowLeft, thdAmp.ShowRight, true);
-				// var prevInputAmplitudedBV = result.Item2; // maximum reading
-				// Set attenuation
-				attenuation = result.Item1;
-				await showMessage($"Found correct input attenuation of {result.Item1:0.00#} dBV for an input of {result.Item2:0.00#} dBV.", 500);
-			}
-			await Qa40x.SetInputRange(attenuation);
+			// input voltages
+			double startInV = thdaVm.ToGenVoltage(msr.StartVoltage, testFreq, true, LRGains);
+			double endInV = thdaVm.ToGenVoltage(msr.EndVoltage, testFreq, true, LRGains);
+			// output voltages
+			double startOutV = thdaVm.ToGenVoltage(msr.StartVoltage, testFreq, false, LRGains);
+			double endOutV = thdaVm.ToGenVoltage(msr.EndVoltage, testFreq, false, LRGains);
 
 			if (ct.IsCancellationRequested)
 				return false;
 
 			// ********************************************************************
-			// Generate a list of voltages evenly spaced in log scale
+			// Generate a list of output voltages evenly spaced in log scale
 			// ********************************************************************
-			double[] stepVoltages;
-			{
-				var startAmplitudeV = QaLibrary.ConvertVoltage(startAmpl, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
-				var prevGeneratorVoltagedBV = startAmpl;
-				var endAmplitudeV = QaLibrary.ConvertVoltage(endAmpl, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
-				stepVoltages = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(startAmplitudeV, endAmplitudeV, thdAmp.StepsOctave);
-			}
+			var stepOutVoltages = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(startOutV, endOutV, msr.StepsOctave);
+			var stepInVoltages = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(startInV, endInV, msr.StepsOctave);
 
 			// ********************************************************************
 			// Do noise floor measurement
 			// ********************************************************************
+			if (true != await QaLibrary.InitializeDevice(msr.SampleRate, msr.FftSize, msr.WindowingMethod, 12, false))
+			{
+				return false;
+			}
 			await showMessage($"Determining noise floor.");
 			await Qa40x.SetOutputSource(OutputSources.Off);
-			MeasurementResult.NoiseFloor = await QaLibrary.DoAcquisitions(thdAmp.Averages, ct);
+			MeasurementResult.NoiseFloor = await QaLibrary.DoAcquisitions(msr.Averages, ct);
 			if (ct.IsCancellationRequested || MeasurementResult.NoiseFloor == null)
 				return false;
-			QaLibrary.PlotMiniFftGraph(fftPlot, MeasurementResult.NoiseFloor.FreqRslt, thdAmp.ShowLeft, thdAmp.ShowRight);
-			QaLibrary.PlotMiniTimeGraph(timePlot, MeasurementResult.NoiseFloor.TimeRslt, testFrequency, thdAmp.ShowLeft, thdAmp.ShowRight);
+			QaLibrary.PlotMiniFftGraph(fftPlot, MeasurementResult.NoiseFloor.FreqRslt, msr.ShowLeft, msr.ShowRight);
+			QaLibrary.PlotMiniTimeGraph(timePlot, MeasurementResult.NoiseFloor.TimeRslt, testFrequency, msr.ShowLeft, msr.ShowRight);
 
-			var binSize = QaLibrary.CalcBinSize(thdAmp.SampleRate, thdAmp.FftSize);
+			var binSize = QaLibrary.CalcBinSize(msr.SampleRate, msr.FftSize);
 			uint fundamentalBin = QaLibrary.GetBinOfFrequency(testFrequency, binSize);
 			await Qa40x.SetOutputSource(OutputSources.Sine);                // We need to call this before all the testing
 
 			// ********************************************************************
 			// Step through the list of voltages
 			// ********************************************************************
-			for (int i = 0; i < stepVoltages.Length; i++)
+			for (int i = 0; i < stepInVoltages.Length; i++)
 			{
-				await showMessage($"Measuring step {i + 1} of {stepVoltages.Length}.");
-				await showProgress(100 * (i + 1) / (stepVoltages.Length));
+				var voutdbv = QaLibrary.ConvertVoltage(stepOutVoltages[i], E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+				var attenuate = QaLibrary.DetermineAttenuation(voutdbv);
+				await showMessage($"Measuring step {i + 1} at {stepInVoltages[i]:0.###}V with attenuation {attenuate}.");
+				await showProgress(100 * (i + 1) / (stepInVoltages.Length));
 
 				// Convert generator voltage from V to dBV
-				var generatorVoltageV = stepVoltages[i];
+				var generatorVoltageV = stepInVoltages[i];
 				var generatorVoltagedBV = QaLibrary.ConvertVoltage(generatorVoltageV, E_VoltageUnit.Volt, E_VoltageUnit.dBV);   // Convert to dBV
 
 				// Set generator
 				await Qa40x.SetGen1(testFrequency, generatorVoltagedBV, true);      // Set the generator in dBV
+				await Qa40x.SetInputRange(attenuate);
+				thdaVm.Attenuation = attenuate;
 
 				LeftRightSeries? lrfs = null;
 				do
 				{
 					try
 					{
-						lrfs = await QaLibrary.DoAcquisitions(thdAmp.Averages, ct);  // Do acquisitions
+						await QaLibrary.DoAcquisitions(1, ct);  // this just lets it settle...
+						lrfs = await QaLibrary.DoAcquisitions(msr.Averages, ct);  // Do acquisitions
 					}
 					catch (HttpRequestException ex)
 					{
 						if (ex.Message.Contains("400 (Acquisition Overload)"))
 						{
-							// Detected overload. Increase attenuation to next step.
-							var newAttenuation = 6 + attenuation;
-							if (newAttenuation > 42)
-							{
-								MessageBox.Show($"Maximum attenuation reached.\nMeasurements are stopped", "Maximum attenuation reached", MessageBoxButton.OK, MessageBoxImage.Information);
-								await Qa40x.SetOutputSource(OutputSources.Off);
-								return false;
-							}
-							attenuation = newAttenuation;
-							await Qa40x.SetInputRange(attenuation);
-
-							if (attenuation == 24)
-							{
-								// Attenuation changed. Get new noise floor
-								await showMessage($"Attenuation changed. Measuring new noise floor.");
-								await Qa40x.SetOutputSource(OutputSources.Off);
-								MeasurementResult.NoiseFloor = await QaLibrary.DoAcquisitions(thdAmp.Averages, ct);
-								if (ct.IsCancellationRequested)
-									return false;
-
-								await Qa40x.SetOutputSource(OutputSources.Sine);
-							}
+							await showMessage(ex.Message.ToString());
 						}
 					}
 					if (ct.IsCancellationRequested)
@@ -280,8 +250,8 @@ namespace QA40xPlot.Actions
 				};
 
 				// Plot the mini graphs
-				QaLibrary.PlotMiniFftGraph(fftPlot, lrfs.FreqRslt, thdAmp.ShowLeft, thdAmp.ShowRight);
-				QaLibrary.PlotMiniTimeGraph(timePlot, lrfs.TimeRslt, step.FundamentalFrequency, thdAmp.ShowLeft, thdAmp.ShowRight);
+				QaLibrary.PlotMiniFftGraph(fftPlot, lrfs.FreqRslt, msr.ShowLeft, msr.ShowRight);
+				QaLibrary.PlotMiniTimeGraph(timePlot, lrfs.TimeRslt, step.FundamentalFrequency, msr.ShowLeft, msr.ShowRight);
 
 				// Check if cancel button pressed
 				if (ct.IsCancellationRequested)
@@ -309,9 +279,9 @@ namespace QA40xPlot.Actions
 				// Get maximum signal for attenuation prediction of next step
 				//prevInputAmplitudedBV = 20 * Math.Log10(lrfs.FreqRslt.Left.Max());
 				//prevInputAmplitudedBV = Math.Max(prevInputAmplitudedBV, 20 * Math.Log10(lrfs.FreqRslt.Left.Max()));
-				if (!thdAmp.IsTracking)
+				if (!msr.IsTracking)
 				{
-					thdAmp.RaiseMouseTracked("track");
+					msr.RaiseMouseTracked("track");
 				}
 
 			}
@@ -411,7 +381,7 @@ namespace QA40xPlot.Actions
 		{
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;
 			var thdAmp = ViewSettings.Singleton.ThdAmp;
-			var tt = thdAmp.ToDirection(thdAmp.GenDirection);
+			var tt = BaseViewModel.ToDirection(thdAmp.GenDirection);
 			if (tt == E_GeneratorDirection.INPUT_VOLTAGE)
 			{
 				myPlot.XLabel("Input voltage (Vrms)");

@@ -183,7 +183,7 @@ namespace QA40xPlot.Actions
                 Show = true,                                      // Show in graph
 			};
             var frqrsVm = ViewSettings.Singleton.FreqRespVm;
-            var mrs = MeasurementResult.MeasurementSettings;
+            var msr = MeasurementResult.MeasurementSettings;
 
 			// ********************************************************************
 			// Check connection
@@ -192,25 +192,20 @@ namespace QA40xPlot.Actions
 
 			// ********************************************************************
 			// Setup the device
-			var sampleRate = MathUtil.ToUint(mrs.SampleRate);
-			if (sampleRate == 0 || !FreqRespViewModel.FftSizes.Contains(mrs.FftSize))
+			var sampleRate = MathUtil.ToUint(msr.SampleRate);
+			if (sampleRate == 0 || !FreqRespViewModel.FftSizes.Contains(msr.FftSize))
 			{
 				MessageBox.Show("Invalid settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 				return false;
 			}
-			var fftsize = FreqRespViewModel.FftActualSizes.ElementAt(FreqRespViewModel.FftSizes.IndexOf(mrs.FftSize));
-            if(true != await QaLibrary.InitializeDevice(sampleRate, fftsize, "Hann", QaLibrary.DEVICE_MAX_ATTENUATION, true))
-            {
-                return false; 
-            }
-            await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make it turn on or off
+			var fftsize = FreqRespViewModel.FftActualSizes.ElementAt(FreqRespViewModel.FftSizes.IndexOf(msr.FftSize));
 
 			// ********************************************************************
 			// Calculate frequency steps to do
 			// ********************************************************************
 			var binSize = QaLibrary.CalcBinSize(sampleRate, fftsize);
 			// Generate a list of frequencies
-			var stepFrequencies = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(MathUtil.ToDouble(mrs.StartFreq), MathUtil.ToDouble(mrs.EndFreq), mrs.StepsOctave);
+			var stepFrequencies = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(MathUtil.ToDouble(msr.StartFreq), MathUtil.ToDouble(msr.EndFreq), msr.StepsOctave);
 			// Translate the generated list to bin center frequencies
 			var stepBinFrequencies = QaLibrary.TranslateToBinFrequencies(stepFrequencies, sampleRate, fftsize);
 			stepBinFrequencies = stepBinFrequencies.Where(x => x >= 1 && x <= 95500)                // Filter out values that are out of range 
@@ -218,75 +213,27 @@ namespace QA40xPlot.Actions
 				.Select(y => y.First())
 				.ToArray();
 
+			// calculate gain to autoattenuate
+			frqrsVm.Attenuation = 42; // display on-screen
+			await showMessage("Calculating gain");
+			LRGains = await DetermineGainCurve(true, 1);
+
+			var checkFreq = Math.Sqrt(MathUtil.ToDouble(msr.StartFreq,20) * MathUtil.ToDouble(msr.EndFreq,20000));
+            var genVolt = frqrsVm.ToGenVoltage(msr.Gen1Voltage, checkFreq, true, LRGains);
+            var genv = frqrsVm.ToGenVoltage(msr.Gen1Voltage, 0, false, LRGains);    // output v
+			var vdbv = QaLibrary.ConvertVoltage(genv, E_VoltageUnit.Volt, E_VoltageUnit.dBV);   // out dbv
+			var voltagedBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);  // in dbv
+			var attenuation = QaLibrary.DetermineAttenuation(vdbv);
+            msr.Attenuation = attenuation;
+            frqrsVm.Attenuation = attenuation; // display on-screen
+
+			if (true != await QaLibrary.InitializeDevice(sampleRate, fftsize, "Hann", attenuation, true))
+			{
+				return false;
+			}
+
 			try
-            {
-                // ********************************************************************
-                // Determine input level
-                // ********************************************************************
-                var attenuation = QaLibrary.DEVICE_MAX_ATTENUATION;
-                double genVoltagedBV = -150;
-
-				E_GeneratorDirection etp = frqrsVm.ToDirection(mrs.GenDirection);
-
-				if (etp == E_GeneratorDirection.OUTPUT_VOLTAGE)     // Based on output
-                {
-                    double amplifierOutputVoltagedBV = QaLibrary.ConvertVoltage(MathUtil.ToDouble(mrs.Gen1Voltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-					await showMessage($"Determining generator amplitude to get an output amplitude of {amplifierOutputVoltagedBV:0.00#} dBV.");
-
-                    // Get input voltage based on desired output voltage
-                    attenuation = QaLibrary.DetermineAttenuation(amplifierOutputVoltagedBV);
-                    double startAmplitude = -40;  // We start a measurement with a 10 mV signal.
-                    var result = await QaLibrary.DetermineGenAmplitudeWithChirp(startAmplitude, amplifierOutputVoltagedBV, true, mrs.RightChannel, ct);
-                    if (ct.IsCancellationRequested)
-                        return false;
-                    genVoltagedBV = result.Item1;
-
-                    if (genVoltagedBV == -150)
-                    {
-                        await showMessage($"Could not determine a valid generator amplitude. The amplitude would be {genVoltagedBV:0.00#} dBV.");
-                        return false;
-                    }
-
-                    // Check if cancel button pressed
-                    if (ct.IsCancellationRequested)
-                        return false;
-
-                    // Check if amplitude found within the generator range
-                    if (genVoltagedBV < 18)
-                    {
-                        await showMessage($"Found an input amplitude of {genVoltagedBV:0.00#} dBV. Doing second pass.");
-
-                        // 2nd time for extra accuracy
-                        result = await QaLibrary.DetermineGenAmplitudeWithChirp(genVoltagedBV, amplifierOutputVoltagedBV, true, mrs.RightChannel, ct);
-                        if (ct.IsCancellationRequested)
-                            return false;
-                        genVoltagedBV = result.Item1;
-                        if (genVoltagedBV == -150)
-                        {
-                            await showMessage($"Could not determine a valid generator amplitude. The amplitude would be {genVoltagedBV:0.00#} dBV.");
-                            return false;
-                        }
-                    }
-
-                    await showMessage($"Found an input amplitude of {genVoltagedBV:0.00#} dBV.");
-                }
-                else
-                {
-                    genVoltagedBV = QaLibrary.ConvertVoltage(MathUtil.ToDouble(mrs.Gen1Voltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-					await showMessage($"Determining the best input attenuation for a generator voltage of {genVoltagedBV:0.00#} dBV.");
-
-                    // Determine correct input attenuation
-                    var result = await QaLibrary.DetermineAttenuationWithChirp(genVoltagedBV, QaLibrary.DEVICE_MAX_ATTENUATION, ct);
-                    if (ct.IsCancellationRequested)
-                        return false;
-                    attenuation = result.Item1;
-
-                    await showMessage($"Found correct input attenuation of {attenuation:0} dBV for an amplfier amplitude of {result.Item2:0.00#} dBV.", 500);
-                }
-
-                // Set the new input range
-                await Qa40x.SetInputRange(attenuation);
-
+			{
                 // Check if cancel button pressed
                 if (ct.IsCancellationRequested)
                     return false;
@@ -300,13 +247,12 @@ namespace QA40xPlot.Actions
 				Data.Measurements.Clear();
 				Data.Measurements.Add(MeasurementResult);
 
-                var ttype = frqrsVm.GetTestingType(mrs.TestType);
+                var ttype = frqrsVm.GetTestingType(msr.TestType);
 
 				do
 				{
                     if (ct.IsCancellationRequested)
                         break;
-                    var voltagedBV = 20*Math.Log10(MathUtil.ToDouble(frqrsVm.Gen1Voltage));
                     for( int steps = 0; steps < stepBinFrequencies.Count(); steps++)
                     {
                         if (ct.IsCancellationRequested)
@@ -317,13 +263,13 @@ namespace QA40xPlot.Actions
                         else
 							await Qa40x.SetGen1(1, voltagedBV, false);
 
-                        if( mrs.Averages > 0)
+                        if( msr.Averages > 0)
                         {
 							List<Complex> readings = new();
-							for (int j = 0; j < mrs.Averages; j++)
+							for (int j = 0; j < msr.Averages; j++)
 							{
-								await showMessage(string.Format("Checking + {0:0}.{1}", dfreq, j));   // need a delay to actually see it
-								var ga = await GetGain(dfreq, mrs, ttype);
+								await showMessage(string.Format($"Checking + {dfreq:0} Hz at {genVolt:0.###}V"));   // need a delay to actually see it
+								var ga = await GetGain(dfreq, msr, ttype);
 								readings.Add(ga);
 							}
 							var total = Complex.Zero;
@@ -331,12 +277,12 @@ namespace QA40xPlot.Actions
                             {
                                 total += f;
                             }
-							MeasurementResult.GainData.Add(total / mrs.Averages);
+							MeasurementResult.GainData.Add(total / msr.Averages);
 						}
 						else
                         {
 							await showMessage(string.Format("Checking + {0:0}", dfreq));   // need a delay to actually see it
-							var ga = await GetGain(dfreq, mrs, ttype);
+							var ga = await GetGain(dfreq, msr, ttype);
 							MeasurementResult.GainData.Add(ga);
 						}
                         if(MeasurementResult.FrequencyResponseData.FreqRslt != null)

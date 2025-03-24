@@ -88,6 +88,7 @@ namespace QA40xPlot.Actions
         {
 			// Setup
 			SpectrumViewModel thd = msr.MeasurementSettings;
+			var specVm = ViewSettings.Singleton.SpectrumVm;
 
 			var freq = MathUtil.ToDouble(msr.MeasurementSettings.Gen1Frequency, 0);
 			var sampleRate = MathUtil.ToUint(msr.MeasurementSettings.SampleRate);
@@ -133,7 +134,7 @@ namespace QA40xPlot.Actions
 						return false;
 				}
 
-				var genVolt = thd.ToGenVoltage(msr.MeasurementSettings.Gen1Voltage, freq, true, LRGains) ;
+				var genVolt = specVm.ToGenVoltage(msr.MeasurementSettings.Gen1Voltage, freq, true, LRGains) ;
 				if(genVolt > 5)
 				{
 					await showMessage($"Requesting input voltage of {genVolt} volts, check connection and settings");
@@ -397,14 +398,14 @@ namespace QA40xPlot.Actions
 			double distortionSqrtTotalN = 0;
 			double distortionD6plus = 0;
 
-			// Loop through harmonics up tot the 12th
-			for (int harmonicNumber = 2; harmonicNumber <= 12; harmonicNumber++)                                                  // For now up to 12 harmonics, start at 2nd
+			// Loop through harmonics up tot the 10th
+			for (int harmonicNumber = 2; harmonicNumber <= 10; harmonicNumber++)                                                  // For now up to 12 harmonics, start at 2nd
 			{
 				double harmonicFrequency = step.FundamentalFrequency * harmonicNumber;
 				uint bin = QaLibrary.GetBinOfFrequency(harmonicFrequency, binSize);        // Calculate bin of the harmonic frequency
 
 				if (bin >= ffts.Length)
-					break;                                          // Invalid bin, skip harmonic
+					bin = (uint)Math.Max(0, ffts.Length - 1);             // Invalid bin, skip harmonic
 
 				double amplitude_V = ffts[bin];
 				double noise_V = channelData.TotalNoiseFloor_V;
@@ -654,7 +655,7 @@ namespace QA40xPlot.Actions
 			};
 			Data.Measurements.Clear();
 
-			var genType = specVm.ToDirection(specVm.GenDirection);
+			var genType = BaseViewModel.ToDirection(specVm.GenDirection);
 			var freq = MathUtil.ToDouble(specVm.Gen1Frequency, 1000);
 			// if we're doing adjusting here
 			if (specVm.DoAutoAttn || genType != E_GeneratorDirection.INPUT_VOLTAGE)
@@ -690,7 +691,7 @@ namespace QA40xPlot.Actions
 					{
 						msrSet.Gen1Frequency = specVm.Gen1Frequency;
 						msrSet.GenDirection = specVm.GenDirection;
-						var genoType = specVm.ToDirection(msrSet.GenDirection);
+						var genoType = BaseViewModel.ToDirection(msrSet.GenDirection);
 						if (LRGains != null && genoType == E_GeneratorDirection.OUTPUT_VOLTAGE)
 							LRGains = await DetermineGainAtFreq(MathUtil.ToDouble(msrSet.Gen1Frequency, 1), false, 1);
 					}

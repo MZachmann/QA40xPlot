@@ -164,7 +164,7 @@ namespace QA40xPlot.ViewModels
 		/// </summary>
 		/// <param name="direction"></param>
 		/// <returns></returns>
-		public E_GeneratorDirection ToDirection(string  direction)
+		public static E_GeneratorDirection ToDirection(string  direction)
 		{
 			var u = MeasureVoltsFull.IndexOf(direction);
 			if (u == -1)
@@ -209,25 +209,40 @@ namespace QA40xPlot.ViewModels
 			var vtest = MathUtil.ToDouble(amplitude, 4321);
 			if (vtest == 4321)
 				return 1e-5;
+			if (lrGains == null || (genType == E_GeneratorDirection.INPUT_VOLTAGE && isInput))
+			{
+				return vtest;
+			}
+			var maxGain = Math.Max(lrGains.Left.Max(), lrGains.Right.Max());
+			if(frequency > 0 && lrGains.Left.Length > 1)
+			{
+				// get screen coords for some of the data
+				int abin = (int)(frequency / lrGains.Df);       // apporoximate bin
+				var binmin = Math.Max(1, abin - 5);            // random....
+				var binmax = Math.Min(lrGains.Left.Length - 1, abin + 5);           // random....
+				var maxg = lrGains.Left.Skip(binmin).Take(binmax - binmin).Max();
+				maxGain = Math.Max(maxg, lrGains.Right.Skip(binmin).Take(binmax - binmin).Max());
+			}
 			switch (genType)
 			{
 				case E_GeneratorDirection.INPUT_VOLTAGE:
 					if (lrGains != null && !isInput)
 					{
-						vtest *= Math.Max(lrGains.Left.Max(), lrGains.Right.Max()); // max expected DUT output voltage
+						vtest *= maxGain; // max expected DUT output voltage
 					}
 					break;
 				case E_GeneratorDirection.OUTPUT_VOLTAGE:
 					if (lrGains != null && isInput)
-						vtest /= Math.Max(lrGains.Left.Max(), lrGains.Right.Max()); // expected QA40x generator voltage
+						vtest /= maxGain; // expected QA40x generator voltage
 					break;
 				case E_GeneratorDirection.OUTPUT_POWER:
 					// now vtest is actually power setting... so convert to voltage
 					vtest = Math.Sqrt(vtest * ViewSettings.AmplifierLoad);  // so sqrt(power * load) = output volts
 					if (lrGains != null && isInput)
-						vtest /= Math.Max(lrGains.Left.Max(), lrGains.Right.Max()); // expected QA40x generator voltage
+						vtest /= maxGain; // expected QA40x generator voltage
 					break;
 			}
+
 			return vtest;
 		}
 

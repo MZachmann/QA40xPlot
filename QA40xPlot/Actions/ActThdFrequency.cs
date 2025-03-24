@@ -1,4 +1,5 @@
-﻿using QA40xPlot.Data;
+﻿using FftSharp;
+using QA40xPlot.Data;
 
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
@@ -6,6 +7,7 @@ using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
 using System.Windows;
+using System.Windows.Interop;
 
 
 // various things for the thd vs frequency activity
@@ -165,7 +167,8 @@ namespace QA40xPlot.Actions
                 CreateDate = DateTime.Now,
                 Show = true,                                      // Show in graph
             };
-            var thd = MeasurementResult.MeasurementSettings;
+            var msr = MeasurementResult.MeasurementSettings;
+            var thdfVm = ViewSettings.Singleton.ThdFreq;
 
             // For now clear measurements to allow only one until we have a UI to manage them.
             Data.Measurements.Clear();
@@ -174,91 +177,30 @@ namespace QA40xPlot.Actions
             Data.Measurements.Add(MeasurementResult);
 
             // Init mini plots
-            QaLibrary.InitMiniFftPlot(fftPlot, MathUtil.ToDouble(thd.StartFreq, 10),
-                MathUtil.ToDouble(thd.EndFreq, 20000), -150, 20);
+            QaLibrary.InitMiniFftPlot(fftPlot, MathUtil.ToDouble(msr.StartFreq, 10),
+                MathUtil.ToDouble(msr.EndFreq, 20000), -150, 20);
             QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -1, 1);
 
-			if (true != await QaLibrary.InitializeDevice(thd.SampleRate, thd.FftSize, thd.WindowingMethod, QaLibrary.DEVICE_MAX_ATTENUATION, true))
-			{
-				return false;
-			}
+			// ********************************************************************
+			// Determine input level
+			// ********************************************************************
+			LRGains = await DetermineGainCurve(true, 1);   // read the gain curve
+            var genVolt = thdfVm.ToGenVoltage(msr.GenVoltage, 0, true, LRGains);   // input voltage for request
 
             try
             {
-                // ********************************************************************
-                // Determine input level
-                // ********************************************************************
-                double testFrequency = QaLibrary.GetNearestBinFrequency(1000, thd.SampleRate, thd.FftSize);
-                E_GeneratorDirection etp = thd.ToDirection(thd.GenDirection);
-                if (etp == E_GeneratorDirection.OUTPUT_VOLTAGE || etp == E_GeneratorDirection.OUTPUT_POWER)     // Based on output
-                {
-                    double amplifierOutputVoltagedBV = QaLibrary.ConvertVoltage(MathUtil.ToDouble(thd.OutVoltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-                    if (etp == E_GeneratorDirection.OUTPUT_VOLTAGE)
-                        await showMessage($"Determining generator amplitude to get an output amplitude of {amplifierOutputVoltagedBV:0.00#} dBV.");
-                    else
-                        await showMessage($"Determining generator amplitude to get an output power of {thd.OutPower} W.");
+				// ********************************************************************
+				// Determine input level
+				// ********************************************************************
+				var genOut = thdfVm.ToGenVoltage(msr.GenVoltage, 0, false, LRGains);   // output voltage for request
+                double amplifierOutputVoltagedBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
-                    // Get input voltage based on desired output voltage
-                    thd.InputRange = QaLibrary.DetermineAttenuation(amplifierOutputVoltagedBV);
-                    double startAmplitude = -40;  // We start a measurement with a 10 mV signal.
-                    var result = await QaLibrary.DetermineGenAmplitudeWithChirp(startAmplitude, amplifierOutputVoltagedBV, thd.LeftChannel, thd.RightChannel, ct);
-                    if (ct.IsCancellationRequested)
-                        return false;
-                    var generatorAmp = result.Item1;
-                    QaLibrary.PlotMiniFftGraph(fftPlot, result.Item2?.FreqRslt, thd.LeftChannel && thd.ShowLeft, thd.RightChannel && thd.ShowRight);                                             // Plot fft data in mini graph
-                    QaLibrary.PlotMiniTimeGraph(timePlot, result.Item2?.TimeRslt, testFrequency, thd.LeftChannel && thd.ShowLeft, thd.RightChannel && thd.ShowRight, true);                                      // Plot time data in mini graph
-                    if (generatorAmp == -150)
-                    {
-                        await showMessage($"Could not determine a valid generator amplitude. The amplitude would be {generatorAmp:0.00#} dBV.");
-                        return false;
-                    }
-
-                    // Check if cancel button pressed
-                    if (ct.IsCancellationRequested)
-                        return false;
-
-                    // Check if amplitude found within the generator range
-                    if (generatorAmp < 18)
-                    {
-                        await showMessage($"Found an input amplitude of {generatorAmp:0.00#} dBV. Doing second pass.");
-
-                        // 2nd time for extra accuracy
-                        result = await QaLibrary.DetermineGenAmplitudeWithChirp(generatorAmp, amplifierOutputVoltagedBV, thd.LeftChannel, thd.RightChannel, ct);
-                        if (ct.IsCancellationRequested)
-                            return false;
-						generatorAmp = result.Item1;
-                        QaLibrary.PlotMiniFftGraph(fftPlot, result.Item2?.FreqRslt, thd.LeftChannel && thd.ShowLeft, thd.RightChannel && thd.ShowRight);                                             // Plot fft data in mini graph
-                        QaLibrary.PlotMiniTimeGraph(timePlot, result.Item2?.TimeRslt, testFrequency, thd.LeftChannel && thd.ShowLeft, thd.RightChannel && thd.ShowRight, true);                                      // Plot time data in mini graph
-                        if (generatorAmp == -150)
-                        {
-                            await showMessage($"Could not determine a valid generator amplitude. The amplitude would be {generatorAmp:0.00#} dBV.");
-                            return false;
-                        }
-                    }
-
-					thd.GenVoltage = QaLibrary.ConvertVoltage( generatorAmp, E_VoltageUnit.dBV, E_VoltageUnit.Volt).ToString();
-					//UpdateGeneratorVoltageDisplay();
-
-					await showMessage($"Found an input amplitude of {generatorAmp:0.00#} dBV.");
-                }
-                else if (etp == E_GeneratorDirection.INPUT_VOLTAGE)                         // Based on input voltage
-                {
-                    double genVoltagedBV = QaLibrary.ConvertVoltage(MathUtil.ToDouble(thd.GenVoltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-                    await showMessage($"Determining the best input attenuation for a generator voltage of {genVoltagedBV:0.00#} dBV.");
-
-                    // Determine correct input attenuation
-                    var result = await QaLibrary.DetermineAttenuationWithChirp(genVoltagedBV, QaLibrary.DEVICE_MAX_ATTENUATION, ct);
-                    if (ct.IsCancellationRequested)
-                        return false;
-                    thd.InputRange = result.Item1;
-                    QaLibrary.PlotMiniFftGraph(fftPlot, result.Item3.FreqRslt, thd.LeftChannel, thd.RightChannel);
-                    QaLibrary.PlotMiniTimeGraph(timePlot, result.Item3.TimeRslt, testFrequency, thd.LeftChannel && thd.ShowLeft, thd.RightChannel && thd.ShowRight, true);
-
-                    await showMessage($"Found correct input attenuation of {thd.InputRange:0} dBV for an amplfier amplitude of {result.Item2:0.00#} dBV.", 500);
-                }
+                // Get input voltage based on desired output voltage
+                var attenuation = QaLibrary.DetermineAttenuation(amplifierOutputVoltagedBV);
+                await showMessage($"Setting attenuation to {attenuation:0}",200);
 
                 // Set the new input range
-                await Qa40x.SetInputRange(thd.InputRange);
+                await Qa40x.SetInputRange(attenuation);
 
                 // Check if cancel button pressed
                 if (ct.IsCancellationRequested)
@@ -267,43 +209,50 @@ namespace QA40xPlot.Actions
                 // ********************************************************************
                 // Calculate frequency steps to do
                 // ********************************************************************
-                var binSize = QaLibrary.CalcBinSize(thd.SampleRate, thd.FftSize);
+                var binSize = QaLibrary.CalcBinSize(msr.SampleRate, msr.FftSize);
                 // Generate a list of frequencies
                 var stepFrequencies = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(
-                    MathUtil.ToDouble(thd.StartFreq, 10), MathUtil.ToDouble(thd.EndFreq, 10000), thd.StepsOctave);
+                    MathUtil.ToDouble(msr.StartFreq, 10), MathUtil.ToDouble(msr.EndFreq, 10000), msr.StepsOctave);
                 // Translate the generated list to bin center frequencies
-                var stepBinFrequencies = QaLibrary.TranslateToBinFrequencies(stepFrequencies, thd.SampleRate, thd.FftSize);
+                var stepBinFrequencies = QaLibrary.TranslateToBinFrequencies(stepFrequencies, msr.SampleRate, msr.FftSize);
                 stepBinFrequencies = stepBinFrequencies.Where(x => x >= 1 && x <= 95500)                // Filter out values that are out of range 
                     .GroupBy(x => x)                                                                    // Filter out duplicates
                     .Select(y => y.First())
                     .ToArray();
 
+				// ********************************************************************  
+				// Load a settings we want since we're done autoscaling
+				// ********************************************************************  
+				if (true != await QaLibrary.InitializeDevice(msr.SampleRate, msr.FftSize, msr.WindowingMethod, attenuation,
+							MeasurementResult.FrequencySteps.Count == 0))
+					return false;
+				
                 // ********************************************************************
-                // Do noise floor measurement
-                // ********************************************************************
-                await showMessage($"Determining noise floor.");
+				// Do noise floor measurement
+				// ********************************************************************
+				await showMessage($"Determining noise floor.");
                 await Qa40x.SetOutputSource(OutputSources.Off);
                 await Qa40x.DoAcquisition();    // do a single acquisition for settling
-                MeasurementResult.NoiseFloor = await QaLibrary.DoAcquisitions(thd.Averages, ct);
+                MeasurementResult.NoiseFloor = await QaLibrary.DoAcquisitions(msr.Averages, ct);
                 if (ct.IsCancellationRequested)
                     return false;
 
-                // Set the generator
-                double amplitudeSetpointdBV = QaLibrary.ConvertVoltage(MathUtil.ToDouble(thd.GenVoltage), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-                await Qa40x.SetGen1(stepBinFrequencies[0], amplitudeSetpointdBV, true);
+				// Set the generator
+				double amplitudeSetpointdBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+				await Qa40x.SetGen1(stepBinFrequencies[0], amplitudeSetpointdBV, true);
+				await Qa40x.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
 
-                await Qa40x.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
-
-                // ********************************************************************
-                // Step through the list of frequencies
-                // ********************************************************************
+				// ********************************************************************
+				// Step through the list of frequencies
+				// ********************************************************************
                 for (int f = 0; f < stepBinFrequencies.Length; f++)
                 {
-                    await showMessage($"Measuring step {f + 1} of {stepBinFrequencies.Length}.");
+                    var freqy = stepBinFrequencies[f];
+                    await showMessage($"Measuring {freqy:0.#} Hz at {genVolt:G3} V.");
                     await showProgress(100 * (f + 1) / stepBinFrequencies.Length);
-                    await Qa40x.SetGen1(stepBinFrequencies[f], amplitudeSetpointdBV, true);
+                    await Qa40x.SetGen1(freqy, amplitudeSetpointdBV, true);
 
-                    LeftRightSeries lrfs = await QaLibrary.DoAcquisitions(thd.Averages, ct);
+                    LeftRightSeries lrfs = await QaLibrary.DoAcquisitions(msr.Averages, ct);
                     if (ct.IsCancellationRequested)
                         break;
 
@@ -320,8 +269,8 @@ namespace QA40xPlot.Actions
                     };
 
                     // Plot the mini graphs
-                    QaLibrary.PlotMiniFftGraph(fftPlot, lrfs.FreqRslt, thd.LeftChannel && thd.ShowLeft, thd.RightChannel && thd.ShowRight);
-                    QaLibrary.PlotMiniTimeGraph(timePlot, lrfs.TimeRslt, step.FundamentalFrequency, thd.LeftChannel && thd.ShowLeft, thd.RightChannel && thd.ShowRight);
+                    QaLibrary.PlotMiniFftGraph(fftPlot, lrfs.FreqRslt, msr.LeftChannel && msr.ShowLeft, msr.RightChannel && msr.ShowRight);
+                    QaLibrary.PlotMiniTimeGraph(timePlot, lrfs.TimeRslt, step.FundamentalFrequency, msr.LeftChannel && msr.ShowLeft, msr.RightChannel && msr.ShowRight);
 
                     step.Left = ChannelCalculations(binSize, step.FundamentalFrequency, amplitudeSetpointdBV, 
                         lrfs.FreqRslt.Left, MeasurementResult.NoiseFloor?.FreqRslt?.Left, ViewSettings.AmplifierLoad);

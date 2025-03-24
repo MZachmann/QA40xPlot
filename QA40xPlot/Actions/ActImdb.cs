@@ -178,6 +178,7 @@ namespace QA40xPlot.Actions
 
 				var genVolt = imdVm.ToGenVoltage(msrImd.Gen1Voltage, freq, true, LRGains);
 				double amplitudeSetpoint1dBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+				// use freq1 here since IMD ratio is input-driven period
 				genVolt = imdVm.ToGenVoltage(msrImd.Gen2Voltage, freq, true, LRGains);
 				double amplitudeSetpoint2dBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
@@ -472,12 +473,11 @@ namespace QA40xPlot.Actions
 			for (int harmonicNumber = 0; harmonicNumber < harmonicFreq.Length; harmonicNumber++)                                                  // For now up to 12 harmonics, start at 2nd
             {
                 double harmonicFrequency = harmonicFreq[harmonicNumber];
-				if (harmonicFrequency >= maxfreq)
-					continue;
-
                 uint bin = QaLibrary.GetBinOfFrequency(harmonicFrequency, binSize);        // Calculate bin of the harmonic frequency
+				if (bin >= ffts.Length)
+					bin = (uint)Math.Max(0, ffts.Length - 1);             // Invalid bin, skip harmonic
 
-                double amplitude_V = (bin >= ffts.Length) ? 0 : ffts[bin];
+				double amplitude_V = ffts[bin];
                 double noise_V = channelData.TotalNoiseFloor_V;
 
 				double amplitude_dBV = 20 * Math.Log10(amplitude_V);
@@ -708,7 +708,7 @@ namespace QA40xPlot.Actions
 			};
 			Data.Measurements.Clear();
 
-			var genType = imdVm.ToDirection(imdVm.GenDirection);
+			var genType = BaseViewModel.ToDirection(imdVm.GenDirection);
 			var freq = MathUtil.ToDouble(imdVm.Gen1Frequency, 1000);
 			if (imdVm.DoAutoAttn || genType != E_GeneratorDirection.INPUT_VOLTAGE)
 			{

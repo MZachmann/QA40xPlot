@@ -29,18 +29,6 @@ namespace QA40xPlot.ViewModels
 			get => _GenVoltage; set => SetProperty(ref _GenVoltage, value);
 		}
 
-		private string _OutPower = string.Empty;
-		public string OutPower
-		{
-			get => _OutPower; set => SetProperty(ref _OutPower, value);
-		}
-
-		private string _OutVoltage = string.Empty;
-		public string OutVoltage
-		{
-			get => _OutVoltage; set => SetProperty(ref _OutVoltage, value);
-		}
-
 		private string _StartFreq = string.Empty;
 		public string StartFreq
 		{
@@ -205,12 +193,6 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _Windowing;
 			set => SetProperty(ref _Windowing, value);
-		}
-		private int _InputRange;
-		public int InputRange
-		{
-			get => _InputRange;
-			set => SetProperty(ref _InputRange, value);
 		}
 		private Visibility _ToShowRange;
 		[JsonIgnore]
@@ -394,14 +376,11 @@ namespace QA40xPlot.ViewModels
 			this.actPlot = default!;
 			this.actThd = default!;
 
-			OutPower = "0.5";
-			OutVoltage = "0.5";
 			StartFreq = "20";
 			EndFreq = "20000";
 			GraphStartFreq = "20";
 			GraphEndFreq = "20000";
 			StepsOctave = 1;
-			Averages = 1;
 			LeftChannel = true;
 			RightChannel = false;
 			RangeTop = "1";             // when graphing percents distortion this is logarithmic 0.01....
@@ -424,8 +403,8 @@ namespace QA40xPlot.ViewModels
 			SampleRate = 96000;
 			FftSize = 65536;
 			WindowingMethod = "Hann";
+			Averages = 1;
 
-			InputRange = 0;
 			RangeTopdB = "20";
 			RangeBottomdB = "-180";
 

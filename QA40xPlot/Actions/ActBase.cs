@@ -57,11 +57,11 @@ namespace QA40xPlot.Actions
 
 		protected async Task<LeftRightFrequencySeries?> DetermineGainAtFreq(double dfreq, bool inits, int average = 3)
 		{
-			await showMessage("Determining Input Voltage");
+			await showMessage("Calculating DUT gain");
 			// initialize very quick run
 			var fftsize = BaseViewModel.FftActualSizes[0];
 			var sampleRate = MathUtil.ToUint(BaseViewModel.SampleRates[0]);
-			if (true != await QaLibrary.InitializeDevice(sampleRate, fftsize, "Hann", QaLibrary.DEVICE_MAX_ATTENUATION, true))
+			if (true != await QaLibrary.InitializeDevice(sampleRate, fftsize, "Hann", QaLibrary.DEVICE_MAX_ATTENUATION, inits))
 				return null;
 
 			// the simplest thing here is to do a chirp at a low value...
@@ -116,12 +116,13 @@ namespace QA40xPlot.Actions
 			return lrfs;       // Return the new generator amplitude and acquisition data
 		}
 
-		protected static async Task<LeftRightFrequencySeries?> DetermineGainCurve(int average = 3)
+		protected async Task<LeftRightFrequencySeries?> DetermineGainCurve(bool inits, int average = 3)
 		{
+			await showMessage("Calculating DUT gain");
 			// initialize very quick run
 			var fftsize = BaseViewModel.FftActualSizes[0];
 			var sampleRate = MathUtil.ToUint(BaseViewModel.SampleRates[0]);
-			if (true != await QaLibrary.InitializeDevice(sampleRate, fftsize, "Hann", QaLibrary.DEVICE_MAX_ATTENUATION, true))
+			if (true != await QaLibrary.InitializeDevice(sampleRate, fftsize, "Hann", QaLibrary.DEVICE_MAX_ATTENUATION, inits))
 				return null;
 
 			{
