@@ -6,6 +6,7 @@ using ScottPlot.Plottables;
 using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
+using System.Drawing.Drawing2D;
 using System.Windows;
 
 // various things for the thd vs frequency activity
@@ -130,18 +131,19 @@ namespace QA40xPlot.Actions
 		async Task<bool> PerformMeasurementSteps(ImdMeasurementResult msr, CancellationToken ct)
         {
 			// Setup
-			ImdViewModel thd = msr.MeasurementSettings;
+			ImdViewModel msrImd = msr.MeasurementSettings;
+			var imdVm = ViewSettings.Singleton.ImdVm;
 
-			var freq = MathUtil.ToDouble(thd.Gen1Frequency, 0);
-			var freq2 = MathUtil.ToDouble(thd.Gen2Frequency, 0);
-			var sampleRate = MathUtil.ToUint(thd.SampleRate);
-			if (freq == 0 || freq2 == 0 || sampleRate == 0 || !FreqRespViewModel.FftSizes.Contains(thd.FftSize))
+			var freq = MathUtil.ToDouble(msrImd.Gen1Frequency, 0);
+			var freq2 = MathUtil.ToDouble(msrImd.Gen2Frequency, 0);
+			var sampleRate = MathUtil.ToUint(msrImd.SampleRate);
+			if (freq == 0 || freq2 == 0 || sampleRate == 0 || !FreqRespViewModel.FftSizes.Contains(msrImd.FftSize))
             {
                 MessageBox.Show("Invalid settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 				return false;
 			}
-			var fftsize = FreqRespViewModel.FftActualSizes.ElementAt(FreqRespViewModel.FftSizes.IndexOf(thd.FftSize));
-			if (true != await QaLibrary.InitializeDevice(sampleRate, fftsize, thd.WindowingMethod, (int)thd.Attenuation, msr.FrequencySteps.Count == 0))
+			var fftsize = FreqRespViewModel.FftActualSizes.ElementAt(FreqRespViewModel.FftSizes.IndexOf(msrImd.FftSize));
+			if (true != await QaLibrary.InitializeDevice(sampleRate, fftsize, msrImd.WindowingMethod, (int)msrImd.Attenuation, msr.FrequencySteps.Count == 0))
 				return false;
 			await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make it turn on or off
 
@@ -168,15 +170,15 @@ namespace QA40xPlot.Actions
 					await showMessage($"Determining noise floor.");
 					await Qa40x.SetOutputSource(OutputSources.Off);
 					await Qa40x.DoAcquisition();    // do a single acquisition for settling
-					msr.NoiseFloor = await QaLibrary.DoAcquisitions(thd.Averages, ct);
+					msr.NoiseFloor = await QaLibrary.DoAcquisitions(msrImd.Averages, ct);
 					if (ct.IsCancellationRequested)
 
 						return false;
 				}
 
-				var genVolt = MathUtil.ToDouble(thd.Gen1Voltage, 0.001);
+				var genVolt = imdVm.ToGenVoltage(msrImd.Gen1Voltage, freq, true, LRGains);
 				double amplitudeSetpoint1dBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-				genVolt = MathUtil.ToDouble(thd.Gen2Voltage, 0.001);
+				genVolt = imdVm.ToGenVoltage(msrImd.Gen2Voltage, freq, true, LRGains);
 				double amplitudeSetpoint2dBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
 				// ********************************************************************
@@ -189,10 +191,10 @@ namespace QA40xPlot.Actions
 					await showProgress(0);
 
                     // Set the generators
-                    await Qa40x.SetGen1(stepBinFrequencies[0], amplitudeSetpoint1dBV, thd.UseGenerator);
-					await Qa40x.SetGen2(stepBinFrequencies[1], amplitudeSetpoint2dBV, thd.UseGenerator2);
+                    await Qa40x.SetGen1(stepBinFrequencies[0], amplitudeSetpoint1dBV, msrImd.UseGenerator);
+					await Qa40x.SetGen2(stepBinFrequencies[1], amplitudeSetpoint2dBV, msrImd.UseGenerator2);
 					// for the first go around, turn on the generator
-					if ( thd.UseGenerator || thd.UseGenerator2)
+					if ( msrImd.UseGenerator || msrImd.UseGenerator2)
                     {
 						await Qa40x.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
 					}
@@ -201,7 +203,7 @@ namespace QA40xPlot.Actions
 						await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make the averages reset
 					}
 
-					LeftRightSeries lrfs = await QaLibrary.DoAcquisitions(thd.Averages, ct);
+					LeftRightSeries lrfs = await QaLibrary.DoAcquisitions(msrImd.Averages, ct);
                     if (ct.IsCancellationRequested || lrfs.FreqRslt?.Left == null)
                         break;
 
@@ -231,7 +233,6 @@ namespace QA40xPlot.Actions
 
 					ClearPlot();
 					UpdateGraph(false);
-					var imdVm = ViewSettings.Singleton.ImdVm;
 					if (!imdVm.IsTracking)
 					{
 						// if we're not tracking the mouse, update the fixed frequency piece
@@ -707,16 +708,27 @@ namespace QA40xPlot.Actions
 			};
 			Data.Measurements.Clear();
 
-			if (imdVm.DoAutoAttn)
+			var genType = imdVm.ToDirection(imdVm.GenDirection);
+			var freq = MathUtil.ToDouble(imdVm.Gen1Frequency, 1000);
+			if (imdVm.DoAutoAttn || genType != E_GeneratorDirection.INPUT_VOLTAGE)
 			{
-				double inpVolts = 0;
-				var msr = MeasurementResult.MeasurementSettings;
-				msr.Attenuation = 42;        // set to max attenuation
-				imdVm.Attenuation = 42;    // to update the gui while testing
-				inpVolts = await CalculateInVolts();
-				Debug.WriteLine("inpvolts={0}", inpVolts);
-				msr.Attenuation = QaLibrary.DetermineAttenuation(20 * Math.Log10(inpVolts));
-				imdVm.Attenuation = msr.Attenuation;    // to update the gui while testing
+				// show that we're autoing...
+				if (imdVm.DoAutoAttn)
+					imdVm.Attenuation = QaLibrary.DEVICE_MAX_ATTENUATION;
+				LRGains = await DetermineGainAtFreq(freq, true, 1);
+			}
+			if (imdVm.DoAutoAttn && LRGains != null)
+			{
+				// test the second gain???
+				var v1test = imdVm.ToGenVoltage(imdVm.Gen1Voltage, freq, false, LRGains);  // get output voltage
+				// use known input voltage for second input and assume same gain
+				var v2input = imdVm.ToGenVoltage(imdVm.Gen1Voltage, freq, true, LRGains);  // get input voltage
+				v2input /= imdVm.GenDivisor;
+				var v2test = v2input * Math.Max(LRGains.Left.Max(), LRGains.Right.Max());
+
+				var vdbv = QaLibrary.ConvertVoltage(Math.Sqrt(v1test*v1test + v2test*v2test), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+				imdVm.Attenuation = QaLibrary.DetermineAttenuation(vdbv);
+				MeasurementResult.MeasurementSettings.Attenuation = imdVm.Attenuation; // update the specVm to update the gui, then this for the steps
 			}
 
 			var rslt = true;

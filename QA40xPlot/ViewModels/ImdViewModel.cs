@@ -34,6 +34,9 @@ namespace QA40xPlot.ViewModels
 
 		#region Setters and Getters
 		[JsonIgnore]
+		public double GenDivisor { get; set; }	// set when we set the imd type
+
+		[JsonIgnore]
 		public string AttenColor
 		{
 			get => DoAutoAttn ? "#1800f000" : "Transparent";
@@ -312,12 +315,10 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
+				case "GenDirection":
 				case "Gen1Voltage":
-					if(! IsImdCustom)
-					{
-						// synchronize voltage 2
-						SetImType();
-					}
+					// synchronize voltage 2
+					SetImType();
 					break;
 				case "ShowPercent":
 					ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
@@ -388,9 +389,18 @@ namespace QA40xPlot.ViewModels
 		private void ExecIm(int df1, int df2, int divisor)
 		{
 			var ax = IntermodType;
-			this.Gen2Voltage = (MathUtil.ToDouble(this.Gen1Voltage) / divisor).ToString();
-			this.Gen1Frequency = df1.ToString();
-			this.Gen2Frequency = df2.ToString();
+			var tt = ToDirection(GenDirection);
+			GenDivisor = divisor;		// cache this for other people
+			if( tt == E_GeneratorDirection.OUTPUT_POWER)
+			{
+				Gen2Voltage = (MathUtil.ToDouble(this.Gen1Voltage) / (divisor*divisor)).ToString();
+			}
+			else
+			{
+				Gen2Voltage = (MathUtil.ToDouble(this.Gen1Voltage) / divisor).ToString();
+			}
+			Gen1Frequency = df1.ToString();
+			Gen2Frequency = df2.ToString();
 			IntermodType = ax;
 		}
 
@@ -403,9 +413,12 @@ namespace QA40xPlot.ViewModels
 			IsImdCustom = (tt == "Custom");
 			// if custom, we're done
 			if (IsImdCustom)
+			{
+				GenDivisor = 1;
 				return;
+			}
 
-			if( tt.Contains("SMPTE "))
+			if ( tt.Contains("SMPTE "))
 			{
 				ExecIm(60, 7000, 4);
 			}
@@ -532,6 +545,7 @@ namespace QA40xPlot.ViewModels
 
 			Gen1Voltage = "0.1";
 			Gen2Voltage = "0.1";
+			GenDivisor = 1;
 			Gen2Frequency = "20000";
 			Gen1Frequency = "19000";
 			UseGenerator = false;

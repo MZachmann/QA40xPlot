@@ -55,9 +55,9 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Label Content="Set DUT" Grid.Column="0" Grid.Row="0"  />
+                <Label Content="Set DUT" Grid.Column="0" Grid.Row="0" ToolTip="{Binding DutInfo}"  />
                 <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0"  
-                               ToolTip="Input Voltage = DUT Input (Generator Output), Output Voltage = DUT Output (QA40x Input)"
+                               ToolTip="{Binding DutDescript}"
                                SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVoltsFull}">
                 </ComboBox>
                 <Label Content="{Binding GenAmpDescript, Mode=OneWay}" Grid.Column="0" Grid.Row="1" />

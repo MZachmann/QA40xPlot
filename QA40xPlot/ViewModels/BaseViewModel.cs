@@ -3,11 +3,13 @@ using System.Drawing.Drawing2D;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
+using FftSharp;
 using Newtonsoft.Json;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.Views;
 using ScottPlot;
+using Xceed.Wpf.Toolkit;
 
 namespace QA40xPlot.ViewModels
 {
@@ -29,6 +31,9 @@ namespace QA40xPlot.ViewModels
 		public static List<String> MeasureVolts { get => new List<string> { "Input Voltage", "Output Voltage" }; }
 		public static List<String> MeasureVoltsFull { get => new List<string> { "Input Voltage", "Output Voltage", "Output Power" }; }
 		public static List<String> Impedances { get => new List<string> { "5", "8", "10", "20", "100", "500", "1000" }; }
+		public static string DutInfo { get => "DUT = Device Under Test"; }
+		public static string DutDescript { get => "Input Voltage = DUT Input(Generator Output), Output Voltage = DUT Output(QA40x Input)"; }
+		public static string AutoRangeDescript { get => "When the test is started a safe Attenuation value is calculated based on a test at 42."; }
 		#endregion
 
 		#region Setters and Getters

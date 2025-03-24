@@ -55,7 +55,7 @@ namespace QA40xPlot.Actions
 			return values.Skip(10).Max() / inputV;
 		}
 
-		protected async Task<LeftRightFrequencySeries?> DetermineGainAtFreq(double dfreq, int average = 3)
+		protected async Task<LeftRightFrequencySeries?> DetermineGainAtFreq(double dfreq, bool inits, int average = 3)
 		{
 			await showMessage("Determining Input Voltage");
 			// initialize very quick run

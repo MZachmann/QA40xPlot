@@ -97,7 +97,7 @@
                             Command="{Binding SetAttenuate}" CommandParameter="42" Grid.Row="1" Grid.Column="3" Margin="4"></RadioButton>
                 <CheckBox Grid.Row="2" Grid.ColumnSpan="4" Content="Autorange on start" IsChecked="{Binding DoAutoAttn}" Margin="8,2,0,2">
                     <CheckBox.ToolTip >
-                        <ToolTip Content="When the test is started a safe Attenuation value is calculated based on a test at 42." />
+                        <ToolTip Content="{Binding AutoRangeDescript}" />
                     </CheckBox.ToolTip>
                 </CheckBox>
             </Grid>
@@ -115,8 +115,8 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Label Content="Set DUT" Grid.Row="0" Grid.Column="0"  />
-                <ComboBox ToolTip="Input Voltage = DUT Input (Generator Output), Output Voltage = DUT Output (QA40x Input)" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" 
+                <Label Content="Set DUT" Grid.Row="0" Grid.Column="0" ToolTip="{Binding DutInfo}"  />
+                <ComboBox ToolTip="{Binding DutDescript}" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" 
                           VerticalAlignment="Center"  SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVoltsFull}">
                 </ComboBox>
                 <Label Content="Fre_quency" Grid.Row="1" Grid.Column="0" Target="{Binding ElementName=cbFreq}" />

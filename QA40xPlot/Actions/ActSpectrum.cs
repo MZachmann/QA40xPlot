@@ -662,7 +662,7 @@ namespace QA40xPlot.Actions
 				// show that we're autoing...
 				if (specVm.DoAutoAttn)
 					specVm.Attenuation = QaLibrary.DEVICE_MAX_ATTENUATION;
-				LRGains = await DetermineGainAtFreq(freq);
+				LRGains = await DetermineGainAtFreq(freq, true, 1);
 			}
 
 			if (specVm.DoAutoAttn)
@@ -692,7 +692,7 @@ namespace QA40xPlot.Actions
 						msrSet.GenDirection = specVm.GenDirection;
 						var genoType = specVm.ToDirection(msrSet.GenDirection);
 						if (LRGains != null && genoType == E_GeneratorDirection.OUTPUT_VOLTAGE)
-							LRGains = await DetermineGainAtFreq(MathUtil.ToDouble(msrSet.Gen1Frequency, 1));
+							LRGains = await DetermineGainAtFreq(MathUtil.ToDouble(msrSet.Gen1Frequency, 1), false, 1);
 					}
                     if (specVm.FftSize != fftsize || specVm.SampleRate != sampleRate || specVm.Attenuation != atten)
                     {
