@@ -104,7 +104,8 @@
                 </Grid.RowDefinitions>
                 <Label Content="Set DUT" Grid.Row="0" Grid.Column="0" ToolTip="{Binding DutInfo}"  />
                 <ComboBox ToolTip="{Binding DutDescript}" Grid.Column="1" 
-                              Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVoltsFull}"/>
+                              Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  
+                          SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVoltsFull}"/>
                 <Label Content="{Binding GenAmpDescript}" Grid.Row="1" Grid.Column="0"  />
                 <ComboBox IsEditable="True" Text="{Binding Gen1Voltage}" Grid.Column="1" Grid.Row="1" VerticalAlignment="Center"  
                                ItemsSource="{Binding GenVoltages}"/>
@@ -122,7 +123,6 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Label Content="Sample Rate" Grid.Row="0" Grid.Column="0"  />
                 <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  
@@ -132,12 +132,8 @@
                 <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Center"  
                                SelectedValue="{Binding FftSize}" ItemsSource="{Binding FftSizes}">
                 </ComboBox>
-                <Label Content="Smoothing" Grid.Row="2" Grid.Column="0"  />
-                <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="2" VerticalAlignment="Center"  
-                               SelectedValue="{Binding Smoothing}" ItemsSource="{Binding Smoothings}">
-                </ComboBox>
-                <Label Content="Averages" Grid.Column="0" Grid.Row="3"  />
-                <xctk:IntegerUpDown Value="{Binding Averages}" Minimum="1" Maximum="6" VerticalAlignment="Center" Grid.Column="1" Grid.Row="3"  />
+                <Label Content="Averages" Grid.Column="0" Grid.Row="2"  />
+                <xctk:IntegerUpDown Value="{Binding Averages}" Minimum="1" Maximum="6" VerticalAlignment="Center" Grid.Column="1" Grid.Row="2"  />
             </Grid>
 
             <views:GroupHeader Header="Impedance Test" />
@@ -187,7 +183,7 @@
                     <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center"  Text="{Binding RangeBottomdB}" ItemsSource="{Binding BottomDbs}">
                     </ComboBox>
                     <Label Content="{Binding GraphUnit}" Grid.Row="1" Grid.Column="2"  />
-                    <Button Content="Fit to data" Margin="0,4,0,0" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" />
+                    <Button Content="Fit to data" Margin="0,4,0,0" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Right" />
                 </Grid>
             </GroupBox>
             <GroupBox Header="Y Axis" Visibility="{Binding ToShowRange}">
@@ -207,7 +203,7 @@
                     <Label Content="Bottom" Grid.Row="1" Grid.Column="0"  />
                     <ComboBox Grid.Column="1"  Grid.Row="1" VerticalAlignment="Center"  SelectedValue="{Binding RangeBottom}" ItemsSource="{Binding EndPercents}">
                     </ComboBox>
-                    <Button Content="Fit to data" Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Center" Grid.ColumnSpan="2" />
+                    <Button Content="Fit to data" Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Right" Grid.ColumnSpan="2" />
                 </Grid>
             </GroupBox>
             <GroupBox Header="X Axis">
@@ -232,7 +228,7 @@
                     <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Text="{Binding GraphEndFreq}" ItemsSource="{Binding EndFrequencies}">
                     </ComboBox>
                     <Label Content="Hz" Grid.Row="1"  Grid.Column="2" />
-                    <Button Content="Fit to data" Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Center" Grid.ColumnSpan="2" />
+                    <Button Content="Fit to data" Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Right" Grid.ColumnSpan="2" />
                 </Grid>
             </GroupBox>
             <GroupBox Header="Options">

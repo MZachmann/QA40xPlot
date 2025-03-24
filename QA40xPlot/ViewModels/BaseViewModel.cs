@@ -45,6 +45,24 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public string GenAmpUnits { get => (IsGenPower ? "W" : "V"); }
 
+		private string _SampleRate = String.Empty;
+		public string SampleRate
+		{
+			get => _SampleRate;
+			set => SetProperty(ref _SampleRate, value);
+		}
+		private string _FftSize = String.Empty;
+		public string FftSize
+		{
+			get => _FftSize;
+			set => SetProperty(ref _FftSize, value);
+		}
+		private uint _Averages;         // type of alert
+		public uint Averages
+		{
+			get => _Averages; set => SetProperty(ref _Averages, value);
+		}
+
 		private bool _ShowLeft;
 		public bool ShowLeft
 		{
@@ -78,6 +96,19 @@ namespace QA40xPlot.ViewModels
 		#endregion
 
 		#region Output Setters and Getters
+		[JsonIgnore]
+		public uint FftSizeVal { get 
+			{
+				var fl = FftSizes.IndexOf(FftSize);
+				if (fl == -1)
+					return FftActualSizes[0];
+				return FftActualSizes[fl];
+			}
+		}
+
+		[JsonIgnore]
+		public uint SampleRateVal { get => MathUtil.ToUint(SampleRate); }
+
 		private bool _IsRunning = false;         // type of alert
 		[JsonIgnore]
 		public bool IsRunning
@@ -252,6 +283,9 @@ namespace QA40xPlot.ViewModels
 			GenDirection = MeasureVolts[0];
 			ShowLeft = true;
 			ShowRight = true;
+			SampleRate = "96000";
+			FftSize = "64K";
+			Averages = 1;
 		}
 
 		public void SetupMainPlot(PlotControl plot)

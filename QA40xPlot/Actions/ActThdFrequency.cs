@@ -209,12 +209,12 @@ namespace QA40xPlot.Actions
                 // ********************************************************************
                 // Calculate frequency steps to do
                 // ********************************************************************
-                var binSize = QaLibrary.CalcBinSize(msr.SampleRate, msr.FftSize);
+                var binSize = QaLibrary.CalcBinSize(msr.SampleRateVal, msr.FftSizeVal);
                 // Generate a list of frequencies
                 var stepFrequencies = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(
                     MathUtil.ToDouble(msr.StartFreq, 10), MathUtil.ToDouble(msr.EndFreq, 10000), msr.StepsOctave);
                 // Translate the generated list to bin center frequencies
-                var stepBinFrequencies = QaLibrary.TranslateToBinFrequencies(stepFrequencies, msr.SampleRate, msr.FftSize);
+                var stepBinFrequencies = QaLibrary.TranslateToBinFrequencies(stepFrequencies, msr.SampleRateVal, msr.FftSizeVal);
                 stepBinFrequencies = stepBinFrequencies.Where(x => x >= 1 && x <= 95500)                // Filter out values that are out of range 
                     .GroupBy(x => x)                                                                    // Filter out duplicates
                     .Select(y => y.First())
@@ -223,7 +223,7 @@ namespace QA40xPlot.Actions
 				// ********************************************************************  
 				// Load a settings we want since we're done autoscaling
 				// ********************************************************************  
-				if (true != await QaLibrary.InitializeDevice(msr.SampleRate, msr.FftSize, msr.WindowingMethod, attenuation,
+				if (true != await QaLibrary.InitializeDevice(msr.SampleRateVal, msr.FftSizeVal, msr.WindowingMethod, attenuation,
 							MeasurementResult.FrequencySteps.Count == 0))
 					return false;
 				

@@ -91,13 +91,13 @@ namespace QA40xPlot.Actions
 			var specVm = ViewSettings.Singleton.SpectrumVm;
 
 			var freq = MathUtil.ToDouble(msr.MeasurementSettings.Gen1Frequency, 0);
-			var sampleRate = MathUtil.ToUint(msr.MeasurementSettings.SampleRate);
+			var sampleRate = msr.MeasurementSettings.SampleRateVal;
 			if (freq == 0 || sampleRate == 0 || !SpectrumViewModel.FftSizes.Contains(msr.MeasurementSettings.FftSize))
             {
                 MessageBox.Show("Invalid settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 				return false;
 			}
-			var fftsize = SpectrumViewModel.FftActualSizes.ElementAt(SpectrumViewModel.FftSizes.IndexOf(msr.MeasurementSettings.FftSize));
+			var fftsize = thd.FftSizeVal;
 
 			// ********************************************************************  
 			// Load a settings we want
@@ -233,8 +233,8 @@ namespace QA40xPlot.Actions
 		{
 			var vm = ViewSettings.Singleton.SpectrumVm;
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
-			var sampleRate = MathUtil.ToUint(vm.SampleRate);
-			var fftsize = SpectrumViewModel.FftActualSizes.ElementAt(SpectrumViewModel.FftSizes.IndexOf(vm.FftSize));
+			var sampleRate = fmr.MeasurementSettings.SampleRateVal;
+			var fftsize = fmr.MeasurementSettings.FftSizeVal;
 			int bin = (int)QaLibrary.GetBinOfFrequency(frequency, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
 			var leftData = fmr.FrequencySteps[0].fftData?.Left;
 			var rightData = fmr.FrequencySteps[0].fftData?.Right;
@@ -322,8 +322,8 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			if (vm.ShowPowerMarkers)
 			{
-				var sampleRate = MathUtil.ToUint(vm.SampleRate);
-				var fftsize = SpectrumViewModel.FftActualSizes.ElementAt(SpectrumViewModel.FftSizes.IndexOf(vm.FftSize));
+				var sampleRate = fmr.MeasurementSettings.SampleRateVal;
+				var fftsize = fmr.MeasurementSettings.FftSizeVal;
 				var steps = vm.ShowLeft ? MeasurementResult.FrequencySteps[0].Left : MeasurementResult.FrequencySteps[0].Right;
 				var nfloor = steps.Average_NoiseFloor_dBV;   // Average noise floor in dBVolts after the fundamental
                 double fsel = 0;

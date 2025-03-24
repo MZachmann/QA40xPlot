@@ -154,7 +154,7 @@ namespace QA40xPlot.Actions
 			QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -1, 1);
 
 			double testFreq = MathUtil.ToDouble(msr.TestFreq, 1000);
-			double testFrequency = QaLibrary.GetNearestBinFrequency(testFreq, msr.SampleRate, msr.FftSize);
+			double testFrequency = QaLibrary.GetNearestBinFrequency(testFreq, msr.SampleRateVal, msr.FftSizeVal);
 
 			await showMessage("Calculating attenuation");
 			LRGains = await DetermineGainAtFreq(testFrequency, true, 2);
@@ -181,7 +181,7 @@ namespace QA40xPlot.Actions
 			// ********************************************************************
 			// Do noise floor measurement
 			// ********************************************************************
-			if (true != await QaLibrary.InitializeDevice(msr.SampleRate, msr.FftSize, msr.WindowingMethod, 12, false))
+			if (true != await QaLibrary.InitializeDevice(msr.SampleRateVal, msr.FftSizeVal, msr.WindowingMethod, 12, false))
 			{
 				return false;
 			}
@@ -193,7 +193,7 @@ namespace QA40xPlot.Actions
 			QaLibrary.PlotMiniFftGraph(fftPlot, MeasurementResult.NoiseFloor.FreqRslt, msr.ShowLeft, msr.ShowRight);
 			QaLibrary.PlotMiniTimeGraph(timePlot, MeasurementResult.NoiseFloor.TimeRslt, testFrequency, msr.ShowLeft, msr.ShowRight);
 
-			var binSize = QaLibrary.CalcBinSize(msr.SampleRate, msr.FftSize);
+			var binSize = QaLibrary.CalcBinSize(msr.SampleRateVal, msr.FftSizeVal);
 			uint fundamentalBin = QaLibrary.GetBinOfFrequency(testFrequency, binSize);
 			await Qa40x.SetOutputSource(OutputSources.Sine);                // We need to call this before all the testing
 

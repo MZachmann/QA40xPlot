@@ -63,12 +63,6 @@ namespace QA40xPlot.ViewModels
 			get => _StepsOctave; set => SetProperty(ref _StepsOctave, value);
 		}
 
-		private uint _Averages;
-		public uint Averages
-		{
-			get => _Averages; set => SetProperty(ref _Averages, value);
-		}
-
 		private bool _RightChannel;
 		public bool RightChannel
 		{
@@ -175,18 +169,6 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _ShowNoiseFloor;
 			set => SetProperty(ref _ShowNoiseFloor, value);
-		}
-		private uint _SampleRate;
-		public uint SampleRate
-		{
-			get => _SampleRate;
-			set => SetProperty(ref _SampleRate, value);
-		}
-		private uint _FftSize;
-		public uint FftSize
-		{
-			get => _FftSize;
-			set => SetProperty(ref _FftSize, value);
 		}
 		private string _Windowing = string.Empty;
 		public string WindowingMethod
@@ -400,10 +382,7 @@ namespace QA40xPlot.ViewModels
 			ShowD6 = true;
 			ShowNoiseFloor = true;
 
-			SampleRate = 96000;
-			FftSize = 65536;
 			WindowingMethod = "Hann";
-			Averages = 1;
 
 			RangeTopdB = "20";
 			RangeBottomdB = "-180";

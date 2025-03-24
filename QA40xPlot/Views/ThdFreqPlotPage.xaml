@@ -95,7 +95,30 @@
                 <Label Content="Averages" Grid.Column="0" Grid.Row="3"  />
                 <xctk:IntegerUpDown VerticalAlignment="Center" Value="{Binding Averages}" Minimum="1" Maximum="6" Grid.Column="1" Grid.Row="3"  />
             </Grid>
-
+            <views:GroupHeader Header="Sampling" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Label Content="_Sample Rate" Grid.Row="0" Grid.Column="0"  Target="{Binding ElementName=cbSampleRate}"  />
+                <ComboBox x:Name="cbSampleRate"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  
+                               SelectedValue="{Binding SampleRate}" ItemsSource="{Binding SampleRates}">
+                </ComboBox>
+                <Label Content="_Fft Size" Grid.Row="1" Grid.Column="0" Target="{Binding ElementName=cbfftSize}"  />
+                <ComboBox x:Name="cbfftSize"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Center"  
+                               SelectedValue="{Binding FftSize}" ItemsSource="{Binding FftSizes}">
+                </ComboBox>
+                <Label Content="_Averages" Grid.Column="0" Grid.Row="2" Target="{Binding ElementName=xcaverages}"  />
+                <xctk:IntegerUpDown x:Name="xcaverages" Value="{Binding Averages}" Minimum="1" Maximum="6" VerticalAlignment="Center" Grid.Column="1" Grid.Row="2"  />
+            </Grid>
             <views:PlotControl x:Name="WpfPlot2" Width="150" Height="100" Margin="0,4,0,0" />
             <views:PlotControl x:Name="WpfPlot3" Width="150"  Height="100" Margin="0,4" />
         </StackPanel>
@@ -123,7 +146,7 @@
                     <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1"  Text="{Binding RangeBottomdB}" ItemsSource="{Binding BottomDbs}">
                     </ComboBox>
                     <Label Content="dBV" Grid.Row="1" Grid.Column="2"  />
-                    <Button Content="Fit to data" Margin="0,4,0,0" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center"  />
+                    <Button Content="Fit to data" Margin="0,4,0,0" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Right"  />
                 </Grid>
             </GroupBox>
             <GroupBox Header="Y Axis" Visibility="{Binding ToShowRange}">
@@ -146,7 +169,7 @@
                     <ComboBox Grid.Column="1"  Grid.Row="1"  SelectedValue="{Binding RangeBottom}" ItemsSource="{Binding EndPercents}">
                     </ComboBox>
                     <Label Content="%" Grid.Row="1" Grid.Column="2"  />
-                    <Button Content="Fit to data" Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Center" Grid.ColumnSpan="2"  />
+                    <Button Content="Fit to data" Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Right" Grid.ColumnSpan="2"  />
                 </Grid>
             </GroupBox>
             <GroupBox Header="X Axis">
@@ -171,7 +194,7 @@
                     <ComboBox  IsEditable="True" Grid.Row="1" Grid.Column="1" Text="{Binding GraphEndFreq}" ItemsSource="{Binding EndFrequencies}">
                     </ComboBox>
                     <Label Content="Hz" Grid.Row="1"  Grid.Column="2" />
-                    <Button Content="Fit to data" Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Center" Grid.ColumnSpan="2"  />
+                    <Button Content="Fit to data" Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Right" Grid.ColumnSpan="2"  />
                 </Grid>
             </GroupBox>
             <GroupBox Header="Graph Data">

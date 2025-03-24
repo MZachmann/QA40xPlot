@@ -77,12 +77,6 @@ namespace QA40xPlot.ViewModels
 			get => _StepsOctave; set => SetProperty(ref _StepsOctave, value);
 		}
 
-		private uint _Averages;         // type of alert
-		public uint Averages
-		{
-			get => _Averages; set => SetProperty(ref _Averages, value);
-		}
-
 		private string _rangeTop = string.Empty;
 		public string RangeTop
 		{
@@ -178,18 +172,6 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _ShowNoiseFloor;
 			set => SetProperty(ref _ShowNoiseFloor, value);
-		}
-		private uint _SampleRate;
-		public uint SampleRate
-		{
-			get => _SampleRate;
-			set => SetProperty(ref _SampleRate, value);
-		}
-		private uint _FftSize;
-		public uint FftSize
-		{
-			get => _FftSize;
-			set => SetProperty(ref _FftSize, value);
 		}
 		private string _Windowing = string.Empty;
 		public string WindowingMethod
@@ -383,7 +365,6 @@ namespace QA40xPlot.ViewModels
 			GraphStartVolts = "0.002";
 			GraphEndVolts = "10";
 			StepsOctave = 1;
-			Averages = 3;
 
 			RangeTop = "1";             // when graphing percents distortion this is logarithmic 0.01....
 			RangeBottom = "0.001";
@@ -402,8 +383,6 @@ namespace QA40xPlot.ViewModels
 			ShowD6 = true;
 			ShowNoiseFloor = true;
 
-			SampleRate = 96000;
-			FftSize = 65536*2;
 			WindowingMethod = "Hann";
 			RangeTopdB = "20";
 			RangeBottomdB = "-180";

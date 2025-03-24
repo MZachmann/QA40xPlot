@@ -192,13 +192,13 @@ namespace QA40xPlot.Actions
 
 			// ********************************************************************
 			// Setup the device
-			var sampleRate = MathUtil.ToUint(msr.SampleRate);
+			var sampleRate = frqrsVm.SampleRateVal;
 			if (sampleRate == 0 || !FreqRespViewModel.FftSizes.Contains(msr.FftSize))
 			{
 				MessageBox.Show("Invalid settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 				return false;
 			}
-			var fftsize = FreqRespViewModel.FftActualSizes.ElementAt(FreqRespViewModel.FftSizes.IndexOf(msr.FftSize));
+			var fftsize = frqrsVm.FftSizeVal;
 
 			// ********************************************************************
 			// Calculate frequency steps to do
@@ -220,14 +220,16 @@ namespace QA40xPlot.Actions
 
 			var checkFreq = Math.Sqrt(MathUtil.ToDouble(msr.StartFreq,20) * MathUtil.ToDouble(msr.EndFreq,20000));
             var genVolt = frqrsVm.ToGenVoltage(msr.Gen1Voltage, checkFreq, true, LRGains);
-            var genv = frqrsVm.ToGenVoltage(msr.Gen1Voltage, 0, false, LRGains);    // output v
-			var vdbv = QaLibrary.ConvertVoltage(genv, E_VoltageUnit.Volt, E_VoltageUnit.dBV);   // out dbv
+            {
+				var genv = frqrsVm.ToGenVoltage(msr.Gen1Voltage, 0, false, LRGains);    // output v
+				var vdbv = QaLibrary.ConvertVoltage(genv, E_VoltageUnit.Volt, E_VoltageUnit.dBV);   // out dbv
+				var attenuation = QaLibrary.DetermineAttenuation(vdbv);
+				msr.Attenuation = attenuation;
+			}
 			var voltagedBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);  // in dbv
-			var attenuation = QaLibrary.DetermineAttenuation(vdbv);
-            msr.Attenuation = attenuation;
-            frqrsVm.Attenuation = attenuation; // display on-screen
+            frqrsVm.Attenuation = msr.Attenuation; // display on-screen
 
-			if (true != await QaLibrary.InitializeDevice(sampleRate, fftsize, "Hann", attenuation, true))
+			if (true != await QaLibrary.InitializeDevice(sampleRate, fftsize, "Hann", (int)msr.Attenuation, true))
 			{
 				return false;
 			}

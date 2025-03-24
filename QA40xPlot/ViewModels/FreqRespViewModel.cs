@@ -96,12 +96,6 @@ public class FreqRespViewModel : BaseViewModel
 			SetProperty(ref _GraphEndFreq, value);
 	}
 
-	private uint _Averages;         // type of alert
-	public uint Averages
-	{
-		get => _Averages; set => SetProperty(ref _Averages, value);
-	}
-
 	private bool _RightChannel;         // type of alert
 	public bool RightChannel
 	{
@@ -166,19 +160,6 @@ public class FreqRespViewModel : BaseViewModel
 	{
 		get => _ShowPercent;
 		set => SetProperty(ref _ShowPercent, value);
-	}
-
-	private string _SampleRate = string.Empty;
-	public string SampleRate
-	{
-		get => _SampleRate;
-		set => SetProperty(ref _SampleRate, value);
-	}
-	private string _FftSize = string.Empty;
-	public string FftSize
-	{
-		get => _FftSize;
-		set => SetProperty(ref _FftSize, value);
 	}
 
 	private bool _Show3dBBandwidth_L;
@@ -361,7 +342,6 @@ public class FreqRespViewModel : BaseViewModel
 		GraphStartFreq = "20";
 		GraphEndFreq = "20000";
 		StepsOctave = 1;
-		Averages = 1;
 		LeftChannel = true;
 		RightChannel = false;
 		RangeTop = "1";             // when graphing percents distortion this is logarithmic 0.01....
@@ -372,9 +352,6 @@ public class FreqRespViewModel : BaseViewModel
 		ShowPercent = false;
 		ShowLeft = true;
 		ShowRight = false;
-
-		SampleRate = "96000";
-		FftSize = "64K";
 
 		RangeTopdB = "20";
 		RangeBottomdB = "-180";

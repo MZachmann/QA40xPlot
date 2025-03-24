@@ -136,13 +136,13 @@ namespace QA40xPlot.Actions
 
 			var freq = MathUtil.ToDouble(msrImd.Gen1Frequency, 0);
 			var freq2 = MathUtil.ToDouble(msrImd.Gen2Frequency, 0);
-			var sampleRate = MathUtil.ToUint(msrImd.SampleRate);
+			var sampleRate = msrImd.SampleRateVal;
 			if (freq == 0 || freq2 == 0 || sampleRate == 0 || !FreqRespViewModel.FftSizes.Contains(msrImd.FftSize))
             {
                 MessageBox.Show("Invalid settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 				return false;
 			}
-			var fftsize = FreqRespViewModel.FftActualSizes.ElementAt(FreqRespViewModel.FftSizes.IndexOf(msrImd.FftSize));
+			var fftsize = msrImd.FftSizeVal;
 			if (true != await QaLibrary.InitializeDevice(sampleRate, fftsize, msrImd.WindowingMethod, (int)msrImd.Attenuation, msr.FrequencySteps.Count == 0))
 				return false;
 			await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make it turn on or off
@@ -258,8 +258,8 @@ namespace QA40xPlot.Actions
 		{
 			var vm = ViewSettings.Singleton.ImdVm;
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
-			var sampleRate = MathUtil.ToUint(vm.SampleRate);
-			var fftsize = ImdViewModel.FftActualSizes.ElementAt(ImdViewModel.FftSizes.IndexOf(vm.FftSize));
+			var sampleRate = fmr.MeasurementSettings.SampleRateVal;
+			var fftsize = fmr.MeasurementSettings.FftSizeVal;
 			int bin = (int)QaLibrary.GetBinOfFrequency(frequency, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
 			var leftData = fmr.FrequencySteps[0].fftData?.Left;
 			var rightData = fmr.FrequencySteps[0].fftData?.Right;
@@ -345,8 +345,8 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			if (vm.ShowPowerMarkers)
 			{
-				var sampleRate = MathUtil.ToUint(vm.SampleRate);
-				var fftsize = ImdViewModel.FftActualSizes.ElementAt(ImdViewModel.FftSizes.IndexOf(vm.FftSize));
+				var sampleRate = fmr.MeasurementSettings.SampleRateVal;
+				var fftsize = fmr.MeasurementSettings.FftSizeVal;
                 var nfloor = MeasurementResult.FrequencySteps[0].Left.Average_NoiseFloor_dBV;   // Average noise floor in dBVolts after the fundamental
                 double fsel = 0;
                 double maxdata = -10;
