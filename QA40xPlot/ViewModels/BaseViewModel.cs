@@ -283,7 +283,7 @@ namespace QA40xPlot.ViewModels
 			GenDirection = MeasureVolts[0];
 			ShowLeft = true;
 			ShowRight = true;
-			SampleRate = "96000";
+			SampleRate = "48000";
 			FftSize = "64K";
 			Averages = 1;
 		}

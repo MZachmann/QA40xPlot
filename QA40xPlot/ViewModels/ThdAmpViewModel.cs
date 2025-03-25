@@ -332,7 +332,7 @@ namespace QA40xPlot.ViewModels
 			ZValue = string.Empty;
 			if( zv.Item1 != null )
 			{
-				FreqShow = Math.Pow(10, zv.Item1.Amplitude/20).ToString("0.### V");
+				FreqShow = Math.Pow(10, zv.Item1.GenVolts/20).ToString("0.### V");
 				if (zv.Item2 != null)
 					ZValue += "Left: " + Environment.NewLine;
 				ZValue += FormatColumn( zv.Item1 );
@@ -340,7 +340,7 @@ namespace QA40xPlot.ViewModels
 			if (zv.Item2 != null)
 			{
 				if (zv.Item1 == null)
-					FreqShow = Math.Pow(10, zv.Item2.Amplitude / 20).ToString("0.### V");
+					FreqShow = Math.Pow(10, zv.Item2.GenVolts / 20).ToString("0.### V");
 				else
 					ZValue += "Right: " + Environment.NewLine;
 				ZValue += FormatColumn(zv.Item2);

@@ -62,11 +62,11 @@ namespace QA40xPlot.Actions
 
 			// find nearest amplitude (both left and right will be identical here if scanned)
 			var ampl = 20 * Math.Log10(amp);
-			var bin = vf.Count(x => x.Amplitude < ampl) - 1;    // find first freq less than me
+			var bin = vf.Count(x => x.GenVolts < ampl) - 1;    // find first freq less than me
 			if (bin == -1)
 				bin = 0;
-			var anearest = vf[bin].Amplitude;
-			if (bin < (vf.Count - 1) && Math.Abs(ampl - anearest) > Math.Abs(ampl - vf[bin + 1].Amplitude))
+			var anearest = vf[bin].GenVolts;
+			if (bin < (vf.Count - 1) && Math.Abs(ampl - anearest) > Math.Abs(ampl - vf[bin + 1].GenVolts))
 			{
 				bin++;
 			}
@@ -87,7 +87,7 @@ namespace QA40xPlot.Actions
 			if (chan == null)
 				return null;
 			var cl = new ThdColumn();
-			cl.Mag = chan.Fundamental_dBV;
+			cl.Mag = chan.Fundamental_V;
 			cl.THD = chan.Thd_dB;
 			cl.D2 = cl.D3 = cl.D4 = cl.D5 = -180;
 			try
@@ -103,25 +103,31 @@ namespace QA40xPlot.Actions
 			cl.Noise = chan.Average_NoiseFloor_dBV;
 			//
 			cl.Freq = MathUtil.ToDouble(MeasurementResult.MeasurementSettings.TestFreq, 10);
-			cl.Amplitude = chan.Fundamental_dBV;
+			cl.GenVolts = chan.Fundamental_dBV;
 			return cl;
 		}
 
-		private void AddColumn(ThdAmplitudeStep step)
+		private void AddColumn(double inputVolt, ThdAmplitudeStep step)
 		{
 			var f = MeasurementResult.LeftColumns;
 			if (f != null)
 			{
 				var cl = MakeColumn(step.Left);
 				if (cl != null)
+				{
+					cl.GenVolts = inputVolt;
 					MeasurementResult.LeftColumns.Add(cl);
+				}
 			}
 			f = MeasurementResult.RightColumns;
 			if (f != null)
 			{
 				var cl = MakeColumn(step.Right);
 				if (cl != null)
+				{
+					cl.GenVolts = inputVolt;
 					MeasurementResult.RightColumns.Add(cl);
+				}
 			}
 		}
 
@@ -230,6 +236,16 @@ namespace QA40xPlot.Actions
 						{
 							await showMessage(ex.Message.ToString());
 						}
+						else
+						{
+							await showMessage(ex.Message.ToString());
+						}
+						break;
+					}
+					catch (Exception ex2)
+					{
+						await showMessage(ex2.Message.ToString());
+						break;
 					}
 					if (ct.IsCancellationRequested)
 						break;
@@ -259,14 +275,14 @@ namespace QA40xPlot.Actions
 					break;
 				}
 
-				step.Left = ChannelCalculations(binSize, step.FundamentalFrequency, generatorVoltagedBV, 
+				step.Left = ChannelCalculations(binSize, step.FundamentalFrequency, generatorVoltageV, 
 					lrfs.FreqRslt.Left, MeasurementResult.NoiseFloor.FreqRslt.Left, ViewSettings.AmplifierLoad);
-				step.Right = ChannelCalculations(binSize, step.FundamentalFrequency, generatorVoltagedBV, 
+				step.Right = ChannelCalculations(binSize, step.FundamentalFrequency, generatorVoltageV, 
 					lrfs.FreqRslt.Right, MeasurementResult.NoiseFloor.FreqRslt.Right, ViewSettings.AmplifierLoad);
 
 				// Add step data to list
 				MeasurementResult.AmplitudeSteps.Add(step);
-				AddColumn(step);
+				AddColumn(generatorVoltageV, step);
 
 				UpdateGraph(false);
 
@@ -295,18 +311,21 @@ namespace QA40xPlot.Actions
 			return true;
 		}
 
-
-
-		private ThdFrequencyStepChannel ChannelCalculations(double binSize, double fundamentalFrequency, double generatorAmplitudeDbv, double[] fftData, double[] noiseFloorFftData, double load)
+		private ThdFrequencyStepChannel ChannelCalculations(double binSize, double fundamentalFrequency, double generatorAmplitudeV, double[] fftData, double[] noiseFloorFftData, double load)
 		{
 			uint fundamentalBin = QaLibrary.GetBinOfFrequency(fundamentalFrequency, binSize);
+			int binmin = (int)Math.Max(0, fundamentalBin - 2);
+			int bintrack = (int)(Math.Min(fftData.Length, fundamentalBin + 2) - binmin);
+
+			// the amplitude is max of a small area
+			var fftVal = fftData.Skip(binmin).Take(bintrack).Max();
 
 			// Get and store step data
 			ThdFrequencyStepChannel channelData = new()
 			{
-				Fundamental_V = fftData[fundamentalBin],
-				Fundamental_dBV = 20 * Math.Log10(fftData[fundamentalBin]),
-				Gain_dB = 20 * Math.Log10(fftData[fundamentalBin] / Math.Pow(10, generatorAmplitudeDbv / 20))
+				Fundamental_V = fftVal,
+				Fundamental_dBV = QaLibrary.ConvertVoltage(fftVal, E_VoltageUnit.Volt, E_VoltageUnit.dBV),
+				Gain_dB = QaLibrary.ConvertVoltage((fftVal / generatorAmplitudeV), E_VoltageUnit.Volt, E_VoltageUnit.dBV)
 			};
 
 			// Calculate average noise floor
@@ -488,9 +507,23 @@ namespace QA40xPlot.Actions
 				suffix = "-L";
 
 			// copy the vector of columns into vectors of values
+			var ttype = BaseViewModel.ToDirection(thdAmp.GenDirection);
+			double[] amps = [];
 			foreach (var col in columns)
 			{
-				var amps = col.Select(x => x.Amplitude/20).ToArray();
+				switch(ttype)
+				{
+					case E_GeneratorDirection.INPUT_VOLTAGE:
+						amps = col.Select(x => x.GenVolts).ToArray();
+						break;
+					case E_GeneratorDirection.OUTPUT_VOLTAGE:
+						amps = col.Select(x => x.Mag).ToArray();
+						break;
+					case E_GeneratorDirection.OUTPUT_POWER:
+						amps = col.Select(x => (x.Mag * x.Mag / ViewSettings.AmplifierLoad)).ToArray();
+						break;
+				}
+				amps = amps.Select(x => Math.Log10(x)).ToArray();
 				if (thdAmp.ShowMagnitude)
 					AddPlot(amps, col.Select(x => x.Mag).ToList(), 9, "Mag" + suffix, LinePattern.DenselyDashed);
 				if (thdAmp.ShowTHD)

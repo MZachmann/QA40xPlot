@@ -19,7 +19,7 @@ namespace QA40xPlot.Actions
 		public double D5 { get; set; }
 		public double D6P { get; set; }
 		// inputs
-		public double Amplitude { get; set; }
+		public double GenVolts { get; set; }
 		public double Freq { get; set; }
 	}
 }

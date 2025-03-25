@@ -78,7 +78,7 @@ namespace QA40xPlot.Actions
 			cl.D6P = chan.D6Plus_dBV;
             cl.Noise = chan.Average_NoiseFloor_dBV;
             //
-            cl.Amplitude = chan.Fundamental_dBV;
+            cl.GenVolts = chan.Fundamental_dBV;
             return cl;
         }
 
