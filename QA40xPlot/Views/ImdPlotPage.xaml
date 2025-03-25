@@ -113,7 +113,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Label Content="T_ype" Grid.Row="0" Grid.Column="0" Target="{Binding ElementName=cb3Freq}"  />
+                <Label Content="T_ype" HorizontalAlignment="Right" Grid.Row="0" Grid.Column="0" Target="{Binding ElementName=cb3Freq}"  />
                 <ComboBox x:Name="cb3Freq" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  
                               SelectedValue="{Binding IntermodType}" ItemsSource="{Binding IntermodTypes}" DropDownClosed="OnChangedIntermod" >
                 </ComboBox>
@@ -133,17 +133,17 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <Label Content="Set DUT" Grid.Row="0" Grid.Column="0" ToolTip="{Binding DutInfo}"  />
+                    <Label Content="Set DUT" HorizontalAlignment="Right" Grid.Row="0" Grid.Column="0" ToolTip="{Binding DutInfo}"  />
                     <ComboBox ToolTip="{Binding DutDescript}" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  
                               SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVoltsFull}">
                     </ComboBox>
                     <Label Content="Generator 1" Grid.Row="1" Grid.Column="0"   />
-                    <Label Content="Fre_quency" Grid.Row="2" Grid.Column="0" Target="{Binding ElementName=cbFreq}"  />
+                    <Label Content="Fre_quency" HorizontalAlignment="Right" Grid.Row="2" Grid.Column="0" Target="{Binding ElementName=cbFreq}"  />
                     <ComboBox IsEnabled="{Binding IsImdCustom}" x:Name="cbFreq" Grid.Column="1" Grid.Row="2" VerticalAlignment="Center"  
                                IsEditable="True" Text="{Binding Gen1Frequency}" ItemsSource="{Binding GenFrequencies}" MinWidth="80" >
                     </ComboBox>
                     <Label Content="Hz" Grid.Row="2" Grid.Column="2" />
-                    <Label Content="{Binding GenAmpDescript}" Grid.Row="3" Grid.Column="0" />
+                    <Label Content="{Binding GenAmpDescript}" HorizontalAlignment="Right" Grid.Row="3" Grid.Column="0" />
                     <ComboBox x:Name="cbVolt" IsEditable="True" Grid.Column="1" Grid.Row="3" VerticalAlignment="Center"  
                               Text="{Binding Gen1Voltage}" ItemsSource="{Binding GenVoltages}">
                     </ComboBox>
@@ -161,12 +161,12 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Label Content="Generator 2" Grid.Row="0" Grid.Column="0"   />
-                    <Label Content="Fre_quency" Grid.Row="1" Grid.Column="0" Target="{Binding ElementName=cb2Freq}"  />
+                    <Label Content="Fre_quency" HorizontalAlignment="Right" Grid.Row="1" Grid.Column="0" Target="{Binding ElementName=cb2Freq}"  />
                     <ComboBox IsEnabled="{Binding IsImdCustom}" x:Name="cb2Freq" Grid.Column="1" Grid.Row="1" VerticalAlignment="Center"  
                                IsEditable="True" Text="{Binding Gen2Frequency}" ItemsSource="{Binding GenFrequencies}">
                     </ComboBox>
                     <Label Content="Hz" Grid.Row="1" Grid.Column="2" />
-                    <Label Content="{Binding GenAmpDescript}" Grid.Row="2" Grid.Column="0" Target="{Binding ElementName=cb2Volt}"  />
+                    <Label Content="{Binding GenAmpDescript}" HorizontalAlignment="Right" Grid.Row="2" Grid.Column="0" Target="{Binding ElementName=cb2Volt}"  />
                     <ComboBox IsEnabled="{Binding IsImdCustom}" Text="{Binding Gen2Voltage}" x:Name="cb2Volt" IsEditable="True" 
                               Grid.Column="1" Grid.Row="2" VerticalAlignment="Center"  
                               ItemsSource="{Binding GenVoltages}">
@@ -188,18 +188,18 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Label Content="_Sample Rate" Grid.Row="0" Grid.Column="0"  Target="{Binding ElementName=cbSampleRate}"  />
+                <Label Content="_Sample Rate" HorizontalAlignment="Right" Grid.Row="0" Grid.Column="0"  Target="{Binding ElementName=cbSampleRate}"  />
                 <ComboBox x:Name="cbSampleRate"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  
                                SelectedValue="{Binding SampleRate}" ItemsSource="{Binding SampleRates}">
                 </ComboBox>
-                <Label Content="_Fft Size" Grid.Row="1" Grid.Column="0" Target="{Binding ElementName=cbfftSize}"  />
+                <Label Content="_Fft Size" HorizontalAlignment="Right" Grid.Row="1" Grid.Column="0" Target="{Binding ElementName=cbfftSize}"  />
                 <ComboBox x:Name="cbfftSize"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Center"  
                                SelectedValue="{Binding FftSize}" ItemsSource="{Binding FftSizes}">
                 </ComboBox>
-                <Label Content="_Averages" Grid.Column="0" Grid.Row="2" Target="{Binding ElementName=xcaverages}"  />
+                <Label Content="_Averages" HorizontalAlignment="Right" Grid.Column="0" Grid.Row="2" Target="{Binding ElementName=xcaverages}"  />
                 <xctk:IntegerUpDown x:Name="xcaverages" Value="{Binding Averages}" Minimum="1" Maximum="6" VerticalAlignment="Center" Grid.Column="1" Grid.Row="2"  />
 
-                <Label Content="_Window" Grid.Row="3" Grid.Column="0" Target="{Binding ElementName=cbWindow}"  />
+                <Label Content="_Window" HorizontalAlignment="Right" Grid.Row="3" Grid.Column="0" Target="{Binding ElementName=cbWindow}"  />
                 <ComboBox x:Name="cbWindow" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="3" VerticalAlignment="Center"  
                                SelectedValue="{Binding WindowingMethod}" ItemsSource="{Binding WindowingTypes}">
                 </ComboBox>
