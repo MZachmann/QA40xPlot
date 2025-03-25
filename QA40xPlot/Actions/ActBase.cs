@@ -50,9 +50,9 @@ namespace QA40xPlot.Actions
 			await vm.SetProgressBar(progress, delay);
 		}
 
-		private static double GetFGain(double[] values, double inputV)
+		private static double GetFGain(double[] values, double inputV, int binmin, int bintrack)
 		{
-			return values.Skip(10).Max() / inputV;
+			return values.Skip(binmin).Take(bintrack).Max() / inputV;
 		}
 
 		protected async Task<LeftRightFrequencySeries?> DetermineGainAtFreq(double dfreq, bool inits, int average = 3)
@@ -75,9 +75,13 @@ namespace QA40xPlot.Actions
 			if (acqData == null || acqData.FreqRslt == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
 				return null;
 
-			// what's the maximum reading here?
-			var maxl = GetFGain(acqData.FreqRslt.Left, generatorV);
-			var maxr = GetFGain(acqData.FreqRslt.Right, generatorV);
+			uint fundamentalBin = QaLibrary.GetBinOfFrequency(dfreq, acqData.FreqRslt.Df);
+			int binmin = (int)Math.Max(0, fundamentalBin - 2);
+			int bintrack = (int)(Math.Min(fftsize, fundamentalBin + 2) - binmin);
+
+			// the amplitude is max of a small area
+			var maxl = GetFGain(acqData.FreqRslt.Left, generatorV, binmin, bintrack);
+			var maxr = GetFGain(acqData.FreqRslt.Right, generatorV, binmin, bintrack);
 
 			var maxi = Math.Max(maxl, maxr);
 			// since we're running with 42db of attenuation...
@@ -93,8 +97,8 @@ namespace QA40xPlot.Actions
 
 			// calculate gain for each channel from frequency response
 			LeftRightFrequencySeries lrfs = new LeftRightFrequencySeries();
-			lrfs.Left = new double[] { GetFGain(acqData.FreqRslt.Left, generatorV) };
-			lrfs.Right = new double[] { GetFGain(acqData.FreqRslt.Right, generatorV) };
+			lrfs.Left = new double[] { GetFGain(acqData.FreqRslt.Left, generatorV, binmin, bintrack) };
+			lrfs.Right = new double[] { GetFGain(acqData.FreqRslt.Right, generatorV, binmin, bintrack) };
 			lrfs.Df = acqData.FreqRslt.Df;
 				
 			// if we're asking for averaging
@@ -105,8 +109,8 @@ namespace QA40xPlot.Actions
 					return null;
 
 				// calculate gain for each channel from frequency response
-				lrfs.Left[0] += GetFGain(acqData.FreqRslt.Left, generatorV);
-				lrfs.Right[0] += GetFGain(acqData.FreqRslt.Right, generatorV);
+				lrfs.Left[0] += GetFGain(acqData.FreqRslt.Left, generatorV, binmin, bintrack);
+				lrfs.Right[0] += GetFGain(acqData.FreqRslt.Right, generatorV, binmin, bintrack);
 			}
 			if (average > 1)
 			{
