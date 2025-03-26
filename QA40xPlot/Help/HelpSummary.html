@@ -12,8 +12,7 @@
     <li>Scroll the mouse wheel over a plot axis to zoom only that axis in or out</li>
     <li>Click inside the plot to freeze a cursor. Click again to unfreeze.</li>
 </ul>
-<h1>Attenuation Settings</h1>
-<p>QA40x attenuation is important for test device integrity. QA40xPlot tries very hard to use enough<br>attenuation for each test. Attenuation is always calculated based on both input channels (left and right) of the QA40x. If you only plan to test one channel we<br>recommend you short the other QA40x input channel, which will guarantee that<br>attenuation math ignores the shorted channel.</p>
+<h1>Amplitude Definitions</h1>
 <p>All tests have a choice as to amplitude definition.</p>
 <table>
     <thead>
@@ -37,11 +36,13 @@
         </tr>
     </tbody>
 </table>
-<p>The spectral tests (Spectrum and Intermodulation) have manual or automatic attenuation. The other tests all use automatic<br>attenuation settings to avoid QA40x overload in either channel.</p>
-<p>The THD vs Frequency sweep calculates/uses one generator voltage that it then sweeps with. If you select an output amplitude that voltage<br>ensures the maximum output of the sweep is that setting. The Input Voltage setting just uses that voltage for the sweep.</p>
-<p>The THD vs Amplitude test calculates gain at each swept frequency and ensures the generator voltage<br>achieves the desired result at each frequency - so attenuation may increase as output voltage increases.</p>
+<p>The spectral tests (Spectrum and Intermodulation) have manual or automatic attenuation. The other tests are all automatic to avoid QA40x overload in either channel.</p>
+<p>The THD vs Frequency sweep calculates/uses one generator voltage that it then sweeps with. If you select an output amplitude that voltage<br>ensures the maximum output of the sweep is that setting. The Input Voltage setting uses that voltage for the sweep.</p>
+<p>The THD vs Amplitude test calculates distortion at each swept amplitude and varies generator voltage accordingly. Attenuation may increase as output voltage increases.</p>
 <p>All 3 response tests (Response, Gain, Impedance) use a single generator voltage just like<br>the THD vs Frequency test.</p>
-<h2>Cursor</h2>
+<h1>Attenuation Settings</h1>
+<p>QA40x attenuation is important for test device integrity. QA40xPlot tries very hard to use enough<br>attenuation for each test. Attenuation is always calculated based on both input channels (left and right) of the QA40x. If you only plan to test one channel we<br>recommend you short the other QA40x input channel, which will guarantee that<br>attenuation math ignores the shorted channel.</p>
+<h1>Cursor</h1>
 <p>All of the tests support a <strong>cursor</strong>. As you move your mouse in the plot a small box in the lower right<br>shows the nearest data point. Some charts have a visual on-screen point, some don&#39;t.</p>
 <h1>Spectrum Test</h1>
 <p>This test sends a single sine wave out from the generator and plots the received<br>frequency spectral data (value vs frequency). For a Sine wave this produces<br>a skinny spike at the sine frequency surrounded by background noise<br>and (usually harmonic) distortion spikes.</p>
