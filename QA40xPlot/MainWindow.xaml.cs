@@ -93,6 +93,22 @@ namespace QA40xPlot
 			}
 		}
 
+		private void OnHelp(object sender, RoutedEventArgs e)
+		{
+			try
+			{
+				var filename = "/Help/HelpSummary.html";
+				var dir = System.AppDomain.CurrentDomain.BaseDirectory;
+				var uri = new Uri(dir + filename);
+				Process.Start(new ProcessStartInfo(dir + filename) { UseShellExecute = true });
+				e.Handled = true;
+			}
+			catch(Exception ex)
+			{
+				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
+			}
+		}
+
 		static bool bdone = false;
 		private void DoContentRendered(object? sender, EventArgs e)
 		{

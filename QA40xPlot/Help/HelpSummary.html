@@ -1,0 +1,285 @@
+﻿<style>
+body {font-family: 'Arial', sans-serif;}
+</style>
+<p>The QA40xPlot application consists of 8 different audio tests that use a QA402 or QA403 audio analyzer from QuantAsylum.</p>
+<h1>Graph Manipulation</h1>
+<p>Common to all tests are plots of values. You can change them easily by</p>
+<ul>
+<li>Click a plot and drag the mouse to move the plot center point around.</li>
+<li>Scroll the mouse wheel in a plot to zoom in or out</li>
+<li>Scroll the mouse wheel over a plot axis to zoom only that axis in or out</li>
+<li>Click inside the plot to freeze a cursor. Click again to unfreeze.</li>
+</ul>
+<h1>Attenuation Settings</h1>
+<p>QA40x attenuation is important for test device integrity. QA40xPlot tries very hard to use enough<br>attenuation for each test. Attenuation is always calculated based on both input channels (left and right) of the QA40x. If you only plan to test one channel we<br>recommend you short the other QA40x input channel, which will guarantee that<br>attenuation math ignores the shorted channel.</p>
+<p>All tests have a choice as to amplitude definition.</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Input Voltage</strong></td>
+<td>Interpret voltages as QA40x generator settings.</td>
+</tr>
+<tr>
+<td><strong>Output Voltage</strong></td>
+<td>Determine voltage to achieve the desired output. This requires gain calculation first</td>
+</tr>
+<tr>
+<td><strong>Output Power</strong></td>
+<td>Use the amplifier load setting (see Settings) to determine output voltage from power and then use gain to calculate the input voltage</td>
+</tr>
+</tbody></table>
+<p>The spectral tests (Spectrum and Intermodulation) have manual or automatic attenuation. The other tests all use automatic<br>attenuation settings to avoid QA40x overload in either channel.</p>
+<p>The THD vs Frequency sweep calculates/uses one generator voltage that it then sweeps with. If you select an output amplitude that voltage<br>ensures the maximum output of the sweep is that setting. The Input Voltage setting just uses that voltage for the sweep.</p>
+<p>The THD vs Amplitude test calculates gain at each swept frequency and ensures the generator voltage<br>achieves the desired result at each frequency - so attenuation may increase as output voltage increases.</p>
+<p>All 3 response tests (Response, Gain, Impedance) use a single generator voltage just like<br>the THD vs Frequency test.</p>
+<h2>Cursor</h2>
+<p>All of the tests support a <strong>cursor</strong>. As you move your mouse in the plot a small box in the lower right<br>shows the nearest data point. Some charts have a visual on-screen point, some don&#39;t.</p>
+<h1>Intermodulation Test</h1>
+<p>This test performs one of 6 standard intermodulation tests or it allows manual frequency/amplitude selection per generator.</p>
+<h1>Spectrum Test</h1>
+<p>This test sends a single sine wave out from the generator and plots the received<br>frequency spectral data (value vs frequency). For a Sine wave this produces<br>a skinny spike at the sine frequency surrounded by background noise<br>and (usually harmonic) distortion spikes.</p>
+<h2>Options</h2>
+<table>
+<thead>
+<tr>
+<th>option</th>
+<th>description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Use Generator</td>
+<td>This lets you easily turn the sine wave on or off.</td>
+</tr>
+<tr>
+<td>Attenuation</td>
+<td>Manually select the attenuation value or autorange.</td>
+</tr>
+<tr>
+<td></td>
+<td>When you click start, autorange will first test at 42 attenuation then adjust to the (almost) least possible</td>
+</tr>
+<tr>
+<td>Generator 1</td>
+<td>Select the frequency and signal voltage.</td>
+</tr>
+<tr>
+<td></td>
+<td>The Set DUT option lets you program an output value rather than just the generator setting</td>
+</tr>
+<tr>
+<td>Sampling</td>
+<td>We recommend 48K or 96K Rate and 64K or 128K Size. 1 or 2 Averages.</td>
+</tr>
+</tbody></table>
+<h2>Plot Options</h2>
+<table>
+<thead>
+<tr>
+<th>option</th>
+<th>description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Axis Settings</td>
+<td>You may restrict the axis bounds but still can zoom the axis in/out with the mouse</td>
+</tr>
+<tr>
+<td></td>
+<td>On selection or typing of a value the window will refit.</td>
+</tr>
+<tr>
+<td>Summary Data</td>
+<td>Select this to show the Summary box in the upper left.</td>
+</tr>
+<tr>
+<td>Harmonic Markers</td>
+<td>This will automatically mark the harmonics (and fundamental)</td>
+</tr>
+<tr>
+<td>Power Markers</td>
+<td>This will check 50Hz and 60Hz peaks, then mark the ones that seem like your power peaks.</td>
+</tr>
+<tr>
+<td>% - Y Axis</td>
+<td>This will show % instead of db on the Y axis. Nice for seeing distortion percents.</td>
+</tr>
+<tr>
+<td>% - Data Summary</td>
+<td>Swap between percents and uV/dBV</td>
+</tr>
+</tbody></table>
+<h2>Options</h2>
+<table>
+<thead>
+<tr>
+<th>option</th>
+<th>description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Use Generator 1/2</td>
+<td>Lets you quickly turn each frequency on or off.</td>
+</tr>
+<tr>
+<td>Attenuation</td>
+<td>See the description under spectrum.</td>
+</tr>
+<tr>
+<td>Intermod Test</td>
+<td>Pick a test and an amplitude (voltage or power).</td>
+</tr>
+<tr>
+<td></td>
+<td>For custom, select the two frequencies and amplitudes manually.</td>
+</tr>
+<tr>
+<td>Generator</td>
+<td>When you have a stock test selected the only option available will be Voltage (or power).</td>
+</tr>
+<tr>
+<td>Samples</td>
+<td>See the description under spectrum</td>
+</tr>
+</tbody></table>
+<h2>Plot Options</h2>
+<table>
+<thead>
+<tr>
+<th>option</th>
+<th>description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Axis Settings</td>
+<td>You may restrict the axis bounds but still can zoom the axis in/out with the mouse</td>
+</tr>
+<tr>
+<td></td>
+<td>On selection or typing of a value the window will refit.</td>
+</tr>
+<tr>
+<td>Summary Data</td>
+<td>Select this to show the Summary box in the upper left.</td>
+</tr>
+<tr>
+<td>Intermod Markers</td>
+<td>This will mark the standard intermodulation peaks.</td>
+</tr>
+<tr>
+<td>Power Markers</td>
+<td>This will check 50Hz and 60Hz peaks, then mark the ones that seem like your power peaks.</td>
+</tr>
+<tr>
+<td>% - Y Axis</td>
+<td>This will show % instead of db on the Y axis. Nice for seeing distortion percents.</td>
+</tr>
+<tr>
+<td>% - Data Summary</td>
+<td>Swap between percents and uV/dBV</td>
+</tr>
+</tbody></table>
+<h1>THD vs Frequency Test</h1>
+<p>This test does a sweep from start to end frequency. At each frequency of<br>the sweep it tests the harmonic distortion products and plots<br>the resultant set of 5-8 line segments.</p>
+<h2>Options</h2>
+<table>
+<thead>
+<tr>
+<th>option</th>
+<th>description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Generator</td>
+<td>See Spectrum</td>
+</tr>
+<tr>
+<td>Sweep</td>
+<td>Define the frequencies to be swept. The end frequency should be less than SampleRate/2.</td>
+</tr>
+<tr>
+<td>Sampling</td>
+<td>See Spectrum</td>
+</tr>
+</tbody></table>
+<h2>Plot Options</h2>
+<table>
+<thead>
+<tr>
+<th>option</th>
+<th>description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Axis Settings</td>
+<td>You may restrict the axis bounds but still can zoom the axis in/out with the mouse</td>
+</tr>
+<tr>
+<td>Graph Data</td>
+<td>Individually turn on/off any of the harmonics</td>
+</tr>
+<tr>
+<td></td>
+<td>High order harmonics may be nonsense at high frequencies</td>
+</tr>
+</tbody></table>
+<h1>THD vs Amplitude Test</h1>
+<p>This test does a sweep from start to end voltage or power. At each amplitude it tests the harmonic distortion products and plots<br>the resultant set of 5-8 line segments.</p>
+<h2>Options</h2>
+<table>
+<thead>
+<tr>
+<th>option</th>
+<th>description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Generator</td>
+<td>See Spectrum</td>
+</tr>
+<tr>
+<td>Sweep</td>
+<td>Define the amplitude range to be swept. At each test point (amplitude level) the attenuation will be adjusted to as low as possible.</td>
+</tr>
+<tr>
+<td>Sampling</td>
+<td>See Spectrum</td>
+</tr>
+</tbody></table>
+<h2>Plot Options</h2>
+<table>
+<thead>
+<tr>
+<th>option</th>
+<th>description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Axis Settings</td>
+<td>You may restrict the axis bounds but still can zoom the axis in/out with the mouse</td>
+</tr>
+<tr>
+<td>Graph Data</td>
+<td>Individually turn on/off any of the harmonics</td>
+</tr>
+<tr>
+<td></td>
+<td>High order harmonics may be nonsense at high frequencies</td>
+</tr>
+</tbody></table>
+<h1>Response Test</h1>
+<p>This is a conventional frequency response test. The output is in dBV<br>and can cover both channels or just one.</p>
+<h1>Impedance Test</h1>
+<p>This does a frequency sweep and at each point calculates the effective<br>impedance of the DUT. Data is stored as a complex value.</p>
+<p>Connections are:</p>
+<ul>
+<li>DUT terminal A to ground</li>
+<li>DUT terminal B to reference resistor terminal A and Left Input</li>
+<li>reference resistor terminal B and generator output to Right Input</li>
+</ul>
+<h1>Gain Test</h1>
+<p>This does a traditional Bode Plot of Gain and Phase vs frequency.<br>Here the right channel is used as a reference channel. Connect the<br>right channel input to the DUT input port and generator output.</p>

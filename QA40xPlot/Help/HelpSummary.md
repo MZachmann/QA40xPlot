@@ -8,7 +8,34 @@ Common to all tests are plots of values. You can change them easily by
 - Scroll the mouse wheel over a plot axis to zoom only that axis in or out
 - Click inside the plot to freeze a cursor. Click again to unfreeze.
 
+# Attenuation Settings
+QA40x attenuation is important for test device integrity. QA40xPlot tries very hard to use enough
+attenuation for each test. Attenuation is always calculated based on both input channels (left and right) of the QA40x. If you only plan to test one channel we
+recommend you short the other QA40x input channel, which will guarantee that
+attenuation math ignores the shorted channel.
+
+All tests have a choice as to amplitude definition.
+
+|Setting|Description|
+|---------|-----------|
+|__Input Voltage__|Interpret voltages as QA40x generator settings.|
+|__Output Voltage__|Determine voltage to achieve the desired output. This requires gain calculation first|
+|__Output Power__|Use the amplifier load setting (see Settings) to determine output voltage from power and then use gain to calculate the input voltage|
+
+The spectral tests (Spectrum and Intermodulation) have manual or automatic attenuation. The other tests all use automatic
+attenuation settings to avoid QA40x overload in either channel.
+
+The THD vs Frequency sweep calculates/uses one generator voltage that it then sweeps with. If you select an output amplitude that voltage
+ensures the maximum output of the sweep is that setting. The Input Voltage setting just uses that voltage for the sweep.
+
+The THD vs Amplitude test calculates gain at each swept frequency and ensures the generator voltage 
+achieves the desired result at each frequency - so attenuation may increase as output voltage increases.
+
+All 3 response tests (Response, Gain, Impedance) use a single generator voltage just like
+the THD vs Frequency test.
+
 # Spectrum Test
+
 This test sends a single sine wave out from the generator and plots the received
 frequency spectral data (value vs frequency). For a Sine wave this produces
 a skinny spike at the sine frequency surrounded by background noise
@@ -59,6 +86,7 @@ This test performs one of 6 standard intermodulation tests or it allows manual f
 |Samples|See the description under spectrum|
 
 ## Plot Options
+
 | option      | description |
 |-------------|----------|
 |Axis Settings|You may restrict the axis bounds but still can zoom the axis in/out with the mouse|
