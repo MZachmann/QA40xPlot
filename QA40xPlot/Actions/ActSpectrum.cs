@@ -49,7 +49,10 @@ namespace QA40xPlot.Actions
             ct.Cancel();
 		}
 
-		// create a blob with F,Left,Right data for export
+		/// <summary>
+		/// Create a blob for data export
+		/// </summary>
+		/// <returns></returns>
 		public DataBlob? CreateExportData()
 		{
 			DataBlob db = new();
@@ -79,11 +82,11 @@ namespace QA40xPlot.Actions
 			return db;
 		}
 
-			/// <summary>
-			/// Perform the measurement
-			/// </summary>
-			/// <param name="ct">Cancellation token</param>
-			/// <returns>result. false if cancelled</returns>
+		/// <summary>
+		/// Perform the measurement
+		/// </summary>
+		/// <param name="ct">Cancellation token</param>
+		/// <returns>result. false if cancelled</returns>
 		async Task<bool> PerformMeasurementSteps(SpectrumMeasurementResult msr, CancellationToken ct)
         {
 			// Setup
@@ -133,8 +136,8 @@ namespace QA40xPlot.Actions
 
 						return false;
 				}
-
-				var genVolt = specVm.ToGenVoltage(msr.MeasurementSettings.Gen1Voltage, freq, true, LRGains) ;
+				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
+				var genVolt = specVm.ToGenVoltage(msr.MeasurementSettings.Gen1Voltage, [], true, gains) ;
 				if(genVolt > 5)
 				{
 					await showMessage($"Requesting input voltage of {genVolt} volts, check connection and settings");
@@ -379,6 +382,7 @@ namespace QA40xPlot.Actions
 			{
 				Fundamental_V = ffts[fundamentalBin],
 				Total_V = allvolts,
+				Total_W = allvolts * allvolts / ViewSettings.AmplifierLoad,
 				Fundamental_dBV = 20 * Math.Log10(ffts[fundamentalBin]),
 				Gain_dB = 20 * Math.Log10(ffts[fundamentalBin] / Math.Pow(10, generatorAmplitudeDbv / 20))
 
@@ -657,6 +661,7 @@ namespace QA40xPlot.Actions
 
 			var genType = BaseViewModel.ToDirection(specVm.GenDirection);
 			var freq = MathUtil.ToDouble(specVm.Gen1Frequency, 1000);
+			var binSize = QaLibrary.CalcBinSize(specVm.SampleRateVal, specVm.FftSizeVal);
 			// if we're doing adjusting here
 			if (specVm.DoAutoAttn || genType != E_GeneratorDirection.INPUT_VOLTAGE)
 			{
@@ -666,11 +671,14 @@ namespace QA40xPlot.Actions
 				LRGains = await DetermineGainAtFreq(freq, true, 1);
 			}
 
-			if (specVm.DoAutoAttn)
+			if (specVm.DoAutoAttn && LRGains != null)
 			{
-				var vtest = specVm.ToGenVoltage(specVm.Gen1Voltage, freq, false, LRGains);	// get output voltage
-				var vdbv = QaLibrary.ConvertVoltage( vtest, E_VoltageUnit.Volt, E_VoltageUnit.dBV );
-				specVm.Attenuation = QaLibrary.DetermineAttenuation(vdbv);
+				var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
+				var vinL = specVm.ToGenVoltage(specVm.Gen1Voltage, [], true, gains);	// get primary input voltage
+				double voutL = BaseViewModel.ToGenOutVolts(vinL, [], LRGains.Left);	// what is that as output voltage?
+				double voutR = BaseViewModel.ToGenOutVolts(vinL, [], LRGains.Right);	// for both channels
+				var vdbv = QaLibrary.ConvertVoltage( Math.Max(voutL, voutR), E_VoltageUnit.Volt, E_VoltageUnit.dBV );
+				specVm.Attenuation = QaLibrary.DetermineAttenuation(vdbv);				// find attenuation for both
 				MeasurementResult.MeasurementSettings.Attenuation = specVm.Attenuation;	// update the specVm to update the gui, then this for the steps
 			}
 
@@ -693,7 +701,7 @@ namespace QA40xPlot.Actions
 						msrSet.GenDirection = specVm.GenDirection;
 						var genoType = BaseViewModel.ToDirection(msrSet.GenDirection);
 						if (LRGains != null && genoType == E_GeneratorDirection.OUTPUT_VOLTAGE)
-							LRGains = await DetermineGainAtFreq(MathUtil.ToDouble(msrSet.Gen1Frequency, 1), false, 1);
+							LRGains = await DetermineGainAtFreq(MathUtil.ToDouble(msrSet.Gen1Frequency, 1000), false, 1);
 					}
                     if (specVm.FftSize != fftsize || specVm.SampleRate != sampleRate || specVm.Attenuation != atten)
                     {

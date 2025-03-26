@@ -10,6 +10,15 @@ namespace QA40xPlot.ViewModels
 	public class SettingsViewModel : BaseViewModel
 	{
 		#region setters and getters
+		private string _TestChannel = "Left";
+		public string TestChannel
+		{
+			get { return _TestChannel; }
+			set
+			{
+				SetProperty(ref _TestChannel, value);
+			}
+		}
 		private string _AmplifierLoad = string.Empty;
 		public string AmplifierLoad
 		{

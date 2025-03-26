@@ -30,7 +30,8 @@
                 <Label Grid.Row="0" Grid.Column="0" Content="{Binding FundamentalFrequency}" ContentStringFormat="{}{0:F0} Hz"/>
                 <Label Grid.Row="0" Grid.Column="1" Content="{Binding MyStep.Fundamental_dBV}" ContentStringFormat="{}{0:F2} dBV"/>
                 <Label Grid.Row="0" Grid.Column="2" Content="{Binding MyStep.Fundamental_V, Converter={StaticResource VoltFormatter}}"/>
-                <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Center" Content="{Binding MyStep.Gain_dB}" ContentStringFormat="Gain {0:F2} dB"/>
+                <Label Grid.Row="1" Grid.Column="0" HorizontalAlignment="Center" Content="{Binding MyStep.Gain_dB}" ContentStringFormat="Gain {0:F2} dB"/>
+                <Label Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" Content="{Binding MyStep.Total_W}" ContentStringFormat="{}{0:0.###} W"/>
             </Grid>
             <Rectangle HorizontalAlignment="Stretch" Height="3" Fill="DarkGreen" />
             <Grid>

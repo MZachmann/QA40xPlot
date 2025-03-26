@@ -192,13 +192,13 @@ namespace QA40xPlot.Actions
 
 			// ********************************************************************
 			// Setup the device
-			var sampleRate = frqrsVm.SampleRateVal;
-			if (sampleRate == 0 || !FreqRespViewModel.FftSizes.Contains(msr.FftSize))
+			if (MathUtil.ToDouble(msr.SampleRate,0) == 0 || !FreqRespViewModel.FftSizes.Contains(msr.FftSize))
 			{
-				MessageBox.Show("Invalid settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+				MessageBox.Show("Invalid sample rate or fftsize settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 				return false;
 			}
-			var fftsize = frqrsVm.FftSizeVal;
+			var fftsize = msr.FftSizeVal;
+			var sampleRate = msr.SampleRateVal;
 
 			// ********************************************************************
 			// Calculate frequency steps to do
@@ -217,17 +217,25 @@ namespace QA40xPlot.Actions
 			frqrsVm.Attenuation = 42; // display on-screen
 			await showMessage("Calculating gain");
 			LRGains = await DetermineGainCurve(true, 1);
+            if(LRGains == null)
+                { return false; }
 
-			var checkFreq = Math.Sqrt(MathUtil.ToDouble(msr.StartFreq,20) * MathUtil.ToDouble(msr.EndFreq,20000));
-            var genVolt = frqrsVm.ToGenVoltage(msr.Gen1Voltage, checkFreq, true, LRGains);
-            {
-				var genv = frqrsVm.ToGenVoltage(msr.Gen1Voltage, 0, false, LRGains);    // output v
+			int[] frqtest = [ToBinNumber(stepBinFrequencies[0], LRGains),
+								 ToBinNumber(stepBinFrequencies[stepBinFrequencies.Length-1], LRGains)];
+			{
+				// to get attenuation, use a frequency of zero (all)
+				// find the highest output voltage
+
+				var genv = frqrsVm.ToGenVoltage(msr.Gen1Voltage, frqtest, false, LRGains.Left);                  // output v
+                genv = Math.Max(genv, frqrsVm.ToGenVoltage(msr.Gen1Voltage, frqtest, false, LRGains.Right));    // output v
 				var vdbv = QaLibrary.ConvertVoltage(genv, E_VoltageUnit.Volt, E_VoltageUnit.dBV);   // out dbv
 				var attenuation = QaLibrary.DetermineAttenuation(vdbv);
 				msr.Attenuation = attenuation;
+				frqrsVm.Attenuation = msr.Attenuation; // display on-screen
 			}
+            // get voltages for generator
+			var genVolt = frqrsVm.ToGenVoltage(msr.Gen1Voltage, frqtest, true, LRGains?.Left);
 			var voltagedBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);  // in dbv
-            frqrsVm.Attenuation = msr.Attenuation; // display on-screen
 
 			if (true != await QaLibrary.InitializeDevice(sampleRate, fftsize, "Hann", (int)msr.Attenuation, true))
 			{

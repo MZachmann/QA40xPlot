@@ -6,6 +6,7 @@ namespace QA40xPlot.Data
     public class ThdFrequencyStepChannel
     {
         public double Total_V { get; set; }
+        public double Total_W { get; set; }
         public double Fundamental_V { get; set; }
         public double Fundamental_dBV { get; set; }
         public double Gain_dB { get; set; }

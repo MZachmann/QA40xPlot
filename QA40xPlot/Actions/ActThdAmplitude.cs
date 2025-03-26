@@ -164,25 +164,25 @@ namespace QA40xPlot.Actions
 
 			await showMessage("Calculating attenuation");
 			LRGains = await DetermineGainAtFreq(testFrequency, true, 2);
-
-			// ********************************************************************
-			// Determine attenuation level
-			// ********************************************************************
-			// input voltages
-			double startInV = thdaVm.ToGenVoltage(msr.StartVoltage, testFreq, true, LRGains);
-			double endInV = thdaVm.ToGenVoltage(msr.EndVoltage, testFreq, true, LRGains);
-			// output voltages
-			double startOutV = thdaVm.ToGenVoltage(msr.StartVoltage, testFreq, false, LRGains);
-			double endOutV = thdaVm.ToGenVoltage(msr.EndVoltage, testFreq, false, LRGains);
-
-			if (ct.IsCancellationRequested)
+			if (LRGains == null)
 				return false;
 
 			// ********************************************************************
-			// Generate a list of output voltages evenly spaced in log scale
+			// Determine voltage sequences
 			// ********************************************************************
-			var stepOutVoltages = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(startOutV, endOutV, msr.StepsOctave);
-			var stepInVoltages = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(startInV, endInV, msr.StepsOctave);
+			// specified voltages boundaries
+			var startV = MathUtil.ToDouble(msr.StartVoltage, 1);
+			var endV = MathUtil.ToDouble(msr.EndVoltage, 1);
+			var stepVoltages = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(startV, endV, msr.StepsOctave);
+			// now convert all of the step voltages to input voltages
+			var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
+			var stepInVoltages = stepVoltages.Select(x => msr.ToGenVoltage(x.ToString(), [], true, gains)).ToArray();
+			// get output values for left and right so we can attenuate
+			var stepOutLVoltages = stepInVoltages.Select(x => BaseViewModel.ToGenOutVolts(x, [], LRGains.Left)).ToArray();
+			var stepOutRVoltages = stepInVoltages.Select(x => BaseViewModel.ToGenOutVolts(x, [], LRGains.Right)).ToArray();
+
+			if (ct.IsCancellationRequested)
+				return false;
 
 			// ********************************************************************
 			// Do noise floor measurement
@@ -208,8 +208,10 @@ namespace QA40xPlot.Actions
 			// ********************************************************************
 			for (int i = 0; i < stepInVoltages.Length; i++)
 			{
-				var voutdbv = QaLibrary.ConvertVoltage(stepOutVoltages[i], E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-				var attenuate = QaLibrary.DetermineAttenuation(voutdbv);
+				// attenuate for both channels
+				var voutLdbv = QaLibrary.ConvertVoltage(stepOutLVoltages[i], E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+				var voutRdbv = QaLibrary.ConvertVoltage(stepOutRVoltages[i], E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+				var attenuate = QaLibrary.DetermineAttenuation(Math.Max(voutLdbv, voutRdbv));
 				await showMessage($"Measuring step {i + 1} at {stepInVoltages[i]:0.###}V with attenuation {attenuate}.");
 				await showProgress(100 * (i + 1) / (stepInVoltages.Length));
 
@@ -220,7 +222,7 @@ namespace QA40xPlot.Actions
 				// Set generator
 				await Qa40x.SetGen1(testFrequency, generatorVoltagedBV, true);      // Set the generator in dBV
 				await Qa40x.SetInputRange(attenuate);
-				thdaVm.Attenuation = attenuate;
+				thdaVm.Attenuation = attenuate;	// update the GUI
 
 				LeftRightSeries? lrfs = null;
 				do

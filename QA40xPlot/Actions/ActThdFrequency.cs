@@ -168,7 +168,6 @@ namespace QA40xPlot.Actions
                 Show = true,                                      // Show in graph
             };
             var msr = MeasurementResult.MeasurementSettings;
-            var thdfVm = ViewSettings.Singleton.ThdFreq;
 
             // For now clear measurements to allow only one until we have a UI to manage them.
             Data.Measurements.Clear();
@@ -177,29 +176,37 @@ namespace QA40xPlot.Actions
             Data.Measurements.Add(MeasurementResult);
 
             // Init mini plots
-            QaLibrary.InitMiniFftPlot(fftPlot, MathUtil.ToDouble(msr.StartFreq, 10),
-                MathUtil.ToDouble(msr.EndFreq, 20000), -150, 20);
+            var startFreq = MathUtil.ToDouble(msr.StartFreq, 10);
+            var endFreq = MathUtil.ToDouble( msr.EndFreq, 20000);
+
+			QaLibrary.InitMiniFftPlot(fftPlot, startFreq, endFreq, -150, 20);
             QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -1, 1);
 
 			// ********************************************************************
 			// Determine input level
 			// ********************************************************************
 			LRGains = await DetermineGainCurve(true, 1);   // read the gain curve
-            var genVolt = thdfVm.ToGenVoltage(msr.GenVoltage, 0, true, LRGains);   // input voltage for request
+            if (LRGains == null)
+                return false;
+
+            var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
+            int[] frqtest = [ToBinNumber(startFreq, LRGains), ToBinNumber(endFreq, LRGains)];
+            var genVolt = msr.ToGenVoltage(msr.GenVoltage, frqtest, true, gains);   // input voltage for request
 
             try
             {
 				// ********************************************************************
-				// Determine input level
+				// Determine input level for attenuation
 				// ********************************************************************
-				var genOut = thdfVm.ToGenVoltage(msr.GenVoltage, 0, false, LRGains);   // output voltage for request
-                double amplifierOutputVoltagedBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+				var genOut = BaseViewModel.ToGenOutVolts(genVolt, frqtest, gains);   // output voltage for request
+                double amplifierOutputVoltagedBV = QaLibrary.ConvertVoltage(genOut, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
                 // Get input voltage based on desired output voltage
                 var attenuation = QaLibrary.DetermineAttenuation(amplifierOutputVoltagedBV);
                 await showMessage($"Setting attenuation to {attenuation:0}",200);
 
                 // Set the new input range
+                ViewSettings.Singleton.ThdFreq.Attenuation = attenuation;   // visible display
                 await Qa40x.SetInputRange(attenuation);
 
                 // Check if cancel button pressed
@@ -282,7 +289,6 @@ namespace QA40xPlot.Actions
                     AddColumn(step);
 
                     UpdateGraph(false);
-                    //ShowLastMeasurementCursorTexts();
 
                     // Check if cancel button pressed
                     if (ct.IsCancellationRequested)

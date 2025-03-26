@@ -33,8 +33,6 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand ToggleGenerator { get => new RelayCommand(StopIt); }
 
 		#region Setters and Getters
-		[JsonIgnore]
-		public double GenDivisor { get; set; }	// set when we set the imd type
 
 		[JsonIgnore]
 		public string AttenColor
@@ -291,6 +289,13 @@ namespace QA40xPlot.ViewModels
 			return actImd.CreateExportData();
 		}
 
+		[JsonIgnore]
+		public double GenDivisor
+		{   // this gets set whenever we set the imd type
+			get => GetImDivisor();
+		}
+
+
 		// the property change is used to trigger repaints of the graph
 		private void CheckPropertyChanged(object? sender, PropertyChangedEventArgs e)
 		{
@@ -371,7 +376,6 @@ namespace QA40xPlot.ViewModels
 		{
 			var ax = IntermodType;
 			var tt = ToDirection(GenDirection);
-			GenDivisor = divisor;		// cache this for other people
 			if( tt == E_GeneratorDirection.OUTPUT_POWER)
 			{
 				Gen2Voltage = (MathUtil.ToDouble(this.Gen1Voltage) / (divisor*divisor)).ToString();
@@ -385,6 +389,46 @@ namespace QA40xPlot.ViewModels
 			IntermodType = ax;
 		}
 
+		public double GetImDivisor()
+		{
+			var tt = IntermodType;
+			if (tt == null)
+				return 1;
+
+			IsImdCustom = (tt == "Custom");
+			// if custom, we're done
+			if (IsImdCustom)
+			{
+				return 1;
+			}
+
+			if (tt.Contains("SMPTE "))
+			{
+				return 4;
+			}
+			else if (tt.Contains("DIN "))
+			{
+				return 4;
+			}
+			else if (tt.Contains("CCIF "))
+			{
+				return 1;
+			}
+			else if (tt.Contains("AES-17 MD"))
+			{
+				return 4;
+			}
+			else if (tt.Contains("AES-17 DFD"))
+			{
+				return 1;
+			}
+			else if (tt.Contains("TDFD Phono"))
+			{
+				return 1;
+			}
+			return 1;
+		}
+
 		public void SetImType()
 		{
 			var tt = IntermodType;
@@ -395,7 +439,6 @@ namespace QA40xPlot.ViewModels
 			// if custom, we're done
 			if (IsImdCustom)
 			{
-				GenDivisor = 1;
 				return;
 			}
 
@@ -523,7 +566,6 @@ namespace QA40xPlot.ViewModels
 
 			Gen1Voltage = "0.1";
 			Gen2Voltage = "0.1";
-			GenDivisor = 1;
 			Gen2Frequency = "20000";
 			Gen1Frequency = "19000";
 			UseGenerator = false;

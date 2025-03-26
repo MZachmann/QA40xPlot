@@ -34,6 +34,7 @@ namespace QA40xPlot.ViewModels
 		public static string DutInfo { get => "DUT = Device Under Test"; }
 		public static string DutDescript { get => "Input Voltage = DUT Input(Generator Output), Output Voltage = DUT Output(QA40x Input)"; }
 		public static string AutoRangeDescript { get => "When the test is started a safe Attenuation value is calculated based on a test at 42."; }
+		public static List<String> ChannelList { get => new List<string> { "Left", "Right" }; }
 		#endregion
 
 		#region Setters and Getters
@@ -226,15 +227,54 @@ namespace QA40xPlot.ViewModels
 		}
 
 		/// <summary>
+		/// Given an input voltage determine the output voltage for this channel
+		/// </summary>
+		/// <param name="dVoltIn">volts input (generator output)</param>
+		/// <param name="binNumber">bin number(s) to check or all if empty</param>
+		/// <param name="lrGains">the gain curve for this channel</param>
+		/// <returns></returns>
+		public static double ToGenOutVolts(double dVoltIn, int[] binNumber, double[] lrGains)
+		{
+			if (lrGains == null)
+			{
+				return dVoltIn;
+			}
+
+			var maxGain = lrGains.Max();
+			if (lrGains.Length > 1)
+			{
+				// figure out which bins we want
+				int binmin = Math.Min(lrGains.Length - 1, 10);  // skip 10 at front since df is usually about 1Hz
+				int binmax = Math.Max(1, lrGains.Length - binmin);
+				if (binNumber.Length > 0 && binNumber[0] != 0)
+				{
+					int abin = binNumber[0];                // approximate bin
+					binmin = Math.Max(1, abin - 5);         // random....
+					if (binNumber.Length == 2)
+						binmax = binNumber[1] + 5;
+					else
+						binmax = abin + 6;                      // random....
+					binmax = Math.Min(lrGains.Length, binmax);  // limit this
+				}
+				maxGain = lrGains.Skip(binmin).Take(binmax - binmin).Max();
+			}
+
+			if (maxGain <= 0.0)
+				return dVoltIn;
+
+			return dVoltIn * maxGain;   // input to output transformation
+		}
+
+		/// <summary>
 		/// convert a string value in the gui to an input or output voltage
 		/// based on the current generator direction
 		/// </summary>
 		/// <param name="amplitude">string amplitude with type depending on generator direction</param>
-		/// <param name="frequency">frequency of interested or 0 for all</param>
+		/// <param name="binNumber">frequency bin of interested or 0 for all</param>
 		/// <param name="isInput">dut input or dut output voltage</param>
-		/// <param name="lrGains">the gain calculations</param>
+		/// <param name="lrGains">the gain calculations for one channel</param>
 		/// <returns></returns>
-		public double ToGenVoltage(string amplitude, double frequency, bool isInput, LeftRightFrequencySeries? lrGains)
+		public double ToGenVoltage(string amplitude, int[] binNumber, bool isInput, double[]? lrGains)
 		{
 			var genType = ToDirection(GenDirection);
 			var vtest = MathUtil.ToDouble(amplitude, 4321);
@@ -244,16 +284,28 @@ namespace QA40xPlot.ViewModels
 			{
 				return vtest;
 			}
-			var maxGain = Math.Max(lrGains.Left.Max(), lrGains.Right.Max());
-			if(frequency > 0 && lrGains.Left.Length > 1)
+			var maxGain = lrGains.Max();
+			if( lrGains.Length > 1)
 			{
-				// get screen coords for some of the data
-				int abin = (int)(frequency / lrGains.Df);       // apporoximate bin
-				var binmin = Math.Max(1, abin - 5);            // random....
-				var binmax = Math.Min(lrGains.Left.Length - 1, abin + 5);           // random....
-				var maxg = lrGains.Left.Skip(binmin).Take(binmax - binmin).Max();
-				maxGain = Math.Max(maxg, lrGains.Right.Skip(binmin).Take(binmax - binmin).Max());
+				// figure out which bins we want
+				int binmin = Math.Min(lrGains.Length-1, 10);
+				int binmax = Math.Max(1, lrGains.Length - binmin);
+				if(binNumber.Length > 0 && binNumber[0] != 0)
+				{
+					int abin = binNumber[0];				// approximate bin
+					binmin = Math.Max(1, abin - 5);         // random....
+					if (binNumber.Length == 2)
+						binmax = binNumber[1] + 5;
+					else
+						binmax = abin + 6;						// random....
+					binmax = Math.Min(lrGains.Length, binmax);  // limit this
+				}
+				maxGain = lrGains.Skip(binmin).Take(binmax - binmin).Max();
 			}
+			
+			if (maxGain <= 0.0)
+				return vtest;
+
 			switch (genType)
 			{
 				case E_GeneratorDirection.INPUT_VOLTAGE:

@@ -55,6 +55,11 @@ namespace QA40xPlot.Actions
 			return values.Skip(binmin).Take(bintrack).Max() / inputV;
 		}
 
+		protected static int ToBinNumber(double dFreq, LeftRightFrequencySeries? lrGain)
+		{
+			return (int)Math.Floor(dFreq / (lrGain?.Df ?? 1));
+		}
+
 		protected async Task<LeftRightFrequencySeries?> DetermineGainAtFreq(double dfreq, bool inits, int average = 3)
 		{
 			await showMessage("Calculating DUT gain");

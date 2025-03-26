@@ -176,10 +176,12 @@ namespace QA40xPlot.Actions
 						return false;
 				}
 
-				var genVolt = imdVm.ToGenVoltage(msrImd.Gen1Voltage, freq, true, LRGains);
+				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
+				int[] frqtest = [ToBinNumber(freq, LRGains)];
+				var genVolt = imdVm.ToGenVoltage(msrImd.Gen1Voltage, frqtest, true, gains);	// input voltage 1
 				double amplitudeSetpoint1dBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-				// use freq1 here since IMD ratio is input-driven period
-				genVolt = imdVm.ToGenVoltage(msrImd.Gen2Voltage, freq, true, LRGains);
+				// the other voltage calculated via divisor
+				genVolt = genVolt / msrImd.GenDivisor;
 				double amplitudeSetpoint2dBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
 				// ********************************************************************
@@ -708,35 +710,47 @@ namespace QA40xPlot.Actions
 			};
 			Data.Measurements.Clear();
 
-			var genType = BaseViewModel.ToDirection(imdVm.GenDirection);
-			var freq = MathUtil.ToDouble(imdVm.Gen1Frequency, 1000);
-			if (imdVm.DoAutoAttn || genType != E_GeneratorDirection.INPUT_VOLTAGE)
+			var msr = MeasurementResult.MeasurementSettings;
+			var genType = BaseViewModel.ToDirection(msr.GenDirection);
+			var freq = MathUtil.ToDouble(msr.Gen1Frequency, 1000);
+			var freq2 = MathUtil.ToDouble(msr.Gen2Frequency, 1000);
+			if (msr.DoAutoAttn || genType != E_GeneratorDirection.INPUT_VOLTAGE)
 			{
 				// show that we're autoing...
-				if (imdVm.DoAutoAttn)
+				if (msr.DoAutoAttn)
 					imdVm.Attenuation = QaLibrary.DEVICE_MAX_ATTENUATION;
-				LRGains = await DetermineGainAtFreq(freq, true, 1);
+				LRGains = await DetermineGainCurve(true, 1);
 			}
-			if (imdVm.DoAutoAttn && LRGains != null)
+			var binSize = QaLibrary.CalcBinSize(msr.SampleRateVal, msr.FftSizeVal);
+			if (msr.DoAutoAttn && LRGains != null)
 			{
-				// test the second gain???
-				var v1test = imdVm.ToGenVoltage(imdVm.Gen1Voltage, freq, false, LRGains);  // get output voltage
-				// use known input voltage for second input and assume same gain
-				var v2input = imdVm.ToGenVoltage(imdVm.Gen1Voltage, freq, true, LRGains);  // get input voltage
-				v2input /= imdVm.GenDivisor;
-				var v2test = v2input * Math.Max(LRGains.Left.Max(), LRGains.Right.Max());
+				int[] frqtest = [ToBinNumber(freq, LRGains)];
+				int[] frq2test = [ToBinNumber(freq2, LRGains)];
+				var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
 
-				var vdbv = QaLibrary.ConvertVoltage(Math.Sqrt(v1test*v1test + v2test*v2test), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+				// find the two input voltages for our testing
+				var v1in = msr.ToGenVoltage(msr.Gen1Voltage, frqtest, true, gains);  // get output voltage
+				var v2in = v1in / msr.GenDivisor;  // get second input voltage
+																						 // now find the output voltages for this input
+				var v1lout = BaseViewModel.ToGenOutVolts(v1in, frqtest, LRGains.Left);	// left channel output V
+				var v2lout = BaseViewModel.ToGenOutVolts(v2in, frq2test, LRGains.Left);
+				var v1rout = BaseViewModel.ToGenOutVolts(v1in, frqtest, LRGains.Right);	// right channel output V
+				var v2rout = BaseViewModel.ToGenOutVolts(v2in, frq2test, LRGains.Right);
+				var vtotal = Math.Max(v1lout*v1lout + v2lout*v2lout, v1rout*v1rout + v2rout*v2rout);	// max sum of squares
+				vtotal = Math.Sqrt(vtotal);
+
+				var vdbv = QaLibrary.ConvertVoltage(vtotal, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+
 				imdVm.Attenuation = QaLibrary.DetermineAttenuation(vdbv);
-				MeasurementResult.MeasurementSettings.Attenuation = imdVm.Attenuation; // update the specVm to update the gui, then this for the steps
+				msr.Attenuation = imdVm.Attenuation; // update the specVm to update the gui, then this for the steps
 			}
 
 			var rslt = true;
 			rslt = await PerformMeasurementSteps(MeasurementResult, ct.Token);
-            var fftsize = imdVm.FftSize;
-            var sampleRate = imdVm.SampleRate;
-            var atten = imdVm.Attenuation;
-            if (rslt)
+			var fftsize = msr.FftSize;
+			var sampleRate = msr.SampleRate;
+			var atten = msr.Attenuation;
+			if (rslt)
             {
                 await showMessage("Running");
                 while (!ct.IsCancellationRequested)
