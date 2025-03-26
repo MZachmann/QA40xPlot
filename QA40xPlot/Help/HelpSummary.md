@@ -15,7 +15,7 @@ All tests have a choice as to amplitude definition.
 |Setting|Description|
 |---------|-----------|
 |__Input Voltage__|Interpret voltages as QA40x generator settings.|
-|__Output Voltage__|Determine voltage to achieve the desired output. This requires gain calculation first|
+|__Output Voltage__|Determine voltage to achieve the desired output. This always does a gain calculation first.|
 |__Output Power__|Use the amplifier load setting (see Settings) to determine output voltage from power and then use gain to calculate the input voltage|
 
 The spectral tests (Spectrum and Intermodulation) have manual or automatic attenuation. The other tests are all automatic to avoid QA40x overload in either channel.
@@ -129,7 +129,7 @@ the resultant set of 5-8 line segments.
 |option|description|
 |------- |----------------|
 |Generator|See Spectrum|
-|Sweep|Define the amplitude range to be swept. At each test point (amplitude level) the attenuation will be adjusted to as low as possible.||
+|Sweep|Define the amplitude range to be swept. At each test point (amplitude level) the attenuation is adjusted to as low as possible.||
 |Sampling|See Spectrum|
 
 
