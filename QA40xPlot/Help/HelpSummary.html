@@ -121,16 +121,16 @@ Along the top right of the screen are a few command buttons. If this becomes too
     </tbody>
 </table>
 <p>The spectral tests (Spectrum and Intermodulation) have manual or automatic attenuation. The other tests are all automatic to avoid QA40x overload in either channel.</p>
-<p>The THD vs Frequency sweep calculates/uses one generator voltage that it then sweeps with. If you select an output amplitude that voltage<br>ensures the maximum output of the sweep is that setting. The Input Voltage setting uses that voltage for the sweep.</p>
+<p>The THD vs Frequency sweep calculates/uses one generator voltage that it then sweeps with. If you select an output amplitude that voltage ensures the maximum output of the sweep is that setting. The Input Voltage setting uses that voltage for the sweep.</p>
 <p>The THD vs Amplitude test calculates distortion at each swept amplitude and varies generator voltage accordingly. Attenuation may increase as output voltage increases.</p>
-<p>All 3 response tests (Response, Gain, Impedance) use a single generator voltage just like<br>the THD vs Frequency test.</p>
+<p>All 3 response tests (Response, Gain, Impedance) use a single generator voltage just like the THD vs Frequency test.</p>
 <h1>Attenuation Settings</h1>
-<p>QA40x attenuation is important for test device integrity. QA40xPlot tries very hard to use enough<br>attenuation for each test. Attenuation is always calculated based on both input channels (left and right) of the QA40x. If you only plan to test one channel we<br>recommend you short the other QA40x input channel, which will guarantee that<br>attenuation math ignores the shorted channel.</p>
+<p>QA40x attenuation is important for test device integrity. QA40xPlot tries very hard to use just enough attenuation for each test. Attenuation is always calculated based on both input channels (left and right) of the QA40x. If you only plan to test one channel we recommend you short the other QA40x input channel, which will guarantee that attenuation math ignores the shorted channel.</p>
 <h1>Cursor</h1>
-<p>All of the tests support a <strong>cursor</strong>. As you move your mouse in the plot a small box in the lower right<br>shows the nearest data point. Some charts have a visual on-screen point, some don&#39;t.</p>
+<p>All of the tests support a <strong>cursor</strong>. As you move your mouse in the plot a small box in the lower right shows the nearest data point. Some charts have a visual on-screen point, some don&#39;t.</p>
 <h1 style="color:red">Test Descriptions</h1>
 <h1  style="color:green">Spectrum Test</h1>
-<p>This test sends a single sine wave out from the generator and plots the received<br>frequency spectral data (value vs frequency). For a Sine wave this produces<br>a skinny spike at the sine frequency surrounded by background noise<br>and (usually harmonic) distortion spikes.</p>
+<p>This test sends a single sine wave out from the generator and plots the received frequency spectral data (value vs frequency). For a Sine wave this produces a skinny spike at the sine frequency surrounded by background noise and (usually harmonic) distortion spikes.</p>
 <h2>Options</h2>
 <table>
     <thead>
@@ -282,7 +282,7 @@ Along the top right of the screen are a few command buttons. If this becomes too
     </tbody>
 </table>
 <h1 style="color:green">THD vs Frequency Test</h1>
-<p>This test does a sweep from start to end frequency. At each frequency of<br>the sweep it tests the harmonic distortion products and plots<br>the resultant set of 5-8 line segments.</p>
+<p>This test does a sweep from start to end frequency. At each frequency of the sweep it tests the harmonic distortion products and plots the resultant set of 5-8 line segments.</p>
 <h2>Options</h2>
 <table>
     <thead>
@@ -330,7 +330,7 @@ Along the top right of the screen are a few command buttons. If this becomes too
     </tbody>
 </table>
 <h1 style="color:green">THD vs Amplitude Test</h1>
-<p>This test does a sweep from start to end voltage or power. At each amplitude it tests the harmonic distortion products and plots<br>the resultant set of 5-8 line segments.</p>
+<p>This test does a sweep from start to end voltage or power. At each amplitude it tests the harmonic distortion products and plots the resultant set of 5-8 line segments.</p>
 <h2>Options</h2>
 <table>
     <thead>
@@ -378,9 +378,9 @@ Along the top right of the screen are a few command buttons. If this becomes too
     </tbody>
 </table>
 <h1 style="color:green">Response Test</h1>
-<p>This is a conventional frequency response test. The output is in dBV<br>and can cover both channels or just one.</p>
+<p>This is a conventional frequency response test. The output is in dBV and can cover both channels or just one.</p>
 <h1 style="color:green">Impedance Test</h1>
-<p>This does a frequency sweep and at each point calculates the effective<br>impedance of the DUT. Data is stored as a complex value.</p>
+<p>This does a frequency sweep and at each point calculates the effective impedance of the DUT. Data is stored as a complex value.</p>
 <p>Connections are:</p>
 <ul>
     <li>DUT terminal A to ground</li>
@@ -388,4 +388,4 @@ Along the top right of the screen are a few command buttons. If this becomes too
     <li>reference resistor terminal B and generator output to Right Input</li>
 </ul>
 <h1 style="color:green">Gain Test</h1>
-<p>This does a traditional Bode Plot of Gain and Phase vs frequency.<br>Here the right channel is used as a reference channel. Connect the<br>right channel input to the DUT input port and generator output.</p>
+<p>This does a traditional Bode Plot of Gain and Phase vs frequency. Here the right channel is used as a reference channel. Connect the right channel input to the DUT input port and generator output.</p>
