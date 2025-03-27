@@ -3,7 +3,91 @@
         font-family: 'Arial', sans-serif;
     }
 </style>
-<p>The QA40xPlot application consists of 8 different audio tests that use a QA402 or QA403 audio analyzer from QuantAsylum.</p>
+<p>The QA40xPlot application consists of 8 different audio tests that use a QA402 or QA403 audio analyzer from QuantAsylum.<br /><br /></p>
+
+<table>
+    <thead>
+        <tr>
+            <th>Test</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>Spectrum</strong></td>
+            <td>Capture the spectrum (dBV vs F) created by a sine wave. Analyze noise and harmonic distortion.</td>
+        </tr>
+        <tr>
+            <td><strong>Intermodulation</strong></td>
+            <td>Capture the spectrum (dBV vs F) created by two sine waves. Analyze noise and intermodulation distortion.</td>
+        </tr>
+        <tr>
+            <td><strong>THD vs Frequency</strong></td>
+            <td>Capture the spectrum created by a sine wave swept at multiple frequencies. Plot distortion vs frequency.</td>
+        </tr>
+        <tr>
+            <td><strong>THD vs Amplitude</strong></td>
+            <td>Capture the spectrums created by a sine wave at the test frequency swept at multiple amplitudes. Plot distortion vs amplitude.</td>
+        </tr>
+        <tr>
+            <td><strong>Response</strong></td>
+            <td>Capture the spectrums created by a sine wave swept at multiple frequencies. Plot output vs frequency.</td>
+        </tr>
+        <tr>
+            <td><strong>Impedance</strong></td>
+            <td>Plot the impedance of the DUT at multiple swept frequencies. See below for more information on how to connect the dut.</td>
+        </tr>
+        <tr>
+            <td><strong>Gain</strong></td>
+            <td>Plot the gain and phase of the DUT at multiple swept frequencies.</td>
+        </tr>
+    </tbody>
+</table>
+
+<h1>Command Buttons</h1>
+Along the top right of the screen are a few command buttons. If this becomes too many it will turn into a menu.
+<table>
+    <thead>
+        <tr>
+            <th>Button</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>Help</strong></td>
+            <td>Pop up the this help text.</td>
+        </tr>
+        <tr>
+            <td><strong>Photo</strong></td>
+            <td>Save a screen capture of the entire application (so all options are visible) in a .PNG file. Stop data capture first to ensure the image title bar shows
+            the capture time and date.</td>
+        </tr>
+        <tr>
+            <td><strong>Export</strong></td>
+            <td>When data is available this allows export in FRD or ZMA (text) format. FRD is SPL data while ZMA is impedance data per convention.</td>
+        </tr>
+        <tr>
+            <td><strong>Save</strong></td>
+            <td>Save the current configuration (all options) to a .CFG file. This is in JSON format.</td>
+        </tr>
+        <tr>
+            <td><strong>Load</strong></td>
+            <td>Load all options from a JSON-format .CFG file. You may create your own subset CFG to only load a subset of properties.</td>
+        </tr>
+    </tbody>
+</table>
+
+
+
+<h1 style="color:red">Common Options</h1>
+<h1>Keyboard Accelerators</h1>
+<p>
+    The left hand user interface entries on every tab are accessible by Alt-key combinations. Press and release the Alt key to
+    see underlines appear on the prompts. Each underlined letter is a keyboard accelerator. So Alt-V, for example, usually lets you
+    edit the voltage entry. Alt-R turns auto-ranging on and off, etc.
+</p>
+
 <h1>Graph Manipulation</h1>
 <p>Common to all tests are plots of values. You can change them easily by</p>
 <ul>
@@ -44,7 +128,8 @@
 <p>QA40x attenuation is important for test device integrity. QA40xPlot tries very hard to use enough<br>attenuation for each test. Attenuation is always calculated based on both input channels (left and right) of the QA40x. If you only plan to test one channel we<br>recommend you short the other QA40x input channel, which will guarantee that<br>attenuation math ignores the shorted channel.</p>
 <h1>Cursor</h1>
 <p>All of the tests support a <strong>cursor</strong>. As you move your mouse in the plot a small box in the lower right<br>shows the nearest data point. Some charts have a visual on-screen point, some don&#39;t.</p>
-<h1>Spectrum Test</h1>
+<h1 style="color:red">Test Descriptions</h1>
+<h1  style="color:green">Spectrum Test</h1>
 <p>This test sends a single sine wave out from the generator and plots the received<br>frequency spectral data (value vs frequency). For a Sine wave this produces<br>a skinny spike at the sine frequency surrounded by background noise<br>and (usually harmonic) distortion spikes.</p>
 <h2>Options</h2>
 <table>
@@ -120,7 +205,7 @@
         </tr>
     </tbody>
 </table>
-<h1>Intermodulation Test</h1>
+<h1 style="color:green">Intermodulation Test</h1>
 <p>This test performs one of 6 standard intermodulation tests or it allows manual frequency/amplitude selection per generator.</p>
 <h2>Options</h2>
 <table>
@@ -152,7 +237,7 @@
             <td>When you have a stock test selected the only option available will be Voltage (or power).</td>
         </tr>
         <tr>
-            <td>Samples</td>
+            <td>Sampling</td>
             <td>See the description under spectrum</td>
         </tr>
     </tbody>
@@ -196,7 +281,7 @@
         </tr>
     </tbody>
 </table>
-<h1>THD vs Frequency Test</h1>
+<h1 style="color:green">THD vs Frequency Test</h1>
 <p>This test does a sweep from start to end frequency. At each frequency of<br>the sweep it tests the harmonic distortion products and plots<br>the resultant set of 5-8 line segments.</p>
 <h2>Options</h2>
 <table>
@@ -244,7 +329,7 @@
         </tr>
     </tbody>
 </table>
-<h1>THD vs Amplitude Test</h1>
+<h1 style="color:green">THD vs Amplitude Test</h1>
 <p>This test does a sweep from start to end voltage or power. At each amplitude it tests the harmonic distortion products and plots<br>the resultant set of 5-8 line segments.</p>
 <h2>Options</h2>
 <table>
@@ -292,9 +377,9 @@
         </tr>
     </tbody>
 </table>
-<h1>Response Test</h1>
+<h1 style="color:green">Response Test</h1>
 <p>This is a conventional frequency response test. The output is in dBV<br>and can cover both channels or just one.</p>
-<h1>Impedance Test</h1>
+<h1 style="color:green">Impedance Test</h1>
 <p>This does a frequency sweep and at each point calculates the effective<br>impedance of the DUT. Data is stored as a complex value.</p>
 <p>Connections are:</p>
 <ul>
@@ -302,5 +387,5 @@
     <li>DUT terminal B to reference resistor terminal A and Left Input</li>
     <li>reference resistor terminal B and generator output to Right Input</li>
 </ul>
-<h1>Gain Test</h1>
+<h1 style="color:green">Gain Test</h1>
 <p>This does a traditional Bode Plot of Gain and Phase vs frequency.<br>Here the right channel is used as a reference channel. Connect the<br>right channel input to the DUT input port and generator output.</p>
