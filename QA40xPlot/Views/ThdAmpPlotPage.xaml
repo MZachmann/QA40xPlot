@@ -54,19 +54,19 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Label Content="Set DUT" HorizontalAlignment="Right" Grid.Column="0" Grid.Row="0" ToolTip="{Binding DutInfo}"  />
+                <Label Content="Set _DUT" Target="{Binding ElementName=cbDUT}" HorizontalAlignment="Right" Grid.Column="0" Grid.Row="0" ToolTip="{Binding DutInfo}"  />
                 <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0"  SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVoltsFull}"
-                               ToolTip="{Binding DutDescript}" >
+                               ToolTip="{Binding DutDescript}" x:Name="cbDUT"  >
                 </ComboBox>
-                <Label Content="{Binding GenAmpDescript, Mode=OneWay}" HorizontalAlignment="Right" ContentStringFormat="Start {0}" Grid.Column="0" Grid.Row="1"   />
+                <Label Content="{Binding GenAmpDescript, Mode=OneWay}" Target="{Binding ElementName=cbV1}" HorizontalAlignment="Right" ContentStringFormat="Start {0}" Grid.Column="0" Grid.Row="1"   />
                 <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1" 
-                            Text="{Binding StartVoltage}" ItemsSource="{Binding GenVoltages}" />
+                            Text="{Binding StartVoltage}" x:Name="cbV1" ItemsSource="{Binding GenVoltages}" />
                 <Label Content="{Binding GenAmpUnits, Mode=OneWay}" Grid.Column="2" Grid.Row="1"   />
-                <Label Content="{Binding GenAmpDescript, Mode=OneWay}" HorizontalAlignment="Right" ContentStringFormat="End {0}" Grid.Column="0" Grid.Row="2"   />
+                <Label Content="{Binding GenAmpDescript, Mode=OneWay}" Target="{Binding ElementName=cbV2}" HorizontalAlignment="Right" ContentStringFormat="End {0}" Grid.Column="0" Grid.Row="2"   />
                 <ComboBox IsEditable="True" Grid.Row="2" Grid.Column="1"
-                            Text="{Binding EndVoltage}" ItemsSource="{Binding GenVoltages}" />
+                            Text="{Binding EndVoltage}" x:Name="cbV2" ItemsSource="{Binding GenVoltages}" />
                 <Label Content="{Binding GenAmpUnits, Mode=OneWay}" Grid.Column="2" Grid.Row="2"   />
-                <Label Content="Amplifier Load" HorizontalAlignment="Right" Grid.Column="0" Grid.Row="5"  />
+                <Label Content="Amplifier _Load" Target="{Binding ElementName=AmpLoad}"  HorizontalAlignment="Right" Grid.Column="0" Grid.Row="5"  />
                 <ComboBox x:Name="AmpLoad" IsEditable="True" Grid.Row="5" Grid.Column="1" MinWidth="80" Text="{Binding AmplifierLoad}" 
                       ItemsSource="{Binding Impedances}" />
                 <Label Content="Ohm" Grid.Column="3" Grid.Row="5"  />
@@ -84,11 +84,11 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Label Content="Test Frequency" HorizontalAlignment="Right" Grid.Column="0" Grid.Row="0"  />
-                <ComboBox IsEditable="True" Text="{Binding TestFreq}" Grid.Column="1" Grid.Row="0" ItemsSource="{Binding StartFrequencies}"   />
+                <Label Content="_Test Frequency" Target="{Binding ElementName=cbTF}"  HorizontalAlignment="Right" Grid.Column="0" Grid.Row="0"  />
+                <ComboBox IsEditable="True" x:Name="cbTF" Text="{Binding TestFreq}" Grid.Column="1" Grid.Row="0" ItemsSource="{Binding StartFrequencies}"   />
                 <Label Content="Hz" Grid.Column="2" Grid.Row="0"  />
-                <Label Content="Steps / Octave" HorizontalAlignment="Right" Grid.Column="0" Grid.Row="1"  />
-                <xctk:IntegerUpDown VerticalAlignment="Center" Value="{Binding StepsOctave}" Minimum="1" Grid.Column="1" Grid.Row="1"  />
+                <Label Content="Steps / _Octave" Target="{Binding ElementName=cbStO}"  HorizontalAlignment="Right" Grid.Column="0" Grid.Row="1"  />
+                <xctk:IntegerUpDown x:Name="cbStO" VerticalAlignment="Center" Value="{Binding StepsOctave}" Minimum="1" Grid.Column="1" Grid.Row="1"  />
             </Grid>
             <views:GroupHeader Header="Sampling" />
             <Grid>
@@ -168,12 +168,7 @@
                     <Button Content="Fit to data" Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Right" Grid.ColumnSpan="2"  />
                 </Grid>
             </GroupBox>
-            <GroupBox Header="X-Axis">
-                <ComboBox Grid.Row="3"  SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVoltsFull}"
-                          ToolTip="{Binding DutDescript}" >
-                </ComboBox>
-            </GroupBox>
-            <GroupBox Header="Voltage Range">
+            <GroupBox Header="X Axis">
                 <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />

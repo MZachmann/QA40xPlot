@@ -206,12 +206,12 @@ namespace QA40xPlot.Libraries
         /// <param name="left"></param>
         /// <param name="right"></param>
         /// <returns></returns>
-        static public async Task DoUserAcquisition(int session, double dx, double[] left, double[] right)
+        static public async Task DoUserAcquisition(double[] left, double[] right)
         {
             string l = Convert.ToBase64String(GetBytes(left), Base64FormattingOptions.None);
             string r = Convert.ToBase64String(GetBytes(right), Base64FormattingOptions.None);
 
-            string s = $"{{ \"SessionId\":\"{session}\", \"Dx\":\"{dx}\", \"Left\":\"{l}\", \"Right\":\"{r}\" }}";
+            string s = $"{{ \"Left\":\"{l}\", \"Right\":\"{r}\" }}";
 
             await Post("/Acquisition", s);
         }

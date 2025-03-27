@@ -1,11 +1,6 @@
 ﻿using FftSharp;
-using ScottPlot.Colormaps;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 
 
@@ -20,25 +15,27 @@ namespace QA40xPlot.Libraries
     public interface QAMath
     {
 
-		// create a chirp from F0 ... F1 for a total time of totalTimeMs
-		public static List<double> CalculateChirp(double f0, double f1, double totalTimeMs = 1000.0, uint sampleRate = 48000)
-		{
-			double t0 = 0;
-			double t1 = totalTimeMs / 1000;
-			double samples = sampleRate;
-			var totalSamples = (int)Math.Round(samples * t1);
-			double fstep = (double)(f1 - f0) / totalSamples;
-			var lout = new List<double>();
+		// create a chirp from F0 ... F1 for a total time of chirpTime
+		// chirpsize must be the same as fftSize in the device
+		//exponential chirp: f(t) = f0 * k^(t/T) where k=f0/f1
 
-			for (int i = 0; i < totalSamples; i++)
+		public static List<double> CalculateChirp(double f0, double f1, uint chirpSize, uint sampleRate)
+		{
+			double dt = 1 / (double)sampleRate;	// interval time
+			var lout = new List<double>();
+			var k = f1/f0;	// number of octaves
+			var T = chirpSize * dt; // total time
+
+			for (int i = 0; i < chirpSize; i++)
 			{
-				double t = (t1-t0) * (double)i / totalSamples;
-				double frequency = f0 + fstep * i;
-				lout.Add( Math.Sin(Math.PI * frequency * t));
-			 }
-			//int[] indexVector = Enumerable.Range(0, totalSamples).ToArray();
-			//var mults = indexVector.Select(i => 
-			//	(double)(Math.PI * (f0 + ((f1-f0)/(t1-t0)) * Math.Pow((t1 * i / totalSamples - t0),2)))).ToList();
+				double t = i * dt;
+				double ft = f0 * T * Math.Pow(k, t / T) / Math.Log(k);
+				lout.Add(Math.Cos(2 * Math.PI * ft));
+				if( (chirpSize-i) < 2)
+				{
+					Debug.WriteLine($"i={i} ft={ft} lout={lout[i]}");
+				}
+			}
 			return lout;
 		}
 

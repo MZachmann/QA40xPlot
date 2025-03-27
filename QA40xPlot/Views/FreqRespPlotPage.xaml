@@ -65,8 +65,8 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Label Content="Type" HorizontalAlignment="Right" Grid.Column="0" Grid.Row="0"  />
-                <ComboBox VerticalAlignment="Center" Text="{Binding TestType}" Grid.Column="1" Grid.Row="0" ItemsSource="{Binding TestTypes}"  />
+                <Label Content="T_ype" Target="{Binding ElementName=cbType}"   HorizontalAlignment="Right" Grid.Column="0" Grid.Row="0"  />
+                <ComboBox x:Name="cbType" VerticalAlignment="Center" Text="{Binding TestType}" Grid.Column="1" Grid.Row="0" ItemsSource="{Binding TestTypes}"  />
             </Grid>
 
             <views:GroupHeader Header="Sweep" />
@@ -81,14 +81,14 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Label Content="Start Frequency" HorizontalAlignment="Right" Grid.Column="0" Grid.Row="0"  />
-                <ComboBox VerticalAlignment="Center" IsEditable="True" Text="{Binding StartFreq}" Grid.Column="1" Grid.Row="0" ItemsSource="{Binding StartFrequencies}"  />
+                <Label Content="S_tart Frequency" Target="{Binding ElementName=cbSF}"  HorizontalAlignment="Right"  Grid.Column="0" Grid.Row="0"  />
+                <ComboBox IsEditable="True" x:Name="cbSF" Text="{Binding StartFreq}" Grid.Column="1" Grid.Row="0" ItemsSource="{Binding StartFrequencies}"  />
                 <Label Content="Hz" Grid.Column="2" Grid.Row="0"  />
-                <Label Content="End Frequency" HorizontalAlignment="Right" Grid.Column="0" Grid.Row="1"  />
-                <ComboBox VerticalAlignment="Center" IsEditable="True" Text="{Binding EndFreq}" Grid.Column="1" Grid.Row="1"  ItemsSource="{Binding EndFrequencies}"  />
+                <Label Content="_End Frequency" Target="{Binding ElementName=cbEF}"  HorizontalAlignment="Right"  Grid.Column="0" Grid.Row="1"  />
+                <ComboBox IsEditable="True" x:Name="cbEF" Text="{Binding EndFreq}" Grid.Column="1" Grid.Row="1"  ItemsSource="{Binding EndFrequencies}"  />
                 <Label Content="Hz" Grid.Column="2" Grid.Row="1"  />
-                <Label Content="Steps / Octave" HorizontalAlignment="Right" Grid.Column="0" Grid.Row="2"  />
-                <xctk:IntegerUpDown Value="{Binding StepsOctave}" Minimum="1" VerticalAlignment="Center" Grid.Column="1" Grid.Row="2"  />
+                <Label Content="Steps / _Octave" Target="{Binding ElementName=cbStO}"  HorizontalAlignment="Right"  Grid.Column="0" Grid.Row="2"  />
+                <xctk:IntegerUpDown x:Name="cbStO"  VerticalAlignment="Center" Value="{Binding StepsOctave}" Minimum="1" Grid.Column="1" Grid.Row="2"  />
             </Grid>
 
             <views:GroupHeader Header="Generator" />
@@ -102,12 +102,12 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Label Content="Set DUT" HorizontalAlignment="Right" Grid.Row="0" Grid.Column="0" ToolTip="{Binding DutInfo}"  />
-                <ComboBox ToolTip="{Binding DutDescript}" Grid.Column="1" 
+                <Label Content="Set _DUT" Target="{Binding ElementName=cbDUT}" HorizontalAlignment="Right" Grid.Row="0" Grid.Column="0" ToolTip="{Binding DutInfo}"  />
+                <ComboBox ToolTip="{Binding DutDescript}" x:Name="cbDUT"  Grid.Column="1" 
                               Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  
                           SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVoltsFull}"/>
-                <Label Content="{Binding GenAmpDescript}" HorizontalAlignment="Right" Grid.Row="1" Grid.Column="0"  />
-                <ComboBox IsEditable="True" Text="{Binding Gen1Voltage}" Grid.Column="1" Grid.Row="1" VerticalAlignment="Center"  
+                <Label Content="{Binding GenAmpDescript}" Target="{Binding ElementName=cbVolt}" HorizontalAlignment="Right" Grid.Row="1" Grid.Column="0"  />
+                <ComboBox x:Name="cbVolt" IsEditable="True" Text="{Binding Gen1Voltage}" Grid.Column="1" Grid.Row="1" VerticalAlignment="Center"  
                                ItemsSource="{Binding GenVoltages}"/>
                 <Label Content="{Binding GenAmpUnits}" Grid.Column="2" Grid.Row="1"  />
             </Grid>
@@ -117,25 +117,25 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Label Content="Sample Rate" HorizontalAlignment="Right" Grid.Row="0" Grid.Column="0"  />
-                <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  
+                <Label Content="_Sample Rate" HorizontalAlignment="Right" Grid.Row="0" Grid.Column="0"  Target="{Binding ElementName=cbSampleRate}"  />
+                <ComboBox x:Name="cbSampleRate"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  
                                SelectedValue="{Binding SampleRate}" ItemsSource="{Binding SampleRates}">
                 </ComboBox>
-                <Label Content="FFT Size" HorizontalAlignment="Right" Grid.Row="1" Grid.Column="0"  />
-                <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Center"  
+                <Label Content="_Fft Size" HorizontalAlignment="Right" Grid.Row="1" Grid.Column="0" Target="{Binding ElementName=cbfftSize}"  />
+                <ComboBox x:Name="cbfftSize"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Center"  
                                SelectedValue="{Binding FftSize}" ItemsSource="{Binding FftSizes}">
                 </ComboBox>
-                <Label Content="Averages" HorizontalAlignment="Right" Grid.Column="0" Grid.Row="2"  />
-                <xctk:IntegerUpDown Value="{Binding Averages}" Minimum="1" Maximum="6" VerticalAlignment="Center" Grid.Column="1" Grid.Row="2"  />
+                <Label Content="_Averages" HorizontalAlignment="Right" Grid.Column="0" Grid.Row="2" Target="{Binding ElementName=xcaverages}"  />
+                <xctk:IntegerUpDown x:Name="xcaverages" Value="{Binding Averages}" Minimum="1" Maximum="6" VerticalAlignment="Center" Grid.Column="1" Grid.Row="2"  />
             </Grid>
-
             <views:GroupHeader Header="Impedance Test" />
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -148,8 +148,8 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Label Content="Reference Z" HorizontalAlignment="Right" Grid.Column="0" Grid.Row="0"  />
-                <ComboBox VerticalAlignment="Center" IsEditable="True" Text="{Binding ZReference}" 
+                <Label Content="Reference _Z" Target="{Binding ElementName=cbZ}"   HorizontalAlignment="Right" Grid.Column="0" Grid.Row="0"  />
+                <ComboBox x:Name="cbZ" VerticalAlignment="Center" IsEditable="True" Text="{Binding ZReference}" 
                           Grid.Column="1" Grid.Row="0" ItemsSource="{Binding Impedances}"  />
                 <Label Content="Ohms" Grid.Column="2" Grid.Row="0"  />
             </Grid>

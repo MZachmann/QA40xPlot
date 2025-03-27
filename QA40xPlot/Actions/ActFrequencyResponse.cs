@@ -7,6 +7,7 @@ using ScottPlot.Plottables;
 using System.Data;
 using System.Numerics;
 using System.Windows;
+using static QA40xPlot.ViewModels.BaseViewModel;
 
 
 namespace QA40xPlot.Actions
@@ -226,15 +227,15 @@ namespace QA40xPlot.Actions
 				// to get attenuation, use a frequency of zero (all)
 				// find the highest output voltage
 
-				var genv = frqrsVm.ToGenVoltage(msr.Gen1Voltage, frqtest, false, LRGains.Left);                  // output v
-                genv = Math.Max(genv, frqrsVm.ToGenVoltage(msr.Gen1Voltage, frqtest, false, LRGains.Right));    // output v
+				var genv = frqrsVm.ToGenVoltage(msr.Gen1Voltage, frqtest, GEN_OUTPUT, LRGains.Left);                  // output v
+                genv = Math.Max(genv, frqrsVm.ToGenVoltage(msr.Gen1Voltage, frqtest, GEN_OUTPUT, LRGains.Right));    // output v
 				var vdbv = QaLibrary.ConvertVoltage(genv, E_VoltageUnit.Volt, E_VoltageUnit.dBV);   // out dbv
 				var attenuation = QaLibrary.DetermineAttenuation(vdbv);
 				msr.Attenuation = attenuation;
 				frqrsVm.Attenuation = msr.Attenuation; // display on-screen
 			}
             // get voltages for generator
-			var genVolt = frqrsVm.ToGenVoltage(msr.Gen1Voltage, frqtest, true, LRGains?.Left);
+			var genVolt = frqrsVm.ToGenVoltage(msr.Gen1Voltage, frqtest, GEN_INPUT, LRGains?.Left);
 			var voltagedBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);  // in dbv
 
 			if (true != await QaLibrary.InitializeDevice(sampleRate, fftsize, "Hann", (int)msr.Attenuation, true))

@@ -1,7 +1,7 @@
 ﻿using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using System.Windows;
-using System.Xml.Linq;
+using static QA40xPlot.ViewModels.BaseViewModel;
 
 namespace QA40xPlot.Actions
 {
@@ -64,8 +64,8 @@ namespace QA40xPlot.Actions
 		{
 			await showMessage("Calculating DUT gain");
 			// initialize very quick run
-			var fftsize = BaseViewModel.FftActualSizes[0];
-			var sampleRate = MathUtil.ToUint(BaseViewModel.SampleRates[0]);
+			var fftsize = FftActualSizes[0];
+			var sampleRate = MathUtil.ToUint(SampleRates[0]);
 			if (true != await QaLibrary.InitializeDevice(sampleRate, fftsize, "Hann", QaLibrary.DEVICE_MAX_ATTENUATION, inits))
 				return null;
 
@@ -129,8 +129,8 @@ namespace QA40xPlot.Actions
 		{
 			await showMessage("Calculating DUT gain");
 			// initialize very quick run
-			var fftsize = BaseViewModel.FftActualSizes[0];
-			var sampleRate = MathUtil.ToUint(BaseViewModel.SampleRates[0]);
+			var fftsize = FftActualSizes[0];
+			var sampleRate = MathUtil.ToUint(SampleRates[0]);
 			if (true != await QaLibrary.InitializeDevice(sampleRate, fftsize, "Hann", QaLibrary.DEVICE_MAX_ATTENUATION, inits))
 				return null;
 

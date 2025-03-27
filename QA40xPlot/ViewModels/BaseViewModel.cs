@@ -35,6 +35,8 @@ namespace QA40xPlot.ViewModels
 		public static string DutDescript { get => "Input Voltage = DUT Input(Generator Output), Output Voltage = DUT Output(QA40x Input)"; }
 		public static string AutoRangeDescript { get => "When the test is started a safe Attenuation value is calculated based on a test at 42."; }
 		public static List<String> ChannelList { get => new List<string> { "Left", "Right" }; }
+		public static bool GEN_INPUT { get => true; }
+		public static bool GEN_OUTPUT { get => false; }
 		#endregion
 
 		#region Setters and Getters
@@ -42,7 +44,7 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public bool IsGenPower { get => (GenDirection == MeasureVoltsFull[2]); }
 		[JsonIgnore]
-		public string GenAmpDescript { get => (IsGenPower ? "Power" : "Voltage"); }
+		public string GenAmpDescript { get => (IsGenPower ? "Po_wer" : "_Voltage"); }
 		[JsonIgnore]
 		public string GenAmpUnits { get => (IsGenPower ? "W" : "V"); }
 

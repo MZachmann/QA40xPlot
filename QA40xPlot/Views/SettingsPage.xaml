@@ -33,7 +33,7 @@
         <Label HorizontalAlignment="Left" Content="The amplifier load is used to convert power to voltage for all tests." Grid.Row="0" Grid.Column="4" />
         <Label Content="Test Channel: " Grid.Row="1" Grid.Column="0" />
         <ComboBox VerticalAlignment="Top" Grid.Row="1" Grid.Column="1" MinWidth="80" SelectedValue="{Binding TestChannel}" ItemsSource="{Binding ChannelList}" />
-        <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" MaxWidth="300" Text="All tests except response, impedance, and gain use this channel as the source for i/o voltage and power conversions." 
+        <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" MaxWidth="300" Text="All tests except impedance and gain use this channel as the reference for i/o voltage and power conversions." 
                    Grid.Row="1" Grid.Column="4" />
     </Grid>
 </UserControl>

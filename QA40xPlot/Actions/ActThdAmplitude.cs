@@ -5,7 +5,7 @@ using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
 using System.Net.Http;
-using System.Windows;
+using static QA40xPlot.ViewModels.BaseViewModel;
 
 namespace QA40xPlot.Actions
 {
@@ -176,10 +176,10 @@ namespace QA40xPlot.Actions
 			var stepVoltages = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(startV, endV, msr.StepsOctave);
 			// now convert all of the step voltages to input voltages
 			var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
-			var stepInVoltages = stepVoltages.Select(x => msr.ToGenVoltage(x.ToString(), [], true, gains)).ToArray();
+			var stepInVoltages = stepVoltages.Select(x => msr.ToGenVoltage(x.ToString(), [], GEN_INPUT, gains)).ToArray();
 			// get output values for left and right so we can attenuate
-			var stepOutLVoltages = stepInVoltages.Select(x => BaseViewModel.ToGenOutVolts(x, [], LRGains.Left)).ToArray();
-			var stepOutRVoltages = stepInVoltages.Select(x => BaseViewModel.ToGenOutVolts(x, [], LRGains.Right)).ToArray();
+			var stepOutLVoltages = stepInVoltages.Select(x => ToGenOutVolts(x, [], LRGains.Left)).ToArray();
+			var stepOutRVoltages = stepInVoltages.Select(x => ToGenOutVolts(x, [], LRGains.Right)).ToArray();
 
 			if (ct.IsCancellationRequested)
 				return false;
@@ -402,7 +402,7 @@ namespace QA40xPlot.Actions
 		{
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;
 			var thdAmp = ViewSettings.Singleton.ThdAmp;
-			var tt = BaseViewModel.ToDirection(thdAmp.GenDirection);
+			var tt = ToDirection(thdAmp.GenDirection);
 			if (tt == E_GeneratorDirection.INPUT_VOLTAGE)
 			{
 				myPlot.XLabel("Input voltage (Vrms)");
@@ -509,7 +509,7 @@ namespace QA40xPlot.Actions
 				suffix = "-L";
 
 			// copy the vector of columns into vectors of values
-			var ttype = BaseViewModel.ToDirection(thdAmp.GenDirection);
+			var ttype = ToDirection(thdAmp.GenDirection);
 			double[] amps = [];
 			foreach (var col in columns)
 			{

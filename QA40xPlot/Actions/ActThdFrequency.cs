@@ -8,6 +8,7 @@ using ScottPlot.Plottables;
 using System.Data;
 using System.Windows;
 using System.Windows.Interop;
+using static QA40xPlot.ViewModels.BaseViewModel;
 
 
 // various things for the thd vs frequency activity
@@ -191,14 +192,14 @@ namespace QA40xPlot.Actions
 
             var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
             int[] frqtest = [ToBinNumber(startFreq, LRGains), ToBinNumber(endFreq, LRGains)];
-            var genVolt = msr.ToGenVoltage(msr.GenVoltage, frqtest, true, gains);   // input voltage for request
+            var genVolt = msr.ToGenVoltage(msr.GenVoltage, frqtest, GEN_INPUT, gains);   // input voltage for request
 
             try
             {
 				// ********************************************************************
 				// Determine input level for attenuation
 				// ********************************************************************
-				var genOut = BaseViewModel.ToGenOutVolts(genVolt, frqtest, gains);   // output voltage for request
+				var genOut = ToGenOutVolts(genVolt, frqtest, gains);   // output voltage for request
                 double amplifierOutputVoltagedBV = QaLibrary.ConvertVoltage(genOut, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
                 // Get input voltage based on desired output voltage

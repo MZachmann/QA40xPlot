@@ -54,7 +54,7 @@ and (usually harmonic) distortion spikes.
 |Attenuation	|	Manually select the attenuation value or autorange.|
 ||When you click start, autorange will first test at 42 attenuation then adjust to the (almost) least possible|
 |Generator 1| Select the frequency and signal voltage.|
-||The Set DUT option lets you program an output value rather than just the generator setting|
+||The Set _DUT option lets you program an output value rather than just the generator setting|
 |Sampling|We recommend 48K or 96K Rate and 64K or 128K Size. 1 or 2 Averages.|
 
 ## Plot Options

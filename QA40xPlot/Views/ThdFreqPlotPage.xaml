@@ -55,17 +55,17 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Label Content="Set DUT" HorizontalAlignment="Right" Grid.Column="0" Grid.Row="0" ToolTip="{Binding DutInfo}"  />
+                <Label Content="Set _DUT" Target="{Binding ElementName=cbDUT}" HorizontalAlignment="Right" Grid.Column="0" Grid.Row="0" ToolTip="{Binding DutInfo}"  />
                 <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0"  
-                               ToolTip="{Binding DutDescript}"
+                               ToolTip="{Binding DutDescript}" x:Name="cbDUT" 
                                SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVoltsFull}">
                 </ComboBox>
-                <Label Content="{Binding GenAmpDescript, Mode=OneWay}" HorizontalAlignment="Right"  Grid.Column="0" Grid.Row="1" />
+                <Label Content="{Binding GenAmpDescript, Mode=OneWay}" Target="{Binding ElementName=cbVolt}" HorizontalAlignment="Right"  Grid.Column="0" Grid.Row="1" />
                 <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1"
-                              Text="{Binding GenVoltage}" ItemsSource="{Binding GenVoltages}" >
+                              Text="{Binding GenVoltage}" x:Name="cbVolt" ItemsSource="{Binding GenVoltages}" >
                 </ComboBox>
                 <Label Content="{Binding GenAmpUnits, Mode=OneWay}" HorizontalAlignment="Right"  Grid.Column="2" Grid.Row="1"  />
-                <Label Content="Amplifier Load" Grid.Column="0" Grid.Row="3"  />
+                <Label Content="Amplifier _Load" Target="{Binding ElementName=AmpLoad}"  Grid.Column="0" Grid.Row="3"  />
                 <ComboBox x:Name="AmpLoad" IsEditable="True" Grid.Row="3" Grid.Column="1" MinWidth="80" Text="{Binding AmplifierLoad}" 
                       ItemsSource="{Binding Impedances}" />
                 <Label Content="Ohm" Grid.Column="2" Grid.Row="3"  />
@@ -82,18 +82,15 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Label Content="Start Frequency" HorizontalAlignment="Right"  Grid.Column="0" Grid.Row="0"  />
-                <ComboBox IsEditable="True" Text="{Binding StartFreq}" Grid.Column="1" Grid.Row="0" ItemsSource="{Binding StartFrequencies}"  />
+                <Label Content="S_tart Frequency" Target="{Binding ElementName=cbSF}"  HorizontalAlignment="Right"  Grid.Column="0" Grid.Row="0"  />
+                <ComboBox IsEditable="True" x:Name="cbSF" Text="{Binding StartFreq}" Grid.Column="1" Grid.Row="0" ItemsSource="{Binding StartFrequencies}"  />
                 <Label Content="Hz" Grid.Column="2" Grid.Row="0"  />
-                <Label Content="End Frequency" HorizontalAlignment="Right"  Grid.Column="0" Grid.Row="1"  />
-                <ComboBox IsEditable="True" Text="{Binding EndFreq}" Grid.Column="1" Grid.Row="1"  ItemsSource="{Binding EndFrequencies}"  />
+                <Label Content="_End Frequency" Target="{Binding ElementName=cbEF}"  HorizontalAlignment="Right"  Grid.Column="0" Grid.Row="1"  />
+                <ComboBox IsEditable="True" x:Name="cbEF" Text="{Binding EndFreq}" Grid.Column="1" Grid.Row="1"  ItemsSource="{Binding EndFrequencies}"  />
                 <Label Content="Hz" Grid.Column="2" Grid.Row="1"  />
-                    <Label Content="Steps / Octave" HorizontalAlignment="Right"  Grid.Column="0" Grid.Row="2"  />
-                <xctk:IntegerUpDown VerticalAlignment="Center" Value="{Binding StepsOctave}" Minimum="1" Grid.Column="1" Grid.Row="2"  />
-                    <Label Content="Averages" HorizontalAlignment="Right"  Grid.Column="0" Grid.Row="3"  />
-                <xctk:IntegerUpDown VerticalAlignment="Center" Value="{Binding Averages}" Minimum="1" Maximum="6" Grid.Column="1" Grid.Row="3"  />
+                <Label Content="Steps / _Octave" Target="{Binding ElementName=cbStO}"  HorizontalAlignment="Right"  Grid.Column="0" Grid.Row="2"  />
+                <xctk:IntegerUpDown x:Name="cbStO"  VerticalAlignment="Center" Value="{Binding StepsOctave}" Minimum="1" Grid.Column="1" Grid.Row="2"  />
             </Grid>
             <views:GroupHeader Header="Sampling" />
             <Grid>

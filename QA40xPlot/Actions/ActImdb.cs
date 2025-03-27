@@ -3,11 +3,9 @@ using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
-using System.ComponentModel;
 using System.Data;
-using System.Diagnostics;
-using System.Drawing.Drawing2D;
 using System.Windows;
+using static QA40xPlot.ViewModels.BaseViewModel;
 
 // various things for the thd vs frequency activity
 
@@ -178,7 +176,7 @@ namespace QA40xPlot.Actions
 
 				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
 				int[] frqtest = [ToBinNumber(freq, LRGains)];
-				var genVolt = imdVm.ToGenVoltage(msrImd.Gen1Voltage, frqtest, true, gains);	// input voltage 1
+				var genVolt = imdVm.ToGenVoltage(msrImd.Gen1Voltage, frqtest, GEN_INPUT, gains);	// input voltage 1
 				double amplitudeSetpoint1dBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 				// the other voltage calculated via divisor
 				genVolt = genVolt / msrImd.GenDivisor;
@@ -711,7 +709,7 @@ namespace QA40xPlot.Actions
 			Data.Measurements.Clear();
 
 			var msr = MeasurementResult.MeasurementSettings;
-			var genType = BaseViewModel.ToDirection(msr.GenDirection);
+			var genType = ToDirection(msr.GenDirection);
 			var freq = MathUtil.ToDouble(msr.Gen1Frequency, 1000);
 			var freq2 = MathUtil.ToDouble(msr.Gen2Frequency, 1000);
 			if (msr.DoAutoAttn || genType != E_GeneratorDirection.INPUT_VOLTAGE)
@@ -729,13 +727,13 @@ namespace QA40xPlot.Actions
 				var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
 
 				// find the two input voltages for our testing
-				var v1in = msr.ToGenVoltage(msr.Gen1Voltage, frqtest, true, gains);  // get output voltage
+				var v1in = msr.ToGenVoltage(msr.Gen1Voltage, frqtest, GEN_INPUT, gains);  // get output voltage
 				var v2in = v1in / msr.GenDivisor;  // get second input voltage
 																						 // now find the output voltages for this input
-				var v1lout = BaseViewModel.ToGenOutVolts(v1in, frqtest, LRGains.Left);	// left channel output V
-				var v2lout = BaseViewModel.ToGenOutVolts(v2in, frq2test, LRGains.Left);
-				var v1rout = BaseViewModel.ToGenOutVolts(v1in, frqtest, LRGains.Right);	// right channel output V
-				var v2rout = BaseViewModel.ToGenOutVolts(v2in, frq2test, LRGains.Right);
+				var v1lout = ToGenOutVolts(v1in, frqtest, LRGains.Left);	// left channel output V
+				var v2lout = ToGenOutVolts(v2in, frq2test, LRGains.Left);
+				var v1rout = ToGenOutVolts(v1in, frqtest, LRGains.Right);	// right channel output V
+				var v2rout = ToGenOutVolts(v2in, frq2test, LRGains.Right);
 				var vtotal = Math.Max(v1lout*v1lout + v2lout*v2lout, v1rout*v1rout + v2rout*v2rout);	// max sum of squares
 				vtotal = Math.Sqrt(vtotal);
 

@@ -95,7 +95,7 @@
                 <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="42" 
                             IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=42}"
                             Command="{Binding SetAttenuate}" CommandParameter="42" Grid.Row="1" Grid.Column="3" Margin="4"></RadioButton>
-                <CheckBox Grid.Row="2" Grid.ColumnSpan="4" Content="Autorange on start" IsChecked="{Binding DoAutoAttn}" Margin="8,2,0,2">
+                <CheckBox Grid.Row="2" Grid.ColumnSpan="4" Content="Auto_range on start" IsChecked="{Binding DoAutoAttn}" Margin="8,2,0,2">
                     <CheckBox.ToolTip >
                         <ToolTip Content="{Binding AutoRangeDescript}" />
                     </CheckBox.ToolTip>
@@ -115,15 +115,15 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Label Content="Set DUT" HorizontalAlignment="Right"  Grid.Row="0" Grid.Column="0" ToolTip="{Binding DutInfo}"  />
-                <ComboBox ToolTip="{Binding DutDescript}" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" 
+                <Label Content="Set _DUT" Target="{Binding ElementName=cbDUT}" HorizontalAlignment="Right"  Grid.Row="0" Grid.Column="0" ToolTip="{Binding DutInfo}"  />
+                <ComboBox ToolTip="{Binding DutDescript}" x:Name="cbDUT"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" 
                           VerticalAlignment="Center"  SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVoltsFull}">
                 </ComboBox>
                 <Label Content="Fre_quency" HorizontalAlignment="Right" Grid.Row="1" Grid.Column="0" Target="{Binding ElementName=cbFreq}" />
                 <ComboBox x:Name="cbFreq" Grid.Column="1" Grid.Row="1" VerticalAlignment="Center"  
                                IsEditable="True" Text="{Binding Gen1Frequency}" ItemsSource="{Binding GenFrequencies}" MinWidth="80"/>
                 <Label Content="Hz" Grid.Row="1" Grid.Column="2" />
-                <Label Content="{Binding GenAmpDescript, Mode=OneWay}" HorizontalAlignment="Right" Grid.Row="2" Grid.Column="0"  />
+                <Label Content="{Binding GenAmpDescript, Mode=OneWay}"  Target="{Binding ElementName=cbVolt}" HorizontalAlignment="Right" Grid.Row="2" Grid.Column="0"  />
                 <ComboBox x:Name="cbVolt" Grid.Column="1" Grid.Row="2" VerticalAlignment="Center"  
                               IsEditable="True" Text="{Binding Gen1Voltage}" ItemsSource="{Binding GenVoltages}"/>
                 <Label Content="{Binding GenAmpUnits, Mode=OneWay}" Grid.Row="2" Grid.Column="2" />

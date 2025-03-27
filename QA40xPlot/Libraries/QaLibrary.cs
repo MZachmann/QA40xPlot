@@ -189,27 +189,27 @@ namespace QA40xPlot.Libraries
         }
 
         static public async Task<LeftRightSeries> DoAcquisitions(uint averages, CancellationToken ct, bool getFrequencySeries = true, bool getTimeSeries = true)
-        {
-            LeftRightSeries lrfs = new LeftRightSeries();
+		{
+			LeftRightSeries lrfs = new LeftRightSeries();
 
             await Qa40x.DoAcquisition();
-            if (ct.IsCancellationRequested || lrfs == null)
-                return lrfs ?? new();
+			if (ct.IsCancellationRequested || lrfs == null)
+				return lrfs ?? new();
             if (getFrequencySeries)
-            {
-                lrfs.FreqRslt = await Qa40x.GetInputFrequencySeries();
-                if (ct.IsCancellationRequested || lrfs.FreqRslt == null)
-                    return lrfs;
-            }
+			{
+				lrfs.FreqRslt = await Qa40x.GetInputFrequencySeries();
+				if (ct.IsCancellationRequested || lrfs.FreqRslt == null)
+					return lrfs;
+			}
             if (getTimeSeries)
-            {
-                lrfs.TimeRslt = await Qa40x.GetInputTimeSeries();
-                if (ct.IsCancellationRequested)
-                    return lrfs;
-            }
+			{
+				lrfs.TimeRslt = await Qa40x.GetInputTimeSeries();
+				if (ct.IsCancellationRequested)
+					return lrfs;
+			}
 
             if (averages <= 1)
-                return lrfs;        // Only one measurement
+			return lrfs;        // Only one measurement
 
             if (getFrequencySeries && lrfs.FreqRslt != null)
             {
@@ -237,22 +237,19 @@ namespace QA40xPlot.Libraries
             return lrfs;
 		}
 
-		static public async Task<LeftRightSeries> DoAcquireChirp(CancellationToken ct, double[] left, double[] right, bool getFrequencySeries = true, bool getTimeSeries = true)
+		static public async Task<LeftRightSeries> DoAcquireChirp(CancellationToken ct, double[] datapt)
 		{
 			LeftRightSeries lrfs = new LeftRightSeries();
-            //await Qa40x.SetOutputSource("Off");
-            var dx = 1.0; //  fftsize / samplerate;
-            var sessid = 123;
-			await Qa40x.DoUserAcquisition(sessid, dx, left, right);
+			await Qa40x.DoUserAcquisition(datapt, datapt);
 			if (ct.IsCancellationRequested || lrfs == null)
 				return lrfs ?? new();
-			if (getFrequencySeries)
+
 			{
 				lrfs.FreqRslt = await Qa40x.GetInputFrequencySeries();
 				if (ct.IsCancellationRequested || lrfs.FreqRslt == null)
 					return lrfs;
 			}
-			if (getTimeSeries)
+
 			{
 				lrfs.TimeRslt = await Qa40x.GetInputTimeSeries();
 				if (ct.IsCancellationRequested)
