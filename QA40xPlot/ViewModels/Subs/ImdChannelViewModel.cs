@@ -9,7 +9,7 @@ using System.Windows.Controls;
 
 namespace QA40xPlot.ViewModels
 {
-	public class ImdChannelViewModel : BaseViewModel
+	public class ImdChannelViewModel : FloorViewModel
 	{
 		//public string ChannelId { get; set; }
 		private double _Gen1F = 0;         // type of alert
@@ -76,8 +76,8 @@ namespace QA40xPlot.ViewModels
 			Gen2F = gen2f;
 			SNRatio = step.Snr_dB;
 			ENOB = (SNRatio - 1.76) / 6.02;
-			ThdIndB = step.Thd_dB;
-			ThdInPercent = 100*Math.Pow(10, step.Thd_dB / 20);
+			ThdIndB = step.Thd_dB;	// shown
+			ThdInPercent = 100*Math.Pow(10, step.Thd_dB / 20);	// shown
 			ShowDataPercents = showPercent;
 		}
 	}

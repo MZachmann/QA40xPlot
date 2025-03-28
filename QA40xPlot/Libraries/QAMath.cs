@@ -15,22 +15,75 @@ namespace QA40xPlot.Libraries
     public interface QAMath
     {
 
+		public static double MagAtFreq(double[] pts, double df, double dFreq)
+		{
+			var bin = (int)Math.Floor(dFreq / df);
+			if (bin >= pts.Length)
+				return 0;
+			var ba = pts[bin];
+			if (bin > 0)
+				ba = Math.Max(ba, pts[bin - 1]);
+			if(bin < (pts.Length-1))
+				ba = Math.Max(ba, pts[bin + 1]);
+			return ba;
+		}
+
+		/// <summary>
+		/// get the snr from a leftright series
+		/// </summary>
+		public static double CalculateSNR(LeftRightSeries? lfrs, bool isLeft)
+		{
+			if (lfrs == null || lfrs.TimeRslt == null || lfrs.FreqRslt == null)
+				return 0;
+
+			var timeSeries = isLeft ? lfrs.TimeRslt.Left : lfrs.TimeRslt.Right;
+			var freqSeries = isLeft ? lfrs.FreqRslt.Left : lfrs.FreqRslt.Right;
+			var dt = lfrs.TimeRslt.dt;
+			var df = lfrs.FreqRslt.Df;
+
+			var totalV = Math.Sqrt(timeSeries.Select(x => x * x).Sum() / timeSeries.Length); // rms voltage
+			var windowBw = 1.5; // hann
+			var totalVF = Math.Sqrt(freqSeries.Select(x => x * x / windowBw).Sum()); // rms voltage
+			var fundamentalV = freqSeries.Max();	// fundamental magnitude of output
+			var totalV3 = freqSeries.Select(x => x * df * x * df).Sum();	// ?
+			List<double> thd = new();
+			var dfreq = freqSeries.ToList().IndexOf(fundamentalV) * df;
+			double thdall = 0;
+			for(int i=2; i<12; i++)
+			{
+				var x = MagAtFreq(freqSeries, df, dfreq * i);
+				thd.Add(x/fundamentalV);		// each individual distortion component
+				thdall += x * x;				// total sum of squares
+			}
+			var thd_pct = 100 * Math.Sqrt(thdall) / fundamentalV;   // total thd in percent
+			var snr = 20*Math.Log10(totalV / Math.Sqrt(totalV*totalV - fundamentalV*fundamentalV));
+
+			return 0;
+
+		}
+
+
 		// create a chirp from F0 ... F1 for a total time of chirpTime
 		// chirpsize must be the same as fftSize in the device
 		//exponential chirp: f(t) = f0 * k^(t/T) where k=f0/f1
-
+		
 		public static List<double> CalculateChirp(double f0, double f1, uint chirpSize, uint sampleRate)
 		{
 			double dt = 1 / (double)sampleRate;	// interval time
 			var lout = new List<double>();
 			var k = f1/f0;	// number of octaves
 			var T = chirpSize * dt; // total time
-
+			var df = (Math.Log(f1) - Math.Log(f0)) / chirpSize;
+			var fqs = Enumerable.Range(0, (int)chirpSize).Select(x => Math.Log(f0) + x * (Math.Log(f1) - Math.Log(f0)) / chirpSize).ToArray();
+			var fes = fqs.Select(x => Math.Exp(x)).ToArray();
+			double fnow = 0;
 			for (int i = 0; i < chirpSize; i++)
 			{
 				double t = i * dt;
-				double ft = f0 * T * Math.Pow(k, t / T) / Math.Log(k);
-				lout.Add(Math.Cos(2 * Math.PI * ft));
+				//double ft = f0 * T * Math.Pow(k, t / T) / Math.Log(k);
+				double ft = Math.Exp(fqs[i]) * dt;
+				fnow += ft;
+				lout.Add(Math.Cos(2 * Math.PI * fnow)); // * Math.Pow(4.5, t / T) / 4.5); //
 				if( (chirpSize-i) < 2)
 				{
 					Debug.WriteLine($"i={i} ft={ft} lout={lout[i]}");

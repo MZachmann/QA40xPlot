@@ -220,7 +220,7 @@ namespace QA40xPlot.Actions
 					msr.FrequencySteps.Add(step);
 
 					// For now clear measurements to allow only one until we have a UI to manage them.
-					if( Data.Measurements.Count == 0)
+					if ( Data.Measurements.Count == 0)
 						Data.Measurements.Add(MeasurementResult);
 
 					ClearPlot();
@@ -384,13 +384,15 @@ namespace QA40xPlot.Actions
 		{
 			uint fundamentalBin = QaLibrary.GetBinOfFrequency(step.FundamentalFrequency, binSize);
 			var ffts = isRight ? step.fftData?.Right : step.fftData?.Left;
-			var lfdata = step.timeData?.Left;
+			var ltdata = step.timeData?.Left;
 
 			// this should never happen
-			if (ffts == null || lfdata == null)
+			if (ffts == null || ltdata == null)
 				return new();
 
-			double allvolts = Math.Sqrt(lfdata.Select(x => x * x ).Sum() / lfdata.Count());	// use the time data for best accuracy gain math
+			double allvolts = Math.Sqrt(ltdata.Select(x => x * x ).Sum() / ltdata.Count()); // use the time data for best accuracy gain math
+			//var windowBw = 1.5;	// hann
+			//double allv2 = Math.Sqrt(ffts.Select(x => x * x / windowBw).Sum());
 
 			ThdFrequencyStepChannel channelData = new()
 			{
@@ -477,8 +479,8 @@ namespace QA40xPlot.Actions
             }
 
             // If load not zero then calculate load power
-            if (msr.MeasurementSettings.AmpLoad != 0)
-                channelData.Power_Watt = Math.Pow(channelData.Fundamental_V, 2) / msr.MeasurementSettings.AmpLoad;
+            if (ViewSettings.AmplifierLoad != 0)
+                channelData.Power_Watt = Math.Pow(channelData.Fundamental_V, 2) / ViewSettings.AmplifierLoad;
 
             return channelData;
         }
