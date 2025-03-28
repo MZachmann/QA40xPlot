@@ -333,18 +333,7 @@ namespace QA40xPlot.ViewModels
 		private static Marker? MyMark = null;
 		private void DoMouse(object? sender, MouseEventArgs e)
 		{ 
-
-			if (e.LeftButton == MouseButtonState.Pressed && !IsMouseDown)
-			{
-				IsTracking = !IsTracking;
-				IsMouseDown = true;
-			}
-			else
-			if (e.LeftButton == MouseButtonState.Released && IsMouseDown)
-			{
-				IsMouseDown = false;
-			}
-
+			SetMouseTrack(e);
 			if (!IsTracking)
 				return;
 
@@ -362,12 +351,17 @@ namespace QA40xPlot.ViewModels
 				actPlot.ThePlot.Remove(MyMark);
 				MyMark = null;
 			}
-			MyMark = actPlot.ThePlot.Add.Marker(Math.Log10(zv.Item1), valdBV,
+			var valshow = ShowPercent ? Math.Log10(zv.Item3) : valdBV;
+			MyMark = actPlot.ThePlot.Add.Marker(Math.Log10(zv.Item1), valshow,
 				MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), ScottPlot.Colors.Red);
 			actPlot.Refresh();
 
 			FreqShow = zv.Item1.ToString("0.# Hz");
-			ZValue = valdBV.ToString("0.# dBV");
+			var valvolt = MathUtil.FormatVoltage(zv.Item2);
+			var valpercent = MathUtil.FormatPercent(zv.Item3);
+			ZValue = $"{valdBV:0.#} dBV" + Environment.NewLine +
+				$"{valpercent} %" + Environment.NewLine +
+				$"{valvolt}";
 		}
 
 		~SpectrumViewModel()

@@ -81,17 +81,23 @@ namespace QA40xPlot.Actions
 			return db;
 		}
 
-		// here posn is in dBV
-		public ValueTuple<double, double> LookupXY(double freq, double posndBV, bool useRight)
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="freq">frequency on chart</param>
+		/// <param name="posndBV">Y of mouse in plot</param>
+		/// <param name="useRight">which channel</param>
+		/// <returns>a tuple of df, value, value in pct</returns>
+		public ValueTuple<double, double, double> LookupXY(double freq, double posndBV, bool useRight)
 		{
 			var steps = MeasurementResult.FrequencySteps;
 			if (freq <= 0 || steps == null || steps.Count == 0)
-				return ValueTuple.Create(0.0, 0.0);
-
+				return ValueTuple.Create(0.0, 0.0, 0.0);
+			var step = steps.First();
 			try
 			{
 				// get the data to look through
-				var fftdata = steps.First().fftData;
+				var fftdata = step.fftData;
 				var ffs = useRight ? fftdata?.Right : fftdata?.Left;
 				if (fftdata != null && ffs != null && ffs.Length > 0)
 				{
@@ -112,13 +118,16 @@ namespace QA40xPlot.Actions
 
 					var vm = ViewSettings.Singleton.SpectrumVm;
 					if (bin < ffs.Length)
-						return ValueTuple.Create(bin * fftdata.Df, ffs[bin]);
+					{
+						var vfun = useRight ? step.Right.Fundamental1_V : step.Left.Fundamental1_V;
+						return ValueTuple.Create(bin * fftdata.Df, ffs[bin], 100 * ffs[bin] / vfun);
+					}
 				}
 			}
 			catch (Exception)
 			{
 			}
-			return ValueTuple.Create(0.0, 0.0);
+			return ValueTuple.Create(0.0, 0.0, 0.0);
 		}
 
 		/// <summary>
@@ -435,6 +444,7 @@ namespace QA40xPlot.Actions
 				Fundamental2_V = ffts[fundamental2Bin],
 				Fundamental2_dBV = 20 * Math.Log10(ffts[fundamental2Bin]),
 				Total_V = allvolts,
+				Total_W = allvolts * allvolts / ViewSettings.AmplifierLoad,
 				Gain_dB = 20 * Math.Log10(ffts[fundamental1Bin] / Math.Pow(10, generatorAmplitudeDbv / 20)),
 			};
 			var cd = channelData;

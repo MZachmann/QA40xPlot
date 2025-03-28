@@ -327,8 +327,8 @@
                     </Grid.RowDefinitions>
                     <Label Content="Frequency" Grid.Row="0" Grid.Column="0" IsEnabled="{Binding IsTracking}" />
                     <Label Content="{Binding FreqShow}" Grid.Row="0" Grid.Column="1" IsEnabled="{Binding IsTracking}" Width="70" />
-                    <Label Content="dBV" Grid.Row="1" Grid.Column="0"  />
-                    <Label Content="{Binding ZValue}" Grid.Row="1" Grid.Column="1" Width="70" />
+                    <TextBox Text="{Binding ZValue}" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" TextWrapping="Wrap" 
+                             AcceptsReturn="True" Width="120" HorizontalAlignment="Left" />
                 </Grid>
             </GroupBox>
         </StackPanel>

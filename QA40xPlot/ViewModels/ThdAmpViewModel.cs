@@ -311,17 +311,7 @@ namespace QA40xPlot.ViewModels
 
 		private void DoMouse(object sender, MouseEventArgs e)
 		{
-
-			if (e.LeftButton == MouseButtonState.Pressed && !IsMouseDown)
-			{
-				IsTracking = !IsTracking;
-				IsMouseDown = true;
-			}
-			else
-			if (e.LeftButton == MouseButtonState.Released && IsMouseDown)
-			{
-				IsMouseDown = false;
-			}
+			SetMouseTrack(e);
 			if (IsTracking)
 			{
 				var p = e.GetPosition(actPlot);
@@ -332,7 +322,7 @@ namespace QA40xPlot.ViewModels
 			ZValue = string.Empty;
 			if( zv.Item1 != null )
 			{
-				FreqShow = Math.Pow(10, zv.Item1.GenVolts/20).ToString("0.### V");
+				FreqShow = MathUtil.FormatVoltage(zv.Item1.GenVolts) + " -> " + MathUtil.FormatVoltage(zv.Item1.Mag);
 				if (zv.Item2 != null)
 					ZValue += "Left: " + Environment.NewLine;
 				ZValue += FormatColumn( zv.Item1 );
@@ -340,7 +330,7 @@ namespace QA40xPlot.ViewModels
 			if (zv.Item2 != null)
 			{
 				if (zv.Item1 == null)
-					FreqShow = Math.Pow(10, zv.Item2.GenVolts / 20).ToString("0.### V");
+					FreqShow = MathUtil.FormatVoltage(zv.Item2.GenVolts) + " -> " + MathUtil.FormatVoltage(zv.Item2.Mag);
 				else
 					ZValue += "Right: " + Environment.NewLine;
 				ZValue += FormatColumn(zv.Item2);

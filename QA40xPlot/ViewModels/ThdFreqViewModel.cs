@@ -305,17 +305,7 @@ namespace QA40xPlot.ViewModels
 
 		private void DoMouse(object sender, MouseEventArgs e)
 		{
-
-			if (e.LeftButton == MouseButtonState.Pressed && !IsMouseDown)
-			{
-				IsTracking = !IsTracking;
-				IsMouseDown = true;
-			}
-			else
-			if (e.LeftButton == MouseButtonState.Released && IsMouseDown)
-			{
-				IsMouseDown = false;
-			}
+			SetMouseTrack(e);
 			if (IsTracking)
 			{
 				var p = e.GetPosition(actPlot);

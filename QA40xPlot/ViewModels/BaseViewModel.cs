@@ -331,6 +331,26 @@ namespace QA40xPlot.ViewModels
 			return vtest;
 		}
 
+		private DateTime _DownTime = DateTime.MinValue;
+		protected void SetMouseTrack(MouseEventArgs e)
+		{
+			if (e.LeftButton == MouseButtonState.Pressed && !IsMouseDown)
+			{
+				IsMouseDown = true;
+				_DownTime = DateTime.Now;
+			}
+			else
+			if (e.LeftButton == MouseButtonState.Released && IsMouseDown)
+			{
+				IsMouseDown = false;
+				if ((DateTime.Now - _DownTime).TotalMilliseconds < 500)
+				{
+					IsTracking = !IsTracking;
+				}
+				_DownTime = DateTime.MinValue;
+			}
+		}
+
 		public 	BaseViewModel()
 		{
 			HasExport = false;

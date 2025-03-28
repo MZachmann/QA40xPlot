@@ -29,7 +29,7 @@ namespace QA40xPlot.Views
 				{
 					this.MouseMove -= OnMouseMove;
 					this.MouseMove += OnMouseMove;
-					this.MouseUp -= OnMouseMove;
+					this.MouseUp -= OnMouseDown;
 					this.MouseUp += OnMouseDown;
 					this.MouseDown -= OnMouseDown;
 					this.MouseDown += OnMouseDown;

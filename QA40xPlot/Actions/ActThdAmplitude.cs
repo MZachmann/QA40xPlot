@@ -51,6 +51,11 @@ namespace QA40xPlot.Actions
 			ct.Cancel();
 		}
 
+		private double ConvertToInputVoltage(double outV, double[] gains)
+		{
+			return outV * gains[0];
+		}
+
 		public ValueTuple<ThdColumn?, ThdColumn?> LookupX(double amp)
 		{
 			var vm = ViewModels.ViewSettings.Singleton.ThdAmp;
@@ -59,14 +64,16 @@ namespace QA40xPlot.Actions
 			{
 				return ValueTuple.Create((ThdColumn?)null, (ThdColumn?)null);
 			}
+			var freq = vf[0].Freq;
+			var vinp = vm.ToGenVoltage(amp.ToString(), [(int)Math.Floor(freq / (LRGains?.Df ?? 1))], GEN_INPUT, LRGains.Left);
 
 			// find nearest amplitude (both left and right will be identical here if scanned)
-			var ampl = 20 * Math.Log10(amp);
-			var bin = vf.Count(x => x.GenVolts < ampl) - 1;    // find first freq less than me
+			// determine amp as an input voltage
+			var bin = vf.Count(x => x.GenVolts < vinp) - 1;    // find first freq less than me
 			if (bin == -1)
 				bin = 0;
 			var anearest = vf[bin].GenVolts;
-			if (bin < (vf.Count - 1) && Math.Abs(ampl - anearest) > Math.Abs(ampl - vf[bin + 1].GenVolts))
+			if (bin < (vf.Count - 1) && Math.Abs(vinp - anearest) > Math.Abs(vinp - vf[bin + 1].GenVolts))
 			{
 				bin++;
 			}
@@ -103,7 +110,7 @@ namespace QA40xPlot.Actions
 			cl.Noise = chan.Average_NoiseFloor_dBV;
 			//
 			cl.Freq = MathUtil.ToDouble(MeasurementResult.MeasurementSettings.TestFreq, 10);
-			cl.GenVolts = chan.Fundamental_dBV;
+			cl.GenVolts = chan.Fundamental_V;
 			return cl;
 		}
 

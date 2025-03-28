@@ -36,8 +36,8 @@
                 <Label Grid.Row="1" Grid.Column="1" Content="{Binding MyStep.Fundamental2_dBV}" ContentStringFormat="{}{0:F2} dBV"/>
                 <Label Grid.Row="1" Grid.Column="2" Content="{Binding MyStep.Fundamental2_V}" ContentStringFormat="{}{0:F4} VRMS"/>
                 <Label Grid.Row="2" Grid.Column="0" Content="{Binding MyStep.Fundamentals_dBV}" ContentStringFormat="{}{0:F2} dBV"/>
-                <Label Grid.Row="2" Grid.Column="1" Content="{Binding MyStep.Fundamentals_V}" ContentStringFormat="{}{0:F4} VRMS"/>
-                <Label Grid.Row="2" Grid.Column="2" Content="{Binding MyStep.Fundamentals_W}" ContentStringFormat="{}{0:0.###} W"/>
+                <Label Grid.Row="2" Grid.Column="1" Content="{Binding MyStep.Total_V}" ContentStringFormat="{}{0:F4} VRMS"/>
+                <Label Grid.Row="2" Grid.Column="2" Content="{Binding MyStep.Total_W}" ContentStringFormat="{}{0:0.###} W"/>
                 <Label Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Center" Content="{Binding MyStep.Gain_dB}" ContentStringFormat="Gain {0:F2} dB"/>
             </Grid>
             <Rectangle HorizontalAlignment="Stretch" Height="3" Fill="DarkGreen" />

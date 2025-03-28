@@ -13,6 +13,7 @@ namespace QA40xPlot.Data
 		public double Fundamental2_V { get; set; }
 		public double Fundamental2_dBV { get; set; }
         public double Total_V { get; set; }
+		public double Total_W { get; set; }
 		public double Gain_dB { get; set; }
         public List<HarmonicData> Harmonics { 
             get; 
