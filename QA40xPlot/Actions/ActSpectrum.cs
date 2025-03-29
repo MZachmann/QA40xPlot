@@ -79,20 +79,20 @@ namespace QA40xPlot.Actions
 			return db;
 		}
 
-		//private async Task<LeftRightSeries?> CallChirp(CancellationToken ct)
-		//{
-		//	var thd = MeasurementResult.MeasurementSettings;
-		//	var chirp = QAMath.CalculateChirp(100, 2000, thd.FftSizeVal, thd.SampleRateVal);
-		//	LeftRightSeries lrfs = await QaLibrary.DoAcquireChirp(ct, chirp.ToArray());
-		//	if (lrfs?.TimeRslt != null)
-		//	{
-		//		var window = new FftSharp.Windows.Rectangular();
-		//		double[] windowed_measured = window.Apply(chirp.ToArray(), true);
-		//		System.Numerics.Complex[] spectrum_measured = FFT.Forward(windowed_measured);
-		//		lrfs.FreqRslt.Left = spectrum_measured.Select(x => x.Magnitude).Take(lrfs.FreqRslt.Left.Length).ToArray();
-		//	}
-		//	return lrfs;
-		//}
+		private async Task<LeftRightSeries?> CallChirp(CancellationToken ct)
+		{
+			var thd = MeasurementResult.MeasurementSettings;
+			var chirp = QAMath.CalculateChirp(100, 2000, thd.FftSizeVal, thd.SampleRateVal);
+			LeftRightSeries lrfs = await QaLibrary.DoAcquireChirp(ct, chirp.ToArray());
+			//if (lrfs?.TimeRslt != null)
+			//{
+			//	var window = new FftSharp.Windows.Rectangular();
+			//	double[] windowed_measured = window.Apply(chirp.ToArray(), true);
+			//	System.Numerics.Complex[] spectrum_measured = FFT.Forward(windowed_measured);
+			//	lrfs.FreqRslt.Left = spectrum_measured.Select(x => x.Magnitude).Take(lrfs.FreqRslt.Left.Length).ToArray();
+			//}
+			return lrfs;
+		}
 
 		/// <summary>
 		/// Perform the measurement
@@ -169,7 +169,7 @@ namespace QA40xPlot.Actions
 					// Set the generators
 					await Qa40x.SetGen1(stepBinFrequencies[0], amplitudeSetpointdBV, thd.UseGenerator);
 					// for the first go around, turn on the generator
-					LeftRightSeries lrfs;
+					LeftRightSeries? lrfs;
 					if (thd.UseGenerator)
 					{
 						await Qa40x.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
@@ -180,6 +180,8 @@ namespace QA40xPlot.Actions
 						await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make the averages reset
 						lrfs = await QaLibrary.DoAcquisitions(thd.Averages, ct, true, true);
 					}
+					if (lrfs == null)
+						break;
 
 					uint fundamentalBin = QaLibrary.GetBinOfFrequency(stepBinFrequencies[0], binSize);
                     if (fundamentalBin >= (lrfs.FreqRslt?.Left.Length ?? -1))               // Check in bin within range

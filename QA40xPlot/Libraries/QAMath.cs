@@ -66,24 +66,21 @@ namespace QA40xPlot.Libraries
 		// create a chirp from F0 ... F1 for a total time of chirpTime
 		// chirpsize must be the same as fftSize in the device
 		//exponential chirp: f(t) = f0 * k^(t/T) where k=f0/f1
-		
+		// Y = 10^(Slope*X + Y-intercept)
+
 		public static List<double> CalculateChirp(double f0, double f1, uint chirpSize, uint sampleRate)
 		{
 			double dt = 1 / (double)sampleRate;	// interval time
 			var lout = new List<double>();
 			var k = f1/f0;	// number of octaves
 			var T = chirpSize * dt; // total time
-			var df = (Math.Log(f1) - Math.Log(f0)) / chirpSize;
-			var fqs = Enumerable.Range(0, (int)chirpSize).Select(x => Math.Log(f0) + x * (Math.Log(f1) - Math.Log(f0)) / chirpSize).ToArray();
-			var fes = fqs.Select(x => Math.Exp(x)).ToArray();
-			double fnow = 0;
+			var fmulx = f0 * T / Math.Log(k);
 			for (int i = 0; i < chirpSize; i++)
 			{
+
 				double t = i * dt;
-				//double ft = f0 * T * Math.Pow(k, t / T) / Math.Log(k);
-				double ft = Math.Exp(fqs[i]) * dt;
-				fnow += ft;
-				lout.Add(Math.Cos(2 * Math.PI * fnow)); // * Math.Pow(4.5, t / T) / 4.5); //
+				double ft = fmulx * Math.Pow(k, t / T);
+				lout.Add(Math.Sin(2 * Math.PI * ft));
 				if( (chirpSize-i) < 2)
 				{
 					Debug.WriteLine($"i={i} ft={ft} lout={lout[i]}");

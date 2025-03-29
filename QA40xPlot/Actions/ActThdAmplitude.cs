@@ -320,6 +320,14 @@ namespace QA40xPlot.Actions
 			return true;
 		}
 
+
+		private double SafeLog(double? din)
+		{
+			if (din == null || din == 0)
+				return -9;
+			return Math.Log10((double)din);
+		}
+
 		private ThdFrequencyStepChannel ChannelCalculations(double binSize, double fundamentalFrequency, double generatorAmplitudeV, double[] fftData, double[] noiseFloorFftData, double load)
 		{
 			uint fundamentalBin = QaLibrary.GetBinOfFrequency(fundamentalFrequency, binSize);
@@ -341,7 +349,7 @@ namespace QA40xPlot.Actions
 			channelData.Average_NoiseFloor_V = noiseFloorFftData
 				.Skip((int)fundamentalBin + 1)
 				.Average();
-			channelData.Average_NoiseFloor_dBV = 20 * Math.Log10(channelData.Average_NoiseFloor_V);
+			channelData.Average_NoiseFloor_dBV = 20 * SafeLog(channelData.Average_NoiseFloor_V);
 
 			// Reset harmonic distortion variables
 			double distortionSqrtTotal = 0;
@@ -360,12 +368,23 @@ namespace QA40xPlot.Actions
 				{
 					HarmonicNr = h,
 					Frequency = harmonicFrequency,
-					NoiseAmplitude_V = noiseFloorFftData[bin],
-					Amplitude_V = fftData[bin],
-					Amplitude_dBV = 20 * Math.Log10(fftData[bin]),
-					Thd_Percent = (fftData[bin] / channelData.Fundamental_V) * 100,
-					Thd_dB = 20 * Math.Log10(fftData[bin] / channelData.Fundamental_V)
 				};
+				if( bin < fftData.Length)
+				{
+					harmonic.Amplitude_V = fftData[bin];
+					harmonic.NoiseAmplitude_V = noiseFloorFftData[bin];
+					harmonic.Amplitude_dBV = 20 * Math.Log10(fftData[bin]);
+					harmonic.Thd_Percent = (fftData[bin] / channelData.Fundamental_V) * 100;
+					harmonic.Thd_dB = 20 * Math.Log10(fftData[bin] / channelData.Fundamental_V);
+				}
+				else
+				{
+					harmonic.Amplitude_V = 0;
+					harmonic.NoiseAmplitude_V = 0;
+					harmonic.Amplitude_dBV = -180;
+					harmonic.Thd_Percent = 0;
+					harmonic.Thd_dB = -180;
+				}
 
 				if (h >= 6)
 					distiortionD6plus += Math.Pow(harmonic.Amplitude_V, 2);
@@ -375,23 +394,21 @@ namespace QA40xPlot.Actions
 			}
 
 			// Calculate THD of current step
-			if (distortionSqrtTotal != 0)
-			{
-				channelData.Thd_Percent = (Math.Sqrt(distortionSqrtTotal) / channelData.Fundamental_V) * 100;
-				channelData.Thd_dB = 20 * Math.Log10(channelData.Thd_Percent / 100.0);
-			}
+			channelData.Thd_Percent = (Math.Sqrt(distortionSqrtTotal) / channelData.Fundamental_V) * 100;
+			channelData.Thd_dB = 20 * SafeLog(channelData.Thd_Percent / 100.0);
 
 			// Calculate D6+ (D6 - D12)
 			if (distiortionD6plus != 0)
 			{
-				channelData.D6Plus_dBV = 20 * Math.Log10(Math.Sqrt(distiortionD6plus));
+				channelData.D6Plus_dBV = 20 * SafeLog(Math.Sqrt(distiortionD6plus));
 				channelData.ThdPercent_D6plus = Math.Sqrt(distiortionD6plus / Math.Pow(channelData.Fundamental_V, 2)) * 100;
-				channelData.ThdDbD6plus = 20 * Math.Log10(channelData.ThdPercent_D6plus / 100.0);
+				channelData.ThdDbD6plus = 20 * SafeLog(channelData.ThdPercent_D6plus / 100.0);
 			}
 
 			// If load not zero then calculate load power
-			if (load != 0)
-				channelData.Power_Watt = Math.Pow(channelData.Fundamental_V, 2) / load;
+			if (load == 0)
+				load = 8;
+			channelData.Power_Watt = Math.Pow(channelData.Fundamental_V, 2) / load;
 
 			return channelData;
 		}

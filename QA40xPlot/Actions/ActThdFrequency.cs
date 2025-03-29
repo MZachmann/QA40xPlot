@@ -312,6 +312,13 @@ namespace QA40xPlot.Actions
             return true;
         }
 
+        private double SafeLog(double? din)
+        {
+			if (din == null || din == 0)
+				return -9;
+			return Math.Log10((double)din);
+		}
+
         /// <summary>
         /// Perform the calculations of a single channel (left or right)
         /// </summary>
@@ -325,7 +332,7 @@ namespace QA40xPlot.Actions
         {
             uint fundamentalBin = QaLibrary.GetBinOfFrequency(fundamentalFrequency, binSize);
 
-            ThdFrequencyStepChannel channelData = new()
+			ThdFrequencyStepChannel channelData = new()
             {
                 Fundamental_V = fftData[fundamentalBin],
                 Fundamental_dBV = 20 * Math.Log10(fftData[fundamentalBin]),
@@ -335,7 +342,7 @@ namespace QA40xPlot.Actions
             if (noiseFloorFftData != null)
             {
 				channelData.Average_NoiseFloor_V = noiseFloorFftData.Skip((int)fundamentalBin + 1).Average();   // Average noise floor in Volts after the fundamental
-				channelData.Average_NoiseFloor_dBV = 20 * Math.Log10(channelData.Average_NoiseFloor_V);         // Average noise floor in dBV
+				channelData.Average_NoiseFloor_dBV = 20 * SafeLog(channelData.Average_NoiseFloor_V);         // Average noise floor in dBV
 			}
             else
             {
@@ -352,12 +359,12 @@ namespace QA40xPlot.Actions
             {
                 double harmonicFrequency = fundamentalFrequency * harmonicNumber;
                 uint bin = QaLibrary.GetBinOfFrequency(harmonicFrequency, binSize);        // Calculate bin of the harmonic frequency
+                double amplitude_V = 0;
 
-                if (bin >= fftData.Length)
-                    break;                                          // Invalid bin, skip harmonic
+				if (bin < fftData.Length)
+					amplitude_V = fftData[bin];
 
-                double amplitude_V = fftData[bin];
-                double amplitude_dBV = 20 * Math.Log10(amplitude_V);
+				double amplitude_dBV = 20 * SafeLog(amplitude_V);
                 double thd_Percent = (amplitude_V / channelData.Fundamental_V) * 100;
 
                 HarmonicData harmonic = new()
@@ -367,10 +374,11 @@ namespace QA40xPlot.Actions
                     Amplitude_V = amplitude_V,
                     Amplitude_dBV = amplitude_dBV,
                     Thd_Percent = thd_Percent,
-                    Thd_dB = 20 * Math.Log10(thd_Percent / 100.0),
+                    Thd_dB = 20 * SafeLog(thd_Percent / 100.0),
                     NoiseAmplitude_V = 0
                 };
-                if (noiseFloorFftData != null)
+                harmonic.NoiseAmplitude_V = 0;
+				if (noiseFloorFftData != null && bin < noiseFloorFftData.Length)
 					harmonic.NoiseAmplitude_V = noiseFloorFftData[bin];
 
 				if (harmonicNumber >= 6)
@@ -381,26 +389,20 @@ namespace QA40xPlot.Actions
             }
 
             // Calculate THD
-            if (distortionSqrtTotal != 0)
-            {
-                channelData.Thd_Percent = (Math.Sqrt(distortionSqrtTotal) / channelData.Fundamental_V) * 100;
-                channelData.Thd_dB = 20 * Math.Log10(channelData.Thd_Percent / 100.0);
-            }
+            channelData.Thd_Percent = (Math.Sqrt(distortionSqrtTotal) / channelData.Fundamental_V) * 100;
+            channelData.Thd_dB = 20 * SafeLog(channelData.Thd_Percent / 100.0);
 
             // Calculate D6+ (D6 - D12)
-            if (distortionD6plus != 0)
-            {
-                channelData.D6Plus_dBV = 20 * Math.Log10(Math.Sqrt(distortionD6plus));
-                channelData.ThdPercent_D6plus = Math.Sqrt(distortionD6plus / Math.Pow(channelData.Fundamental_V, 2)) * 100;
-                channelData.ThdDbD6plus = 20 * Math.Log10(channelData.ThdPercent_D6plus / 100.0);
-            }
+            channelData.D6Plus_dBV = 20 * SafeLog(Math.Sqrt(distortionD6plus));
+            channelData.ThdPercent_D6plus = Math.Sqrt(distortionD6plus / Math.Pow(channelData.Fundamental_V, 2)) * 100;
+            channelData.ThdDbD6plus = 20 * SafeLog(channelData.ThdPercent_D6plus / 100.0);
 
-            // If load not zero then calculate load power
-            if (load != 0)
-                channelData.Power_Watt = Math.Pow(channelData.Fundamental_V, 2) / load;
+			// Calculate load power
+			if (load == 0)
+				load = 8;   // default load
+			channelData.Power_Watt = Math.Pow(channelData.Fundamental_V, 2) / load;
 
-
-            return channelData;
+			return channelData;
         }
 
 
