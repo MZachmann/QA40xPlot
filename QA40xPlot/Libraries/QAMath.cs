@@ -74,13 +74,13 @@ namespace QA40xPlot.Libraries
 			var lout = new List<double>();
 			var k = f1/f0;	// number of octaves
 			var T = chirpSize * dt; // total time
-			var fmulx = f0 * T / Math.Log(k);
 			for (int i = 0; i < chirpSize; i++)
 			{
 
 				double t = i * dt;
-				double ft = fmulx * Math.Pow(k, t / T);
-				lout.Add(Math.Sin(2 * Math.PI * ft));
+				double ft = f0 * Math.Pow(k, (t / T));
+				var fmulx = T / Math.Log(k);
+				lout.Add(Math.Cos(2 * Math.PI * fmulx * ft )); // * Math.Sqrt(ft / f1));
 				if( (chirpSize-i) < 2)
 				{
 					Debug.WriteLine($"i={i} ft={ft} lout={lout[i]}");

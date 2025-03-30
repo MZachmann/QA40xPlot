@@ -69,12 +69,14 @@ namespace QA40xPlot.ViewModels
 
 		[JsonIgnore]
 		public static double AmplifierLoad { get => MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.AmplifierLoad, 0); }
-
 		/// <summary>
 		/// returns if left channel is our voltage output math
 		/// </summary>
 		[JsonIgnore]
 		public static bool IsTestLeft { get => ViewSettings.Singleton.SettingsVm.TestChannel != "Right"; }
+
+		[JsonIgnore]
+		public static bool IsSaveOnExit { get => ViewSettings.Singleton.SettingsVm?.SaveOnExit == "True"; }
 
 		public void GetSettingsFrom( Dictionary<string, Dictionary<string,object>> vws)
 		{
@@ -84,6 +86,7 @@ namespace QA40xPlot.ViewModels
 			GetPropertiesFrom(vws["ThdAmp"],ThdAmp);
 			GetPropertiesFrom(vws["ThdFreq"],ThdFreq);
 			GetPropertiesFrom(vws["FreqRespVm"],FreqRespVm);
+			GetPropertiesFrom(vws["SettingsVm"], SettingsVm);
 		}
 
 		public ViewSettings() 

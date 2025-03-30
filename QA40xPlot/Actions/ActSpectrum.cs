@@ -79,18 +79,11 @@ namespace QA40xPlot.Actions
 			return db;
 		}
 
-		private async Task<LeftRightSeries?> CallChirp(CancellationToken ct)
+		private async Task<LeftRightSeries?> CallChirp(CancellationToken ct, double f0, double f1)
 		{
 			var thd = MeasurementResult.MeasurementSettings;
-			var chirp = QAMath.CalculateChirp(100, 2000, thd.FftSizeVal, thd.SampleRateVal);
+			var chirp = QAMath.CalculateChirp(f0, f1, thd.FftSizeVal, thd.SampleRateVal);
 			LeftRightSeries lrfs = await QaLibrary.DoAcquireChirp(ct, chirp.ToArray());
-			//if (lrfs?.TimeRslt != null)
-			//{
-			//	var window = new FftSharp.Windows.Rectangular();
-			//	double[] windowed_measured = window.Apply(chirp.ToArray(), true);
-			//	System.Numerics.Complex[] spectrum_measured = FFT.Forward(windowed_measured);
-			//	lrfs.FreqRslt.Left = spectrum_measured.Select(x => x.Magnitude).Take(lrfs.FreqRslt.Left.Length).ToArray();
-			//}
 			return lrfs;
 		}
 
@@ -174,6 +167,7 @@ namespace QA40xPlot.Actions
 					{
 						await Qa40x.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
 						lrfs = await QaLibrary.DoAcquisitions(thd.Averages, ct, true, true);
+						// lrfs = await CallChirp(ct, freq/2, freq*2);
 					}
 					else
 					{

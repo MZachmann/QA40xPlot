@@ -35,6 +35,7 @@ namespace QA40xPlot.ViewModels
 		public static string DutDescript { get => "Input Voltage = DUT Input(Generator Output), Output Voltage = DUT Output(QA40x Input)"; }
 		public static string AutoRangeDescript { get => "When the test is started a safe Attenuation value is calculated based on a test at 42."; }
 		public static List<String> ChannelList { get => new List<string> { "Left", "Right" }; }
+		public static List<String> TrueFalseList { get => new List<string> { "True", "False" }; }
 		public static bool GEN_INPUT { get => true; }
 		public static bool GEN_OUTPUT { get => false; }
 		#endregion

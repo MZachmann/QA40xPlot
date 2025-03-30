@@ -125,5 +125,25 @@ namespace QA40xPlot
 			}
 		}
 
+		protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+		{
+			//do my stuff before closing
+			if( ViewSettings.IsSaveOnExit)
+			{
+				try
+				{
+					// look for a default config file
+					var fpath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+					fpath += @"\QADefault.cfg";
+					ViewSettings.Singleton.Main.SaveToSettings(fpath);
+				}
+				catch (Exception ex)
+				{
+					MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
+				}
+			}
+			base.OnClosing(e);
+		}
+
 	}
 }

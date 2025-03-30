@@ -28,6 +28,16 @@ namespace QA40xPlot.ViewModels
 				SetProperty(ref _AmplifierLoad, value);
 			}
 		}
+
+		private string _SaveOnExit = "False";
+		public string SaveOnExit
+		{
+			get { return _SaveOnExit; }
+			set
+			{
+				SetProperty(ref _SaveOnExit, value);
+			}
+		}
 		#endregion
 
 
