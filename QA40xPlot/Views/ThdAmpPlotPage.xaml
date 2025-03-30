@@ -141,7 +141,8 @@
                     <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1"  Text="{Binding RangeBottomdB}" ItemsSource="{Binding BottomDbs}">
                     </ComboBox>
                     <Label Content="dBV" Grid.Row="1" Grid.Column="2"  />
-                    <Button Content="Fit to data" Margin="0,4,0,0" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Right"  />                </Grid>
+                    <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="YM"
+                            Margin="0,4,0,0" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Right"  />                </Grid>
             </GroupBox>
             <GroupBox Header="Y Axis" Visibility="{Binding ToShowRange}">
                 <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
@@ -165,7 +166,8 @@
                     <ComboBox Grid.Row="1" Grid.Column="1"  SelectedValue="{Binding RangeBottom}" ItemsSource="{Binding EndPercents}">
                     </ComboBox>
                     <Label Content="%" Grid.Row="1" Grid.Column="2"  />
-                    <Button Content="Fit to data" Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Right" Grid.ColumnSpan="2"  />
+                    <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="YP"
+                            Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Right" Grid.ColumnSpan="2"  />
                 </Grid>
             </GroupBox>
             <GroupBox Header="X Axis">
@@ -190,7 +192,8 @@
                     <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1" Text="{Binding GraphEndVolts}" ItemsSource="{Binding EndVoltages}">
                     </ComboBox>
                     <Label Content="V" Grid.Row="1" Grid.Column="2"  />
-                    <Button Content="Fit to data" Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Right" Grid.ColumnSpan="2"  />
+                    <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="XM"
+                            Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Right" Grid.ColumnSpan="2"  />
                 </Grid>
             </GroupBox>
             <GroupBox Header="Graph Data">

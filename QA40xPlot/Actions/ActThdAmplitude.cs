@@ -4,7 +4,9 @@ using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
+using System.Diagnostics.Eventing.Reader;
 using System.Net.Http;
+using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
 
 namespace QA40xPlot.Actions
@@ -18,6 +20,8 @@ namespace QA40xPlot.Actions
 		private readonly Views.PlotControl timePlot;
 
 		private ThdAmplitudeMeasurementResult MeasurementResult;
+		private static ThdAmpViewModel MyVModel { get => ViewSettings.Singleton.ThdAmp; }
+
 
 		CancellationTokenSource ct;                                 // Measurement cancelation token
 
@@ -27,7 +31,7 @@ namespace QA40xPlot.Actions
 		public ActThdAmplitude(ref ThdAmplitudeData data, Views.PlotControl graphThd, Views.PlotControl graphFft, Views.PlotControl graphTime)
 		{
 			Data = data;
-			ThdAmpViewModel thd = ViewSettings.Singleton.ThdAmp;
+			ThdAmpViewModel thd = MyVModel;
 			MeasurementResult = new(thd); // TODO. Add to list
 
 			ct = new CancellationTokenSource();
@@ -56,16 +60,78 @@ namespace QA40xPlot.Actions
 			return outV * gains[0];
 		}
 
+		public Rect GetDataBounds()
+		{
+			var msr = MeasurementResult.MeasurementSettings;    // measurement settings
+			if (msr == null || MeasurementResult.AmplitudeSteps.Count == 0)
+				return Rect.Empty;
+			var vmr = MeasurementResult.AmplitudeSteps.First(); // test data
+			if (vmr == null || vmr.fftData == null)
+				return Rect.Empty;
+			var specVm = MyVModel;     // current settings
+
+			Rect rrc = new Rect(0, 0, 0, 0);
+			var steps = MeasurementResult.AmplitudeSteps;
+			rrc.X = steps.First().GeneratorVoltage;
+			rrc.Width = steps.Last().GeneratorVoltage - rrc.X;       // max frequency
+			rrc.Y = 1e-15;
+			rrc.Height = 1 - rrc.Y;
+			double maxY = 1;
+			if( specVm.ShowLeft)
+			{
+				rrc.Y = steps.Select(x => x.fftData?.Left.Min()).Min() ?? 1e-12;
+				maxY = steps.Select(x => x.fftData?.Left.Max()).Max() ?? 1;
+				if (specVm.ShowRight)
+				{
+					rrc.Y = Math.Min(rrc.Y, steps.Select(x => x.fftData?.Right.Min()).Min() ?? rrc.Y);
+					maxY = Math.Max(maxY, steps.Select(x => x.fftData?.Left.Max()).Max() ?? maxY);
+				}
+			}
+			else if (specVm.ShowRight)
+			{
+				rrc.Y = steps.Select(x => x.fftData?.Right.Min()).Min() ?? 1e-12;
+				maxY = steps.Select(x => x.fftData?.Right.Max()).Max() ?? 1;
+			}
+			rrc.Height = maxY - rrc.Y;      // max voltage absolute
+
+			var start = rrc.X;
+			var end = rrc.X + rrc.Width;  // our input voltage boundary
+			var ttype = ToDirection(specVm.GenDirection);
+			var freq = MathUtil.ToDouble(msr.TestFreq);
+			if (ttype == E_GeneratorDirection.OUTPUT_POWER || ttype == E_GeneratorDirection.OUTPUT_VOLTAGE)
+			{
+				var lrGains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
+				var startOut = ToGenOutVolts(start, [], lrGains);
+				var endOut = ToGenOutVolts(end, [], lrGains);
+				if(ttype == E_GeneratorDirection.OUTPUT_VOLTAGE)
+				{
+					rrc.X = startOut;
+					rrc.Width = endOut - startOut;
+				}
+				else
+				{
+					rrc.X = startOut * startOut / ViewSettings.AmplifierLoad;
+					rrc.Width = endOut * endOut / ViewSettings.AmplifierLoad - rrc.X;
+				}
+			}
+			else
+			{
+				rrc.X = start;
+				rrc.Width = end - start;
+			}
+			return rrc;
+		}
+
 		public ValueTuple<ThdColumn?, ThdColumn?> LookupX(double amp)
 		{
-			var vm = ViewModels.ViewSettings.Singleton.ThdAmp;
+			var vm = MyVModel;
 			var vf = vm.ShowLeft ? MeasurementResult.LeftColumns : MeasurementResult.RightColumns;
 			if (vf == null || vf.Count == 0)
 			{
 				return ValueTuple.Create((ThdColumn?)null, (ThdColumn?)null);
 			}
 			var freq = vf[0].Freq;
-			var vinp = vm.ToGenVoltage(amp.ToString(), [(int)Math.Floor(freq / (LRGains?.Df ?? 1))], GEN_INPUT, LRGains.Left);
+			var vinp = vm.ToGenVoltage(amp.ToString(), [(int)Math.Floor(freq / (LRGains?.Df ?? 1))], GEN_INPUT, LRGains?.Left);
 
 			// find nearest amplitude (both left and right will be identical here if scanned)
 			// determine amp as an input voltage
@@ -148,13 +214,13 @@ namespace QA40xPlot.Actions
 		{
 			ClearPlot();
 			// Clear measurement result
-			MeasurementResult = new(ViewSettings.Singleton.ThdAmp)
+			MeasurementResult = new(MyVModel)
 			{
 				CreateDate = DateTime.Now,
 				Show = true,                       // Show in graph
 			};
 			var msr = MeasurementResult.MeasurementSettings;
-			var thdaVm = ViewSettings.Singleton.ThdAmp;
+			var thdaVm = MyVModel;
 
 			// For now clear measurements to allow only one until we have a UI to manage them.
 			Data.Measurements.Clear();
@@ -425,7 +491,7 @@ namespace QA40xPlot.Actions
 		private void SetPlotLabels()
 		{
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;
-			var thdAmp = ViewSettings.Singleton.ThdAmp;
+			var thdAmp = MyVModel;
 			var tt = ToDirection(thdAmp.GenDirection);
 			if (tt == E_GeneratorDirection.INPUT_VOLTAGE)
 			{
@@ -451,7 +517,7 @@ namespace QA40xPlot.Actions
 		{
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;
 			PlotUtil.InitializePctAmpPlot(myPlot);
-			var thdAmp = ViewSettings.Singleton.ThdAmp;
+			var thdAmp = MyVModel;
 			myPlot.Axes.SetLimits(Math.Log10(MathUtil.ToDouble(thdAmp.GraphStartVolts)), Math.Log10(MathUtil.ToDouble(thdAmp.GraphEndVolts)),
 				Math.Log10(MathUtil.ToDouble(thdAmp.RangeBottom)), Math.Log10(MathUtil.ToDouble(thdAmp.RangeTop)));
 			SetPlotLabels();
@@ -466,7 +532,7 @@ namespace QA40xPlot.Actions
 		{
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;
 			PlotUtil.InitializeMagAmpPlot(myPlot);
-			var thdAmp = ViewSettings.Singleton.ThdAmp;
+			var thdAmp = MyVModel;
 			myPlot.Axes.SetLimits(Math.Log10(MathUtil.ToDouble(thdAmp.GraphStartVolts)), Math.Log10(MathUtil.ToDouble(thdAmp.GraphEndVolts)),
 				MathUtil.ToDouble(thdAmp.RangeBottomdB), MathUtil.ToDouble(thdAmp.RangeTopdB));
 			SetPlotLabels();
@@ -484,7 +550,7 @@ namespace QA40xPlot.Actions
 			if (!showLeftChannel && !showRightChannel)
 				return;
 
-			var thdAmp = ViewSettings.Singleton.ThdAmp;
+			var thdAmp = MyVModel;
 			float lineWidth = thdAmp.ShowThickLines ? 1.6f : 1;
 			float markerSize = thdAmp.ShowPoints ? lineWidth + 3 : 1;
 
@@ -580,7 +646,7 @@ namespace QA40xPlot.Actions
 		/// <param name="e"></param>
 		public async void StartMeasurement()
 		{
-			var thdAmp = ViewSettings.Singleton.ThdAmp;
+			var thdAmp = MyVModel;
 			if (!await StartAction(thdAmp))
 				return;
 
@@ -594,7 +660,7 @@ namespace QA40xPlot.Actions
 		public void UpdateGraph(bool settingsChanged)
 		{
 			thdPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
-			var thdAmp = ViewSettings.Singleton.ThdAmp;
+			var thdAmp = MyVModel;
 			int resultNr = 0;
 
 			if (!thdAmp.ShowPercent)

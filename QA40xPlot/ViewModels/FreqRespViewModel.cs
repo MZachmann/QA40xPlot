@@ -7,6 +7,7 @@ using System.ComponentModel;
 using Newtonsoft.Json;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
+using System.Windows.Interop;
 
 
 public class FreqRespViewModel : BaseViewModel
@@ -23,6 +24,10 @@ public class FreqRespViewModel : BaseViewModel
 	public RelayCommand DoStop { get => new RelayCommand(StopIt); }
 	[JsonIgnore]
 	public RelayCommand ToggleGenerator { get => new RelayCommand(StopIt); }
+	[JsonIgnore]
+	public RelayCommand<object> DoFitToData { get => new RelayCommand<object>(OnFitToData); }
+	[JsonIgnore]
+	private static FreqRespViewModel MyVModel { get => ViewSettings.Singleton.FreqRespVm; }
 
 	#region Setters and Getters
 	private string _ZReference = string.Empty;
@@ -205,7 +210,7 @@ public class FreqRespViewModel : BaseViewModel
 
 	public TestingType GetTestingType(string type)
 	{
-		var vm = ViewSettings.Singleton.FreqRespVm;
+		var vm = MyVModel;
 		return (TestingType)TestTypes.IndexOf(type);
 	}
 
@@ -262,27 +267,62 @@ public class FreqRespViewModel : BaseViewModel
 	private static void StartIt()
 	{
 		// Implement the logic to start the measurement process
-		var vm = QA40xPlot.ViewModels.ViewSettings.Singleton.FreqRespVm;
+		var vm = MyVModel;
 		vm.actFreq.StartMeasurement();
 	}
 
 	private static void StopIt()
 	{
-		var vm = QA40xPlot.ViewModels.ViewSettings.Singleton.FreqRespVm;
+		var vm = MyVModel;
 		vm.actFreq.DoCancel();
 	}
 
 	public DataBlob? GetFftData()
 	{
-		var vm = QA40xPlot.ViewModels.ViewSettings.Singleton.FreqRespVm;
+		var vm = MyVModel;
 		return vm.actFreq.CreateExportData();
+	}
+
+	private void OnFitToData(object? parameter)
+	{
+		var bounds = actFreq.GetDataBounds();
+		switch (parameter)
+		{
+			case "XF":  // X frequency
+				this.GraphStartFreq = bounds.Left.ToString("0");
+				this.GraphEndFreq = bounds.Right.ToString("0");
+				break;
+			case "YP":  // Y amplitude (ohms)
+				var xp = bounds.Y + bounds.Height;  // max Y value
+				var bot = ((100 * bounds.Y) / xp);  // bottom value in percent
+				bot = Math.Pow(10, Math.Max(-7, Math.Floor(Math.Log10(bot))));  // nearest power of 10
+				this.RangeTop = "100";  // always 100%
+				this.RangeBottom = bot.ToString("0.##########");
+				break;
+			case "YM":  // Y magnitude
+				var ttype = GetTestingType(TestType);
+				if (ttype == TestingType.Impedance)
+				{
+					this.RangeBottomdB = bounds.Y.ToString("0");
+					this.RangeTopdB = (bounds.Height - bounds.Y).ToString("0");
+				}
+				else
+				{
+					this.RangeBottomdB = (20 * Math.Log10(Math.Max(1e-14, bounds.Y))).ToString("0");
+					this.RangeTopdB = Math.Ceiling((20 * Math.Log10(Math.Max(1e-14, bounds.Height - bounds.Y)))).ToString("0");
+				}
+				break;
+			default:
+				break;
+		}
+		actFreq?.UpdateGraph(false);
 	}
 
 	// when the mouse moves in the plotcontrol window it sends a mouseevent to the parent view model (this)
 	// here's the tracker event handler
 	private static void DoMouseTracked(object sender, MouseEventArgs e)
 	{
-		var freqVm = ViewSettings.Singleton.FreqRespVm;
+		var freqVm = MyVModel;
 		freqVm.DoMouse(sender, e);
 	}
 

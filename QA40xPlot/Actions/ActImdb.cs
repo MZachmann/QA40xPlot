@@ -4,6 +4,7 @@ using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
+using System.Text.Json.Serialization;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
 
@@ -21,6 +22,7 @@ namespace QA40xPlot.Actions
         private ImdMeasurementResult MeasurementResult;
 
         private float _Thickness = 2.0f;
+		private static ImdViewModel MyVModel { get => ViewSettings.Singleton.ImdVm; }
 
 		CancellationTokenSource ct { set; get; }                                 // Measurement cancelation token
 
@@ -36,7 +38,7 @@ namespace QA40xPlot.Actions
 			ct = new CancellationTokenSource();
 
             // TODO: depends on graph settings which graph is shown
-            MeasurementResult = new(ViewSettings.Singleton.ImdVm);
+            MeasurementResult = new(MyVModel);
 			UpdateGraph(true);
         }
 
@@ -59,7 +61,7 @@ namespace QA40xPlot.Actions
 			if (vfs == null)
 				return null;
 
-			var vm = ViewSettings.Singleton.SpectrumVm;
+			var vm = MyVModel;
 			var sampleRate = MathUtil.ToUint(vm.SampleRate);
 			var fftsize = vfs.Left.Length;
 			var binSize = QaLibrary.CalcBinSize(sampleRate, (uint)fftsize);
@@ -99,7 +101,7 @@ namespace QA40xPlot.Actions
 				// get the data to look through
 				var fftdata = step.fftData;
 				var ffs = useRight ? fftdata?.Right : fftdata?.Left;
-				if (fftdata != null && ffs != null && ffs.Length > 0)
+				if (fftdata != null && ffs != null && ffs.Length > 0 && freq < ffs.Length * fftdata.Df)
 				{
 					int bin = 0;
 
@@ -116,7 +118,7 @@ namespace QA40xPlot.Actions
 					var dlist = distx.ToList(); // no dc
 					bin = binmin + dlist.IndexOf(dlist.Min());
 
-					var vm = ViewSettings.Singleton.SpectrumVm;
+					var vm = MyVModel;
 					if (bin < ffs.Length)
 					{
 						var vfun = useRight ? step.Right.Fundamental1_V : step.Left.Fundamental1_V;
@@ -130,6 +132,44 @@ namespace QA40xPlot.Actions
 			return ValueTuple.Create(0.0, 0.0, 0.0);
 		}
 
+
+
+		public Rect GetDataBounds()
+		{
+			var msr = MeasurementResult.MeasurementSettings;    // measurement settings
+			if (msr == null || MeasurementResult.FrequencySteps.Count == 0)
+				return Rect.Empty;
+			var vmr = MeasurementResult.FrequencySteps.First(); // test data
+			if (vmr == null || vmr.fftData == null)
+				return Rect.Empty;
+			var ImdVm = MyVModel;     // current settings
+
+			Rect rrc = new Rect(0, 0, 0, 0);
+			rrc.X = 20;
+			double maxY = 0;
+			if (ImdVm.ShowLeft)
+			{
+				rrc.Y = vmr.fftData.Left.Min();
+				maxY = vmr.fftData.Left.Max();
+				if (ImdVm.ShowRight)
+				{
+					rrc.Y = Math.Min(rrc.Y, vmr.fftData.Right.Min());
+					maxY = Math.Max(maxY, vmr.fftData.Right.Max());
+				}
+			}
+			else if (ImdVm.ShowRight)
+			{
+				rrc.Y = vmr.fftData.Right.Min();
+				maxY = vmr.fftData.Right.Max();
+			}
+
+			rrc.Width = vmr.fftData.Left.Length * vmr.fftData.Df - rrc.X;       // max frequency
+			rrc.Height = maxY - rrc.Y;      // max voltage absolute
+
+			return rrc;
+		}
+
+
 		/// <summary>
 		/// Perform the measurement
 		/// </summary>
@@ -139,7 +179,7 @@ namespace QA40xPlot.Actions
         {
 			// Setup
 			ImdViewModel msrImd = msr.MeasurementSettings;
-			var imdVm = ViewSettings.Singleton.ImdVm;
+			var imdVm = MyVModel;
 
 			var freq = MathUtil.ToDouble(msrImd.Gen1Frequency, 0);
 			var freq2 = MathUtil.ToDouble(msrImd.Gen2Frequency, 0);
@@ -235,7 +275,7 @@ namespace QA40xPlot.Actions
 					msr.FrequencySteps.Add(step);
 
 					// For now clear measurements to allow only one until we have a UI to manage them.
-					ViewSettings.Singleton.ImdVm.HasExport = true;
+					MyVModel.HasExport = true;
 
 					// the first one gets added. after that it's the same object
 					if (Data.Measurements.Count == 0)
@@ -265,7 +305,7 @@ namespace QA40xPlot.Actions
 
         private void AddAMarker(ImdMeasurementResult fmr, double frequency, bool isred = false)
 		{
-			var vm = ViewSettings.Singleton.ImdVm;
+			var vm = MyVModel;
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			var sampleRate = fmr.MeasurementSettings.SampleRateVal;
 			var fftsize = fmr.MeasurementSettings.FftSizeVal;
@@ -323,7 +363,7 @@ namespace QA40xPlot.Actions
 
 		private void ShowHarmonicMarkers(ImdMeasurementResult fmr)
         {
-            var vm = ViewSettings.Singleton.ImdVm;
+            var vm = MyVModel;
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			if ( vm.ShowMarkers)
             {
@@ -349,7 +389,7 @@ namespace QA40xPlot.Actions
 
 		private void ShowPowerMarkers(ImdMeasurementResult fmr)
 		{
-			var vm = ViewSettings.Singleton.ImdVm;
+			var vm = MyVModel;
             List<double> freqchecks = new List<double> { 50, 60 };
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			if (vm.ShowPowerMarkers)
@@ -558,7 +598,7 @@ namespace QA40xPlot.Actions
 
 		void SetTheTitle(ScottPlot.Plot myPlot)
 		{
-			var imdVm = ViewSettings.Singleton.ImdVm;
+			var imdVm = MyVModel;
 			if( imdVm.IntermodType == "Custom")
 				myPlot.Title("Intermodulation Distortion");
 			else
@@ -575,9 +615,9 @@ namespace QA40xPlot.Actions
         {
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			PlotUtil.InitializePctFreqPlot(myPlot);
-			var imdVm = ViewSettings.Singleton.ImdVm;
+			var imdVm = MyVModel;
 
-            ImdViewModel thd = ViewSettings.Singleton.ImdVm;
+            ImdViewModel thd = MyVModel;
             myPlot.Axes.SetLimits(Math.Log10(MathUtil.ToDouble(thd.GraphStartFreq)), Math.Log10(MathUtil.ToDouble(thd.GraphEndFreq)), 
 				Math.Log10(MathUtil.ToDouble(thd.RangeBottom)) - 0.00000001, Math.Log10(MathUtil.ToDouble(thd.RangeTop)));  // - 0.000001 to force showing label
 			SetTheTitle(myPlot);
@@ -596,7 +636,7 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			myPlot.Clear();
 
-			var imdVm = ViewSettings.Singleton.ImdVm;
+			var imdVm = MyVModel;
 			bool leftChannelEnabled = imdVm.ShowLeft;	// dynamically update these
 			bool rightChannelEnabled = imdVm.ShowRight;
 
@@ -650,7 +690,7 @@ namespace QA40xPlot.Actions
 			double[] logHTot_Left_Y = dBV_Left_Y.ToArray();
 			double[] logHTot_Right_Y = dBV_Right_Y.ToArray();
 
-			var showThick = ViewSettings.Singleton.ImdVm.ShowThickLines;	// so it dynamically updates
+			var showThick = MyVModel.ShowThickLines;	// so it dynamically updates
 
 			if (leftChannelEnabled)
 			{
@@ -682,7 +722,7 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
             PlotUtil.InitializeMagFreqPlot(myPlot);
 
-			var imdVm = ViewSettings.Singleton.ImdVm;
+			var imdVm = MyVModel;
 
 			myPlot.Axes.SetLimits(Math.Log10(MathUtil.ToDouble(imdVm.GraphStartFreq, 20)), Math.Log10(MathUtil.ToDouble(imdVm.GraphEndFreq, 20000)),
 				MathUtil.ToDouble(imdVm.RangeBottomdB, -20), MathUtil.ToDouble(imdVm.RangeTopdB, 180));
@@ -709,7 +749,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		public async void StartMeasurement()
         {
-			var imdVm = ViewSettings.Singleton.ImdVm;
+			var imdVm = MyVModel;
 			if (!await StartAction(imdVm))
 				return; 
             ct = new();
@@ -780,7 +820,7 @@ namespace QA40xPlot.Actions
                     }
                     else
                     {
-                        ViewSettings.Singleton.ImdVm.CopyPropertiesTo(MeasurementResult.MeasurementSettings);
+                        MyVModel.CopyPropertiesTo(MeasurementResult.MeasurementSettings);
                     }
 					rslt = await PerformMeasurementSteps(MeasurementResult, ct.Token);
 					if (ct.IsCancellationRequested || !rslt)
@@ -792,7 +832,7 @@ namespace QA40xPlot.Actions
 
 			imdVm.IsRunning = false;
 			await showMessage("");
-			ViewSettings.Singleton.ImdVm.HasExport = MeasurementResult.FrequencySteps.Count > 0;
+			MyVModel.HasExport = MeasurementResult.FrequencySteps.Count > 0;
 		}
 
 
@@ -813,7 +853,7 @@ namespace QA40xPlot.Actions
         // show the latest step values in the table
         public void DrawChannelInfoTable()
         {
-			ImdViewModel thd = ViewSettings.Singleton.ImdVm;
+			ImdViewModel thd = MyVModel;
 			var vm = ViewSettings.Singleton.ImdChannelLeft;
 			var steps = thd.ShowLeft ? MeasurementResult.FrequencySteps[0].Left : MeasurementResult.FrequencySteps[0].Right;
 			vm.CalculateChannelValues(steps, MathUtil.ToDouble( thd.Gen1Frequency), 
@@ -825,7 +865,7 @@ namespace QA40xPlot.Actions
             fftPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
 			fftPlot.ThePlot.Remove<Marker>();             // Remove all current lines
 			int resultNr = 0;
-			ImdViewModel thd = ViewSettings.Singleton.ImdVm;
+			ImdViewModel thd = MyVModel;
 
 			if (!thd.ShowPercent)
             {

@@ -31,6 +31,8 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand DoStop { get => new RelayCommand(StopIt); }
 		[JsonIgnore]
 		public RelayCommand ToggleGenerator { get => new RelayCommand(StopIt); }
+		[JsonIgnore]
+		public RelayCommand<object> DoFitToData { get => new RelayCommand<object>(OnFitToData); }
 
 		#region Setters and Getters
 
@@ -370,6 +372,33 @@ namespace QA40xPlot.ViewModels
 		{
 			var vm = ViewModels.ViewSettings.Singleton.ImdVm;
 			vm?.actImd?.DoCancel();
+		}
+
+
+		private void OnFitToData(object? parameter)
+		{
+			var bounds = actImd.GetDataBounds();
+			switch (parameter)
+			{
+				case "XF":  // X frequency
+					this.GraphStartFreq = bounds.Left.ToString("0");
+					this.GraphEndFreq = bounds.Right.ToString("0");
+					break;
+				case "YP":  // Y percents
+					var xp = bounds.Y + bounds.Height;  // max Y value
+					var bot = ((100 * bounds.Y) / xp);  // bottom value in percent
+					bot = Math.Pow(10, Math.Max(-7, Math.Floor(Math.Log10(bot))));  // nearest power of 10
+					this.RangeTop = "100";  // always 100%
+					this.RangeBottom = bot.ToString("0.##########");
+					break;
+				case "YM":  // Y magnitude
+					this.RangeBottomdB = (20 * Math.Log10(Math.Max(1e-14, bounds.Y))).ToString("0");
+					this.RangeTopdB = Math.Ceiling((20 * Math.Log10(Math.Max(1e-14, bounds.Height - bounds.Y)))).ToString("0");
+					break;
+				default:
+					break;
+			}
+			actImd?.UpdateGraph(false);
 		}
 
 		private void ExecIm(int df1, int df2, int divisor)

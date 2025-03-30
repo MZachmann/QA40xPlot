@@ -11,7 +11,7 @@ namespace QA40xPlot.Views
 
 		//private void OnVoltageChanged(object sender, RoutedEventArgs e)
 		//{
-		//	var vm = ViewModels.ViewSettings.Singleton.SpectrumVm;
+		//	var vm = ViewModels.ViewSettings.Singleton.FreqRespVm;
 		//	var u = ((TextBox)sender).Text;
 		//	vm.actSpec.UpdateGenAmplitude(u);
 		//}

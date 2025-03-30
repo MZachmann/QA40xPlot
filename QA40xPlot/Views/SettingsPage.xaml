@@ -28,23 +28,31 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Label Content="Amplifier Load: " Grid.Row="0" Grid.Column="0" />
         <ComboBox IsEditable="True" Grid.Row="0" Grid.Column="1" MinWidth="80" 
                   Text="{Binding AmplifierLoad}" 
                   ItemsSource="{Binding Impedances}" />
         <Label Content="Ohms" Grid.Row="0" Grid.Column="2" />
-        <Label HorizontalAlignment="Left" 
-               Content="The amplifier load is used to convert power to voltage for all tests." Grid.Row="0" Grid.Column="4" />
-        <Label Content="Test Channel: " Grid.Row="1" Grid.Column="0" />
-        <ComboBox VerticalAlignment="Top" Grid.Row="1" Grid.Column="1" MinWidth="80" SelectedValue="{Binding TestChannel}" ItemsSource="{Binding ChannelList}" />
-        <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" MaxWidth="300" 
+        <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" MaxWidth="600" 
+                   Text="The amplifier load is used to convert power to voltage for all tests." 
+                   Grid.Row="0" Grid.Column="4" />
+        <local:GroupHeader Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5"  />
+        <Label Content="Test Channel: " Grid.Row="2" Grid.Column="0" />
+        <ComboBox VerticalAlignment="Top" Grid.Row="2" Grid.Column="1" MinWidth="80" SelectedValue="{Binding TestChannel}" ItemsSource="{Binding ChannelList}" />
+        <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" MaxWidth="600" 
                    Text="All tests except impedance and gain use this channel as the reference for i/o voltage and power conversions." 
-                   Grid.Row="1" Grid.Column="4" />
-        <Label Content="Save on Exit: " Grid.Row="2" Grid.Column="0" />
-        <ComboBox VerticalAlignment="Top" Grid.Row="2" Grid.Column="1" MinWidth="80" SelectedValue="{Binding SaveOnExit}" ItemsSource="{Binding TrueFalseList}" />
-        <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" MaxWidth="300" 
-                   Text="Automatically save the current settings as default on exit." 
                    Grid.Row="2" Grid.Column="4" />
+        <local:GroupHeader Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5"  />
+        <Label Content="Save on Exit: " Grid.Row="4" Grid.Column="0" />
+        <ComboBox VerticalAlignment="Top" Grid.Row="4" Grid.Column="1" MinWidth="80" SelectedValue="{Binding SaveOnExit}" ItemsSource="{Binding TrueFalseList}" />
+        <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" MaxWidth="600" 
+                   Text="Automatically save the current settings as default on exit." 
+                   Grid.Row="4" Grid.Column="4" />
     </Grid>
 </UserControl>

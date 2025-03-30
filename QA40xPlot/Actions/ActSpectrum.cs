@@ -22,6 +22,7 @@ namespace QA40xPlot.Actions
         private SpectrumMeasurementResult MeasurementResult;
 
         private float _Thickness = 2.0f;
+		private static SpectrumViewModel MyVModel { get => ViewSettings.Singleton.SpectrumVm; }
 
 		CancellationTokenSource ct { set; get; }                                 // Measurement cancelation token
 
@@ -37,7 +38,7 @@ namespace QA40xPlot.Actions
 			ct = new CancellationTokenSource();
 
             // TODO: depends on graph settings which graph is shown
-            MeasurementResult = new(ViewSettings.Singleton.SpectrumVm);
+            MeasurementResult = new(MyVModel);
 			UpdateGraph(true);
         }
 
@@ -61,7 +62,7 @@ namespace QA40xPlot.Actions
 			if (ffs == null)
 				return null;
 
-			var vm = ViewSettings.Singleton.SpectrumVm;
+			var vm = MyVModel;
 			var sampleRate = MathUtil.ToUint(vm.SampleRate);
 			var fftsize = ffs.Left.Length;
 			var binSize = ffs.Df;
@@ -96,7 +97,7 @@ namespace QA40xPlot.Actions
         {
 			// Setup
 			SpectrumViewModel thd = msr.MeasurementSettings;
-			var specVm = ViewSettings.Singleton.SpectrumVm;
+			var specVm = MyVModel;
 
 			var freq = MathUtil.ToDouble(msr.MeasurementSettings.Gen1Frequency, 0);
 			var sampleRate = msr.MeasurementSettings.SampleRateVal;
@@ -225,7 +226,7 @@ namespace QA40xPlot.Actions
 					{
 						thd.RaiseMouseTracked("track");
 					}
-					ViewSettings.Singleton.SpectrumVm.HasExport = true;
+					MyVModel.HasExport = true;
 
 					// we always run this exactly once
                     break;
@@ -244,7 +245,7 @@ namespace QA40xPlot.Actions
 
         private void AddAMarker(SpectrumMeasurementResult fmr, double frequency, bool isred = false)
 		{
-			var vm = ViewSettings.Singleton.SpectrumVm;
+			var vm = MyVModel;
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			var sampleRate = fmr.MeasurementSettings.SampleRateVal;
 			var fftsize = fmr.MeasurementSettings.FftSizeVal;
@@ -302,7 +303,7 @@ namespace QA40xPlot.Actions
 
 		private void ShowHarmonicMarkers(SpectrumMeasurementResult fmr)
 		{
-			var vm = ViewSettings.Singleton.SpectrumVm;
+			var vm = MyVModel;
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			if (vm.ShowMarkers)
 			{
@@ -327,7 +328,7 @@ namespace QA40xPlot.Actions
 
 		private void ShowPowerMarkers(SpectrumMeasurementResult fmr)
 		{
-			var vm = ViewSettings.Singleton.SpectrumVm;
+			var vm = MyVModel;
 			if (!vm.ShowLeft && !vm.ShowRight)
 				return;
 
@@ -481,6 +482,41 @@ namespace QA40xPlot.Actions
             return channelData;
         }
 
+		public Rect GetDataBounds()
+		{
+			var msr = MeasurementResult.MeasurementSettings;	// measurement settings
+			if(msr == null || MeasurementResult.FrequencySteps.Count == 0)
+				return Rect.Empty;
+			var vmr = MeasurementResult.FrequencySteps.First();	// test data
+			if(vmr == null || vmr.fftData == null)
+				return Rect.Empty;
+			var specVm = MyVModel;     // current settings
+
+			Rect rrc = new Rect(0, 0, 0, 0);
+			rrc.X = 20;
+			double maxY = 0;
+			if(specVm.ShowLeft)
+			{
+				rrc.Y = vmr.fftData.Left.Min();
+				maxY = vmr.fftData.Left.Max();
+				if (specVm.ShowRight)
+				{
+					rrc.Y = Math.Min(rrc.Y, vmr.fftData.Right.Min());
+					maxY = Math.Max(maxY, vmr.fftData.Right.Max());
+				}
+			}
+			else if (specVm.ShowRight)
+			{
+				rrc.Y = vmr.fftData.Right.Min();
+				maxY = vmr.fftData.Right.Max();
+			}
+
+			rrc.Width = vmr.fftData.Left.Length * vmr.fftData.Df - rrc.X;       // max frequency
+			rrc.Height = maxY - rrc.Y;      // max voltage absolute
+
+			return rrc;
+		}
+
 		/// <summary>
 		/// 
 		/// </summary>
@@ -514,7 +550,7 @@ namespace QA40xPlot.Actions
 					var dlist = distx.ToList(); // no dc
 					bin = binmin + dlist.IndexOf(dlist.Min());
 
-					var vm = ViewSettings.Singleton.SpectrumVm;
+					var vm = MyVModel;
 					if ( bin < ffs.Length)
 					{
 						var vfun = useRight ? step.Right.Fundamental_V : step.Left.Fundamental_V;
@@ -544,9 +580,9 @@ namespace QA40xPlot.Actions
         {
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			PlotUtil.InitializePctFreqPlot(myPlot);
-			var thdFreq = ViewSettings.Singleton.SpectrumVm;
+			var thdFreq = MyVModel;
 
-            SpectrumViewModel thd = ViewSettings.Singleton.SpectrumVm;
+            SpectrumViewModel thd = MyVModel;
             myPlot.Axes.SetLimits(Math.Log10(MathUtil.ToDouble(thd.GraphStartFreq)), Math.Log10(MathUtil.ToDouble(thd.GraphEndFreq)), Math.Log10(MathUtil.ToDouble(thd.RangeBottom)) - 0.00000001, Math.Log10(MathUtil.ToDouble(thd.RangeTop)));  // - 0.000001 to force showing label
             myPlot.Title("Spectrum");
 			myPlot.XLabel("Frequency (Hz)");
@@ -564,7 +600,7 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			myPlot.Clear();
 
-			var specVm = ViewSettings.Singleton.SpectrumVm;
+			var specVm = MyVModel;
 			bool leftChannelEnabled = specVm.ShowLeft;	// dynamically update these
 			bool rightChannelEnabled = specVm.ShowRight;
 
@@ -618,7 +654,7 @@ namespace QA40xPlot.Actions
 			double[] logHTot_Left_Y = dBV_Left_Y.ToArray();
 			double[] logHTot_Right_Y = dBV_Right_Y.ToArray();
 
-			var showThick = ViewSettings.Singleton.SpectrumVm.ShowThickLines;	// so it dynamically updates
+			var showThick = MyVModel.ShowThickLines;	// so it dynamically updates
 
 			if (leftChannelEnabled)
 			{
@@ -650,7 +686,7 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
             PlotUtil.InitializeMagFreqPlot(myPlot);
 
-			var thdFreq = ViewSettings.Singleton.SpectrumVm;
+			var thdFreq = MyVModel;
 
 			myPlot.Axes.SetLimits(Math.Log10(MathUtil.ToDouble(thdFreq.GraphStartFreq)), Math.Log10(MathUtil.ToDouble(thdFreq.GraphEndFreq)), 
 				MathUtil.ToDouble(thdFreq.RangeBottomdB), MathUtil.ToDouble(thdFreq.RangeTopdB));
@@ -667,7 +703,7 @@ namespace QA40xPlot.Actions
         /// </summary>
         public async void StartMeasurement()
         {
-			var specVm = ViewSettings.Singleton.SpectrumVm;
+			var specVm = MyVModel;
 			if (!await StartAction(specVm))
 				return;
 
@@ -737,7 +773,7 @@ namespace QA40xPlot.Actions
                     }
                     else
                     {
-                        ViewSettings.Singleton.SpectrumVm.CopyPropertiesTo(MeasurementResult.MeasurementSettings);
+                        MyVModel.CopyPropertiesTo(MeasurementResult.MeasurementSettings);
                     }
 					rslt = await PerformMeasurementSteps(MeasurementResult, ct.Token);
 					if (ct.IsCancellationRequested || !rslt)
@@ -750,7 +786,7 @@ namespace QA40xPlot.Actions
 
 			specVm.IsRunning = false;
 			await showMessage("");
-			ViewSettings.Singleton.SpectrumVm.HasExport = this.MeasurementResult.FrequencySteps.Count > 0;
+			MyVModel.HasExport = this.MeasurementResult.FrequencySteps.Count > 0;
 		}
 
 
@@ -771,7 +807,7 @@ namespace QA40xPlot.Actions
         // show the latest step values in the table
         public void DrawChannelInfoTable()
         {
-			SpectrumViewModel thd = ViewSettings.Singleton.SpectrumVm;
+			SpectrumViewModel thd = MyVModel;
 			var vm = ViewSettings.Singleton.ChannelLeft;
             vm.FundamentalFrequency = 0;
             vm.CalculateChannelValues(MeasurementResult.FrequencySteps[0].Left, MathUtil.ToDouble( thd.Gen1Frequency), thd.ShowDataPercent);
@@ -782,7 +818,7 @@ namespace QA40xPlot.Actions
             fftPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
 			fftPlot.ThePlot.Remove<Marker>();             // Remove all current lines
 			int resultNr = 0;
-			SpectrumViewModel thd = ViewSettings.Singleton.SpectrumVm;
+			SpectrumViewModel thd = MyVModel;
 
 			if (!thd.ShowPercent)
             {

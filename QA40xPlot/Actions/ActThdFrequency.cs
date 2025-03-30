@@ -25,9 +25,10 @@ namespace QA40xPlot.Actions
         private readonly Views.PlotControl timePlot;
 
         private ThdFrequencyMeasurementResult MeasurementResult;
+		private static ThdFreqViewModel MyVModel { get => ViewSettings.Singleton.ThdFreq; }
 
 
-        CancellationTokenSource ct;                                 // Measurement cancelation token
+		CancellationTokenSource ct;                                 // Measurement cancelation token
 
         /// <summary>
         /// Constructor
@@ -43,7 +44,7 @@ namespace QA40xPlot.Actions
             ct = new CancellationTokenSource();
 
             // Show empty graphs
-            ThdFreqViewModel thd = ViewSettings.Singleton.ThdFreq;
+            ThdFreqViewModel thd = MyVModel;
             QaLibrary.InitMiniFftPlot(fftPlot, MathUtil.ToDouble(thd.StartFreq, 10),
                 MathUtil.ToDouble(thd.EndFreq, 20000), -150, 20);
             QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -1, 1);
@@ -107,9 +108,45 @@ namespace QA40xPlot.Actions
             }
         }
 
+		public Rect GetDataBounds()
+		{
+			var msr = MeasurementResult.MeasurementSettings;    // measurement settings
+			if (msr == null || MeasurementResult.FrequencySteps.Count == 0)
+				return Rect.Empty;
+			var vmr = MeasurementResult.FrequencySteps.First(); // test data
+			var specVm = MyVModel;     // current settings
+            var steps = MeasurementResult.FrequencySteps;
+			if (vmr == null || vmr.fftData == null || steps == null)
+				return Rect.Empty;
+
+			Rect rrc = new Rect(0, 0, 0, 0);
+            rrc.X = vmr.FundamentalFrequency;    // min frequency
+            rrc.Width = steps.Last().FundamentalFrequency - rrc.X;  // max frequency
+			double maxY = 0;
+			if (specVm.ShowLeft)
+			{
+				rrc.Y = steps.Min(s => s.Left.Harmonics.Min(x => x.Amplitude_V));
+				maxY = steps.Max(s => s.Left.Harmonics.Max(x => x.Amplitude_V));
+				if (specVm.ShowRight)
+				{
+					rrc.Y = Math.Min(rrc.Y, steps.Min(s => s.Left.Harmonics.Min(x => x.Amplitude_V)));
+					maxY = Math.Max(maxY, steps.Max(s => s.Left.Harmonics.Max(x => x.Amplitude_V)));
+				}
+			}
+			else if (specVm.ShowRight)
+			{
+				rrc.Y = steps.Min(s => s.Right.Harmonics.Min(x => x.Amplitude_V));
+				maxY = steps.Max(s => s.Right.Harmonics.Max(x => x.Amplitude_V));
+			}
+
+			rrc.Height = maxY - rrc.Y;      // max voltage absolute
+
+			return rrc;
+		}
+
 		public ValueTuple<ThdColumn?, ThdColumn?> LookupX(double freq)
 		{
-			var vm = ViewModels.ViewSettings.Singleton.ThdFreq;
+			var vm = MyVModel;
 			var vf = vm.ShowLeft ? MeasurementResult.LeftColumns : MeasurementResult.RightColumns;
 			if (vf == null || vf.Count == 0)
 			{
@@ -163,7 +200,7 @@ namespace QA40xPlot.Actions
         { 
             ClearPlot();
             // Clear measurement result
-            MeasurementResult = new(ViewSettings.Singleton.ThdFreq)
+            MeasurementResult = new(MyVModel)
             {
                 CreateDate = DateTime.Now,
                 Show = true,                                      // Show in graph
@@ -207,7 +244,7 @@ namespace QA40xPlot.Actions
                 await showMessage($"Setting attenuation to {attenuation:0}",200);
 
                 // Set the new input range
-                ViewSettings.Singleton.ThdFreq.Attenuation = attenuation;   // visible display
+                MyVModel.Attenuation = attenuation;   // visible display
                 await Qa40x.SetInputRange(attenuation);
 
                 // Check if cancel button pressed
@@ -426,7 +463,7 @@ namespace QA40xPlot.Actions
             ScottPlot.Plot myPlot = thdPlot.ThePlot;
             PlotUtil.InitializePctFreqPlot(myPlot);
 
-            var thdFreq = ViewSettings.Singleton.ThdFreq;
+            var thdFreq = MyVModel;
 
             myPlot.Axes.SetLimits(Math.Log10(MathUtil.ToDouble(thdFreq.GraphStartFreq)), Math.Log10(MathUtil.ToDouble(thdFreq.GraphEndFreq)),
                 Math.Log10(MathUtil.ToDouble(thdFreq.RangeBottom)) - 0.00000001, Math.Log10(MathUtil.ToDouble(thdFreq.RangeTop)));  // - 0.000001 to force showing label
@@ -443,7 +480,7 @@ namespace QA40xPlot.Actions
         {
             ScottPlot.Plot myPlot = thdPlot.ThePlot;
             PlotUtil.InitializeMagFreqPlot(myPlot);
-            var thdFreq = ViewSettings.Singleton.ThdFreq;
+            var thdFreq = MyVModel;
             myPlot.Axes.SetLimits(Math.Log10(MathUtil.ToDouble(thdFreq.GraphStartFreq)), Math.Log10(MathUtil.ToDouble(thdFreq.GraphEndFreq)),
                 MathUtil.ToDouble(thdFreq.RangeBottomdB), MathUtil.ToDouble(thdFreq.RangeTopdB));
             myPlot.Title("Distortion vs Frequency (dB)");
@@ -462,7 +499,7 @@ namespace QA40xPlot.Actions
             if (!showLeftChannel && !showRightChannel)
                 return;
 
-            var thdFreq = ViewSettings.Singleton.ThdFreq;
+            var thdFreq = MyVModel;
             float lineWidth = thdFreq.ShowThickLines ? 1.6f : 1;
             float markerSize = thdFreq.ShowPoints ? lineWidth + 3 : 1;
 
@@ -556,7 +593,7 @@ namespace QA40xPlot.Actions
         {
             thdPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
             int resultNr = 0;
-            ThdFreqViewModel thd = ViewSettings.Singleton.ThdFreq;
+            ThdFreqViewModel thd = MyVModel;
 
             if (!thd.ShowPercent)
             {
@@ -590,7 +627,7 @@ namespace QA40xPlot.Actions
         /// </summary>
         public async void StartMeasurement()
         {
-            ThdFreqViewModel thd = ViewSettings.Singleton.ThdFreq;
+            ThdFreqViewModel thd = MyVModel;
 			if (!await StartAction(thd))
 				return; 
 			ct = new();

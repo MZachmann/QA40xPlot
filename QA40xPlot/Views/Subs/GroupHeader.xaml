@@ -12,8 +12,11 @@
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <Separator Grid.Column="0" />
-        <Label x:Name="Headline" Grid.Column="1" />
-        <Separator  Grid.Column="2" />
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Separator Grid.Column="0" Grid.Row="0" />
+        <Label x:Name="Headline" Grid.Column="1" Grid.Row="0" />
+        <Separator  Grid.Column="2" Grid.Row="0" />
     </Grid>
 </UserControl>

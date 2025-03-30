@@ -21,8 +21,9 @@ namespace QA40xPlot.Actions
 		private readonly Views.PlotControl timePlot;
 
 		private FrequencyResponseMeasurementResult MeasurementResult;
+		private static FreqRespViewModel MyVModel { get => ViewSettings.Singleton.FreqRespVm; }
 
-        CancellationTokenSource ct;                                 // Measurement cancelation token
+		CancellationTokenSource ct;                                 // Measurement cancelation token
 
         /// <summary>
         /// Constructor
@@ -38,7 +39,7 @@ namespace QA40xPlot.Actions
 			QaLibrary.InitMiniFftPlot(fftPlot, 10, 100000, -180, 20);
 			QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -2, 2);
 
-			MeasurementResult = new(ViewSettings.Singleton.FreqRespVm); // TODO. Add to list
+			MeasurementResult = new(MyVModel); // TODO. Add to list
             ct = new CancellationTokenSource();
 
             UpdateGraph(true);
@@ -56,7 +57,7 @@ namespace QA40xPlot.Actions
 		/// <param name="e"></param>
 		public async void StartMeasurement()
 		{
-			var vm = ViewSettings.Singleton.FreqRespVm;
+			var vm = MyVModel;
 			if (!await StartAction(vm))
 				return;
 
@@ -79,7 +80,7 @@ namespace QA40xPlot.Actions
 		public DataBlob? CreateExportData()
 		{
 			DataBlob db = new();
-            var frsqVm = ViewSettings.Singleton.FreqRespVm;
+            var frsqVm = MyVModel;
 			var freqs = this.MeasurementResult.GainFrequencies;
             if (freqs == null || freqs.Count == 0)
                 return null;
@@ -127,7 +128,62 @@ namespace QA40xPlot.Actions
             return ga;
 		}
 
-        public ValueTuple<double, double, double> LookupX(double freq)
+		public Rect GetDataBounds()
+		{
+			var msr = MeasurementResult.MeasurementSettings;    // measurement settings
+			var vmr = MeasurementResult.GainFrequencies; // test data
+			if (vmr == null )
+				return Rect.Empty;
+
+			var freqrVm = MyVModel;     // current settings
+
+			Rect rrc = new Rect(0, 0, 0, 0);
+			if (vmr.Count == 0)
+				return rrc;
+
+            rrc.X = vmr.Min();
+            rrc.Width = vmr.Max() - rrc.X;
+			var ttype = msr.GetTestingType(msr.TestType);
+            var msd = MeasurementResult.GainData;
+			if (ttype == TestingType.Response)
+			{
+                if (freqrVm.ShowLeft)
+                {
+                    rrc.Y = msd.Min(x => x.Real);
+                    rrc.Height = msd.Max(x => x.Real) - rrc.Y;
+                    if (freqrVm.ShowRight)
+                    {
+                        rrc.Y = Math.Min(rrc.Y, msd.Min(x => x.Imaginary));
+                        rrc.Height = Math.Max(rrc.Height, msd.Max(x => x.Imaginary) - rrc.Y);
+                    }
+                }
+				else if (freqrVm.ShowRight)
+				{
+					rrc.Y = msd.Min(x => x.Imaginary);
+					rrc.Height = msd.Max(x => x.Imaginary) - rrc.Y;
+				}
+			}
+			else if (ttype == TestingType.Gain)
+			{
+				rrc.Y = msd.Min(x => x.Magnitude);
+				rrc.Height = msd.Max(x => x.Magnitude) - rrc.Y;
+			}
+            else
+            {
+				double rref = ViewSettings.AmplifierLoad;
+				var minL = MeasurementResult.GainData.Min(x => x.Magnitude);
+				var minZ = MeasurementResult.GainData.Where(x => x.Magnitude == minL).First();
+				var maxL = MeasurementResult.GainData.Max(x => x.Magnitude);
+                var maxZ = MeasurementResult.GainData.Where(x => x.Magnitude == maxL).First();
+				var minZohms = rref * ToImpedance(minZ).Magnitude;
+				var maxZohms = rref * ToImpedance(maxZ).Magnitude;
+                rrc.Y = minZohms;
+                rrc.Height = maxZohms - minZohms;
+			}
+			return rrc;
+		}
+
+		public ValueTuple<double, double, double> LookupX(double freq)
         {
 			var freqs = MeasurementResult.GainFrequencies;
 			ValueTuple<double, double, double> tup = ValueTuple.Create(1.0,1.0,1.0);
@@ -144,7 +200,7 @@ namespace QA40xPlot.Actions
                     bin++;
                 }
 
-                var frsqVm = ViewSettings.Singleton.FreqRespVm;
+                var frsqVm = MyVModel;
                 var ttype = frsqVm.GetTestingType(frsqVm.TestType);
                 switch(ttype)
                 {
@@ -178,12 +234,12 @@ namespace QA40xPlot.Actions
             frqrsPlot.ThePlot.Clear();
 
 			// Clear measurement result
-			MeasurementResult = new(ViewSettings.Singleton.FreqRespVm)
+			MeasurementResult = new(MyVModel)
             {
                 CreateDate = DateTime.Now,
                 Show = true,                                      // Show in graph
 			};
-            var frqrsVm = ViewSettings.Singleton.FreqRespVm;
+            var frqrsVm = MyVModel;
             var msr = MeasurementResult.MeasurementSettings;
 
 			// ********************************************************************
@@ -324,7 +380,7 @@ namespace QA40xPlot.Actions
             await showMessage($"Measurement finished!");
 
             UpdateGraph(false);
-			ViewSettings.Singleton.FreqRespVm.HasExport = true;
+			MyVModel.HasExport = true;
 
 			return ct.IsCancellationRequested;
         }
@@ -346,7 +402,7 @@ namespace QA40xPlot.Actions
         void InitializePlot()
         {
 			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
-			var frqrsVm = ViewSettings.Singleton.FreqRespVm;
+			var frqrsVm = MyVModel;
 
 			PlotUtil.InitializeMagFreqPlot(myPlot);
 			PlotUtil.SetOhmFreqRule(myPlot);
@@ -395,7 +451,7 @@ namespace QA40xPlot.Actions
 		void PlotGraph(FrequencyResponseMeasurementResult measurementResult, int measurementNr, bool showLeftChannel, bool showRightChannel, E_FrequencyResponseGraphType graphType)
         {
 			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
-			var frqrsVm = ViewSettings.Singleton.FreqRespVm;
+			var frqrsVm = MyVModel;
 
 			if (measurementResult == null || measurementResult.GainData == null || measurementResult.GainFrequencies == null)
                 return;
@@ -495,7 +551,7 @@ namespace QA40xPlot.Actions
 		public void UpdateGraph(bool settingsChanged)
         {
             frqrsPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
-			var frqsrVm = ViewSettings.Singleton.FreqRespVm;
+			var frqsrVm = MyVModel;
 
 			int resultNr = 0;
 
@@ -538,7 +594,7 @@ namespace QA40xPlot.Actions
         void PlotDbVBandwidthLines() 
         {
 			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
-			FreqRespViewModel frqrsVm = ViewSettings.Singleton.FreqRespVm;
+			FreqRespViewModel frqrsVm = MyVModel;
 
 			// Remove old lines
 			myPlot.Remove<VerticalLine>();
@@ -596,7 +652,7 @@ namespace QA40xPlot.Actions
         void PlotGainBandwidthLines()
         {
 			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
-			FreqRespViewModel frqrsVm = ViewSettings.Singleton.FreqRespVm;
+			FreqRespViewModel frqrsVm = MyVModel;
 
 			// Remove old lines
 			myPlot.Remove<VerticalLine>();
@@ -749,7 +805,7 @@ namespace QA40xPlot.Actions
 
         void DrawBandwithLines(int gain, BandwidthChannelData channelData, int colorRange)
         {
-			var frqrsVm = ViewSettings.Singleton.FreqRespVm;
+			var frqrsVm = MyVModel;
 
 			var colors = new GraphColors();
             float lineWidth = frqrsVm.ShowThickLines ? 1.6f : 1;

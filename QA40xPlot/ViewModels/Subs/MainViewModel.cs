@@ -20,6 +20,7 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public RelayCommand DoLoad { get => new RelayCommand(OnLoad); }
 
+
 		#region Setters and Getters
 		private String _ProgressMessage = String.Empty;         // type of alert
 		[JsonIgnore]
