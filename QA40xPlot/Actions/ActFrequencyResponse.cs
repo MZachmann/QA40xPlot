@@ -1,4 +1,5 @@
-﻿using QA40xPlot.Data;
+﻿using FftSharp;
+using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using ScottPlot;
@@ -7,6 +8,8 @@ using ScottPlot.Plottables;
 using System.Data;
 using System.Numerics;
 using System.Windows;
+using System.Windows.Interop;
+using System.Windows.Media.Imaging;
 using static QA40xPlot.ViewModels.BaseViewModel;
 
 
@@ -48,6 +51,16 @@ namespace QA40xPlot.Actions
         public void DoCancel()
         {
             ct.Cancel();
+		}
+
+		private async Task<LeftRightSeries?> CallChirp(CancellationToken ct, double f0, double f1)
+		{
+			var msr = MeasurementResult.MeasurementSettings;
+			var genv = msr.ToGenVoltage(msr.Gen1Voltage, [], GEN_INPUT, LRGains?.Left);
+			// output v
+			var chirp = QAMath.CalculateChirp(f0, f1, genv, msr.FftSizeVal, msr.SampleRateVal);
+			LeftRightSeries lrfs = await QaLibrary.DoAcquireChirp(ct, chirp.ToArray());
+			return lrfs;
 		}
 
 		/// <summary>
@@ -222,14 +235,170 @@ namespace QA40xPlot.Actions
                 }
 			}
 			return tup;
-        }
+		}
 
-			/// <summary>
-			/// Perform the measurement
-			/// </summary>
-			/// <param name="ct">Cancellation token</param>
-			/// <returns>result. false if cancelled</returns>
-			async Task<bool> PerformMeasurement(CancellationToken ct, bool continuous)
+		/// <summary>
+		/// Determine the gain curve
+		/// </summary>
+		/// <param name="stepBinFrequencies">the frequencies to test at</param>
+		/// <param name="voltagedBV">the sine generator voltage</param>
+		/// <returns></returns>
+		private async Task<bool> RunFreqTest(double[] stepBinFrequencies, double voltagedBV)
+        {
+            var frqrsVm = MyVModel;
+            var msr = MeasurementResult.MeasurementSettings;
+			// Check if cancel button pressed
+			if (ct.IsCancellationRequested)
+                return false;
+
+            await Qa40x.SetOutputSource(OutputSources.Sine);
+
+            var ttype = frqrsVm.GetTestingType(msr.TestType);
+
+            try
+            {
+
+                if (ct.IsCancellationRequested)
+                    return false;
+                for (int steps = 0; steps < stepBinFrequencies.Count(); steps++)
+                {
+                    if (ct.IsCancellationRequested)
+                        break;
+                    var dfreq = stepBinFrequencies[steps];
+                    if (dfreq > 0)
+                        await Qa40x.SetGen1(dfreq, voltagedBV, true);
+                    else
+                        await Qa40x.SetGen1(1, voltagedBV, false);
+
+                    if (msr.Averages > 0)
+                    {
+                        List<Complex> readings = new();
+                        for (int j = 0; j < msr.Averages; j++)
+                        {
+                            var genVolt = Math.Pow(10, voltagedBV/20);
+							await showMessage(string.Format($"Checking + {dfreq:0} Hz at {genVolt:0.###}V"));   // need a delay to actually see it
+                            var ga = await GetGain(dfreq, msr, ttype);
+                            readings.Add(ga);
+                        }
+                        var total = Complex.Zero;
+                        foreach (var f in readings)
+                        {
+                            total += f;
+                        }
+                        MeasurementResult.GainData.Add(total / msr.Averages);
+                    }
+                    else
+                    {
+                        await showMessage(string.Format("Checking + {0:0}", dfreq));   // need a delay to actually see it
+                        var ga = await GetGain(dfreq, msr, ttype);
+                        MeasurementResult.GainData.Add(ga);
+                    }
+                    if (MeasurementResult.FrequencyResponseData.FreqRslt != null)
+                    {
+                        QaLibrary.PlotMiniFftGraph(fftPlot, MeasurementResult.FrequencyResponseData.FreqRslt, true, false);
+                        QaLibrary.PlotMiniTimeGraph(timePlot, MeasurementResult.FrequencyResponseData.TimeRslt, dfreq, true, false);
+                    }
+                    MeasurementResult.GainFrequencies.Add(dfreq);
+                    UpdateGraph(false);
+                    if (!frqrsVm.IsTracking)
+                    {
+                        frqrsVm.RaiseMouseTracked("track");
+                    }
+                }
+			}
+            catch(Exception ex)
+			{
+				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
+			}
+            return true;
+		}
+
+		/// <summary>
+		/// Determine the gain curve
+		/// </summary>
+		/// <param name="stepBinFrequencies">the frequencies to test at</param>
+		/// <param name="voltagedBV">the sine generator voltage</param>
+		/// <returns></returns>
+		private async Task<bool> RunChirpTest(double voltagedBV)
+		{
+			var frqrsVm = MyVModel;
+			var msr = MeasurementResult.MeasurementSettings;
+			// Check if cancel button pressed
+			if (ct.IsCancellationRequested)
+				return false;
+
+			//await Qa40x.SetOutputSource(OutputSources.ExpoChirp);
+
+			var ttype = frqrsVm.GetTestingType(msr.TestType);
+
+			try
+			{
+                //await Qa40x.SetExpoChirpGen(voltagedBV, 0, 0, false);               // use right as reference on input
+                //if (ct.IsCancellationRequested)
+                //	return false;
+                var startf = MathUtil.ToDouble(msr.StartFreq);
+                var endf = MathUtil.ToDouble(msr.EndFreq);
+                var endfrq = Math.Min(endf, msr.SampleRateVal / 4);
+
+				//var lfrs = await QaLibrary.DoAcquisitions(1, ct.Token);
+				var lfrs = await CallChirp(ct.Token, startf/2, endfrq * 2);
+				if (lfrs?.TimeRslt == null)
+                    return false;
+				if (ct.IsCancellationRequested)
+					return false;
+
+				var m2 = Math.Sqrt(2);
+				// Left channel
+				var window = new FftSharp.Windows.Rectangular();
+				double[] windowed_measured = window.Apply(lfrs.TimeRslt.Left, true);
+				System.Numerics.Complex[] spectrum_measured = FFT.Forward(windowed_measured);
+
+				double[] windowed_ref = window.Apply(lfrs.TimeRslt.Right, true);
+				System.Numerics.Complex[] spectrum_ref = FFT.Forward(windowed_ref);
+
+                MeasurementResult.GainFrequencies = Enumerable.Range(0, spectrum_measured.Length / 2).Select(x => x * lfrs.FreqRslt.Df).ToList();
+                var gfr = MeasurementResult.GainFrequencies;
+				var mx = spectrum_measured.Take(gfr.Count).ToArray();
+                var mref = spectrum_ref.Take(gfr.Count).ToArray();
+                // restrict frequency spectrum
+                var trimf = gfr.Count(x => x < startf);
+                var trimEnd = gfr.Count(x => x <= endf) - trimf;
+                gfr = gfr.Skip(trimf).Take(trimEnd).ToList();
+                mx = mx.Skip(trimf).Take(trimEnd).ToArray();
+                mref = mref.Skip(trimf).Take(trimEnd).ToArray();
+                MeasurementResult.GainFrequencies = gfr;
+				switch (ttype)
+                {
+					case TestingType.Response:
+						MeasurementResult.GainData = mx.Zip(mref, 
+                            (l,r) => { return new Complex(l.Magnitude, r.Magnitude); }).ToList();
+						break;
+					case TestingType.Gain:
+					case TestingType.Impedance:
+						MeasurementResult.GainData = mx.Zip(mref,
+							(l, r) => { var ldr = l / r; return new Complex(ldr.Real, ldr.Imaginary); }).ToList();
+						break;
+				}
+
+				UpdateGraph(false);
+				if (!frqrsVm.IsTracking)
+				{
+					frqrsVm.RaiseMouseTracked("track");
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
+			}
+			return true;
+		}
+
+		/// <summary>
+		/// Perform the measurement
+		/// </summary>
+		/// <param name="ct">Cancellation token</param>
+		/// <returns>result. false if cancelled</returns>
+		async Task<bool> PerformMeasurement(CancellationToken ct, bool continuous)
         {
             frqrsPlot.ThePlot.Clear();
 
@@ -305,11 +474,9 @@ namespace QA40xPlot.Actions
                 if (ct.IsCancellationRequested)
                     return false;
 
-                await Qa40x.SetOutputSource(OutputSources.Sine);
-
-                // If in continous mode we continue sweeping until cancellation requested.
-                MeasurementResult.GainData = new List<Complex>();
-                MeasurementResult.GainFrequencies = new List<double>();
+				// If in continous mode we continue sweeping until cancellation requested.
+				MeasurementResult.GainData = new List<Complex>();
+				MeasurementResult.GainFrequencies = new List<double>();
 				// just one result to show
 				Data.Measurements.Clear();
 				Data.Measurements.Add(MeasurementResult);
@@ -320,51 +487,10 @@ namespace QA40xPlot.Actions
 				{
                     if (ct.IsCancellationRequested)
                         break;
-                    for( int steps = 0; steps < stepBinFrequencies.Count(); steps++)
-                    {
-                        if (ct.IsCancellationRequested)
-                            break;
-                        var dfreq = stepBinFrequencies[steps];
-                        if(dfreq > 0)
-						    await Qa40x.SetGen1(dfreq, voltagedBV, true);
-                        else
-							await Qa40x.SetGen1(1, voltagedBV, false);
-
-                        if( msr.Averages > 0)
-                        {
-							List<Complex> readings = new();
-							for (int j = 0; j < msr.Averages; j++)
-							{
-								await showMessage(string.Format($"Checking + {dfreq:0} Hz at {genVolt:0.###}V"));   // need a delay to actually see it
-								var ga = await GetGain(dfreq, msr, ttype);
-								readings.Add(ga);
-							}
-							var total = Complex.Zero;
-							foreach (var f in readings)
-                            {
-                                total += f;
-                            }
-							MeasurementResult.GainData.Add(total / msr.Averages);
-						}
-						else
-                        {
-							await showMessage(string.Format("Checking + {0:0}", dfreq));   // need a delay to actually see it
-							var ga = await GetGain(dfreq, msr, ttype);
-							MeasurementResult.GainData.Add(ga);
-						}
-                        if(MeasurementResult.FrequencyResponseData.FreqRslt != null)
-                        {
-							QaLibrary.PlotMiniFftGraph(fftPlot, MeasurementResult.FrequencyResponseData.FreqRslt, true, false);
-							QaLibrary.PlotMiniTimeGraph(timePlot, MeasurementResult.FrequencyResponseData.TimeRslt, dfreq, true, false);
-						}
-						MeasurementResult.GainFrequencies.Add(dfreq);
-                        UpdateGraph(false);
-						if (!frqrsVm.IsTracking)
-						{
-							frqrsVm.RaiseMouseTracked("track");
-						}
-					}
-
+                    if( msr.IsChirp)
+						await RunChirpTest(voltagedBV);
+					else
+						await RunFreqTest(stepBinFrequencies, voltagedBV);
 					UpdateGraph(false);
                 } while (continuous && !ct.IsCancellationRequested);
 			}

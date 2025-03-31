@@ -68,7 +68,7 @@ namespace QA40xPlot.Libraries
 		//exponential chirp: f(t) = f0 * k^(t/T) where k=f0/f1
 		// Y = 10^(Slope*X + Y-intercept)
 
-		public static List<double> CalculateChirp(double f0, double f1, uint chirpSize, uint sampleRate)
+		public static List<double> CalculateChirp(double f0, double f1, double dVolts, uint chirpSize, uint sampleRate)
 		{
 			double dt = 1 / (double)sampleRate;	// interval time
 			var lout = new List<double>();
@@ -80,11 +80,7 @@ namespace QA40xPlot.Libraries
 				double t = i * dt;
 				double ft = f0 * Math.Pow(k, (t / T));
 				var fmulx = T / Math.Log(k);
-				lout.Add(Math.Cos(2 * Math.PI * fmulx * ft )); // * Math.Sqrt(ft / f1));
-				if( (chirpSize-i) < 2)
-				{
-					Debug.WriteLine($"i={i} ft={ft} lout={lout[i]}");
-				}
+				lout.Add(dVolts * Math.Cos(2 * Math.PI * fmulx * ft )); // * Math.Sqrt(ft / f1));
 			}
 			return lout;
 		}

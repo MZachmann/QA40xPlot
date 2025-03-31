@@ -80,6 +80,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Label Content="S_tart Frequency" Target="{Binding ElementName=cbSF}"  HorizontalAlignment="Right"  Grid.Column="0" Grid.Row="0"  />
                 <ComboBox IsEditable="True" x:Name="cbSF" Text="{Binding StartFreq}" Grid.Column="1" Grid.Row="0" ItemsSource="{Binding StartFrequencies}"  />
@@ -88,8 +89,9 @@
                 <ComboBox IsEditable="True" x:Name="cbEF" Text="{Binding EndFreq}" Grid.Column="1" Grid.Row="1"  ItemsSource="{Binding EndFrequencies}"  />
                 <Label Content="Hz" Grid.Column="2" Grid.Row="1"  />
                 <Label Content="Steps / _Octave" Target="{Binding ElementName=cbStO}"  HorizontalAlignment="Right"  Grid.Column="0" Grid.Row="2"  />
-                <xctk:IntegerUpDown x:Name="cbStO"  VerticalAlignment="Center" Value="{Binding StepsOctave}" Minimum="1" Grid.Column="1" Grid.Row="2"  />
+                <xctk:IntegerUpDown IsEnabled="{Binding IsNotChirp}"  x:Name="cbStO"  VerticalAlignment="Center" Value="{Binding StepsOctave}" Minimum="1" Grid.Column="1" Grid.Row="2"  />
             </Grid>
+            <CheckBox Content="_Use Chirp" IsChecked="{Binding IsChirp}" HorizontalAlignment="Center"  />
 
             <views:GroupHeader Header="Generator" />
             <Grid>
@@ -176,7 +178,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Label Content="Top" Grid.Row="0" Grid.Column="0"  />
-                    <ComboBox IsEditable="True" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"  Text="{Binding RangeTopdB}" ItemsSource="{Binding TopDbs}">
+                    <ComboBox IsEditable="True" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"  Text="{Binding RangeTopdB}" MinWidth="70" ItemsSource="{Binding TopDbs}">
                     </ComboBox>
                     <Label Content="{Binding GraphUnit}" Grid.Row="0" Grid.Column="2"  />
                     <Label Content="Bottom" Grid.Row="1" Grid.Column="0"  />
@@ -199,7 +201,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Label Content="Top" Grid.Row="0" Grid.Column="0"  />
-                    <ComboBox Grid.Column="1"  Grid.Row="0" VerticalAlignment="Center"  SelectedValue="{Binding RangeTop}" ItemsSource="{Binding StartPercents}">
+                    <ComboBox Grid.Column="1"  Grid.Row="0" VerticalAlignment="Center"  SelectedValue="{Binding RangeTop}"  MinWidth="70" ItemsSource="{Binding StartPercents}">
                     </ComboBox>
                     <Label Content="Bottom" Grid.Row="1" Grid.Column="0"  />
                     <ComboBox Grid.Column="1"  Grid.Row="1" VerticalAlignment="Center"  SelectedValue="{Binding RangeBottom}" ItemsSource="{Binding EndPercents}">
@@ -223,7 +225,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Label Content="From" Grid.Row="0"  Grid.Column="0" />
-                    <ComboBox IsEditable="True" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"  Text="{Binding GraphStartFreq}" ItemsSource="{Binding StartFrequencies}">
+                    <ComboBox IsEditable="True" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"  Text="{Binding GraphStartFreq}"  MinWidth="70" ItemsSource="{Binding StartFrequencies}">
                     </ComboBox>
                     <Label Content="Hz" Grid.Row="0"  Grid.Column="2" />
                     <Label Content="To" Grid.Row="1" Grid.Column="0"  />

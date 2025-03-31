@@ -28,8 +28,17 @@ public class FreqRespViewModel : BaseViewModel
 	public RelayCommand<object> DoFitToData { get => new RelayCommand<object>(OnFitToData); }
 	[JsonIgnore]
 	private static FreqRespViewModel MyVModel { get => ViewSettings.Singleton.FreqRespVm; }
+	[JsonIgnore]
+	public bool IsNotChirp { get => !_IsChirp; }
 
 	#region Setters and Getters
+	private bool _IsChirp;
+	public bool IsChirp
+	{
+		get { return _IsChirp; }
+		set { SetProperty(ref _IsChirp, value); OnPropertyChanged("IsNotChirp"); }
+	}
+
 	private string _ZReference = string.Empty;
 	public string ZReference
 	{
@@ -393,7 +402,7 @@ public class FreqRespViewModel : BaseViewModel
 		Show1dBBandwidth_L = false;
 		Show1dBBandwidth_R = false;
 		ShowPoints = true;
-		TestType = "Impedance";
+		TestType = "";	// this messes up if we start at impedance and set to impedance later so ??
 
 		GraphUnit = "dBV";
 

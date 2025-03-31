@@ -136,7 +136,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Label Content="Top" Grid.Row="0" Grid.Column="0"  />
-                    <ComboBox IsEditable="True" Grid.Row="0" Grid.Column="1"  Text="{Binding RangeTopdB}" ItemsSource="{Binding TopDbs}">
+                    <ComboBox IsEditable="True" MinWidth="70"  Grid.Row="0" Grid.Column="1"  Text="{Binding RangeTopdB}" ItemsSource="{Binding TopDbs}">
                     </ComboBox>
                     <Label Content="dBV" Grid.Row="0" Grid.Column="2"  />
                     <Label Content="Bottom" Grid.Row="1" Grid.Column="0"  />
@@ -164,7 +164,7 @@
                     </ComboBox>
                     <Label Content="%" Grid.Row="0" Grid.Column="2"  />
                     <Label Content="Bottom" Grid.Row="1" Grid.Column="0"  />
-                    <ComboBox Grid.Column="1"  Grid.Row="1"  SelectedValue="{Binding RangeBottom}" ItemsSource="{Binding EndPercents}">
+                    <ComboBox Grid.Column="1" MinWidth="70"  Grid.Row="1"  SelectedValue="{Binding RangeBottom}" ItemsSource="{Binding EndPercents}">
                     </ComboBox>
                     <Label Content="%" Grid.Row="1" Grid.Column="2"  />
                     <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="YP"
@@ -186,7 +186,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Label Content="From" Grid.Row="0"  Grid.Column="0" />
-                    <ComboBox  IsEditable="True" Grid.Row="0" Grid.Column="1"  Text="{Binding GraphStartFreq}" ItemsSource="{Binding StartFrequencies}">
+                    <ComboBox  IsEditable="True" Grid.Row="0" Grid.Column="1" MinWidth="70"   Text="{Binding GraphStartFreq}" ItemsSource="{Binding StartFrequencies}">
                     </ComboBox>
                     <Label Content="Hz" Grid.Row="0"  Grid.Column="2" />
                     <Label Content="To" Grid.Row="1" Grid.Column="0"  />

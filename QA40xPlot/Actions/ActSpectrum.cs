@@ -1,5 +1,4 @@
-﻿using FftSharp;
-using QA40xPlot.Data;
+﻿using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using ScottPlot;
@@ -78,14 +77,6 @@ namespace QA40xPlot.Actions
 			var frequencies = frqs.Select(x => x * binSize).ToList(); // .Select(x => x * binSize);
 			db.FreqData = frequencies;
 			return db;
-		}
-
-		private async Task<LeftRightSeries?> CallChirp(CancellationToken ct, double f0, double f1)
-		{
-			var thd = MeasurementResult.MeasurementSettings;
-			var chirp = QAMath.CalculateChirp(f0, f1, thd.FftSizeVal, thd.SampleRateVal);
-			LeftRightSeries lrfs = await QaLibrary.DoAcquireChirp(ct, chirp.ToArray());
-			return lrfs;
 		}
 
 		/// <summary>
@@ -535,7 +526,7 @@ namespace QA40xPlot.Actions
 				// get the data to look through
 				var fftdata = step.fftData;
 				var ffs = useRight ? fftdata?.Right : fftdata?.Left;
-				if (fftdata != null && ffs != null && ffs.Length > 0)
+				if (fftdata != null && ffs != null && ffs.Length > 0 && freq < fftdata.Df * ffs.Length)
 				{
 					int bin = 0;
 					ScottPlot.Plot myPlot = fftPlot.ThePlot;

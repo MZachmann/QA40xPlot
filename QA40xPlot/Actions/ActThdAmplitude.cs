@@ -101,17 +101,20 @@ namespace QA40xPlot.Actions
 			if (ttype == E_GeneratorDirection.OUTPUT_POWER || ttype == E_GeneratorDirection.OUTPUT_VOLTAGE)
 			{
 				var lrGains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
-				var startOut = ToGenOutVolts(start, [], lrGains);
-				var endOut = ToGenOutVolts(end, [], lrGains);
-				if(ttype == E_GeneratorDirection.OUTPUT_VOLTAGE)
+				if(lrGains != null)
 				{
-					rrc.X = startOut;
-					rrc.Width = endOut - startOut;
-				}
-				else
-				{
-					rrc.X = startOut * startOut / ViewSettings.AmplifierLoad;
-					rrc.Width = endOut * endOut / ViewSettings.AmplifierLoad - rrc.X;
+					var startOut = ToGenOutVolts(start, [], lrGains);
+					var endOut = ToGenOutVolts(end, [], lrGains);
+					if (ttype == E_GeneratorDirection.OUTPUT_VOLTAGE)
+					{
+						rrc.X = startOut;
+						rrc.Width = endOut - startOut;
+					}
+					else
+					{
+						rrc.X = startOut * startOut / ViewSettings.AmplifierLoad;
+						rrc.Width = endOut * endOut / ViewSettings.AmplifierLoad - rrc.X;
+					}
 				}
 			}
 			else

@@ -227,7 +227,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Label Content="Top" Grid.Row="0" Grid.Column="0"  />
-                    <ComboBox IsEditable="True" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"  Text="{Binding RangeTopdB}" ItemsSource="{Binding TopDbs}">
+                    <ComboBox MinWidth="70" IsEditable="True" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"  Text="{Binding RangeTopdB}" ItemsSource="{Binding TopDbs}">
                     </ComboBox>
                     <Label Content="dBV" Grid.Row="0" Grid.Column="2"  />
                     <Label Content="Bottom" Grid.Row="1" Grid.Column="0"  />
@@ -251,7 +251,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Label Content="Top" Grid.Row="0" Grid.Column="0"  />
-                    <ComboBox Grid.Column="1"  Grid.Row="0" VerticalAlignment="Center"  SelectedValue="{Binding RangeTop}" ItemsSource="{Binding StartPercents}">
+                    <ComboBox MinWidth="70" Grid.Column="1"  Grid.Row="0" VerticalAlignment="Center"  SelectedValue="{Binding RangeTop}" ItemsSource="{Binding StartPercents}">
                     </ComboBox>
                     <Label Content="%" Grid.Row="0" Grid.Column="2"  />
                     <Label Content="Bottom" Grid.Row="1" Grid.Column="0"  />
@@ -277,7 +277,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Label Content="From" Grid.Row="0"  Grid.Column="0" />
-                    <ComboBox  IsEditable="True" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"  Text="{Binding GraphStartFreq}" ItemsSource="{Binding StartFrequencies}">
+                    <ComboBox MinWidth="70"  IsEditable="True" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"  Text="{Binding GraphStartFreq}" ItemsSource="{Binding StartFrequencies}">
                     </ComboBox>
                     <Label Content="Hz" Grid.Row="0" Grid.Column="2"  />
                     <Label Content="To" Grid.Row="1" Grid.Column="0"  />
