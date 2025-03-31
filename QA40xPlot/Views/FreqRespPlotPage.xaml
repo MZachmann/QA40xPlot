@@ -83,7 +83,7 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Label Content="S_tart Frequency" Target="{Binding ElementName=cbSF}"  HorizontalAlignment="Right"  Grid.Column="0" Grid.Row="0"  />
-                <ComboBox IsEditable="True" x:Name="cbSF" Text="{Binding StartFreq}" Grid.Column="1" Grid.Row="0" ItemsSource="{Binding StartFrequencies}"  />
+                <ComboBox IsEditable="True" MinWidth="60" x:Name="cbSF" Text="{Binding StartFreq}" Grid.Column="1" Grid.Row="0" ItemsSource="{Binding StartFrequencies}"  />
                 <Label Content="Hz" Grid.Column="2" Grid.Row="0"  />
                 <Label Content="_End Frequency" Target="{Binding ElementName=cbEF}"  HorizontalAlignment="Right"  Grid.Column="0" Grid.Row="1"  />
                 <ComboBox IsEditable="True" x:Name="cbEF" Text="{Binding EndFreq}" Grid.Column="1" Grid.Row="1"  ItemsSource="{Binding EndFrequencies}"  />

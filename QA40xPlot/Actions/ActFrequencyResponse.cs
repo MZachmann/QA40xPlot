@@ -182,14 +182,12 @@ namespace QA40xPlot.Actions
 				rrc.Height = msd.Max(x => x.Magnitude) - rrc.Y;
 			}
             else
-            {
+            {   // impedance
 				double rref = ViewSettings.AmplifierLoad;
-				var minL = MeasurementResult.GainData.Min(x => x.Magnitude);
-				var minZ = MeasurementResult.GainData.Where(x => x.Magnitude == minL).First();
-				var maxL = MeasurementResult.GainData.Max(x => x.Magnitude);
-                var maxZ = MeasurementResult.GainData.Where(x => x.Magnitude == maxL).First();
-				var minZohms = rref * ToImpedance(minZ).Magnitude;
-				var maxZohms = rref * ToImpedance(maxZ).Magnitude;
+				var minL = MeasurementResult.GainData.Min(x => ToImpedance(x).Magnitude);
+				var maxL = MeasurementResult.GainData.Max(x => ToImpedance(x).Magnitude);
+				var minZohms = rref * minL;
+				var maxZohms = rref * maxL;
                 rrc.Y = minZohms;
                 rrc.Height = maxZohms - minZohms;
 			}

@@ -301,7 +301,7 @@ public class FreqRespViewModel : BaseViewModel
 				this.GraphStartFreq = bounds.Left.ToString("0");
 				this.GraphEndFreq = bounds.Right.ToString("0");
 				break;
-			case "YP":  // Y amplitude (ohms)
+			case "YP":  // Y percent
 				var xp = bounds.Y + bounds.Height;  // max Y value
 				var bot = ((100 * bounds.Y) / xp);  // bottom value in percent
 				bot = Math.Pow(10, Math.Max(-7, Math.Floor(Math.Log10(bot))));  // nearest power of 10
@@ -313,12 +313,12 @@ public class FreqRespViewModel : BaseViewModel
 				if (ttype == TestingType.Impedance)
 				{
 					this.RangeBottomdB = bounds.Y.ToString("0");
-					this.RangeTopdB = (bounds.Height - bounds.Y).ToString("0");
+					this.RangeTopdB = (bounds.Height + bounds.Y).ToString("0");
 				}
 				else
 				{
 					this.RangeBottomdB = (20 * Math.Log10(Math.Max(1e-14, bounds.Y))).ToString("0");
-					this.RangeTopdB = Math.Ceiling((20 * Math.Log10(Math.Max(1e-14, bounds.Height - bounds.Y)))).ToString("0");
+					this.RangeTopdB = Math.Ceiling((20 * Math.Log10(Math.Max(1e-14, bounds.Height + bounds.Y)))).ToString("0");
 				}
 				break;
 			default:
