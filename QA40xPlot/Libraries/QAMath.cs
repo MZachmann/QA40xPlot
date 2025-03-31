@@ -80,7 +80,7 @@ namespace QA40xPlot.Libraries
 				double t = i * dt;
 				double ft = f0 * Math.Pow(k, (t / T));
 				var fmulx = T / Math.Log(k);
-				lout.Add(dVolts * Math.Cos(2 * Math.PI * fmulx * ft )); // * Math.Sqrt(ft / f1));
+				lout.Add((dVolts / Math.Sqrt(2)) * Math.Cos(2 * Math.PI * fmulx * ft )); // * Math.Sqrt(ft / f1));
 			}
 			return lout;
 		}
