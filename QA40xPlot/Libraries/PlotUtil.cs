@@ -103,6 +103,19 @@ namespace QA40xPlot.Libraries
 			myPlot.Axes.Bottom.TickGenerator = tickGenX;
 		}
 
+		private static void SetupTimeTics(ScottPlot.Plot myPlot)
+		{
+			// create a numeric tick generator that uses our custom minor tick generator
+			ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGen = new(2);
+
+			ScottPlot.TickGenerators.NumericAutomatic tickGenY = new();
+			tickGenY.TargetTickCount = 15;
+			tickGenY.MinorTickGenerator = minorTickGen;
+
+			// tell the left axis to use our custom tick generator
+			myPlot.Axes.Left.TickGenerator = tickGenY;
+		}
+
 		private static void SetupPhaseTics(ScottPlot.Plot myPlot)
 		{
 			// create a numeric tick generator that uses our custom minor tick generator
@@ -188,6 +201,18 @@ namespace QA40xPlot.Libraries
 			myPlot.Axes.Rules.Add(rule);
 		}
 
+		// this sets the axes bounds for freq vs magnitude
+		private static void AddMagTimeRule(ScottPlot.Plot myPlot)
+		{
+			myPlot.Axes.Rules.Clear();
+			ScottPlot.AxisRules.MaximumBoundary rule = new(
+				xAxis: myPlot.Axes.Bottom,
+				yAxis: myPlot.Axes.Left,
+				limits: new AxisLimits(0, 100000, -100, 100)
+				);
+			myPlot.Axes.Rules.Add(rule);
+		}
+
 		// generic initialization of a plot basics
 		private static void InitializeAPlot(ScottPlot.Plot myPlot)
 		{
@@ -256,6 +281,14 @@ namespace QA40xPlot.Libraries
 			SetupMagTics(myPlot);
 			SetupAmpTics(myPlot);
 			AddMagAmpRule(myPlot);
+		}
+
+		public static void InitializeMagTimePlot(ScottPlot.Plot myPlot)
+		{
+			InitializeAPlot(myPlot);
+			SetupMagTics(myPlot);
+			SetupTimeTics(myPlot);
+			AddMagTimeRule(myPlot);
 		}
 
 	}

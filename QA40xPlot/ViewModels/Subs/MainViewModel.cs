@@ -279,6 +279,9 @@ namespace QA40xPlot.ViewModels
 				case "intermod":
 					CurrentView = ViewSettings.Singleton.ImdVm;
 					break;
+				case "scope":
+					CurrentView = ViewSettings.Singleton.ScopeVm;
+					break;
 				case "freqresp":
 					CurrentView = ViewSettings.Singleton.FreqRespVm;
 					break;
@@ -287,6 +290,9 @@ namespace QA40xPlot.ViewModels
 					break;
 				case "tva":
 					CurrentView = ViewSettings.Singleton.ThdAmp;
+					break;
+				case "settings":
+					CurrentView = ViewSettings.Singleton.SettingsVm;
 					break;
 			}
 		}

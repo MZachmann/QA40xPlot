@@ -283,7 +283,7 @@ namespace QA40xPlot.ViewModels
 					break;
 				case "YM":  // Y magnitude
 					this.RangeBottomdB = (20 * Math.Log10(Math.Max(1e-14, bounds.Y))).ToString("0");
-					this.RangeTopdB = Math.Ceiling((20 * Math.Log10(Math.Max(1e-14, bounds.Height - bounds.Y)))).ToString("0");
+					this.RangeTopdB = Math.Ceiling((20 * Math.Log10(Math.Max(1e-14, bounds.Height + bounds.Y)))).ToString("0");
 					break;
 				default:
 					break;

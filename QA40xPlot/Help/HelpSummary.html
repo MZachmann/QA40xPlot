@@ -3,7 +3,7 @@
         font-family: 'Arial', sans-serif;
     }
 </style>
-<p>The QA40xPlot application consists of 8 different audio tests that use a QA402 or QA403 audio analyzer from QuantAsylum.<br /><br /></p>
+<p>The QA40xPlot application consists of 9 different audio tests that use a QA402 or QA403 audio analyzer from QuantAsylum.<br /><br /></p>
 
 <table>
     <thead>
@@ -20,6 +20,10 @@
         <tr>
             <td><strong>Intermodulation</strong></td>
             <td>Capture the spectrum (dBV vs F) created by two sine waves. Analyze noise and intermodulation distortion.</td>
+        </tr>
+        <tr>
+            <td><strong>Scope</strong></td>
+            <td>Capture the time signal (V vs mS) created by one or two sine waves. Much like an oscilloscope without the triggering.</td>
         </tr>
         <tr>
             <td><strong>THD vs Frequency</strong></td>
@@ -280,6 +284,58 @@ Along the top right of the screen are a few command buttons. If this becomes too
         <tr>
             <td>% - Data Summary</td>
             <td>Swap between percents and uV/dBV</td>
+        </tr>
+    </tbody>
+</table>
+<h1 style="color:green">Scope Test</h1>
+<p>This test acts like an Oscilloscope and controls 1 or 2 sine generators.</p>
+<h2>Options</h2>
+<table>
+    <thead>
+        <tr>
+            <th>option</th>
+            <th>description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Use Generator 1/2</td>
+            <td>Lets you quickly turn each frequency on or off.</td>
+        </tr>
+        <tr>
+            <td>Attenuation</td>
+            <td>See the description under spectrum.</td>
+        </tr>
+        <tr>
+            <td>Generator</td>
+            <td>Select each generator frequency and voltage.</td>
+        </tr>
+        <tr>
+            <td>Sampling</td>
+            <td>See the description under spectrum. Much of this sampling is only for the summary THD display.</td>
+        </tr>
+    </tbody>
+</table>
+<h2>Plot Options</h2>
+<table>
+    <thead>
+        <tr>
+            <th>option</th>
+            <th>description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Axis Settings</td>
+            <td>You may restrict the axis bounds but still can zoom the axis in/out with the mouse</td>
+        </tr>
+        <tr>
+            <td></td>
+            <td>On selection or typing of a value the window will refit.</td>
+        </tr>
+        <tr>
+            <td>Summary Data</td>
+            <td>Select this to show the Summary box in the upper left.</td>
         </tr>
     </tbody>
 </table>

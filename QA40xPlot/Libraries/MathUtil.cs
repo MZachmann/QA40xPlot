@@ -107,6 +107,8 @@ namespace QA40xPlot.Libraries
 		/// <returns>string with best suffix</returns>
 		public static string FormatVoltage(double val)
 		{
+			var sign = Math.Sign(val);
+			val = Math.Abs(val);
 			string rslt = string.Empty;
 			if (val >= .01)
 			{
@@ -124,6 +126,8 @@ namespace QA40xPlot.Libraries
 			{
 				rslt = (1e9 * val).ToString("G3") + " nV";
 			}
+			if (sign < 0)
+				rslt = "-" + rslt;
 			return rslt;
 		}
 

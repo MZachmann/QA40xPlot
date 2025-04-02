@@ -63,6 +63,11 @@
                     <views:ImdPlotPage  />
                 </Grid>
             </TabItem>
+            <TabItem Header="Scope" Name="scope">
+                <Grid Background="#FF35E5E5">
+                    <views:ScopePlotPage  />
+                </Grid>
+            </TabItem>
             <TabItem Header="THD vs Frequency" Name="tvf">
                 <Grid Background="#FFE5E5E5">
                     <views:ThdFreqPlotPage  />
@@ -83,9 +88,6 @@
                     <views:SettingsPage  />
                 </Grid>
             </TabItem>
-            <!--<TabItem Header="Bode Plot">
-                <Grid Background="#FFE5E5E5"/>
-            </TabItem>-->
         </TabControl>
     </Grid>
 </Window>

@@ -12,14 +12,16 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace QA40xPlot.ViewModels
 {
-	public class SpectrumViewModel : BaseViewModel
+	public class ScopeViewModel : BaseViewModel
 	{
 		public static List<String> WindowingTypes { get => new List<string> { "Rectangle", "Hann", "FlatTop" }; }
 		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 		public static List<String> GenFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "2000", "5000", "10000" }; }
+		public static List<String> AbsoluteValues { get => new List<string> { "5", "2", "1", "0.5", "0.1", "0.05", "-0.05", "-0.1", "-0.5", "-1", "-2", "-5" }; }
+		public static List<String> TimeSteps { get => new List<string> { "0",".1",".5","1","5", "10", "20", "50", "100", "200", "500", "1000", "5000", "10000" }; }
 
 		private PlotControl actPlot {  get; set; }
-		private ActSpectrum actSpec { get;  set; }
+		private ActScope actScope { get;  set; }
 		private ThdChannelInfo actInfo { get;  set; }
 		[JsonIgnore]
 		public RelayCommand<object> SetAttenuate { get => new RelayCommand<object>(SetAtten); }
@@ -53,6 +55,13 @@ namespace QA40xPlot.ViewModels
 			get => _ShowChannelInfo;
 			set => SetProperty(ref _ShowChannelInfo, value);
 		}
+		private bool _ShowPoints = false;
+		public bool ShowPoints
+		{
+			get => _ShowPoints;
+			set => SetProperty(ref _ShowPoints, value);
+		}
+
 		private string _Gen1Frequency = string.Empty;
 		public string Gen1Frequency
 		{
@@ -66,19 +75,31 @@ namespace QA40xPlot.ViewModels
 			get => _Gen1Voltage;
 			set => SetProperty(ref _Gen1Voltage, value);
 		}
-		private string _GraphStartFreq = string.Empty;
-		public string GraphStartFreq
+		private string _Gen2Frequency = string.Empty;
+		public string Gen2Frequency
 		{
-			get => _GraphStartFreq;
-			set => SetProperty(ref _GraphStartFreq, value);
+			get => _Gen2Frequency;
+			set => SetProperty(ref _Gen2Frequency, value);
 		}
 
-		private string _GraphEndFreq = string.Empty;
-		public string GraphEndFreq
+		private string _Gen2Voltage = string.Empty;
+		public string Gen2Voltage
 		{
-			get => _GraphEndFreq;
-			set => 
-				SetProperty(ref _GraphEndFreq, value);
+			get => _Gen2Voltage;
+			set => SetProperty(ref _Gen2Voltage, value);
+		}
+		private string _GraphStartTime = string.Empty;
+		public string GraphStartTime
+		{
+			get => _GraphStartTime;
+			set => SetProperty(ref _GraphStartTime, value);
+		}
+
+		private string _GraphEndTime = string.Empty;
+		public string GraphEndTime
+		{
+			get => _GraphEndTime;
+			set => SetProperty(ref _GraphEndTime, value);
 		}
 
 		private string _rangeTop = string.Empty;
@@ -93,19 +114,6 @@ namespace QA40xPlot.ViewModels
 		{
 			get { return _rangeBottom; }
 			set => SetProperty(ref _rangeBottom, value);
-		}
-		private string _rangeTopdB = string.Empty;
-		public string RangeTopdB
-		{
-			get { return _rangeTopdB; }
-			set => SetProperty(ref _rangeTopdB, value);
-		}
-
-		private string _rangeBottomdB = string.Empty;
-		public string RangeBottomdB
-		{
-			get { return _rangeBottomdB; }
-			set => SetProperty(ref _rangeBottomdB, value);
 		}
 
 		private bool _ShowThickLines;
@@ -129,27 +137,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowMarkers, value);
 		}
 
-		private bool _ShowPowerMarkers = false;
-		public bool ShowPowerMarkers
-		{
-			get => _ShowPowerMarkers;
-			set => SetProperty(ref _ShowPowerMarkers, value);
-		}
-
-		private bool _ShowDataPercent;
-		public bool ShowDataPercent
-		{
-			get => _ShowDataPercent;
-			set => SetProperty(ref _ShowDataPercent, value);
-		}
-
-		private bool _ShowPercent;
-		public bool ShowPercent
-		{
-			get => _ShowPercent;
-			set => SetProperty(ref _ShowPercent, value);
-		}
-
 		private string _Windowing = String.Empty;
 		public string WindowingMethod
 		{
@@ -162,25 +149,17 @@ namespace QA40xPlot.ViewModels
 			get => _InputRange;
 			set => SetProperty(ref _InputRange, value);
 		}
-		private Visibility _ToShowRange;
-		[JsonIgnore]
-		public Visibility ToShowRange
+		private bool _UseGenerator1;
+		public bool UseGenerator1
 		{
-			get => _ToShowRange;
-			set => SetProperty(ref _ToShowRange, value);
+			get => _UseGenerator1;
+			set => SetProperty(ref _UseGenerator1, value);
 		}
-		private Visibility _ToShowdB;
-		[JsonIgnore]
-		public Visibility ToShowdB
+		private bool _UseGenerator2;
+		public bool UseGenerator2
 		{
-			get => _ToShowdB;
-			set => SetProperty(ref _ToShowdB, value);
-		}
-		private bool _UseGenerator;
-		public bool UseGenerator
-		{
-			get => _UseGenerator;
-			set => SetProperty(ref _UseGenerator, value);
+			get => _UseGenerator2;
+			set => SetProperty(ref _UseGenerator2, value);
 		}
 		#endregion
 
@@ -189,28 +168,22 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
-				case "ShowPercent":
-					ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
-					ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;
-					actSpec?.UpdateGraph(true);
-					break;
 				case "ShowSummary":
 					ShowChannelInfo = ShowSummary;
 					if (actInfo != null)
 						actInfo.Visibility = ShowSummary ? Visibility.Visible : Visibility.Hidden;
 					break;
-				case "GraphStartFreq":
-				case "GraphEndFreq":
-				case "RangeBottomdB":
+				case "GraphStartTime":
+				case "GraphEndTime":
 				case "RangeBottom":
-				case "RangeTopdB":
 				case "RangeTop":
 				case "ShowRight":
 				case "ShowLeft":
 				case "ShowThickLines":
 				case "ShowMarkers":
 				case "ShowPowerMarkers":
-					actSpec?.UpdateGraph(true);
+				case "ShowPoints":
+					actScope?.UpdateGraph(true);
 					break;
 				default:
 					break;
@@ -219,13 +192,13 @@ namespace QA40xPlot.ViewModels
 
 		public DataBlob? GetFftData()
 		{
-			return actSpec?.CreateExportData();
+			return actScope?.CreateExportData();
 		}
 
 		public void SetAction(PlotControl plot, ThdChannelInfo info)
 		{
-			SpectrumData data = new SpectrumData();
-			actSpec = new ActSpectrum(ref data, plot);
+			ScopeData data = new ScopeData();
+			actScope = new ActScope(ref data, plot);
 			actInfo = info;
 			SetupMainPlot(plot);
 			actPlot = plot;
@@ -233,7 +206,7 @@ namespace QA40xPlot.ViewModels
 
 		private static void SetAtten(object? parameter)
 		{
-			var vm = ViewSettings.Singleton.SpectrumVm;
+			var vm = ViewSettings.Singleton.ScopeVm;
 			var atten = MathUtil.ToDouble(parameter?.ToString() ?? string.Empty, vm.Attenuation);
 			vm.Attenuation = atten;
 		}
@@ -241,47 +214,40 @@ namespace QA40xPlot.ViewModels
 		private static void StartIt()
 		{
 			// Implement the logic to start the measurement process
-			var vm = ViewModels.ViewSettings.Singleton.SpectrumVm;
-			vm.actSpec?.StartMeasurement();
+			var vm = ViewModels.ViewSettings.Singleton.ScopeVm;
+			vm.actScope?.StartMeasurement();
 		}
 
 		private static void StopIt()
 		{
-			var vm = ViewModels.ViewSettings.Singleton.SpectrumVm;
-			vm.actSpec?.DoCancel();
+			var vm = ViewModels.ViewSettings.Singleton.ScopeVm;
+			vm.actScope?.DoCancel();
 		}
 
 		private void OnFitToData(object? parameter)
 		{
-			var bounds = actSpec.GetDataBounds();
+			var bounds = actScope.GetDataBounds();
 			switch (parameter)
 			{
-				case "XF":  // X frequency
-					this.GraphStartFreq = bounds.Left.ToString("0");
-					this.GraphEndFreq = bounds.Right.ToString("0");
-					break;
-				case "YP":  // Y percents
-					var xp = bounds.Y + bounds.Height;  // max Y value
-					var bot = ((100 * bounds.Y) / xp);  // bottom value in percent
-					bot = Math.Pow(10, Math.Max(-7, Math.Floor(Math.Log10(bot))));	// nearest power of 10
-					this.RangeTop = "100";	// always 100%
-					this.RangeBottom = bot.ToString("0.##########");
+				case "XF":  // X time
+					this.GraphStartTime = bounds.Left.ToString("0.###");
+					this.GraphEndTime = bounds.Right.ToString("0.###");
 					break;
 				case "YM":  // Y magnitude
-					this.RangeBottomdB = (20*Math.Log10(Math.Max(1e-14,bounds.Y))).ToString("0");
-					this.RangeTopdB = Math.Ceiling((20 * Math.Log10(Math.Max(1e-14, bounds.Height + bounds.Y)))).ToString("0");
+					this.RangeBottom = (bounds.Y).ToString("0.###");
+					this.RangeTop = (bounds.Height + bounds.Y).ToString("0.###");
 					break;
 				default:
 					break;
 			}
-			actSpec?.UpdateGraph(false);
+			actScope?.UpdateGraph(false);
 		}
 
 		// when the mouse moves in the plotcontrol window it sends a mouseevent to the parent view model (this)
 		// here's the tracker event handler
 		private static void DoMouseTracked(object? sender, MouseEventArgs e)
 		{
-			var specVm = ViewSettings.Singleton.SpectrumVm;
+			var specVm = ViewSettings.Singleton.ScopeVm;
 			specVm.DoMouse(sender, e);
 		}
 
@@ -297,76 +263,66 @@ namespace QA40xPlot.ViewModels
 			var cord = ConvertScottCoords(actPlot, p.X, p.Y);
 			var xpos = cord.Item1;
 			var ypos = cord.Item2;
-			FreqValue = Math.Pow(10, xpos);
+			FreqValue = xpos;
 
-			var zv = actSpec.LookupXY(FreqValue, ypos, ShowRight && !ShowLeft);
-			var valdBV = 20 * Math.Log10(zv.Item2);
+			var zv = actScope.LookupXY(xpos, ypos, ShowRight && !ShowLeft);
 			// - this may be too slow, but for now....
 			if (MyMark != null)
 			{
 				actPlot.ThePlot.Remove(MyMark);
 				MyMark = null;
 			}
-			var valshow = ShowPercent ? Math.Log10(zv.Item3) : valdBV;
-			MyMark = actPlot.ThePlot.Add.Marker(Math.Log10(zv.Item1), valshow,
+			MyMark = actPlot.ThePlot.Add.Marker(zv.Item1, zv.Item2,
 				MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), ScottPlot.Colors.Red);
 			actPlot.Refresh();
 
-			FreqShow = zv.Item1.ToString("0.# Hz");
+			FreqShow = zv.Item1.ToString("0.### mS");
 			var valvolt = MathUtil.FormatVoltage(zv.Item2);
-			var valpercent = MathUtil.FormatPercent(zv.Item3);
-			ZValue = $"{valdBV:0.#} dBV" + Environment.NewLine +
-				$"{valpercent} %" + Environment.NewLine +
-				$"{valvolt}";
+			ZValue = $"{valvolt}";
 		}
 
-		~SpectrumViewModel()
+		~ScopeViewModel()
 		{
 			PropertyChanged -= CheckPropertyChanged;
 			MouseTracked -= DoMouseTracked;
 		}
 
-		public SpectrumViewModel()
+		public ScopeViewModel()
 		{
 			PropertyChanged += CheckPropertyChanged;
 			MouseTracked += DoMouseTracked;
 
 			this.actPlot = default!;
 			this.actInfo = default!;
-			this.actSpec = default!;
+			this.actScope = default!;
 
-			GraphStartFreq = "20";
-			GraphEndFreq = "20000";
+			GraphStartTime = "0";
+			GraphEndTime = "10";
 			RangeTop = "1";             // when graphing percents distortion this is logarithmic 0.01....
-			RangeBottom = "0.001";
+			RangeBottom = "-1";
 
 			ShowThickLines = true;
 			ShowSummary = true;
-			ShowPercent = false;
-			ShowDataPercent = true;
 			ShowLeft = true;
 			ShowRight = false;
 
 			WindowingMethod = "Hann";
 
 			InputRange = 0;
-			RangeTopdB = "20";
-			RangeBottomdB = "-180";
 
 			ShowMarkers = false;
-			ShowPowerMarkers = false;
 
 			Gen1Voltage = "0.1";
+			Gen2Voltage = "0.2";
 			Gen1Frequency = "1000";
-			UseGenerator = false;
+			Gen2Frequency = "2000";
+			UseGenerator1 = true;
+			UseGenerator2 = false;
 
 			Attenuation = 42;
 
-			ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
-			ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;
-
 			// make a few things happen to synch the gui
-			Task.Delay(1000).ContinueWith(t => { actSpec?.UpdateGraph(true); });
+			Task.Delay(1000).ContinueWith(t => { actScope?.UpdateGraph(true); });
 		}
 	}
 }

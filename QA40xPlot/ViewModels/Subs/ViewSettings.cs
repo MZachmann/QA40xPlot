@@ -22,6 +22,7 @@ namespace QA40xPlot.ViewModels
 		public ThdFreqViewModel ThdFreq { get; private set; }
 		public ThdAmpViewModel ThdAmp { get; private set; }
 		public FreqRespViewModel FreqRespVm { get; private set; }
+		public ScopeViewModel ScopeVm { get; private set; }
 		public MainViewModel Main { get; private set; }
 		public SettingsViewModel SettingsVm { get; private set; }
 		// these are output only and don't need serializing
@@ -34,10 +35,13 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public ImdChannelViewModel ImdChannelRight { get; private set; }
 
-		public static void GetPropertiesFrom(Dictionary<string, object> vws, object dest)
+		public static void GetPropertiesFrom(Dictionary<string, Dictionary<string, object>> vwsIn, string name, object dest)
 		{
-			if (vws == null || dest == null)
+			if (vwsIn == null || dest == null)
 				return;
+			if (!vwsIn.ContainsKey(name))
+				return;
+			Dictionary<string, object> vws = (Dictionary<string, object>)vwsIn[name];
 
 			Type type = dest.GetType();
 			PropertyInfo[] properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
@@ -80,13 +84,14 @@ namespace QA40xPlot.ViewModels
 
 		public void GetSettingsFrom( Dictionary<string, Dictionary<string,object>> vws)
 		{
-			GetPropertiesFrom(vws["Main"],Main);
-			GetPropertiesFrom(vws["SpectrumVm"],SpectrumVm);
-			GetPropertiesFrom(vws["ImdVm"],ImdVm);
-			GetPropertiesFrom(vws["ThdAmp"],ThdAmp);
-			GetPropertiesFrom(vws["ThdFreq"],ThdFreq);
-			GetPropertiesFrom(vws["FreqRespVm"],FreqRespVm);
-			GetPropertiesFrom(vws["SettingsVm"], SettingsVm);
+			GetPropertiesFrom(vws,"Main",Main);
+			GetPropertiesFrom(vws,"SpectrumVm",SpectrumVm);
+			GetPropertiesFrom(vws,"ImdVm",ImdVm);
+			GetPropertiesFrom(vws,"ThdAmp",ThdAmp);
+			GetPropertiesFrom(vws,"ThdFreq",ThdFreq);
+			GetPropertiesFrom(vws,"FreqRespVm",FreqRespVm);
+			GetPropertiesFrom(vws,"SettingsVm", SettingsVm);
+			GetPropertiesFrom(vws,"ScopeVm", ScopeVm);
 		}
 
 		public ViewSettings() 
@@ -102,6 +107,7 @@ namespace QA40xPlot.ViewModels
 			ThdAmp = new ThdAmpViewModel();
 			ThdFreq = new ThdFreqViewModel();
 			FreqRespVm = new FreqRespViewModel();
+			ScopeVm = new ScopeViewModel();
 		}
 	}
 }

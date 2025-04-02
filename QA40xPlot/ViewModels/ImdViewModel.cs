@@ -56,16 +56,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowChannelInfo, value);
 		}
 
-		private double _AmpLoad;         // type of alert
-		public double AmpLoad
-		{
-			get => _AmpLoad; set => SetProperty(ref _AmpLoad, value);
-		}
-		private double _OutVoltage;         // type of alert
-		public double OutVoltage
-		{
-			get => _OutVoltage; set => SetProperty(ref _OutVoltage, value);
-		}
 		private string _Gen1Frequency = string.Empty;
 		public string Gen1Frequency
 		{
@@ -106,12 +96,6 @@ namespace QA40xPlot.ViewModels
 			get => _GraphEndFreq;
 			set => 
 				SetProperty(ref _GraphEndFreq, value);
-		}
-
-		private uint _StepsOctave;         // type of alert
-		public uint StepsOctave
-		{
-			get => _StepsOctave; set => SetProperty(ref _StepsOctave, value);
 		}
 
 		private string _rangeTop = string.Empty;
@@ -183,54 +167,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowPercent, value);
 		}
 
-		private bool _ShowTHD;
-		public bool ShowTHD
-		{
-			get => _ShowTHD;
-			set => SetProperty(ref _ShowTHD, value);
-		}
-		private bool _ShowMagnitude;
-		public bool ShowMagnitude
-		{
-			get => _ShowMagnitude;
-			set => SetProperty(ref _ShowMagnitude, value);
-		}
-		private bool _ShowD2;
-		public bool ShowD2
-		{
-			get => _ShowD2;
-			set => SetProperty(ref _ShowD2, value);
-		}
-		private bool _ShowD3;
-		public bool ShowD3
-		{
-			get => _ShowD3;
-			set => SetProperty(ref _ShowD3, value);
-		}
-		private bool _ShowD4;
-		public bool ShowD4
-		{
-			get => _ShowD4;
-			set => SetProperty(ref _ShowD4, value);
-		}
-		private bool _ShowD5;
-		public bool ShowD5
-		{
-			get => _ShowD5;
-			set => SetProperty(ref _ShowD5, value);
-		}
-		private bool _ShowD6;
-		public bool ShowD6
-		{
-			get => _ShowD6;
-			set => SetProperty(ref _ShowD6, value);
-		}
-		private bool _ShowNoiseFloor;
-		public bool ShowNoiseFloor
-		{
-			get => _ShowNoiseFloor;
-			set => SetProperty(ref _ShowNoiseFloor, value);
-		}
 		private string _Windowing = String.Empty;
 		public string WindowingMethod
 		{
@@ -327,14 +263,6 @@ namespace QA40xPlot.ViewModels
 				case "RangeTop":
 				case "ShowRight":
 				case "ShowLeft":
-				case "ShowTHD":
-				case "ShowMagnitude":
-				case "ShowD2":
-				case "ShowD3":
-				case "ShowD4":
-				case "ShowD5":
-				case "ShowD6":
-				case "ShowNoiseFloor":
 				case "ShowThickLines":
 				case "ShowMarkers":
 				case "ShowPowerMarkers":
@@ -393,7 +321,7 @@ namespace QA40xPlot.ViewModels
 					break;
 				case "YM":  // Y magnitude
 					this.RangeBottomdB = (20 * Math.Log10(Math.Max(1e-14, bounds.Y))).ToString("0");
-					this.RangeTopdB = Math.Ceiling((20 * Math.Log10(Math.Max(1e-14, bounds.Height - bounds.Y)))).ToString("0");
+					this.RangeTopdB = Math.Ceiling((20 * Math.Log10(Math.Max(1e-14, bounds.Height + bounds.Y)))).ToString("0");
 					break;
 				default:
 					break;
@@ -557,10 +485,8 @@ namespace QA40xPlot.ViewModels
 			this.actInfo = default!;
 			this.actImd = default!;
 
-			OutVoltage = 0.5;
 			GraphStartFreq = "20";
 			GraphEndFreq = "20000";
-			StepsOctave = 1;
 			RangeTop = "1";             // when graphing percents distortion this is logarithmic 0.01....
 			RangeBottom = "0.001";
 
@@ -570,14 +496,6 @@ namespace QA40xPlot.ViewModels
 			ShowDataPercent = true;
 			ShowLeft = true;
 			ShowRight = false;
-			ShowTHD = true;
-			ShowMagnitude = true;
-			ShowD2 = true;
-			ShowD3 = true;
-			ShowD4 = true;
-			ShowD5 = true;
-			ShowD6 = true;
-			ShowNoiseFloor = true;
 
 			WindowingMethod = "Hann";
 
