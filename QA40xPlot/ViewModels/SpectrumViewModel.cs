@@ -362,7 +362,8 @@ namespace QA40xPlot.ViewModels
 		private void DoMouse(object? sender, MouseEventArgs e)
 		{ 
 			SetMouseTrack(e);
-			if (!IsTracking)
+			// it's too laggy while it's running....
+			if (IsRunning || !IsTracking)
 				return;
 
 			var p = e.GetPosition(actPlot);

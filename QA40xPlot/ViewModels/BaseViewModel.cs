@@ -160,14 +160,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _FreqShow, value);
 		}
 
-		bool isBusy = false;
-		[JsonIgnore]
-		public bool IsBusy
-		{
-			get { return isBusy; }
-			set { SetProperty(ref isBusy, value); }
-		}
-
 		bool _isTracking = true;
 		[JsonIgnore]
 		public bool IsTracking

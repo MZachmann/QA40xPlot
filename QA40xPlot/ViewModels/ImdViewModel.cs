@@ -510,7 +510,7 @@ namespace QA40xPlot.ViewModels
 		{
 			SetMouseTrack(e);
 
-			if (!IsTracking || actImd == null || actPlot == null)
+			if (IsRunning || !IsTracking || actImd == null || actPlot == null)
 				return;
 
 			var p = e.GetPosition(actPlot);
