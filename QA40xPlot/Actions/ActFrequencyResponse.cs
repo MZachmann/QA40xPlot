@@ -8,8 +8,6 @@ using ScottPlot.Plottables;
 using System.Data;
 using System.Numerics;
 using System.Windows;
-using System.Windows.Interop;
-using System.Windows.Media.Imaging;
 using static QA40xPlot.ViewModels.BaseViewModel;
 
 
@@ -59,7 +57,7 @@ namespace QA40xPlot.Actions
 			var genv = msr.ToGenVoltage(msr.Gen1Voltage, [], GEN_INPUT, LRGains?.Left);
 			// output v
 			var chirp = QAMath.CalculateChirp(f0, f1, genv, msr.FftSizeVal, msr.SampleRateVal);
-			LeftRightSeries lrfs = await QaLibrary.DoAcquireChirp(ct, chirp.ToArray());
+			LeftRightSeries lrfs = await QaLibrary.DoAcquireChirp(ct, chirp.ToArray(), false);
 			return lrfs;
 		}
 
@@ -347,34 +345,49 @@ namespace QA40xPlot.Actions
 
 				var m2 = Math.Sqrt(2);
 				// Left channel
-				var window = new FftSharp.Windows.Rectangular();
+				var window = new FftSharp.Windows.Rectangular();    // best?
+                var flength = lfrs.TimeRslt.Left.Length / 2;        // we want half this since freq is symmetric
 				double[] windowed_measured = window.Apply(lfrs.TimeRslt.Left, true);
-				System.Numerics.Complex[] spectrum_measured = FFT.Forward(windowed_measured);
+                Complex[] spectrum_measured = FFT.Forward(windowed_measured).Take(flength).ToArray();
 
 				double[] windowed_ref = window.Apply(lfrs.TimeRslt.Right, true);
-				System.Numerics.Complex[] spectrum_ref = FFT.Forward(windowed_ref);
+                Complex[] spectrum_ref = FFT.Forward(windowed_ref).Take(flength).ToArray();
 
-                MeasurementResult.GainFrequencies = Enumerable.Range(0, spectrum_measured.Length / 2).Select(x => x * lfrs.FreqRslt.Df).ToList();
+				var nca2 = (int)(0.01 + 1 / lfrs.TimeRslt.dt);      // total time in tics = sample rate
+				var df = nca2 / (double)flength / 2;                // ???
+
+                // trim the three vectors to the frequency range of interest
+				MeasurementResult.GainFrequencies = Enumerable.Range(0, spectrum_measured.Length).Select(x => x * df).ToList();
                 var gfr = MeasurementResult.GainFrequencies;
-				var mx = spectrum_measured.Take(gfr.Count).ToArray();
-                var mref = spectrum_ref.Take(gfr.Count).ToArray();
-                // restrict frequency spectrum
+                // restrict the data to only the frequency spectrum
                 var trimf = gfr.Count(x => x < startf);
                 var trimEnd = gfr.Count(x => x <= endf) - trimf;
                 gfr = gfr.Skip(trimf).Take(trimEnd).ToList();
-                mx = mx.Skip(trimf).Take(trimEnd).ToArray();
-                mref = mref.Skip(trimf).Take(trimEnd).ToArray();
+                var mx = spectrum_measured.Skip(trimf).Take(trimEnd).ToArray();
+                var mref = spectrum_ref.Skip(trimf).Take(trimEnd).ToArray();
+                // format the gain vectors as desired
                 MeasurementResult.GainFrequencies = gfr;
 				switch (ttype)
                 {
 					case TestingType.Response:
-						MeasurementResult.GainData = mx.Zip(mref, 
-                            (l,r) => { return new Complex(l.Magnitude, r.Magnitude); }).ToList();
+                        // left, right are magnitude. left uses right as reference
+                        var ts = lfrs.TimeRslt.Right;
+						var totalV = Math.Sqrt(ts.Select(x => x * x).Sum() / ts.Length); // rms voltage
+                        if( totalV > .001)
+						{   // if right channel is active use it as reference
+							MeasurementResult.GainData = mx.Zip(mref,
+								(l, r) => { return new Complex((l / r).Magnitude, r.Magnitude * m2); }).ToList();
+						}
+                        else
+                        {
+							MeasurementResult.GainData = mx.Zip(mref,
+								(l, r) => { return new Complex(l.Magnitude * m2, r.Magnitude * m2); }).ToList();
+						}
 						break;
 					case TestingType.Gain:
 					case TestingType.Impedance:
-						MeasurementResult.GainData = mx.Zip(mref,
-							(l, r) => { var ldr = l / r; return new Complex(ldr.Real, ldr.Imaginary); }).ToList();
+                        // here complex value is the fft data left / right
+						MeasurementResult.GainData = mx.Zip(mref, (l, r) => { return l / r; }).ToList();
 						break;
 				}
 

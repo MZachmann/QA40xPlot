@@ -381,13 +381,40 @@ Along the top right of the screen are a few command buttons. If this becomes too
 </table>
 <h1 style="color:green">Response Test</h1>
 <p>This is a conventional frequency response test. The output is in dBV and can cover both channels or just one.</p>
+<h2>Options</h2>
+<ul>
+    <li>
+        Use Chirp - turn this on to use a chirp signal for the sweep. This is a more efficient way to sweep a frequency range. It suffers from
+        reduced distortion and gain accuracy but gains almost continuous frequency coverage in a single packet.
+    </li>
+</ul>
 <h1 style="color:green">Impedance Test</h1>
 <p>This does a frequency sweep and at each point calculates the effective impedance of the DUT. Data is stored as a complex value.</p>
-<p>Connections are:</p>
+<h2>Options</h2>
+<ul>
+    <li>
+        Use Chirp - turn this on to use a chirp signal for the sweep. This is a more efficient way to sweep a frequency range. It suffers from
+        reduced distortion and gain accuracy but gains almost continuous frequency coverage in a single packet.
+    </li>
+</ul>
+<h3>Connections are:</h3>
 <ul>
     <li>DUT terminal A to ground</li>
-    <li>DUT terminal B to reference resistor terminal A and Left Input</li>
-    <li>reference resistor terminal B and generator output to Right Input</li>
+    <li>DUT terminal B to reference resistor terminal A and QA40x Left Input</li>
+    <li>reference resistor terminal B and generator output to QA40x Right Input</li>
 </ul>
 <h1 style="color:green">Gain Test</h1>
-<p>This does a traditional Bode Plot of Gain and Phase vs frequency. Here the right channel is used as a reference channel. Connect the right channel input to the DUT input port and generator output.</p>
+<p>This does a traditional Bode Plot of Gain and Phase vs frequency. Here the right channel is used as a reference channel. </p>
+<h2>Options</h2>
+<ul>
+    <li>
+        Use Chirp - see above.
+    </li>
+</ul>
+<h3>Connections are:</h3>
+<ul>
+    <li> the QA40x right channel input to the DUT input port and generator output.</li>
+    <li> the QA40x left channel input to the DUT output port.</li>
+</ul>
+<br />
+<br />

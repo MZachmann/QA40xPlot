@@ -106,7 +106,7 @@ namespace QA40xPlot.Libraries
 		private static void SetupPhaseTics(ScottPlot.Plot myPlot)
 		{
 			// create a numeric tick generator that uses our custom minor tick generator
-			ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGen = new(4);
+			ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGen = new(5);
 
 			ScottPlot.TickGenerators.NumericAutomatic tickGenY2 = new();
 			tickGenY2.TargetTickCount = 12;
