@@ -580,12 +580,29 @@ namespace QA40xPlot.Actions
             return xtest;
 		}
 
+        /// <summary>
+        /// unwrap the phase data
+        /// </summary>
+        /// <param name="phaseData"></param>
+        /// <returns></returns>
+        private double[] Regularize(double[] phaseData)
+		{
+            var allPos = phaseData.Select(x => (x >= 0) ? x : x + 360);
+            var deltain = phaseData.Select((x,index) => Math.Abs(x - phaseData[((index==0) ? 1 : index) - 1])).Sum();
+			var deltaPos = allPos.Select((x, index) => Math.Abs(x - phaseData[((index == 0) ? 1 : index) - 1])).Sum();
+			if (deltain < deltaPos)
+			{
+                return allPos.ToArray();
+			}
+            return phaseData;
+		}
+
 
 		/// <summary>
 		/// Plot the magnitude graph
 		/// </summary>
 		/// <param name="measurementResult">Data to plot</param>
-		void PlotGraph(FrequencyResponseMeasurementResult measurementResult, int measurementNr, bool showLeftChannel, bool showRightChannel, E_FrequencyResponseGraphType graphType)
+		void PlotValues(FrequencyResponseMeasurementResult measurementResult, int measurementNr, bool showLeftChannel, bool showRightChannel, E_FrequencyResponseGraphType graphType)
         {
 			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
 			var frqrsVm = MyVModel;
@@ -666,14 +683,17 @@ namespace QA40xPlot.Actions
 			plot.LinePattern = LinePattern.Solid;
             if( ttype != TestingType.Response || frqrsVm.ShowRight)
             {
-				plot = myPlot.Add.Scatter(logFreqX, phaseValues);
+                var phases = phaseValues;
                 if(ttype == TestingType.Gain || ttype == TestingType.Impedance)
                 {
+					phases = Regularize(phaseValues);
+					plot = myPlot.Add.Scatter(logFreqX, phases);
 					plot.Axes.YAxis = myPlot.Axes.Right;
 					plot.LegendText = "Phase (Deg)";
 				}
                 else
                 {
+					plot = myPlot.Add.Scatter(logFreqX, phases);
 					plot.LegendText = "Right dBV";
 				}
 				plot.LineWidth = lineWidth;
@@ -712,7 +732,7 @@ namespace QA40xPlot.Actions
 
             foreach (var result in Data.Measurements.Where(m => m.Show))
             {
-                PlotGraph(result, resultNr++, frqsrVm.ShowLeft, frqsrVm.ShowRight, E_FrequencyResponseGraphType.DBV);  // frqsrVm.GraphType);
+                PlotValues(result, resultNr++, frqsrVm.ShowLeft, frqsrVm.ShowRight, E_FrequencyResponseGraphType.DBV);  // frqsrVm.GraphType);
             }
 
             PlotBandwidthLines();
