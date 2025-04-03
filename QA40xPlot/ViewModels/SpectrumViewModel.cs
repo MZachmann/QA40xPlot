@@ -18,6 +18,7 @@ namespace QA40xPlot.ViewModels
 		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 		public static List<String> GenFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "2000", "5000", "10000" }; }
 
+		private static SpectrumViewModel MyVModel { get => ViewSettings.Singleton.SpectrumVm; }
 		private PlotControl actPlot {  get; set; }
 		private ActSpectrum actSpec { get;  set; }
 		private ThdChannelInfo actInfo { get;  set; }
@@ -235,7 +236,7 @@ namespace QA40xPlot.ViewModels
 
 		private static void SetAtten(object? parameter)
 		{
-			var vm = ViewSettings.Singleton.SpectrumVm;
+			var vm = MyVModel;
 			var atten = MathUtil.ToDouble(parameter?.ToString() ?? string.Empty, vm.Attenuation);
 			vm.Attenuation = atten;
 		}
@@ -243,13 +244,13 @@ namespace QA40xPlot.ViewModels
 		private static void StartIt()
 		{
 			// Implement the logic to start the measurement process
-			var vm = ViewModels.ViewSettings.Singleton.SpectrumVm;
+			var vm = MyVModel;
 			vm.actSpec?.StartMeasurement();
 		}
 
 		private static void StopIt()
 		{
-			var vm = ViewModels.ViewSettings.Singleton.SpectrumVm;
+			var vm = MyVModel;
 			vm.actSpec?.DoCancel();
 		}
 
@@ -283,7 +284,7 @@ namespace QA40xPlot.ViewModels
 		// here's the tracker event handler
 		private static void DoMouseTracked(object? sender, MouseEventArgs e)
 		{
-			var specVm = ViewSettings.Singleton.SpectrumVm;
+			var specVm = MyVModel;
 			specVm.DoMouse(sender, e);
 		}
 

@@ -248,14 +248,14 @@ namespace QA40xPlot.ViewModels
 		private static void StartIt()
 		{
 			// Implement the logic to start the measurement process
-			var vm = ViewModels.ViewSettings.Singleton.ThdAmp;
-			vm.actThd.StartMeasurement();
+			var vm = ViewSettings.Singleton.ThdAmp;
+			vm.actThd?.StartMeasurement();
 		}
 
 		private static void StopIt()
 		{
-			var vm = ViewModels.ViewSettings.Singleton.ThdAmp;
-			vm.actThd.DoCancel();
+			var vm = ViewSettings.Singleton.ThdAmp;
+			vm.actThd?.DoCancel();
 		}
 
 		public void SetAction(PlotControl plot, PlotControl plot1, PlotControl plot2)

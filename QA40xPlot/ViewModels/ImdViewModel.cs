@@ -294,13 +294,13 @@ namespace QA40xPlot.ViewModels
 		private static void StartIt()
 		{
 			// Implement the logic to start the measurement process
-			var vm = ViewModels.ViewSettings.Singleton.ImdVm;
+			var vm = ViewSettings.Singleton.ImdVm;
 			vm?.actImd?.StartMeasurement();
 		}
 
 		private static void StopIt()
 		{
-			var vm = ViewModels.ViewSettings.Singleton.ImdVm;
+			var vm = ViewSettings.Singleton.ImdVm;
 			vm?.actImd?.DoCancel();
 		}
 

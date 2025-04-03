@@ -197,14 +197,14 @@ namespace QA40xPlot.ViewModels
 		private static void StartIt()
 		{
 			// Implement the logic to start the measurement process
-			var vm = ViewModels.ViewSettings.Singleton.ThdFreq;
-			vm.actThd.StartMeasurement();
+			var vm = ViewSettings.Singleton.ThdFreq;
+			vm.actThd?.StartMeasurement();
 		}
 
 		private static void StopIt()
 		{
-			var vm = ViewModels.ViewSettings.Singleton.ThdFreq;
-			vm.actThd.DoCancel();
+			var vm = ViewSettings.Singleton.ThdFreq;
+			vm.actThd?.DoCancel();
 		}
 
 		// the property change is used to trigger repaints of the graph
