@@ -254,11 +254,13 @@ public class FreqRespViewModel : BaseViewModel
 			case "RangeBottom":
 			case "RangeTopdB":
 			case "RangeTop":
+				actFreq?.UpdateGraph(true);
+				break;
 			case "ShowRight":
 			case "ShowLeft":
 			case "ShowThickLines":
 			case "StepsOctave":
-				actFreq?.UpdateGraph(true);
+				actFreq?.UpdateGraph(false);
 				break;
 			default:
 				break;

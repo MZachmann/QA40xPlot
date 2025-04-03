@@ -205,12 +205,14 @@ namespace QA40xPlot.ViewModels
 				case "RangeBottom":
 				case "RangeTopdB":
 				case "RangeTop":
+					actSpec?.UpdateGraph(true);
+					break;
 				case "ShowRight":
 				case "ShowLeft":
 				case "ShowThickLines":
 				case "ShowMarkers":
 				case "ShowPowerMarkers":
-					actSpec?.UpdateGraph(true);
+					actSpec?.UpdateGraph(false);
 					break;
 				default:
 					break;

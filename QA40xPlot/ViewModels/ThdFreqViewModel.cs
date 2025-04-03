@@ -229,6 +229,8 @@ namespace QA40xPlot.ViewModels
 				case "RangeBottom":
 				case "RangeTopdB":
 				case "RangeTop":
+					actThd?.UpdateGraph(true);
+					break;
 				case "ShowRight":
 				case "ShowLeft":
 				case "ShowTHD":
@@ -241,7 +243,7 @@ namespace QA40xPlot.ViewModels
 				case "ShowNoiseFloor":
 				case "ShowPoints":
 				case "ShowThickLines":
-					actThd?.UpdateGraph(true);
+					actThd?.UpdateGraph(false);
 					break;
 				default:
 					break;

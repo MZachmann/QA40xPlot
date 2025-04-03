@@ -177,13 +177,15 @@ namespace QA40xPlot.ViewModels
 				case "GraphEndTime":
 				case "RangeBottom":
 				case "RangeTop":
+					actScope?.UpdateGraph(true);
+					break;
 				case "ShowRight":
 				case "ShowLeft":
 				case "ShowThickLines":
 				case "ShowMarkers":
 				case "ShowPowerMarkers":
 				case "ShowPoints":
-					actScope?.UpdateGraph(true);
+					actScope?.UpdateGraph(false);
 					break;
 				default:
 					break;
