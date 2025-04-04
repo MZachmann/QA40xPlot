@@ -3,6 +3,7 @@ using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
+using System;
 using System.Data;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
@@ -152,15 +153,37 @@ namespace QA40xPlot.Actions
 					await showMessage($"Measuring spectrum with input of {genVolt:G3}V.");
 					await showProgress(0);
 
-					// Set the generators
-					await Qa40x.SetGen1(stepBinFrequencies[0], amplitudeSetpointdBV, thd.UseGenerator1);
-					await Qa40x.SetGen2(stepBinFrequencies[1], amplitudeSetpointdBV, thd.UseGenerator2);
 					// for the first go around, turn on the generator
 					LeftRightSeries? lrfs;
 					if (thd.UseGenerator1 || thd.UseGenerator2)
 					{
-						await Qa40x.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
-						lrfs = await QaLibrary.DoAcquisitions(1, ct, true, true);
+						// Set the generators via a usermode
+						var gw1 = new GenWaveform()
+						{
+							Freq = stepBinFrequencies[0],
+							Volts = genVolt,
+							Name = msr.MeasurementSettings.Gen1Waveform
+						};
+						var gw2 = new GenWaveform()
+						{
+							Freq = stepBinFrequencies[1],
+							Volts = genVolt,
+							Name = msr.MeasurementSettings.Gen2Waveform
+						};
+						var gws = new GenWaveSample()
+						{
+							SampleRate = (int)sampleRate,
+							SampleSize = (int)fftsize
+						};
+						GenWaveform[] gwho = [];
+						if(thd.UseGenerator1 && thd.UseGenerator2)
+							gwho = [gw1, gw2];
+						else if(thd.UseGenerator1)
+							gwho = [gw1];
+						else
+							gwho = [gw2];
+						var wave = QAMath.CalculateWaveform(gwho, gws);
+						lrfs = await QaLibrary.DoAcquireUser(ct, wave.ToArray(), true);
 					}
 					else
 					{

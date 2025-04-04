@@ -42,6 +42,20 @@ namespace QA40xPlot.ViewModels
 			get => DoAutoAttn ? "#1800f000" : "Transparent";
 		}
 
+		private string _Gen1Waveform = string.Empty;
+		public string Gen1Waveform
+		{
+			get => _Gen1Waveform;
+			set => SetProperty(ref _Gen1Waveform, value);
+		}
+
+		private string _Gen2Waveform = string.Empty;
+		public string Gen2Waveform
+		{
+			get => _Gen2Waveform;
+			set => SetProperty(ref _Gen2Waveform, value);
+		}
+
 		private bool _DoAutoAttn = false;
 		public bool DoAutoAttn
 		{

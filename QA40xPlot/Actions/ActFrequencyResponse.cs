@@ -57,7 +57,7 @@ namespace QA40xPlot.Actions
 			var genv = msr.ToGenVoltage(msr.Gen1Voltage, [], GEN_INPUT, LRGains?.Left);
 			// output v
 			var chirp = QAMath.CalculateChirp(f0, f1, genv, msr.FftSizeVal, msr.SampleRateVal);
-			LeftRightSeries lrfs = await QaLibrary.DoAcquireChirp(ct, chirp.ToArray(), false);
+			LeftRightSeries lrfs = await QaLibrary.DoAcquireUser(ct, chirp.ToArray(), false);
 			return lrfs;
 		}
 

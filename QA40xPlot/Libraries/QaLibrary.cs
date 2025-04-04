@@ -237,7 +237,7 @@ namespace QA40xPlot.Libraries
             return lrfs;
 		}
 
-		static public async Task<LeftRightSeries> DoAcquireChirp(CancellationToken ct, double[] datapt, bool getFreq)
+		static public async Task<LeftRightSeries> DoAcquireUser(CancellationToken ct, double[] datapt, bool getFreq)
 		{
 			LeftRightSeries lrfs = new LeftRightSeries();
 			await Qa40x.DoUserAcquisition(datapt, datapt);

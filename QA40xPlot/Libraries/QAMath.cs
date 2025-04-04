@@ -1,4 +1,5 @@
 ﻿using FftSharp;
+using QA40xPlot.Data;
 using System.Diagnostics;
 using System.Numerics;
 using System.Windows;
@@ -62,12 +63,68 @@ namespace QA40xPlot.Libraries
 
 		}
 
+		private static double Squares(double f)
+		{
+			// is freq in left or right quadrange
+			var u = f % (2*Math.PI);
+			if( u < Math.PI)
+				return 1;
+			else
+				return -1;
+		}
+
+		private static double Impulse(double f)
+		{
+			// is freq in left or right quadrange
+			var u = f % (2 * Math.PI);
+			if (u < Math.PI/4)
+				return 1;
+			else
+				return -1;
+		}
+
+		private static List<double> MakeWave(GenWaveform gw, GenWaveSample samples)
+		{
+			var dvamp = gw.Volts / Math.Sqrt(2); // rms voltage
+				// frequency vector
+			var freqs = Enumerable.Range(0, samples.SampleSize).Select(x => 2 * Math.PI * gw.Freq * x / samples.SampleRate);
+				// now evaluate
+			switch ( gw.Name)
+			{
+				case "Sine":
+					return freqs.Select(f => dvamp * Math.Sin(f)).ToList();
+				case "Square":
+					return freqs.Select(f => dvamp  * Squares(f)).ToList();
+				case "Impulse":
+					return freqs.Select(f => dvamp * Impulse(f)).ToList();
+				default:
+					break;
+			}
+			return new List<double>();
+		}
+
+		/// <summary>
+		/// calculate the waveform for up to n frequencies
+		/// </summary>
+		/// <param name="gw1"></param>
+		/// <param name="gw2"></param>
+		/// <param name="gwSample"></param>
+		/// <returns></returns>
+		public static List<double> CalculateWaveform(GenWaveform[] gws, GenWaveSample gwSample)
+		{
+			List<double> lresult = Enumerable.Range(0, gwSample.SampleSize).Select(i => 0.0).ToList();
+			foreach (var gwi in gws)
+			{
+				var lr2 = MakeWave(gwi, gwSample);
+				lresult = lresult.Zip(lr2, (a, b) => a + b).ToList();
+			}
+			return lresult;
+		}
 
 		// create a chirp from F0 ... F1 for a total time of chirpTime
 		// chirpsize must be the same as fftSize in the device
 		//exponential chirp: f(t) = f0 * k^(t/T) where k=f0/f1
 		// Y = 10^(Slope*X + Y-intercept)
-
 		public static List<double> CalculateChirp(double f0, double f1, double dVolts, uint chirpSize, uint sampleRate)
 		{
 			double dt = 1 / (double)sampleRate;	// interval time
