@@ -103,7 +103,7 @@ Along the top right of the screen are a few command buttons. If this becomes too
     <li>Click inside the plot to freeze a cursor. Click again to unfreeze.</li>
 </ul>
 <h1>Amplitude Definitions</h1>
-<p>All tests have a choice as to amplitude definition.</p>
+<p>All tests have a choice as to how the QA40x generator voltage is determined.</p>
 <table>
     <thead>
         <tr>
@@ -114,15 +114,15 @@ Along the top right of the screen are a few command buttons. If this becomes too
     <tbody>
         <tr>
             <td><strong>Input Voltage</strong></td>
-            <td>Interpret voltages as QA40x generator settings.</td>
+            <td>The desired DUT input voltage. This is the QA40x generator output voltage.</td>
         </tr>
         <tr>
             <td><strong>Output Voltage</strong></td>
-            <td>Determine voltage to achieve the desired output. This always does a gain calculation first</td>
+            <td>Determine generator voltage to produce the desired DUT output. This does a low-voltage gain calculation first</td>
         </tr>
         <tr>
             <td><strong>Output Power</strong></td>
-            <td>Use the amplifier load setting (see Settings) to determine output voltage from power and then use gain to calculate the input voltage</td>
+            <td>Use the amplifier load setting (see Settings) to determine output voltage from power and then use gain to calculate the input/generator voltage</td>
         </tr>
     </tbody>
 </table>

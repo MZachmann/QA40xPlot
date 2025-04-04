@@ -590,7 +590,7 @@ namespace QA40xPlot.Actions
             var allPos = phaseData.Select(x => (x >= 0) ? x : x + 360);
             var deltain = phaseData.Select((x,index) => Math.Abs(x - phaseData[((index==0) ? 1 : index) - 1])).Sum();
 			var deltaPos = allPos.Select((x, index) => Math.Abs(x - phaseData[((index == 0) ? 1 : index) - 1])).Sum();
-			if (deltain < deltaPos)
+			if (deltain > deltaPos)
 			{
                 return allPos.ToArray();
 			}
