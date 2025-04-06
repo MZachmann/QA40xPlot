@@ -85,7 +85,7 @@ namespace QA40xPlot.Libraries
 
 		private static List<double> MakeWave(GenWaveform gw, GenWaveSample samples)
 		{
-			var dvamp = gw.Volts / Math.Sqrt(2); // rms voltage
+			var dvamp = gw.Volts * Math.Sqrt(2); // rms voltage
 				// frequency vector
 			var freqs = Enumerable.Range(0, samples.SampleSize).Select(x => 2 * Math.PI * gw.Freq * x / samples.SampleRate);
 				// now evaluate
@@ -137,7 +137,7 @@ namespace QA40xPlot.Libraries
 				double t = i * dt;
 				double ft = f0 * Math.Pow(k, (t / T));
 				var fmulx = T / Math.Log(k);
-				lout.Add((dVolts / Math.Sqrt(2)) * Math.Cos(2 * Math.PI * fmulx * ft )); // * Math.Sqrt(ft / f1));
+				lout.Add((dVolts * Math.Sqrt(2)) * Math.Cos(2 * Math.PI * fmulx * ft )); // * Math.Sqrt(ft / f1));
 			}
 			return lout;
 		}

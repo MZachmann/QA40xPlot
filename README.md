@@ -23,7 +23,7 @@ The analyzer contains
 - a bode plot sweep (swept gain and phase)
 
 ## Code
-The code is based on C# and WPF (Windows Presentation Foundation).
+The code is based on C#, .NET 9, and WPF (Windows Presentation Foundation).
 
 ## Documentation
 There is a help button in the application that brings up a page of help.
