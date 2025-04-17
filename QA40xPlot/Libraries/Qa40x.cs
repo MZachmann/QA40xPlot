@@ -18,7 +18,13 @@ namespace QA40xPlot.Libraries
     {
         public double Left { get; set; }
         public double Right { get; set; }
-    }
+        public LeftRightPair(double left, double right)
+		{
+			Left = left;
+			Right = right;
+		}
+        public LeftRightPair() { }
+	}
 
     public class LeftRightTimeSeries
     {

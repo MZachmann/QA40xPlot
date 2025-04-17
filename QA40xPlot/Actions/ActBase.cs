@@ -1,4 +1,5 @@
-﻿using QA40xPlot.Libraries;
+﻿using QA40x_BareMetal;
+using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
@@ -30,7 +31,7 @@ namespace QA40xPlot.Actions
 			}
 			bvm.IsRunning = true;
 
-			if (await QaLibrary.CheckDeviceConnected() == false)
+			if (QaUsb.CheckDeviceConnected() == false)
 			{
 				bvm.IsRunning = false;
 				return false;

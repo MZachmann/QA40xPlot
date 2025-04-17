@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace QA40xPlot.Actions
+namespace QA40xPlot.Data
 {
 	// helper for thd sweeps
     public class ThdColumn

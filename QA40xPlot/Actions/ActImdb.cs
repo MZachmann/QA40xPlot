@@ -4,7 +4,6 @@ using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
-using System.Text.Json.Serialization;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
 
@@ -637,8 +636,8 @@ namespace QA40xPlot.Actions
 			myPlot.Clear();
 
 			var imdVm = MyVModel;
-			bool leftChannelEnabled = imdVm.ShowLeft;	// dynamically update these
-			bool rightChannelEnabled = imdVm.ShowRight;
+			bool useLeft = imdVm.ShowLeft;	// dynamically update these
+			bool useRight = imdVm.ShowRight;
 
 			var fftData = MeasurementResult.FrequencySteps[0].fftData;
 			if (fftData == null)
@@ -657,13 +656,13 @@ namespace QA40xPlot.Actions
 				freqX.Add(frequency);
 				if(imdVm.ShowPercent)
 				{
-					if (leftChannelEnabled)
+					if (useLeft)
 					{
 						var lv = fftData.Left[f];       // V of input data
 						var lvp = 100 * lv / maxleft;
 						dBV_Left_Y.Add(Math.Log10(lvp));
 					}
-					if (rightChannelEnabled)
+					if (useRight)
 					{
 						var lv = fftData.Right[f];       // V of input data
 						var lvp = 100 * lv / maxright;
@@ -672,12 +671,12 @@ namespace QA40xPlot.Actions
 				}
 				else
 				{
-					if (leftChannelEnabled)
+					if (useLeft)
 					{
 						var lv = fftData.Left[f];       // V of input data
 						dBV_Left_Y.Add(20*Math.Log10(lv));
 					}
-					if (rightChannelEnabled)
+					if (useRight)
 					{
 						var lv = fftData.Right[f];       // V of input data
 						dBV_Right_Y.Add(20*Math.Log10(lv));
@@ -692,22 +691,22 @@ namespace QA40xPlot.Actions
 
 			var showThick = MyVModel.ShowThickLines;	// so it dynamically updates
 
-			if (leftChannelEnabled)
+			if (useLeft)
 			{
 				Scatter plotTot_Left = myPlot.Add.Scatter(logFreqX, logHTot_Left_Y);
 				plotTot_Left.LineWidth = showThick ? _Thickness : 1;
-				plotTot_Left.Color = new ScottPlot.Color(1, 97, 170, 255);  // Blue
+				plotTot_Left.Color = QaLibrary.BlueColor;  // Blue
 				plotTot_Left.MarkerSize = 1;
 			}
 
-			if (rightChannelEnabled)
+			if (useRight)
 			{
 				Scatter plotTot_Right = myPlot.Add.Scatter(logFreqX, logHTot_Right_Y);
 				plotTot_Right.LineWidth = showThick ? _Thickness : 1;
-				if (leftChannelEnabled)
-					plotTot_Right.Color = new ScottPlot.Color(220, 5, 46, 120); // Red transparant
+				if (useLeft)
+					plotTot_Right.Color = QaLibrary.RedXColor; // Red transparant
 				else
-					plotTot_Right.Color = new ScottPlot.Color(220, 5, 46, 255); // Red
+					plotTot_Right.Color = QaLibrary.RedColor; // Red
 				plotTot_Right.MarkerSize = 1;
 			}
 
@@ -733,17 +732,6 @@ namespace QA40xPlot.Actions
             fftPlot.Refresh();
         }
 
-		// this calculates gain using all input voltage because we use it to set the attenuator
-		private async Task<double> CalculateInVolts()
-		{
-			var domore = await PerformMeasurementSteps(MeasurementResult, ct.Token);
-			if (domore && MeasurementResult.FrequencySteps?.Count > 0)
-			{
-				return MeasurementResult.FrequencySteps[0].Left.Total_V;
-			}
-			return 1.0;
-		}
-
 		/// <summary>
 		///  Start measurement button click
 		/// </summary>
@@ -766,6 +754,7 @@ namespace QA40xPlot.Actions
 			var genType = ToDirection(msr.GenDirection);
 			var freq = MathUtil.ToDouble(msr.Gen1Frequency, 1000);
 			var freq2 = MathUtil.ToDouble(msr.Gen2Frequency, 1000);
+			// calculate the gain curve if we need it
 			if (msr.DoAutoAttn || genType != E_GeneratorDirection.INPUT_VOLTAGE)
 			{
 				// show that we're autoing...
@@ -774,6 +763,7 @@ namespace QA40xPlot.Actions
 				LRGains = await DetermineGainCurve(true, 1);
 			}
 			var binSize = QaLibrary.CalcBinSize(msr.SampleRateVal, msr.FftSizeVal);
+			// calculate the required attenuation
 			if (msr.DoAutoAttn && LRGains != null)
 			{
 				int[] frqtest = [ToBinNumber(freq, LRGains)];
@@ -797,6 +787,7 @@ namespace QA40xPlot.Actions
 				msr.Attenuation = imdVm.Attenuation; // update the specVm to update the gui, then this for the steps
 			}
 
+			// do the actual measurements
 			var rslt = true;
 			rslt = await PerformMeasurementSteps(MeasurementResult, ct.Token);
 			var fftsize = msr.FftSize;

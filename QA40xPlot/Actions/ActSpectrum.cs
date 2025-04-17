@@ -1,11 +1,13 @@
 ﻿using QA40xPlot.Data;
 using QA40xPlot.Libraries;
+using QA40xPlot.BareMetal;
 using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
+using QA40x_BareMetal;
 
 // various things for the thd vs frequency activity
 
@@ -102,7 +104,7 @@ namespace QA40xPlot.Actions
 			// ********************************************************************  
 			// Load a settings we want
 			// ********************************************************************  
-			if (true != await QaLibrary.InitializeDevice(sampleRate, fftsize, msr.MeasurementSettings.WindowingMethod, (int)msr.MeasurementSettings.Attenuation, msr.FrequencySteps.Count == 0))
+			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, msr.MeasurementSettings.WindowingMethod, (int)msr.MeasurementSettings.Attenuation, msr.FrequencySteps.Count == 0))
 				return false;
 
 			try
@@ -126,11 +128,9 @@ namespace QA40xPlot.Actions
 					// Do noise floor measurement with source off
 					// ********************************************************************
 					await showMessage($"Determining noise floor.");
-					await Qa40x.SetOutputSource(OutputSources.Off);
-					await Qa40x.DoAcquisition();    // do a single acquisition for settling
-					msr.NoiseFloor = await QaLibrary.DoAcquisitions(thd.Averages, ct);
+					QaUsb.SetOutputSource(OutputSources.Off);
+					msr.NoiseFloor = await QaUsb.DoAcquisitions(1, ct);
 					if (ct.IsCancellationRequested)
-
 						return false;
 				}
 				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
@@ -152,20 +152,18 @@ namespace QA40xPlot.Actions
 					await showProgress(0);
 
 					// Set the generators
-					await Qa40x.SetGen1(stepBinFrequencies[0], amplitudeSetpointdBV, thd.UseGenerator);
+					QaUsb.SetGen1(stepBinFrequencies[0], amplitudeSetpointdBV, thd.UseGenerator);
 					// for the first go around, turn on the generator
 					LeftRightSeries? lrfs;
 					if (thd.UseGenerator)
 					{
-						await Qa40x.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
-						lrfs = await QaLibrary.DoAcquisitions(thd.Averages, ct, true, true);
-						// lrfs = await CallChirp(ct, freq/2, freq*2);
+						QaUsb.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
 					}
 					else
 					{
-						await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make the averages reset
-						lrfs = await QaLibrary.DoAcquisitions(thd.Averages, ct, true, true);
+						QaUsb.SetOutputSource(OutputSources.Off);            // We need to call this to make the averages reset
 					}
+					lrfs = await QaUsb.DoAcquisitions(thd.Averages, ct);
 					if (lrfs == null)
 						break;
 
@@ -186,10 +184,10 @@ namespace QA40xPlot.Actions
 
 					// Calculate the THD
 					{
-						var maxf = 20000;   // the app seems to use 20,000 so not sampleRate/ 2.0;
-						var snrdb = await Qa40x.GetSnrDb(stepBinFrequencies[0], 20.0, maxf);
-						var thds = await Qa40x.GetThdDb(stepBinFrequencies[0], maxf);
-						var thdN = await Qa40x.GetThdnDb(stepBinFrequencies[0], 20.0, maxf);
+						//!!!var maxf = 20000;   // the app seems to use 20,000 so not sampleRate/ 2.0;
+						LeftRightPair snrdb = new(-10,-10); //!!!await Qa40x.GetSnrDb(stepBinFrequencies[0], 20.0, maxf);
+						LeftRightPair thds = new(-10,-10); //!!!= await Qa40x.GetThdDb(stepBinFrequencies[0], maxf);
+						LeftRightPair thdN = new(-10,-10); //!!!= await Qa40x.GetThdnDb(stepBinFrequencies[0], 20.0, maxf);
 
 						step.Left.Thd_dBN = thdN.Left;
 						step.Right.Thd_dBN = thdN.Right;
@@ -592,8 +590,8 @@ namespace QA40xPlot.Actions
 			myPlot.Clear();
 
 			var specVm = MyVModel;
-			bool leftChannelEnabled = specVm.ShowLeft;	// dynamically update these
-			bool rightChannelEnabled = specVm.ShowRight;
+			bool useLeft = specVm.ShowLeft;	// dynamically update these
+			bool useRight = specVm.ShowRight;
 
 			var fftData = MeasurementResult.FrequencySteps[0].fftData;
 			if (fftData == null)
@@ -612,13 +610,13 @@ namespace QA40xPlot.Actions
 				freqX.Add(frequency);
 				if(specVm.ShowPercent)
 				{
-					if (leftChannelEnabled)
+					if (useLeft)
 					{
 						var lv = fftData.Left[f];       // V of input data
 						var lvp = 100 * lv / maxleft;
 						dBV_Left_Y.Add(Math.Log10(lvp));
 					}
-					if (rightChannelEnabled)
+					if (useRight)
 					{
 						var lv = fftData.Right[f];       // V of input data
 						var lvp = 100 * lv / maxright;
@@ -627,12 +625,12 @@ namespace QA40xPlot.Actions
 				}
 				else
 				{
-					if (leftChannelEnabled)
+					if (useLeft)
 					{
 						var lv = fftData.Left[f];       // V of input data
 						dBV_Left_Y.Add(20*Math.Log10(lv));
 					}
-					if (rightChannelEnabled)
+					if (useRight)
 					{
 						var lv = fftData.Right[f];       // V of input data
 						dBV_Right_Y.Add(20*Math.Log10(lv));
@@ -645,24 +643,24 @@ namespace QA40xPlot.Actions
 			double[] logHTot_Left_Y = dBV_Left_Y.ToArray();
 			double[] logHTot_Right_Y = dBV_Right_Y.ToArray();
 
-			var showThick = MyVModel.ShowThickLines;	// so it dynamically updates
+			var lineWidth = MyVModel.ShowThickLines ? _Thickness : 1;	// so it dynamically updates
 
-			if (leftChannelEnabled)
+			if (useLeft)
 			{
 				Scatter plotTot_Left = myPlot.Add.Scatter(logFreqX, logHTot_Left_Y);
-				plotTot_Left.LineWidth = showThick ? _Thickness : 1;
-				plotTot_Left.Color = new ScottPlot.Color(1, 97, 170, 255);  // Blue
+				plotTot_Left.LineWidth = lineWidth;
+				plotTot_Left.Color = QaLibrary.BlueColor;  // Blue
 				plotTot_Left.MarkerSize = 1;
 			}
 
-			if (rightChannelEnabled)
+			if (useRight)
 			{
 				Scatter plotTot_Right = myPlot.Add.Scatter(logFreqX, logHTot_Right_Y);
-				plotTot_Right.LineWidth = showThick ? _Thickness : 1;
-				if (leftChannelEnabled)
-					plotTot_Right.Color = new ScottPlot.Color(220, 5, 46, 120); // Red transparant
+				plotTot_Right.LineWidth = lineWidth;
+				if (useLeft)
+					plotTot_Right.Color = QaLibrary.RedXColor; // Red transparant
 				else
-					plotTot_Right.Color = new ScottPlot.Color(220, 5, 46, 255); // Red
+					plotTot_Right.Color = QaLibrary.RedColor; // Red
 				plotTot_Right.MarkerSize = 1;
 			}
 
@@ -694,6 +692,7 @@ namespace QA40xPlot.Actions
         /// </summary>
         public async void StartMeasurement()
         {
+			//await TestUsbLib.Test();
 			var specVm = MyVModel;
 			if (!await StartAction(specVm))
 				return;
@@ -773,7 +772,7 @@ namespace QA40xPlot.Actions
 			}
 
 			// Turn the generator off since we leave it on during testing
-			await Qa40x.SetOutputSource(OutputSources.Off);
+			QaUsb.SetOutputSource(OutputSources.Off);
 
 			specVm.IsRunning = false;
 			await showMessage("");

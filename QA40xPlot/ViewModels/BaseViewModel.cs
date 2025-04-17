@@ -39,6 +39,7 @@ namespace QA40xPlot.ViewModels
 		public static List<String> TrueFalseList { get => new List<string> { "True", "False" }; }
 		public static bool GEN_INPUT { get => true; }
 		public static bool GEN_OUTPUT { get => false; }
+		public static List<String> DataFormats { get => new List<string> { "SPL", "dBFS", "dBr", "dBu", "dBV", "dBW", "%", "V", "W" }; }
 		#endregion
 
 		#region Setters and Getters
@@ -49,6 +50,13 @@ namespace QA40xPlot.ViewModels
 		public string GenAmpDescript { get => (IsGenPower ? "Po_wer" : "_Voltage"); }
 		[JsonIgnore]
 		public string GenAmpUnits { get => (IsGenPower ? "W" : "V"); }
+
+		private string _PlotFormat = string.Empty;
+		public string PlotFormat
+		{
+			get => _PlotFormat;
+			set => SetProperty(ref _PlotFormat, value);
+		}
 
 		private string _SampleRate = String.Empty;
 		public string SampleRate
@@ -185,6 +193,63 @@ namespace QA40xPlot.ViewModels
 			set { SetProperty(ref _HasExport, value); }
 		}
 		#endregion
+
+		/// <summary>
+		/// Given an input voltage, convert to the desired data format for plotting/display
+		/// </summary>
+		/// <param name="dIn"></param>
+		/// <param name="format"></param>
+		/// <returns>the converted double</returns>
+		public double ToPlotFormat(double dIn, double dMax)
+		{
+			switch (PlotFormat)
+			{
+				case "SPL":
+					return 20 * Math.Log10(dIn);
+				case "dBFS":	// the generator has 18dBV output
+					return 20 * Math.Log10(dIn) - 18;
+				case "dBr":
+					return 20 * Math.Log10(dIn / dMax);
+				case "dBu":
+					return 20 * Math.Log10(dIn / 0.775);
+				case "dBV":
+					return 20 * Math.Log10(dIn / 1.0);
+				case "dBW":
+					return 10 * Math.Log10(dIn * dIn / ViewSettings.AmplifierLoad);
+				case "V":
+					return dIn;
+				case "%":
+					return 100 * dIn / dMax;
+				case "W":
+					return dIn * dIn / ViewSettings.AmplifierLoad;
+			}
+			return dIn; // default to volts
+		}
+
+		/// <summary>
+		/// Given an input voltage, convert to the desired data format for plotting/display
+		/// </summary>
+		/// <param name="format"></param>
+		/// <returns>the format suffix</returns>
+		public string GetFormatExt()
+		{
+			switch (PlotFormat)
+			{
+				case "SPL":
+					return "dB";
+				case "dBFS":
+				case "dBr":
+				case "dBu":
+				case "dBV":
+				case "dBW":
+				case "V":
+				case "W":
+					return PlotFormat;
+				case "%":
+					return string.Empty;
+			}
+			return string.Empty; // default to none
+		}
 
 		/// <summary>
 		/// Convert direction string to a direction type
@@ -354,6 +419,7 @@ namespace QA40xPlot.ViewModels
 			SampleRate = "48000";
 			FftSize = "64K";
 			Averages = 1;
+			PlotFormat = "dBV";
 		}
 
 		public void SetupMainPlot(PlotControl plot)

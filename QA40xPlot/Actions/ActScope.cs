@@ -511,7 +511,7 @@ namespace QA40xPlot.Actions
 			{
 				Scatter pLeft = myPlot.Add.Scatter(timeX, timeData.Left);
 				pLeft.LineWidth = showThick ? _Thickness : 1;
-				pLeft.Color = new ScottPlot.Color(1, 97, 170, 255);  // Blue
+				pLeft.Color = QaLibrary.BlueColor;  // Blue
 				pLeft.MarkerSize = markerSize;
 			}
 
@@ -520,9 +520,9 @@ namespace QA40xPlot.Actions
 				Scatter pRight = myPlot.Add.Scatter(timeX, timeData.Right);
 				pRight.LineWidth = showThick ? _Thickness : 1;
 				if (leftChannelEnabled)
-					pRight.Color = new ScottPlot.Color(220, 5, 46, 120); // Red transparant
+					pRight.Color = QaLibrary.RedXColor; // Red transparant
 				else
-					pRight.Color = new ScottPlot.Color(220, 5, 46, 255); // Red
+					pRight.Color = QaLibrary.RedColor; // Red
 				pRight.MarkerSize = markerSize;
 			}
 

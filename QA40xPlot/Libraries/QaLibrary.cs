@@ -11,7 +11,11 @@ namespace QA40xPlot.Libraries
 
     public class QaLibrary
     {
-        public static double MINIMUM_GENERATOR_VOLTAGE_V = 0.001;
+		public static ScottPlot.Color BlueColor { get => new ScottPlot.Color(1, 97, 170, 255); }
+		public static ScottPlot.Color RedColor { get => new ScottPlot.Color(220, 5, 46, 255); }
+		public static ScottPlot.Color RedXColor { get => new ScottPlot.Color(220, 5, 46, 120); }
+
+		public static double MINIMUM_GENERATOR_VOLTAGE_V = 0.001;
         public static double MAXIMUM_GENERATOR_VOLTAGE_V = 7.9;
         public static double MINIMUM_GENERATOR_VOLTAGE_MV = 1;
         public static double MAXIMUM_GENERATOR_VOLTAGE_MV = 7900;
@@ -456,7 +460,7 @@ namespace QA40xPlot.Libraries
         {
             await Qa40x.SetExpoChirpGen(generatordBV, 0, 48, false);
             await Qa40x.SetOutputSource(OutputSources.ExpoChirp);                   // Set sine wave
-            LeftRightSeries acqData = await DoAcquisitions(1, ct);                  // Do a single aqcuisition
+            LeftRightSeries acqData = await DoAcquisitions(1, ct);                  // Do a single acquisition
             if (acqData == null || acqData.FreqRslt == null)
                 return (150, null);
 
@@ -675,7 +679,7 @@ namespace QA40xPlot.Libraries
             {
 				Scatter plotTot_Left = myPlot.Add.Scatter(logFreqX, logHTot_Left_Y);
                 plotTot_Left.LineWidth = 1;
-                plotTot_Left.Color = new ScottPlot.Color(1, 97, 170, 255);  // Blue
+                plotTot_Left.Color = BlueColor;  // Blue
                 plotTot_Left.MarkerSize = 1;
             }
 
@@ -684,9 +688,9 @@ namespace QA40xPlot.Libraries
 				Scatter plotTot_Right = myPlot.Add.Scatter(logFreqX, logHTot_Right_Y);
                 plotTot_Right.LineWidth = 1;
                 if (leftEnabled)
-                    plotTot_Right.Color = new ScottPlot.Color(220, 5, 46, 120); // Red transparant
+                    plotTot_Right.Color = RedXColor; // Red transparant
                 else
-                    plotTot_Right.Color = new ScottPlot.Color(220, 5, 46, 255); // Red
+                    plotTot_Right.Color = RedColor; // Red
                 plotTot_Right.MarkerSize = 1;
             }
 
@@ -850,7 +854,7 @@ namespace QA40xPlot.Libraries
             {
 				Scatter plot_left = myPlot.Add.Scatter(timeX, voltY_left);
                 plot_left.LineWidth = 1;
-                plot_left.Color = new ScottPlot.Color(1, 97, 170, 255);  // Blue
+                plot_left.Color = BlueColor;  // Blue
                 plot_left.MarkerSize = 2;
             }
 
@@ -859,9 +863,9 @@ namespace QA40xPlot.Libraries
 				Scatter plot_right = myPlot.Add.Scatter(timeX, voltY_right);
                 plot_right.LineWidth = 1;
                 if (leftEnabled)
-                    plot_right.Color = new ScottPlot.Color(220, 5, 46, 120); // Red transparant if left channel behind it
+                    plot_right.Color = RedXColor; // Red transparant if left channel behind it
                 else
-                    plot_right.Color = new ScottPlot.Color(220, 5, 46, 255); // Red
+                    plot_right.Color = RedColor; // Red
                 plot_right.MarkerSize = 2;
             }
 

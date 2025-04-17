@@ -99,6 +99,7 @@ Along the top right of the screen are a few command buttons. If this becomes too
 <ul>
     <li>Click a plot and drag the mouse to move the plot center point around.</li>
     <li>Scroll the mouse wheel in a plot to zoom in or out</li>
+    <li>Click a plot axis and drag the mouse to reposition only that axis.</li>
     <li>Scroll the mouse wheel over a plot axis to zoom only that axis in or out</li>
     <li>Click inside the plot to freeze a cursor. Click again to unfreeze.</li>
 </ul>
@@ -436,12 +437,14 @@ Along the top right of the screen are a few command buttons. If this becomes too
     </tbody>
 </table>
 <h1 style="color:green">Response Test</h1>
-<p>This is a conventional frequency response test. The output is in dBV and can cover both channels or just one.</p>
+<p>
+    This is a conventional frequency response test. The output is in dBV and can cover both channels or just one. 
+</p>
 <h2>Options</h2>
 <ul>
     <li>
         Use Chirp - turn this on to use a chirp signal for the sweep. This is a more efficient way to sweep a frequency range. It suffers from
-        reduced distortion and gain accuracy but gains almost continuous frequency coverage in a single packet.
+        reduced distortion and gain accuracy but gains almost continuous frequency coverage in a single packet. When using chirp, the right channel is used as reference if active.
     </li>
 </ul>
 <h1 style="color:green">Impedance Test</h1>
