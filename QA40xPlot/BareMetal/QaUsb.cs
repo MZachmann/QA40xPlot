@@ -51,7 +51,7 @@ namespace QA40x_BareMetal
     class QaUsb
     {
         private static QaAnalyzer? _qAnalyzer;
-		public static QaAnalyzer? QaAnalyzer => _qAnalyzer;
+		public static QaAnalyzer? QAnalyzer => _qAnalyzer;
 
         static object ReadRegLock = new object();
 
@@ -63,11 +63,11 @@ namespace QA40x_BareMetal
 
         public static async Task<LeftRightSeries> DoAcquisitions(uint averages, CancellationToken ct)
         {
-			var datapt = new double[_qAnalyzer.Params.FFTSize];
-            if( QaAnalyzer?.GenParams.IsOn == true && QaAnalyzer?.Params.OutputSource == OutputSources.Sine)
+			var datapt = new double[QAnalyzer?.Params?.FFTSize ?? 0];
+            if( QAnalyzer?.GenParams.IsOn == true && QAnalyzer?.Params?.OutputSource == OutputSources.Sine)
             {
 				double dt = 1.0 / (_qAnalyzer?.Params?.SampleRate ?? 1);
-				datapt = datapt.Select((x,index) => (QaAnalyzer.GenParams.Voltage/Math.Sqrt(2)) * Math.Sin(2 * Math.PI * QaAnalyzer.GenParams.Frequency * dt * index)).ToArray();
+				datapt = datapt.Select((x,index) => (QAnalyzer.GenParams.Voltage/Math.Sqrt(2)) * Math.Sin(2 * Math.PI * QAnalyzer.GenParams.Frequency * dt * index)).ToArray();
 			}
 			var lrfs = await DoAcquireUser(ct, datapt, true);
 			return lrfs;
@@ -80,7 +80,7 @@ namespace QA40x_BareMetal
 
         public static void SetGen1(double freq, double volts, bool ison)
         {
-            QaAnalyzer?.SetGenParams(freq, volts, ison);
+            QAnalyzer?.SetGenParams(freq, volts, ison);
 		}
 
         /// <summary>
@@ -145,9 +145,9 @@ namespace QA40x_BareMetal
                 // ********************************************************************  
                 // Load a settings we want
                 // ********************************************************************  
-                if (_qAnalyzer == null)
+                if (_qAnalyzer == null )
                 {
-                    Open();
+					Open();
                 }
 				var qan = _qAnalyzer;
 				if (qan == null || qan.Params == null)
@@ -284,7 +284,7 @@ namespace QA40x_BareMetal
                     byte[] txBuf = WriteRegisterPrep((byte)(0x80 + reg), 0);
                     WriteRegisterRaw(txBuf);
                     int len = 0;
-                    QaAnalyzer?.RegisterReader?.Read(data, RegReadWriteTimeout, out len);
+                    QAnalyzer?.RegisterReader?.Read(data, RegReadWriteTimeout, out len);
 
                     if (len == 0)
                         throw new Exception($"Usb.ReadRegister failed to read data. Register: {reg}");
@@ -328,7 +328,7 @@ namespace QA40x_BareMetal
             int len = data.Length;
             try
             {
-				QaAnalyzer?.RegisterWriter?.Write(data, RegReadWriteTimeout, out len);
+				QAnalyzer?.RegisterWriter?.Write(data, RegReadWriteTimeout, out len);
             }
             catch (Exception ex)
             {
@@ -374,7 +374,7 @@ namespace QA40x_BareMetal
             byte[] localBuf = new byte[len];
             Array.Copy(data, offset, localBuf, 0, len);
 			UsbTransfer? ar = null;
-			ec = QaAnalyzer?.DataWriter?.SubmitAsyncTransfer(localBuf, 0, localBuf.Length, MainI2SReadWriteTimeout, out ar) ?? ErrorCode.UnknownError;
+			ec = QAnalyzer?.DataWriter?.SubmitAsyncTransfer(localBuf, 0, localBuf.Length, MainI2SReadWriteTimeout, out ar) ?? ErrorCode.UnknownError;
             if (ec != ErrorCode.None)
             {
                 //Log.WriteLine(LogType.Error, "Error code in Usb.WriteDataBegin: ");
@@ -407,7 +407,7 @@ namespace QA40x_BareMetal
         {
             byte[] readBuffer = new byte[bufSize];
 			UsbTransfer? ar = null;
-			QaAnalyzer?.DataReader?.SubmitAsyncTransfer(readBuffer, 0, readBuffer.Length, MainI2SReadWriteTimeout, out ar);
+			QAnalyzer?.DataReader?.SubmitAsyncTransfer(readBuffer, 0, readBuffer.Length, MainI2SReadWriteTimeout, out ar);
             if(ar != null)
                 ReadQueue.Add(new AsyncResult(ar, readBuffer));
         }

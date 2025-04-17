@@ -56,9 +56,9 @@ continuously). Click the mouse again to release the hold.
 
 * The base of the DUT is ground, 
 * the top of the DUT goes to the left channel and the bottom of the reference resistor
-* the top of the reference resistor goes to both the input and the right channel.
+* the top of the reference resistor goes to both the input (QA40x generator output) and the right channel.
 
-**The Gain Test** assumes the reference is connected to the right channel and the signal with gain is connected to the left channel.
+**The Gain Test** assumes the reference (QA40x generator output) is connected to the right channel and the signal with gain (DUT output) is connected to the left channel.
 
 ## Photos
 Spectral Plot

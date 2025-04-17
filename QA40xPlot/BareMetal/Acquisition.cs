@@ -96,17 +96,17 @@ namespace QA40xPlot.BareMetal
             AcqResult r = new AcqResult();
             r.Valid = true;
 
-            var aControl = QaUsb.QaAnalyzer?.Control;
-            var aParams = QaUsb.QaAnalyzer?.Params;
+            var aControl = QaUsb.QAnalyzer?.Control;
+            var aParams = QaUsb.QAnalyzer?.Params;
 
-			if (QaUsb.QaAnalyzer == null || aControl == null || aParams == null)
+			if (QaUsb.QAnalyzer == null || aControl == null || aParams == null)
             { 
                 r.Valid = false;
                 return r;
             }
 			Debug.Assert(leftOut.Length == rightOut.Length, "Out buffers must be the same length");
-			var dacCal = aControl.GetDacCal(QaUsb.QaAnalyzer.CalData, aParams.MaxOutputLevel);
-			var adcCal = aControl.GetAdcCal(QaUsb.QaAnalyzer.CalData, aParams.MaxInputLevel);
+			var dacCal = aControl.GetDacCal(QaUsb.QAnalyzer.CalData, aParams.MaxOutputLevel);
+			var adcCal = aControl.GetAdcCal(QaUsb.QAnalyzer.CalData, aParams.MaxInputLevel);
 
 			Int32 bufSize = leftOut.Length;          // Buffer size of user data. For example, 16384 means user will have 16K left and right double samples. 
 			int usbBufSize = (int)Math.Pow(2, 12);   // If bigger than 2^15, then OS USB code will chunk it down into 16K buffers (Windows). So, not much point making larger than 32K. 
@@ -197,8 +197,8 @@ namespace QA40xPlot.BareMetal
                 // Grab the buffer in flight
                 usbRxBuffer = QaUsb.ReadDataEnd();
 
-                // Throw an exception that will be caught by the calling task. The code below this block below won't be executed
-                ct.ThrowIfCancellationRequested();
+				// Throw an exception that will be caught by the calling task. The code below this block below won't be executed
+				ct.ThrowIfCancellationRequested();
             }
 
             // At this point, all buffers have been sent and there are two RX
@@ -239,24 +239,23 @@ namespace QA40xPlot.BareMetal
             if (leftData.Length != rightData.Length)
                 throw new InvalidOperationException("Data length must be the same");
 
-            byte[] buffer = new byte[leftData.Length * 8];  // 4 bytes for right, 4 bytes for left
+            int[] ili = new int[leftData.Length * 2];
 
-            byte[] lBuf = DoublesTo4Bytes(leftData);
-            byte[] rBuf = DoublesTo4Bytes(rightData);
+            int idx = 0;
+			foreach (var item in leftData)
+			{
+                ili[idx*2] = (int)(item * int.MaxValue);
+                idx++;
+			}
+            idx = 0;
+			foreach (var item in rightData)
+			{
+				ili[idx * 2 + 1] = (int)(item * int.MaxValue);
+                idx++;
+			}
 
-            for (int i = 0; i < leftData.Length; i++)
-            {
-                buffer[i * 8 + 0] = lBuf[i * 4 + 0];  // LSB out of the I2S
-                buffer[i * 8 + 1] = lBuf[i * 4 + 1];
-                buffer[i * 8 + 2] = lBuf[i * 4 + 2];
-                buffer[i * 8 + 3] = lBuf[i * 4 + 3];  // MSB out of the I2S
-
-                buffer[i * 8 + 4] = rBuf[i * 4 + 0];
-                buffer[i * 8 + 5] = rBuf[i * 4 + 1];
-                buffer[i * 8 + 6] = rBuf[i * 4 + 2];
-                buffer[i * 8 + 7] = rBuf[i * 4 + 3];
-            }
-
+			byte[] buffer = new byte[leftData.Length * 8];  // 4 bytes for right, 4 bytes for left
+            Buffer.BlockCopy(ili, 0, buffer, 0, buffer.Length); // convert ints to bytes
             return buffer;
         }
 
@@ -268,17 +267,14 @@ namespace QA40xPlot.BareMetal
         /// <param name="right"></param>
         static public void FromByteStream(byte[] buffer, out double[] left, out double[] right)
         {
-            left = new double[buffer.Length / 8];
+            int[] ili = new int[buffer.Length / sizeof(int)];
+            Buffer.BlockCopy(buffer, 0, ili, 0, buffer.Length);     // convert bytes to ints
+			left = new double[buffer.Length / 8];
             right = new double[buffer.Length / 8];
+            double ddiv = (double)int.MaxValue / 2;
 
-            for (int i = 0; i < buffer.Length; i += 8)
-            {
-                int val;
-                val = (buffer[i + 0] << 0) + (buffer[i + 1] << 8) + (buffer[i + 2] << 16) + (buffer[i + 3] << 24);
-                left[i / 8] = (double)val / (double)int.MaxValue / 2;
-                val = (buffer[i + 4] << 0) + (buffer[i + 5] << 8) + (buffer[i + 6] << 16) + (buffer[i + 7] << 24);
-                right[i / 8] = (double)val / (double)int.MaxValue / 2;
-            }
+            left = left.Select((x,index) => ili[index*2] / ddiv).ToArray();
+			right = right.Select((x, index) => ili[index*2+1] / ddiv).ToArray();
         }
 
 
