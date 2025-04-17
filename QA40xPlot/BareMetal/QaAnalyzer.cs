@@ -1,11 +1,8 @@
 
 using LibUsbDotNet;
 using LibUsbDotNet.Main;
-using QA40xPlot.BareMetal;
 using QA40xPlot.Libraries;
 using System.Diagnostics;
-using System.Text.Json.Serialization;
-using Windows.Storage.Streams;
 
 namespace QA40xPlot.BareMetal
 {
@@ -110,7 +107,7 @@ namespace QA40xPlot.BareMetal
 			int postBuf = 2048,
 			int fftSize = 16384,
 			OutputSources outputSource = OutputSources.Sine,
-			string windowType = "boxcar")
+			string windowType = "Hann")
 		{
 			// Attempt to open QA402 or QA403 device
 			Device = QaLowUsb.AttachDevice();

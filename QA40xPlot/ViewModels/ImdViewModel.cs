@@ -14,7 +14,6 @@ namespace QA40xPlot.ViewModels
 {
 	public class ImdViewModel : BaseViewModel
 	{
-		public static List<String> WindowingTypes { get => new List<string> { "Rectangle", "Hann", "FlatTop" }; }
 		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 		public static List<String> GenFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "2000", "5000", "10000" }; }
 		public static List<String> IntermodTypes { get => new List<string> { "Custom", "SMPTE (60Hz.7KHz 4:1)", "DIN (250Hz.8KHz 4:1",

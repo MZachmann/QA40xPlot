@@ -241,16 +241,17 @@ namespace QA40xPlot.BareMetal
 
             int[] ili = new int[leftData.Length * 2];
 
+            // left and right are flipped so,...
             int idx = 0;
 			foreach (var item in leftData)
 			{
-                ili[idx*2] = (int)(item * int.MaxValue);
+                ili[idx*2+1] = (int)(item * int.MaxValue);
                 idx++;
 			}
             idx = 0;
 			foreach (var item in rightData)
 			{
-				ili[idx * 2 + 1] = (int)(item * int.MaxValue);
+				ili[idx * 2] = (int)(item * int.MaxValue);
                 idx++;
 			}
 
@@ -273,8 +274,8 @@ namespace QA40xPlot.BareMetal
             right = new double[buffer.Length / 8];
             double ddiv = (double)int.MaxValue / 2;
 
-            left = left.Select((x,index) => ili[index*2] / ddiv).ToArray();
-			right = right.Select((x, index) => ili[index*2+1] / ddiv).ToArray();
+            left = left.Select((x,index) => ili[index*2+1] / ddiv).ToArray();
+			right = right.Select((x, index) => ili[index*2] / ddiv).ToArray();
         }
 
 

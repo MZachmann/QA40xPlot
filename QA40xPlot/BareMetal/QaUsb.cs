@@ -3,10 +3,7 @@ using LibUsbDotNet;
 using LibUsbDotNet.Main;
 using QA40xPlot.BareMetal;
 using QA40xPlot.Libraries;
-using System;
 using System.Diagnostics;
-using System.Numerics;
-using System.Windows.Interop;
 
 namespace QA40x_BareMetal
 {
@@ -69,7 +66,7 @@ namespace QA40x_BareMetal
 				double dt = 1.0 / (_qAnalyzer?.Params?.SampleRate ?? 1);
 				datapt = datapt.Select((x,index) => (QAnalyzer.GenParams.Voltage/Math.Sqrt(2)) * Math.Sin(2 * Math.PI * QAnalyzer.GenParams.Frequency * dt * index)).ToArray();
 			}
-			var lrfs = await DoAcquireUser(ct, datapt, true);
+			var lrfs = await DoAcquireUser(ct, datapt, datapt, true);
 			return lrfs;
 		}
 
@@ -90,10 +87,11 @@ namespace QA40x_BareMetal
         /// <param name="datapt"></param>
         /// <param name="getFreq"></param>
         /// <returns></returns>
-		public static async Task<LeftRightSeries> DoAcquireUser(CancellationToken ct, double[] datapt, bool getFreq)
+		public static async Task<LeftRightSeries> DoAcquireUser(CancellationToken ct, double[] dataLeft, double[] dataRight, bool getFreq)
 		{
 			LeftRightSeries lrfs = new LeftRightSeries();
-			var newData = await Acquisition.DoStreamingAsync(ct, datapt.ToArray(), datapt.ToArray());
+            var dpt = new double[dataLeft.Length];
+			var newData = await Acquisition.DoStreamingAsync(ct, dataLeft, dataRight);
 			if (ct.IsCancellationRequested || lrfs == null)
 				return lrfs ?? new();
 
@@ -113,7 +111,7 @@ namespace QA40x_BareMetal
 				var timeSeries = lrfs.TimeRslt;
 				var m2 = Math.Sqrt(2);
 				// Left channel
-				var window = new FftSharp.Windows.Hanning();
+				var window = QAnalyzer.Params.GetWindowType(QAnalyzer.Params.WindowType);
 				double[] windowed_measured = window.Apply(timeSeries.Left, true);
 				System.Numerics.Complex[] spectrum_measured = FFT.Forward(windowed_measured);
 
@@ -156,8 +154,8 @@ namespace QA40x_BareMetal
 				qan.SetSampleRate((int)sampleRate);
 				qan.SetInput(attenuation);
                 qan.SetOutput(18);
+                qan.Params.SetWindowing(Windowing);
 				qan.Params.FFTSize = (int)fftsize;
-                qan.Params.WindowType = Windowing;
 				return true;
 			}
 			catch (Exception ex)

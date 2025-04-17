@@ -14,7 +14,6 @@ namespace QA40xPlot.ViewModels
 {
 	public class ScopeViewModel : BaseViewModel
 	{
-		public static List<String> WindowingTypes { get => new List<string> { "Rectangle", "Hann", "FlatTop" }; }
 		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 		public static List<String> GenFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "2000", "5000", "10000" }; }
 		public static List<String> AbsoluteValues { get => new List<string> { "5", "2", "1", "0.5", "0.1", "0.05", "-0.05", "-0.1", "-0.5", "-1", "-2", "-5" }; }

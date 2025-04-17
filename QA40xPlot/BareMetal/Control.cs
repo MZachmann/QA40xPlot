@@ -37,6 +37,11 @@ namespace QA40xPlot.BareMetal
 			Thread.Sleep(100); // Small delay to ensure the sample rate is set
 		}
 
+		public void SetWindowing(string window)
+		{
+			_analyzer.Params?.SetWindowing(window);
+		}
+
 		public byte[] LoadCalibration()
 		{
 			QaUsb.WriteRegister(0xD, 0x10);
