@@ -108,19 +108,17 @@ namespace QA40xPlot.BareMetal
 			var dacCal = aControl.GetDacCal(QaUsb.QAnalyzer.CalData, aParams.MaxOutputLevel);
 			var adcCal = aControl.GetAdcCal(QaUsb.QAnalyzer.CalData, aParams.MaxInputLevel);
 
-			Int32 bufSize = leftOut.Length;          // Buffer size of user data. For example, 16384 means user will have 16K left and right double samples. 
-			int usbBufSize = (int)Math.Pow(2, 12);   // If bigger than 2^15, then OS USB code will chunk it down into 16K buffers (Windows). So, not much point making larger than 32K. 
+			int usbBufSize = (int)Math.Pow(2, 14);   // If bigger than 2^15, then OS USB code will chunk it down into 16K buffers (Windows). So, not much point making larger than 32K. 
 
 			// The scale factor converts the volts to dBFS. The max output is 8Vrms = 11.28Vp = 0 dBFS. 
 			// The above calcs assume DAC relays set to 18 dBV = 8Vrms full scale
-			double scaleFactor = 1.0 / (8.0 * Math.Sqrt(2));
             var dbfsAdjustment = Math.Pow(10, -((aParams.MaxOutputLevel + 3.0) / 20));
 			leftOut = leftOut.Select(x => x * dbfsAdjustment * dacCal.Left).ToArray();
             rightOut = rightOut.Select(x => x * dbfsAdjustment * dacCal.Right).ToArray();
 
 			// now pad front and back of the values via prebuf and postbuf 
-			double[] prebuf = new double[aParams.PreBuffer];
-			double[] postbuf = new double[aParams.PostBuffer];
+			double[] prebuf = new double[Math.Max(aParams.PreBuffer, usbBufSize/2)];
+			double[] postbuf = new double[Math.Max(aParams.PostBuffer, usbBufSize/2)];
 			var lout = new List<double>(leftOut);
 			var rout = new List<double>(rightOut);
 			lout.InsertRange(0, prebuf);
@@ -151,25 +149,28 @@ namespace QA40xPlot.BareMetal
             // RUN led
             QaUsb.WriteRegister(8, 0x5);
 
-            // Big buffer to hold received blocks. These will be copied as received into the larger rxData buffer
-            byte[] usbRxBuffer;
+            // list of rx blocks
+            List<byte[]> usbRxBuffers = new List<byte[]>();
 
-            // Prime the pump with two reads. This way we can handle one buffer while the other is being
-            // used by the OS
-            QaUsb.ReadDataBegin(usbBufSize);
-            QaUsb.ReadDataBegin(usbBufSize);
-
-            // Send out two data writes as we begin working our way through the txData buffer
+			// Prime the pump with two reads. This way we can handle one buffer while the other is being
+			// used by the OS
+			// Send out two data writes as we begin working our way through the txData buffer
+            // do these as close together as possible...
+			QaUsb.ReadDataBegin(usbBufSize);
             QaUsb.WriteDataBegin(txData, 0, usbBufSize);
-            QaUsb.WriteDataBegin(txData, usbBufSize, usbBufSize);
 
-            // Loop and send/receive the remaining blocks. Everytime we get some RX data, we'll send another block of 
-            // TX data. This is how we maintain timing with the hardware. 
-            for (int i = 2; i < blocks; i++)
+			QaUsb.ReadDataBegin(usbBufSize);
+			QaUsb.ReadDataBegin(usbBufSize);
+			QaUsb.WriteDataBegin(txData, usbBufSize, usbBufSize);
+			QaUsb.WriteDataBegin(txData, usbBufSize * 2, usbBufSize);
+
+			// Loop and send/receive the remaining blocks. Everytime we get some RX data, we'll send another block of 
+			// TX data. This is how we maintain timing with the hardware. 
+			for (int i = 3; i < blocks; i++)
             {
-                // Wait for RX data to arrive
-                usbRxBuffer = QaUsb.ReadDataEnd();
-                Array.Copy(usbRxBuffer, 0, rxData, (i - 2) * usbBufSize, usbBufSize);
+                // Wait for RX data to arrive then, for speed, just append the array to our list of receipts
+                var bufr = QaUsb.ReadDataEnd();
+                usbRxBuffers.Add(bufr);
 
                 if (ct.IsCancellationRequested == false)
                 {
@@ -185,43 +186,45 @@ namespace QA40xPlot.BareMetal
                 }
             }
 
-            // Check if the user wanted to cancel
-            if (ct.IsCancellationRequested)
-            {
-                // Here the user has requested cancellation. We know there's a single buffer in flight.
-                r.Valid = false;
-
-                // Stop streaming
-                QaUsb.WriteRegister(8, 0);
-
-                // Grab the buffer in flight
-                usbRxBuffer = QaUsb.ReadDataEnd();
-
-				// Throw an exception that will be caught by the calling task. The code below this block below won't be executed
-				ct.ThrowIfCancellationRequested();
-            }
-
             // At this point, all buffers have been sent and there are two RX
             // buffers in-flight. Collect those
             for (int i = 0; i < 2; i++)
             {
-                usbRxBuffer = QaUsb.ReadDataEnd();
-                Array.Copy(usbRxBuffer, 0, rxData, (blocks - 2 - i) * usbBufSize, usbBufSize);
+                var bufr = QaUsb.ReadDataEnd();
+                usbRxBuffers.Add(bufr);
             }
 
-            // Stop streaming. This also extinguishes the RUN led
-            QaUsb.WriteRegister(8, 0);
+			// Stop streaming. This also extinguishes the RUN led
+			QaUsb.WriteRegister(8, 0);
 
-            // Note that left and right data is swapped on QA402, QA403, QA404. We do that via arg ordering below.
-            FromByteStream(rxData, out r.Right, out r.Left);
+			// we now have a list of all the rx buffers to convert to an array
+            // use fixed size so that frombytestream and others work ok
+			rxData = new byte[usbBufSize * usbRxBuffers.Count()];
+			int offset = 0;
+			foreach (var b in usbRxBuffers)
+			{
+				Buffer.BlockCopy(b, 0, rxData, offset, b.Length);
+				offset += b.Length;
+			}
+            usbRxBuffers.Clear();
+
+			// Note that left and right data is swapped on QA402, QA403, QA404. We do that via arg ordering below.
+			FromByteStream(rxData, out r.Right, out r.Left);
 
             var adcCorrection = Math.Pow(10, (aParams.MaxInputLevel - 6.0) / 20);
-            var tbytes = r.Left.Length - aParams.PreBuffer - aParams.PostBuffer;    // should be fftsize
+            var tused = aParams.FFTSize;    // should be fftsize
 
-			// Apply scaling scaling factor to map from dBFS to Volts. This is emperically determined for the QA402, but should
-			// be fairly tight on unit to unit as 5.371 ?
-			r.Left = r.Left.Skip(aParams.PreBuffer).Take(tbytes).Select(x => x * adcCal.Left * adcCorrection).ToArray();
-            r.Right = r.Right.Skip(aParams.PreBuffer).Take(tbytes).Select(x => x * adcCal.Right * adcCorrection).ToArray();
+            // Apply scaling scaling factor to map from dBFS to Volts. This is emperically determined for the QA402, but should
+            // be fairly tight on unit to unit as 5.371 ?
+            var loff = 0;
+
+            var rlf = r.Left.Skip(prebuf.Length + loff).Take(tused);
+            var roff = rlf.Sum() / rlf.Count();  // dc offset
+			r.Left = rlf.Select(x => (x - roff) * adcCal.Left * adcCorrection).ToArray();
+
+            var rrf = r.Right.Skip(prebuf.Length + loff).Take(tused);
+            roff = rrf.Sum() / rlf.Count();  // dc offset
+            r.Right = rrf.Select(x => (x - roff) * adcCal.Right * adcCorrection).ToArray();
 
 			Debug.WriteLine($"Peak Left: {r.Left.Max():0.000}   Peak right: {r.Right.Max():0.000}");
 
@@ -242,17 +245,10 @@ namespace QA40xPlot.BareMetal
             int[] ili = new int[leftData.Length * 2];
 
             // left and right are flipped so,...
-            int idx = 0;
-			foreach (var item in leftData)
-			{
-                ili[idx*2+1] = (int)(item * int.MaxValue);
-                idx++;
-			}
-            idx = 0;
-			foreach (var item in rightData)
-			{
-				ili[idx * 2] = (int)(item * int.MaxValue);
-                idx++;
+            for(int i=0; i<leftData.Length; i++)
+            {
+                ili[i * 2 + 1] = (int)(leftData[i] * int.MaxValue);
+				ili[i * 2] = (int)(rightData[i] * int.MaxValue);
 			}
 
 			byte[] buffer = new byte[leftData.Length * 8];  // 4 bytes for right, 4 bytes for left
@@ -273,32 +269,11 @@ namespace QA40xPlot.BareMetal
 			left = new double[buffer.Length / 8];
             right = new double[buffer.Length / 8];
             double ddiv = (double)int.MaxValue / 2;
-
-            left = left.Select((x,index) => ili[index*2+1] / ddiv).ToArray();
-			right = right.Select((x, index) => ili[index*2] / ddiv).ToArray();
-        }
-
-
-        /// <summary>
-        /// converts an array of doubles into an array of bytes
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        static byte[] DoublesTo4Bytes(double[] data)
-        {
-            byte[] buffer = new byte[data.Length * 4];
-
-            for (int i = 0; i < data.Length; i++)
+            for (int j = 0; j < left.Length; j++)
             {
-                int val = (int)(data[i] * int.MaxValue);
-
-                buffer[i * 4 + 3] = (byte)(val >> 24);
-                buffer[i * 4 + 2] = (byte)(val >> 16);
-                buffer[i * 4 + 1] = (byte)(val >> 8);
-                buffer[i * 4 + 0] = (byte)(val >> 0);
-            }
-
-            return buffer;
-        }
+                left[j] = ili[j * 2 + 1] / ddiv;
+                right[j] = ili[j * 2] / ddiv;
+			}
+		}
     }
 }

@@ -1,4 +1,5 @@
-﻿using QA40xPlot.Data;
+﻿using QA40x_BareMetal;
+using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using ScottPlot;
@@ -104,7 +105,7 @@ namespace QA40xPlot.Actions
 			// ********************************************************************  
 			// Load a settings we want
 			// ********************************************************************  
-			if (true != await QaLibrary.InitializeDevice(sampleRate, fftsize, msr.MeasurementSettings.WindowingMethod, (int)msr.MeasurementSettings.Attenuation, msr.FrequencySteps.Count == 0))
+			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, msr.MeasurementSettings.WindowingMethod, (int)msr.MeasurementSettings.Attenuation, msr.FrequencySteps.Count == 0))
 				return false;
 
 			try
@@ -128,9 +129,8 @@ namespace QA40xPlot.Actions
 					// Do noise floor measurement with source off
 					// ********************************************************************
 					await showMessage($"Determining noise floor.");
-					await Qa40x.SetOutputSource(OutputSources.Off);
-					await Qa40x.DoAcquisition();    // do a single acquisition for settling
-					msr.NoiseFloor = await QaLibrary.DoAcquisitions(thd.Averages, ct);
+					QaUsb.SetOutputSource(OutputSources.Off);
+					msr.NoiseFloor = await QaUsb.DoAcquisitions(thd.Averages, ct);
 					if (ct.IsCancellationRequested)
 
 						return false;
@@ -183,12 +183,12 @@ namespace QA40xPlot.Actions
 						else
 							gwho = [gw2];
 						var wave = QAMath.CalculateWaveform(gwho, gws);
-						lrfs = await QaLibrary.DoAcquireUser(ct, wave.ToArray(), true);
+						lrfs = await QaUsb.DoAcquireUser(ct, wave.ToArray(), wave.ToArray(), true);
 					}
 					else
 					{
-						await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make the averages reset
-						lrfs = await QaLibrary.DoAcquisitions(1, ct, true, true);
+						QaUsb.SetOutputSource(OutputSources.Off);            // We need to call this to make the averages reset
+						lrfs = await QaUsb.DoAcquisitions(1, ct);
 					}
 					if (lrfs == null)
 						break;
@@ -210,10 +210,10 @@ namespace QA40xPlot.Actions
 
 					// Calculate the THD
 					{
-						var maxf = 20000;   // the app seems to use 20,000 so not sampleRate/ 2.0;
-						var snrdb = await Qa40x.GetSnrDb(stepBinFrequencies[0], 20.0, maxf);
-						var thds = await Qa40x.GetThdDb(stepBinFrequencies[0], maxf);
-						var thdN = await Qa40x.GetThdnDb(stepBinFrequencies[0], 20.0, maxf);
+						//!!! var maxf = 20000;   // the app seems to use 20,000 so not sampleRate/ 2.0;
+						LeftRightPair snrdb = new(-10, -10); //!!!await Qa40x.GetSnrDb(stepBinFrequencies[0], 20.0, maxf);
+						LeftRightPair thds = new(-10, -10); //!!!await Qa40x.GetThdDb(stepBinFrequencies[0], maxf);
+						LeftRightPair thdN = new(-10, -10); //!!!await Qa40x.GetThdnDb(stepBinFrequencies[0], 20.0, maxf);
 
 						step.Left.Thd_dBN = thdN.Left;
 						step.Right.Thd_dBN = thdN.Right;
@@ -635,7 +635,7 @@ namespace QA40xPlot.Actions
 			}
 
 			// Turn the generator off since we leave it on during testing
-			await Qa40x.SetOutputSource(OutputSources.Off);
+			QaUsb.SetOutputSource(OutputSources.Off);
 
 			scopeVm.IsRunning = false;
 			await showMessage("");

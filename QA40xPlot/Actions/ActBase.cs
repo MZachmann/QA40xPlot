@@ -67,17 +67,17 @@ namespace QA40xPlot.Actions
 			// initialize very quick run
 			var fftsize = FftActualSizes[0];
 			var sampleRate = MathUtil.ToUint(SampleRates[0]);
-			if (true != await QaLibrary.InitializeDevice(sampleRate, fftsize, "Hann", QaLibrary.DEVICE_MAX_ATTENUATION, inits))
+			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, "Hann", QaLibrary.DEVICE_MAX_ATTENUATION, inits))
 				return null;
 
 			// the simplest thing here is to do a chirp at a low value...
 			var generatorV = 0.01;          // random low test value
 			var generatordBV = 20 * Math.Log10(generatorV); // or -40
-			await Qa40x.SetGen1(dfreq, generatordBV, true);             // send a sine wave
-			await Qa40x.SetOutputSource(OutputSources.Sine);            // since we're single frequency
+			QaUsb.SetGen1(dfreq, generatordBV, true);             // send a sine wave
+			QaUsb.SetOutputSource(OutputSources.Sine);            // since we're single frequency
 			var ct = new CancellationTokenSource();
 			// do two and average them
-			LeftRightSeries acqData = await QaLibrary.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
+			LeftRightSeries acqData = await QaUsb.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
 			if (acqData == null || acqData.FreqRslt == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
 				return null;
 
@@ -96,7 +96,7 @@ namespace QA40xPlot.Actions
 				// get some more accuracy with this
 				await Qa40x.SetInputRange(18);
 				// do two and average them
-				acqData = await QaLibrary.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
+				acqData = await QaUsb.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
 				if (acqData == null || acqData.FreqRslt == null || ct.IsCancellationRequested)
 					return null;
 			}
@@ -110,7 +110,7 @@ namespace QA40xPlot.Actions
 			// if we're asking for averaging
 			for (int j = 1; j < average; j++)
 			{
-				acqData = await QaLibrary.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
+				acqData = await QaUsb.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
 				if (acqData == null || acqData.FreqRslt == null || ct.IsCancellationRequested)
 					return null;
 
@@ -132,7 +132,7 @@ namespace QA40xPlot.Actions
 			// initialize very quick run
 			var fftsize = FftActualSizes[0];
 			var sampleRate = MathUtil.ToUint(SampleRates[0]);
-			if (true != await QaLibrary.InitializeDevice(sampleRate, fftsize, "Hann", QaLibrary.DEVICE_MAX_ATTENUATION, inits))
+			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, "Hann", QaLibrary.DEVICE_MAX_ATTENUATION, inits))
 				return null;
 
 			{
@@ -158,7 +158,7 @@ namespace QA40xPlot.Actions
 					// get some more accuracy with this
 					await Qa40x.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION - 24);
 					// do two and average them
-					acqData = await QaLibrary.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
+					acqData = await QaUsb.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
 					if (acqData == null || acqData.FreqRslt == null || ct.IsCancellationRequested)
 						return null;
 				}
@@ -171,7 +171,7 @@ namespace QA40xPlot.Actions
 				//
 				for(int j=1; j<average; j++)
 				{
-					acqData = await QaLibrary.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
+					acqData = await QaUsb.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
 					if (acqData == null || acqData.FreqRslt == null || ct.IsCancellationRequested)
 						return null;
 

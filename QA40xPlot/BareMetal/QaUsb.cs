@@ -111,17 +111,18 @@ namespace QA40x_BareMetal
 				var timeSeries = lrfs.TimeRslt;
 				var m2 = Math.Sqrt(2);
 				// Left channel
+                // only take half of the data since it's symmetric so length of freq data = 1/2 length of time data
 				var window = QAnalyzer.Params.GetWindowType(QAnalyzer.Params.WindowType);
 				double[] windowed_measured = window.Apply(timeSeries.Left, true);
-				System.Numerics.Complex[] spectrum_measured = FFT.Forward(windowed_measured);
+				System.Numerics.Complex[] spectrum_measured = FFT.Forward(windowed_measured).Take(timeSeries.Left.Length/2).ToArray();
 
 				double[] windowed_ref = window.Apply(timeSeries.Right, true);
-				System.Numerics.Complex[] spectrum_ref = FFT.Forward(windowed_ref);
+				System.Numerics.Complex[] spectrum_ref = FFT.Forward(windowed_ref).Take(timeSeries.Left.Length / 2).ToArray();
 
 				lrfs.FreqRslt.Left = spectrum_measured.Select(x => x.Magnitude * m2).ToArray();
 				lrfs.FreqRslt.Right = spectrum_ref.Select(x => x.Magnitude * m2).ToArray();
 				var nca2 = (int)(0.01 + 1 / lrfs.TimeRslt.dt);      // total time in tics = sample rate
-				lrfs.FreqRslt.Df = nca2 / (double)spectrum_measured.Length; // ???
+				lrfs.FreqRslt.Df = nca2 / (double)timeSeries.Left.Length; // ???
 			}
 
 			return lrfs;        // Only one measurement
@@ -148,6 +149,10 @@ namespace QA40x_BareMetal
 					Open();
                 }
 				var qan = _qAnalyzer;
+				if (setdefault && qan != null)
+                {
+                    qan?.DataReader?.Reset();
+                }
 				if (qan == null || qan.Params == null)
 					return false;
 
