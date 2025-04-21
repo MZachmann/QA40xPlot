@@ -1,4 +1,5 @@
-﻿using QA40xPlot.Data;
+﻿using QA40x_BareMetal;
+using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using ScottPlot;
@@ -189,9 +190,9 @@ namespace QA40xPlot.Actions
 				return false;
 			}
 			var fftsize = msrImd.FftSizeVal;
-			if (true != await QaLibrary.InitializeDevice(sampleRate, fftsize, msrImd.WindowingMethod, (int)msrImd.Attenuation, msr.FrequencySteps.Count == 0))
+			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, msrImd.WindowingMethod, (int)msrImd.Attenuation, msr.FrequencySteps.Count == 0))
 				return false;
-			await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make it turn on or off
+			QaUsb.SetOutputSource(OutputSources.Off);            // We need to call this to make it turn on or off
 
 			try
 			{
@@ -214,9 +215,8 @@ namespace QA40xPlot.Actions
 					// Do noise floor measurement with source off
 					// ********************************************************************
 					await showMessage($"Determining noise floor.");
-					await Qa40x.SetOutputSource(OutputSources.Off);
-					await Qa40x.DoAcquisition();    // do a single acquisition for settling
-					msr.NoiseFloor = await QaLibrary.DoAcquisitions(msrImd.Averages, ct);
+					QaUsb.SetOutputSource(OutputSources.Off);
+					msr.NoiseFloor = await QaUsb.DoAcquisitions(msrImd.Averages, ct);
 					if (ct.IsCancellationRequested)
 
 						return false;
@@ -240,19 +240,19 @@ namespace QA40xPlot.Actions
 					await showProgress(0);
 
                     // Set the generators
-                    await Qa40x.SetGen1(stepBinFrequencies[0], amplitudeSetpoint1dBV, msrImd.UseGenerator);
-					await Qa40x.SetGen2(stepBinFrequencies[1], amplitudeSetpoint2dBV, msrImd.UseGenerator2);
+                    QaUsb.SetGen1(stepBinFrequencies[0], amplitudeSetpoint1dBV, msrImd.UseGenerator);
+					//!!!await Qa40x.SetGen2(stepBinFrequencies[1], amplitudeSetpoint2dBV, msrImd.UseGenerator2);
 					// for the first go around, turn on the generator
 					if ( msrImd.UseGenerator || msrImd.UseGenerator2)
                     {
-						await Qa40x.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
+						QaUsb.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
 					}
 					else
 					{
-						await Qa40x.SetOutputSource(OutputSources.Off);            // We need to call this to make the averages reset
+						QaUsb.SetOutputSource(OutputSources.Off);            // We need to call this to make the averages reset
 					}
 
-					LeftRightSeries lrfs = await QaLibrary.DoAcquisitions(msrImd.Averages, ct);
+					LeftRightSeries lrfs = await QaUsb.DoAcquisitions(msrImd.Averages, ct);
                     if (ct.IsCancellationRequested || lrfs.FreqRslt?.Left == null)
                         break;
 
@@ -738,7 +738,7 @@ namespace QA40xPlot.Actions
 		public async void StartMeasurement()
         {
 			var imdVm = MyVModel;
-			if (!await StartAction(imdVm))
+			if (!StartAction(imdVm))
 				return; 
             ct = new();
 
@@ -819,7 +819,7 @@ namespace QA40xPlot.Actions
 				}
 			}
 			// Turn the generator off since we leave it on during the loop for settling
-			await Qa40x.SetOutputSource(OutputSources.Off);
+			QaUsb.SetOutputSource(OutputSources.Off);
 
 			imdVm.IsRunning = false;
 			await showMessage("");

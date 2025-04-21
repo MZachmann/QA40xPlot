@@ -5,33 +5,33 @@ namespace QA40xPlot.BareMetal
 {
 	public class Control
 	{
-		private readonly QaAnalyzer _analyzer;
-		private readonly Dictionary<int, int> _output2reg = new() { { 18, 3 }, { 8, 2 }, { -2, 1 }, { -12, 0 } };
-		private readonly Dictionary<int, int> _input2reg = new() { { 0, 0 }, { 6, 1 }, { 12, 2 }, { 18, 3 }, { 24, 4 }, { 30, 5 }, { 36, 6 }, { 42, 7 } };
-		private readonly Dictionary<int, int> _samplerate2reg = new() { { 48000, 0 }, { 96000, 1 }, { 192000, 2 } };
+		private readonly QaAnalyzer _Analyzer;
+		private readonly Dictionary<int, int> _Output2Reg = new() { { 18, 3 }, { 8, 2 }, { -2, 1 }, { -12, 0 } };
+		private readonly Dictionary<int, int> _Input2Reg = new() { { 0, 0 }, { 6, 1 }, { 12, 2 }, { 18, 3 }, { 24, 4 }, { 30, 5 }, { 36, 6 }, { 42, 7 } };
+		private readonly Dictionary<int, int> _Samplerate2Reg = new() { { 48000, 0 }, { 96000, 1 }, { 192000, 2 } };
 
 		public Control(QaAnalyzer analyzer)
 		{
-			_analyzer = analyzer;
+			_Analyzer = analyzer;
 		}
 
 		public void SetOutput(int gain)
 		{
-			if (!_output2reg.TryGetValue(gain, out int val))
+			if (!_Output2Reg.TryGetValue(gain, out int val))
 				throw new ArgumentException("Invalid output gain value.");
 			QaUsb.WriteRegister(6, (byte)val);
 		}
 
 		public void SetInput(int gain)
 		{
-			if (!_input2reg.TryGetValue(gain, out int val))
+			if (!_Input2Reg.TryGetValue(gain, out int val))
 				throw new ArgumentException("Invalid input gain value.");
 			QaUsb.WriteRegister(5, (byte)val);
 		}
 
 		public void SetSampleRate(int rate)
 		{
-			if (!_samplerate2reg.TryGetValue(rate, out int val))
+			if (!_Samplerate2Reg.TryGetValue(rate, out int val))
 				throw new ArgumentException("Invalid sample rate value.");
 			QaUsb.WriteRegister(9, (byte)val);
 			Thread.Sleep(100); // Small delay to ensure the sample rate is set
@@ -39,9 +39,13 @@ namespace QA40xPlot.BareMetal
 
 		public void SetWindowing(string window)
 		{
-			_analyzer.Params?.SetWindowing(window);
+			_Analyzer.Params?.SetWindowing(window);
 		}
 
+		/// <summary>
+		/// read the calibration data from the device
+		/// </summary>
+		/// <returns>a list of calibration values in dB</returns>
 		public byte[] LoadCalibration()
 		{
 			QaUsb.WriteRegister(0xD, 0x10);
@@ -58,7 +62,14 @@ namespace QA40xPlot.BareMetal
 			return calData;
 		}
 
-		public (double Left, double Right) GetAdcCal(byte[] calData, int fullScaleInputLevel)
+		/// <summary>
+		/// get ADC calibration data for a given full scale input setting
+		/// </summary>
+		/// <param name="calData">calibration data</param>
+		/// <param name="fullScaleInputLevel">the full scale input setting</param>
+		/// <returns>(left,right) multipliers</returns>
+		/// <exception cref="ArgumentException"></exception>
+		public static (double Left, double Right) GetAdcCal(byte[] calData, int fullScaleInputLevel)
 		{
 			var offsets = new Dictionary<int, int>
 			{
@@ -79,7 +90,14 @@ namespace QA40xPlot.BareMetal
 			return (leftValue, rightValue);
 		}
 
-		public (double Left, double Right) GetDacCal(byte[] calData, int fullScaleOutputLevel)
+		/// <summary>
+		/// get ADC calibration data for a given full scale output setting
+		/// </summary>
+		/// <param name="calData">the calibration data</param>
+		/// <param name="fullScaleOutputLevel">the current full scale output level</param>
+		/// <returns>(left,right) multipliers</returns>
+		/// <exception cref="ArgumentException"></exception>
+		public static (double Left, double Right) GetDacCal(byte[] calData, int fullScaleOutputLevel)
 		{
 			var offsets = new Dictionary<int, int>
 			{

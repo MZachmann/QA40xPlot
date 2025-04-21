@@ -66,14 +66,9 @@ namespace QA40x_BareMetal
 				double dt = 1.0 / (_qAnalyzer?.Params?.SampleRate ?? 1);
 				datapt = datapt.Select((x,index) => (QAnalyzer.GenParams.Voltage/Math.Sqrt(2)) * Math.Sin(2 * Math.PI * QAnalyzer.GenParams.Frequency * dt * index)).ToArray();
 			}
-			var lrfs = await DoAcquireUser(ct, datapt, datapt, true);
+			var lrfs = await DoAcquireUser(averages, ct, datapt, datapt, true);
 			return lrfs;
 		}
-
-        public static bool CheckDeviceConnected()
-        {
-            return true;
-        }
 
         public static void SetGen1(double freq, double volts, bool ison)
         {
@@ -87,24 +82,44 @@ namespace QA40x_BareMetal
         /// <param name="datapt"></param>
         /// <param name="getFreq"></param>
         /// <returns></returns>
-		public static async Task<LeftRightSeries> DoAcquireUser(CancellationToken ct, double[] dataLeft, double[] dataRight, bool getFreq)
+		public static async Task<LeftRightSeries> DoAcquireUser(uint averages, CancellationToken ct, double[] dataLeft, double[] dataRight, bool getFreq)
 		{
 			LeftRightSeries lrfs = new LeftRightSeries();
             var dpt = new double[dataLeft.Length];
-			var newData = await Acquisition.DoStreamingAsync(ct, dataLeft, dataRight);
-			if (ct.IsCancellationRequested || lrfs == null)
-				return lrfs ?? new();
+			List<AcqResult> runList = new List<AcqResult>();
+			for (int rrun = 0; rrun < averages; rrun++)
+            {
+				var newData = await Acquisition.DoStreamingAsync(ct, dataLeft, dataRight);
+				if (ct.IsCancellationRequested || lrfs == null || newData.Valid == false)
+					return lrfs ?? new();
+                runList.Add(newData);
+			}
 
 			{
                 lrfs.TimeRslt = new();
-                lrfs.TimeRslt.Left = newData.Left;
-				lrfs.TimeRslt.Right = newData.Right;
-                lrfs.TimeRslt.dt = 1.0 / (_qAnalyzer?.Params?.SampleRate ?? 1);
-				if (ct.IsCancellationRequested)
-					return lrfs;
+                if (runList.Count == 1)
+                {
+                    lrfs.TimeRslt.Left = runList.First().Left;
+                    lrfs.TimeRslt.Right = runList.First().Right;
+                }
+                else
+                {
+					var left = runList.First().Left;
+					var right = runList.First().Right;
+                    for(int i=1; i<runList.Count; i++)
+					{
+						left = left.Zip(runList[i].Left, (x, y) => x + y).ToArray();
+						right = right.Zip(runList[i].Right, (x, y) => x + y).ToArray();
+					}
+                    lrfs.TimeRslt.Left = left.Select(x => x / runList.Count).ToArray();
+                    lrfs.TimeRslt.Right = right.Select(x => x / runList.Count).ToArray();
+				}
+				lrfs.TimeRslt.dt = 1.0 / (_qAnalyzer?.Params?.SampleRate ?? 1);
 			}
+			if (ct.IsCancellationRequested)
+				return lrfs;
 
-			if (getFreq)
+			if (getFreq && QAnalyzer?.Params != null)
 			{
                 lrfs.FreqRslt = new(); // fft
 

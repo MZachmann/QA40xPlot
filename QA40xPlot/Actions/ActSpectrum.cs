@@ -694,7 +694,7 @@ namespace QA40xPlot.Actions
         {
 			//await TestUsbLib.Test();
 			var specVm = MyVModel;
-			if (!await StartAction(specVm))
+			if (!StartAction(specVm))
 				return;
 
 			ct = new();

@@ -1,4 +1,5 @@
-﻿using QA40xPlot.Data;
+﻿using QA40x_BareMetal;
+using QA40xPlot.Data;
 
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
@@ -190,7 +191,7 @@ namespace QA40xPlot.Actions
 
             }
 			// Turn the generator off no matter what, since there are random returns in the perform code
-			await Qa40x.SetOutputSource(OutputSources.Off);
+			QaUsb.SetOutputSource(OutputSources.Off);
 			return rslt;
 		}
 
@@ -266,7 +267,7 @@ namespace QA40xPlot.Actions
 				// ********************************************************************  
 				// Load a settings we want since we're done autoscaling
 				// ********************************************************************  
-				if (true != await QaLibrary.InitializeDevice(msr.SampleRateVal, msr.FftSizeVal, msr.WindowingMethod, attenuation,
+				if (true != QaUsb.InitializeDevice(msr.SampleRateVal, msr.FftSizeVal, msr.WindowingMethod, attenuation,
 							MeasurementResult.FrequencySteps.Count == 0))
 					return false;
 				
@@ -274,16 +275,15 @@ namespace QA40xPlot.Actions
 				// Do noise floor measurement
 				// ********************************************************************
 				await showMessage($"Determining noise floor.");
-                await Qa40x.SetOutputSource(OutputSources.Off);
-                await Qa40x.DoAcquisition();    // do a single acquisition for settling
-                MeasurementResult.NoiseFloor = await QaLibrary.DoAcquisitions(msr.Averages, ct);
+                QaUsb.SetOutputSource(OutputSources.Off);
+                MeasurementResult.NoiseFloor = await QaUsb.DoAcquisitions(msr.Averages, ct);
                 if (ct.IsCancellationRequested)
                     return false;
 
 				// Set the generator
 				double amplitudeSetpointdBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-				await Qa40x.SetGen1(stepBinFrequencies[0], amplitudeSetpointdBV, true);
-				await Qa40x.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
+				QaUsb.SetGen1(stepBinFrequencies[0], amplitudeSetpointdBV, true);
+				QaUsb.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
 
 				// ********************************************************************
 				// Step through the list of frequencies
@@ -293,9 +293,9 @@ namespace QA40xPlot.Actions
                     var freqy = stepBinFrequencies[f];
                     await showMessage($"Measuring {freqy:0.#} Hz at {genVolt:G3} V.");
                     await showProgress(100 * (f + 1) / stepBinFrequencies.Length);
-                    await Qa40x.SetGen1(freqy, amplitudeSetpointdBV, true);
+                    QaUsb.SetGen1(freqy, amplitudeSetpointdBV, true);
 
-                    LeftRightSeries lrfs = await QaLibrary.DoAcquisitions(msr.Averages, ct);
+                    LeftRightSeries lrfs = await QaUsb.DoAcquisitions(msr.Averages, ct);
                     if (ct.IsCancellationRequested)
                         break;
 
@@ -339,7 +339,7 @@ namespace QA40xPlot.Actions
             }
 
             // Turn the generator off
-            await Qa40x.SetOutputSource(OutputSources.Off);
+            QaUsb.SetOutputSource(OutputSources.Off);
 
             // Show message
             await showMessage(ct.IsCancellationRequested ? $"Measurement cancelled!" : $"Measurement finished!");
@@ -626,7 +626,7 @@ namespace QA40xPlot.Actions
         public async void StartMeasurement()
         {
             ThdFreqViewModel thd = MyVModel;
-			if (!await StartAction(thd))
+			if (!StartAction(thd))
 				return; 
 			ct = new();
             await PerformMeasurementSteps(ct.Token);

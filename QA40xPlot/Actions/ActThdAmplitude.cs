@@ -1,4 +1,5 @@
-﻿using QA40xPlot.Data;
+﻿using QA40x_BareMetal;
+using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using ScottPlot;
@@ -263,12 +264,12 @@ namespace QA40xPlot.Actions
 			// ********************************************************************
 			// Do noise floor measurement
 			// ********************************************************************
-			if (true != await QaLibrary.InitializeDevice(msr.SampleRateVal, msr.FftSizeVal, msr.WindowingMethod, 12, false))
+			if (true != QaUsb.InitializeDevice(msr.SampleRateVal, msr.FftSizeVal, msr.WindowingMethod, 12, false))
 			{
 				return false;
 			}
 			await showMessage($"Determining noise floor.");
-			await Qa40x.SetOutputSource(OutputSources.Off);
+			QaUsb.SetOutputSource(OutputSources.Off);
 			MeasurementResult.NoiseFloor = await QaLibrary.DoAcquisitions(msr.Averages, ct);
 			if (ct.IsCancellationRequested || MeasurementResult.NoiseFloor == null)
 				return false;
@@ -277,7 +278,7 @@ namespace QA40xPlot.Actions
 
 			var binSize = QaLibrary.CalcBinSize(msr.SampleRateVal, msr.FftSizeVal);
 			uint fundamentalBin = QaLibrary.GetBinOfFrequency(testFrequency, binSize);
-			await Qa40x.SetOutputSource(OutputSources.Sine);                // We need to call this before all the testing
+			QaUsb.SetOutputSource(OutputSources.Sine);                // We need to call this before all the testing
 
 			// ********************************************************************
 			// Step through the list of voltages
@@ -296,7 +297,7 @@ namespace QA40xPlot.Actions
 				var generatorVoltagedBV = QaLibrary.ConvertVoltage(generatorVoltageV, E_VoltageUnit.Volt, E_VoltageUnit.dBV);   // Convert to dBV
 
 				// Set generator
-				await Qa40x.SetGen1(testFrequency, generatorVoltagedBV, true);      // Set the generator in dBV
+				QaUsb.SetGen1(testFrequency, generatorVoltagedBV, true);      // Set the generator in dBV
 				await Qa40x.SetInputRange(attenuate);
 				thdaVm.Attenuation = attenuate;	// update the GUI
 
@@ -305,8 +306,7 @@ namespace QA40xPlot.Actions
 				{
 					try
 					{
-						await QaLibrary.DoAcquisitions(1, ct);  // this just lets it settle...
-						lrfs = await QaLibrary.DoAcquisitions(msr.Averages, ct);  // Do acquisitions
+						lrfs = await QaUsb.DoAcquisitions(msr.Averages, ct);  // Do acquisitions
 					}
 					catch (HttpRequestException ex)
 					{
@@ -381,7 +381,7 @@ namespace QA40xPlot.Actions
 			}
 
 			// Turn the generator off
-			await Qa40x.SetOutputSource(OutputSources.Off);
+			QaUsb.SetOutputSource(OutputSources.Off);
 
 			// Show message
 			await showMessage(ct.IsCancellationRequested ? $"Measurement cancelled!" : $"Measurement finished!");
@@ -650,7 +650,7 @@ namespace QA40xPlot.Actions
 		public async void StartMeasurement()
 		{
 			var thdAmp = MyVModel;
-			if (!await StartAction(thdAmp))
+			if (!StartAction(thdAmp))
 				return;
 
 			ct = new();

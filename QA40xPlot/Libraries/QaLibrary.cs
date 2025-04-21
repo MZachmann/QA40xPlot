@@ -11,11 +11,11 @@ namespace QA40xPlot.Libraries
 
     public class QaLibrary
     {
-		public static ScottPlot.Color BlueColor { get => new ScottPlot.Color(1, 97, 170, 255); }
-		public static ScottPlot.Color RedColor { get => new ScottPlot.Color(220, 5, 46, 255); }
-		public static ScottPlot.Color RedXColor { get => new ScottPlot.Color(220, 5, 46, 120); }
+        public static ScottPlot.Color BlueColor { get => new ScottPlot.Color(1, 97, 170, 255); }
+        public static ScottPlot.Color RedColor { get => new ScottPlot.Color(220, 5, 46, 255); }
+        public static ScottPlot.Color RedXColor { get => new ScottPlot.Color(220, 5, 46, 120); }
 
-		public static double MINIMUM_GENERATOR_VOLTAGE_V = 0.001;
+        public static double MINIMUM_GENERATOR_VOLTAGE_V = 0.001;
         public static double MAXIMUM_GENERATOR_VOLTAGE_V = 7.9;
         public static double MINIMUM_GENERATOR_VOLTAGE_MV = 1;
         public static double MAXIMUM_GENERATOR_VOLTAGE_MV = 7900;
@@ -38,51 +38,51 @@ namespace QA40xPlot.Libraries
         public static int DEVICE_MIN_ATTENUATION = 0;
         public static int DEVICE_MAX_ATTENUATION = 42;
 
-		/// <summary>
-		/// Do the startup of the QA40x, checking the rest interface for existance
-		/// </summary>
-		/// <param name="sampleRate"></param>
-		/// <param name="fftsize"></param>
-		/// <param name="Windowing"></param>
-		/// <param name="attenuation"></param>
-		/// <param name="setdefault">this may take a little time, so do it once?</param>
-		/// <returns>success true or false</returns>
-		public static async Task<bool> InitializeDevice(uint sampleRate, uint fftsize, string Windowing, int attenuation, bool setdefault = false)
-		{
-			try
-			{
-				// ********************************************************************  
-				// Load a settings we want
-				// ********************************************************************  
-				if (setdefault)
-				{
-					// Check if REST interface is available and device connected
-					if (await QaLibrary.CheckDeviceConnected() == false)
-						return false;
+        /// <summary>
+        /// Do the startup of the QA40x, checking the rest interface for existance
+        /// </summary>
+        /// <param name="sampleRate"></param>
+        /// <param name="fftsize"></param>
+        /// <param name="Windowing"></param>
+        /// <param name="attenuation"></param>
+        /// <param name="setdefault">this may take a little time, so do it once?</param>
+        /// <returns>success true or false</returns>
+        public static async Task<bool> InitializeDevice(uint sampleRate, uint fftsize, string Windowing, int attenuation, bool setdefault = false)
+        {
+            try
+            {
+                // ********************************************************************  
+                // Load a settings we want
+                // ********************************************************************  
+                if (setdefault)
+                {
+                    // Check if REST interface is available and device connected
+                    if (await QaLibrary.CheckDeviceConnected() == false)
+                        return false;
 
-					await Qa40x.SetDefaults();
+                    await Qa40x.SetDefaults();
                     await Qa40x.SetOutputSource(OutputSources.Off);
-				}
-				await Qa40x.SetSampleRate(sampleRate);
-				await Qa40x.SetBufferSize(fftsize);
-				await Qa40x.SetWindowing(Windowing);
-				await Qa40x.SetRoundFrequencies(true);
-				await Qa40x.SetInputRange(attenuation);
-				return true;
-			}
-			catch (Exception)
-			{
-			}
-			return false;
-		}
+                }
+                await Qa40x.SetSampleRate(sampleRate);
+                await Qa40x.SetBufferSize(fftsize);
+                await Qa40x.SetWindowing(Windowing);
+                await Qa40x.SetRoundFrequencies(true);
+                await Qa40x.SetInputRange(attenuation);
+                return true;
+            }
+            catch (Exception)
+            {
+            }
+            return false;
+        }
 
-		/// <summary>
-		/// Calculates fft bin size in Hz
-		/// </summary>
-		/// <param name="sampleRate">Sample rate in samples per second</param>
-		/// <param name="fftSize">fft buffer size</param>
-		/// <returns>The frequency span of a bin</returns>
-		static public double CalcBinSize(uint sampleRate, uint fftSize)
+        /// <summary>
+        /// Calculates fft bin size in Hz
+        /// </summary>
+        /// <param name="sampleRate">Sample rate in samples per second</param>
+        /// <param name="fftSize">fft buffer size</param>
+        /// <returns>The frequency span of a bin</returns>
+        static public double CalcBinSize(uint sampleRate, uint fftSize)
         {
             return (double)sampleRate / (double)fftSize;
         }
@@ -123,7 +123,7 @@ namespace QA40xPlot.Libraries
         /// <returns></returns>
         static public double GetBinFrequency(uint bin, double binSize)
         {
-            return bin * binSize; 
+            return bin * binSize;
         }
 
         /// <summary>
@@ -164,7 +164,7 @@ namespace QA40xPlot.Libraries
             for (int i = 0; i <= totalSteps; i++)
             {
                 // Calculate the frequency by raising 2 to the power of the current log position
-                values[i] =  start * Math.Pow(2, i * logStep);
+                values[i] = start * Math.Pow(2, i * logStep);
                 if (values[i] > stop)
                     values[i] = stop;
             }
@@ -182,7 +182,8 @@ namespace QA40xPlot.Libraries
         public static double[] TranslateToBinFrequencies(double[] frequencies, uint sampleRate, uint fftSize)
         {
             double[] binnedFrequencies = new double[frequencies.Length];
-            for (int i = 0; i < frequencies.Length; i++) {
+            for (int i = 0; i < frequencies.Length; i++)
+            {
                 binnedFrequencies[i] = GetNearestBinFrequency(frequencies[i], sampleRate, fftSize);
             }
 
@@ -193,34 +194,34 @@ namespace QA40xPlot.Libraries
         }
 
         static public async Task<LeftRightSeries> DoAcquisitions(uint averages, CancellationToken ct, bool getFrequencySeries = true, bool getTimeSeries = true)
-		{
-			LeftRightSeries lrfs = new LeftRightSeries();
+        {
+            LeftRightSeries lrfs = new LeftRightSeries();
 
             await Qa40x.DoAcquisition();
-			if (ct.IsCancellationRequested || lrfs == null)
-				return lrfs ?? new();
+            if (ct.IsCancellationRequested || lrfs == null)
+                return lrfs ?? new();
             if (getFrequencySeries)
-			{
-				lrfs.FreqRslt = await Qa40x.GetInputFrequencySeries();
-				if (ct.IsCancellationRequested || lrfs.FreqRslt == null)
-					return lrfs;
-			}
+            {
+                lrfs.FreqRslt = await Qa40x.GetInputFrequencySeries();
+                if (ct.IsCancellationRequested || lrfs.FreqRslt == null)
+                    return lrfs;
+            }
             if (getTimeSeries)
-			{
-				lrfs.TimeRslt = await Qa40x.GetInputTimeSeries();
-				if (ct.IsCancellationRequested)
-					return lrfs;
-			}
+            {
+                lrfs.TimeRslt = await Qa40x.GetInputTimeSeries();
+                if (ct.IsCancellationRequested)
+                    return lrfs;
+            }
 
             if (averages <= 1)
-			return lrfs;        // Only one measurement
+                return lrfs;        // Only one measurement
 
             if (getFrequencySeries && lrfs.FreqRslt != null)
             {
                 for (int i = 1; i < averages; i++)
                 {
                     await Qa40x.DoAcquisition();
-                    if (ct.IsCancellationRequested )
+                    if (ct.IsCancellationRequested)
                         return lrfs;
                     LeftRightSeries lrfs2 = new LeftRightSeries();
                     lrfs2.FreqRslt = await Qa40x.GetInputFrequencySeries();
@@ -239,37 +240,37 @@ namespace QA40xPlot.Libraries
             }
 
             return lrfs;
-		}
+        }
 
-		static public async Task<LeftRightSeries> DoAcquireUser(CancellationToken ct, double[] datapt, bool getFreq)
-		{
-			LeftRightSeries lrfs = new LeftRightSeries();
-			await Qa40x.DoUserAcquisition(datapt, datapt);
-			if (ct.IsCancellationRequested || lrfs == null)
-				return lrfs ?? new();
+        static public async Task<LeftRightSeries> DoAcquireUser(CancellationToken ct, double[] datapt, bool getFreq)
+        {
+            LeftRightSeries lrfs = new LeftRightSeries();
+            await Qa40x.DoUserAcquisition(datapt, datapt);
+            if (ct.IsCancellationRequested || lrfs == null)
+                return lrfs ?? new();
 
-            if( getFreq)
-			{
-				lrfs.FreqRslt = await Qa40x.GetInputFrequencySeries();
-				if (ct.IsCancellationRequested || lrfs.FreqRslt == null)
-					return lrfs;
-			}
+            if (getFreq)
+            {
+                lrfs.FreqRslt = await Qa40x.GetInputFrequencySeries();
+                if (ct.IsCancellationRequested || lrfs.FreqRslt == null)
+                    return lrfs;
+            }
 
-			{
-				lrfs.TimeRslt = await Qa40x.GetInputTimeSeries();
-				if (ct.IsCancellationRequested)
-					return lrfs;
-			}
+            {
+                lrfs.TimeRslt = await Qa40x.GetInputTimeSeries();
+                if (ct.IsCancellationRequested)
+                    return lrfs;
+            }
 
-			return lrfs;        // Only one measurement
-		}
+            return lrfs;        // Only one measurement
+        }
 
-		/// <summary>
-		/// Determine the attenuation needed for the input signal to be in the range of the hardware
-		/// </summary>
-		/// <param name="dBV">The maximum level in dBV</param>
-		/// <returns>The attenuation in dB</returns>
-		public static int DetermineAttenuation(double dBV)
+        /// <summary>
+        /// Determine the attenuation needed for the input signal to be in the range of the hardware
+        /// </summary>
+        /// <param name="dBV">The maximum level in dBV</param>
+        /// <returns>The attenuation in dB</returns>
+        public static int DetermineAttenuation(double dBV)
         {
             double testdBV = dBV + 5; // Add 5 dBV extra for better thd measurement
             if (testdBV <= 0) return 0;
@@ -329,193 +330,6 @@ namespace QA40xPlot.Libraries
             return true;
         }
 
-
-        /// <summary>
-        /// Determine the best attenuation for the input amplitude
-        /// </summary>
-        /// <param name="voltageDbv">The generator voltage</param>
-        /// <param name="testFrequency">The generator frequency</param>
-        /// <param name="testAttenuation">The test attenuation</param>
-        /// <returns>The attanuation determined by the test</returns>
-        public static async Task<(int, double, LeftRightSeries)> DetermineAttenuationWithSine(double voltageDbv, double testFrequency, int testAttenuation, CancellationToken ct)
-        {
-            await Qa40x.SetInputRange(testAttenuation);                         // Set input range to initial range
-            await Qa40x.SetGen1(testFrequency, voltageDbv, true);               // Enable generator at set voltage
-            await Qa40x.SetOutputSource(OutputSources.Sine);
-            LeftRightSeries acqData = await DoAcquisitions(1, ct);        // Do acquisition
-            LeftRightPair plrp = await Qa40x.GetPeakDbv(testFrequency - 5, testFrequency + 5);        // Get peak value at 1 kHz
-            
-            // Determine highest channel value
-            double peak_dBV = 0;
-            peak_dBV = (plrp.Left > plrp.Right) ? plrp.Left : plrp.Right;
-
-            var attenuation = DetermineAttenuation(peak_dBV);         // Determine attenuation and set input range
-            await Qa40x.SetOutputSource(OutputSources.Off);                     // Disable generator
-
-            return (attenuation, peak_dBV, acqData);       // Return attenuation, measured amplitude in dBV and acquisition data
-        }
-
-
-        /// <summary>
-        /// Determine the best attenuation for the input amplitude
-        /// </summary>
-        /// <param name="voltageDbv">The generator voltage</param>
-        /// <param name="testFrequency">The generator frequency</param>
-        /// <param name="testAttenuation">The test attenuation</param>
-        /// <returns>The attanuation determined by the test</returns>
-        public static async Task<(int, double, LeftRightSeries)> DetermineAttenuationWithChirp(double voltageDbv, int testAttenuation, CancellationToken ct)
-        {
-            await Qa40x.SetInputRange(testAttenuation);                         // Set input range to initial range
-            await Qa40x.SetExpoChirpGen(voltageDbv, 0, 28, false);
-            await Qa40x.SetOutputSource(OutputSources.ExpoChirp);
-            LeftRightSeries acqData = await DoAcquisitions(1, ct);        // Do acquisition
-
-            DetermineAttenuationFromSeriesData(acqData, out double peak_dBV, out int attenuation);
-            await Qa40x.SetOutputSource(OutputSources.Off);                     // Disable generator
-
-            return (attenuation, peak_dBV, acqData);       // Return attenuation, measured amplitude in dBV and acquisition data
-        }
-
-        public static bool DetermineAttenuationFromSeriesData(LeftRightSeries acqData, out double peak_dBV, out int attenuation)
-        {
-            if (acqData == null || acqData.TimeRslt == null)
-            {
-                peak_dBV = 0;
-                attenuation = 42;
-                return false;
-            }
-
-            // Determine highest channel value
-            double? peak_left = acqData.TimeRslt?.Left.Max();
-			double? peak_right = acqData.TimeRslt?.Right.Max();
-
-            peak_dBV = 20 * Math.Log10(Math.Max(peak_left ?? 1e-20, peak_right ?? 1e-20));
-            attenuation = DetermineAttenuation(peak_dBV);
-
-            return true;
-        }
-
-
-        /// <summary>
-        /// Determine the generator voltage in dBV for the desired output voltage
-        /// </summary>
-        /// <param name="generatordBV">The amplitude to start with. Should be small but the output should be detectable</param>
-        /// <param name="outputdBV">The desired output amplitude</param>
-        /// <returns>Generator amplitude in dBV</returns>
-        public static async Task<(double, LeftRightSeries)> DetermineGenAmplitudeWithSine(double testFrequency, double generatordBV, double outputdBV, bool leftChannelEnable, bool rightEnabled, CancellationToken ct)
-        {
-            await Qa40x.SetGen1(testFrequency, generatordBV, true);           // Enable generator with start amplitude at 1 kHz
-            await Qa40x.SetOutputSource(OutputSources.Sine);                    // Set sine wave
-            LeftRightSeries acqData = await DoAcquisitions(1, ct);            // Do a single aqcuisition
-            LeftRightPair plrp = await Qa40x.GetPeakDbv(testFrequency - 5, testFrequency + 5);             // Get peak amplitude around 1 kHz
-
-            // Determine highest channel value
-            double peak_dBV = 0;
-            if (leftChannelEnable && rightEnabled)
-                peak_dBV = (plrp.Left > plrp.Right) ? plrp.Left : plrp.Right;
-            else if (leftChannelEnable)
-                peak_dBV = plrp.Left;
-            else
-                peak_dBV = plrp.Right;
-
-            double amplitude = generatordBV + (outputdBV - peak_dBV);    // Determine amplitude for desired output amplitude based on measurement
-            // Check if amplitude not too high or too low.
-            if (amplitude >= 18)
-            {
-                // Display a message box with OK and Cancel buttons
-                MessageBoxResult result = MessageBox.Show(
-                    "The generator will be set to its maximum amplitude.\nDo you want to proceed?",          // Message
-                    "Maximum generator amplitude",                    // Title
-                    MessageBoxButton.OKCancel,        // Buttons
-                    MessageBoxImage.Question            // Icon
-                );
-
-                // Check which button was clicked
-                if (result == MessageBoxResult.OK)
-                {
-                    return (18, acqData);
-                }
-                else if (result == MessageBoxResult.Cancel)
-                {
-                    return (-150, acqData);
-                }
-            }
-            else if (amplitude <= -40)
-            {
-                MessageBox.Show("Check if the amplifier is connected and switched on.", "Could not determine amplitude", MessageBoxButton.OK, MessageBoxImage.Information);
-                return (-150, acqData);
-            }
-
-            return (amplitude, acqData);       // Return the new generator amplitude and acquisition data
-        }
-
-
-        /// <summary>
-        /// Determine the generator voltage in dBV for the desired output voltage
-        /// </summary>
-        /// <param name="generatordBV">The amplitude to start with. Should be small but the output should be detectable</param>
-        /// <param name="outputdBV">The desired output amplitude</param>
-        /// <returns>Generator amplitude in dBV</returns>
-        public static async Task<(double, LeftRightSeries?)> DetermineGenAmplitudeWithChirp(double generatordBV, double outputdBV, bool leftEnabled, bool rightEnabled, CancellationToken ct)
-        {
-            await Qa40x.SetExpoChirpGen(generatordBV, 0, 48, false);
-            await Qa40x.SetOutputSource(OutputSources.ExpoChirp);                   // Set sine wave
-            LeftRightSeries acqData = await DoAcquisitions(1, ct);                  // Do a single acquisition
-            if (acqData == null || acqData.FreqRslt == null)
-                return (150, null);
-
-            int binsToSkip = (int)(10 / acqData.FreqRslt.Df);                      // Skip first 10 Hz
-            int binsToTake = (int)(80000 / acqData.FreqRslt.Df);                   // Take up to 80 kHz
-
-            if (binsToTake >= acqData.FreqRslt.Left.Length)                        // Invalid amount of samples, use all 
-            {
-                binsToSkip = 0;
-                binsToTake = acqData.FreqRslt.Left.Length;        
-            }
-
-            // Determine highest channel value
-            double peak_left = -150;
-            double peak_right = -150;
-            if (leftEnabled)
-                peak_left = acqData.FreqRslt.Left.Skip(binsToSkip).Take(binsToTake).Max();
-            if (rightEnabled)
-                peak_right = acqData.FreqRslt.Right.Skip(binsToSkip).Take(binsToTake).Max();
-
-            double peak_dBV = 20 * Math.Log10(Math.Max(peak_left, peak_right));
-
-            double amplitude = generatordBV + (outputdBV - peak_dBV);    // Determine amplitude for desired output amplitude based on measurement
-                                                                                                 // Check if amplitude not too high or too low.
-            if (amplitude >= 18)
-            {
-                // Display a message box with OK and Cancel buttons
-                MessageBoxResult result = MessageBox.Show(
-                    "The generator will be set to its maximum amplitude.\nDo you want to proceed?",          // Message
-                    "Maximum generator amplitude",                    // Title
-                    MessageBoxButton.OKCancel,        // Buttons
-                    MessageBoxImage.Question            // Icon
-                );
-
-                // Check which button was clicked
-                if (result == MessageBoxResult.OK)
-                {
-                    return (18, acqData);
-                }
-                else if (result == MessageBoxResult.Cancel)
-                {
-                    return (-150, acqData);
-                }
-            }
-            else if (amplitude <= -60)
-            {
-                MessageBox.Show("Check if the amplifier is connected and switched on.", "Could not determine amplitude", MessageBoxButton.OK, MessageBoxImage.Information);
-                return (-150, acqData);
-            }
-
-            return (amplitude, acqData);       // Return the new generator amplitude and acquisition data
-        }
-
-
-
         public static double ConvertVoltage(double voltage, E_VoltageUnit fromUnit, E_VoltageUnit toUnit)
         {
             if (fromUnit == E_VoltageUnit.MilliVolt)
@@ -556,9 +370,9 @@ namespace QA40xPlot.Libraries
         /// <param name="point">Data point to draw the line at</param>
         public static void PlotCursorLine(PlotControl plot, float lineWidth, LinePattern linePattern, DataPoint point)
         {
-			ScottPlot.Plot myPlot = plot.ThePlot;
+            ScottPlot.Plot myPlot = plot.ThePlot;
 
-			myPlot.Remove<Crosshair>();               // Remove any current marker
+            myPlot.Remove<Crosshair>();               // Remove any current marker
 
             var myCrosshair = myPlot.Add.Crosshair(point.X, point.Y);
             myCrosshair.IsVisible = true;
@@ -598,7 +412,7 @@ namespace QA40xPlot.Libraries
                 MinorTickGenerator = minorTickGen
             };
 
-          
+
             // tell the left axis to use our custom tick generator
             myPlot.Axes.Left.TickGenerator = tickGen;
 
@@ -652,8 +466,8 @@ namespace QA40xPlot.Libraries
             if (null == fftData)
                 return;
 
-			ScottPlot.Plot myPlot = plot.ThePlot;
-			myPlot.Clear();
+            ScottPlot.Plot myPlot = plot.ThePlot;
+            myPlot.Clear();
 
             List<double> freqX = [];
             List<double> dBV_Left_Y = [];
@@ -677,7 +491,7 @@ namespace QA40xPlot.Libraries
 
             if (leftEnabled)
             {
-				Scatter plotTot_Left = myPlot.Add.Scatter(logFreqX, logHTot_Left_Y);
+                Scatter plotTot_Left = myPlot.Add.Scatter(logFreqX, logHTot_Left_Y);
                 plotTot_Left.LineWidth = 1;
                 plotTot_Left.Color = BlueColor;  // Blue
                 plotTot_Left.MarkerSize = 1;
@@ -685,7 +499,7 @@ namespace QA40xPlot.Libraries
 
             if (rightEnabled)
             {
-				Scatter plotTot_Right = myPlot.Add.Scatter(logFreqX, logHTot_Right_Y);
+                Scatter plotTot_Right = myPlot.Add.Scatter(logFreqX, logHTot_Right_Y);
                 plotTot_Right.LineWidth = 1;
                 if (leftEnabled)
                     plotTot_Right.Color = RedXColor; // Red transparant
@@ -696,7 +510,7 @@ namespace QA40xPlot.Libraries
 
             var limitY = myPlot.Axes.GetLimits().YRange.Max;
             var max_dBV_left = leftEnabled ? dBV_Left_Y.Max(f => f) : -150;
-            var max_dBV_right = rightEnabled ? dBV_Right_Y.Max(f => f): -150;
+            var max_dBV_right = rightEnabled ? dBV_Right_Y.Max(f => f) : -150;
             var max_dBV = (max_dBV_left > max_dBV_right) ? max_dBV_left : max_dBV_right;
             if (max_dBV + 10 > limitY)
             {
@@ -711,8 +525,8 @@ namespace QA40xPlot.Libraries
 
         public static void InitMiniTimePlot(PlotControl plot, double startTime, double endTime, double minVoltage, double maxVoltage)
         {
-			ScottPlot.Plot myPlot = plot.ThePlot;
-			myPlot.Clear();
+            ScottPlot.Plot myPlot = plot.ThePlot;
+            myPlot.Clear();
 
             ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGenX = new(2);
             ScottPlot.TickGenerators.NumericAutomatic tickGenX = new();
@@ -765,8 +579,8 @@ namespace QA40xPlot.Libraries
                 return;
             }
 
-			ScottPlot.Plot myPlot = plot.ThePlot;
-			myPlot.Clear();
+            ScottPlot.Plot myPlot = plot.ThePlot;
+            myPlot.Clear();
 
             List<double> timeX = [];
             List<double> voltY_left = [];
@@ -782,7 +596,7 @@ namespace QA40xPlot.Libraries
                 displayTime = period * 2;
             else if (period < 0.0002)
                 displayTime = period * 1.5;
-           
+
             // Get first zero-crossing
             int startStep = 0;
             if (!plotChirp)
@@ -852,7 +666,7 @@ namespace QA40xPlot.Libraries
 
             if (leftEnabled)
             {
-				Scatter plot_left = myPlot.Add.Scatter(timeX, voltY_left);
+                Scatter plot_left = myPlot.Add.Scatter(timeX, voltY_left);
                 plot_left.LineWidth = 1;
                 plot_left.Color = BlueColor;  // Blue
                 plot_left.MarkerSize = 2;
@@ -860,7 +674,7 @@ namespace QA40xPlot.Libraries
 
             if (rightEnabled)
             {
-				Scatter plot_right = myPlot.Add.Scatter(timeX, voltY_right);
+                Scatter plot_right = myPlot.Add.Scatter(timeX, voltY_right);
                 plot_right.LineWidth = 1;
                 if (leftEnabled)
                     plot_right.Color = RedXColor; // Red transparant if left channel behind it
@@ -872,102 +686,6 @@ namespace QA40xPlot.Libraries
             myPlot.Axes.SetLimits(0, time, -maxVolt, maxVolt);
 
             plot.Refresh();
-        }
-
-        /// <summary>
-        /// Get the phase of the output signal to the reference signal
-        /// </summary>
-        /// <param name="sampleRate">The sample rate used for the referenceSignal and analyzedSignal</param>
-        /// <param name="frequency">The frequency of the signals</param>
-        /// <param name="referenceSignal">The reference signal for the phase measurement</param>
-        /// <param name="analyzedSignal">The signal to calculate the phase of</param>
-        /// <returns>The phase between the analyzed and refernce signal in degrees</returns>
-        public static double GetPhaseByCorrelation(uint sampleRate, double frequency, double[] referenceSignal, double[] analyzedSignal)
-        {
-            // Constants
-            const double resolution = 0.5;                  // 0.5 degree resolution seems to work the best. Finer resolution comes with more calculation time
-            const int minimum_samples_to_compare = 200;     // Minimum amount of samples to use for good result up to 95 kHz
-            const int minimum_cycles_calculate = 3;         // Use at least 3 cycles
-
-
-            double sampleTime = 1 / (double)sampleRate;
-            double samplesPerCycle = sampleRate / frequency;
-            int cyclesToCalculate = (int)Math.Max(minimum_cycles_calculate, (minimum_samples_to_compare / samplesPerCycle));     // Calculate amount of cycles needed for minimum_samples_to_compare
-            int amount_samples = (int)(sampleRate / frequency * cyclesToCalculate);         // Amount of samples to take from source voltages
-
-            // Make the input signal the same amplitude as the output 
-            var inputMaxV = referenceSignal.Max();
-            var outputMaxV = analyzedSignal.Max();
-            var gain = outputMaxV / inputMaxV;
-            var normalizedReferenceSignal = referenceSignal.Select(x => x * gain).ToArray();
-
-
-            // Resample with higher sample rate
-            int sampleMultiplier = Math.Max(1, (int)(360.0 / resolution / samplesPerCycle));                    // Calculate multiplier for new sample rate     
-            int newSampleRate = (int)sampleRate * sampleMultiplier;                                             // Calculate new sample rate
-            double newSampleTime = 1 / (double)newSampleRate;                                                   // Time between samples
-            double samplesToSkip = sampleMultiplier;                                                            // Samples to skip between two samples of the original signals
-
-            int samplesToCalculate = (int)(samplesPerCycle * cyclesToCalculate * sampleMultiplier);
-
-            // Create a references sinewave signal with the new sample rate but the same frequency
-            double[] synthesizedSignal = Generator.GenerateSine(samplesToCalculate, newSampleRate, frequency, outputMaxV, 0);   
-
-            // Resample the reference and analyzed signal to the new sample rate. Add one extra 'empty' cycle 
-            int newSamplesPerCycle = samplesToCalculate / cyclesToCalculate;
-            double[] resampledAnalyzedSignal = new double[samplesToCalculate];
-            double[] resampledReferenceSignal = new double[samplesToCalculate];
-
-            int sampleNr = 0;
-            for (int i = 0; i < samplesToCalculate - newSamplesPerCycle; i += (int)samplesToSkip)
-            {
-                resampledReferenceSignal[i] = normalizedReferenceSignal[sampleNr];
-                resampledAnalyzedSignal[i] = analyzedSignal[sampleNr];
-                sampleNr++;
-            }
-
-            // Correlate (convolute) the resampled reference and analyzed with the reference signal.
-            // The synthesized signal will be shifted one samle each iteration. The sample which falls off is added to the other size.
-            // That is possible because it contains complete cycles.
-            double[] aCorrelationAnalyzedSignal = new double[newSamplesPerCycle];
-            double[] aCorrelationReferenceSignal = new double[newSamplesPerCycle];
-            for (int i = 0; i < newSamplesPerCycle; i++)
-            {
-                // Three lines below do the same as: var shiftedSynth = synthesizedSignal.Skip(i).Concat(synthesizedSignal.Take(i)).ToArray();
-                double[] shiftedSynth = new double[samplesToCalculate];
-                Array.Copy(synthesizedSignal, i, shiftedSynth, 0, samplesToCalculate - i);                       
-                Array.Copy(synthesizedSignal, 0, shiftedSynth, samplesToCalculate - i, i);
-
-                aCorrelationReferenceSignal[i] = Statistics.Pearson(resampledReferenceSignal, shiftedSynth);     // Get correlation between reference and synth signal
-                aCorrelationAnalyzedSignal[i] = Statistics.Pearson(resampledAnalyzedSignal, shiftedSynth);       // Get correlation between analyzed and synth signal
-            }
-
-            // Get the item with the highest correlation and get the sample index of the reference signal
-            var corrItemReferenceSignal = aCorrelationReferenceSignal.Select((Value, Index) => new { Value, Index }).OrderByDescending(i => i.Value).First();
-            var maxCorrReferenceSignal = corrItemReferenceSignal.Value;
-            var maxCorrIndexReferenceSignal = corrItemReferenceSignal.Index;
-            var shiftTimeReferenceSignal = newSampleTime * maxCorrIndexReferenceSignal;                         // Calculate the time shift of the input signal to the reference signal
-            //var phaseReferenceSignal = 360 * frequency * shiftTimeReferenceSignal;                            // Calculate the phase of the input signal to the reference signal
-
-            // Get the item with the highest correlation and get the sample index of the analyzed signal
-            var corrItemAnalyzedSignal = aCorrelationAnalyzedSignal.Select((Value, Index) => new { Value, Index }).OrderByDescending(i => i.Value).First();
-            var maxCorrAnalyzedSignal = corrItemAnalyzedSignal.Value;
-            var maxCorrIndexAnalyzedSignal = corrItemAnalyzedSignal.Index;
-            var shiftTimeAnalyzedSignal = newSampleTime * maxCorrIndexAnalyzedSignal;                           // Calculate the time shift of the output signal to the reference signal
-            //var phaseAnalyzedSignal = 360 * frequency * shiftTimeAnalyzedSignal;                              // Calculate the phase of the output signal to the reference signal
-
-
-            // Calculate the phase    
-            var phaseDiff = (360 * frequency * (shiftTimeAnalyzedSignal - shiftTimeReferenceSignal));
-            var phase = Math.Round(phaseDiff % 360, 1);                                                         // Round to 0.1 degree between -360 and 360
-
-            // Convert to between -180 and 180 degrees
-            if (phase < -180)
-                phase = phase + 360;
-            else if (phase > 180)
-                phase = phase - 360;
-           
-            return phase;
         }
     }
 }           

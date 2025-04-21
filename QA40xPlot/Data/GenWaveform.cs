@@ -8,8 +8,9 @@ namespace QA40xPlot.Data
 {
 	public class GenWaveform
 	{
-		public string Name { get; set; } = string.Empty;
+		public string Name { get; set; } = string.Empty;	// the type of waveform
 		public double Freq { get; set; }
+		public double FreqEnd { get; set; }
 		public double Volts { get; set; }
 	}
 

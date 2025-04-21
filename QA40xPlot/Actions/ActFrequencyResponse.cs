@@ -1,4 +1,6 @@
 ﻿using FftSharp;
+using QA40x_BareMetal;
+using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
@@ -57,7 +59,7 @@ namespace QA40xPlot.Actions
 			var genv = msr.ToGenVoltage(msr.Gen1Voltage, [], GEN_INPUT, LRGains?.Left);
 			// output v
 			var chirp = QAMath.CalculateChirp(f0, f1, genv, msr.FftSizeVal, msr.SampleRateVal);
-			LeftRightSeries lrfs = await QaLibrary.DoAcquireUser(ct, chirp.ToArray(), false);
+			LeftRightSeries lrfs = await QaUsb.DoAcquireUser(1, ct, chirp.ToArray(), chirp.ToArray(), false);
 			return lrfs;
 		}
 
@@ -69,7 +71,7 @@ namespace QA40xPlot.Actions
 		public async void StartMeasurement()
 		{
 			var vm = MyVModel;
-			if (!await StartAction(vm))
+			if (!StartAction(vm))
 				return;
 
 			vm.HasExport = false;
@@ -131,7 +133,7 @@ namespace QA40xPlot.Actions
         {
 			if (ct.Token.IsCancellationRequested)
 				return new();
-			var lfrs = await QaLibrary.DoAcquisitions(1, ct.Token, false, true);
+			var lfrs = await QaUsb.DoAcquisitions(1, ct.Token);
             if (lfrs == null)
                 return new();
 			MeasurementResult.FrequencyResponseData = lfrs;
@@ -247,7 +249,7 @@ namespace QA40xPlot.Actions
 			if (ct.IsCancellationRequested)
                 return false;
 
-            await Qa40x.SetOutputSource(OutputSources.Sine);
+            QaUsb.SetOutputSource(OutputSources.Sine);
 
             var ttype = frqrsVm.GetTestingType(msr.TestType);
 
@@ -262,9 +264,9 @@ namespace QA40xPlot.Actions
                         break;
                     var dfreq = stepBinFrequencies[steps];
                     if (dfreq > 0)
-                        await Qa40x.SetGen1(dfreq, voltagedBV, true);
+                        QaUsb.SetGen1(dfreq, voltagedBV, true);
                     else
-                        await Qa40x.SetGen1(1, voltagedBV, false);
+                        QaUsb.SetGen1(1, voltagedBV, false);
 
                     if (msr.Averages > 0)
                     {
@@ -423,11 +425,6 @@ namespace QA40xPlot.Actions
             var msr = MeasurementResult.MeasurementSettings;
 
 			// ********************************************************************
-			// Check connection
-			if (await QaLibrary.CheckDeviceConnected() == false)
-				return false;
-
-			// ********************************************************************
 			// Setup the device
 			if (MathUtil.ToDouble(msr.SampleRate,0) == 0 || !FreqRespViewModel.FftSizes.Contains(msr.FftSize))
 			{
@@ -474,7 +471,7 @@ namespace QA40xPlot.Actions
 			var genVolt = frqrsVm.ToGenVoltage(msr.Gen1Voltage, frqtest, GEN_INPUT, LRGains?.Left);
 			var voltagedBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);  // in dbv
 
-			if (true != await QaLibrary.InitializeDevice(sampleRate, fftsize, "Hann", (int)msr.Attenuation, true))
+			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, "Hann", (int)msr.Attenuation, true))
 			{
 				return false;
 			}
@@ -511,7 +508,7 @@ namespace QA40xPlot.Actions
             }
 
             // Turn the generator off
-            await Qa40x.SetOutputSource(OutputSources.Off);
+            QaUsb.SetOutputSource(OutputSources.Off);
 
             // Show message
             await showMessage($"Measurement finished!");

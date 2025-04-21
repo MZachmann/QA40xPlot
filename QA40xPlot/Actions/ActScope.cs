@@ -137,7 +137,8 @@ namespace QA40xPlot.Actions
 				}
 				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
 				var genVolt = scopeVm.ToGenVoltage(msr.MeasurementSettings.Gen1Voltage, [], GEN_INPUT, gains) ;
-				if(genVolt > 5)
+				var genVolt2 = scopeVm.ToGenVoltage(msr.MeasurementSettings.Gen2Voltage, [], GEN_INPUT, gains);
+				if (genVolt > 5)
 				{
 					await showMessage($"Requesting input voltage of {genVolt} volts, check connection and settings");
 					genVolt = 0.01;
@@ -167,7 +168,7 @@ namespace QA40xPlot.Actions
 						var gw2 = new GenWaveform()
 						{
 							Freq = stepBinFrequencies[1],
-							Volts = genVolt,
+							Volts = genVolt2,
 							Name = msr.MeasurementSettings.Gen2Waveform
 						};
 						var gws = new GenWaveSample()
@@ -183,7 +184,7 @@ namespace QA40xPlot.Actions
 						else
 							gwho = [gw2];
 						var wave = QAMath.CalculateWaveform(gwho, gws);
-						lrfs = await QaUsb.DoAcquireUser(ct, wave.ToArray(), wave.ToArray(), true);
+						lrfs = await QaUsb.DoAcquireUser(1, ct, wave.ToArray(), wave.ToArray(), true);
 					}
 					else
 					{
@@ -555,7 +556,7 @@ namespace QA40xPlot.Actions
         public async void StartMeasurement()
         {
 			var scopeVm = MyVModel;
-			if (!await StartAction(scopeVm))
+			if (!StartAction(scopeVm))
 				return;
 
 			ct = new();

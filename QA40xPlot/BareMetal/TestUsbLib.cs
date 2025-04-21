@@ -22,6 +22,7 @@ namespace QA40xPlot.BareMetal
 				throw new Exception(msg);
 			}
 			var uu = calData.Select(x => (int)x).Sum();
+			// relies on MY qa403 settings for testing...
 			if( uu != 14719)
 			{
 				var msg = $"Calibration data sum is not 14719, it is {uu}";

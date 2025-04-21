@@ -7,9 +7,15 @@ namespace QA40xPlot.BareMetal
 	{
 		public static UsbDeviceFinder _USBFindQA402 = new UsbDeviceFinder(0x16c0, 0x4e37);
 		public static UsbDeviceFinder _USBFindQA403 = new UsbDeviceFinder(0x16c0, 0x4e39);
+		private static UsbDevice? _AttachedDevice = null;
+		private static int _IdInterface = 0;
 
-		public static UsbDevice AttachDevice(uint idInterface = 0)
-		{ 
+
+		public static UsbDevice AttachDevice(int idInterface = 0)
+		{
+			if (_AttachedDevice != null)
+				return _AttachedDevice;
+
 		// Attempt to open QA402 or QA403 device
 			UsbDevice usbdev = UsbDevice.OpenUsbDevice(_USBFindQA402);
 			if(usbdev == null)
@@ -25,7 +31,31 @@ namespace QA40xPlot.BareMetal
 			// Select config #1
 			iusbdev?.SetConfiguration(1); 
 			iusbdev?.ClaimInterface((int)idInterface);
+			_IdInterface = idInterface;
+			_AttachedDevice = usbdev;
 			return usbdev;
+		}
+
+		public static void DetachDevice()
+		{
+			if (_AttachedDevice != null)
+			{
+				var iusbdev = _AttachedDevice as IUsbDevice;
+				iusbdev?.ReleaseInterface(_IdInterface);
+				_AttachedDevice?.Close();
+				_AttachedDevice = null;
+			}
+		}
+
+		public static bool IsDeviceConnected()
+		{
+			if( _AttachedDevice == null)
+			{
+				return false;
+			}
+			// Check if the device is still connected
+
+			return true;
 		}
 	}
 }

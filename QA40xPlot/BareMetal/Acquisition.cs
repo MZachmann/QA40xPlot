@@ -105,8 +105,8 @@ namespace QA40xPlot.BareMetal
                 return r;
             }
 			Debug.Assert(leftOut.Length == rightOut.Length, "Out buffers must be the same length");
-			var dacCal = aControl.GetDacCal(QaUsb.QAnalyzer.CalData, aParams.MaxOutputLevel);
-			var adcCal = aControl.GetAdcCal(QaUsb.QAnalyzer.CalData, aParams.MaxInputLevel);
+			var dacCal = Control.GetDacCal(QaUsb.QAnalyzer.CalData, aParams.MaxOutputLevel);
+			var adcCal = Control.GetAdcCal(QaUsb.QAnalyzer.CalData, aParams.MaxInputLevel);
 
 			int usbBufSize = (int)Math.Pow(2, 14);   // If bigger than 2^15, then OS USB code will chunk it down into 16K buffers (Windows). So, not much point making larger than 32K. 
 
@@ -266,9 +266,9 @@ namespace QA40xPlot.BareMetal
         {
             int[] ili = new int[buffer.Length / sizeof(int)];
             Buffer.BlockCopy(buffer, 0, ili, 0, buffer.Length);     // convert bytes to ints
-			left = new double[buffer.Length / 8];
-            right = new double[buffer.Length / 8];
-            double ddiv = (double)int.MaxValue / 2;
+			left = new double[ili.Length / 2];
+            right = new double[left.Length];
+            double ddiv = (double)int.MaxValue / 2;     // i'm not sure why the /2 here...
             for (int j = 0; j < left.Length; j++)
             {
                 left[j] = ili[j * 2 + 1] / ddiv;

@@ -1,4 +1,6 @@
 
+using System.Diagnostics;
+
 namespace QA40xPlot.BareMetal
 {
 	public static class QaCompute
@@ -28,8 +30,8 @@ namespace QA40xPlot.BareMetal
 			if (debug)
 			{
 				double fundamentalAmplitudeDb = 20 * Math.Log10(fundamentalAmplitude);
-				Console.WriteLine($"Fundamental Frequency: {frequencies[fundamentalIdx]:F2} Hz (bin {fundamentalIdx})");
-				Console.WriteLine($"Fundamental Amplitude: {fundamentalAmplitude:F6} (Linear), {fundamentalAmplitudeDb:F2} dB");
+				Debug.WriteLine($"Fundamental Frequency: {frequencies[fundamentalIdx]:F2} Hz (bin {fundamentalIdx})");
+				Debug.WriteLine($"Fundamental Amplitude: {fundamentalAmplitude:F6} (Linear), {fundamentalAmplitudeDb:F2} dB");
 			}
 
 			// Calculate the sum of squares of the harmonic amplitudes
@@ -50,7 +52,7 @@ namespace QA40xPlot.BareMetal
 				{
 					if (debug)
 					{
-						Console.WriteLine($"No harmonic indices found within the specified window for {n}x harmonic.");
+						Debug.WriteLine($"No harmonic indices found within the specified window for {n}x harmonic.");
 					}
 					continue;
 				}
@@ -63,8 +65,8 @@ namespace QA40xPlot.BareMetal
 				if (debug)
 				{
 					double harmonicAmplitudeDb = 20 * Math.Log10(harmonicAmplitude);
-					Console.WriteLine($"{n}x Harmonic Frequency: {harmonicFreq:F2} Hz (closest bin {harmonicIdx})");
-					Console.WriteLine($"{n}x Harmonic Amplitude: {harmonicAmplitude:F6} (Linear), {harmonicAmplitudeDb:F2} dB");
+					Debug.WriteLine($"{n}x Harmonic Frequency: {harmonicFreq:F2} Hz (closest bin {harmonicIdx})");
+					Debug.WriteLine($"{n}x Harmonic Amplitude: {harmonicAmplitude:F6} (Linear), {harmonicAmplitudeDb:F2} dB");
 
 					// Additional debugging: Show the amplitudes of the bins around the harmonic
 					for (int offset = -2; offset <= 2; offset++)
@@ -74,7 +76,7 @@ namespace QA40xPlot.BareMetal
 						{
 							double amplitude = signalFreqLin[idx];
 							double amplitudeDb = 20 * Math.Log10(amplitude);
-							Console.WriteLine($"Bin {idx} Frequency: {frequencies[idx]:F2} Hz, Amplitude: {amplitude:F6} (Linear), {amplitudeDb:F2} dB");
+							Debug.WriteLine($"Bin {idx} Frequency: {frequencies[idx]:F2} Hz, Amplitude: {amplitude:F6} (Linear), {amplitudeDb:F2} dB");
 						}
 					}
 				}
@@ -86,8 +88,8 @@ namespace QA40xPlot.BareMetal
 			// Debugging: Show THD computation details
 			if (debug)
 			{
-				Console.WriteLine($"Sum of Squares of Harmonic Amplitudes: {harmonicAmplitudesSqSum:F6}");
-				Console.WriteLine($"THD: {thd:F6} (Linear)");
+				Debug.WriteLine($"Sum of Squares of Harmonic Amplitudes: {harmonicAmplitudesSqSum:F6}");
+				Debug.WriteLine($"THD: {thd:F6} (Linear)");
 			}
 
 			return thd;
@@ -101,7 +103,7 @@ namespace QA40xPlot.BareMetal
 
 			if (debug)
 			{
-				Console.WriteLine($"Notch Filter Bounds: {notchLowerBound:F2} Hz to {notchUpperBound:F2} Hz");
+				Debug.WriteLine($"Notch Filter Bounds: {notchLowerBound:F2} Hz to {notchUpperBound:F2} Hz");
 			}
 
 			// Calculate RMS of the fundamental within the notch
@@ -109,7 +111,7 @@ namespace QA40xPlot.BareMetal
 
 			if (debug)
 			{
-				Console.WriteLine($"Fundamental RMS: {fundamentalRms:F6}");
+				Debug.WriteLine($"Fundamental RMS: {fundamentalRms:F6}");
 			}
 
 			// Calculate RMS of the signal outside the notch
@@ -119,9 +121,9 @@ namespace QA40xPlot.BareMetal
 
 			if (debug)
 			{
-				Console.WriteLine($"RMS Below Notch: {rmsBelowNotch:F6}");
-				Console.WriteLine($"RMS Above Notch: {rmsAboveNotch:F6}");
-				Console.WriteLine($"Noise RMS: {noiseRms:F6}");
+				Debug.WriteLine($"RMS Below Notch: {rmsBelowNotch:F6}");
+				Debug.WriteLine($"RMS Above Notch: {rmsAboveNotch:F6}");
+				Debug.WriteLine($"Noise RMS: {noiseRms:F6}");
 			}
 
 			// Calculate THDN
@@ -129,7 +131,7 @@ namespace QA40xPlot.BareMetal
 
 			if (debug)
 			{
-				Console.WriteLine($"THDN: {thdn:F6} (Linear)");
+				Debug.WriteLine($"THDN: {thdn:F6} (Linear)");
 			}
 
 			return thdn;

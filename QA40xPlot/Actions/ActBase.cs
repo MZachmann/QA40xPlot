@@ -1,4 +1,5 @@
 ﻿using QA40x_BareMetal;
+using QA40xPlot.BareMetal;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using System.Windows;
@@ -22,7 +23,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="bvm">the local video model</param>
 		/// <returns>true if all good</returns>
-		public static async Task<bool> StartAction(BaseViewModel bvm)
+		public static bool StartAction(BaseViewModel bvm)
 		{
 			if (bvm.IsRunning)
 			{
@@ -31,7 +32,13 @@ namespace QA40xPlot.Actions
 			}
 			bvm.IsRunning = true;
 
-			if (QaUsb.CheckDeviceConnected() == false)
+			// attach to usb port if required
+			if (QaLowUsb.IsDeviceConnected() == false)
+			{
+				QaLowUsb.AttachDevice();
+			}
+
+			if (QaLowUsb.IsDeviceConnected() == false)
 			{
 				bvm.IsRunning = false;
 				return false;
