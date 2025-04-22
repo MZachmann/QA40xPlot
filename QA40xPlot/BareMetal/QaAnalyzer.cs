@@ -1,23 +1,18 @@
 
 using LibUsbDotNet;
 using LibUsbDotNet.Main;
+using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using System.Diagnostics;
 
 namespace QA40xPlot.BareMetal
 {
-	public class SineGen
-	{
-		public double Frequency { get; set; }
-		public double Voltage { get; set; }
-		public bool IsOn { get; set; }
-	}
-
 	public class QaAnalyzer
 	{
 		public AnalyzerParams? Params { get; private set; }
 
-		public SineGen GenParams { get; private set; } 
+		public GenWaveform GenParams { get; private set; }
+		public GenWaveform Gen2Params { get; private set; }
 
 		public byte[] CalData { get; private set; } // readonly
 
@@ -39,11 +34,21 @@ namespace QA40xPlot.BareMetal
 			Device = null;
 			Control = null;
 			CalData = [];
-			GenParams = new SineGen
+			GenParams = new GenWaveform()
 			{
+				Name = "Sine",
 				Frequency = 1000,
+				FreqEnd = 20000,
 				Voltage = 0.5,
-				IsOn = false
+				Enabled = false
+			};
+			Gen2Params = new GenWaveform()
+			{
+				Name = "Sine",
+				Frequency = 1000,
+				FreqEnd = 20000,
+				Voltage = 0.5,
+				Enabled = false
 			};
 		}
 
@@ -92,13 +97,6 @@ namespace QA40xPlot.BareMetal
 			Params.MaxOutputLevel = level;
 		}
 		
-		public void SetGenParams(double frequency, double voltage, bool isOn)
-		{
-			GenParams.Frequency = frequency;
-			GenParams.Voltage = Math.Pow(10, voltage/20);
-			GenParams.IsOn = isOn;
-		}
-
 		public AnalyzerParams? Init(
 			int sampleRate = 48000,
 			int maxInputLevel = 0,
@@ -112,9 +110,13 @@ namespace QA40xPlot.BareMetal
 			// Attempt to open QA402 or QA403 device
 			Device = QaLowUsb.AttachDevice();
 			RegisterReader = Device.OpenEndpointReader(ReadEndpointID.Ep01);
+			//RegisterReader?.Reset();
 			RegisterWriter = Device.OpenEndpointWriter(WriteEndpointID.Ep01);
+			//RegisterWriter?.Reset();
 			DataReader = Device.OpenEndpointReader(ReadEndpointID.Ep02);
+			//DataReader?.Reset();
 			DataWriter = Device.OpenEndpointWriter(WriteEndpointID.Ep02);
+			//DataWriter?.Reset();
 
 			Control = new Control(this);
 			CalData = Control.LoadCalibration();

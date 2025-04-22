@@ -244,7 +244,7 @@ namespace QA40xPlot.Actions
 
                 // Set the new input range
                 MyVModel.Attenuation = attenuation;   // visible display
-                await Qa40x.SetInputRange(attenuation);
+                QaUsb.SetInputRange(attenuation);
 
                 // Check if cancel button pressed
                 if (ct.IsCancellationRequested)

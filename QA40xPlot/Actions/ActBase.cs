@@ -35,7 +35,14 @@ namespace QA40xPlot.Actions
 			// attach to usb port if required
 			if (QaLowUsb.IsDeviceConnected() == false)
 			{
-				QaLowUsb.AttachDevice();
+				try
+				{
+					QaLowUsb.AttachDevice();
+				}
+				catch(Exception ex)
+				{
+					MessageBox.Show(ex.Message, "Please check your connection.", MessageBoxButton.OK, MessageBoxImage.Information);
+				}
 			}
 
 			if (QaLowUsb.IsDeviceConnected() == false)
@@ -77,7 +84,7 @@ namespace QA40xPlot.Actions
 			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, "Hann", QaLibrary.DEVICE_MAX_ATTENUATION, inits))
 				return null;
 
-			// the simplest thing here is to do a chirp at a low value...
+			// the simplest thing here is to do a quick burst low value...
 			var generatorV = 0.01;          // random low test value
 			var generatordBV = 20 * Math.Log10(generatorV); // or -40
 			QaUsb.SetGen1(dfreq, generatordBV, true);             // send a sine wave
@@ -101,7 +108,7 @@ namespace QA40xPlot.Actions
 			if (maxi < 1)
 			{
 				// get some more accuracy with this
-				await Qa40x.SetInputRange(18);
+				//QaUsb.SetInputRange(18);
 				// do two and average them
 				acqData = await QaUsb.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
 				if (acqData == null || acqData.FreqRslt == null || ct.IsCancellationRequested)
@@ -135,7 +142,7 @@ namespace QA40xPlot.Actions
 
 		protected async Task<LeftRightFrequencySeries?> DetermineGainCurve(bool inits, int average = 3)
 		{
-			await showMessage("Calculating DUT gain");
+			await showMessage("Calculating DUT gain curve");
 			// initialize very quick run
 			var fftsize = FftActualSizes[0];
 			var sampleRate = MathUtil.ToUint(SampleRates[0]);
@@ -163,7 +170,7 @@ namespace QA40xPlot.Actions
 				if( maxi < 1)
 				{
 					// get some more accuracy with this
-					await Qa40x.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION - 24);
+					QaUsb.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION - 24);
 					// do two and average them
 					acqData = await QaUsb.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
 					if (acqData == null || acqData.FreqRslt == null || ct.IsCancellationRequested)

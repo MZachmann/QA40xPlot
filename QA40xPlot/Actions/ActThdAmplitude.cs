@@ -270,7 +270,7 @@ namespace QA40xPlot.Actions
 			}
 			await showMessage($"Determining noise floor.");
 			QaUsb.SetOutputSource(OutputSources.Off);
-			MeasurementResult.NoiseFloor = await QaLibrary.DoAcquisitions(msr.Averages, ct);
+			MeasurementResult.NoiseFloor = await QaUsb.DoAcquisitions(msr.Averages, ct);
 			if (ct.IsCancellationRequested || MeasurementResult.NoiseFloor == null)
 				return false;
 			QaLibrary.PlotMiniFftGraph(fftPlot, MeasurementResult.NoiseFloor.FreqRslt, msr.ShowLeft, msr.ShowRight);
@@ -298,7 +298,7 @@ namespace QA40xPlot.Actions
 
 				// Set generator
 				QaUsb.SetGen1(testFrequency, generatorVoltagedBV, true);      // Set the generator in dBV
-				await Qa40x.SetInputRange(attenuate);
+				QaUsb.SetInputRange(attenuate);
 				thdaVm.Attenuation = attenuate;	// update the GUI
 
 				LeftRightSeries? lrfs = null;

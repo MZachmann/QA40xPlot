@@ -161,14 +161,14 @@ namespace QA40xPlot.Actions
 						// Set the generators via a usermode
 						var gw1 = new GenWaveform()
 						{
-							Freq = stepBinFrequencies[0],
-							Volts = genVolt,
+							Frequency = stepBinFrequencies[0],
+							Voltage = genVolt,
 							Name = msr.MeasurementSettings.Gen1Waveform
 						};
 						var gw2 = new GenWaveform()
 						{
-							Freq = stepBinFrequencies[1],
-							Volts = genVolt2,
+							Frequency = stepBinFrequencies[1],
+							Voltage = genVolt2,
 							Name = msr.MeasurementSettings.Gen2Waveform
 						};
 						var gws = new GenWaveSample()

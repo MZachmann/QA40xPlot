@@ -2,6 +2,7 @@
 using LibUsbDotNet;
 using LibUsbDotNet.Main;
 using QA40xPlot.BareMetal;
+using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using System.Diagnostics;
 
@@ -61,7 +62,7 @@ namespace QA40x_BareMetal
         public static async Task<LeftRightSeries> DoAcquisitions(uint averages, CancellationToken ct)
         {
 			var datapt = new double[QAnalyzer?.Params?.FFTSize ?? 0];
-            if( QAnalyzer?.GenParams.IsOn == true && QAnalyzer?.Params?.OutputSource == OutputSources.Sine)
+            if( QAnalyzer?.GenParams.Enabled == true && QAnalyzer?.Params?.OutputSource == OutputSources.Sine)
             {
 				double dt = 1.0 / (_qAnalyzer?.Params?.SampleRate ?? 1);
 				datapt = datapt.Select((x,index) => (QAnalyzer.GenParams.Voltage/Math.Sqrt(2)) * Math.Sin(2 * Math.PI * QAnalyzer.GenParams.Frequency * dt * index)).ToArray();
@@ -70,18 +71,57 @@ namespace QA40x_BareMetal
 			return lrfs;
 		}
 
-        public static void SetGen1(double freq, double volts, bool ison)
+        /// <summary>
+        /// set a waveform to sine with parameters as given
+        /// </summary>
+        /// <param name="gwf">the genwaveform</param>
+        /// <param name="freq"></param>
+        /// <param name="volts"></param>
+        /// <param name="ison"></param>
+        private static void SetParams(GenWaveform gwf, double freq, double volts, bool ison)
         {
-            QAnalyzer?.SetGenParams(freq, volts, ison);
+			gwf.Name = "Sine";
+			gwf.Voltage = volts;
+			gwf.Frequency = freq;
+			gwf.Enabled = ison;
 		}
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="ct"></param>
-        /// <param name="datapt"></param>
-        /// <param name="getFreq"></param>
-        /// <returns></returns>
+		public static void SetGen2(double freq, double voltsdBV, bool ison)
+        {
+            if (QAnalyzer == null)
+                return;
+            SetParams(QAnalyzer.Gen2Params, freq, Math.Pow(10, voltsdBV / 20), ison);
+		}
+
+        public static void SetGen1(double freq, double voltsdBV, bool ison)
+        {
+            if(QAnalyzer == null)
+				return;
+			SetParams(QAnalyzer.GenParams, freq, Math.Pow(10, voltsdBV / 20), ison);
+		}
+
+        public static void SetInputRange(int range)
+		{
+			if (QAnalyzer == null)
+				return;
+			QAnalyzer.SetInput(range);
+		}
+
+		public static void SetOutputRange(int range)
+		{
+			if (QAnalyzer == null)
+				return;
+			QAnalyzer.SetOutput(range);
+		}
+	
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="ct"></param>
+		/// <param name="datapt"></param>
+		/// <param name="getFreq"></param>
+		/// <returns></returns>
 		public static async Task<LeftRightSeries> DoAcquireUser(uint averages, CancellationToken ct, double[] dataLeft, double[] dataRight, bool getFreq)
 		{
 			LeftRightSeries lrfs = new LeftRightSeries();
@@ -89,10 +129,18 @@ namespace QA40x_BareMetal
 			List<AcqResult> runList = new List<AcqResult>();
 			for (int rrun = 0; rrun < averages; rrun++)
             {
-				var newData = await Acquisition.DoStreamingAsync(ct, dataLeft, dataRight);
-				if (ct.IsCancellationRequested || lrfs == null || newData.Valid == false)
+                try
+                {
+					var newData = await Acquisition.DoStreamingAsync(ct, dataLeft, dataRight);
+					if (ct.IsCancellationRequested || lrfs == null || newData.Valid == false)
+						return lrfs ?? new();
+					runList.Add(newData);
+				}
+				catch (Exception ex)
+				{
+					Debug.WriteLine($"Error: {ex.Message}");
 					return lrfs ?? new();
-                runList.Add(newData);
+				}
 			}
 
 			{

@@ -85,9 +85,9 @@ namespace QA40xPlot.Libraries
 
 		private static List<double> MakeWave(GenWaveform gw, GenWaveSample samples)
 		{
-			var dvamp = gw.Volts * Math.Sqrt(2); // rms voltage
+			var dvamp = gw.Voltage * Math.Sqrt(2); // rms voltage
 				// frequency vector
-			var freqs = Enumerable.Range(0, samples.SampleSize).Select(x => 2 * Math.PI * gw.Freq * x / samples.SampleRate);
+			var freqs = Enumerable.Range(0, samples.SampleSize).Select(x => 2 * Math.PI * gw.Frequency * x / samples.SampleRate);
 				// now evaluate
 			switch ( gw.Name)
 			{
