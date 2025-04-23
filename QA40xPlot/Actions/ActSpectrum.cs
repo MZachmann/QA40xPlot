@@ -819,7 +819,6 @@ namespace QA40xPlot.Actions
 
                 foreach (var result in Data.Measurements.Where(m => m.Show))
                 {
-					SpectrumViewModel mvs = result.MeasurementSettings;
 					PlotValues(result, resultNr++);
                 }
             }
@@ -832,7 +831,6 @@ namespace QA40xPlot.Actions
           
                 foreach (var result in Data.Measurements.Where(m => m.Show))
                 {
-					SpectrumViewModel mvs = result.MeasurementSettings;
 					PlotValues(result, resultNr++);
 				}
 			}

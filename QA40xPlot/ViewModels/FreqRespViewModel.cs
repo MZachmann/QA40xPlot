@@ -262,6 +262,30 @@ public class FreqRespViewModel : BaseViewModel
 			case "StepsOctave":
 				actFreq?.UpdateGraph(false);
 				break;
+			case "SampleRate":
+				if(IsChirp)
+				{
+					if( SampleRate == "96000")
+					{
+						this.FftSize = "64K";
+					}
+					if (SampleRate == "192000")
+					{
+						this.FftSize = "128K";
+					}
+					else if (SampleRate == "48000")
+					{
+						this.FftSize = "32K";
+					}
+				}
+				break;
+			case "IsChirp":
+				if(IsChirp)
+				{
+					this.SampleRate = "96000";
+					this.FftSize = "64K";
+				}
+				break;
 			default:
 				break;
 		}

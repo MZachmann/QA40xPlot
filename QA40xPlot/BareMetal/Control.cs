@@ -3,33 +3,47 @@ using System.Diagnostics;
 
 namespace QA40xPlot.BareMetal
 {
-	public class Control
+	public static class Control
 	{
-		private readonly QaAnalyzer _Analyzer;
-		private readonly Dictionary<int, int> _Output2Reg = new() { { 18, 3 }, { 8, 2 }, { -2, 1 }, { -12, 0 } };
-		private readonly Dictionary<int, int> _Input2Reg = new() { { 0, 0 }, { 6, 1 }, { 12, 2 }, { 18, 3 }, { 24, 4 }, { 30, 5 }, { 36, 6 }, { 42, 7 } };
-		private readonly Dictionary<int, int> _Samplerate2Reg = new() { { 48000, 0 }, { 96000, 1 }, { 192000, 2 } };
+		private static readonly Dictionary<int, int> _Output2Reg = new() { { 18, 3 }, { 8, 2 }, { -2, 1 }, { -12, 0 } };
+		private static readonly Dictionary<int, int> _Input2Reg = new() { { 0, 0 }, { 6, 1 }, { 12, 2 }, { 18, 3 }, { 24, 4 }, { 30, 5 }, { 36, 6 }, { 42, 7 } };
+		private static readonly Dictionary<int, int> _Samplerate2Reg = new() { { 48000, 0 }, { 96000, 1 }, { 192000, 2 } };
 
-		public Control(QaAnalyzer analyzer)
+		/// <summary>
+		/// given a voltage return the dbV value for the output register
+		/// </summary>
+		/// <param name="maxOut"></param>
+		/// <returns></returns>
+		public static int DetermineOutput(double maxOut)
 		{
-			_Analyzer = analyzer;
+			// Find the smallest output setting that is greater than or equal to maxOut
+			// since maxout is a peak voltage, convert to rms
+			var maxrms = maxOut * 0.7;  // the rms voltage to produce this peak voltage
+			Debug.WriteLine($"Max rms= {maxrms}");
+			foreach (var kvp in _Output2Reg.Reverse())
+			{
+				var mvp = Math.Pow(10, kvp.Key / 20.0);
+				if (mvp >= maxrms)
+					return kvp.Key;
+			}
+			return 18; // Default to 18 dB if no suitable value is found
 		}
 
-		public void SetOutput(int gain)
+		public static void SetOutput(int gain)
 		{
 			if (!_Output2Reg.TryGetValue(gain, out int val))
 				throw new ArgumentException("Invalid output gain value.");
 			QaUsb.WriteRegister(6, (byte)val);
 		}
 
-		public void SetInput(int gain)
+		public static void SetInput(int gain)
 		{
 			if (!_Input2Reg.TryGetValue(gain, out int val))
 				throw new ArgumentException("Invalid input gain value.");
 			QaUsb.WriteRegister(5, (byte)val);
 		}
 
-		public void SetSampleRate(int rate)
+		public static void SetSampleRate(int rate)
 		{
 			if (!_Samplerate2Reg.TryGetValue(rate, out int val))
 				throw new ArgumentException("Invalid sample rate value.");
@@ -37,16 +51,11 @@ namespace QA40xPlot.BareMetal
 			Thread.Sleep(100); // Small delay to ensure the sample rate is set
 		}
 
-		public void SetWindowing(string window)
-		{
-			_Analyzer.Params?.SetWindowing(window);
-		}
-
 		/// <summary>
 		/// read the calibration data from the device
 		/// </summary>
 		/// <returns>a list of calibration values in dB</returns>
-		public byte[] LoadCalibration()
+		public static byte[] LoadCalibration()
 		{
 			QaUsb.WriteRegister(0xD, 0x10);
 			int pageSize = 512;
@@ -118,7 +127,7 @@ namespace QA40xPlot.BareMetal
 			return (leftValue, rightValue);
 		}
 
-		public void DumpCalibrationData(byte[] calData)
+		public static void DumpCalibrationData(byte[] calData)
 		{
 			string hexData = BitConverter.ToString(calData).Replace("-", " ");
 			Debug.WriteLine(hexData);

@@ -4,6 +4,16 @@ namespace QA40xPlot.BareMetal
 {
 	public static class Chirps
 	{
+		/// <summary>
+		/// creates a chirp signal and an inverse filter
+		/// </summary> 
+		/// <param name="totalBufferLength">amount of buffer to fill</param>
+		/// <param name="fs">sampling frequency</param>
+		/// <param name="amplitudeVpk">peak voltage of signal</param>
+		/// <param name="f1">start freq</param>
+		/// <param name="f2">end freq</param>
+		/// <param name="pct">amount of buffer to fill with signal 1.0 == all</param>
+		/// <returns>(chirp,inverse)</returns>
 		public static (double[], double[]) ChirpVp(int totalBufferLength, double fs, double amplitudeVpk, double f1 = 20, double f2 = 20000, double pct = 0.6)
 		{
 			// Calculate the length of the chirp in samples
@@ -48,7 +58,19 @@ namespace QA40xPlot.BareMetal
 			return (paddedChirp, inverseFilter);
 		}
 
-		public static (double[], double[], double[], double[]) NormalizeAndComputeFft(
+		/// <summary>
+		/// Normalizes the impulse response and computes the FFT of the DUT chirp.
+		/// </summary>
+		/// <param name="chirp">The chirp signal from the device under test (DUT).</param>
+		/// <param name="inverseFilter">The inverse filter to be convolved with the chirp</param>
+		/// <param name="targetSampleRate"></param>
+		/// <param name="applyWindow">defaults to false</param>
+		/// <param name="windowStartTime">The time before the IR peak for the window to start (in seconds)</param>
+		/// <param name="windowEndTime"> The time after the IR peak for the window to stop (in seconds)</param>
+		/// <param name="rampUpTime">The ramp-up time of the window (in seconds)</param>
+		/// <param name="rampDownTime">The ramp-down time of the window (in seconds)</param>
+		/// <returns>freq bins, fftDutV array, ir_dut impulse response, window</returns>
+		public static (double[], Complex[], double[], double[]) NormalizeAndComputeFft(
 			double[] chirp, double[] inverseFilter, double targetSampleRate, bool applyWindow = false,
 			double windowStartTime = 0.005, double windowEndTime = 0.01,
 			double rampUpTime = 0.0001, double rampDownTime = 0.001)
@@ -74,19 +96,16 @@ namespace QA40xPlot.BareMetal
 			}
 
 			// Compute FFT of the impulse response
-			Complex[] fftDut = FFT(ir);
+			Complex[] fftDut = MyFft(ir);
 			fftDut = fftDut.Take(fftDut.Length / 2).ToArray(); // Take the positive frequency components
 
 			// Compute frequency bins
-			double[] freq = Enumerable.Range(0, chirp.Length / 2).Select(i => i * targetSampleRate / chirp.Length).ToArray();
+			double[] freq = Enumerable.Range(0, fftDut.Length).Select(i => i * targetSampleRate / chirp.Length).ToArray();
 
 			// Normalize FFT by the length of the FFT
-			double[] fftDutNormalized = fftDut.Select(c => c.Magnitude / fftDut.Length).ToArray();
+			Complex[] fftDutNormalized = fftDut.Select(c => c ).ToArray();
 
-			// Convert to dBV
-			double[] fftDutDb = fftDutNormalized.Select(value => 20 * Math.Log10(value)).ToArray();
-
-			return (freq, fftDutDb, ir, window);
+			return (freq, fftDutNormalized, ir, window);
 		}
 
 		private static double[] GenerateWindow(int length, int start, int end, int rampUp, int rampDown)
@@ -117,22 +136,27 @@ namespace QA40xPlot.BareMetal
 		private static double[] FftConvolve(double[] signal, double[] filter)
 		{
 			int n = signal.Length + filter.Length - 1;
-			Complex[] signalFft = FFT(signal, n);
-			Complex[] filterFft = FFT(filter, n);
+			Complex[] signalFft = MyFft(signal, n);
+			Complex[] filterFft = MyFft(filter, n);
 			Complex[] resultFft = signalFft.Zip(filterFft, (s, f) => s * f).ToArray();
 			return IFFT(resultFft).Select(c => c.Real).ToArray();
 		}
 
-		private static Complex[] FFT(double[] signal, int n = -1)
+		private static Complex[] MyFft(double[] signal, int n = -1)
 		{
-			// Implement FFT logic or use a library
-			throw new NotImplementedException();
+			// Implement FFT logic
+			//var flength = signal.Length / 2;        // we want half this since freq is symmetric
+			//Complex[] spectrum_measured = FftSharp.FFT.Forward(signal).Take(flength).ToArray();
+			Complex[] spectrum_measured = FftSharp.FFT.Forward(signal).ToArray();
+			return spectrum_measured;
 		}
 
 		private static Complex[] IFFT(Complex[] signal)
 		{
 			// Implement IFFT logic or use a library
-			throw new NotImplementedException();
+			var toif = (Complex[])signal.Clone();
+			FftSharp.FFT.Inverse(toif);
+			return toif;
 		}
 	}
 }

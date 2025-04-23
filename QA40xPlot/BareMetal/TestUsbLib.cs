@@ -29,7 +29,7 @@ namespace QA40xPlot.BareMetal
 				Debug.WriteLine(msg);
 				throw new Exception(msg);
 			}
-			tstA?.Control?.DumpCalibrationData(calData);
+			Control.DumpCalibrationData(calData);
 
 			return tstA;
 		}

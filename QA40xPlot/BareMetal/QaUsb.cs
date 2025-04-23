@@ -65,7 +65,7 @@ namespace QA40x_BareMetal
             if( QAnalyzer?.GenParams.Enabled == true && QAnalyzer?.Params?.OutputSource == OutputSources.Sine)
             {
 				double dt = 1.0 / (_qAnalyzer?.Params?.SampleRate ?? 1);
-				datapt = datapt.Select((x,index) => (QAnalyzer.GenParams.Voltage/Math.Sqrt(2)) * Math.Sin(2 * Math.PI * QAnalyzer.GenParams.Frequency * dt * index)).ToArray();
+				datapt = datapt.Select((x,index) => (QAnalyzer.GenParams.Voltage*Math.Sqrt(2)) * Math.Sin(2 * Math.PI * QAnalyzer.GenParams.Frequency * dt * index)).ToArray();
 			}
 			var lrfs = await DoAcquireUser(averages, ct, datapt, datapt, true);
 			return lrfs;
@@ -127,6 +127,17 @@ namespace QA40x_BareMetal
 			LeftRightSeries lrfs = new LeftRightSeries();
             var dpt = new double[dataLeft.Length];
 			List<AcqResult> runList = new List<AcqResult>();
+            // set the output amplitude to support the data
+            var maxOut = Math.Max(dataLeft.Max(), dataRight.Max());
+			var minOut = Math.Min(dataLeft.Min(), dataRight.Min());
+            maxOut = Math.Max(Math.Abs(maxOut), Math.Abs(minOut));  // maximum output voltage
+            // don't bother setting output amplitude if we have no output
+            if(maxOut > 0)
+            {
+				var mlevel = Control.DetermineOutput(maxOut); // the setting for our voltage
+				QAnalyzer?.SetOutput(mlevel); // set the output voltage
+			}
+
 			for (int rrun = 0; rrun < averages; rrun++)
             {
                 try
@@ -221,7 +232,7 @@ namespace QA40x_BareMetal
 
 				qan.SetSampleRate((int)sampleRate);
 				qan.SetInput(attenuation);
-                qan.SetOutput(18);
+                //qan.SetOutput(18);
                 qan.Params.SetWindowing(Windowing);
 				qan.Params.FFTSize = (int)fftsize;
 				return true;

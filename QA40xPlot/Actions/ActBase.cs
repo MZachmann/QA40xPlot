@@ -1,8 +1,10 @@
-﻿using QA40x_BareMetal;
+﻿using FftSharp;
+using QA40x_BareMetal;
 using QA40xPlot.BareMetal;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using System.Windows;
+using System.Windows.Interop;
 using static QA40xPlot.ViewModels.BaseViewModel;
 
 namespace QA40xPlot.Actions
@@ -140,25 +142,24 @@ namespace QA40xPlot.Actions
 			return lrfs;       // Return the new generator amplitude and acquisition data
 		}
 
-		protected async Task<LeftRightFrequencySeries?> DetermineGainCurve(bool inits, int average = 3)
+		protected async Task<LeftRightFrequencySeries?> DetermineGainCurve(bool inits, int average = 2)
 		{
 			await showMessage("Calculating DUT gain curve");
 			// initialize very quick run
-			var fftsize = FftActualSizes[0];
-			var sampleRate = MathUtil.ToUint(SampleRates[0]);
-			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, "Hann", QaLibrary.DEVICE_MAX_ATTENUATION, inits))
+			uint fftsize = 65536;
+			uint sampleRate = 96000;
+			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, "Rectangular", QaLibrary.DEVICE_MAX_ATTENUATION, inits))
 				return null;
 
 			{
 				// the simplest thing here is to do a chirp at a low value...
 				var generatorV = 0.01;			// random low test value
-				var generatordBV = 20*Math.Log10(generatorV);	// or -40
-				await Qa40x.SetExpoChirpGen(generatordBV, 0, 0, false);				// don't use right as reference on input
-				await Qa40x.SetOutputSource(OutputSources.ExpoChirp);                   // Set sine wave
+				var chirptwo = Chirps.ChirpVp((int)fftsize, sampleRate, generatorV, 20, 20000);
 				var ct = new CancellationTokenSource();
 				// do two and average them
-				LeftRightSeries acqData = await QaLibrary.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
-				if (acqData == null || acqData.FreqRslt == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
+				var chirpy = chirptwo.Item1;
+				LeftRightSeries acqData = await QaUsb.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
+				if (acqData == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
 					return null;
 
 				// what's the maximum input here?
@@ -172,33 +173,40 @@ namespace QA40xPlot.Actions
 					// get some more accuracy with this
 					QaUsb.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION - 24);
 					// do two and average them
-					acqData = await QaUsb.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
-					if (acqData == null || acqData.FreqRslt == null || ct.IsCancellationRequested)
+					acqData = await QaUsb.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
+					if (acqData == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
 						return null;
 				}
 
 				// calculate gain for each channel from frequency response
-				LeftRightFrequencySeries lrfs = new LeftRightFrequencySeries();
-				lrfs.Left = acqData.FreqRslt.Left.Select(x => x / generatorV).ToArray();
-				lrfs.Right = acqData.FreqRslt.Right.Select(x => x / generatorV).ToArray();
-				lrfs.Df = acqData.FreqRslt.Df;
+				LeftRightTimeSeries lrts = new LeftRightTimeSeries();
+				lrts.Left = acqData.TimeRslt.Left.Select(x => x / generatorV).ToArray();
+				lrts.Right = acqData.TimeRslt.Right.Select(x => x / generatorV).ToArray();
+				lrts.dt = acqData.TimeRslt.dt;
 				//
 				for(int j=1; j<average; j++)
 				{
-					acqData = await QaUsb.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
-					if (acqData == null || acqData.FreqRslt == null || ct.IsCancellationRequested)
+					acqData = await QaUsb.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);        // Do a single aqcuisition
+					if (acqData == null || (acqData.TimeRslt == null) || ct.IsCancellationRequested)
 						return null;
 
 					// calculate gain for each channel from frequency response
-					lrfs.Left = acqData.FreqRslt.Left.Select((x, index) => ((lrfs.Left[index] + x / generatorV))).ToArray();
-					lrfs.Right = acqData.FreqRslt.Right.Select((x, index) => ((lrfs.Right[index] + x / generatorV))).ToArray();
+					lrts.Left = acqData.TimeRslt.Left.Zip(lrts.Left, (x, y) => x+y).ToArray();
+					lrts.Right = acqData.TimeRslt.Right.Zip(lrts.Right, (x, y) => x + y).ToArray();
 				}
 				if (average > 1)
 				{
-					lrfs.Left = lrfs.Left.Select(x => x/average).ToArray();
-					lrfs.Right = lrfs.Right.Select(x => x / average).ToArray();
+					lrts.Left = lrts.Left.Select(x => x/average).ToArray();
+					lrts.Right = lrts.Right.Select(x => x / average).ToArray();
 				}
-
+				// now do the frequency transformation
+				LeftRightFrequencySeries lrfs = new LeftRightFrequencySeries();
+				var filter = chirptwo.Item1;
+				var lft = Chirps.NormalizeAndComputeFft(lrts.Left, filter, 1 / lrts.dt, true, 0.01, 0.5, 0.0005, 0.02);
+				var rgt = Chirps.NormalizeAndComputeFft(lrts.Right, filter, 1 / lrts.dt, true, 0.01, 0.5, 0.0005, 0.02);
+				lrfs.Left = lft.Item2.Select(x => x.Magnitude).ToArray();
+				lrfs.Right = rgt.Item2.Select(x => x.Magnitude).ToArray();
+				lrfs.Df = lft.Item1[1] - lft.Item1[0];
 				return lrfs;       // Return the new generator amplitude and acquisition data
 			}
 		}

@@ -96,10 +96,9 @@ namespace QA40xPlot.BareMetal
             AcqResult r = new AcqResult();
             r.Valid = true;
 
-            var aControl = QaUsb.QAnalyzer?.Control;
             var aParams = QaUsb.QAnalyzer?.Params;
 
-			if (QaUsb.QAnalyzer == null || aControl == null || aParams == null)
+			if (QaUsb.QAnalyzer == null || aParams == null)
             { 
                 r.Valid = false;
                 return r;

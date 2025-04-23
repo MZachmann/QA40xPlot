@@ -19,9 +19,6 @@ namespace QA40xPlot.BareMetal
 		// the usb device we talk to
 		public UsbDevice? Device { get; private set; }
 
-		// some control methods for the device
-		public Control? Control { get; private set; }
-
 		// the reader/writer pairs for register and data endpoints
 		public UsbEndpointReader? RegisterReader { get; private set; }
 		public UsbEndpointWriter? RegisterWriter { get; private set; }
@@ -32,7 +29,6 @@ namespace QA40xPlot.BareMetal
 		{
 			Params = null;
 			Device = null;
-			Control = null;
 			CalData = [];
 			GenParams = new GenWaveform()
 			{
@@ -58,11 +54,11 @@ namespace QA40xPlot.BareMetal
 				throw new ArgumentNullException(nameof(analyzerParams));
 			// Set input/output levels and sample rate
 			if( Params?.MaxInputLevel != analyzerParams.MaxInputLevel)
-				Control?.SetInput(analyzerParams.MaxInputLevel);
+				Control.SetInput(analyzerParams.MaxInputLevel);
 			if (Params?.MaxOutputLevel != analyzerParams.MaxOutputLevel)
-				Control?.SetOutput(analyzerParams.MaxOutputLevel);
+				Control.SetOutput(analyzerParams.MaxOutputLevel);
 			if (Params?.SampleRate != analyzerParams.SampleRate)
-				Control?.SetSampleRate(analyzerParams.SampleRate);
+				Control.SetSampleRate(analyzerParams.SampleRate);
 			Params = analyzerParams;
 		}
 
@@ -72,7 +68,7 @@ namespace QA40xPlot.BareMetal
 				throw new InvalidOperationException("Analyzer parameters not initialized.");
 			if (Params.SampleRate != sampleRate)
 			{
-				Control?.SetSampleRate(sampleRate);
+				Control.SetSampleRate(sampleRate);
 			}
 			Params.SampleRate = sampleRate;
 			Params.PostBuffer = 2048 * sampleRate / 48000;
@@ -84,7 +80,7 @@ namespace QA40xPlot.BareMetal
 			if (Params == null)
 				throw new InvalidOperationException("Analyzer parameters not initialized.");
 			if (Params.MaxInputLevel != level)
-				Control?.SetInput(level);
+				Control.SetInput(level);
 			Params.MaxInputLevel = level;
 		}
 
@@ -93,7 +89,7 @@ namespace QA40xPlot.BareMetal
 			if (Params == null)
 				throw new InvalidOperationException("Analyzer parameters not initialized.");
 			if (Params.MaxOutputLevel != level)
-				Control?.SetOutput(level);
+				Control.SetOutput(level);
 			Params.MaxOutputLevel = level;
 		}
 		
@@ -118,7 +114,6 @@ namespace QA40xPlot.BareMetal
 			DataWriter = Device.OpenEndpointWriter(WriteEndpointID.Ep02);
 			//DataWriter?.Reset();
 
-			Control = new Control(this);
 			CalData = Control.LoadCalibration();
 
 			// Load calibration data

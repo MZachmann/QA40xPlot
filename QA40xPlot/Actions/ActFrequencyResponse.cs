@@ -53,14 +53,16 @@ namespace QA40xPlot.Actions
             ct.Cancel();
 		}
 
-		private async Task<LeftRightSeries?> CallChirp(CancellationToken ct, double f0, double f1)
+		private async Task<(LeftRightSeries?, double[])> CallChirp(CancellationToken ct, double f0, double f1)
 		{
 			var msr = MeasurementResult.MeasurementSettings;
 			var genv = msr.ToGenVoltage(msr.Gen1Voltage, [], GEN_INPUT, LRGains?.Left);
 			// output v
-			var chirp = QAMath.CalculateChirp(f0, f1, genv, msr.FftSizeVal, msr.SampleRateVal);
-			LeftRightSeries lrfs = await QaUsb.DoAcquireUser(1, ct, chirp.ToArray(), chirp.ToArray(), false);
-			return lrfs;
+			//var chirp = QAMath.CalculateChirp(f0, f1, genv, msr.FftSizeVal, msr.SampleRateVal);
+            var chirptwo = Chirps.ChirpVp((int)msr.FftSizeVal, msr.SampleRateVal, genv, f0, f1);
+            var chirpy = chirptwo.Item1;
+			LeftRightSeries lrfs = await QaUsb.DoAcquireUser(1, ct, chirpy, chirpy, false);
+			return (lrfs, chirptwo.Item2);
 		}
 
 		/// <summary>
@@ -113,8 +115,9 @@ namespace QA40xPlot.Actions
 					}
 					break;
                 case TestingType.Gain:
-					db.LeftData = MeasurementResult.GainData.Select(x => x.Magnitude).ToList();
-					db.PhaseData = MeasurementResult.GainData.Select(x => x.Phase).ToList();
+                    var gld = MeasurementResult.GainData.ToArray();
+					db.LeftData = FFT.Magnitude(gld).ToList();
+					db.PhaseData = FFT.Phase(gld).ToList();
 					break;
 				case TestingType.Impedance:
                     {
@@ -339,22 +342,41 @@ namespace QA40xPlot.Actions
                 var endfrq = Math.Min(endf, msr.SampleRateVal / 4);
 
 				//var lfrs = await QaLibrary.DoAcquisitions(1, ct.Token);
-				var lfrs = await CallChirp(ct.Token, startf/2, endfrq * 2);
+				var lfrs2 = await CallChirp(ct.Token, startf/2, endfrq * 2);
+                var lfrs = lfrs2.Item1;
+                var filter = lfrs2.Item2;
 				if (lfrs?.TimeRslt == null)
                     return false;
 				if (ct.IsCancellationRequested)
 					return false;
 
+                Complex[] spectrum_measured = [];
+                Complex[] spectrum_ref = [];
+				var flength = lfrs.TimeRslt.Left.Length / 2;        // we want half this since freq is symmetric
+
+				if (ttype == TestingType.Response)
+                {
+					var myLeft = Chirps.NormalizeAndComputeFft(lfrs.TimeRslt.Left, filter, 1 / lfrs.TimeRslt.dt, true,
+						0.01, 0.5, 0.0005, 0.02);
+                    spectrum_measured = myLeft.Item2;
+					var myRight = Chirps.NormalizeAndComputeFft(lfrs.TimeRslt.Left, filter, 1 / lfrs.TimeRslt.dt, true,
+						0.01, 0.5, 0.0005, 0.02);
+                    spectrum_ref = myRight.Item2;
+				}
+                else
+                {
+					// Left channel
+					var window = new FftSharp.Windows.Rectangular();    // best?
+					double[] windowed_measured = window.Apply(lfrs.TimeRslt.Left, true);
+					spectrum_measured = FFT.Forward(windowed_measured);
+
+					double[] windowed_ref = window.Apply(lfrs.TimeRslt.Right, true);
+					spectrum_ref = FFT.Forward(windowed_ref);
+				}
+
+				spectrum_measured = spectrum_measured.Take(flength).ToArray();
+				spectrum_ref = spectrum_ref.Take(flength).ToArray();
 				var m2 = Math.Sqrt(2);
-				// Left channel
-				var window = new FftSharp.Windows.Rectangular();    // best?
-                var flength = lfrs.TimeRslt.Left.Length / 2;        // we want half this since freq is symmetric
-				double[] windowed_measured = window.Apply(lfrs.TimeRslt.Left, true);
-                Complex[] spectrum_measured = FFT.Forward(windowed_measured).Take(flength).ToArray();
-
-				double[] windowed_ref = window.Apply(lfrs.TimeRslt.Right, true);
-                Complex[] spectrum_ref = FFT.Forward(windowed_ref).Take(flength).ToArray();
-
 				var nca2 = (int)(0.01 + 1 / lfrs.TimeRslt.dt);      // total time in tics = sample rate
 				var df = nca2 / (double)flength / 2;                // ???
 
@@ -374,7 +396,10 @@ namespace QA40xPlot.Actions
 					case TestingType.Response:
                         // left, right are magnitude. left uses right as reference
                         var ts = lfrs.TimeRslt.Right;
-						var totalV = Math.Sqrt(ts.Select(x => x * x).Sum() / ts.Length); // rms voltage
+						var totalV = Math.Sqrt(ts.Select(x => x
+                        
+                        
+                        * x).Sum() / ts.Length); // rms voltage
                         if( totalV > .001)
 						{   // if right channel is active use it as reference
 							MeasurementResult.GainData = mx.Zip(mref,
@@ -450,7 +475,7 @@ namespace QA40xPlot.Actions
 			// calculate gain to autoattenuate
 			frqrsVm.Attenuation = 42; // display on-screen
 			await showMessage("Calculating gain");
-			LRGains = await DetermineGainCurve(true, 1);
+            LRGains = await DetermineGainCurve(true, 1);
             if(LRGains == null)
                 { return false; }
 
