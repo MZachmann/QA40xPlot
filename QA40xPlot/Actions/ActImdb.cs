@@ -241,7 +241,7 @@ namespace QA40xPlot.Actions
 
                     // Set the generators
                     QaUsb.SetGen1(stepBinFrequencies[0], amplitudeSetpoint1dBV, msrImd.UseGenerator);
-					//!!!await Qa40x.SetGen2(stepBinFrequencies[1], amplitudeSetpoint2dBV, msrImd.UseGenerator2);
+					QaUsb.SetGen2(stepBinFrequencies[1], amplitudeSetpoint2dBV, msrImd.UseGenerator2);
 					// for the first go around, turn on the generator
 					if ( msrImd.UseGenerator || msrImd.UseGenerator2)
                     {

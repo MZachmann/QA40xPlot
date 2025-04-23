@@ -95,7 +95,7 @@ namespace QA40xPlot.BareMetal
 		
 		public AnalyzerParams? Init(
 			int sampleRate = 48000,
-			int maxInputLevel = 0,
+			int maxInputLevel = 42,
 			int maxOutputLevel = 18,
 			int preBuf = 2048,
 			int postBuf = 2048,
@@ -106,13 +106,9 @@ namespace QA40xPlot.BareMetal
 			// Attempt to open QA402 or QA403 device
 			Device = QaLowUsb.AttachDevice();
 			RegisterReader = Device.OpenEndpointReader(ReadEndpointID.Ep01);
-			//RegisterReader?.Reset();
 			RegisterWriter = Device.OpenEndpointWriter(WriteEndpointID.Ep01);
-			//RegisterWriter?.Reset();
 			DataReader = Device.OpenEndpointReader(ReadEndpointID.Ep02);
-			//DataReader?.Reset();
 			DataWriter = Device.OpenEndpointWriter(WriteEndpointID.Ep02);
-			//DataWriter?.Reset();
 
 			CalData = Control.LoadCalibration();
 

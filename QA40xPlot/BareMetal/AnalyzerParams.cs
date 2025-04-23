@@ -18,7 +18,7 @@ namespace QA40xPlot.BareMetal
 
 		public AnalyzerParams(
 			int sampleRate = 48000,
-			int maxInputLevel = 0,
+			int maxInputLevel = 42,
 			int maxOutputLevel = 18,
 			int preBuffer = 2048,
 			int postBuffer = 2048,

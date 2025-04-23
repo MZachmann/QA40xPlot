@@ -62,10 +62,19 @@ namespace QA40x_BareMetal
         public static async Task<LeftRightSeries> DoAcquisitions(uint averages, CancellationToken ct)
         {
 			var datapt = new double[QAnalyzer?.Params?.FFTSize ?? 0];
-            if( QAnalyzer?.GenParams.Enabled == true && QAnalyzer?.Params?.OutputSource == OutputSources.Sine)
+            var gp1 = QAnalyzer?.GenParams;
+            var gp2 = QAnalyzer?.Gen2Params;
+            if( QAnalyzer?.Params?.OutputSource == OutputSources.Sine)
             {
-				double dt = 1.0 / (_qAnalyzer?.Params?.SampleRate ?? 1);
-				datapt = datapt.Select((x,index) => (QAnalyzer.GenParams.Voltage*Math.Sqrt(2)) * Math.Sin(2 * Math.PI * QAnalyzer.GenParams.Frequency * dt * index)).ToArray();
+				double dt = 1.0 / (QAnalyzer?.Params.SampleRate ?? 1);
+				if (gp1?.Enabled == true)
+				{
+					datapt = datapt.Select((x, index) => x + (gp1.Voltage * Math.Sqrt(2)) * Math.Sin(2 * Math.PI * gp1.Frequency * dt * index)).ToArray();
+				}
+				if (gp2?.Enabled == true)
+				{
+					datapt = datapt.Select((x, index) => x + (gp2.Voltage * Math.Sqrt(2)) * Math.Sin(2 * Math.PI * gp2.Frequency * dt * index)).ToArray();
+				}
 			}
 			var lrfs = await DoAcquireUser(averages, ct, datapt, datapt, true);
 			return lrfs;
@@ -135,7 +144,7 @@ namespace QA40x_BareMetal
             if(maxOut > 0)
             {
 				var mlevel = Control.DetermineOutput(maxOut); // the setting for our voltage
-				QAnalyzer?.SetOutput(mlevel); // set the output voltage
+				SetOutputRange(mlevel); // set the output voltage
 			}
 
 			for (int rrun = 0; rrun < averages; rrun++)
@@ -232,9 +241,11 @@ namespace QA40x_BareMetal
 
 				qan.SetSampleRate((int)sampleRate);
 				qan.SetInput(attenuation);
-                //qan.SetOutput(18);
+                //qan.SetOutput(18); // this is set when we do an acquisition based on the voltage output data
                 qan.Params.SetWindowing(Windowing);
 				qan.Params.FFTSize = (int)fftsize;
+                qan.GenParams.Enabled = false;
+				qan.Gen2Params.Enabled = false;
 				return true;
 			}
 			catch (Exception ex)

@@ -207,18 +207,16 @@ namespace QA40xPlot.BareMetal
 				Buffer.BlockCopy(b, 0, rxData, offset, b.Length);
 				offset += b.Length;
 			}
-            usbRxBuffers.Clear();
+            usbRxBuffers.Clear();   // empty the ram here
 
 			// Note that left and right data is swapped on QA402, QA403, QA404. We do that via arg ordering below.
 			FromByteStream(rxData, out r.Right, out r.Left);
-
-            var adcCorrection = Math.Pow(10, (aParams.MaxInputLevel - 6.0) / 20);
+            // Convert from dBFS to dBV. Note the 6 dB factor--the ADC is differential
+			var adcCorrection = Math.Pow(10, (aParams.MaxInputLevel - 6.0) / 20);
             var tused = aParams.FFTSize;    // should be fftsize
 
-            // Apply scaling scaling factor to map from dBFS to Volts. This is emperically determined for the QA402, but should
-            // be fairly tight on unit to unit as 5.371 ?
+            // Apply scaling factor to map from dBFS to Volts. 
             var loff = 0;
-
             var rlf = r.Left.Skip(prebuf.Length + loff).Take(tused);
             var roff = rlf.Sum() / rlf.Count();  // dc offset
 			r.Left = rlf.Select(x => (x - roff) * adcCal.Left * adcCorrection).ToArray();
@@ -269,7 +267,7 @@ namespace QA40xPlot.BareMetal
             Buffer.BlockCopy(buffer, 0, ili, 0, buffer.Length);     // convert bytes to ints
 			left = new double[ili.Length / 2];
             right = new double[left.Length];
-            double ddiv = (double)int.MaxValue / 2;     // i'm not sure why the /2 here...
+            double ddiv = (double)int.MaxValue;     // the original python has a /2 here ?
             for (int j = 0; j < left.Length; j++)
             {
                 left[j] = ili[j * 2 + 1] / ddiv;

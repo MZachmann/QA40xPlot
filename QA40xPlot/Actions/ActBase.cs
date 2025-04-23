@@ -110,7 +110,7 @@ namespace QA40xPlot.Actions
 			if (maxi < 1)
 			{
 				// get some more accuracy with this
-				//QaUsb.SetInputRange(18);
+				QaUsb.SetInputRange(18);
 				// do two and average them
 				acqData = await QaUsb.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
 				if (acqData == null || acqData.FreqRslt == null || ct.IsCancellationRequested)
