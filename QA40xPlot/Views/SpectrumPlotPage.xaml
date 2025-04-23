@@ -119,14 +119,18 @@
                 <ComboBox ToolTip="{Binding DutDescript}" x:Name="cbDUT"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" 
                           VerticalAlignment="Center"  SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVoltsFull}">
                 </ComboBox>
-                <Label Content="Fre_quency" HorizontalAlignment="Right" Grid.Row="1" Grid.Column="0" Target="{Binding ElementName=cbFreq}" />
-                <ComboBox x:Name="cbFreq" Grid.Column="1" Grid.Row="1" VerticalAlignment="Center"  
+                <Label Content="_Waveform" Target="{Binding ElementName=cbWave}"  HorizontalAlignment="Right" Grid.Row="1" Grid.Column="0" ToolTip="{Binding DutInfo}"  />
+                <ComboBox x:Name="cbWave"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Center"  
+                              SelectedValue="{Binding Gen1Waveform}" ItemsSource="{Binding Waveforms}">
+                </ComboBox>
+                <Label Content="Fre_quency" HorizontalAlignment="Right" Grid.Row="2" Grid.Column="0" Target="{Binding ElementName=cbFreq}" />
+                <ComboBox x:Name="cbFreq" Grid.Column="1" Grid.Row="2" VerticalAlignment="Center"  
                                IsEditable="True" Text="{Binding Gen1Frequency}" ItemsSource="{Binding GenFrequencies}" MinWidth="80"/>
-                <Label Content="Hz" Grid.Row="1" Grid.Column="2" />
-                <Label Content="{Binding GenAmpDescript, Mode=OneWay}"  Target="{Binding ElementName=cbVolt}" HorizontalAlignment="Right" Grid.Row="2" Grid.Column="0"  />
-                <ComboBox x:Name="cbVolt" Grid.Column="1" Grid.Row="2" VerticalAlignment="Center"  
+                <Label Content="Hz" Grid.Row="2" Grid.Column="2" />
+                <Label Content="{Binding GenAmpDescript, Mode=OneWay}"  Target="{Binding ElementName=cbVolt}" HorizontalAlignment="Right" Grid.Row="3" Grid.Column="0"  />
+                <ComboBox x:Name="cbVolt" Grid.Column="1" Grid.Row="3" VerticalAlignment="Center"  
                               IsEditable="True" Text="{Binding Gen1Voltage}" ItemsSource="{Binding GenVoltages}"/>
-                <Label Content="{Binding GenAmpUnits, Mode=OneWay}" Grid.Row="2" Grid.Column="2" />
+                <Label Content="{Binding GenAmpUnits, Mode=OneWay}" Grid.Row="3" Grid.Column="3" />
             </Grid>
 
             <views:GroupHeader Header="Sampling" />

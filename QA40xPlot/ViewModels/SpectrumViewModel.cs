@@ -53,6 +53,14 @@ namespace QA40xPlot.ViewModels
 			get => _ShowChannelInfo;
 			set => SetProperty(ref _ShowChannelInfo, value);
 		}
+
+		private string _Gen1Waveform = string.Empty;
+		public string Gen1Waveform
+		{
+			get => _Gen1Waveform;
+			set => SetProperty(ref _Gen1Waveform, value);
+		}
+
 		private string _Gen1Frequency = string.Empty;
 		public string Gen1Frequency
 		{
@@ -358,6 +366,7 @@ namespace QA40xPlot.ViewModels
 			ShowMarkers = false;
 			ShowPowerMarkers = false;
 
+			Gen1Waveform = "Sine";
 			Gen1Voltage = "0.1";
 			Gen1Frequency = "1000";
 			UseGenerator = false;

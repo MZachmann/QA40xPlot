@@ -1,4 +1,5 @@
 ﻿using FftSharp;
+using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using System.Diagnostics;
 using System.Numerics;
@@ -83,20 +84,29 @@ namespace QA40xPlot.Libraries
 				return -1;
 		}
 
+		private static List<double> Chirp(GenWaveform gw, GenWaveSample samples)
+		{
+			var chirpTwo = Chirps.ChirpVp(samples.SampleSize, samples.SampleRate, gw.Voltage * Math.Sqrt(2), 20, 20000, 1);
+			return chirpTwo.Item1.ToList();
+		}
+
 		private static List<double> MakeWave(GenWaveform gw, GenWaveSample samples)
 		{
-			var dvamp = gw.Voltage * Math.Sqrt(2); // rms voltage
+			var dvamp = gw.Voltage * Math.Sqrt(2); // rms voltage -> peak voltage
 				// frequency vector
-			var freqs = Enumerable.Range(0, samples.SampleSize).Select(x => 2 * Math.PI * gw.Frequency * x / samples.SampleRate);
-				// now evaluate
+			var theta = Enumerable.Range(0, samples.SampleSize).Select(x => 2 * Math.PI * gw.Frequency * x / samples.SampleRate);
+			var totalth = theta.Max();
+			// now evaluate
 			switch ( gw.Name)
 			{
 				case "Sine":
-					return freqs.Select(f => dvamp * Math.Sin(f)).ToList();
+					return theta.Select(f => dvamp * Math.Sin(f)).ToList();
 				case "Square":
-					return freqs.Select(f => dvamp  * Squares(f)).ToList();
+					return theta.Select(f => dvamp  * Squares(f)).ToList();
 				case "Impulse":
-					return freqs.Select(f => dvamp * Impulse(f)).ToList();
+					return theta.Select(f => dvamp * Impulse(f)).ToList();
+				case "Chirp":
+					return Chirp(gw, samples);
 				default:
 					break;
 			}

@@ -158,12 +158,28 @@ namespace QA40xPlot.Actions
 					if (thd.UseGenerator)
 					{
 						QaUsb.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
+																			  // for the first go around, turn on the generator
+						// Set the generators via a usermode
+						var gw1 = new GenWaveform()
+						{
+							Frequency = stepBinFrequencies[0],
+							Voltage = genVolt,
+							Name = msr.MeasurementSettings.Gen1Waveform
+						};
+						var gws = new GenWaveSample()
+						{
+							SampleRate = (int)sampleRate,
+							SampleSize = (int)fftsize
+						};
+						GenWaveform[] gwho = [gw1];
+						var wave = QAMath.CalculateWaveform(gwho, gws);
+						lrfs = await QaUsb.DoAcquireUser(1, ct, wave.ToArray(), wave.ToArray(), true);
 					}
 					else
 					{
 						QaUsb.SetOutputSource(OutputSources.Off);            // We need to call this to make the averages reset
+						lrfs = await QaUsb.DoAcquisitions(thd.Averages, ct);
 					}
-					lrfs = await QaUsb.DoAcquisitions(thd.Averages, ct);
 					if (lrfs == null)
 						break;
 
