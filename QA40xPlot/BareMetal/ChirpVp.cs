@@ -1,3 +1,5 @@
+using FftSharp;
+using QA40xPlot.Data;
 using System.Numerics;
 
 namespace QA40xPlot.BareMetal
@@ -5,7 +7,7 @@ namespace QA40xPlot.BareMetal
 	public static class Chirps
 	{
 		/// <summary>
-		/// creates a chirp signal and an inverse filter
+		/// creates an inverse filter
 		/// </summary> 
 		/// <param name="totalBufferLength">amount of buffer to fill</param>
 		/// <param name="fs">sampling frequency</param>
@@ -14,7 +16,7 @@ namespace QA40xPlot.BareMetal
 		/// <param name="f2">end freq</param>
 		/// <param name="pct">amount of buffer to fill with signal 1.0 == all</param>
 		/// <returns>(chirp,inverse)</returns>
-		public static (double[], double[]) ChirpVp(int totalBufferLength, double fs, double amplitudeVpk, double f1 = 20, double f2 = 20000, double pct = 0.6)
+		public static double[] ChirpInverse(double[] chirpSignal, int totalBufferLength, double fs, double amplitudeVrms, double f1 = 20, double f2 = 20000, double pct = 0.6)
 		{
 			// Calculate the length of the chirp in samples
 			int chirpLengthSamples = (int)(totalBufferLength * pct);
@@ -22,14 +24,8 @@ namespace QA40xPlot.BareMetal
 			// Duration of the chirp in seconds
 			double T = chirpLengthSamples / fs;
 
-			// Time array for the chirp duration
-			double[] t = Enumerable.Range(0, chirpLengthSamples).Select(i => i / fs).ToArray();
-
 			// Chirp rate (logarithmic)
 			double R = Math.Log(f2 / f1);
-
-			// Generate the chirp signal
-			double[] chirpSignal = t.Select(time => amplitudeVpk * Math.Sin((2 * Math.PI * f1 * T / R) * (Math.Exp(time * R / T) - 1))).ToArray();
 
 			// Calculate the start and end indices of the window
 			int windowStart = 0;
@@ -55,7 +51,83 @@ namespace QA40xPlot.BareMetal
 			// Generate the inverse filter by reversing and scaling the chirp signal
 			double[] inverseFilter = paddedChirp.Reverse().Select((value, index) => value / k[index]).ToArray();
 
-			return (paddedChirp, inverseFilter);
+			return inverseFilter;
+		}
+
+		/// <summary>
+		/// creates a chirp signal and an inverse filter
+		/// </summary> 
+		/// <param name="totalBufferLength">amount of buffer to fill</param>
+		/// <param name="fs">sampling frequency</param>
+		/// <param name="amplitudeVpk">peak voltage of signal</param>
+		/// <param name="f1">start freq</param>
+		/// <param name="f2">end freq</param>
+		/// <param name="pct">amount of buffer to fill with signal 1.0 == all</param>
+		/// <returns>(chirp,inverse)</returns>
+		public static double[] ChirpVp(int totalBufferLength, double fs, double amplitudeVrms, double f1 = 20, double f2 = 20000, double pct = 0.6)
+		{
+			// Calculate the length of the chirp in samples
+			int chirpLengthSamples = (int)(totalBufferLength * pct);
+
+			// Duration of the chirp in seconds
+			double T = chirpLengthSamples / fs;
+
+			// Time array for the chirp duration
+			double[] t = Enumerable.Range(0, chirpLengthSamples).Select(i => i / fs).ToArray();
+
+			// Chirp rate (logarithmic)
+			double R = Math.Log(f2 / f1);
+
+			// Generate the chirp signal
+			var vpk = amplitudeVrms * Math.Sqrt(2);
+			double[] chirpSignal = t.Select(time => vpk * Math.Sin((2 * Math.PI * f1 * T / R) * (Math.Exp(time * R / T) - 1))).ToArray();
+
+			// Calculate the required padding length
+			int padding = totalBufferLength - chirpSignal.Length;
+
+			// Pad the chirp signal with zeros to fit the total buffer length
+			double[] paddedChirp = chirpSignal.Concat(new double[padding]).ToArray();
+
+			return paddedChirp;
+		}
+
+		public static (Complex[], Complex[]) NormalizeChirpCplx(double[] chirp, double Vrms, (double[]? leftData, double[]? rightData) rdata)
+		{
+			Complex[] leftFft = [];
+			Complex[] rightFft = [];
+
+			var window = new FftSharp.Windows.Rectangular();    // best?
+
+			double[] inp = window.Apply(chirp, true);  // the input signal
+			var chirpFft = FFT.Forward(inp);
+			var cmax = Vrms * Math.Sqrt(2) / 2;     // not sure why the /2 here - window?
+
+			// Left channel
+
+			if (rdata.leftData != null)
+			{
+				double[] lftWdw = window.Apply(rdata.leftData, true);
+				var lFft = FFT.Forward(lftWdw);
+				lFft = lFft.Select((x, index) => cmax * x / chirpFft[index]).ToArray();
+				leftFft = lFft.Take(lFft.Length / 2).ToArray();
+			}
+
+			if (rdata.rightData != null)
+			{
+				double[] rgtWdw = window.Apply(rdata.rightData, true);
+				var rFft = FFT.Forward(rgtWdw);
+				rFft = rFft.Select((x, index) => cmax * x / chirpFft[index]).ToArray();
+				rightFft = rFft.Take(rFft.Length / 2).ToArray();
+			}
+			return (leftFft, rightFft);
+		}
+
+		public static (double[], double[]) NormalizeChirpDbl(double[] chirp, double Vrms, (double[]? leftData, double[]? rightData) rdata)
+		{
+			var cplx = NormalizeChirpCplx(chirp, Vrms, rdata);
+			double[] leftFft = cplx.Item1.Select(x => x.Magnitude).ToArray();
+			double[] rightFft = cplx.Item2.Select(x => x.Magnitude).ToArray();
+			return (leftFft, rightFft);
 		}
 
 		/// <summary>
@@ -103,7 +175,7 @@ namespace QA40xPlot.BareMetal
 			double[] freq = Enumerable.Range(0, fftDut.Length).Select(i => i * targetSampleRate / chirp.Length).ToArray();
 
 			// Normalize FFT by the length of the FFT
-			Complex[] fftDutNormalized = fftDut.Select(c => c ).ToArray();
+			Complex[] fftDutNormalized = fftDut.Select(c => c / fftDut.Length).ToArray();
 
 			return (freq, fftDutNormalized, ir, window);
 		}
@@ -136,19 +208,17 @@ namespace QA40xPlot.BareMetal
 		private static double[] FftConvolve(double[] signal, double[] filter)
 		{
 			int n = signal.Length + filter.Length - 1;
-			Complex[] signalFft = MyFft(signal, n);
-			Complex[] filterFft = MyFft(filter, n);
+			Complex[] signalFft = MyFft(signal);
+			Complex[] filterFft = MyFft(filter);
 			Complex[] resultFft = signalFft.Zip(filterFft, (s, f) => s * f).ToArray();
 			return IFFT(resultFft).Select(c => c.Real).ToArray();
 		}
 
-		private static Complex[] MyFft(double[] signal, int n = -1)
+		private static Complex[] MyFft(double[] signal)
 		{
 			// Implement FFT logic
-			//var flength = signal.Length / 2;        // we want half this since freq is symmetric
-			//Complex[] spectrum_measured = FftSharp.FFT.Forward(signal).Take(flength).ToArray();
-			Complex[] spectrum_measured = FftSharp.FFT.Forward(signal).ToArray();
-			return spectrum_measured;
+			Complex[] spectra = FftSharp.FFT.Forward(signal).ToArray();
+			return spectra;
 		}
 
 		private static Complex[] IFFT(Complex[] signal)

@@ -279,13 +279,13 @@ public class FreqRespViewModel : BaseViewModel
 					}
 				}
 				break;
-			case "IsChirp":
-				if(IsChirp)
-				{
-					this.SampleRate = "96000";
-					this.FftSize = "64K";
-				}
-				break;
+			//case "IsChirp":
+			//	if(IsChirp)
+			//	{
+			//		this.SampleRate = "96000";
+			//		this.FftSize = "64K";
+			//	}
+			//	break;
 			default:
 				break;
 		}

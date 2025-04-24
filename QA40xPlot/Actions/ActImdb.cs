@@ -818,12 +818,11 @@ namespace QA40xPlot.Actions
 						break;
 				}
 			}
-			// Turn the generator off since we leave it on during the loop for settling
-			QaUsb.SetOutputSource(OutputSources.Off);
 
 			imdVm.IsRunning = false;
 			await showMessage("");
 			MyVModel.HasExport = MeasurementResult.FrequencySteps.Count > 0;
+			EndAction();
 		}
 
 

@@ -10,13 +10,19 @@ namespace QA40xPlot.BareMetal
 		private static UsbDevice? _AttachedDevice = null;
 		private static int _IdInterface = 0;
 
-
+		/// <summary>
+		/// from examining libusb it appears tha "Open" mainly looks for a device in the list
+		/// then returns it as an object. So, this is toothless lookup of a QA device.
+		/// </summary>
+		/// <param name="idInterface">seems to be 0</param>
+		/// <returns></returns>
+		/// <exception cref="Exception"></exception>
 		public static UsbDevice AttachDevice(int idInterface = 0)
 		{
 			if (_AttachedDevice != null)
 				return _AttachedDevice;
 
-		// Attempt to open QA402 or QA403 device
+			// Attempt to open QA402 or QA403 device
 			UsbDevice usbdev = UsbDevice.OpenUsbDevice(_USBFindQA402);
 			if(usbdev == null)
 			{
@@ -26,16 +32,19 @@ namespace QA40xPlot.BareMetal
 			{
 				throw new Exception("No QA402/QA403 analyzer found");
 			}
+			// note that this is always null in my installation which seems to be WinUsb
 			var iusbdev = usbdev as IUsbDevice;
 			iusbdev?.ResetDevice();
 			// Select config #1
 			iusbdev?.SetConfiguration(1); 
 			iusbdev?.ClaimInterface((int)idInterface);
 			_IdInterface = idInterface;
+			// keep the found device around
 			_AttachedDevice = usbdev;
 			return usbdev;
 		}
 
+		// this should probably be done on exit
 		public static void DetachDevice()
 		{
 			if (_AttachedDevice != null)

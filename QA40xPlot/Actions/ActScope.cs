@@ -635,12 +635,10 @@ namespace QA40xPlot.Actions
 				}
 			}
 
-			// Turn the generator off since we leave it on during testing
-			QaUsb.SetOutputSource(OutputSources.Off);
-
 			scopeVm.IsRunning = false;
 			await showMessage("");
 			MyVModel.HasExport = this.MeasurementResult.FrequencySteps.Count > 0;
+			EndAction();
 		}
 
 

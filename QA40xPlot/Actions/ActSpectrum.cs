@@ -173,7 +173,15 @@ namespace QA40xPlot.Actions
 						};
 						GenWaveform[] gwho = [gw1];
 						var wave = QAMath.CalculateWaveform(gwho, gws);
-						lrfs = await QaUsb.DoAcquireUser(1, ct, wave.ToArray(), wave.ToArray(), true);
+						lrfs = await QaUsb.DoAcquireUser(1, ct, wave.ToArray(), wave.ToArray(), false);
+						if(gw1.Name != "Chirp")
+						{
+							QaUsb.CalculateFreq(lrfs);
+						}
+						else
+						{
+							QaUsb.CalculateChirpFreq(lrfs, wave.ToArray(), gw1, gws);
+						}
 					}
 					else
 					{
@@ -787,12 +795,10 @@ namespace QA40xPlot.Actions
 				}
 			}
 
-			// Turn the generator off since we leave it on during testing
-			QaUsb.SetOutputSource(OutputSources.Off);
-
 			specVm.IsRunning = false;
 			await showMessage("");
 			MyVModel.HasExport = this.MeasurementResult.FrequencySteps.Count > 0;
+			EndAction();
 		}
 
 

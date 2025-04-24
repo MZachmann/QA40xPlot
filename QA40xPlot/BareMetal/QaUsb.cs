@@ -46,9 +46,15 @@ namespace QA40x_BareMetal
         }
     }
 
-    class QaUsb
+	/// <summary>
+	/// This class is solely used to communicate with the USB device. It handles the
+    /// higher level calls and basic read/writes. It also has replacment calls
+    /// for the common QaLibrary methods such as DoAcquisition and InitializeDevice.
+	/// </summary>
+	static class QaUsb
     {
-        private static QaAnalyzer? _qAnalyzer;
+		// singleton QaAnalyzer object - works but...
+		private static QaAnalyzer? _qAnalyzer;
 		public static QaAnalyzer? QAnalyzer => _qAnalyzer;
 
         static object ReadRegLock = new object();
@@ -122,7 +128,41 @@ namespace QA40x_BareMetal
 				return;
 			QAnalyzer.SetOutput(range);
 		}
-	
+
+        public static void CalculateFreq(LeftRightSeries lrfs)
+        {
+			if (QAnalyzer?.Params != null && lrfs.TimeRslt != null)
+			{
+				lrfs.FreqRslt = new(); // fft
+				var timeSeries = lrfs.TimeRslt;
+				var m2 = Math.Sqrt(2);
+				// Left channel
+				// only take half of the data since it's symmetric so length of freq data = 1/2 length of time data
+				var window = QAnalyzer.Params.GetWindowType(QAnalyzer.Params.WindowType);
+				double[] windowed_measured = window.Apply(timeSeries.Left, true);
+				System.Numerics.Complex[] spectrum_measured = FFT.Forward(windowed_measured).Take(timeSeries.Left.Length / 2).ToArray();
+
+				double[] windowed_ref = window.Apply(timeSeries.Right, true);
+				System.Numerics.Complex[] spectrum_ref = FFT.Forward(windowed_ref).Take(timeSeries.Left.Length / 2).ToArray();
+
+				lrfs.FreqRslt.Left = spectrum_measured.Select(x => x.Magnitude * m2).ToArray();
+				lrfs.FreqRslt.Right = spectrum_ref.Select(x => x.Magnitude * m2).ToArray();
+				var nca2 = (int)(0.01 + 1 / lrfs.TimeRslt.dt);      // total time in tics = sample rate
+				lrfs.FreqRslt.Df = nca2 / (double)timeSeries.Left.Length; // ???
+			}
+		}
+
+		public static void CalculateChirpFreq(LeftRightSeries lrfs, double[] signal, GenWaveform gws, GenWaveSample gwSample)
+		{
+			if (QAnalyzer?.Params != null && lrfs.TimeRslt != null)
+			{
+				var norms = Chirps.NormalizeChirpDbl(signal, gws.Voltage, (lrfs.TimeRslt.Left, lrfs.TimeRslt.Right));
+                lrfs.FreqRslt = new();
+				lrfs.FreqRslt.Left = norms.Item1;
+				lrfs.FreqRslt.Right = norms.Item2;
+				lrfs.FreqRslt.Df = (double)gwSample.SampleSize / gwSample.SampleRate / 2;
+			}
+		}
 
 		/// <summary>
 		/// 
@@ -187,26 +227,8 @@ namespace QA40x_BareMetal
 			if (ct.IsCancellationRequested)
 				return lrfs;
 
-			if (getFreq && QAnalyzer?.Params != null)
-			{
-                lrfs.FreqRslt = new(); // fft
-
-				var timeSeries = lrfs.TimeRslt;
-				var m2 = Math.Sqrt(2);
-				// Left channel
-                // only take half of the data since it's symmetric so length of freq data = 1/2 length of time data
-				var window = QAnalyzer.Params.GetWindowType(QAnalyzer.Params.WindowType);
-				double[] windowed_measured = window.Apply(timeSeries.Left, true);
-				System.Numerics.Complex[] spectrum_measured = FFT.Forward(windowed_measured).Take(timeSeries.Left.Length/2).ToArray();
-
-				double[] windowed_ref = window.Apply(timeSeries.Right, true);
-				System.Numerics.Complex[] spectrum_ref = FFT.Forward(windowed_ref).Take(timeSeries.Left.Length / 2).ToArray();
-
-				lrfs.FreqRslt.Left = spectrum_measured.Select(x => x.Magnitude * m2).ToArray();
-				lrfs.FreqRslt.Right = spectrum_ref.Select(x => x.Magnitude * m2).ToArray();
-				var nca2 = (int)(0.01 + 1 / lrfs.TimeRslt.dt);      // total time in tics = sample rate
-				lrfs.FreqRslt.Df = nca2 / (double)timeSeries.Left.Length; // ???
-			}
+            if(getFreq)
+                CalculateFreq(lrfs);
 
 			return lrfs;        // Only one measurement
 		}

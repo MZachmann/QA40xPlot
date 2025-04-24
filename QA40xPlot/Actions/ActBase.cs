@@ -55,6 +55,14 @@ namespace QA40xPlot.Actions
 			return true;
 		}
 
+		public static void EndAction()
+		{
+			// Turn the generator off
+			QaUsb.SetOutputSource(OutputSources.Off);
+			// detach from usb port
+			QaUsb.Close();
+		}
+
 		protected async Task showMessage(String msg, int delay = 0)
 		{
 			var vm = ViewSettings.Singleton.Main;
@@ -154,10 +162,9 @@ namespace QA40xPlot.Actions
 			{
 				// the simplest thing here is to do a chirp at a low value...
 				var generatorV = 0.01;			// random low test value
-				var chirptwo = Chirps.ChirpVp((int)fftsize, sampleRate, generatorV, 20, 20000);
+				var chirpy = Chirps.ChirpVp((int)fftsize, sampleRate, generatorV, 6, 24000);
 				var ct = new CancellationTokenSource();
 				// do two and average them
-				var chirpy = chirptwo.Item1;
 				LeftRightSeries acqData = await QaUsb.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
 				if (acqData == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
 					return null;
@@ -180,8 +187,8 @@ namespace QA40xPlot.Actions
 
 				// calculate gain for each channel from frequency response
 				LeftRightTimeSeries lrts = new LeftRightTimeSeries();
-				lrts.Left = acqData.TimeRslt.Left.Select(x => x / generatorV).ToArray();
-				lrts.Right = acqData.TimeRslt.Right.Select(x => x / generatorV).ToArray();
+				lrts.Left = acqData.TimeRslt.Left;
+				lrts.Right = acqData.TimeRslt.Right;
 				lrts.dt = acqData.TimeRslt.dt;
 				//
 				for(int j=1; j<average; j++)
@@ -201,12 +208,14 @@ namespace QA40xPlot.Actions
 				}
 				// now do the frequency transformation
 				LeftRightFrequencySeries lrfs = new LeftRightFrequencySeries();
-				var filter = chirptwo.Item1;
-				var lft = Chirps.NormalizeAndComputeFft(lrts.Left, filter, 1 / lrts.dt, true, 0.01, 0.5, 0.0005, 0.02);
-				var rgt = Chirps.NormalizeAndComputeFft(lrts.Right, filter, 1 / lrts.dt, true, 0.01, 0.5, 0.0005, 0.02);
-				lrfs.Left = lft.Item2.Select(x => x.Magnitude).ToArray();
-				lrfs.Right = rgt.Item2.Select(x => x.Magnitude).ToArray();
-				lrfs.Df = lft.Item1[1] - lft.Item1[0];
+				var norms = Chirps.NormalizeChirpDbl(chirpy, generatorV, (lrts.Left, lrts.Right));
+				lrfs.Left = norms.Item1;
+				lrfs.Right = norms.Item2;
+				lrfs.Df = (double)fftsize / sampleRate / 2;
+				// now normalize by the input voltage so we get gain instead
+				var gv = generatorV;
+				lrfs.Left = lrfs.Left.Select(x => x / gv).ToArray();
+				lrfs.Right = lrfs.Right.Select(x => x / gv).ToArray();
 				return lrfs;       // Return the new generator amplitude and acquisition data
 			}
 		}

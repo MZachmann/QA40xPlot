@@ -338,11 +338,10 @@ namespace QA40xPlot.Actions
                 MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
             }
 
-            // Turn the generator off
-            QaUsb.SetOutputSource(OutputSources.Off);
-
             // Show message
             await showMessage(ct.IsCancellationRequested ? $"Measurement cancelled!" : $"Measurement finished!");
+
+            EndAction();
 
             return true;
         }

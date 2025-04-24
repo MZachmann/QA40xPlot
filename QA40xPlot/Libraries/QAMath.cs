@@ -84,12 +84,6 @@ namespace QA40xPlot.Libraries
 				return -1;
 		}
 
-		private static List<double> Chirp(GenWaveform gw, GenWaveSample samples)
-		{
-			var chirpTwo = Chirps.ChirpVp(samples.SampleSize, samples.SampleRate, gw.Voltage * Math.Sqrt(2), 20, 20000, 1);
-			return chirpTwo.Item1.ToList();
-		}
-
 		private static List<double> MakeWave(GenWaveform gw, GenWaveSample samples)
 		{
 			var dvamp = gw.Voltage * Math.Sqrt(2); // rms voltage -> peak voltage
@@ -106,7 +100,8 @@ namespace QA40xPlot.Libraries
 				case "Impulse":
 					return theta.Select(f => dvamp * Impulse(f)).ToList();
 				case "Chirp":
-					return Chirp(gw, samples);
+					var chirpTwo = Chirps.ChirpVp(samples.SampleSize, samples.SampleRate, gw.Voltage, 20, 20000, 0.8);
+					return chirpTwo.ToList();
 				default:
 					break;
 			}

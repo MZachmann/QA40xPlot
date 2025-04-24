@@ -1,4 +1,5 @@
 ﻿using QA40x_BareMetal;
+using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
@@ -380,8 +381,7 @@ namespace QA40xPlot.Actions
 
 			}
 
-			// Turn the generator off
-			QaUsb.SetOutputSource(OutputSources.Off);
+			EndAction();
 
 			// Show message
 			await showMessage(ct.IsCancellationRequested ? $"Measurement cancelled!" : $"Measurement finished!");

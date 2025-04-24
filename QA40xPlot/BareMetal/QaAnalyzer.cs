@@ -71,8 +71,8 @@ namespace QA40xPlot.BareMetal
 				Control.SetSampleRate(sampleRate);
 			}
 			Params.SampleRate = sampleRate;
-			Params.PostBuffer = 2048 * sampleRate / 48000;
-			Params.PreBuffer = 2048 * sampleRate / 48000;
+			Params.PostBuffer = 4096;
+			Params.PreBuffer = 16384;
 		}
 
 		public void SetInput(int level)
@@ -123,12 +123,12 @@ namespace QA40xPlot.BareMetal
 		{
 			try
 			{
+				QaLowUsb.DetachDevice();
+				Device = null;
 				DataReader?.Dispose();
 				DataWriter?.Dispose();
 				RegisterReader?.Dispose();
 				RegisterWriter?.Dispose();
-				var iuDevice = Device as IUsbDevice;
-				iuDevice?.ReleaseInterface(0);
 			}
 			catch (Exception e)
 			{
