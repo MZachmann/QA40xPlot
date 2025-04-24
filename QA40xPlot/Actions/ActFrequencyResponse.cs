@@ -426,19 +426,6 @@ namespace QA40xPlot.Actions
 			var fftsize = msr.FftSizeVal;
 			var sampleRate = msr.SampleRateVal;
 
-			// ********************************************************************
-			// Calculate frequency steps to do
-			// ********************************************************************
-			var binSize = QaLibrary.CalcBinSize(sampleRate, fftsize);
-			// Generate a list of frequencies
-			var stepFrequencies = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(MathUtil.ToDouble(msr.StartFreq), MathUtil.ToDouble(msr.EndFreq), msr.StepsOctave);
-			// Translate the generated list to bin center frequencies
-			var stepBinFrequencies = QaLibrary.TranslateToBinFrequencies(stepFrequencies, sampleRate, fftsize);
-			stepBinFrequencies = stepBinFrequencies.Where(x => x >= 1 && x <= 95500)                // Filter out values that are out of range 
-				.GroupBy(x => x)                                                                    // Filter out duplicates
-				.Select(y => y.First())
-				.ToArray();
-
 			// calculate gain to autoattenuate
 			frqrsVm.Attenuation = 42; // display on-screen
 			await showMessage("Calculating gain");
@@ -446,8 +433,10 @@ namespace QA40xPlot.Actions
             if(LRGains == null)
                 { return false; }
 
-			int[] frqtest = [ToBinNumber(stepBinFrequencies[0], LRGains),
-								 ToBinNumber(stepBinFrequencies[stepBinFrequencies.Length-1], LRGains)];
+            var fmin = MathUtil.ToDouble( msr.StartFreq);
+			var fmax = MathUtil.ToDouble(msr.EndFreq);
+
+			int[] frqtest = [ToBinNumber(fmin, LRGains), ToBinNumber(fmax, LRGains)];
 			{
 				// to get attenuation, use a frequency of zero (all)
 				// find the highest output voltage
@@ -481,7 +470,18 @@ namespace QA40xPlot.Actions
 				Data.Measurements.Clear();
 				Data.Measurements.Add(MeasurementResult);
 
-                var ttype = frqrsVm.GetTestingType(msr.TestType);
+				// ********************************************************************
+				// Calculate frequency steps to do if discrete
+				// ********************************************************************
+				var stepFrequencies = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(MathUtil.ToDouble(msr.StartFreq), MathUtil.ToDouble(msr.EndFreq), msr.StepsOctave);
+				// Translate the generated list to bin center frequencies
+				var stepBinFrequencies = QaLibrary.TranslateToBinFrequencies(stepFrequencies, sampleRate, fftsize);
+				stepBinFrequencies = stepBinFrequencies.Where(x => x >= 1 && x <= 95500)                // Filter out values that are out of range 
+					.GroupBy(x => x)                                                                    // Filter out duplicates
+					.Select(y => y.First())
+					.ToArray();
+
+				var ttype = frqrsVm.GetTestingType(msr.TestType);
 
 				do
 				{
@@ -490,7 +490,9 @@ namespace QA40xPlot.Actions
                     if( msr.IsChirp)
 						await RunChirpTest(voltagedBV);
 					else
+                    {
 						await RunFreqTest(stepBinFrequencies, voltagedBV);
+					}
 					UpdateGraph(false);
                 } while (continuous && !ct.IsCancellationRequested);
 			}

@@ -160,7 +160,7 @@ namespace QA40x_BareMetal
                 lrfs.FreqRslt = new();
 				lrfs.FreqRslt.Left = norms.Item1;
 				lrfs.FreqRslt.Right = norms.Item2;
-				lrfs.FreqRslt.Df = (double)gwSample.SampleSize / gwSample.SampleRate / 2;
+				lrfs.FreqRslt.Df = QaLibrary.CalcBinSize((uint)gwSample.SampleRate, (uint)gwSample.SampleSize);
 			}
 		}
 

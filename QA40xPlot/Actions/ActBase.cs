@@ -215,7 +215,7 @@ namespace QA40xPlot.Actions
 				var norms = Chirps.NormalizeChirpDbl(chirpy, generatorV, (lrts.Left, lrts.Right));
 				lrfs.Left = norms.Item1;
 				lrfs.Right = norms.Item2;
-				lrfs.Df = (double)fftsize / sampleRate / 2;
+				lrfs.Df = QaLibrary.CalcBinSize(sampleRate, fftsize);
 				// now normalize by the input voltage so we get gain instead
 				var gv = generatorV;
 				lrfs.Left = lrfs.Left.Select(x => x / gv).ToArray();

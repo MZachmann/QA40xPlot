@@ -351,17 +351,17 @@ namespace QA40xPlot.ViewModels
 			if( lrGains.Length > 1)
 			{
 				// figure out which bins we want
-				int binmin = Math.Min(lrGains.Length-1, 10);
-				int binmax = Math.Max(1, lrGains.Length - binmin);
+				int binmin = Math.Min(lrGains.Length-1, 20);
+				int binmax = Math.Max(1, lrGains.Length * 9 / 10);
 				if(binNumber.Length > 0 && binNumber[0] != 0)
 				{
 					int abin = binNumber[0];				// approximate bin
-					binmin = Math.Max(1, abin - 5);         // random....
+					binmin = Math.Max(binmin, abin - 5);         // random....
 					if (binNumber.Length == 2)
-						binmax = binNumber[1] + 5;
+						abin = binNumber[1] + 5;
 					else
-						binmax = abin + 6;						// random....
-					binmax = Math.Min(lrGains.Length, binmax);  // limit this
+						abin = abin + 6;						// random....
+					binmax = Math.Min(abin, binmax);  // limit this
 				}
 				maxGain = lrGains.Skip(binmin).Take(binmax - binmin).Max();
 			}
