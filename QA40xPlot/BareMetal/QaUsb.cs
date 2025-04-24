@@ -6,6 +6,12 @@ using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using System.Diagnostics;
 
+// Written by MZachmann 4-24-2025
+// much of the bare metal code comes originally from the PyQa40x library and from the Qa40x_BareMetal library on github
+// see https://github.com/QuantAsylum/QA40x_BareMetal
+// and https://github.com/QuantAsylum/PyQa40x
+
+
 namespace QA40x_BareMetal
 {
     /// <summary>
@@ -63,7 +69,7 @@ namespace QA40x_BareMetal
         static List<AsyncResult> ReadQueue = new List<AsyncResult>();
 
         static readonly int RegReadWriteTimeout = 20;
-        static readonly int MainI2SReadWriteTimeout = 1000;
+        static readonly int MainI2SReadWriteTimeout = 2000;
 
         public static async Task<LeftRightSeries> DoAcquisitions(uint averages, CancellationToken ct)
         {
@@ -139,14 +145,14 @@ namespace QA40x_BareMetal
 				// Left channel
 				// only take half of the data since it's symmetric so length of freq data = 1/2 length of time data
 				var window = QAnalyzer.Params.GetWindowType(QAnalyzer.Params.WindowType);
-				double[] windowed_measured = window.Apply(timeSeries.Left, true);
-				System.Numerics.Complex[] spectrum_measured = FFT.Forward(windowed_measured).Take(timeSeries.Left.Length / 2).ToArray();
+				double[] wdwLeft = window.Apply(timeSeries.Left, true);
+				System.Numerics.Complex[] specLeft = FFT.Forward(wdwLeft).Take(timeSeries.Left.Length / 2).ToArray();
 
-				double[] windowed_ref = window.Apply(timeSeries.Right, true);
-				System.Numerics.Complex[] spectrum_ref = FFT.Forward(windowed_ref).Take(timeSeries.Left.Length / 2).ToArray();
+				double[] wdwRight = window.Apply(timeSeries.Right, true);
+				System.Numerics.Complex[] specRight = FFT.Forward(wdwRight).Take(timeSeries.Left.Length / 2).ToArray();
 
-				lrfs.FreqRslt.Left = spectrum_measured.Select(x => x.Magnitude * m2).ToArray();
-				lrfs.FreqRslt.Right = spectrum_ref.Select(x => x.Magnitude * m2).ToArray();
+				lrfs.FreqRslt.Left = specLeft.Select(x => x.Magnitude * m2).ToArray();
+				lrfs.FreqRslt.Right = specRight.Select(x => x.Magnitude * m2).ToArray();
 				var nca2 = (int)(0.01 + 1 / lrfs.TimeRslt.dt);      // total time in tics = sample rate
 				lrfs.FreqRslt.Df = nca2 / (double)timeSeries.Left.Length; // ???
 			}
@@ -540,5 +546,5 @@ namespace QA40x_BareMetal
             }
         }
 
-    }
+	}
 }

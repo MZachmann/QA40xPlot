@@ -1,4 +1,5 @@
 ﻿using QA40x_BareMetal;
+using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
@@ -130,7 +131,7 @@ namespace QA40xPlot.Actions
 					// ********************************************************************
 					await showMessage($"Determining noise floor.");
 					QaUsb.SetOutputSource(OutputSources.Off);
-					msr.NoiseFloor = await QaUsb.DoAcquisitions(thd.Averages, ct);
+					msr.NoiseFloor = await QaUsb.DoAcquisitions(1, ct);
 					if (ct.IsCancellationRequested)
 
 						return false;
@@ -211,10 +212,10 @@ namespace QA40xPlot.Actions
 
 					// Calculate the THD
 					{
-						//!!! var maxf = 20000;   // the app seems to use 20,000 so not sampleRate/ 2.0;
-						LeftRightPair snrdb = new(-10, -10); //!!!await Qa40x.GetSnrDb(stepBinFrequencies[0], 20.0, maxf);
-						LeftRightPair thds = new(-10, -10); //!!!await Qa40x.GetThdDb(stepBinFrequencies[0], maxf);
-						LeftRightPair thdN = new(-10, -10); //!!!await Qa40x.GetThdnDb(stepBinFrequencies[0], 20.0, maxf);
+						var maxf = 20000;   // the app seems to use 20,000 so not sampleRate/ 2.0;
+						LeftRightPair snrdb = QaCompute.GetSnrDb(lrfs, stepBinFrequencies[0], 20.0, maxf);
+						LeftRightPair thds = QaCompute.GetThdDb(lrfs, stepBinFrequencies[0], 20.0, maxf);
+						LeftRightPair thdN =  QaCompute.GetThdnDb(lrfs, stepBinFrequencies[0], 20.0, maxf);
 
 						step.Left.Thd_dBN = thdN.Left;
 						step.Right.Thd_dBN = thdN.Right;

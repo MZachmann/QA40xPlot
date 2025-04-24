@@ -123,7 +123,7 @@ namespace QA40xPlot.Actions
         {
 			if (ct.Token.IsCancellationRequested)
 				return new();
-			var lfrs = await QaUsb.DoAcquisitions(1, ct.Token);
+			var lfrs = await QaUsb.DoAcquisitions(msr.Averages, ct.Token);
             if (lfrs == null)
                 return new();
 			MeasurementResult.FrequencyResponseData = lfrs;
@@ -256,7 +256,7 @@ namespace QA40xPlot.Actions
                     if (dfreq > 0)
                         QaUsb.SetGen1(dfreq, voltagedBV, true);
                     else
-                        QaUsb.SetGen1(1, voltagedBV, false);
+                        QaUsb.SetGen1(1000, voltagedBV, false);
 
                     if (msr.Averages > 0)
                     {
@@ -324,7 +324,7 @@ namespace QA40xPlot.Actions
 				var genv = msr.ToGenVoltage(msr.Gen1Voltage, [], GEN_INPUT, LRGains?.Left);
 
 				var chirpy = Chirps.ChirpVp((int)msr.FftSizeVal, msr.SampleRateVal, genv, startf, endf, 0.8);
-				LeftRightSeries lfrs = await QaUsb.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
+				LeftRightSeries lfrs = await QaUsb.DoAcquireUser(frqrsVm.Averages, ct.Token, chirpy, chirpy, false);
 				if (lfrs?.TimeRslt == null)
                     return false;
 				if (ct.IsCancellationRequested)

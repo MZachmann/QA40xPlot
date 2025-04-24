@@ -151,14 +151,13 @@ namespace QA40xPlot.Actions
 					await showMessage($"Measuring spectrum with input of {genVolt:G3}V.");
 					await showProgress(0);
 
-					// Set the generators
+					// Set the generators. Here stepBinFrequencies is one element
 					QaUsb.SetGen1(stepBinFrequencies[0], amplitudeSetpointdBV, thd.UseGenerator);
 					// for the first go around, turn on the generator
 					LeftRightSeries? lrfs;
 					if (thd.UseGenerator)
 					{
-						QaUsb.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
-																			  // for the first go around, turn on the generator
+						QaUsb.SetOutputSource(OutputSources.Sine);	// this enables waveforms
 						// Set the generators via a usermode
 						var gw1 = new GenWaveform()
 						{
@@ -173,14 +172,14 @@ namespace QA40xPlot.Actions
 						};
 						GenWaveform[] gwho = [gw1];
 						var wave = QAMath.CalculateWaveform(gwho, gws);
-						lrfs = await QaUsb.DoAcquireUser(1, ct, wave.ToArray(), wave.ToArray(), false);
+						lrfs = await QaUsb.DoAcquireUser(thd.Averages, ct, wave.ToArray(), wave.ToArray(), false);
 						if(gw1.Name != "Chirp")
 						{
-							QaUsb.CalculateFreq(lrfs);
+							QaUsb.CalculateFreq(lrfs);  // do the fft and calculate the frequency response
 						}
 						else
 						{
-							QaUsb.CalculateChirpFreq(lrfs, wave.ToArray(), gw1, gws);
+							QaUsb.CalculateChirpFreq(lrfs, wave.ToArray(), gw1, gws);	// normalize the result for flat response
 						}
 					}
 					else
@@ -207,11 +206,10 @@ namespace QA40xPlot.Actions
 					step.Right = ChannelCalculations(binSize, amplitudeSetpointdBV, step, msr, true);
 
 					// Calculate the THD
-					{
-						//!!!var maxf = 20000;   // the app seems to use 20,000 so not sampleRate/ 2.0;
-						LeftRightPair snrdb = new(-10,-10); //!!!await Qa40x.GetSnrDb(stepBinFrequencies[0], 20.0, maxf);
-						LeftRightPair thds = new(-10,-10); //!!!= await Qa40x.GetThdDb(stepBinFrequencies[0], maxf);
-						LeftRightPair thdN = new(-10,-10); //!!!= await Qa40x.GetThdnDb(stepBinFrequencies[0], 20.0, maxf);
+					{	var maxf = 20000; // the app seems to use 20,000 so not sampleRate/ 2.0;
+						LeftRightPair snrdb = QaCompute.GetSnrDb(lrfs, stepBinFrequencies[0], 20.0, maxf);
+						LeftRightPair thds = QaCompute.GetThdDb(lrfs, stepBinFrequencies[0], 20.0, maxf);
+						LeftRightPair thdN = QaCompute.GetThdnDb(lrfs, stepBinFrequencies[0], 20.0, maxf);
 
 						step.Left.Thd_dBN = thdN.Left;
 						step.Right.Thd_dBN = thdN.Right;

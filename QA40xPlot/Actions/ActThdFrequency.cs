@@ -276,7 +276,7 @@ namespace QA40xPlot.Actions
 				// ********************************************************************
 				await showMessage($"Determining noise floor.");
                 QaUsb.SetOutputSource(OutputSources.Off);
-                MeasurementResult.NoiseFloor = await QaUsb.DoAcquisitions(msr.Averages, ct);
+                MeasurementResult.NoiseFloor = await QaUsb.DoAcquisitions(1, ct);
                 if (ct.IsCancellationRequested)
                     return false;
 
