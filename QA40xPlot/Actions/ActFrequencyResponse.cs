@@ -373,7 +373,7 @@ namespace QA40xPlot.Actions
 					case TestingType.Response:
                         // left, right are magnitude. left uses right as reference
 						MeasurementResult.GainData = mx.Zip(mref,
-							(l, r) => { return new Complex(l.Magnitude * m2, r.Magnitude * m2); }).ToList();
+							(l, r) => { return new Complex(l.Magnitude, r.Magnitude); }).ToList();
 						break;
 					case TestingType.Gain:
 						// here complex value is the fft data left / right

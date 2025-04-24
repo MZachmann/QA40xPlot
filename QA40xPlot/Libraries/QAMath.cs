@@ -87,13 +87,15 @@ namespace QA40xPlot.Libraries
 		private static List<double> MakeWave(GenWaveform gw, GenWaveSample samples)
 		{
 			var dvamp = gw.Voltage * Math.Sqrt(2); // rms voltage -> peak voltage
-				// frequency vector
-			var theta = Enumerable.Range(0, samples.SampleSize).Select(x => 2 * Math.PI * gw.Frequency * x / samples.SampleRate);
+			var freq = QaLibrary.GetNearestBinFrequency(gw.Frequency, (uint)samples.SampleRate, (uint)samples.SampleSize);
+			// frequency vector
+			var theta = Enumerable.Range(0, samples.SampleSize).Select(x => 2 * Math.PI * freq * x / samples.SampleRate);
 			var totalth = theta.Max();
 			// now evaluate
 			switch ( gw.Name)
 			{
 				case "Sine":
+					// use a bin frequency???
 					return theta.Select(f => dvamp * Math.Sin(f)).ToList();
 				case "Square":
 					return theta.Select(f => dvamp  * Squares(f)).ToList();

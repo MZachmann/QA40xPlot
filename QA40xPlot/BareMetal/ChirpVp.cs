@@ -100,7 +100,7 @@ namespace QA40xPlot.BareMetal
 
 			double[] inp = window.Apply(chirp, true);  // the input signal
 			var chirpFft = FFT.Forward(inp);
-			var cmax = Vrms * Math.Sqrt(2) / 2;     // not sure why the /2 here - window?
+			var cmax = Vrms;// * Math.Sqrt(2) / 2;     // not sure why the /2 here - rectangular window?
 
 			// Left channel
 

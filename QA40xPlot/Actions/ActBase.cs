@@ -89,14 +89,16 @@ namespace QA40xPlot.Actions
 		{
 			await showMessage("Calculating DUT gain");
 			// initialize very quick run
-			var fftsize = FftActualSizes[0];
-			var sampleRate = MathUtil.ToUint(SampleRates[0]);
+			uint fftsize = 65536;
+			uint sampleRate = 48000;
 			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, "Hann", QaLibrary.DEVICE_MAX_ATTENUATION, inits))
 				return null;
 
 			// the simplest thing here is to do a quick burst low value...
 			var generatorV = 0.01;          // random low test value
 			var generatordBV = 20 * Math.Log10(generatorV); // or -40
+			// we must have this in the bin center here
+			dfreq = QaLibrary.GetNearestBinFrequency(dfreq, sampleRate, fftsize);
 			QaUsb.SetGen1(dfreq, generatordBV, true);             // send a sine wave
 			QaUsb.SetOutputSource(OutputSources.Sine);            // since we're single frequency
 			var ct = new CancellationTokenSource();
@@ -147,10 +149,10 @@ namespace QA40xPlot.Actions
 				lrfs.Left = lrfs.Left.Select(x => x / average).ToArray();
 				lrfs.Right = lrfs.Right.Select(x => x / average).ToArray();
 			}
-			return lrfs;       // Return the new generator amplitude and acquisition data
+			return lrfs;       // Return the gain information as a one element frequency series
 		}
 
-		protected async Task<LeftRightFrequencySeries?> DetermineGainCurve(bool inits, int average = 2)
+		protected async Task<LeftRightFrequencySeries?> DetermineGainCurve(bool inits, int average = 1)
 		{
 			await showMessage("Calculating DUT gain curve");
 			// initialize very quick run
@@ -170,8 +172,10 @@ namespace QA40xPlot.Actions
 					return null;
 
 				// what's the maximum input here?
-				var maxl = acqData.TimeRslt.Left.Skip(10).Max();
-				var maxr = acqData.TimeRslt.Right.Skip(10).Max();
+				var skips = acqData.TimeRslt.Left.Length / 10;
+				var takes = acqData.TimeRslt.Left.Length * 8 / 10;
+				var maxl = acqData.TimeRslt.Left.Skip(skips).Take(takes).Max();
+				var maxr = acqData.TimeRslt.Right.Skip(skips).Take(takes).Max();
 
 				var maxi = Math.Max(maxl, maxr);
 				// since we're running with 42db of attenuation...

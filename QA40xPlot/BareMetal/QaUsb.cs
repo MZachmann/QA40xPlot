@@ -183,7 +183,7 @@ namespace QA40x_BareMetal
             // don't bother setting output amplitude if we have no output
             if(maxOut > 0)
             {
-				var mlevel = Control.DetermineOutput(maxOut); // the setting for our voltage
+				var mlevel = Control.DetermineOutput(maxOut*1.1); // the setting for our voltage + 10%
 				SetOutputRange(mlevel); // set the output voltage
 			}
 
