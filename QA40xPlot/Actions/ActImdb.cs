@@ -1,4 +1,5 @@
 ﻿using QA40x_BareMetal;
+using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
@@ -190,6 +191,8 @@ namespace QA40xPlot.Actions
 				return false;
 			}
 			var fftsize = msrImd.FftSizeVal;
+			freq = QaLibrary.GetNearestBinFrequency(freq, sampleRate, fftsize); // make sure it's a bin center frequency
+			freq2 = QaLibrary.GetNearestBinFrequency(freq2, sampleRate, fftsize); // make sure it's a bin center frequency
 			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, msrImd.WindowingMethod, (int)msrImd.Attenuation, msr.FrequencySteps.Count == 0))
 				return false;
 			QaUsb.SetOutputSource(OutputSources.Off);            // We need to call this to make it turn on or off
@@ -268,6 +271,13 @@ namespace QA40xPlot.Actions
 
 					step.Left = ChannelCalculations(binSize, amplitudeSetpoint1dBV, step, msr, false);
 					step.Right = ChannelCalculations(binSize, amplitudeSetpoint1dBV, step, msr, true);
+
+					if (lrfs != null && lrfs.FreqRslt != null)
+					{
+						var snrdb = QaCompute.GetSnrImdDb(lrfs.FreqRslt, freq, freq2);
+						step.Left.Snr_dB = snrdb.Left;
+						step.Right.Snr_dB = snrdb.Right;
+					}
 
 					// Add step data to list
 					msr.FrequencySteps.Clear();
@@ -574,9 +584,6 @@ namespace QA40xPlot.Actions
 				hda = QAMath.MagAtFreq(ffts, binSize, step.Gen2Freq * j);
 				hdtotal += hda * hda;
 			}
-
-			var denom = Math.Sqrt(powertotal - distortionSqrtTotal - hdtotal);
-			channelData.Snr_dB = -20 * Math.Log10(vsum / denom);
 
 			// If load not zero then calculate load power
 			if (ViewSettings.AmplifierLoad != 0)

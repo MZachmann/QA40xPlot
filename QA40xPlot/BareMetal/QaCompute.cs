@@ -13,6 +13,22 @@ namespace QA40xPlot.BareMetal
 {
 	public static class QaCompute
 	{
+		internal static LeftRightPair GetSnrImdDb(LeftRightFrequencySeries lrs, double fundFreq, double fund2Freq)
+		{
+			if (lrs == null)
+				return new();
+
+			var frqs = Enumerable.Range(0, lrs.Left.Length).Select(x => x * lrs.Df).ToArray();
+			var ffs = lrs.Left;
+			var thdLeft = ComputeImdSnrRatio(ffs, frqs, fundFreq, fund2Freq, false);
+			thdLeft = QaLibrary.ConvertVoltage(thdLeft, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+			ffs = lrs.Right;
+			var thdRight = ComputeImdSnrRatio(ffs, frqs, fundFreq, fund2Freq, false);
+			thdRight = QaLibrary.ConvertVoltage(thdRight, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+
+			return new(thdLeft, thdRight);
+		}
+
 		internal static LeftRightPair GetSnrDb(LeftRightSeries lrs, double fundFreq, double minFreq, double maxFreq)
 		{
 			if (lrs.FreqRslt == null)
@@ -90,6 +106,50 @@ namespace QA40xPlot.BareMetal
 			double rmsBelowNotch = ComputeRmsFreq(signalFreqLin, frequencies, 20, notchLowerBound);
 			double rmsAboveNotch = ComputeRmsFreq(signalFreqLin, frequencies, notchUpperBound, 20000);
 			double noiseRms = Math.Sqrt(Math.Pow(rmsBelowNotch, 2) + Math.Pow(rmsAboveNotch, 2));
+
+			if (debug)
+			{
+				Debug.WriteLine($"RMS Below Notch: {rmsBelowNotch:F6}");
+				Debug.WriteLine($"RMS Above Notch: {rmsAboveNotch:F6}");
+				Debug.WriteLine($"Noise RMS: {noiseRms:F6}");
+			}
+
+			return fundamentalRms / noiseRms;
+		}
+
+		internal static double ComputeImdSnrRatio(double[] signalFreqLin, double[] frequencies, double fundamental, double fundamental2, bool debug = false)
+		{
+			// Calculate notch filter bounds in Hz
+			//var notchOctaves = 0.5; // aes-17 2015 standard notch
+			var notchOctaves = 0.1; // my preferred notch much tighter and more realistic nowadays
+			double notchLowerBound = fundamental / Math.Pow(2, notchOctaves);
+			double notchUpperBound = fundamental * Math.Pow(2, notchOctaves);
+
+			if (debug)
+			{
+				Debug.WriteLine($"Notch Filter Bounds: {notchLowerBound:F2} Hz to {notchUpperBound:F2} Hz");
+			}
+
+			// Calculate RMS of the fundamental within the notch
+			double fundamentalRms = ComputeRmsFreq(signalFreqLin, frequencies, notchLowerBound, notchUpperBound);
+			// Calculate RMS of the signal outside the notch
+			double rmsBelowNotch = ComputeRmsFreq(signalFreqLin, frequencies, 20, notchLowerBound);
+			double rmsAboveNotch = ComputeRmsFreq(signalFreqLin, frequencies, notchUpperBound, 20000);
+
+			if (fundamental2 > 0.0)
+			{
+				notchLowerBound = fundamental2 / Math.Pow(2, notchOctaves);
+				notchUpperBound = fundamental2 * Math.Pow(2, notchOctaves);
+				var fundamental2Rms = ComputeRmsFreq(signalFreqLin, frequencies, notchLowerBound, notchUpperBound);
+				rmsAboveNotch = Math.Sqrt(Math.Pow(rmsAboveNotch, 2) - Math.Pow(fundamental2Rms, 2));
+				fundamentalRms = Math.Sqrt(Math.Pow(fundamentalRms, 2) + Math.Pow(fundamental2Rms, 2));
+			}
+			double noiseRms = Math.Sqrt(Math.Pow(rmsBelowNotch, 2) + Math.Pow(rmsAboveNotch, 2));
+
+			if (debug)
+			{
+				Debug.WriteLine($"Fundamental RMS: {fundamentalRms:F6}");
+			}
 
 			if (debug)
 			{
