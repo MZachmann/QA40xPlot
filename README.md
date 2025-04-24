@@ -7,7 +7,14 @@ of hardware.
 - Tests may be autoranged by using app control of the attenuator.
 - Tests are specified by QA40x generator voltage or DUT output voltage or DUT output power.
 
-This Audio Analysis application is a loose Fork of https://github.com/breedj/qa40x-audio-analyser.
+This Audio Analysis application started as a Fork of https://github.com/breedj/qa40x-audio-analyser.
+Some code was borrowed from QuantAsylum's Qa40x_BareMetal and PyQa40x repositories on Github.
+
+## Known Problem
+As part of the USB support upgrade: occasionally the first test run will stop while testing the noise floor. Simply click Stop
+then Start again. This will be fixed soon.
+
+The program may rarely not start on first try. Retry and it should then start up.
 
 ## Overview
 
@@ -32,8 +39,11 @@ There is a help button in the application that brings up a page of help.
 
 The Release is delivered as a zipped signed .msi setup program that just needs to be executed. Ignore the security warning (click More Info).
 
-Before starting this application, first start the factory QA40x program. Minimize it if you want, but it is used for the
-REST interface. It's tempting, but please avoid clicking the QA40x program GUI during QA40xPlot tests.
+***NEW as of 1.2***----->>>
+This program is totally standalone and requires only that the Qa40x hardware is connected to the PC via USB. 
+The program should automatically find the QA40x hardware and connect to it.
+
+The USB connection is active only while a test is running.
 
 ### Default Configuration
 
@@ -42,7 +52,7 @@ a saved configuration file named **QADefault.cfg** then that file is loaded.
 
 ## General Info
 
-The spectral and intermodulation tests include an option for autoranging. The THD vs xx plots autorange.
+The spectral and intermodulation tests include an option for autoranging. Most other tests automatically autorange.
 
 Three tests: impedance testing, frequency response, and gain (bode plot) are wrapped in a single tab whose name
 will dynamically change between the 3 (Impedance, Response, Gain) based on your selection in the tab.
