@@ -338,13 +338,13 @@ namespace QA40x_BareMetal
         /// Closes a USB connection (if it's open)
         /// </summary>
         /// <returns></returns>
-        static public bool Close()
+        static public bool Close(bool OnExit)
         {
             try
             {
                 if (_qAnalyzer != null)
                 {
-					_qAnalyzer.Close();
+					_qAnalyzer.Close(OnExit);
 					_qAnalyzer = null;
                 }
 

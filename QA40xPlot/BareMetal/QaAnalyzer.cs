@@ -124,16 +124,16 @@ namespace QA40xPlot.BareMetal
 			return Params ?? null;
 		}
 
-		public void Close()
+		public void Close(bool OnExit)
 		{
 			try
 			{
-				QaLowUsb.DetachDevice();
-				Device = null;
 				DataReader?.Dispose();
 				DataWriter?.Dispose();
 				RegisterReader?.Dispose();
 				RegisterWriter?.Dispose();
+				QaLowUsb.DetachDevice(OnExit);
+				Device = null;
 			}
 			catch (Exception e)
 			{

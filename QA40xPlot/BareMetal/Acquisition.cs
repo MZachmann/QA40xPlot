@@ -150,9 +150,11 @@ namespace QA40xPlot.BareMetal
 			// Prime the pump with two reads. This way we can handle one buffer while the other is being
 			// used by the OS
 			// Send out two data writes as we begin working our way through the txData buffer
+            //
             // do these as close together as possible...
 			QaUsb.ReadDataBegin(usbBufSize);
             QaUsb.WriteDataBegin(txData, 0, usbBufSize);
+            //
             for(int i=1; i<prereader; i++)
             {
 				QaUsb.ReadDataBegin(usbBufSize);

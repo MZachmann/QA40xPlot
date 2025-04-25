@@ -60,7 +60,7 @@ namespace QA40xPlot.Actions
 			// Turn the generator off
 			QaUsb.SetOutputSource(OutputSources.Off);
 			// detach from usb port
-			QaUsb.Close();
+			QaUsb.Close(false);
 		}
 
 		protected async Task showMessage(String msg, int delay = 0)

@@ -51,13 +51,17 @@ namespace QA40xPlot.BareMetal
 		}
 
 		// this should probably be done on exit
-		public static void DetachDevice()
+		public static void DetachDevice(bool OnExit)
 		{
 			if (_AttachedDevice != null)
 			{
-				var iusbdev = _AttachedDevice as IUsbDevice;
-				iusbdev?.ReleaseInterface(_IdInterface);
-				_AttachedDevice?.Close();
+				// for some reason close crashes when exiting
+				if(_AttachedDevice.IsOpen && !OnExit)
+				{
+					var iusbdev = _AttachedDevice as IUsbDevice;
+					iusbdev?.ReleaseInterface(_IdInterface);
+					_AttachedDevice?.Close();
+				}
 				_AttachedDevice = null;
 			}
 		}

@@ -133,7 +133,10 @@ namespace QA40xPlot
 			{
 				try
 				{
-					QaUsb.Close();
+					// Stop streaming. This also extinguishes the RUN led
+					QaUsb.WriteRegister(8, 0);
+					// now close down
+					QaUsb.Close(true);
 				}
 				catch (Exception ex)
 				{
