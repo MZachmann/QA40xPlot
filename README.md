@@ -39,7 +39,8 @@ There is a help button in the application that brings up a page of help.
 
 The Release is delivered as a zipped signed .msi setup program that just needs to be executed. Ignore the security warning (click More Info).
 
-***NEW as of 1.2***----->>>
+### USB Direct
+***NEW as of 1.1***----->>>
 This program is totally standalone and requires only that the Qa40x hardware is connected to the PC via USB. 
 The program should automatically find the QA40x hardware and connect to it.
 
