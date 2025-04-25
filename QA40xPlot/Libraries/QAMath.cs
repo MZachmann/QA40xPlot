@@ -25,8 +25,12 @@ namespace QA40xPlot.Libraries
 			var ba = pts[bin];
 			if (bin > 0)
 				ba = Math.Max(ba, pts[bin - 1]);
-			if(bin < (pts.Length-1))
+			if (bin > 1)
+				ba = Math.Max(ba, pts[bin - 2]);
+			if (bin < (pts.Length-1))
 				ba = Math.Max(ba, pts[bin + 1]);
+			if (bin < (pts.Length - 2))
+				ba = Math.Max(ba, pts[bin + 2]);
 			return ba;
 		}
 

@@ -124,14 +124,7 @@ namespace QA40xPlot.Actions
 
                 if(msr.NoiseFloor == null)
                 {
-					// ********************************************************************
-					// Do noise floor measurement with source off
-					// ********************************************************************
-					await showMessage($"Determining noise floor.");
-					QaUsb.SetOutputSource(OutputSources.Off);
-					msr.NoiseFloor = await QaUsb.DoAcquisitions(1, ct);
-					if (ct.IsCancellationRequested)
-						return false;
+					msr.NoiseFloor = await MeasureNoise(ct);
 				}
 				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
 				var genVolt = specVm.ToGenVoltage(msr.MeasurementSettings.Gen1Voltage, [], GEN_INPUT, gains) ;
@@ -350,7 +343,6 @@ namespace QA40xPlot.Actions
 				var sampleRate = fmr.MeasurementSettings.SampleRateVal;
 				var fftsize = fmr.MeasurementSettings.FftSizeVal;
 				var steps = vm.ShowLeft ? MeasurementResult.FrequencySteps[0].Left : MeasurementResult.FrequencySteps[0].Right;
-				var nfloor = steps.Average_NoiseFloor_dBV;   // Average noise floor in dBVolts after the fundamental
                 double fsel = 0;
                 double maxdata = -10;
 				var fftdata = vm.ShowLeft ? fmr.FrequencySteps[0].fftData?.Left : fmr.FrequencySteps[0].fftData?.Right;
@@ -413,13 +405,7 @@ namespace QA40xPlot.Actions
 			};
 			// Calculate average noise floor
 			var noiseFlr = (msr.NoiseFloor == null) ? null : (isRight ? msr.NoiseFloor.FreqRslt?.Left : msr.NoiseFloor.FreqRslt?.Right);
-			if (noiseFlr != null)
-			{
-				channelData.Average_NoiseFloor_V = noiseFlr.Average();   // Average noise floor in Volts after the fundamental
-				var v2 = noiseFlr.Select(x => x * x).Sum() / (1.5 * noiseFlr.Length);    // 1.5 for hann window Squared noise floor in Volts after the fundamental
-				channelData.TotalNoiseFloor_V = Math.Sqrt(v2);   // Average noise floor in Volts after the fundamental
-				channelData.Average_NoiseFloor_dBV = 20 * Math.Log10(channelData.TotalNoiseFloor_V);         // Average noise floor in dBV
-			}
+			channelData.TotalNoiseFloor_V = QaCompute.CalculateNoise(msr?.NoiseFloor?.FreqRslt, !isRight);
 
 			// Reset harmonic distortion variables
 			double distortionSqrtTotal = 0;
@@ -821,6 +807,9 @@ namespace QA40xPlot.Actions
 			var vm = ViewSettings.Singleton.ChannelLeft;
             vm.FundamentalFrequency = 0;
             vm.CalculateChannelValues(MeasurementResult.FrequencySteps[0].Left, MathUtil.ToDouble( thd.Gen1Frequency), thd.ShowDataPercent);
+			vm = ViewSettings.Singleton.ChannelRight;
+			vm.FundamentalFrequency = 0;
+			vm.CalculateChannelValues(MeasurementResult.FrequencySteps[0].Right, MathUtil.ToDouble(thd.Gen1Frequency), thd.ShowDataPercent);
 		}
 
 		public void UpdateGraph(bool settingsChanged)

@@ -168,6 +168,8 @@
             <views:PlotControl x:Name="WpfPlot1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
             <views:ThdChannelInfo x:Name="Info1"  
                   VerticalAlignment="Top" HorizontalAlignment="Left" Margin="80,50,0,0" />
+            <views:ThdChannelInfo x:Name="Info2"  
+                  VerticalAlignment="Top" HorizontalAlignment="Left" Margin="80,260,0,0" />
         </Grid>
         <StackPanel Grid.Column="2" Orientation="Vertical">
             <GroupBox Header="Y Axis" Visibility="{Binding ToShowdB}">

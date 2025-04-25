@@ -6,6 +6,7 @@ using System.Text;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using QA40xPlot.Libraries;
 
 namespace QA40xPlot.ViewModels
 {
@@ -58,6 +59,12 @@ namespace QA40xPlot.ViewModels
 			get => _ThdInPercent;
 			set => SetProperty(ref _ThdInPercent, value);
 		}
+		private double _NoiseFloordBV;
+		public double NoiseFloordBV
+		{
+			get => _NoiseFloordBV;
+			set => SetProperty(ref _NoiseFloordBV, value);
+		}
 		private bool _ShowDataPercents;
 		public bool ShowDataPercents
 		{
@@ -79,6 +86,7 @@ namespace QA40xPlot.ViewModels
 			ThdIndB = step.Thd_dB;	// shown
 			ThdInPercent = 100*Math.Pow(10, step.Thd_dB / 20);	// shown
 			ShowDataPercents = showPercent;
+			NoiseFloordBV = QaLibrary.ConvertVoltage(step.TotalNoiseFloor_V, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 		}
 	}
 }

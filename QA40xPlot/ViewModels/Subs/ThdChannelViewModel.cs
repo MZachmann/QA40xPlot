@@ -6,6 +6,7 @@ using System.Text;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using QA40xPlot.Libraries;
 
 namespace QA40xPlot.ViewModels
 {
@@ -40,6 +41,18 @@ namespace QA40xPlot.ViewModels
 			get => _MyStep;
 			set => SetProperty(ref _MyStep, value);
 		}
+		private double _ThdNInV;
+		public double ThdNInV
+		{
+			get => _ThdNInV;
+			set => SetProperty(ref _ThdNInV, value);
+		}
+		private double _ThdInV;
+		public double ThdInV
+		{
+			get => _ThdInV;
+			set => SetProperty(ref _ThdInV, value);
+		}
 		private double _ThdIndB;
 		public double ThdIndB
 		{
@@ -51,6 +64,18 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _ThdInPercent;
 			set => SetProperty(ref _ThdInPercent, value);
+		}
+		private double _NoiseFloordBV;
+		public double NoiseFloordBV
+		{
+			get => _NoiseFloordBV;
+			set => SetProperty(ref _NoiseFloordBV, value);
+		}
+		private double _NoiseFloorPct;
+		public double NoiseFloorPct
+		{
+			get => _NoiseFloorPct;
+			set => SetProperty(ref _NoiseFloorPct, value);
 		}
 		private bool _ShowDataPercents;
 		public bool ShowDataPercents
@@ -65,9 +90,13 @@ namespace QA40xPlot.ViewModels
 			FundamentalFrequency = Fundamental;
 			SNRatio = step.Snr_dB;
 			ENOB = (SNRatio - 1.76) / 6.02;
+			ThdInV = step.Total_V * step.Thd_Percent / 100;
 			ThdIndB = step.Thd_dB;
 			ThdInPercent = 100*Math.Pow(10, step.Thd_dB / 20);
+			ThdNInV = step.Total_V * step.Thd_PercentN / 100;
 			ShowDataPercents = showPercent;
+			NoiseFloordBV = QaLibrary.ConvertVoltage(step.TotalNoiseFloor_V, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+			NoiseFloorPct = 100 * step.TotalNoiseFloor_V / step.Total_V;
 		}
 	}
 }

@@ -48,13 +48,6 @@ namespace QA40xPlot.ViewModels
 			set { if(SetProperty(ref _DoAutoAttn, value)) OnPropertyChanged("AttenColor"); }
 		}
 
-		private bool _ShowChannelInfo = false;
-		public bool ShowChannelInfo
-		{
-			get => _ShowChannelInfo;
-			set => SetProperty(ref _ShowChannelInfo, value);
-		}
-
 		private string _Gen1Frequency = string.Empty;
 		public string Gen1Frequency
 		{
@@ -249,7 +242,6 @@ namespace QA40xPlot.ViewModels
 					actImd?.UpdateGraph(true);
 					break;
 				case "ShowSummary":
-					ShowChannelInfo = ShowSummary;
 					if (actInfo != null)
 						actInfo.Visibility = ShowSummary ? Visibility.Visible : Visibility.Hidden;
 					break;

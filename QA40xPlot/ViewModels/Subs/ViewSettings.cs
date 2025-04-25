@@ -31,6 +31,10 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public ThdChannelViewModel ChannelRight { get; private set; }
 		[JsonIgnore]
+		public ThdChannelViewModel ScopeChanLeft { get; private set; }
+		[JsonIgnore]
+		public ThdChannelViewModel ScopeChanRight { get; private set; }
+		[JsonIgnore]
 		public ImdChannelViewModel ImdChannelLeft { get; private set; }
 		[JsonIgnore]
 		public ImdChannelViewModel ImdChannelRight { get; private set; }
@@ -100,6 +104,8 @@ namespace QA40xPlot.ViewModels
 			Main = new MainViewModel();
 			ChannelLeft = new ThdChannelViewModel();
 			ChannelRight = new ThdChannelViewModel();
+			ScopeChanLeft = new ThdChannelViewModel();
+			ScopeChanRight = new ThdChannelViewModel();
 			ImdChannelLeft = new ImdChannelViewModel();
 			ImdChannelRight = new ImdChannelViewModel();
 			SpectrumVm = new SpectrumViewModel();

@@ -74,10 +74,10 @@ namespace QA40x_BareMetal
         public static async Task<LeftRightSeries> DoAcquisitions(uint averages, CancellationToken ct)
         {
 			var datapt = new double[QAnalyzer?.Params?.FFTSize ?? 0];
-            var gp1 = QAnalyzer?.GenParams;
-            var gp2 = QAnalyzer?.Gen2Params;
             if( QAnalyzer?.Params?.OutputSource == OutputSources.Sine)
             {
+				var gp1 = QAnalyzer?.GenParams;
+				var gp2 = QAnalyzer?.Gen2Params;
 				double dt = 1.0 / (QAnalyzer?.Params.SampleRate ?? 1);
 				if (gp1?.Enabled == true)
 				{
@@ -126,6 +126,11 @@ namespace QA40x_BareMetal
 			if (QAnalyzer == null)
 				return;
 			QAnalyzer.SetInput(range);
+		}
+
+		public static int GetInputRange()
+		{
+            return QAnalyzer?.Params?.MaxInputLevel ?? 42;
 		}
 
 		public static void SetOutputRange(int range)
@@ -187,27 +192,24 @@ namespace QA40x_BareMetal
 			var minOut = Math.Min(dataLeft.Min(), dataRight.Min());
             maxOut = Math.Max(Math.Abs(maxOut), Math.Abs(minOut));  // maximum output voltage
             // don't bother setting output amplitude if we have no output
-            if(maxOut > 0)
-            {
-				var mlevel = Control.DetermineOutput(maxOut*1.1); // the setting for our voltage + 10%
-				SetOutputRange(mlevel); // set the output voltage
-			}
+			var mlevel = Control.DetermineOutput(1.1 * ((maxOut > 0) ? maxOut : 1e-8) ); // the setting for our voltage + 10%
+			SetOutputRange(mlevel); // set the output voltage
 
 			for (int rrun = 0; rrun < averages; rrun++)
-            {
-                try
                 {
-					var newData = await Acquisition.DoStreamingAsync(ct, dataLeft, dataRight);
-					if (ct.IsCancellationRequested || lrfs == null || newData.Valid == false)
-						return lrfs ?? new();
-					runList.Add(newData);
-				}
-				catch (Exception ex)
-				{
-					Debug.WriteLine($"Error: {ex.Message}");
-					return lrfs ?? new();
-				}
-			}
+                    try
+                    {
+                        var newData = await Acquisition.DoStreamingAsync(ct, dataLeft, dataRight);
+                        if (ct.IsCancellationRequested || lrfs == null || newData.Valid == false)
+                            return lrfs ?? new();
+                        runList.Add(newData);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Error: {ex.Message}");
+                        return lrfs ?? new();
+                    }
+                }
 
 			{
                 lrfs.TimeRslt = new();

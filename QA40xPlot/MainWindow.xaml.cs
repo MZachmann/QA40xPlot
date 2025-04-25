@@ -1,5 +1,7 @@
 ﻿using Microsoft.Win32;
 using Newtonsoft.Json;
+using QA40x_BareMetal;
+using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
@@ -127,8 +129,19 @@ namespace QA40xPlot
 
 		protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
 		{
+			if (QaLowUsb.IsDeviceConnected() == true)
+			{
+				try
+				{
+					QaUsb.Close();
+				}
+				catch (Exception ex)
+				{
+					MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
+				}
+			}
 			//do my stuff before closing
-			if( ViewSettings.IsSaveOnExit)
+			if ( ViewSettings.IsSaveOnExit)
 			{
 				try
 				{

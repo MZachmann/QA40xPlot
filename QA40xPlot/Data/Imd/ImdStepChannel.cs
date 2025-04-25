@@ -27,9 +27,8 @@ namespace QA40xPlot.Data
         public double ThdPercent_D6plus { get; set; }
         public double ThdDbD6plus { get; set; }
         public double Power_Watt { get; set; }
-        public double Average_NoiseFloor_V { get; set; }
-        public double Average_NoiseFloor_dBV { get; set; }
         public double TotalNoiseFloor_V { get; set; }
+		public double NoiseFloor_Pct { get; set; }
 
 		public ImdStepChannel() {
             Harmonics = [];

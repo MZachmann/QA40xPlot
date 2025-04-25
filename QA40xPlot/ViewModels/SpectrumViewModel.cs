@@ -20,7 +20,8 @@ namespace QA40xPlot.ViewModels
 		private static SpectrumViewModel MyVModel { get => ViewSettings.Singleton.SpectrumVm; }
 		private PlotControl actPlot {  get; set; }
 		private ActSpectrum actSpec { get;  set; }
-		private ThdChannelInfo actInfo { get;  set; }
+		private ThdChannelInfo actInfoLeft { get;  set; }
+		private ThdChannelInfo actInfoRight { get; set; }
 		[JsonIgnore]
 		public RelayCommand<object> SetAttenuate { get => new RelayCommand<object>(SetAtten); }
 		[JsonIgnore]
@@ -45,13 +46,6 @@ namespace QA40xPlot.ViewModels
 		{
 			get { return _DoAutoAttn; }
 			set { if ( SetProperty(ref _DoAutoAttn, value)) OnPropertyChanged("AttenColor"); }
-		}
-
-		private bool _ShowChannelInfo = false;
-		public bool ShowChannelInfo
-		{
-			get => _ShowChannelInfo;
-			set => SetProperty(ref _ShowChannelInfo, value);
 		}
 
 		private string _Gen1Waveform = string.Empty;
@@ -192,6 +186,14 @@ namespace QA40xPlot.ViewModels
 		}
 		#endregion
 
+		private void ShowInfos()
+		{
+			if (actInfoLeft != null)
+				actInfoLeft.Visibility = (ShowSummary && ShowLeft) ? Visibility.Visible : Visibility.Hidden;
+			if (actInfoRight != null)
+				actInfoRight.Visibility = (ShowSummary && ShowRight) ? Visibility.Visible : Visibility.Hidden;
+		}
+
 		// the property change is used to trigger repaints of the graph
 		private void CheckPropertyChanged(object? sender, PropertyChangedEventArgs e)
 		{
@@ -203,9 +205,12 @@ namespace QA40xPlot.ViewModels
 					actSpec?.UpdateGraph(true);
 					break;
 				case "ShowSummary":
-					ShowChannelInfo = ShowSummary;
-					if (actInfo != null)
-						actInfo.Visibility = ShowSummary ? Visibility.Visible : Visibility.Hidden;
+					ShowInfos();
+					break;
+				case "ShowRight":
+				case "ShowLeft":
+					ShowInfos();
+					actSpec?.UpdateGraph(false);
 					break;
 				case "GraphStartFreq":
 				case "GraphEndFreq":
@@ -215,8 +220,6 @@ namespace QA40xPlot.ViewModels
 				case "RangeTop":
 					actSpec?.UpdateGraph(true);
 					break;
-				case "ShowRight":
-				case "ShowLeft":
 				case "ShowThickLines":
 				case "ShowMarkers":
 				case "ShowPowerMarkers":
@@ -232,13 +235,17 @@ namespace QA40xPlot.ViewModels
 			return actSpec?.CreateExportData();
 		}
 
-		public void SetAction(PlotControl plot, ThdChannelInfo info)
+		public void SetAction(PlotControl plot, ThdChannelInfo info, ThdChannelInfo info2)
 		{
 			SpectrumData data = new SpectrumData();
 			actSpec = new ActSpectrum(ref data, plot);
-			actInfo = info;
+			actInfoLeft = info;
+			actInfoRight = info2;
+			info.SetDataContext(ViewSettings.Singleton.ChannelLeft);
+			info2.SetDataContext(ViewSettings.Singleton.ChannelRight);
 			SetupMainPlot(plot);
 			actPlot = plot;
+			ShowInfos();
 		}
 
 		private static void SetAtten(object? parameter)
@@ -342,7 +349,8 @@ namespace QA40xPlot.ViewModels
 			MouseTracked += DoMouseTracked;
 
 			this.actPlot = default!;
-			this.actInfo = default!;
+			this.actInfoLeft = default!;
+			this.actInfoRight = default!;
 			this.actSpec = default!;
 
 			GraphStartFreq = "20";

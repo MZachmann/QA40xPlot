@@ -109,6 +109,8 @@ namespace QA40xPlot.BareMetal
 
 			// Left channel
 
+			chirpFft = chirpFft.Select(x => (x.Real != 0 || x.Imaginary != 0) ? x : new Complex(1e-10,0)).ToArray(); // avoid divide by zero
+
 			if (rdata.leftData != null)
 			{
 				double[] lftWdw = window.Apply(rdata.leftData, true);

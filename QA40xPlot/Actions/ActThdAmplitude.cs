@@ -178,7 +178,7 @@ namespace QA40xPlot.Actions
 			catch { }
 
 			cl.D6P = chan.D6Plus_dBV;
-			cl.Noise = chan.Average_NoiseFloor_dBV;
+			cl.Noise = QaLibrary.ConvertVoltage( chan.TotalNoiseFloor_V, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 			//
 			cl.Freq = MathUtil.ToDouble(MeasurementResult.MeasurementSettings.TestFreq, 10);
 			cl.GenVolts = chan.Fundamental_V;
@@ -269,11 +269,11 @@ namespace QA40xPlot.Actions
 			{
 				return false;
 			}
-			await showMessage($"Determining noise floor.");
-			QaUsb.SetOutputSource(OutputSources.Off);
-			MeasurementResult.NoiseFloor = await QaUsb.DoAcquisitions(1, ct);
+
+			MeasurementResult.NoiseFloor = await MeasureNoise(ct);
 			if (ct.IsCancellationRequested || MeasurementResult.NoiseFloor == null)
 				return false;
+
 			QaLibrary.PlotMiniFftGraph(fftPlot, MeasurementResult.NoiseFloor.FreqRslt, msr.ShowLeft, msr.ShowRight);
 			QaLibrary.PlotMiniTimeGraph(timePlot, MeasurementResult.NoiseFloor.TimeRslt, testFrequency, msr.ShowLeft, msr.ShowRight);
 
@@ -413,12 +413,6 @@ namespace QA40xPlot.Actions
 				Fundamental_dBV = QaLibrary.ConvertVoltage(fftVal, E_VoltageUnit.Volt, E_VoltageUnit.dBV),
 				Gain_dB = QaLibrary.ConvertVoltage((fftVal / generatorAmplitudeV), E_VoltageUnit.Volt, E_VoltageUnit.dBV)
 			};
-
-			// Calculate average noise floor
-			channelData.Average_NoiseFloor_V = noiseFloorFftData
-				.Skip((int)fundamentalBin + 1)
-				.Average();
-			channelData.Average_NoiseFloor_dBV = 20 * SafeLog(channelData.Average_NoiseFloor_V);
 
 			// Reset harmonic distortion variables
 			double distortionSqrtTotal = 0;

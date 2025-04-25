@@ -46,16 +46,34 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Label Grid.Row="0" Grid.Column="0" Content="N:" HorizontalAlignment="Right"/>
-                    <Label Grid.Row="0" Grid.Column="1" Content="{Binding MyStep.Average_NoiseFloor_dBV}" ContentStringFormat="{}{0:F2} dBV"/>
-                <Label Grid.Row="0" Grid.Column="2" Content="{Binding MyStep.TotalNoiseFloor_V, Converter={StaticResource VoltFormatter}}" />
-
+                    <Label Grid.Row="0" Grid.Column="1" Content="{Binding NoiseFloordBV}" ContentStringFormat="{}{0:F2} dBV"/>
+                    <Label Grid.Row="0" Grid.Column="2" >
+                        <MultiBinding Converter="{StaticResource VToPctConverter}">
+                            <Binding Path="NoiseFloorPct"/>
+                            <Binding Path="MyStep.TotalNoiseFloor_V"/>
+                            <Binding Path="ShowDataPercents"/>
+                        </MultiBinding>
+                    </Label>
+                
                     <Label Grid.Row="1" Grid.Column="0" Content="THD:" HorizontalAlignment="Right"/>
                     <Label Grid.Row="1" Grid.Column="1" Content="{Binding ThdIndB}" ContentStringFormat="{}{0:F2} dB"/>
-                    <Label Grid.Row="1" Grid.Column="2" Content="{Binding ThdInPercent}" ContentStringFormat="{}{0:F5} %"/>
+                    <Label Grid.Row="1" Grid.Column="2" >
+                        <MultiBinding Converter="{StaticResource VToPctConverter}">
+                            <Binding Path="ThdInPercent"/>
+                            <Binding Path="ThdInV"/>
+                            <Binding Path="ShowDataPercents"/>
+                        </MultiBinding>
+                    </Label>
                 
                     <Label Grid.Row="2" Grid.Column="0" Content="THD+N:" HorizontalAlignment="Right"/>
                     <Label Grid.Row="2" Grid.Column="1" Content="{Binding MyStep.Thd_dBN}" ContentStringFormat="{}{0:F2} dB"/>
-                    <Label Grid.Row="2" Grid.Column="2" Content="{Binding MyStep.Thd_PercentN}" ContentStringFormat="{}{0:F5} %"/>
+                    <Label Grid.Row="2" Grid.Column="2" >
+                        <MultiBinding Converter="{StaticResource VToPctConverter}">
+                            <Binding Path="MyStep.Thd_PercentN"/>
+                            <Binding Path="ThdNInV"/>
+                            <Binding Path="ShowDataPercents"/>
+                        </MultiBinding>
+                    </Label>
             </Grid>
             <Rectangle HorizontalAlignment="Stretch" Height="3" Fill="DarkGreen" />
             <Grid>

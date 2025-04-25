@@ -109,14 +109,12 @@ namespace QA40xPlot.BareMetal
 			// The scale factor converts the volts to dBFS. The max output is 8Vrms = 11.28Vp = 0 dBFS. 
 			// The above calcs assume DAC relays set to 18 dBV = 8Vrms full scale
             var dbfsAdjustment = Math.Pow(10, -((aParams.MaxOutputLevel + 3.0) / 20));
-			leftOut = leftOut.Select(x => x * dbfsAdjustment * dacCal.Left).ToArray();
-            rightOut = rightOut.Select(x => x * dbfsAdjustment * dacCal.Right).ToArray();
+			var lout = leftOut.Select(x => x * dbfsAdjustment * dacCal.Left).ToList();
+            var rout = rightOut.Select(x => x * dbfsAdjustment * dacCal.Right).ToList();
 
 			// now pad front and back of the values via prebuf and postbuf 
 			double[] prebuf = new double[Math.Max(aParams.PreBuffer, usbBufSize/2)];
 			double[] postbuf = new double[Math.Max(aParams.PostBuffer, usbBufSize/2)];
-			var lout = new List<double>(leftOut);
-			var rout = new List<double>(rightOut);
 			lout.InsertRange(0, prebuf);
 			lout.AddRange(postbuf);
 			rout.InsertRange(0, prebuf);

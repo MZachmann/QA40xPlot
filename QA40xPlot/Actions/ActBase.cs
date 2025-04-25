@@ -85,6 +85,21 @@ namespace QA40xPlot.Actions
 			return (int)Math.Floor(dFreq / (lrGain?.Df ?? 1));
 		}
 
+		protected async Task<LeftRightSeries> MeasureNoise(CancellationToken ct)
+		{
+			var range = QaUsb.GetInputRange();
+			// ********************************************************************
+			// Do noise floor measurement with source off
+			// ********************************************************************
+			await showMessage($"Determining noise floor.");
+			QaUsb.SetOutputSource(OutputSources.Off);
+			QaUsb.SetInputRange(6);	// and a small range for better noise...
+			var lrs = await QaUsb.DoAcquisitions(1, ct); // this one returns a high value until settled
+			QaUsb.SetInputRange(range); // restore the range
+
+			return lrs;
+		}
+
 		protected async Task<LeftRightFrequencySeries?> DetermineGainAtFreq(double dfreq, bool inits, int average = 3)
 		{
 			await showMessage("Calculating DUT gain");

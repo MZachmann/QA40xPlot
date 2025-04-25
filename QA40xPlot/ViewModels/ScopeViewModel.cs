@@ -62,12 +62,6 @@ namespace QA40xPlot.ViewModels
 			set { if ( SetProperty(ref _DoAutoAttn, value)) OnPropertyChanged("AttenColor"); }
 		}
 
-		private bool _ShowChannelInfo = false;
-		public bool ShowChannelInfo
-		{
-			get => _ShowChannelInfo;
-			set => SetProperty(ref _ShowChannelInfo, value);
-		}
 		private bool _ShowPoints = false;
 		public bool ShowPoints
 		{
@@ -182,7 +176,6 @@ namespace QA40xPlot.ViewModels
 			switch (e.PropertyName)
 			{
 				case "ShowSummary":
-					ShowChannelInfo = ShowSummary;
 					if (actInfo != null)
 						actInfo.Visibility = ShowSummary ? Visibility.Visible : Visibility.Hidden;
 					break;
@@ -215,6 +208,7 @@ namespace QA40xPlot.ViewModels
 			ScopeData data = new ScopeData();
 			actScope = new ActScope(ref data, plot);
 			actInfo = info;
+			info.SetDataContext(ViewSettings.Singleton.ScopeChanLeft);
 			SetupMainPlot(plot);
 			actPlot = plot;
 		}
