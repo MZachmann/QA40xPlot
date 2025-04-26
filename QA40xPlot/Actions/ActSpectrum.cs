@@ -92,19 +92,20 @@ namespace QA40xPlot.Actions
 			SpectrumViewModel thd = msr.MeasurementSettings;
 			var specVm = MyVModel;
 
-			var freq = MathUtil.ToDouble(msr.MeasurementSettings.Gen1Frequency, 0);
-			var sampleRate = msr.MeasurementSettings.SampleRateVal;
-			if (freq == 0 || sampleRate == 0 || !SpectrumViewModel.FftSizes.Contains(msr.MeasurementSettings.FftSize))
+			var freq = MathUtil.ToDouble(thd.Gen1Frequency, 0);
+			var sampleRate = thd.SampleRateVal;
+			if (freq == 0 || sampleRate == 0 || !SpectrumViewModel.FftSizes.Contains(thd.FftSize))
             {
                 MessageBox.Show("Invalid settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 				return false;
 			}
 			var fftsize = thd.FftSizeVal;
+			var binSize = QaLibrary.CalcBinSize(sampleRate, fftsize);
 
 			// ********************************************************************  
 			// Load a settings we want
 			// ********************************************************************  
-			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, msr.MeasurementSettings.WindowingMethod, (int)msr.MeasurementSettings.Attenuation, msr.FrequencySteps.Count == 0))
+			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, thd.WindowingMethod, (int)thd.Attenuation, msr.FrequencySteps.Count == 0))
 				return false;
 
 			try
@@ -113,27 +114,17 @@ namespace QA40xPlot.Actions
                 if (ct.IsCancellationRequested)
                     return false;
 
-                // ********************************************************************
-                // Calculate frequency steps to do
-                // ********************************************************************
-                var binSize = QaLibrary.CalcBinSize(sampleRate, fftsize);
-				// Generate a list of frequencies
-				double[] stepFrequencies = [freq];
-                // Translate the generated list to bin center frequencies
-                var stepBinFrequencies = QaLibrary.TranslateToBinFrequencies(stepFrequencies, sampleRate, fftsize).ToArray();
-
                 if(msr.NoiseFloor == null)
                 {
 					msr.NoiseFloor = await MeasureNoise(ct);
 				}
 				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
-				var genVolt = specVm.ToGenVoltage(msr.MeasurementSettings.Gen1Voltage, [], GEN_INPUT, gains) ;
+				var genVolt = specVm.ToGenVoltage(thd.Gen1Voltage, [], GEN_INPUT, gains) ;
 				if(genVolt > 5)
 				{
 					await showMessage($"Requesting input voltage of {genVolt} volts, check connection and settings");
 					genVolt = 0.01;
 				}
-				double amplitudeSetpointdBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
 				// ********************************************************************
 				// Do a spectral sweep once
@@ -144,8 +135,8 @@ namespace QA40xPlot.Actions
 					await showMessage($"Measuring spectrum with input of {genVolt:G3}V.");
 					await showProgress(0);
 
-					// Set the generators. Here stepBinFrequencies is one element
-					QaUsb.SetGen1(stepBinFrequencies[0], amplitudeSetpointdBV, thd.UseGenerator);
+					// Set the generator
+					QaUsb.SetGen1(freq, genVolt, thd.UseGenerator);
 					// for the first go around, turn on the generator
 					LeftRightSeries? lrfs;
 					if (thd.UseGenerator)
@@ -154,17 +145,16 @@ namespace QA40xPlot.Actions
 						// Set the generators via a usermode
 						var gw1 = new GenWaveform()
 						{
-							Frequency = stepBinFrequencies[0],
+							Frequency = freq,
 							Voltage = genVolt,
-							Name = msr.MeasurementSettings.Gen1Waveform
+							Name = thd.Gen1Waveform
 						};
 						var gws = new GenWaveSample()
 						{
 							SampleRate = (int)sampleRate,
 							SampleSize = (int)fftsize
 						};
-						GenWaveform[] gwho = [gw1];
-						var wave = QAMath.CalculateWaveform(gwho, gws);
+						var wave = QAMath.CalculateWaveform([gw1], gws);
 						lrfs = await QaUsb.DoAcquireUser(thd.Averages, ct, wave.ToArray(), wave.ToArray(), false);
 						if(gw1.Name != "Chirp")
 						{
@@ -183,26 +173,26 @@ namespace QA40xPlot.Actions
 					if (lrfs == null)
 						break;
 
-					uint fundamentalBin = QaLibrary.GetBinOfFrequency(stepBinFrequencies[0], binSize);
+					uint fundamentalBin = QaLibrary.GetBinOfFrequency(freq, binSize);
                     if (fundamentalBin >= (lrfs.FreqRslt?.Left.Length ?? -1))               // Check in bin within range
                         break;
 
                     ThdFrequencyStep step = new()
                     {
-                        FundamentalFrequency = stepBinFrequencies[0],
-                        GeneratorVoltage = QaLibrary.ConvertVoltage(amplitudeSetpointdBV, E_VoltageUnit.dBV, E_VoltageUnit.Volt),
+                        FundamentalFrequency = freq,
+                        GeneratorVoltage = genVolt,
                         fftData = lrfs.FreqRslt,
                         timeData = lrfs.TimeRslt
                     };
 
-					step.Left = ChannelCalculations(binSize, amplitudeSetpointdBV, step, msr, false);
-					step.Right = ChannelCalculations(binSize, amplitudeSetpointdBV, step, msr, true);
+					step.Left = ChannelCalculations(binSize, genVolt, step, msr, false);
+					step.Right = ChannelCalculations(binSize, genVolt, step, msr, true);
 
 					// Calculate the THD
 					{	var maxf = 20000; // the app seems to use 20,000 so not sampleRate/ 2.0;
-						LeftRightPair snrdb = QaCompute.GetSnrDb(lrfs, stepBinFrequencies[0], 20.0, maxf);
-						LeftRightPair thds = QaCompute.GetThdDb(lrfs, stepBinFrequencies[0], 20.0, maxf);
-						LeftRightPair thdN = QaCompute.GetThdnDb(lrfs, stepBinFrequencies[0], 20.0, maxf);
+						LeftRightPair snrdb = QaCompute.GetSnrDb(lrfs, freq, 20.0, maxf);
+						LeftRightPair thds = QaCompute.GetThdDb(lrfs, freq, 20.0, maxf);
+						LeftRightPair thdN = QaCompute.GetThdnDb(lrfs, freq, 20.0, maxf);
 
 						step.Left.Thd_dBN = thdN.Left;
 						step.Right.Thd_dBN = thdN.Right;
@@ -380,7 +370,7 @@ namespace QA40xPlot.Actions
 		/// <param name="fftData"></param>
 		/// <param name="noiseFloorFftData"></param>
 		/// <returns></returns>
-		private ThdFrequencyStepChannel ChannelCalculations(double binSize, double generatorAmplitudeDbv, ThdFrequencyStep step, SpectrumMeasurementResult msr, bool isRight)
+		private ThdFrequencyStepChannel ChannelCalculations(double binSize, double generatorV, ThdFrequencyStep step, SpectrumMeasurementResult msr, bool isRight)
 		{
 			uint fundamentalBin = QaLibrary.GetBinOfFrequency(step.FundamentalFrequency, binSize);
 			var ffts = isRight ? step.fftData?.Right : step.fftData?.Left;
@@ -400,7 +390,7 @@ namespace QA40xPlot.Actions
 				Total_V = allvolts,
 				Total_W = allvolts * allvolts / ViewSettings.AmplifierLoad,
 				Fundamental_dBV = 20 * Math.Log10(ffts[fundamentalBin]),
-				Gain_dB = 20 * Math.Log10(ffts[fundamentalBin] / Math.Pow(10, generatorAmplitudeDbv / 20))
+				Gain_dB = 20 * Math.Log10(ffts[fundamentalBin] / generatorV)
 
 			};
 			// Calculate average noise floor
@@ -440,12 +430,6 @@ namespace QA40xPlot.Actions
 					NoiseAmplitude_V = (noiseFlr == null) ? 1e-3 : noiseFlr[bin]
 				};
 
-				//if( harmonicNumber == 2)
-				//{
-				//	Debug.WriteLine("a Harmonic: funddBV {3} ampdBv {0} thd% {1} thddB {2}", amplitude_dBV, thd_Percent, harmonic.Thd_dB, channelData.Fundamental_dBV);
-				//	Debug.WriteLine("b Harmonic: fundv {3} ampv {0} thd% {1} thddB {2}", amplitude_V, thd_Percent, harmonic.Thd_dB, channelData.Fundamental_V);
-				//}
-
 				if (harmonicNumber >= 6)
 					distortionD6plus += Math.Pow(amplitude_V, 2);
 
@@ -453,16 +437,6 @@ namespace QA40xPlot.Actions
 				distortionSqrtTotalN += Math.Pow(amplitude_V, 2);
 				channelData.Harmonics.Add(harmonic);
 			}
-
-			// Calculate THD
-			//         if (distortionSqrtTotal != 0)
-			//         {
-			//             channelData.Thd_Percent = (Math.Sqrt(distortionSqrtTotal) / channelData.Fundamental_V) * 100;
-			//             channelData.Thd_PercentN = = (Math.Sqrt(distortionSqrtTotal) / channelData.Fundamental_V) * 100;
-			//	channelData.Thd_dB = 20 * Math.Log10(channelData.Thd_Percent / 100.0);
-			//	var Thdn_Percent = (Math.Sqrt(distortionSqrtTotalN) / channelData.Fundamental_V) * 100;
-			//	channelData.Thd_dBN = 20 * Math.Log10(Thdn_Percent / 100.0);
-			//}
 
 			// Calculate D6+ (D6 - D12)
 			if (distortionD6plus != 0)

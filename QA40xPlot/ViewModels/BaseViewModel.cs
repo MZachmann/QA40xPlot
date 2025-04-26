@@ -199,33 +199,12 @@ namespace QA40xPlot.ViewModels
 		/// <summary>
 		/// Given an input voltage, convert to the desired data format for plotting/display
 		/// </summary>
-		/// <param name="dIn"></param>
-		/// <param name="format"></param>
+		/// <param name="volts">value to convert</param>
+		/// <param name="dRef">reference value for dbr and %</param>
 		/// <returns>the converted double</returns>
-		public double ToPlotFormat(double dIn, double dMax)
+		public double ToPlotFormat(double volts, double dRef)
 		{
-			switch (PlotFormat)
-			{
-				case "SPL":
-					return 20 * Math.Log10(dIn);
-				case "dBFS":	// the generator has 18dBV output
-					return 20 * Math.Log10(dIn) - 18;
-				case "dBr":
-					return 20 * Math.Log10(dIn / dMax);
-				case "dBu":
-					return 20 * Math.Log10(dIn / 0.775);
-				case "dBV":
-					return 20 * Math.Log10(dIn / 1.0);
-				case "dBW":
-					return 10 * Math.Log10(dIn * dIn / ViewSettings.AmplifierLoad);
-				case "V":
-					return dIn;
-				case "%":
-					return 100 * dIn / dMax;
-				case "W":
-					return dIn * dIn / ViewSettings.AmplifierLoad;
-			}
-			return dIn; // default to volts
+			return GraphUtil.ReformatValue(PlotFormat, volts, dRef);
 		}
 
 		/// <summary>
@@ -235,22 +214,7 @@ namespace QA40xPlot.ViewModels
 		/// <returns>the format suffix</returns>
 		public string GetFormatExt()
 		{
-			switch (PlotFormat)
-			{
-				case "SPL":
-					return "dB";
-				case "dBFS":
-				case "dBr":
-				case "dBu":
-				case "dBV":
-				case "dBW":
-				case "V":
-				case "W":
-					return PlotFormat;
-				case "%":
-					return string.Empty;
-			}
-			return string.Empty; // default to none
+			return GraphUtil.GetFormatSuffix(PlotFormat);
 		}
 
 		/// <summary>
@@ -265,28 +229,6 @@ namespace QA40xPlot.ViewModels
 			if (u == -1)
 				u = 0;
 			return (E_GeneratorDirection)u;
-		}
-
-		private double GainForVolts(double frequency, LeftRightFrequencySeries? lrGains)
-		{
-			if (null == lrGains)
-				return 1.0;
-			if( frequency == 0 || lrGains.Left.Length == 1)
-			{
-				return Math.Max(lrGains.Left.Max(), lrGains.Right.Max());
-			}
-			// frequency non-zero search and we have a vector so find it
-			var bin = (int)Math.Floor(frequency / lrGains.Df);
-			// take +-2 bins also
-			var skips = Math.Max(0,bin - 2);
-			var takes = Math.Min(5, lrGains.Left.Length);
-			var mxl = lrGains.Left.Skip(skips).Take(takes).Max();
-			var mxr = lrGains.Right.Skip(skips).Take(takes).Max();
-			if( ShowLeft && !ShowRight)
-			{
-				return mxl;
-			}
-			return Math.Max(mxl, mxr);
 		}
 
 		/// <summary>
@@ -432,7 +374,7 @@ namespace QA40xPlot.ViewModels
 
 		// convert mouse coordinates to scottplot coordinates
 		// from ScottPlot github comment https://github.com/ScottPlot/ScottPlot/issues/3514
-		public Tuple<double,double> ConvertScottCoords(PlotControl plt, double x, double y)
+		public static Tuple<double,double> ConvertScottCoords(PlotControl plt, double x, double y)
 		{
 			PresentationSource source = PresentationSource.FromVisual(plt);
 			double dpiX = 1;

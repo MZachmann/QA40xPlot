@@ -278,8 +278,7 @@ namespace QA40xPlot.Actions
                     return false;
 
 				// Set the generator
-				double amplitudeSetpointdBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-				QaUsb.SetGen1(stepBinFrequencies[0], amplitudeSetpointdBV, true);
+				QaUsb.SetGen1(stepBinFrequencies[0], genVolt, true);
 				QaUsb.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
 
 				// ********************************************************************
@@ -290,7 +289,7 @@ namespace QA40xPlot.Actions
                     var freqy = stepBinFrequencies[f];
                     await showMessage($"Measuring {freqy:0.#} Hz at {genVolt:G3} V.");
                     await showProgress(100 * (f + 1) / stepBinFrequencies.Length);
-                    QaUsb.SetGen1(freqy, amplitudeSetpointdBV, true);
+                    QaUsb.SetGen1(freqy, genVolt, true);
 
                     LeftRightSeries lrfs = await QaUsb.DoAcquisitions(msr.Averages, ct);
                     if (ct.IsCancellationRequested)
@@ -303,7 +302,7 @@ namespace QA40xPlot.Actions
                     ThdFrequencyStep step = new()
                     {
                         FundamentalFrequency = stepBinFrequencies[f],
-                        GeneratorVoltage = QaLibrary.ConvertVoltage(amplitudeSetpointdBV, E_VoltageUnit.dBV, E_VoltageUnit.Volt),
+                        GeneratorVoltage = genVolt,
                         fftData = lrfs.FreqRslt,
                         timeData = lrfs.TimeRslt
                     };
@@ -312,9 +311,9 @@ namespace QA40xPlot.Actions
                     QaLibrary.PlotMiniFftGraph(fftPlot, lrfs.FreqRslt, msr.LeftChannel && msr.ShowLeft, msr.RightChannel && msr.ShowRight);
                     QaLibrary.PlotMiniTimeGraph(timePlot, lrfs.TimeRslt, step.FundamentalFrequency, msr.LeftChannel && msr.ShowLeft, msr.RightChannel && msr.ShowRight);
 
-                    step.Left = ChannelCalculations(binSize, step.FundamentalFrequency, amplitudeSetpointdBV, 
+                    step.Left = ChannelCalculations(binSize, step.FundamentalFrequency, genVolt, 
                         lrfs.FreqRslt.Left, MeasurementResult.NoiseFloor?.FreqRslt?.Left, ViewSettings.AmplifierLoad);
-                    step.Right = ChannelCalculations(binSize, step.FundamentalFrequency, amplitudeSetpointdBV, 
+                    step.Right = ChannelCalculations(binSize, step.FundamentalFrequency, genVolt, 
                         lrfs.FreqRslt.Right, MeasurementResult.NoiseFloor?.FreqRslt?.Right, ViewSettings.AmplifierLoad);
 
                     // Add step data to list
@@ -359,7 +358,7 @@ namespace QA40xPlot.Actions
         /// <param name="fftData"></param>
         /// <param name="noiseFloorFftData"></param>
         /// <returns></returns>
-        private ThdFrequencyStepChannel ChannelCalculations(double binSize, double fundamentalFrequency, double generatorAmplitudeDbv, double[] fftData, double[]? noiseFloorFftData, double load)
+        private ThdFrequencyStepChannel ChannelCalculations(double binSize, double fundamentalFrequency, double generatorV, double[] fftData, double[]? noiseFloorFftData, double load)
         {
             uint fundamentalBin = QaLibrary.GetBinOfFrequency(fundamentalFrequency, binSize);
 
@@ -367,7 +366,7 @@ namespace QA40xPlot.Actions
             {
                 Fundamental_V = fftData[fundamentalBin],
                 Fundamental_dBV = 20 * Math.Log10(fftData[fundamentalBin]),
-                Gain_dB = 20 * Math.Log10(fftData[fundamentalBin] / Math.Pow(10, generatorAmplitudeDbv / 20))
+                Gain_dB = 20 * Math.Log10(fftData[fundamentalBin] / generatorV)
             };
 
 			// Reset harmonic distortion variables

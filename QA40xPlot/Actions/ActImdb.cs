@@ -220,10 +220,9 @@ namespace QA40xPlot.Actions
 				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
 				int[] frqtest = [ToBinNumber(freq, LRGains)];
 				var genVolt = imdVm.ToGenVoltage(msrImd.Gen1Voltage, frqtest, GEN_INPUT, gains);	// input voltage 1
-				double amplitudeSetpoint1dBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+
 				// the other voltage calculated via divisor
-				genVolt = genVolt / msrImd.GenDivisor;
-				double amplitudeSetpoint2dBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+				var genVolt2 = genVolt / msrImd.GenDivisor;
 
 				// ********************************************************************
 				// Do a spectral sweep once (ignore the true)
@@ -235,8 +234,8 @@ namespace QA40xPlot.Actions
 					await showProgress(0);
 
                     // Set the generators
-                    QaUsb.SetGen1(stepBinFrequencies[0], amplitudeSetpoint1dBV, msrImd.UseGenerator);
-					QaUsb.SetGen2(stepBinFrequencies[1], amplitudeSetpoint2dBV, msrImd.UseGenerator2);
+                    QaUsb.SetGen1(stepBinFrequencies[0], genVolt, msrImd.UseGenerator);
+					QaUsb.SetGen2(stepBinFrequencies[1], genVolt2, msrImd.UseGenerator2);
 					// for the first go around, turn on the generator
 					if ( msrImd.UseGenerator || msrImd.UseGenerator2)
                     {
@@ -255,14 +254,14 @@ namespace QA40xPlot.Actions
                     {
 						Gen1Freq = stepBinFrequencies[0],
 						Gen2Freq = stepBinFrequencies[1],
-						Gen1Volts = QaLibrary.ConvertVoltage(amplitudeSetpoint1dBV, E_VoltageUnit.dBV, E_VoltageUnit.Volt),
-						Gen2Volts = QaLibrary.ConvertVoltage(amplitudeSetpoint2dBV, E_VoltageUnit.dBV, E_VoltageUnit.Volt),
+						Gen1Volts = genVolt,
+						Gen2Volts = genVolt2,
 						fftData = lrfs.FreqRslt,
                         timeData = lrfs.TimeRslt
                     };
 
-					step.Left = ChannelCalculations(binSize, amplitudeSetpoint1dBV, step, msr, false);
-					step.Right = ChannelCalculations(binSize, amplitudeSetpoint1dBV, step, msr, true);
+					step.Left = ChannelCalculations(binSize, genVolt, step, msr, false);
+					step.Right = ChannelCalculations(binSize, genVolt, step, msr, true);
 
 					if (lrfs != null && lrfs.FreqRslt != null)
 					{
@@ -462,7 +461,7 @@ namespace QA40xPlot.Actions
 		/// <param name="fftData"></param>
 		/// <param name="noiseFloorFftData"></param>
 		/// <returns></returns>
-		private ImdStepChannel ChannelCalculations(double binSize, double generatorAmplitudeDbv, ImdStep step, ImdMeasurementResult msr, bool isRight)
+		private ImdStepChannel ChannelCalculations(double binSize, double generatorV, ImdStep step, ImdMeasurementResult msr, bool isRight)
 		{
 			if (step == null)
 				return new();
@@ -485,7 +484,7 @@ namespace QA40xPlot.Actions
 				Fundamental2_dBV = 20 * Math.Log10(ffts[fundamental2Bin]),
 				Total_V = allvolts,
 				Total_W = allvolts * allvolts / ViewSettings.AmplifierLoad,
-				Gain_dB = 20 * Math.Log10(ffts[fundamental1Bin] / Math.Pow(10, generatorAmplitudeDbv / 20)),
+				Gain_dB = 20 * Math.Log10(ffts[fundamental1Bin] / generatorV),
 			};
 			// shorter name...
 			var cd = channelData;

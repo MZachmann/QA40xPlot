@@ -14,7 +14,7 @@ namespace QA40xPlot.BareMetal
 	public static class QaCompute
 	{
 		/// <summary>
-		/// Get the maximum value in a range of frequencies
+		/// Get the maximum value from a range of frequencies
 		/// </summary>
 		/// <param name="signalFreqLin"></param>
 		/// <param name="frequencies"></param>

@@ -295,10 +295,9 @@ namespace QA40xPlot.Actions
 
 				// Convert generator voltage from V to dBV
 				var generatorVoltageV = stepInVoltages[i];
-				var generatorVoltagedBV = QaLibrary.ConvertVoltage(generatorVoltageV, E_VoltageUnit.Volt, E_VoltageUnit.dBV);   // Convert to dBV
 
 				// Set generator
-				QaUsb.SetGen1(testFrequency, generatorVoltagedBV, true);      // Set the generator in dBV
+				QaUsb.SetGen1(testFrequency, generatorVoltageV, true);      // Set the generator in dBV
 				QaUsb.SetInputRange(attenuate);
 				thdaVm.Attenuation = attenuate;	// update the GUI
 

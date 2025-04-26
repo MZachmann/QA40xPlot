@@ -196,13 +196,13 @@ namespace QA40xPlot.Actions
                     ThdFrequencyStep step = new()
                     {
                         FundamentalFrequency = stepBinFrequencies[0],
-                        GeneratorVoltage = QaLibrary.ConvertVoltage(amplitudeSetpointdBV, E_VoltageUnit.dBV, E_VoltageUnit.Volt),
+                        GeneratorVoltage = genVolt,
                         fftData = lrfs.FreqRslt,
                         timeData = lrfs.TimeRslt
                     };
 
-					step.Left = ChannelCalculations(binSize, amplitudeSetpointdBV, step, msr, false);
-					step.Right = ChannelCalculations(binSize, amplitudeSetpointdBV, step, msr, true);
+					step.Left = ChannelCalculations(binSize, genVolt, step, msr, false);
+					step.Right = ChannelCalculations(binSize, genVolt, step, msr, true);
 
 					// Calculate the THD
 					{
@@ -296,7 +296,7 @@ namespace QA40xPlot.Actions
 		/// <param name="fftData"></param>
 		/// <param name="noiseFloorFftData"></param>
 		/// <returns></returns>
-		private ThdFrequencyStepChannel ChannelCalculations(double binSize, double generatorAmplitudeDbv, ThdFrequencyStep step, ScopeMeasurementResult msr, bool isRight)
+		private ThdFrequencyStepChannel ChannelCalculations(double binSize, double generatorV, ThdFrequencyStep step, ScopeMeasurementResult msr, bool isRight)
 		{
 			uint fundamentalBin = QaLibrary.GetBinOfFrequency(step.FundamentalFrequency, binSize);
 			var ffts = isRight ? step.fftData?.Right : step.fftData?.Left;
@@ -307,8 +307,6 @@ namespace QA40xPlot.Actions
 				return new();
 
 			double allvolts = Math.Sqrt(ltdata.Select(x => x * x ).Sum() / ltdata.Count()); // use the time data for best accuracy gain math
-			//var windowBw = 1.5;	// hann
-			//double allv2 = Math.Sqrt(ffts.Select(x => x * x / windowBw).Sum());
 
 			ThdFrequencyStepChannel channelData = new()
 			{
@@ -316,7 +314,7 @@ namespace QA40xPlot.Actions
 				Total_V = allvolts,
 				Total_W = allvolts * allvolts / ViewSettings.AmplifierLoad,
 				Fundamental_dBV = 20 * Math.Log10(ffts[fundamentalBin]),
-				Gain_dB = 20 * Math.Log10(ffts[fundamentalBin] / Math.Pow(10, generatorAmplitudeDbv / 20))
+				Gain_dB = 20 * Math.Log10(ffts[fundamentalBin] / generatorV)
 
 			};
 			// Calculate average noise floor
@@ -357,12 +355,6 @@ namespace QA40xPlot.Actions
 					NoiseAmplitude_V = (noiseFlr == null) ? 1e-3 : noiseFlr[bin]
 				};
 
-				//if( harmonicNumber == 2)
-				//{
-				//	Debug.WriteLine("a Harmonic: funddBV {3} ampdBv {0} thd% {1} thddB {2}", amplitude_dBV, thd_Percent, harmonic.Thd_dB, channelData.Fundamental_dBV);
-				//	Debug.WriteLine("b Harmonic: fundv {3} ampv {0} thd% {1} thddB {2}", amplitude_V, thd_Percent, harmonic.Thd_dB, channelData.Fundamental_V);
-				//}
-
 				if (harmonicNumber >= 6)
 					distortionD6plus += Math.Pow(amplitude_V, 2);
 
@@ -370,16 +362,6 @@ namespace QA40xPlot.Actions
 				distortionSqrtTotalN += Math.Pow(amplitude_V, 2);
 				channelData.Harmonics.Add(harmonic);
 			}
-
-			// Calculate THD
-			//         if (distortionSqrtTotal != 0)
-			//         {
-			//             channelData.Thd_Percent = (Math.Sqrt(distortionSqrtTotal) / channelData.Fundamental_V) * 100;
-			//             channelData.Thd_PercentN = = (Math.Sqrt(distortionSqrtTotal) / channelData.Fundamental_V) * 100;
-			//	channelData.Thd_dB = 20 * Math.Log10(channelData.Thd_Percent / 100.0);
-			//	var Thdn_Percent = (Math.Sqrt(distortionSqrtTotalN) / channelData.Fundamental_V) * 100;
-			//	channelData.Thd_dBN = 20 * Math.Log10(Thdn_Percent / 100.0);
-			//}
 
 			// Calculate D6+ (D6 - D12)
 			if (distortionD6plus != 0)

@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using Newtonsoft.Json;
 using System.Web;
+using QA40xPlot.Data;
 
 // Note! Install System.Text.Json via NuGet if you are taking Qa402.cs into another project!
 
@@ -178,14 +179,16 @@ namespace QA40xPlot.Libraries
             await Put(string.Format("/Settings/Input/Max/{0}", maxInputDbv));
         }
 
-        static public async Task SetGen1(double freqHz, double ampDbv, bool enabled)
+        static public async Task SetGen1(double freqHz, double ampV, bool enabled)
         {
-            await Put(string.Format("/Settings/AudioGen/Gen1/{0}/{1}/{2}", enabled ? "On" : "Off", freqHz.ToString(), ampDbv.ToString()));
+            var genv = QaLibrary.ConvertVoltage(ampV, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+            await Put(string.Format("/Settings/AudioGen/Gen1/{0}/{1}/{2}", enabled ? "On" : "Off", freqHz.ToString(), genv.ToString()));
         }
 
-		static public async Task SetGen2(double freqHz, double ampDbv, bool enabled)
+		static public async Task SetGen2(double freqHz, double ampV, bool enabled)
 		{
-			await Put(string.Format("/Settings/AudioGen/Gen2/{0}/{1}/{2}", enabled ? "On" : "Off", freqHz.ToString(), ampDbv.ToString()));
+			var genv = QaLibrary.ConvertVoltage(ampV, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+			await Put(string.Format("/Settings/AudioGen/Gen2/{0}/{1}/{2}", enabled ? "On" : "Off", freqHz.ToString(), genv.ToString()));
 		}
 
 

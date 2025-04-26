@@ -107,18 +107,18 @@ namespace QA40x_BareMetal
 			gwf.Enabled = ison;
 		}
 
-		public static void SetGen2(double freq, double voltsdBV, bool ison)
+		public static void SetGen2(double freq, double volts, bool ison)
         {
             if (QAnalyzer == null)
                 return;
-            SetParams(QAnalyzer.Gen2Params, freq, Math.Pow(10, voltsdBV / 20), ison);
+            SetParams(QAnalyzer.Gen2Params, freq, volts, ison);
 		}
 
-        public static void SetGen1(double freq, double voltsdBV, bool ison)
+        public static void SetGen1(double freq, double volts, bool ison)
         {
             if(QAnalyzer == null)
 				return;
-			SetParams(QAnalyzer.GenParams, freq, Math.Pow(10, voltsdBV / 20), ison);
+			SetParams(QAnalyzer.GenParams, freq, volts, ison);
 		}
 
         public static void SetInputRange(int range)

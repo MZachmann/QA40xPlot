@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Media.Imaging;
 using System.Windows.Media;
 using System.IO;
+using QA40xPlot.ViewModels;
 
 namespace QA40xPlot.Libraries
 {
@@ -19,7 +20,7 @@ namespace QA40xPlot.Libraries
 		LEGEND_SIZE = 9,
 	}
 
-	public interface GraphUtil
+	public static class GraphUtil
 	{
 		public static int PtToPixels(PixelSizes fontsize)
 		{
@@ -30,6 +31,64 @@ namespace QA40xPlot.Libraries
 		{
 			var vm = ViewModels.ViewSettings.Singleton.Main;
 			return (int)(fontsize * vm.ScreenDpi / 72);
+		}
+
+		/// <summary>
+		/// Given an input voltage, convert to the desired data format for plotting/display
+		/// </summary>
+		/// <param name="plotFormat">the data format</param>
+		/// <param name="volts"></param>
+		/// <param name="dRef">reference value for percent and dbr</param>
+		/// <returns>the converted double</returns>
+		public static double ReformatValue(string plotFormat, double volts, double dRef = 1.0)
+		{
+			switch (plotFormat)
+			{
+				case "SPL":
+					return 20 * Math.Log10(volts);
+				case "dBFS":    // the generator has 18dBV output
+					return 20 * Math.Log10(volts) - 18;
+				case "dBr":
+					return 20 * Math.Log10(volts / dRef);
+				case "dBu":
+					return 20 * Math.Log10(volts / 0.775);
+				case "dBV":
+					return 20 * Math.Log10(volts / 1.0);
+				case "dBW":
+					return 10 * Math.Log10(volts * volts / ViewSettings.AmplifierLoad);
+				case "V":
+					return volts;
+				case "%":
+					return 100 * volts / dRef;
+				case "W":
+					return volts * volts / ViewSettings.AmplifierLoad;
+			}
+			return volts; // default to volts
+		}
+
+		/// <summary>
+		/// Given an input voltage, convert to the desired data format for plotting/display
+		/// </summary>
+		/// <param name="format"></param>
+		/// <returns>the format suffix</returns>
+		public static string GetFormatSuffix(string plotFormat)
+		{
+			switch (plotFormat)
+			{
+				case "SPL":
+					return "dB";
+				case "dBFS":
+				case "dBr":
+				case "dBu":
+				case "dBV":
+				case "dBW":
+				case "V":
+				case "W":
+					return plotFormat;
+				case "%":
+					return "%";
+			}
+			return string.Empty; // default to none
 		}
 
 		public static RenderTargetBitmap? GetImage(Window view)

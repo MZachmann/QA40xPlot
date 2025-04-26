@@ -111,10 +111,9 @@ namespace QA40xPlot.Actions
 
 			// the simplest thing here is to do a quick burst low value...
 			var generatorV = 0.01;          // random low test value
-			var generatordBV = 20 * Math.Log10(generatorV); // or -40
 			// we must have this in the bin center here
 			dfreq = QaLibrary.GetNearestBinFrequency(dfreq, sampleRate, fftsize);
-			QaUsb.SetGen1(dfreq, generatordBV, true);             // send a sine wave
+			QaUsb.SetGen1(dfreq, generatorV, true);             // send a sine wave
 			QaUsb.SetOutputSource(OutputSources.Sine);            // since we're single frequency
 			var ct = new CancellationTokenSource();
 			// do two and average them

@@ -242,9 +242,10 @@ namespace QA40xPlot.Actions
             QaUsb.SetOutputSource(OutputSources.Sine);
 
             var ttype = frqrsVm.GetTestingType(msr.TestType);
+			var genVolt = Math.Pow(10, voltagedBV / 20);
 
-            try
-            {
+			try
+			{
 
                 if (ct.IsCancellationRequested)
                     return false;
@@ -254,16 +255,15 @@ namespace QA40xPlot.Actions
                         break;
                     var dfreq = stepBinFrequencies[steps];
                     if (dfreq > 0)
-                        QaUsb.SetGen1(dfreq, voltagedBV, true);
+                        QaUsb.SetGen1(dfreq, genVolt, true);
                     else
-                        QaUsb.SetGen1(1000, voltagedBV, false);
+                        QaUsb.SetGen1(1000, genVolt, false);
 
                     if (msr.Averages > 0)
                     {
                         List<Complex> readings = new();
                         for (int j = 0; j < msr.Averages; j++)
                         {
-                            var genVolt = Math.Pow(10, voltagedBV/20);
 							await showMessage(string.Format($"Checking + {dfreq:0} Hz at {genVolt:0.###}V"));   // need a delay to actually see it
                             var ga = await GetGain(dfreq, msr, ttype);
                             readings.Add(ga);
