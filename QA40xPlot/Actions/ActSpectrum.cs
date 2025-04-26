@@ -489,7 +489,7 @@ namespace QA40xPlot.Actions
 		}
 
 		/// <summary>
-		/// 
+		/// find the nearest data point to the mouse
 		/// </summary>
 		/// <param name="freq">frequency on chart</param>
 		/// <param name="posndBV">Y of mouse in plot</param>
@@ -759,21 +759,6 @@ namespace QA40xPlot.Actions
 			EndAction();
 		}
 
-
-        /// <summary>
-        /// Validate the generator voltage and show red text if invalid
-        /// </summary>
-        /// <param name="sender"></param>
-        //private void ValidateGeneratorAmplitude(object sender)
-        //{
-        //    if (cmbGeneratorVoltageUnit.SelectedIndex == (int)E_VoltageUnit.MilliVolt)
-        //        QaLibrary.ValidateRangeAdorner(sender, QaLibrary.MINIMUM_GENERATOR_VOLTAGE_MV, QaLibrary.MAXIMUM_GENERATOR_VOLTAGE_MV);        // mV
-        //    else if (cmbGeneratorVoltageUnit.SelectedIndex == (int)E_VoltageUnit.Volt)
-        //        QaLibrary.ValidateRangeAdorner(sender, QaLibrary.MINIMUM_GENERATOR_VOLTAGE_V, QaLibrary.MAXIMUM_GENERATOR_VOLTAGE_V);     // V
-        //    else
-        //        QaLibrary.ValidateRangeAdorner(sender, QaLibrary.MINIMUM_GENERATOR_VOLTAGE_DBV, QaLibrary.MAXIMUM_GENERATOR_VOLTAGE_DBV);       // dBV
-        //}
-        
         // show the latest step values in the table
         public void DrawChannelInfoTable()
         {

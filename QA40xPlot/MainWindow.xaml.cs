@@ -133,6 +133,8 @@ namespace QA40xPlot
 			{
 				try
 				{
+					// set max attenuation for safety, turns on ATTEN led
+					QaUsb.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION);
 					// Stop streaming. This also extinguishes the RUN led
 					QaUsb.WriteRegister(8, 0);
 					// now close down

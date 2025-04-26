@@ -59,7 +59,8 @@ namespace QA40xPlot.Actions
 		{
 			// Turn the generator off
 			QaUsb.SetOutputSource(OutputSources.Off);
-			// detach from usb port
+			QaUsb.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION);  // set max attenuation while idle...
+																	// detach from usb port
 			QaUsb.Close(false);
 		}
 
