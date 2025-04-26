@@ -434,6 +434,7 @@ public class FreqRespViewModel : BaseViewModel
 
 		StartFreq = "20";
 		EndFreq = "20000";
+		ZReference = "10";
 
 		ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
 		ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;      
