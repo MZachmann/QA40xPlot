@@ -325,6 +325,8 @@ namespace QA40xPlot.ViewModels
 			Gen2Voltage = "0.2";
 			Gen1Frequency = "1000";
 			Gen2Frequency = "2000";
+			Gen1Waveform = "Sine";
+			Gen2Waveform = "Sine";
 			UseGenerator1 = true;
 			UseGenerator2 = false;
 

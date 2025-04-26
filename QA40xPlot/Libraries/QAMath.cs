@@ -98,6 +98,7 @@ namespace QA40xPlot.Libraries
 			// now evaluate
 			switch ( gw.Name)
 			{
+				case "":		// this is just wrong... so use sine here
 				case "Sine":
 					// use a bin frequency???
 					return theta.Select(f => dvamp * Math.Sin(f)).ToList();

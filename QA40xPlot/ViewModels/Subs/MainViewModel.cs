@@ -55,7 +55,7 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowDataPercent, value);
 		}
 
-		private string _FreqRespHdr = "Impedance";
+		private string _FreqRespHdr = "Response";
 		[JsonIgnore]
 		public string FreqRespHdr
 		{

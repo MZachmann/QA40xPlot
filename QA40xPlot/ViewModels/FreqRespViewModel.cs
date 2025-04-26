@@ -54,7 +54,7 @@ public class FreqRespViewModel : BaseViewModel
 		set => SetProperty(ref _GraphUnit, value);
 	}
 
-	private string _TestType = string.Empty;
+	private string _TestType = TestTypes[0];
 	public string TestType
 	{
 		get => _TestType;
@@ -428,7 +428,7 @@ public class FreqRespViewModel : BaseViewModel
 		Show1dBBandwidth_L = false;
 		Show1dBBandwidth_R = false;
 		ShowPoints = true;
-		TestType = "";	// this messes up if we start at impedance and set to impedance later so ??
+		TestType = TestTypes[0];	// this messes up if we start at impedance and set to impedance later so ??
 
 		GraphUnit = "dBV";
 
