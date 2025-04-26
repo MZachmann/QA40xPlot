@@ -4,8 +4,6 @@ using QA40xPlot.BareMetal;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using System.Windows;
-using System.Windows.Interop;
-using static QA40xPlot.ViewModels.BaseViewModel;
 
 namespace QA40xPlot.Actions
 {
@@ -86,17 +84,22 @@ namespace QA40xPlot.Actions
 			return (int)Math.Floor(dFreq / (lrGain?.Df ?? 1));
 		}
 
-		protected async Task<LeftRightSeries> MeasureNoise(CancellationToken ct)
+		protected async Task<LeftRightSeries> MeasureNoise(CancellationToken ct, bool setRange = false)
 		{
 			var range = QaUsb.GetInputRange();
 			// ********************************************************************
 			// Do noise floor measurement with source off
 			// ********************************************************************
 			await showMessage($"Determining noise floor.");
+			System.Diagnostics.Debug.WriteLine("***-------------Measuring noise-------------.");
 			QaUsb.SetOutputSource(OutputSources.Off);
-			QaUsb.SetInputRange(6);	// and a small range for better noise...
-			var lrs = await QaUsb.DoAcquisitions(1, ct); // this one returns a high value until settled
-			QaUsb.SetInputRange(range); // restore the range
+			if( setRange)
+				QaUsb.SetInputRange(6); // and a small range for better noise...
+			//Thread.Sleep(1000);
+			await QaUsb.DoAcquisitions(1, ct);			// this one returns a high value until settled
+			var lrs = await QaUsb.DoAcquisitions(1, ct); // now that it's settled...
+			if (setRange)
+				QaUsb.SetInputRange(range); // restore the range
 
 			return lrs;
 		}

@@ -40,6 +40,7 @@ namespace QA40xPlot.BareMetal
 			if (!_Output2Reg.TryGetValue(gain, out int val))
 				throw new ArgumentException("Invalid output gain value.");
 			QaUsb.WriteRegister(6, (byte)val);
+			Debug.WriteLine($"Output full scale set to {gain} dB with {val}");
 		}
 
 		public static void SetInput(int gain)
@@ -47,6 +48,7 @@ namespace QA40xPlot.BareMetal
 			if (!_Input2Reg.TryGetValue(gain, out int val))
 				throw new ArgumentException("Invalid input gain value.");
 			QaUsb.WriteRegister(5, (byte)val);
+			Debug.WriteLine($"Attenuation set to {gain} dB with {val}");
 		}
 
 		public static void SetSampleRate(int rate)
@@ -54,7 +56,7 @@ namespace QA40xPlot.BareMetal
 			if (!_Samplerate2Reg.TryGetValue(rate, out int val))
 				throw new ArgumentException("Invalid sample rate value.");
 			QaUsb.WriteRegister(9, (byte)val);
-			Thread.Sleep(100); // Small delay to ensure the sample rate is set
+			Debug.WriteLine($"Sample rate set to {rate} Hz");
 		}
 
 		/// <summary>

@@ -58,12 +58,9 @@ namespace QA40xPlot.BareMetal
 			if (analyzerParams == null)
 				throw new ArgumentNullException(nameof(analyzerParams));
 			// Set input/output levels and sample rate
-			if( Params?.MaxInputLevel != analyzerParams.MaxInputLevel)
-				Control.SetInput(analyzerParams.MaxInputLevel);
-			if (Params?.MaxOutputLevel != analyzerParams.MaxOutputLevel)
-				Control.SetOutput(analyzerParams.MaxOutputLevel);
-			if (Params?.SampleRate != analyzerParams.SampleRate)
-				Control.SetSampleRate(analyzerParams.SampleRate);
+			Control.SetInput(analyzerParams.MaxInputLevel);
+			Control.SetOutput(analyzerParams.MaxOutputLevel);
+			Control.SetSampleRate(analyzerParams.SampleRate);
 			Params = analyzerParams;
 		}
 
@@ -71,10 +68,7 @@ namespace QA40xPlot.BareMetal
 		{
 			if (Params == null)
 				throw new InvalidOperationException("Analyzer parameters not initialized.");
-			if (Params.SampleRate != sampleRate)
-			{
-				Control.SetSampleRate(sampleRate);
-			}
+			Control.SetSampleRate(sampleRate);
 			Params.SampleRate = sampleRate;
 			Params.PostBuffer = 4096;
 			Params.PreBuffer = 16384;
@@ -84,8 +78,7 @@ namespace QA40xPlot.BareMetal
 		{
 			if (Params == null)
 				throw new InvalidOperationException("Analyzer parameters not initialized.");
-			if (Params.MaxInputLevel != level)
-				Control.SetInput(level);
+			Control.SetInput(level);
 			Params.MaxInputLevel = level;
 		}
 
@@ -93,8 +86,7 @@ namespace QA40xPlot.BareMetal
 		{
 			if (Params == null)
 				throw new InvalidOperationException("Analyzer parameters not initialized.");
-			if (Params.MaxOutputLevel != level)
-				Control.SetOutput(level);
+			Control.SetOutput(level);
 			Params.MaxOutputLevel = level;
 		}
 		

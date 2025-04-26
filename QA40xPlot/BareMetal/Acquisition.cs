@@ -222,9 +222,11 @@ namespace QA40xPlot.BareMetal
             roff = rrf.Sum() / rlf.Count();  // dc offset
             r.Right = rrf.Select(x => (x - roff) * adcCal.Right * adcCorrection).ToArray();
 
+			Debug.WriteLine($"Attenuation: {aParams.MaxInputLevel}  Output Level: {aParams.MaxOutputLevel}");
 			Debug.WriteLine($"Peak Left: {r.Left.Max():0.000}   Peak right: {r.Right.Max():0.000}");
+			Debug.WriteLine($"Total Left: {Math.Sqrt(r.Left.Sum(x=>x*x)):0.000}   Total right: {Math.Sqrt(r.Right.Sum(x=>x*x)):0.000}");
 
-            return r;
+			return r;
         }
 
         /// <summary>

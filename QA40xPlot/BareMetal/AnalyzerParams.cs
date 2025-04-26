@@ -17,7 +17,7 @@ namespace QA40xPlot.BareMetal
 		public int PreBuffer { get;  set; }
 		public int PostBuffer { get;  set; }
 		public int FFTSize { get;  set; }
-		public OutputSources OutputSource { get; set; } = OutputSources.Sine;
+		public OutputSources OutputSource { get; set; } = OutputSources.Off;
 		public string WindowType { get;  set; }
 		public double ACF { get; private set; }
 		public double ECF { get; private set; }
