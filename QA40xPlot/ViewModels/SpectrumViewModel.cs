@@ -199,6 +199,10 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
+				case "PlotFormat":
+					// we may need to change the axis
+					actSpec?.UpdateGraph(true);
+					break;
 				case "ShowPercent":
 					ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
 					ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;

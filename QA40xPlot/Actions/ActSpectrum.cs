@@ -8,6 +8,7 @@ using System.Data;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
 using QA40x_BareMetal;
+using System.Diagnostics;
 
 // various things for the thd vs frequency activity
 
@@ -563,7 +564,7 @@ namespace QA40xPlot.Actions
         }
 
         /// <summary>
-        /// Plot the THD % graph
+        /// Plot all of the spectral data values
         /// </summary>
         /// <param name="data"></param>
         void PlotValues(SpectrumMeasurementResult measurementResult, int measurementNr)
@@ -574,76 +575,58 @@ namespace QA40xPlot.Actions
 			var specVm = MyVModel;
 			bool useLeft = specVm.ShowLeft;	// dynamically update these
 			bool useRight = specVm.ShowRight;
-
 			var fftData = MeasurementResult.FrequencySteps[0].fftData;
 			if (fftData == null)
 				return;
 
-			List<double> freqX = [];
-			List<double> dBV_Left_Y = [];
-			List<double> dBV_Right_Y = [];
-			double frequency = 0;
-			double maxleft = fftData.Left.Max();
-			double maxright = fftData.Right.Max();
-
-			for (int f = 1; f < fftData.Left.Length; f++)   // Skip dc bin
-			{
-				frequency += fftData.Df;
-				freqX.Add(frequency);
-				if(specVm.ShowPercent)
-				{
-					if (useLeft)
-					{
-						var lv = fftData.Left[f];       // V of input data
-						var lvp = 100 * lv / maxleft;
-						dBV_Left_Y.Add(Math.Log10(lvp));
-					}
-					if (useRight)
-					{
-						var lv = fftData.Right[f];       // V of input data
-						var lvp = 100 * lv / maxright;
-						dBV_Right_Y.Add(Math.Log10(lvp));
-					}
-				}
-				else
-				{
-					if (useLeft)
-					{
-						var lv = fftData.Left[f];       // V of input data
-						dBV_Left_Y.Add(20*Math.Log10(lv));
-					}
-					if (useRight)
-					{
-						var lv = fftData.Right[f];       // V of input data
-						dBV_Right_Y.Add(20*Math.Log10(lv));
-					}
-				}
-			}
+			double[] freqX = Enumerable.Range(1, fftData.Left.Length-1).
+								Select(x => Math.Log10(x * fftData.Df)).ToArray();
+			//
+			double[] leftdBV = [];
+			double[] rightdBV = [];
+			string plotForm = MyVModel.PlotFormat;
+			if (MyVModel.ShowPercent)
+				plotForm = "%";
 
 			// add a scatter plot to the plot
-			double[] logFreqX = freqX.Select(Math.Log10).ToArray();
-			double[] logHTot_Left_Y = dBV_Left_Y.ToArray();
-			double[] logHTot_Right_Y = dBV_Right_Y.ToArray();
-
 			var lineWidth = MyVModel.ShowThickLines ? _Thickness : 1;	// so it dynamically updates
 
 			if (useLeft)
 			{
-				Scatter plotTot_Left = myPlot.Add.Scatter(logFreqX, logHTot_Left_Y);
-				plotTot_Left.LineWidth = lineWidth;
-				plotTot_Left.Color = QaLibrary.BlueColor;  // Blue
-				plotTot_Left.MarkerSize = 1;
+				double maxleft = Math.Max(1e-20, fftData.Left.Max());
+				// the usual dbv display
+				var fvi = GraphUtil.GetValueFormatter(plotForm, maxleft);
+				leftdBV = fftData.Left.Skip(1).Select(fvi).ToArray();
+				if (!GraphUtil.IsPlotFormatLog(plotForm))
+				{
+					leftdBV = leftdBV.Select(x => Math.Log10(x)).ToArray(); // we need this logarithmic
+				}
+
+				Scatter plotLeft = myPlot.Add.Scatter(freqX, leftdBV);
+				plotLeft.LineWidth = lineWidth;
+				plotLeft.Color = QaLibrary.BlueColor;  // Blue
+				plotLeft.MarkerSize = 1;
 			}
 
 			if (useRight)
 			{
-				Scatter plotTot_Right = myPlot.Add.Scatter(logFreqX, logHTot_Right_Y);
-				plotTot_Right.LineWidth = lineWidth;
+				// find the max value of the left and right channels
+				double maxright = Math.Max(1e-20, fftData.Right.Max());
+				// now use that to calculate percents. Since Y axis is logarithmic use log of percent
+				var fvi = GraphUtil.GetValueFormatter(plotForm, maxright);
+				rightdBV = fftData.Right.Skip(1).Select(fvi).ToArray();
+				if (!GraphUtil.IsPlotFormatLog(plotForm))
+				{
+					rightdBV = rightdBV.Select(x => Math.Log10(x)).ToArray(); // we need this logarithmic
+				}
+
+				Scatter plotRight = myPlot.Add.Scatter(freqX, rightdBV);
+				plotRight.LineWidth = lineWidth;
 				if (useLeft)
-					plotTot_Right.Color = QaLibrary.RedXColor; // Red transparant
+					plotRight.Color = QaLibrary.RedXColor; // Red transparant
 				else
-					plotTot_Right.Color = QaLibrary.RedColor; // Red
-				plotTot_Right.MarkerSize = 1;
+					plotRight.Color = QaLibrary.RedColor; // Red
+				plotRight.MarkerSize = 1;
 			}
 
 			fftPlot.Refresh();
@@ -778,29 +761,21 @@ namespace QA40xPlot.Actions
 			int resultNr = 0;
 			SpectrumViewModel thd = MyVModel;
 
-			if (!thd.ShowPercent)
-            {
-                if (settingsChanged)
-                {
-                    InitializeMagnitudePlot();
-                }
-
-                foreach (var result in Data.Measurements.Where(m => m.Show))
-                {
-					PlotValues(result, resultNr++);
-                }
-            }
-            else
-            {
-                if (settingsChanged)
-                {
-                    InitializefftPlot();
-                }
-          
-                foreach (var result in Data.Measurements.Where(m => m.Show))
-                {
-					PlotValues(result, resultNr++);
+			if (settingsChanged)
+			{
+				if (GraphUtil.IsPlotFormatLog(thd.PlotFormat))
+				{
+					InitializeMagnitudePlot();
 				}
+				else
+				{
+					InitializefftPlot();
+				}
+			}
+
+			foreach (var result in Data.Measurements.Where(m => m.Show))
+			{
+				PlotValues(result, resultNr++);
 			}
 
             if( MeasurementResult.FrequencySteps.Count > 0)

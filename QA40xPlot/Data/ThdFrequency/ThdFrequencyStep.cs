@@ -7,12 +7,12 @@ namespace QA40xPlot.Data
     {
         public double FundamentalFrequency { get; set; }
         public double GeneratorVoltage { get; set; }
-        public ThdFrequencyStepChannel Left {  get; set; }
-        public ThdFrequencyStepChannel Right { get; set; }
+		[JsonIgnore]
+		public ThdFrequencyStepChannel Left {  get; set; }
+		[JsonIgnore]
+		public ThdFrequencyStepChannel Right { get; set; }
 
-        [JsonIgnore]
         public LeftRightFrequencySeries? fftData { get; set; }
-        [JsonIgnore]
         public LeftRightTimeSeries? timeData { get; set; }
 
         public ThdFrequencyStep() {

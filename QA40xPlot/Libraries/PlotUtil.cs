@@ -291,5 +291,13 @@ namespace QA40xPlot.Libraries
 			AddMagTimeRule(myPlot);
 		}
 
+		public static void InitializeLogFreqPlot(ScottPlot.Plot myPlot, string plotFormat)
+		{
+			InitializeAPlot(myPlot);
+			SetupLogTics(myPlot, plotFormat);
+			SetupFreqTics(myPlot);
+			SetMagFreqRule(myPlot);
+		}
+
 	}
 }

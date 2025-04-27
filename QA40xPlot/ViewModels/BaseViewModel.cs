@@ -53,7 +53,7 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public string GenAmpUnits { get => (IsGenPower ? "W" : "V"); }
 
-		private string _PlotFormat = string.Empty;
+		private string _PlotFormat = "dBV";
 		public string PlotFormat
 		{
 			get => _PlotFormat;
@@ -195,27 +195,6 @@ namespace QA40xPlot.ViewModels
 			set { SetProperty(ref _HasExport, value); }
 		}
 		#endregion
-
-		/// <summary>
-		/// Given an input voltage, convert to the desired data format for plotting/display
-		/// </summary>
-		/// <param name="volts">value to convert</param>
-		/// <param name="dRef">reference value for dbr and %</param>
-		/// <returns>the converted double</returns>
-		public double ToPlotFormat(double volts, double dRef)
-		{
-			return GraphUtil.ReformatValue(PlotFormat, volts, dRef);
-		}
-
-		/// <summary>
-		/// Given an input voltage, convert to the desired data format for plotting/display
-		/// </summary>
-		/// <param name="format"></param>
-		/// <returns>the format suffix</returns>
-		public string GetFormatExt()
-		{
-			return GraphUtil.GetFormatSuffix(PlotFormat);
-		}
 
 		/// <summary>
 		/// Convert direction string to a direction type

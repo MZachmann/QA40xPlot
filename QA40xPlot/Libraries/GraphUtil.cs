@@ -33,6 +33,47 @@ namespace QA40xPlot.Libraries
 			return (int)(fontsize * vm.ScreenDpi / 72);
 		}
 
+		public static bool IsPlotFormatLog(string plotFormat)
+		{
+			switch (plotFormat)
+			{
+				case "SPL":
+				case "dBFS":
+				case "dBr":
+				case "dBu":
+				case "dBV":
+				case "dBW":
+					return true;
+			}
+			return false;
+		}
+
+		public static Func<double,double> GetValueFormatter(string plotFormat, double refX = 1.0)
+		{
+			switch (plotFormat)
+			{
+				case "SPL":
+					return (x => 20 * Math.Log10(x) );
+				case "dBFS":    // the generator has 18dBV output
+					return (x => 20 * Math.Log10(x) - 18);
+				case "dBr":
+					return (x => 20 * Math.Log10(x / refX));
+				case "dBu":
+					return (x => 20 * Math.Log10(x / 0.775));
+				case "dBV":
+					return (x => 20 * Math.Log10(x ));
+				case "dBW":
+					return (x => 10 * Math.Log10(x * x / refX));
+				case "V":
+					return (x => x);
+				case "%":
+					return (x => 100 * x / refX);
+				case "W":
+					return (x => x * x / refX);
+			}
+			return (x => x); // default to volts
+		}
+
 		/// <summary>
 		/// Given an input voltage, convert to the desired data format for plotting/display
 		/// </summary>
@@ -42,28 +83,8 @@ namespace QA40xPlot.Libraries
 		/// <returns>the converted double</returns>
 		public static double ReformatValue(string plotFormat, double volts, double dRef = 1.0)
 		{
-			switch (plotFormat)
-			{
-				case "SPL":
-					return 20 * Math.Log10(volts);
-				case "dBFS":    // the generator has 18dBV output
-					return 20 * Math.Log10(volts) - 18;
-				case "dBr":
-					return 20 * Math.Log10(volts / dRef);
-				case "dBu":
-					return 20 * Math.Log10(volts / 0.775);
-				case "dBV":
-					return 20 * Math.Log10(volts / 1.0);
-				case "dBW":
-					return 10 * Math.Log10(volts * volts / ViewSettings.AmplifierLoad);
-				case "V":
-					return volts;
-				case "%":
-					return 100 * volts / dRef;
-				case "W":
-					return volts * volts / ViewSettings.AmplifierLoad;
-			}
-			return volts; // default to volts
+			var vfi = GetValueFormatter(plotFormat, dRef);
+			return vfi(volts);
 		}
 
 		/// <summary>
@@ -85,6 +106,7 @@ namespace QA40xPlot.Libraries
 				case "V":
 				case "W":
 					return plotFormat;
+				case "log%":
 				case "%":
 					return "%";
 			}
