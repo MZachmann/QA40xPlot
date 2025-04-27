@@ -8,6 +8,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media;
 using System.IO;
 using QA40xPlot.ViewModels;
+using System.Windows.Data;
 
 namespace QA40xPlot.Libraries
 {
@@ -33,6 +34,12 @@ namespace QA40xPlot.Libraries
 			return (int)(fontsize * vm.ScreenDpi / 72);
 		}
 
+		/// <summary>
+		/// is this plot format log or linear where
+		/// linear formats are %,V,W
+		/// </summary>
+		/// <param name="plotFormat"></param>
+		/// <returns>true if log</returns>
 		public static bool IsPlotFormatLog(string plotFormat)
 		{
 			switch (plotFormat)
@@ -48,6 +55,126 @@ namespace QA40xPlot.Libraries
 			return false;
 		}
 
+		/// <summary>
+		/// for volt and watt, pretty print
+		/// </summary>
+		/// <param name="dv"></param>
+		/// <param name="plotFormat"></param>
+		/// <returns></returns>
+		public static string PrettyPrint(double dv, string plotFormat)
+		{
+			var sfx = GetFormatSuffix(plotFormat);
+			string rslt = string.Empty;
+			if (plotFormat == "V" || plotFormat == "W")
+			{
+				{
+					if (dv >= .01)
+					{
+						rslt = dv.ToString("0.###") + " " + sfx;
+					}
+					else if (dv >= 1e-5)
+					{
+						rslt = (1000 * dv).ToString("G3") + " m" + sfx;
+					}
+					else if (dv >= 1e-8)
+					{
+						rslt = (1000000 * dv).ToString("G3") + " u" + sfx;
+					}
+					else
+					{
+						rslt = (1e9 * dv).ToString("G3") + " n" + sfx;
+					}
+				}
+			}
+			else if(plotFormat == "%")
+			{
+				if (dv <= 1e-5)
+				{
+					rslt = dv.ToString("G3");
+				}
+				if (dv < 1.0)
+				{
+					rslt =  dv.ToString("0.######");
+				}
+				else if (dv < 10.0)
+				{
+					rslt =  dv.ToString("0.##");
+				}
+				else
+				{
+					rslt = Math.Round(dv).ToString();
+				}
+				rslt += " " + sfx;
+			}
+			else
+			{
+				// the rest of these are logarithmic and take no fancy formatting...
+				if (dv < 1.0)
+				{
+					rslt = dv.ToString("0.###");
+				}
+				if (dv < 10.0)
+				{
+					rslt = dv.ToString("0.##");
+				}
+				else if (dv < 100.0)
+				{
+					rslt = dv.ToString("0.#");
+				}
+				else
+				{
+					rslt = dv.ToString("0.#");
+				}
+				rslt += " " + sfx;
+			}
+			return rslt;
+		}
+
+		/// <summary>
+		/// get a pretty string value for this voltage
+		/// </summary>
+		/// <param name="plotFormat"></param>
+		/// <param name="volts"></param>
+		/// <param name="dRef"></param>
+		/// <returns></returns>
+		public static string DoValueFormat(string plotFormat, double volts, double dRef = 1.0)
+		{
+			var vfi = GetValueFormatter(plotFormat, dRef);
+			return PrettyPrint(vfi(volts), plotFormat);
+		}
+
+		/// <summary>
+		/// get a plot display format converter
+		/// the linear formats (%,V,W) are converted to log10 for plotting
+		/// </summary>
+		/// <param name="plotFormat">the format</param>
+		/// <param name="refX">the ref (max) value for scaling</param>
+		/// <returns>a function to get plottable value</returns>
+		public static Func<double, double> GetLogFormatter(string plotFormat, double refX = 1.0)
+		{
+			if( IsPlotFormatLog(plotFormat))
+			{
+				return GetValueFormatter(plotFormat, refX);
+			}
+
+			switch (plotFormat)
+			{
+				case "V":
+					return (x => Math.Log10(x));
+				case "%":
+					return (x => Math.Log10(100 * x / refX));
+				case "W":
+					return (x => Math.Log10(x * x / ViewSettings.AmplifierLoad));
+			}
+			return (x => x); // default to volts
+		}
+
+		/// <summary>
+		/// Given an input voltage format, get a display format converter
+		/// </summary>
+		/// <param name="plotFormat">the format</param>
+		/// <param name="refX">the ref (max) value for percent and dBr</param>
+		/// <returns>a Function(double) that does the display conversion</returns>
 		public static Func<double,double> GetValueFormatter(string plotFormat, double refX = 1.0)
 		{
 			switch (plotFormat)
@@ -63,19 +190,19 @@ namespace QA40xPlot.Libraries
 				case "dBV":
 					return (x => 20 * Math.Log10(x ));
 				case "dBW":
-					return (x => 10 * Math.Log10(x * x / refX));
+					return (x => 10 * Math.Log10(x * x / ViewSettings.AmplifierLoad));
 				case "V":
 					return (x => x);
 				case "%":
 					return (x => 100 * x / refX);
 				case "W":
-					return (x => x * x / refX);
+					return (x => x * x / ViewSettings.AmplifierLoad);
 			}
 			return (x => x); // default to volts
 		}
 
 		/// <summary>
-		/// Given an input voltage, convert to the desired data format for plotting/display
+		/// Given an input voltage, convert to the desired data format for display
 		/// </summary>
 		/// <param name="plotFormat">the data format</param>
 		/// <param name="volts"></param>
@@ -88,7 +215,20 @@ namespace QA40xPlot.Libraries
 		}
 
 		/// <summary>
-		/// Given an input voltage, convert to the desired data format for plotting/display
+		/// Given an input voltage, convert to the desired data format for plotting
+		/// </summary>
+		/// <param name="plotFormat">the data format</param>
+		/// <param name="volts"></param>
+		/// <param name="dRef">reference value for percent and dbr</param>
+		/// <returns>the converted double with logs of linear (%,V,W) formats</returns>
+		public static double ReformatLogValue(string plotFormat, double volts, double dRef = 1.0)
+		{
+			var vfi = GetLogFormatter(plotFormat, dRef);
+			return vfi(volts);
+		}
+
+		/// <summary>
+		/// Given an input voltage format, get the display suffix
 		/// </summary>
 		/// <param name="format"></param>
 		/// <returns>the format suffix</returns>
@@ -106,9 +246,34 @@ namespace QA40xPlot.Libraries
 				case "V":
 				case "W":
 					return plotFormat;
-				case "log%":
 				case "%":
 					return "%";
+			}
+			return string.Empty; // default to none
+		}
+
+		/// <summary>
+		/// Given an input voltage format, get the plot title 
+		/// </summary>
+		/// <param name="format"></param>
+		/// <returns>the format suffix</returns>
+		public static string GetFormatTitle(string plotFormat)
+		{
+			switch (plotFormat)
+			{
+				case "SPL":
+				case "dBFS":
+				case "dBr":
+				case "dBu":
+				case "dBV":
+				case "dBW":
+					return plotFormat;
+				case "V":
+					return "Volts";
+				case "W":
+					return "Watts";
+				case "%":
+					return "Percent";
 			}
 			return string.Empty; // default to none
 		}

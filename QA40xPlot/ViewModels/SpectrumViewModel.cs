@@ -41,6 +41,12 @@ namespace QA40xPlot.ViewModels
 			get => DoAutoAttn ? "#1800f000" : "Transparent";
 		}
 
+		[JsonIgnore]
+		public string GraphUnit
+		{
+			get => GraphUtil.GetFormatSuffix(PlotFormat);
+		}
+
 		private bool _DoAutoAttn = false;
 		public bool DoAutoAttn
 		{
@@ -145,13 +151,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowDataPercent, value);
 		}
 
-		private bool _ShowPercent;
-		public bool ShowPercent
-		{
-			get => _ShowPercent;
-			set => SetProperty(ref _ShowPercent, value);
-		}
-
 		private string _Windowing = String.Empty;
 		public string WindowingMethod
 		{
@@ -201,11 +200,9 @@ namespace QA40xPlot.ViewModels
 			{
 				case "PlotFormat":
 					// we may need to change the axis
-					actSpec?.UpdateGraph(true);
-					break;
-				case "ShowPercent":
-					ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
-					ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;
+					ToShowRange = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Collapsed : Visibility.Visible;
+					ToShowdB = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Visible : Visibility.Collapsed;
+					OnPropertyChanged("GraphUnit");
 					actSpec?.UpdateGraph(true);
 					break;
 				case "ShowSummary":
@@ -282,15 +279,23 @@ namespace QA40xPlot.ViewModels
 					this.GraphEndFreq = bounds.Right.ToString("0");
 					break;
 				case "YP":  // Y percents
-					var xp = bounds.Y + bounds.Height;  // max Y value
-					var bot = ((100 * bounds.Y) / xp);  // bottom value in percent
-					bot = Math.Pow(10, Math.Max(-7, Math.Floor(Math.Log10(bot))));	// nearest power of 10
-					this.RangeTop = "100";	// always 100%
-					this.RangeBottom = bot.ToString("0.##########");
+					{
+						var xp = bounds.Y + bounds.Height;  // max Y value
+						var bot = GraphUtil.ReformatLogValue(PlotFormat, bounds.Y, xp);
+						bot = Math.Pow(10, Math.Max(-7, Math.Floor(bot)));  // nearest power of 10
+						var top = Math.Floor(GraphUtil.ReformatLogValue(PlotFormat, xp, xp));
+						top = Math.Pow(10, Math.Min(3, top));
+						this.RangeTop = top.ToString("0.##########");
+						this.RangeBottom = bot.ToString("0.##########");
+					}
 					break;
 				case "YM":  // Y magnitude
-					this.RangeBottomdB = (20*Math.Log10(Math.Max(1e-14,bounds.Y))).ToString("0");
-					this.RangeTopdB = Math.Ceiling((20 * Math.Log10(Math.Max(1e-14, bounds.Height + bounds.Y)))).ToString("0");
+					{
+						var bot = GraphUtil.ReformatLogValue(PlotFormat, bounds.Y, bounds.Y + bounds.Height);
+						this.RangeBottomdB = bot.ToString("0");
+						var top = GraphUtil.ReformatLogValue(PlotFormat, bounds.Y + bounds.Height, bounds.Y + bounds.Height);
+						this.RangeTopdB = Math.Ceiling(top).ToString("0");
+					}
 					break;
 				default:
 					break;
@@ -321,23 +326,27 @@ namespace QA40xPlot.ViewModels
 			FreqValue = Math.Pow(10, xpos);
 
 			var zv = actSpec.LookupXY(FreqValue, ypos, ShowRight && !ShowLeft);
-			var valdBV = 20 * Math.Log10(zv.Item2);
+			var valdBV = GraphUtil.ReformatValue(PlotFormat, zv.Item2, zv.Item3);
+			if( ! GraphUtil.IsPlotFormatLog(PlotFormat))
+			{
+				valdBV = Math.Log10(valdBV);
+			}
 			// - this may be too slow, but for now....
 			if (MyMark != null)
 			{
 				actPlot.ThePlot.Remove(MyMark);
 				MyMark = null;
 			}
-			var valshow = ShowPercent ? Math.Log10(zv.Item3) : valdBV;
-			MyMark = actPlot.ThePlot.Add.Marker(Math.Log10(zv.Item1), valshow,
+			MyMark = actPlot.ThePlot.Add.Marker(Math.Log10(zv.Item1), valdBV,
 				MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), ScottPlot.Colors.Red);
 			actPlot.Refresh();
 
 			FreqShow = zv.Item1.ToString("0.# Hz");
 			var valvolt = MathUtil.FormatVoltage(zv.Item2);
-			var valpercent = MathUtil.FormatPercent(zv.Item3);
-			ZValue = $"{valdBV:0.#} dBV" + Environment.NewLine +
-				$"{valpercent} %" + Environment.NewLine +
+			var valunit = GraphUtil.DoValueFormat(PlotFormat, zv.Item2, zv.Item3);
+			var valpercent = GraphUtil.DoValueFormat("dBV", zv.Item2, zv.Item3);
+			ZValue = $"{valunit}" + Environment.NewLine +
+				$"{valpercent}" + Environment.NewLine +
 				$"{valvolt}";
 		}
 
@@ -364,7 +373,6 @@ namespace QA40xPlot.ViewModels
 
 			ShowThickLines = true;
 			ShowSummary = true;
-			ShowPercent = false;
 			ShowDataPercent = true;
 			ShowLeft = true;
 			ShowRight = false;
@@ -385,8 +393,8 @@ namespace QA40xPlot.ViewModels
 
 			Attenuation = 42;
 
-			ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
-			ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;
+			ToShowdB = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Collapsed : Visibility.Visible;
+			ToShowRange = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Visible : Visibility.Collapsed;
 
 			// make a few things happen to synch the gui
 			Task.Delay(1000).ContinueWith(t => { actSpec?.UpdateGraph(true); });

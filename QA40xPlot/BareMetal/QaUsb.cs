@@ -123,8 +123,13 @@ namespace QA40x_BareMetal
 
         public static void SetInputRange(int range)
 		{
-			if (QAnalyzer == null)
+			if (QAnalyzer == null )
 				return;
+            if(QAnalyzer.Params == null)
+            {
+                Debug.WriteLine("*** Write to null params");
+                return;
+			}
 			QAnalyzer.SetInput(range);
 		}
 
@@ -135,7 +140,7 @@ namespace QA40x_BareMetal
 
 		public static void SetOutputRange(int range)
 		{
-			if (QAnalyzer == null)
+			if (QAnalyzer == null || QAnalyzer.Params == null)
 				return;
 			QAnalyzer.SetOutput(range);
 		}

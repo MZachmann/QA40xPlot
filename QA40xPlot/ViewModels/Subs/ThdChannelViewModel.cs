@@ -41,6 +41,20 @@ namespace QA40xPlot.ViewModels
 			get => _MyStep;
 			set => SetProperty(ref _MyStep, value);
 		}
+		private string _NoiseFloorView = "0";
+		[JsonIgnore]
+		public string NoiseFloorView
+		{
+			get => _NoiseFloorView;
+			set => SetProperty(ref _NoiseFloorView, value);
+		}
+		private string _AmplitudeView = "0";
+		[JsonIgnore]
+		public string AmplitudeView
+		{
+			get => _AmplitudeView;
+			set => SetProperty(ref _AmplitudeView, value);
+		}
 		private double _ThdNInV;
 		public double ThdNInV
 		{

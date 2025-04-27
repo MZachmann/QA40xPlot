@@ -130,13 +130,13 @@ namespace QA40xPlot.Libraries
 		}
 
 		// this sets the axes bounds for freq vs percent
-		private static void AddPctFreqRule(ScottPlot.Plot myPlot)
+		private static void SetPctFreqRule(ScottPlot.Plot myPlot)
 		{
 			myPlot.Axes.Rules.Clear();
 			ScottPlot.AxisRules.MaximumBoundary rule = new(
 				xAxis: myPlot.Axes.Bottom,
 				yAxis: myPlot.Axes.Left,
-				limits: new AxisLimits(Math.Log10(1), Math.Log10(100000), Math.Log10(0.00000001), Math.Log10(100))
+				limits: new AxisLimits(Math.Log10(1), Math.Log10(200000), Math.Log10(0.000000001), Math.Log10(10000))
 				);
 			myPlot.Axes.Rules.Add(rule);
 		}
@@ -148,7 +148,7 @@ namespace QA40xPlot.Libraries
 			ScottPlot.AxisRules.MaximumBoundary rule = new(
 				xAxis: myPlot.Axes.Bottom,
 				yAxis: myPlot.Axes.Left,
-				limits: new AxisLimits(Math.Log10(1), Math.Log10(100000), -200, 100)
+				limits: new AxisLimits(Math.Log10(1), Math.Log10(200000), -250, 150)
 				);
 			myPlot.Axes.Rules.Add(rule);
 		}
@@ -178,7 +178,7 @@ namespace QA40xPlot.Libraries
 		}
 
 		// this sets the axes bounds for freq vs percent
-		private static void AddPctAmpRule(ScottPlot.Plot myPlot)
+		private static void SetPctAmpRule(ScottPlot.Plot myPlot)
 		{
 			myPlot.Axes.Rules.Clear();
 			ScottPlot.AxisRules.MaximumBoundary rule = new(
@@ -190,7 +190,7 @@ namespace QA40xPlot.Libraries
 		}
 
 		// this sets the axes bounds for freq vs magnitude
-		private static void AddMagAmpRule(ScottPlot.Plot myPlot)
+		private static void SetMagAmpRule(ScottPlot.Plot myPlot)
 		{
 			myPlot.Axes.Rules.Clear();
 			ScottPlot.AxisRules.MaximumBoundary rule = new(
@@ -202,7 +202,7 @@ namespace QA40xPlot.Libraries
 		}
 
 		// this sets the axes bounds for freq vs magnitude
-		private static void AddMagTimeRule(ScottPlot.Plot myPlot)
+		private static void SetMagTimeRule(ScottPlot.Plot myPlot)
 		{
 			myPlot.Axes.Rules.Clear();
 			ScottPlot.AxisRules.MaximumBoundary rule = new(
@@ -264,7 +264,7 @@ namespace QA40xPlot.Libraries
 			InitializeAPlot(myPlot);
 			SetupPercentTics(myPlot);
 			SetupFreqTics(myPlot);
-			AddPctFreqRule(myPlot);
+			SetPctFreqRule(myPlot);
 		}
 
 		public static void InitializePctAmpPlot(ScottPlot.Plot myPlot)
@@ -272,7 +272,7 @@ namespace QA40xPlot.Libraries
 			InitializeAPlot(myPlot);
 			SetupPercentTics(myPlot);
 			SetupAmpTics(myPlot);
-			AddPctAmpRule(myPlot);
+			SetPctAmpRule(myPlot);
 		}
 
 		public static void InitializeMagAmpPlot(ScottPlot.Plot myPlot)
@@ -280,7 +280,7 @@ namespace QA40xPlot.Libraries
 			InitializeAPlot(myPlot);
 			SetupMagTics(myPlot);
 			SetupAmpTics(myPlot);
-			AddMagAmpRule(myPlot);
+			SetMagAmpRule(myPlot);
 		}
 
 		public static void InitializeMagTimePlot(ScottPlot.Plot myPlot)
@@ -288,15 +288,24 @@ namespace QA40xPlot.Libraries
 			InitializeAPlot(myPlot);
 			SetupMagTics(myPlot);
 			SetupTimeTics(myPlot);
-			AddMagTimeRule(myPlot);
+			SetMagTimeRule(myPlot);
 		}
 
 		public static void InitializeLogFreqPlot(ScottPlot.Plot myPlot, string plotFormat)
 		{
 			InitializeAPlot(myPlot);
-			SetupLogTics(myPlot, plotFormat);
 			SetupFreqTics(myPlot);
-			SetMagFreqRule(myPlot);
+			if (GraphUtil.IsPlotFormatLog(plotFormat))
+			{
+				SetupMagTics(myPlot);
+				SetMagFreqRule(myPlot);
+			}
+			else
+			{
+				SetupPercentTics(myPlot);
+				SetPctFreqRule(myPlot);
+			}
+
 		}
 
 	}

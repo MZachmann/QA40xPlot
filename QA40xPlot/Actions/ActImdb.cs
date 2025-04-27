@@ -102,20 +102,23 @@ namespace QA40xPlot.Actions
 				// get the data to look through
 				var fftdata = step.fftData;
 				var ffs = useRight ? fftdata?.Right : fftdata?.Left;
-				if (fftdata != null && ffs != null && ffs.Length > 0 && freq < ffs.Length * fftdata.Df)
+				if (fftdata != null && ffs != null && ffs.Length > 0 && freq < fftdata.Df * ffs.Length)
 				{
 					int bin = 0;
-
-					// prefer distance to value vs freq hence the 200x also log(freq) is 0....6 while mag goes to 200
 					ScottPlot.Plot myPlot = fftPlot.ThePlot;
 					var pixel = myPlot.GetPixel(new Coordinates(Math.Log10(freq), posndBV));
 
 					// get screen coords for some of the data
 					int abin = (int)(freq / fftdata.Df);       // apporoximate bin
-					var binmin = Math.Max(1, abin - 200);            // random....
-					var binmax = Math.Min(ffs.Length - 1, abin + 200);           // random....
-					var distsx = ffs.Skip(binmin).Take(binmax - binmin).Select((fftd, index) => myPlot.GetPixel(new Coordinates(Math.Log10((index + binmin) * fftdata.Df), 20 * Math.Log10(ffs[binmin + index]))));
-					var distx = distsx.Select(x => Math.Pow(x.X - pixel.X, 2) + Math.Pow(x.Y - pixel.Y, 2));
+					var binmin = Math.Max(1, abin - 5);            // random....
+					var binmax = Math.Min(ffs.Length - 1, abin + 5);           // random....
+					var msr = MeasurementResult.MeasurementSettings;
+					var vfi = GraphUtil.GetLogFormatter(msr.PlotFormat, useRight ? step.Right.Fundamental1_V : step.Left.Fundamental1_V);
+					var distsx = ffs.Skip(binmin).Take(binmax - binmin);
+					IEnumerable<Pixel> distasx = distsx.Select((fftd, index) =>
+							myPlot.GetPixel(new Coordinates(Math.Log10((index + binmin) * fftdata.Df),
+									vfi(ffs[binmin + index]))));
+					var distx = distasx.Select(x => Math.Pow(x.X - pixel.X, 2) + Math.Pow(x.Y - pixel.Y, 2));
 					var dlist = distx.ToList(); // no dc
 					bin = binmin + dlist.IndexOf(dlist.Min());
 
@@ -123,7 +126,7 @@ namespace QA40xPlot.Actions
 					if (bin < ffs.Length)
 					{
 						var vfun = useRight ? step.Right.Fundamental1_V : step.Left.Fundamental1_V;
-						return ValueTuple.Create(bin * fftdata.Df, ffs[bin], 100 * ffs[bin] / vfun);
+						return ValueTuple.Create(bin * fftdata.Df, ffs[bin], vfun);
 					}
 				}
 			}
@@ -303,7 +306,7 @@ namespace QA40xPlot.Actions
             return !ct.IsCancellationRequested;
         }
 
-        private void AddAMarker(ImdMeasurementResult fmr, double frequency, bool isred = false)
+		private void AddAMarker(ImdMeasurementResult fmr, double frequency, bool isred = false)
 		{
 			var vm = MyVModel;
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
@@ -314,51 +317,30 @@ namespace QA40xPlot.Actions
 			var rightData = fmr.FrequencySteps[0].fftData?.Right;
 
 			double markVal = 0;
-			if( vm.ShowPercent)
+			if (rightData != null && !vm.ShowLeft)
 			{
-				if (rightData != null && !vm.ShowLeft)
-				{
-					double maxright = rightData.Max();
-					markVal = 100 * rightData[bin] / maxright;
-				}
-				else if(leftData != null)
-				{
-					double maxleft = leftData.Max();
-					markVal = 100 * leftData[bin] / maxleft;
-				}
+				double maxright = rightData.Max();
+				markVal = GraphUtil.ReformatValue(vm.PlotFormat, rightData[bin], maxright);
+			}
+			else if (leftData != null)
+			{
+				double maxleft = leftData.Max();
+				markVal = GraphUtil.ReformatValue(vm.PlotFormat, leftData[bin], maxleft);
+			}
+			var markView = GraphUtil.IsPlotFormatLog(vm.PlotFormat) ? markVal : Math.Log10(markVal);
+
+			ScottPlot.Color markerCol = new ScottPlot.Color();
+			if (!vm.ShowLeft)
+			{
+				markerCol = isred ? Colors.Green : Colors.DarkGreen;
 			}
 			else
 			{
-				if (rightData != null && !vm.ShowLeft)
-				{
-					markVal = 20 * Math.Log10(rightData[bin]);
-				}
-				else if (leftData != null)
-				{
-					markVal = 20 * Math.Log10(leftData[bin]);
-				}
-			}
-			ScottPlot.Color markerCol = new ScottPlot.Color();
-            if( ! vm.ShowLeft)
-            {
-                markerCol = isred ? Colors.Green : Colors.DarkGreen;
-			}
-            else
-            {
 				markerCol = isred ? Colors.Red : Colors.DarkOrange;
 			}
-			if (vm.ShowPercent)
-			{
-				var mymark = myPlot.Add.Marker(Math.Log10(frequency), Math.Log10(markVal),
-					MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), markerCol);
-				mymark.LegendText = string.Format("{1}: {0:F6}", markVal, (int)frequency);
-			}
-			else
-			{
-				var mymark = myPlot.Add.Marker(Math.Log10(frequency), markVal,
-					MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), markerCol);
-				mymark.LegendText = string.Format("{1}: {0:F1}", markVal, (int)frequency);
-			}
+			var mymark = myPlot.Add.Marker(Math.Log10(frequency), markView,
+				MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), markerCol);
+			mymark.LegendText = string.Format("{1}: {0:F1}", GraphUtil.PrettyPrint(markVal, vm.PlotFormat), (int)frequency);
 		}
 
 		private void ShowHarmonicMarkers(ImdMeasurementResult fmr)
@@ -599,68 +581,39 @@ namespace QA40xPlot.Actions
 		}
 
 		/// <summary>
-		/// Ititialize the THD % plot
-		/// </summary>
-		void InitializefftPlot()
-        {
-			ScottPlot.Plot myPlot = fftPlot.ThePlot;
-			PlotUtil.InitializePctFreqPlot(myPlot);
-			var imdVm = MyVModel;
-
-            ImdViewModel thd = MyVModel;
-            myPlot.Axes.SetLimits(Math.Log10(MathUtil.ToDouble(thd.GraphStartFreq)), Math.Log10(MathUtil.ToDouble(thd.GraphEndFreq)), 
-				Math.Log10(MathUtil.ToDouble(thd.RangeBottom)) - 0.00000001, Math.Log10(MathUtil.ToDouble(thd.RangeTop)));  // - 0.000001 to force showing label
-			SetTheTitle(myPlot);
-			myPlot.XLabel("Frequency (Hz)");
-			myPlot.YLabel("%");
-
-			fftPlot.Refresh();
-        }
-
-		/// <summary>
 		/// Plot all of the spectral data values
 		/// </summary>
 		/// <param name="data"></param>
 		void PlotValues(ImdMeasurementResult measurementResult, int measurementNr)
-        {
+		{
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			myPlot.Clear();
 
 			var imdVm = MyVModel;
-			bool useLeft = imdVm.ShowLeft;	// dynamically update these
+			bool useLeft = imdVm.ShowLeft; // dynamically update these
 			bool useRight = imdVm.ShowRight;
-
 			var fftData = MeasurementResult.FrequencySteps[0].fftData;
 			if (fftData == null)
 				return;
 
-			double[] freqX = Enumerable.Range(1, fftData.Left.Length - 1).
+			double[] freqLogX = Enumerable.Range(1, fftData.Left.Length - 1).
 								Select(x => Math.Log10(x * fftData.Df)).ToArray();
 			//
 			double[] leftdBV = [];
 			double[] rightdBV = [];
-
+			string plotForm = MyVModel.PlotFormat;
 
 			// add a scatter plot to the plot
 			var lineWidth = MyVModel.ShowThickLines ? _Thickness : 1;   // so it dynamically updates
 
 			if (useLeft)
 			{
-				if (imdVm.ShowPercent)
-				{
-					// find the max value of the left and right channels
-					double maxleft = Math.Max(1e-20, fftData.Left.Max());
-					// now use that to calculate percents. Since Y axis is logarithmic use log of percent
-					leftdBV = fftData.Left.Skip(1).Select(x => Math.Log10(x * 100 / maxleft)).ToArray();
-				}
-				else
+				double maxleft = Math.Max(1e-20, fftData.Left.Max());
+				// the usual dbv display
+				var fvi = GraphUtil.GetLogFormatter(plotForm, maxleft);
+				leftdBV = fftData.Left.Skip(1).Select(fvi).ToArray();
 
-				{
-					// the usual dbv display
-					leftdBV = fftData.Left.Skip(1).Select(x => 20 * Math.Log10(x)).ToArray();
-				}
-
-				Scatter plotLeft = myPlot.Add.Scatter(freqX, leftdBV);
+				Scatter plotLeft = myPlot.Add.Scatter(freqLogX, leftdBV);
 				plotLeft.LineWidth = lineWidth;
 				plotLeft.Color = QaLibrary.BlueColor;  // Blue
 				plotLeft.MarkerSize = 1;
@@ -668,20 +621,13 @@ namespace QA40xPlot.Actions
 
 			if (useRight)
 			{
-				if (imdVm.ShowPercent)
-				{
-					// find the max value of the left and right channels
-					double maxright = Math.Max(1e-20, fftData.Right.Max());
-					// now use that to calculate percents. Since Y axis is logarithmic use log of percent
-					rightdBV = fftData.Right.Skip(1).Select(x => Math.Log10(x * 100 / maxright)).ToArray();
-				}
-				else
-				{
-					// the usual dbv display
-					rightdBV = fftData.Right.Skip(1).Select(x => 20 * Math.Log10(x)).ToArray();
-				}
+				// find the max value of the left and right channels
+				double maxright = Math.Max(1e-20, fftData.Right.Max());
+				// now use that to calculate percents. Since Y axis is logarithmic use log of percent
+				var fvi = GraphUtil.GetLogFormatter(plotForm, maxright);
+				rightdBV = fftData.Right.Skip(1).Select(fvi).ToArray();
 
-				Scatter plotRight = myPlot.Add.Scatter(freqX, rightdBV);
+				Scatter plotRight = myPlot.Add.Scatter(freqLogX, rightdBV);
 				plotRight.LineWidth = lineWidth;
 				if (useLeft)
 					plotRight.Color = QaLibrary.RedXColor; // Red transparant
@@ -693,23 +639,46 @@ namespace QA40xPlot.Actions
 			fftPlot.Refresh();
 		}
 
+		private double ToD(string stri)
+		{
+			return MathUtil.ToDouble(stri);
+		}
+
+
+
 		/// <summary>
-		/// Initialize the magnitude plot
+		/// Ititialize the THD % plot
 		/// </summary>
-		void InitializeMagnitudePlot()
-        {
-			ScottPlot.Plot myPlot = fftPlot.ThePlot;
-            PlotUtil.InitializeMagFreqPlot(myPlot);
-
+		void InitializefftPlot(string plotFormat = "%")
+		{
 			var imdVm = MyVModel;
+			ScottPlot.Plot myPlot = fftPlot.ThePlot;
+			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
-			myPlot.Axes.SetLimits(Math.Log10(MathUtil.ToDouble(imdVm.GraphStartFreq, 20)), Math.Log10(MathUtil.ToDouble(imdVm.GraphEndFreq, 20000)),
-				MathUtil.ToDouble(imdVm.RangeBottomdB, -20), MathUtil.ToDouble(imdVm.RangeTopdB, 180));
+			myPlot.Axes.SetLimits(Math.Log10(ToD(imdVm.GraphStartFreq)), Math.Log10(ToD(imdVm.GraphEndFreq)),
+				Math.Log10(ToD(imdVm.RangeBottom)) - 0.00000001, Math.Log10(ToD(imdVm.RangeTop)));  // - 0.000001 to force showing label
 			SetTheTitle(myPlot);
 			myPlot.XLabel("Frequency (Hz)");
-			myPlot.YLabel("dBV");
+			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
 
-            fftPlot.Refresh();
+			fftPlot.Refresh();
+		}
+
+		void InitializeMagnitudePlot(string plotFormat = "dBV")
+		{
+			var imdVm = MyVModel;
+			ScottPlot.Plot myPlot = fftPlot.ThePlot;
+			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
+
+			myPlot.Axes.SetLimitsX(Math.Log10(ToD(imdVm.GraphStartFreq)),
+				Math.Log10(ToD(imdVm.GraphEndFreq)), myPlot.Axes.Bottom);
+
+			myPlot.Axes.SetLimitsY(ToD(imdVm.RangeBottomdB), ToD(imdVm.RangeTopdB), myPlot.Axes.Left);
+			SetTheTitle(myPlot);
+			myPlot.XLabel("Frequency (Hz)");
+			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
+
+			fftPlot.Refresh();
         }
 
 		/// <summary>
@@ -825,9 +794,12 @@ namespace QA40xPlot.Actions
         {
 			ImdViewModel thd = MyVModel;
 			var vm = ViewSettings.Singleton.ImdChannelLeft;
-			var steps = thd.ShowLeft ? MeasurementResult.FrequencySteps[0].Left : MeasurementResult.FrequencySteps[0].Right;
-			vm.CalculateChannelValues(steps, MathUtil.ToDouble( thd.Gen1Frequency), 
+			var step = thd.ShowLeft ? MeasurementResult.FrequencySteps[0].Left : MeasurementResult.FrequencySteps[0].Right;
+			vm.CalculateChannelValues(step, MathUtil.ToDouble( thd.Gen1Frequency), 
 						MathUtil.ToDouble(thd.Gen2Frequency), thd.ShowDataPercent);
+			vm.NoiseFloorView = GraphUtil.DoValueFormat(thd.PlotFormat, step.TotalNoiseFloor_V, step.Fundamental1_V);
+			vm.Amplitude1View = GraphUtil.DoValueFormat(thd.PlotFormat, step.Fundamental1_V, step.Fundamental1_V);
+			vm.Amplitude2View = GraphUtil.DoValueFormat(thd.PlotFormat, step.Fundamental2_V, step.Fundamental1_V);
 		}
 
 		public void UpdateGraph(bool settingsChanged)
@@ -837,32 +809,24 @@ namespace QA40xPlot.Actions
 			int resultNr = 0;
 			ImdViewModel thd = MyVModel;
 
-			if (!thd.ShowPercent)
-            {
-                if (settingsChanged)
-                {
-                    InitializeMagnitudePlot();
-                }
-
-                foreach (var result in Data.Measurements.Where(m => m.Show))
-                {
-					PlotValues(result, resultNr++);
-                }
-            }
-            else
-            {
-                if (settingsChanged)
-                {
-                    InitializefftPlot();
-                }
-          
-                foreach (var result in Data.Measurements.Where(m => m.Show))
-                {
-					PlotValues(result, resultNr++);
+			if (settingsChanged)
+			{
+				if (GraphUtil.IsPlotFormatLog(thd.PlotFormat))
+				{
+					InitializeMagnitudePlot(thd.PlotFormat);
+				}
+				else
+				{
+					InitializefftPlot(thd.PlotFormat);
 				}
 			}
 
-            if( MeasurementResult.FrequencySteps.Count > 0)
+			foreach (var result in Data.Measurements.Where(m => m.Show))
+			{
+				PlotValues(result, resultNr++);
+			}
+
+			if ( MeasurementResult.FrequencySteps.Count > 0)
             {
 				ShowHarmonicMarkers(MeasurementResult);
 				ShowPowerMarkers(MeasurementResult);

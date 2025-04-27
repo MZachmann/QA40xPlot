@@ -28,7 +28,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Label Grid.Row="0" Grid.Column="0" Content="{Binding FundamentalFrequency}" ContentStringFormat="{}{0:F0} Hz"/>
-                <Label Grid.Row="0" Grid.Column="1" Content="{Binding MyStep.Fundamental_dBV}" ContentStringFormat="{}{0:F2} dBV"/>
+                <Label Grid.Row="0" Grid.Column="1" Content="{Binding AmplitudeView}" />
                 <Label Grid.Row="0" Grid.Column="2" Content="{Binding MyStep.Fundamental_V, Converter={StaticResource VoltFormatter}}"/>
                 <Label Grid.Row="1" Grid.Column="0" HorizontalAlignment="Center" Content="{Binding MyStep.Gain_dB}" ContentStringFormat="Gain {0:F2} dB"/>
                 <Label Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" Content="{Binding MyStep.Total_W}" ContentStringFormat="{}{0:0.###} W"/>
@@ -46,7 +46,7 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Label Grid.Row="0" Grid.Column="0" Content="N:" HorizontalAlignment="Right"/>
-                    <Label Grid.Row="0" Grid.Column="1" Content="{Binding NoiseFloordBV}" ContentStringFormat="{}{0:F2} dBV"/>
+                    <Label Grid.Row="0" Grid.Column="1" Content="{Binding NoiseFloorView}" />
                     <Label Grid.Row="0" Grid.Column="2" >
                         <MultiBinding Converter="{StaticResource VToPctConverter}">
                             <Binding Path="NoiseFloorPct"/>
