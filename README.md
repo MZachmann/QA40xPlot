@@ -10,11 +10,11 @@ of hardware.
 This Audio Analysis application started as a Fork of https://github.com/breedj/qa40x-audio-analyser.
 Some code was borrowed from QuantAsylum's Qa40x_BareMetal and PyQa40x repositories on Github.
 
-## Known Problem
-As part of the USB support upgrade: occasionally the first test run will stop while testing the noise floor. Simply click Stop
-then Start again. This will be fixed soon.
-
+## Known Problems
 The program may rarely not start on first try. Retry and it should then start up.
+
+If you switch test type in the Response/Impedance/Gain tab the data will persist (so you may switch back)
+but the graphical view is unlikely to be right for this other test. Rerun the test if you switch types.
 
 ## Overview
 
