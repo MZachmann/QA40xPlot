@@ -82,6 +82,8 @@ Distortion vs Frequency Test
 ![thd vs freq](./QA40xPlot/Images/ThdVsFreq.png)
 Distortion vs Amplitude Test
 ![thd vs amp](./QA40xPlot/Images/ThdVsAmp.png)
+Frequency Response Test
+![frequency response](./QA40xPlot/Images/FrequencyResponse.png)
 Impedance Test
 ![impedance](./QA40xPlot/Images/ImpedancePlot.png)
 __note__: The impedance test above is a free-air plot of a Dayton Audio SIG-150 loudspeaker. 
