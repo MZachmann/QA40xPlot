@@ -393,8 +393,8 @@ namespace QA40xPlot.ViewModels
 
 			Attenuation = 42;
 
-			ToShowdB = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Collapsed : Visibility.Visible;
-			ToShowRange = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Visible : Visibility.Collapsed;
+			ToShowRange = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Collapsed : Visibility.Visible;
+			ToShowdB = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Visible : Visibility.Collapsed;
 
 			// make a few things happen to synch the gui
 			Task.Delay(1000).ContinueWith(t => { actSpec?.UpdateGraph(true); });

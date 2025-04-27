@@ -520,6 +520,8 @@ namespace QA40xPlot.ViewModels
 			IntermodType = "Custom";
 			IsImdCustom = true;
 
+			PlotFormat = "dBV";
+
 			ToShowRange = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Collapsed : Visibility.Visible;
 			ToShowdB = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Visible : Visibility.Collapsed;
 
