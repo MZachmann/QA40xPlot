@@ -68,6 +68,13 @@ namespace QA40xPlot.ViewModels
 			get => _Amplitude2View;
 			set => SetProperty(ref _Amplitude2View, value);
 		}
+		private string _AmplitudesView = "0";
+		[JsonIgnore]
+		public string AmplitudesView
+		{
+			get => _AmplitudesView;
+			set => SetProperty(ref _AmplitudesView, value);
+		}
 		private double _ThdIndB;
 		public double ThdIndB
 		{

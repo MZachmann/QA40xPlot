@@ -800,6 +800,7 @@ namespace QA40xPlot.Actions
 			vm.NoiseFloorView = GraphUtil.DoValueFormat(thd.PlotFormat, step.TotalNoiseFloor_V, step.Fundamental1_V);
 			vm.Amplitude1View = GraphUtil.DoValueFormat(thd.PlotFormat, step.Fundamental1_V, step.Fundamental1_V);
 			vm.Amplitude2View = GraphUtil.DoValueFormat(thd.PlotFormat, step.Fundamental2_V, step.Fundamental1_V);
+			vm.AmplitudesView = GraphUtil.DoValueFormat(thd.PlotFormat, step.Fundamentals_V, step.Fundamental1_V);
 		}
 
 		public void UpdateGraph(bool settingsChanged)
