@@ -38,6 +38,8 @@ namespace QA40xPlot.ViewModels
 		public ImdChannelViewModel ImdChannelLeft { get; private set; }
 		[JsonIgnore]
 		public ImdChannelViewModel ImdChannelRight { get; private set; }
+		[JsonIgnore]
+		public DataDescript TabDefs { get; set; }
 
 		[JsonIgnore]
 		public static double AmplifierLoad { get => MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.AmplifierLoad, 0); }
@@ -78,6 +80,7 @@ namespace QA40xPlot.ViewModels
 			ThdFreq = new ThdFreqViewModel();
 			FreqRespVm = new FreqRespViewModel();
 			ScopeVm = new ScopeViewModel();
+			TabDefs = new DataDescript();
 		}
 	}
 }

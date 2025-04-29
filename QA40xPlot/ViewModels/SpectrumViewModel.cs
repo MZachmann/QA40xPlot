@@ -24,6 +24,7 @@ namespace QA40xPlot.ViewModels
 		private ActSpectrum actSpec { get;  set; }
 		private ThdChannelInfo actInfoLeft { get;  set; }
 		private ThdChannelInfo actInfoRight { get; set; }
+		private TabAbout actAbout { get; set; }
 		[JsonIgnore]
 		public RelayCommand<object> SetAttenuate { get => new RelayCommand<object>(SetAtten); }
 		[JsonIgnore]
@@ -136,6 +137,13 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowSummary, value);
 		}
 
+		private bool _ShowTabInfo = true;
+		public bool ShowTabInfo
+		{
+			get => _ShowTabInfo;
+			set => SetProperty(ref _ShowTabInfo, value);
+		}
+
 		private bool _ShowMarkers = false;
 		public bool ShowMarkers
 		{
@@ -191,6 +199,8 @@ namespace QA40xPlot.ViewModels
 				actInfoLeft.Visibility = (ShowSummary && ShowLeft) ? Visibility.Visible : Visibility.Hidden;
 			if (actInfoRight != null)
 				actInfoRight.Visibility = (ShowSummary && ShowRight) ? Visibility.Visible : Visibility.Hidden;
+			if (actAbout != null)
+				actAbout.Visibility = ShowTabInfo ? Visibility.Visible : Visibility.Hidden;
 		}
 
 		// the property change is used to trigger repaints of the graph
@@ -205,6 +215,7 @@ namespace QA40xPlot.ViewModels
 					OnPropertyChanged("GraphUnit");
 					actSpec?.UpdateGraph(true);
 					break;
+				case "ShowTabInfo":
 				case "ShowSummary":
 					ShowInfos();
 					break;
@@ -236,17 +247,24 @@ namespace QA40xPlot.ViewModels
 			return actSpec?.CreateExportData();
 		}
 
-		public void SetAction(PlotControl plot, ThdChannelInfo info, ThdChannelInfo info2)
+		public void SetAction(PlotControl plot, ThdChannelInfo info, ThdChannelInfo info2, TabAbout about)
 		{
 			SpectrumData data = new SpectrumData();
 			actSpec = new ActSpectrum(ref data, plot);
 			actInfoLeft = info;
 			actInfoRight = info2;
+			actAbout = about;
 			info.SetDataContext(ViewSettings.Singleton.ChannelLeft);
 			info2.SetDataContext(ViewSettings.Singleton.ChannelRight);
+			about.SetDataContext(ViewSettings.Singleton.TabDefs);
 			SetupMainPlot(plot);
 			actPlot = plot;
 			ShowInfos();
+		}
+
+		public void LinkAbout(DataDescript fmv)
+		{
+			actAbout.SetDataContext(fmv);
 		}
 
 		private static void SetAtten(object? parameter)
@@ -420,6 +438,7 @@ namespace QA40xPlot.ViewModels
 			this.actInfoLeft = default!;
 			this.actInfoRight = default!;
 			this.actSpec = default!;
+			this.actAbout = default!;
 
 			GraphStartFreq = "20";
 			GraphEndFreq = "20000";

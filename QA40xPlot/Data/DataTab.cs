@@ -5,10 +5,20 @@ using Windows.Gaming.Input;
 
 namespace QA40xPlot.Data
 {
-	public class DataDescript
+	public class DataDescript : FloorViewModel
 	{
-		public string Name { get; set; }          // datatab name
-		public string Description { get; set; }   // Description
+		private string _Name = string.Empty;
+		public string Name
+		{
+			get => _Name;
+			set => SetProperty(ref _Name, value);
+		}
+		private string _Description = string.Empty;
+		public string Description
+		{
+			get => _Description;
+			set => SetProperty(ref _Description, value);
+		}
 		public string CreateDate { get; set; }  // Measurement date time
 		public bool Saved { get; set; }
 		public double GeneratorVoltage { get; set; } // the generator voltage, if any
@@ -95,12 +105,19 @@ namespace QA40xPlot.Data
 		/// <param name="dct"></param>
 		public DataTab(T viewModel, LeftRightTimeSeries series, Dictionary<string,object>? dct = null)
 		{
-			ViewModel = (T)((ICloneable)viewModel).Clone();   // get a blank vm
-			var nama = ViewModel?.GetType();
+			if (viewModel != null)
+			{
+				ViewModel = (T)((ICloneable)viewModel).Clone();   // get a blank vm
+			}
+			else
+			{
+				ViewModel = default!;
+			}
+				var nama = ViewModel?.GetType();
 			TimeRslt = series;
 			Definition.Name = string.Empty;
 			Definition.Description = string.Empty;
-			Definition.CreateDate = "hello";// DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+			Definition.CreateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 			Definition.Saved = false;
 			if (dct != null)
 				PropertySet = dct;

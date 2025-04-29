@@ -207,20 +207,23 @@ namespace QA40xPlot.Actions
 					// Calculate the THD
 					{
 						var maxf = 20000;   // the app seems to use 20,000 so not sampleRate/ 2.0;
-						LeftRightPair snrdb = QaCompute.GetSnrDb(lrfs.FreqRslt, stepBinFrequencies[0], 20.0, maxf);
-						LeftRightPair thds = QaCompute.GetThdDb(lrfs.FreqRslt, stepBinFrequencies[0], 20.0, maxf);
-						LeftRightPair thdN =  QaCompute.GetThdnDb(lrfs.FreqRslt, stepBinFrequencies[0], 20.0, maxf);
+						if(lrfs != null && lrfs.FreqRslt != null)
+						{
+							LeftRightPair snrdb = QaCompute.GetSnrDb(lrfs.FreqRslt, stepBinFrequencies[0], 20.0, maxf);
+							LeftRightPair thds = QaCompute.GetThdDb(lrfs.FreqRslt, stepBinFrequencies[0], 20.0, maxf);
+							LeftRightPair thdN = QaCompute.GetThdnDb(lrfs.FreqRslt, stepBinFrequencies[0], 20.0, maxf);
 
-						step.Left.Thd_dBN = thdN.Left;
-						step.Right.Thd_dBN = thdN.Right;
-						step.Left.Thd_dB = thds.Left;
-						step.Right.Thd_dB = thds.Right;
-						step.Left.Snr_dB = snrdb.Left;
-						step.Right.Snr_dB = snrdb.Right;
-                        step.Left.Thd_Percent = 100 * Math.Pow(10, thds.Left / 20);
-						step.Right.Thd_Percent = 100 * Math.Pow(10, thds.Right / 20);
-                        step.Left.Thd_PercentN = 100 * Math.Pow(10, thdN.Left / 20);
-						step.Right.Thd_PercentN = 100 * Math.Pow(10, thdN.Right / 20);
+							step.Left.Thd_dBN = thdN.Left;
+							step.Right.Thd_dBN = thdN.Right;
+							step.Left.Thd_dB = thds.Left;
+							step.Right.Thd_dB = thds.Right;
+							step.Left.Snr_dB = snrdb.Left;
+							step.Right.Snr_dB = snrdb.Right;
+							step.Left.Thd_Percent = 100 * Math.Pow(10, thds.Left / 20);
+							step.Right.Thd_Percent = 100 * Math.Pow(10, thds.Right / 20);
+							step.Left.Thd_PercentN = 100 * Math.Pow(10, thdN.Left / 20);
+							step.Right.Thd_PercentN = 100 * Math.Pow(10, thdN.Right / 20);
+						}
 					}
 
 					// Here we replace the last frequency step with the new one

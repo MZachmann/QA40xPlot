@@ -183,6 +183,8 @@
                   VerticalAlignment="Top" HorizontalAlignment="Left" Margin="80,50,0,0" />
             <views:ThdChannelInfo x:Name="Info2"  
                   VerticalAlignment="Top" HorizontalAlignment="Left" Margin="80,260,0,0" />
+            <views:TabAbout x:Name="TAbout"  
+                  VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,50,34,0" />
         </Grid>
         <StackPanel Grid.Column="2" Orientation="Vertical">
             <GroupBox Header="Y Axis" Visibility="{Binding ToShowdB}">
@@ -272,10 +274,12 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <CheckBox Content="Summary Data" IsChecked="{Binding ShowSummary}" Grid.Row="0"  />
-                    <CheckBox Content="Harmonic Markers" IsChecked="{Binding ShowMarkers}" Grid.Row="1"  />
-                    <CheckBox Content="Power Markers" IsChecked="{Binding ShowPowerMarkers}" Grid.Row="2"  />
+                    <CheckBox Content="Tab Info" IsChecked="{Binding ShowTabInfo}" Grid.Row="1"  />
+                    <CheckBox Content="Harmonic Markers" IsChecked="{Binding ShowMarkers}" Grid.Row="2"  />
+                    <CheckBox Content="Power Markers" IsChecked="{Binding ShowPowerMarkers}" Grid.Row="3"  />
                 </Grid>
             </GroupBox>
             <GroupBox Header="Options">

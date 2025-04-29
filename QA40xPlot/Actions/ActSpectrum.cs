@@ -50,7 +50,7 @@ namespace QA40xPlot.Actions
 		public DataBlob? CreateExportData()
 		{
 			var specVm = MyVModel;
-			var vm = PageData?.ViewModel as SpectrumViewModel;
+			var vm = PageData?.ViewModel;
 			if ( vm == null || PageData?.FreqRslt == null)
 				return null;
 
@@ -74,16 +74,26 @@ namespace QA40xPlot.Actions
 			return db;
 		}
 
-		public void SaveToFile(string fileName)
+		public bool SaveToFile(string fileName)
 		{
-			var tofile = PageData;
-			var container = new Dictionary<string, object>();
-			container["PageData"] = tofile;
-			// Serialize the object to a JSON string
-			string jsonString = JsonConvert.SerializeObject(tofile, Formatting.Indented);
+			if(PageData == null)
+				return false;
+			try
+			{
+				var tofile = PageData;
+				var container = new Dictionary<string, object>();
+				container["PageData"] = tofile;
+				// Serialize the object to a JSON string
+				string jsonString = JsonConvert.SerializeObject(tofile, Formatting.Indented);
 
-			// Write the JSON string to a file
-			File.WriteAllText(fileName, jsonString);
+				// Write the JSON string to a file
+				File.WriteAllText(fileName, jsonString);
+			}
+			catch (Exception ex) {
+				MessageBox.Show(ex.Message, "A save error occurred.", MessageBoxButton.OK, MessageBoxImage.Information);
+				return false;
+			}
+			return true;
 		}
 
 		public void LoadFromFile(string fileName)
@@ -107,13 +117,15 @@ namespace QA40xPlot.Actions
 						PageData.NoiseFloor = jsonObject.NoiseFloor;
 						PageData.Definition = jsonObject.Definition;
 						PageData.TimeRslt = jsonObject.TimeRslt;
+						// we can't overwrite the viewmodel since it links to the display proper
+						// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
 						jsonObject.ViewModel.CopyPropertiesTo<SpectrumViewModel>(PageData.ViewModel);
 						jsonObject.ViewModel.CopyPropertiesTo<SpectrumViewModel>(ViewSettings.Singleton.SpectrumVm);    // retract the gui
-						// now recalculate everything
+						MyVModel.LinkAbout(PageData.Definition); // link the info dlg page to the new data
+																			  // now recalculate everything
 						BuildFrequencies(PageData);
 						PostProcess(PageData, ct.Token).Wait();
 						UpdateGraph(true);
-						var x = 12;
 					}
 					catch (Exception ex)
 					{
@@ -131,9 +143,7 @@ namespace QA40xPlot.Actions
 
 		private static double[] BuildWave(DataTab<SpectrumViewModel> page)
 		{
-			var vm = page.ViewModel as SpectrumViewModel;
-			if(vm == null)
-				return Array.Empty<double>();
+			var vm = page.ViewModel;
 
 			var freq = MathUtil.ToDouble(vm.Gen1Frequency, 0);
 			// for the first go around, turn on the generator
@@ -174,7 +184,7 @@ namespace QA40xPlot.Actions
 			ct = new();
 			LeftRightTimeSeries lrts = new();
 			DataTab<SpectrumViewModel> NextPage = new(specVm, lrts);
-			var vm = NextPage.ViewModel as SpectrumViewModel;
+			var vm = NextPage.ViewModel;
 			if (vm == null)
 				return;
 
@@ -220,15 +230,19 @@ namespace QA40xPlot.Actions
 			}
 			UpdateGraph(true);
 
-			while ( ! ct.IsCancellationRequested)
+			if (PageData != null)
 			{
-				if(PageData?.ViewModel != null)
-					MyVModel.CopyPropertiesTo(PageData.ViewModel);  // update the view model with latest settings
-				rslt = await RunAcquisition(PageData, ct.Token);
-				if (!rslt)
-					return;
-				rslt = await PostProcess(PageData, ct.Token);
-				UpdateGraph(false);
+				ViewSettings.Singleton.TabDefs = PageData.Definition; // link to the definitions
+				while (!ct.IsCancellationRequested)
+				{
+					if (PageData.ViewModel != null)
+						MyVModel.CopyPropertiesTo(PageData.ViewModel);  // update the view model with latest settings
+					rslt = await RunAcquisition(PageData, ct.Token);
+					if (!rslt)
+						return;
+					rslt = await PostProcess(PageData, ct.Token);
+					UpdateGraph(false);
+				}
 			}
 
 			specVm.IsRunning = false;
@@ -239,9 +253,12 @@ namespace QA40xPlot.Actions
 
 		static void BuildFrequencies(DataTab<SpectrumViewModel> page)
 		{
-			var vm = page.ViewModel as SpectrumViewModel;
+			var vm = page.ViewModel;
+			if(vm == null)
+				return;
+
 			LeftRightFrequencySeries? fseries;
-			if (vm?.Gen1Waveform != "Chirp")
+			if(vm.Gen1Waveform != "Chirp")
 			{
 				fseries = QAMath.CalculateSpectrum(page.TimeRslt, vm.WindowingMethod);  // do the fft and calculate the frequency response
 			}
@@ -264,9 +281,7 @@ namespace QA40xPlot.Actions
 		/// <returns></returns>
 		async Task<bool> RunAcquisition(DataTab<SpectrumViewModel> msr, CancellationToken ct)
 		{
-			SpectrumViewModel? vm = msr.ViewModel as SpectrumViewModel; // cached model
-			if (vm == null)
-				return false;
+			SpectrumViewModel vm = msr.ViewModel; // cached model
 
 			var freq = MathUtil.ToDouble(vm.Gen1Frequency, 0);
 			var sampleRate = vm.SampleRateVal;
@@ -356,9 +371,7 @@ namespace QA40xPlot.Actions
 			// left and right channels summary info to fill in
 			var left = new ThdChannelViewModel();
 			var right = new ThdChannelViewModel();
-			SpectrumViewModel? vm = msr.ViewModel as SpectrumViewModel;
-			if (vm == null)
-				return false;
+			SpectrumViewModel vm = msr.ViewModel;
 
 			var freq = MathUtil.ToDouble(vm.Gen1Frequency, 0);
 			left.FundamentalFrequency = freq;
@@ -452,8 +465,8 @@ namespace QA40xPlot.Actions
 		private void CalculateHarmonics(DataTab<SpectrumViewModel> page, ThdChannelViewModel left, ThdChannelViewModel right)
 		{
 			List<HarmonicData> harmonics = new List<HarmonicData>();
-			var vm = page.ViewModel as SpectrumViewModel;
-			if(vm == null || page.FreqRslt == null)
+			var vm = page.ViewModel;
+			if(page.FreqRslt == null)
 				return;
 
 			// Loop through harmonics up tot the 10th
@@ -514,9 +527,7 @@ namespace QA40xPlot.Actions
 
 		private void AddAMarker(DataTab<SpectrumViewModel> page, double frequency, bool isred = false)
 		{
-			var vm = page.ViewModel as SpectrumViewModel;
-			if (vm == null)
-				return;
+			var vm = page.ViewModel;
 
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			var sampleRate = vm.SampleRateVal;
@@ -554,9 +565,7 @@ namespace QA40xPlot.Actions
 
 		private void ShowHarmonicMarkers(DataTab<SpectrumViewModel> page)
 		{
-			var vm = page.ViewModel as SpectrumViewModel;
-			if (vm == null)
-				return;
+			var vm = page.ViewModel;
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			if (vm.ShowMarkers)
 			{
@@ -581,9 +590,7 @@ namespace QA40xPlot.Actions
 
 		private void ShowPowerMarkers(DataTab<SpectrumViewModel> page)
 		{
-			var vm = page.ViewModel as SpectrumViewModel;
-			if (vm == null)
-				return;
+			var vm = page.ViewModel;
 			if (!vm.ShowLeft && !vm.ShowRight)
 				return;
 
