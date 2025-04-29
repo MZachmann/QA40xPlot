@@ -172,12 +172,6 @@ namespace QA40xPlot.ViewModels
 			get => _ShowNoiseFloor;
 			set => SetProperty(ref _ShowNoiseFloor, value);
 		}
-		private string _Windowing = string.Empty;
-		public string WindowingMethod
-		{
-			get => _Windowing;
-			set => SetProperty(ref _Windowing, value);
-		}
 		private Visibility _ToShowRange;
 		[JsonIgnore]
 		public Visibility ToShowRange
@@ -370,6 +364,7 @@ namespace QA40xPlot.ViewModels
 
 		public ThdFreqViewModel()
 		{
+			Name = "ThdFreq";
 			PropertyChanged += CheckPropertyChanged;
 			MouseTracked += DoMouseTracked;
 
@@ -401,8 +396,6 @@ namespace QA40xPlot.ViewModels
 			ShowD5 = true;
 			ShowD6 = true;
 			ShowNoiseFloor = true;
-
-			WindowingMethod = "Hann";
 
 			RangeTopdB = "20";
 			RangeBottomdB = "-180";

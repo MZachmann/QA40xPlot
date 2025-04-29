@@ -72,48 +72,9 @@ namespace QA40xPlot.BareMetal
 			ECF = 1 / rmsW;
 		}
 
-		public FftSharp.Window GetWindowType(string windowType)
-		{
-			FftSharp.Window window = new FftSharp.Windows.Rectangular();
-			switch (windowType)
-			{
-				case "Bartlett":
-					window = new FftSharp.Windows.Bartlett();    // best?
-					break;
-				case "Blackman":
-					window = new FftSharp.Windows.Blackman();    // best?
-					break;
-				case "Cosine":
-					window = new FftSharp.Windows.Cosine();    // best?
-					break;
-				case "FlatTop":
-					window = new FftSharp.Windows.FlatTop();    // best?
-					break;
-				case "Hamming":
-					window = new FftSharp.Windows.Hamming();    // best?
-					break;
-				case "Hann":
-					window = new FftSharp.Windows.Hanning();    // best?
-					break;
-				case "Kaiser":
-					window = new FftSharp.Windows.Kaiser();    // best?
-					break;
-				case "Rectangular":
-					window = new FftSharp.Windows.Rectangular();    // best?
-					break;
-				case "Tukey":
-					window = new FftSharp.Windows.Tukey();    // best?
-					break;
-				case "Welch":
-					window = new FftSharp.Windows.Welch();    // best?
-					break;
-			}
-			return window;
-		}
-
 		private double[] GetWindowing(string windowType, int size)
 		{
-			var wind = GetWindowType(windowType);
+			var wind = QAMath.GetWindowType(windowType);
 			double[] wdw = new double[size];
 			wdw = wdw.Select(x => 1.0).ToArray();
 			return wind.Apply(wdw).ToArray();

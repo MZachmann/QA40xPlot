@@ -29,9 +29,9 @@
                 </Grid.RowDefinitions>
                 <Label Grid.Row="0" Grid.Column="0" Content="{Binding FundamentalFrequency}" ContentStringFormat="{}{0:F0} Hz"/>
                 <Label Grid.Row="0" Grid.Column="1" Content="{Binding AmplitudeView}" />
-                <Label Grid.Row="0" Grid.Column="2" Content="{Binding MyStep.Fundamental_V, Converter={StaticResource VoltFormatter}}"/>
-                <Label Grid.Row="1" Grid.Column="0" HorizontalAlignment="Center" Content="{Binding MyStep.Gain_dB}" ContentStringFormat="Gain {0:F2} dB"/>
-                <Label Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" Content="{Binding MyStep.Total_W}" ContentStringFormat="{}{0:0.###} W"/>
+                <Label Grid.Row="0" Grid.Column="2" Content="{Binding FundamentalVolts, Converter={StaticResource VoltFormatter}}"/>
+                <Label Grid.Row="1" Grid.Column="0" HorizontalAlignment="Center" Content="{Binding GaindB}" ContentStringFormat="Gain {0:F2} dB"/>
+                <Label Grid.Row="1" Grid.Column="2" HorizontalAlignment="Center" Content="{Binding TotalW}" ContentStringFormat="{}{0:0.###} W"/>
             </Grid>
             <Rectangle HorizontalAlignment="Stretch" Height="3" Fill="DarkGreen" />
             <Grid>
@@ -50,7 +50,7 @@
                     <Label Grid.Row="0" Grid.Column="2" >
                         <MultiBinding Converter="{StaticResource VToPctConverter}">
                             <Binding Path="NoiseFloorPct"/>
-                            <Binding Path="MyStep.TotalNoiseFloor_V"/>
+                            <Binding Path="NoiseFloorV"/>
                             <Binding Path="ShowDataPercents"/>
                         </MultiBinding>
                     </Label>
@@ -66,10 +66,10 @@
                     </Label>
                 
                     <Label Grid.Row="2" Grid.Column="0" Content="THD+N:" HorizontalAlignment="Right"/>
-                    <Label Grid.Row="2" Grid.Column="1" Content="{Binding MyStep.Thd_dBN}" ContentStringFormat="{}{0:F2} dB"/>
+                    <Label Grid.Row="2" Grid.Column="1" Content="{Binding ThdNIndB}" ContentStringFormat="{}{0:F2} dB"/>
                     <Label Grid.Row="2" Grid.Column="2" >
                         <MultiBinding Converter="{StaticResource VToPctConverter}">
-                            <Binding Path="MyStep.Thd_PercentN"/>
+                            <Binding Path="ThdNInPercent"/>
                             <Binding Path="ThdNInV"/>
                             <Binding Path="ShowDataPercents"/>
                         </MultiBinding>
@@ -102,36 +102,36 @@
 
                 <Label Grid.Row="1" Grid.Column="1" >
                     <MultiBinding Converter="{StaticResource VToPctConverter}">
-                        <Binding Path="MyStep.Harmonics[0].Thd_Percent"/>
-                        <Binding Path="MyStep.Harmonics[0].Amplitude_V"/>
+                        <Binding Path="Harmonics[0].Thd_Percent"/>
+                        <Binding Path="Harmonics[0].Amplitude_V"/>
                         <Binding Path="ShowDataPercents"/>
                     </MultiBinding>
                 </Label>
                 <Label Grid.Row="1" Grid.Column="3"  >
                     <MultiBinding Converter="{StaticResource VToPctConverter}">
-                        <Binding Path="MyStep.Harmonics[1].Thd_Percent"/>
-                        <Binding Path="MyStep.Harmonics[1].Amplitude_V"/>
+                        <Binding Path="Harmonics[1].Thd_Percent"/>
+                        <Binding Path="Harmonics[1].Amplitude_V"/>
                         <Binding Path="ShowDataPercents"/>
                     </MultiBinding>
                 </Label>
                 <Label Grid.Row="2" Grid.Column="1" >
                     <MultiBinding Converter="{StaticResource VToPctConverter}">
-                        <Binding Path="MyStep.Harmonics[2].Thd_Percent"/>
-                        <Binding Path="MyStep.Harmonics[2].Amplitude_V"/>
+                        <Binding Path="Harmonics[2].Thd_Percent"/>
+                        <Binding Path="Harmonics[2].Amplitude_V"/>
                         <Binding Path="ShowDataPercents"/>
                     </MultiBinding>
                 </Label>
                 <Label Grid.Row="2" Grid.Column="3" >
                     <MultiBinding Converter="{StaticResource VToPctConverter}">
-                        <Binding Path="MyStep.Harmonics[3].Thd_Percent"/>
-                        <Binding Path="MyStep.Harmonics[3].Amplitude_V"/>
+                        <Binding Path="Harmonics[3].Thd_Percent"/>
+                        <Binding Path="Harmonics[3].Amplitude_V"/>
                         <Binding Path="ShowDataPercents"/>
                     </MultiBinding>
                 </Label>
                 <Label Grid.Row="3" Grid.Column="1" >
                     <MultiBinding Converter="{StaticResource VToPctConverter}">
-                        <Binding Path="MyStep.Harmonics[4].Thd_Percent"/>
-                        <Binding Path="MyStep.Harmonics[4].Amplitude_V"/>
+                        <Binding Path="Harmonics[4].Thd_Percent"/>
+                        <Binding Path="Harmonics[4].Amplitude_V"/>
                         <Binding Path="ShowDataPercents"/>
                     </MultiBinding>
                 </Label>

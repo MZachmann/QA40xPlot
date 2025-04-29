@@ -221,7 +221,8 @@ namespace QA40xPlot.Actions
 			// ********************************************************************
 			// Determine input level
 			// ********************************************************************
-			LRGains = await DetermineGainCurve(true, 1);   // read the gain curve
+			await showMessage("Calculating DUT gain"); 
+            LRGains = await DetermineGainCurve(true, 1);   // read the gain curve
             if (LRGains == null)
                 return false;
 
@@ -266,8 +267,7 @@ namespace QA40xPlot.Actions
 				// ********************************************************************  
 				// Load a settings we want since we're done autoscaling
 				// ********************************************************************  
-				if (true != QaUsb.InitializeDevice(msr.SampleRateVal, msr.FftSizeVal, msr.WindowingMethod, attenuation,
-							MeasurementResult.FrequencySteps.Count == 0))
+				if (true != QaUsb.InitializeDevice(msr.SampleRateVal, msr.FftSizeVal, msr.WindowingMethod, attenuation))
 					return false;
 				
                 // ********************************************************************

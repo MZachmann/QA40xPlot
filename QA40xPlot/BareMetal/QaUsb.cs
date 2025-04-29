@@ -71,7 +71,7 @@ namespace QA40x_BareMetal
         static readonly int RegReadWriteTimeout = 20;
         static readonly int MainI2SReadWriteTimeout = 2000;
 
-        public static async Task<LeftRightSeries> DoAcquisitions(uint averages, CancellationToken ct)
+        public static async Task<LeftRightSeries> DoAcquisitions(uint averages, CancellationToken ct, bool getFreq = true)
         {
 			var datapt = new double[QAnalyzer?.Params?.FFTSize ?? 0];
             if( QAnalyzer?.Params?.OutputSource == OutputSources.Sine)
@@ -88,7 +88,7 @@ namespace QA40x_BareMetal
 					datapt = datapt.Select((x, index) => x + (gp2.Voltage * Math.Sqrt(2)) * Math.Sin(2 * Math.PI * gp2.Frequency * dt * index)).ToArray();
 				}
 			}
-			var lrfs = await DoAcquireUser(averages, ct, datapt, datapt, true);
+			var lrfs = await DoAcquireUser(averages, ct, datapt, datapt, getFreq);
 			return lrfs;
 		}
 
@@ -145,39 +145,27 @@ namespace QA40x_BareMetal
 			QAnalyzer.SetOutput(range);
 		}
 
-        public static void CalculateFreq(LeftRightSeries lrfs)
+        public static LeftRightFrequencySeries? CalculateFreq(LeftRightTimeSeries? lrts)
         {
-			if (QAnalyzer?.Params != null && lrfs.TimeRslt != null)
-			{
-				lrfs.FreqRslt = new(); // fft
-				var timeSeries = lrfs.TimeRslt;
-				var m2 = Math.Sqrt(2);
-				// Left channel
-				// only take half of the data since it's symmetric so length of freq data = 1/2 length of time data
-				var window = QAnalyzer.Params.GetWindowType(QAnalyzer.Params.WindowType);
-				double[] wdwLeft = window.Apply(timeSeries.Left, true);
-				System.Numerics.Complex[] specLeft = FFT.Forward(wdwLeft).Take(timeSeries.Left.Length / 2).ToArray();
+            if( lrts == null || QAnalyzer?.Params == null)
+				return null;
 
-				double[] wdwRight = window.Apply(timeSeries.Right, true);
-				System.Numerics.Complex[] specRight = FFT.Forward(wdwRight).Take(timeSeries.Left.Length / 2).ToArray();
-
-				lrfs.FreqRslt.Left = specLeft.Select(x => x.Magnitude * m2).ToArray();
-				lrfs.FreqRslt.Right = specRight.Select(x => x.Magnitude * m2).ToArray();
-				var nca2 = (int)(0.01 + 1 / lrfs.TimeRslt.dt);      // total time in tics = sample rate
-				lrfs.FreqRslt.Df = nca2 / (double)timeSeries.Left.Length; // ???
-			}
+			// calculate the frequency spectrum
+			return QAMath.CalculateSpectrum(lrts, QAnalyzer.Params.WindowType);
 		}
 
-		public static void CalculateChirpFreq(LeftRightSeries lrfs, double[] signal, GenWaveform gws, GenWaveSample gwSample)
+		public static LeftRightFrequencySeries? CalculateChirpFreq(LeftRightTimeSeries? lrts, double[] signal, double voltage, uint sampleRate, uint sampleSize)
 		{
-			if (QAnalyzer?.Params != null && lrfs.TimeRslt != null)
+            LeftRightFrequencySeries? fs = null;
+			if (QAnalyzer?.Params != null && lrts != null)
 			{
-				var norms = Chirps.NormalizeChirpDbl(signal, gws.Voltage, (lrfs.TimeRslt.Left, lrfs.TimeRslt.Right));
-                lrfs.FreqRslt = new();
-				lrfs.FreqRslt.Left = norms.Item1;
-				lrfs.FreqRslt.Right = norms.Item2;
-				lrfs.FreqRslt.Df = QaLibrary.CalcBinSize((uint)gwSample.SampleRate, (uint)gwSample.SampleSize);
+				var norms = Chirps.NormalizeChirpDbl(signal, voltage, (lrts.Left, lrts.Right));
+                fs = new();
+				fs.Left = norms.Item1;
+				fs.Right = norms.Item2;
+				fs.Df = QaLibrary.CalcBinSize(sampleRate, sampleSize);
 			}
+            return fs;
 		}
 
 		/// <summary>
@@ -240,9 +228,10 @@ namespace QA40x_BareMetal
 			if (ct.IsCancellationRequested)
 				return lrfs;
 
-            if(getFreq)
-                CalculateFreq(lrfs);
-
+            if (getFreq)
+            {
+				lrfs.FreqRslt = CalculateFreq(lrfs.TimeRslt);
+            }
 			return lrfs;        // Only one measurement
 		}
 
@@ -255,7 +244,7 @@ namespace QA40x_BareMetal
 		/// <param name="attenuation"></param>
 		/// <param name="setdefault">this may take a little time, so do it once?</param>
 		/// <returns>success true or false</returns>
-		public static bool InitializeDevice(uint sampleRate, uint fftsize, string Windowing, int attenuation, bool setdefault = false)
+		public static bool InitializeDevice(uint sampleRate, uint fftsize, string Windowing, int attenuation)
 		{
 			try
 			{
@@ -267,10 +256,10 @@ namespace QA40x_BareMetal
 					Open();
                 }
 				var qan = _qAnalyzer;
-				if (setdefault && qan != null)
-                {
-                    qan?.DataReader?.Reset();
-                }
+				//if (setdefault && qan != null)
+    //            {
+    //                qan?.DataReader?.Reset();
+    //            }
 				if (qan == null || qan.Params == null)
 					return false;
 

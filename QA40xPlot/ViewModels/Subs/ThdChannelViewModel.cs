@@ -10,14 +10,34 @@ using QA40xPlot.Libraries;
 
 namespace QA40xPlot.ViewModels
 {
-	public class ThdChannelViewModel : BaseViewModel
+	public class ThdChannelViewModel : FloorViewModel
 	{
-		//public string ChannelId { get; set; }
+		private List<HarmonicData> _Harmonics = new List<HarmonicData>();         // type of alert
+		public List<HarmonicData> Harmonics
+		{
+			get => _Harmonics;
+			set => SetProperty(ref _Harmonics, value);
+		}
+
+		private double _GeneratorVolts = 0;         // type of alert
+		public double GeneratorVolts
+		{
+			get => _GeneratorVolts;
+			set => SetProperty(ref _GeneratorVolts, value);
+		}
+
 		private double _FundamentalFrequency = 0;         // type of alert
 		public double FundamentalFrequency
 		{
 			get => _FundamentalFrequency; 
 			set => SetProperty(ref _FundamentalFrequency, value);
+		}
+
+		private double _FundamentalVolts = 0;         // type of alert
+		public double FundamentalVolts
+		{
+			get => _FundamentalVolts;
+			set => SetProperty(ref _FundamentalVolts, value);
 		}
 
 		private double _SNRatio = 0;         // type of alert
@@ -34,13 +54,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ENOB, value);
 		}
 
-		private ThdFrequencyStepChannel? _MyStep = null;         // type of alert
-		[JsonIgnore]
-		public ThdFrequencyStepChannel? MyStep
-		{
-			get => _MyStep;
-			set => SetProperty(ref _MyStep, value);
-		}
 		private string _NoiseFloorView = "0";
 		[JsonIgnore]
 		public string NoiseFloorView
@@ -61,6 +74,18 @@ namespace QA40xPlot.ViewModels
 			get => _ThdNInV;
 			set => SetProperty(ref _ThdNInV, value);
 		}
+		private double _TotalW;
+		public double TotalW
+		{
+			get => _TotalW;
+			set => SetProperty(ref _TotalW, value);
+		}
+		private double _GaindB;
+		public double GaindB
+		{
+			get => _GaindB;
+			set => SetProperty(ref _GaindB, value);
+		}
 		private double _ThdInV;
 		public double ThdInV
 		{
@@ -73,11 +98,29 @@ namespace QA40xPlot.ViewModels
 			get => _ThdIndB;
 			set => SetProperty(ref _ThdIndB, value);
 		}
+		private double _ThdNIndB;
+		public double ThdNIndB
+		{
+			get => _ThdNIndB;
+			set => SetProperty(ref _ThdNIndB, value);
+		}
 		private double _ThdInPercent;
 		public double ThdInPercent
 		{
 			get => _ThdInPercent;
 			set => SetProperty(ref _ThdInPercent, value);
+		}
+		private double _ThdNInPercent;
+		public double ThdNInPercent
+		{
+			get => _ThdNInPercent;
+			set => SetProperty(ref _ThdNInPercent, value);
+		}
+		private double _NoiseFloorV;
+		public double NoiseFloorV
+		{
+			get => _NoiseFloorV;
+			set => SetProperty(ref _NoiseFloorV, value);
 		}
 		private double _NoiseFloordBV;
 		public double NoiseFloordBV
@@ -98,19 +141,18 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowDataPercents, value);
 		}
 
-		public void CalculateChannelValues(ThdFrequencyStepChannel step, double Fundamental, bool showPercent)
+		public void CalculateChannelValues(double Fundamental, bool showPercent)
 		{
-			MyStep = step;
 			FundamentalFrequency = Fundamental;
-			SNRatio = step.Snr_dB;
-			ENOB = (SNRatio - 1.76) / 6.02;
-			ThdInV = step.Total_V * step.Thd_Percent / 100;
-			ThdIndB = step.Thd_dB;
-			ThdInPercent = 100*Math.Pow(10, step.Thd_dB / 20);
-			ThdNInV = step.Total_V * step.Thd_PercentN / 100;
-			ShowDataPercents = showPercent;
-			NoiseFloordBV = QaLibrary.ConvertVoltage(step.TotalNoiseFloor_V, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-			NoiseFloorPct = 100 * step.TotalNoiseFloor_V / step.Total_V;
+			//SNRatio = step.Snr_dB;
+			//ENOB = (SNRatio - 1.76) / 6.02;
+			//ThdInV = step.Total_V * step.Thd_Percent / 100;
+			//ThdIndB = step.Thd_dB;
+			//ThdInPercent = 100*Math.Pow(10, step.Thd_dB / 20);
+			//ThdNInV = step.Total_V * step.Thd_PercentN / 100;
+			//ShowDataPercents = showPercent;
+			//NoiseFloordBV = QaLibrary.ConvertVoltage(step.TotalNoiseFloor_V, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+			//NoiseFloorPct = 100 * step.TotalNoiseFloor_V / step.Total_V;
 		}
 	}
 }

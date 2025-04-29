@@ -157,12 +157,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowDataPercent, value);
 		}
 
-		private string _Windowing = String.Empty;
-		public string WindowingMethod
-		{
-			get => _Windowing;
-			set => SetProperty(ref _Windowing, value);
-		}
 		private int _InputRange;
 		public int InputRange
 		{
@@ -480,6 +474,7 @@ namespace QA40xPlot.ViewModels
 
 		public ImdViewModel()
 		{
+			Name = "Intermodulation";
 			PropertyChanged += CheckPropertyChanged;
 			MouseTracked += DoMouseTracked;
 
@@ -498,8 +493,6 @@ namespace QA40xPlot.ViewModels
 			ShowDataPercent = true;
 			ShowLeft = true;
 			ShowRight = false;
-
-			WindowingMethod = "Hann";
 
 			InputRange = 0;
 			RangeTopdB = "20";

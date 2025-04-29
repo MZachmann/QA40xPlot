@@ -398,6 +398,7 @@ public class FreqRespViewModel : BaseViewModel
 
 	public FreqRespViewModel()
 	{
+		Name = "Response";
 		PropertyChanged += CheckPropertyChanged;
 		MouseTracked += DoMouseTracked;
 

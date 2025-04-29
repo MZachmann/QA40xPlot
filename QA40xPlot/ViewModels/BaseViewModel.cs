@@ -13,7 +13,7 @@ using Xceed.Wpf.Toolkit;
 
 namespace QA40xPlot.ViewModels
 {
-	public abstract class BaseViewModel : FloorViewModel, IMouseTracker
+	public abstract class BaseViewModel : FloorViewModel, IMouseTracker, ICloneable
 	{
 		// public INavigation ViewNavigator { get; set; }
 		#region Shared Properties
@@ -53,6 +53,13 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public string GenAmpUnits { get => (IsGenPower ? "W" : "V"); }
 
+		private string _Name = string.Empty;         // name of the test
+		public string Name
+		{
+			get => _Name;
+			set => SetProperty(ref _Name, value);
+		}
+
 		private string _PlotFormat = "dBV";
 		public string PlotFormat
 		{
@@ -71,6 +78,12 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _FftSize;
 			set => SetProperty(ref _FftSize, value);
+		}
+		private string _Windowing = string.Empty;
+		public string WindowingMethod
+		{
+			get => _Windowing;
+			set => SetProperty(ref _Windowing, value);
 		}
 		private uint _Averages;         // type of alert
 		public uint Averages
@@ -210,6 +223,11 @@ namespace QA40xPlot.ViewModels
 			return (E_GeneratorDirection)u;
 		}
 
+		public object Clone()
+		{
+			return this.MemberwiseClone();
+		}
+
 		/// <summary>
 		/// Given an input voltage determine the output voltage for this channel
 		/// </summary>
@@ -343,6 +361,7 @@ namespace QA40xPlot.ViewModels
 			FftSize = "64K";
 			Averages = 1;
 			PlotFormat = "dBV";
+			WindowingMethod = "Hann";
 		}
 
 		public void SetupMainPlot(PlotControl plot)

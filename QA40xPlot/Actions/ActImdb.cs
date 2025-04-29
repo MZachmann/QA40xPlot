@@ -196,7 +196,7 @@ namespace QA40xPlot.Actions
 			var fftsize = msrImd.FftSizeVal;
 			freq = QaLibrary.GetNearestBinFrequency(freq, sampleRate, fftsize); // make sure it's a bin center frequency
 			freq2 = QaLibrary.GetNearestBinFrequency(freq2, sampleRate, fftsize); // make sure it's a bin center frequency
-			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, msrImd.WindowingMethod, (int)msrImd.Attenuation, msr.FrequencySteps.Count == 0))
+			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, msrImd.WindowingMethod, (int)msrImd.Attenuation))
 				return false;
 			QaUsb.SetOutputSource(OutputSources.Off);            // We need to call this to make it turn on or off
 
@@ -709,6 +709,7 @@ namespace QA40xPlot.Actions
 				// show that we're autoing...
 				if (msr.DoAutoAttn)
 					imdVm.Attenuation = QaLibrary.DEVICE_MAX_ATTENUATION;
+				await showMessage("Calculating DUT gain"); 
 				LRGains = await DetermineGainCurve(true, 1);
 			}
 			var binSize = QaLibrary.CalcBinSize(msr.SampleRateVal, msr.FftSizeVal);

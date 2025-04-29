@@ -452,7 +452,7 @@ namespace QA40xPlot.Actions
 			var genVolt = frqrsVm.ToGenVoltage(msr.Gen1Voltage, frqtest, GEN_INPUT, LRGains?.Left);
 			var voltagedBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);  // in dbv
 
-			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, "Hann", (int)msr.Attenuation, true))
+			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, "Hann", (int)msr.Attenuation))
 			{
 				return false;
 			}

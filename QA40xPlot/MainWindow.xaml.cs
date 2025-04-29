@@ -127,6 +127,12 @@ namespace QA40xPlot
 			}
 		}
 
+		public static void ForceRepaint()
+		{
+			// Force the entire window to repaint
+			Application.Current.MainWindow.InvalidateVisual();
+		}
+
 		protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
 		{
 			if (QaLowUsb.IsDeviceConnected() == true)
@@ -145,7 +151,7 @@ namespace QA40xPlot
 					MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
 				}
 			}
-			//do my stuff before closing
+			// do my stuff before closing
 			if ( ViewSettings.IsSaveOnExit)
 			{
 				try

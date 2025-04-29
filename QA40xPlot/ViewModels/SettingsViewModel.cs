@@ -4,12 +4,22 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace QA40xPlot.ViewModels
 {
 	public class SettingsViewModel : BaseViewModel
 	{
 		#region setters and getters
+		private Rect _WindowPlace;
+		public Rect WindowPlace
+		{
+			get { return _WindowPlace; }
+			set
+			{
+				SetProperty(ref _WindowPlace, value);
+			}
+		}
 		private string _TestChannel = "Left";
 		public string TestChannel
 		{
@@ -43,6 +53,7 @@ namespace QA40xPlot.ViewModels
 
 		public SettingsViewModel() 
 		{
+			Name = "Settings";
 			this.AmplifierLoad = "10";
 		}
 	}

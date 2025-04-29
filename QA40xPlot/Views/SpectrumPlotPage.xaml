@@ -162,6 +162,19 @@
                                SelectedValue="{Binding WindowingMethod}" ItemsSource="{Binding WindowingTypes}">
                 </ComboBox>
             </Grid>
+            <views:GroupHeader Header="Storage" />
+            <Grid >
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="15" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Button Content="Save" IsEnabled="{Binding IsNotRunning}" FontSize="14" Command="{Binding DoSave}" Grid.Column="0" Grid.Row="0"  HorizontalAlignment="Right"></Button>
+                <Button Content="Load" IsEnabled="{Binding IsNotRunning}" FontSize="14" Command="{Binding DoLoad}" Grid.Column="2" Grid.Row="0" HorizontalAlignment="Left"></Button>
+            </Grid>
 
         </StackPanel>
         <Grid Grid.Column="1">

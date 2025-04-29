@@ -240,7 +240,7 @@ namespace QA40xPlot.Actions
 			double testFreq = MathUtil.ToDouble(msr.TestFreq, 1000);
 			double testFrequency = QaLibrary.GetNearestBinFrequency(testFreq, msr.SampleRateVal, msr.FftSizeVal);
 
-			await showMessage("Calculating attenuation");
+			await showMessage("Calculating DUT gain");
 			LRGains = await DetermineGainAtFreq(testFrequency, true, 2);
 			if (LRGains == null)
 				return false;
@@ -265,7 +265,7 @@ namespace QA40xPlot.Actions
 			// ********************************************************************
 			// Do noise floor measurement
 			// ********************************************************************
-			if (true != QaUsb.InitializeDevice(msr.SampleRateVal, msr.FftSizeVal, msr.WindowingMethod, 12, false))
+			if (true != QaUsb.InitializeDevice(msr.SampleRateVal, msr.FftSizeVal, msr.WindowingMethod, 12))
 			{
 				return false;
 			}

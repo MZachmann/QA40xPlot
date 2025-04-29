@@ -2,13 +2,11 @@
 
 // this aggregates the settings somewhere static, which does mean only one of each
 
-using System.Diagnostics;
 using System.Reflection;
 using System.Windows;
-using System.Windows.Navigation;
 using Newtonsoft.Json;
+using QA40xPlot.Data;
 using QA40xPlot.Libraries;
-using QA40xPlot.Views;
 
 namespace QA40xPlot.ViewModels
 {
@@ -27,6 +25,8 @@ namespace QA40xPlot.ViewModels
 		public SettingsViewModel SettingsVm { get; private set; }
 		// these are output only and don't need serializing
 		[JsonIgnore]
+		public List<object> MyTabLibrary { get; private set; } = new List<object>();
+		[JsonIgnore]
 		public ThdChannelViewModel ChannelLeft { get; private set; }
 		[JsonIgnore]
 		public ThdChannelViewModel ChannelRight { get; private set; }
@@ -38,42 +38,6 @@ namespace QA40xPlot.ViewModels
 		public ImdChannelViewModel ImdChannelLeft { get; private set; }
 		[JsonIgnore]
 		public ImdChannelViewModel ImdChannelRight { get; private set; }
-
-		public static void GetPropertiesFrom(Dictionary<string, Dictionary<string, object>> vwsIn, string name, object dest)
-		{
-			if (vwsIn == null || dest == null)
-				return;
-			if (!vwsIn.ContainsKey(name))
-				return;
-			Dictionary<string, object> vws = (Dictionary<string, object>)vwsIn[name];
-
-			Type type = dest.GetType();
-			PropertyInfo[] properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-			try
-			{
-				foreach (PropertyInfo property in properties)
-				{
-					if (property.CanRead && property.CanWrite)
-					{
-						if (vws.ContainsKey(property.Name))
-						{
-							object value = vws[property.Name];
-							try
-							{
-								//Debug.WriteLine("Property " + property.Name);
-								property.SetValue(dest, Convert.ChangeType(value, property.PropertyType));
-							}
-							catch (Exception ) { }    // for now ignore this
-						}
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information); 
-			}
-
-		}
 
 		[JsonIgnore]
 		public static double AmplifierLoad { get => MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.AmplifierLoad, 0); }
@@ -88,14 +52,14 @@ namespace QA40xPlot.ViewModels
 
 		public void GetSettingsFrom( Dictionary<string, Dictionary<string,object>> vws)
 		{
-			GetPropertiesFrom(vws,"Main",Main);
-			GetPropertiesFrom(vws,"SpectrumVm",SpectrumVm);
-			GetPropertiesFrom(vws,"ImdVm",ImdVm);
-			GetPropertiesFrom(vws,"ThdAmp",ThdAmp);
-			GetPropertiesFrom(vws,"ThdFreq",ThdFreq);
-			GetPropertiesFrom(vws,"FreqRespVm",FreqRespVm);
-			GetPropertiesFrom(vws,"SettingsVm", SettingsVm);
-			GetPropertiesFrom(vws,"ScopeVm", ScopeVm);
+			Util.GetPropertiesFrom(vws,"Main",Main);
+			Util.GetPropertiesFrom(vws,"SpectrumVm",SpectrumVm);
+			Util.GetPropertiesFrom(vws,"ImdVm",ImdVm);
+			Util.GetPropertiesFrom(vws,"ThdAmp",ThdAmp);
+			Util.GetPropertiesFrom(vws,"ThdFreq",ThdFreq);
+			Util.GetPropertiesFrom(vws,"FreqRespVm",FreqRespVm);
+			Util.GetPropertiesFrom(vws,"SettingsVm", SettingsVm);
+			Util.GetPropertiesFrom(vws,"ScopeVm", ScopeVm);
 		}
 
 		public ViewSettings() 

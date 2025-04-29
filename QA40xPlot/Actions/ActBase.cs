@@ -104,24 +104,24 @@ namespace QA40xPlot.Actions
 			return lrs;
 		}
 
-		protected async Task<LeftRightFrequencySeries?> DetermineGainAtFreq(double dfreq, bool inits, int average = 3)
+		protected static async Task<LeftRightFrequencySeries?> DetermineGainAtFreq(double dfreq, bool inits, int average = 3)
 		{
-			await showMessage("Calculating DUT gain");
 			// initialize very quick run
 			uint fftsize = 65536;
-			uint sampleRate = 48000;
-			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, "Hann", QaLibrary.DEVICE_MAX_ATTENUATION, inits))
+			uint sampleRate = 96000;
+			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, "Hann", QaLibrary.DEVICE_MAX_ATTENUATION))
 				return null;
 
 			// the simplest thing here is to do a quick burst low value...
 			var generatorV = 0.01;          // random low test value
 			// we must have this in the bin center here
 			dfreq = QaLibrary.GetNearestBinFrequency(dfreq, sampleRate, fftsize);
-			QaUsb.SetGen1(dfreq, generatorV, true);             // send a sine wave
-			QaUsb.SetOutputSource(OutputSources.Sine);            // since we're single frequency
+			QaUsb.SetGen1(dfreq, generatorV, true);			// send a sine wave
+			QaUsb.SetOutputSource(OutputSources.Sine);      // since we're single frequency
 			var ct = new CancellationTokenSource();
 			// do two and average them
-			LeftRightSeries acqData = await QaUsb.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
+			await QaUsb.DoAcquisitions(1, ct.Token);        // Do a single acquisition to settle stuff
+			LeftRightSeries acqData = await QaUsb.DoAcquisitions(1, ct.Token);        // Do a single acquisition
 			if (acqData == null || acqData.FreqRslt == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
 				return null;
 
@@ -135,11 +135,12 @@ namespace QA40xPlot.Actions
 
 			var maxi = Math.Max(maxl, maxr);
 			// since we're running with 42db of attenuation...
-			if (maxi < 1)
+			if (maxi < 0.1)
 			{
 				// get some more accuracy with this
 				QaUsb.SetInputRange(18);
 				// do two and average them
+				await QaUsb.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
 				acqData = await QaUsb.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
 				if (acqData == null || acqData.FreqRslt == null || ct.IsCancellationRequested)
 					return null;
@@ -170,13 +171,12 @@ namespace QA40xPlot.Actions
 			return lrfs;       // Return the gain information as a one element frequency series
 		}
 
-		protected async Task<LeftRightFrequencySeries?> DetermineGainCurve(bool inits, int average = 1)
+		protected static async Task<LeftRightFrequencySeries?> DetermineGainCurve(bool inits, int average = 1)
 		{
-			await showMessage("Calculating DUT gain curve");
 			// initialize very quick run
 			uint fftsize = 65536;
 			uint sampleRate = 96000;
-			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, "Rectangular", QaLibrary.DEVICE_MAX_ATTENUATION, inits))
+			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, "Rectangular", QaLibrary.DEVICE_MAX_ATTENUATION))
 				return null;
 
 			{
@@ -185,6 +185,7 @@ namespace QA40xPlot.Actions
 				var chirpy = Chirps.ChirpVp((int)fftsize, sampleRate, generatorV, 6, 24000);
 				var ct = new CancellationTokenSource();
 				// do two and average them
+				await QaUsb.DoAcquireUser(1, ct.Token, chirpy, chirpy, false); // settle
 				LeftRightSeries acqData = await QaUsb.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
 				if (acqData == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
 					return null;
@@ -197,11 +198,12 @@ namespace QA40xPlot.Actions
 
 				var maxi = Math.Max(maxl, maxr);
 				// since we're running with 42db of attenuation...
-				if( maxi < 1)
+				if( maxi < 0.1)
 				{
 					// get some more accuracy with this
-					QaUsb.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION - 24);
+					QaUsb.SetInputRange(18);
 					// do two and average them
+					await QaUsb.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
 					acqData = await QaUsb.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
 					if (acqData == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
 						return null;

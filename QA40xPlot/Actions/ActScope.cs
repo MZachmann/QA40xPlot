@@ -106,7 +106,7 @@ namespace QA40xPlot.Actions
 			// ********************************************************************  
 			// Load a settings we want
 			// ********************************************************************  
-			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, msr.MeasurementSettings.WindowingMethod, (int)msr.MeasurementSettings.Attenuation, msr.FrequencySteps.Count == 0))
+			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, msr.MeasurementSettings.WindowingMethod, (int)msr.MeasurementSettings.Attenuation))
 				return false;
 
 			try
@@ -207,9 +207,9 @@ namespace QA40xPlot.Actions
 					// Calculate the THD
 					{
 						var maxf = 20000;   // the app seems to use 20,000 so not sampleRate/ 2.0;
-						LeftRightPair snrdb = QaCompute.GetSnrDb(lrfs, stepBinFrequencies[0], 20.0, maxf);
-						LeftRightPair thds = QaCompute.GetThdDb(lrfs, stepBinFrequencies[0], 20.0, maxf);
-						LeftRightPair thdN =  QaCompute.GetThdnDb(lrfs, stepBinFrequencies[0], 20.0, maxf);
+						LeftRightPair snrdb = QaCompute.GetSnrDb(lrfs.FreqRslt, stepBinFrequencies[0], 20.0, maxf);
+						LeftRightPair thds = QaCompute.GetThdDb(lrfs.FreqRslt, stepBinFrequencies[0], 20.0, maxf);
+						LeftRightPair thdN =  QaCompute.GetThdnDb(lrfs.FreqRslt, stepBinFrequencies[0], 20.0, maxf);
 
 						step.Left.Thd_dBN = thdN.Left;
 						step.Right.Thd_dBN = thdN.Right;
@@ -217,7 +217,7 @@ namespace QA40xPlot.Actions
 						step.Right.Thd_dB = thds.Right;
 						step.Left.Snr_dB = snrdb.Left;
 						step.Right.Snr_dB = snrdb.Right;
-                        step.Left.Thd_Percent = 100*Math.Pow(10, thds.Left / 20);
+                        step.Left.Thd_Percent = 100 * Math.Pow(10, thds.Left / 20);
 						step.Right.Thd_Percent = 100 * Math.Pow(10, thds.Right / 20);
                         step.Left.Thd_PercentN = 100 * Math.Pow(10, thdN.Left / 20);
 						step.Right.Thd_PercentN = 100 * Math.Pow(10, thdN.Right / 20);
@@ -549,6 +549,7 @@ namespace QA40xPlot.Actions
 				// show that we're autoing...
 				if (scopeVm.DoAutoAttn)
 					scopeVm.Attenuation = QaLibrary.DEVICE_MAX_ATTENUATION;
+				await showMessage("Calculating DUT gain"); 
 				LRGains = await DetermineGainAtFreq(freq, true, 1);
 			}
 
@@ -584,7 +585,10 @@ namespace QA40xPlot.Actions
 						msrSet.GenDirection = scopeVm.GenDirection;
 						var genoType = ToDirection(msrSet.GenDirection);
 						if (LRGains != null && genoType == E_GeneratorDirection.OUTPUT_VOLTAGE)
+						{
+							await showMessage("Calculating DUT gain");
 							LRGains = await DetermineGainAtFreq(MathUtil.ToDouble(msrSet.Gen1Frequency, 1000), false, 1);
+						}
 					}
                     if (scopeVm.FftSize != fftsize || scopeVm.SampleRate != sampleRate || scopeVm.Attenuation != atten)
                     {
@@ -634,7 +638,7 @@ namespace QA40xPlot.Actions
 			var thd = MyVModel;
 			var vm = ViewSettings.Singleton.ScopeChanLeft;
             vm.FundamentalFrequency = 0;
-            vm.CalculateChannelValues(MeasurementResult.FrequencySteps[0].Left, MathUtil.ToDouble( thd.Gen1Frequency), false);
+            vm.CalculateChannelValues(MathUtil.ToDouble( thd.Gen1Frequency), false);
 		}
 
 		public void UpdateGraph(bool settingsChanged)

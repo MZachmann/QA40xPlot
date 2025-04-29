@@ -88,6 +88,66 @@ namespace QA40xPlot.Libraries
 				return -1;
 		}
 
+		public static FftSharp.Window GetWindowType(string windowType)
+		{
+			FftSharp.Window window = new FftSharp.Windows.Rectangular();
+			switch (windowType)
+			{
+				case "Bartlett":
+					window = new FftSharp.Windows.Bartlett();    // best?
+					break;
+				case "Blackman":
+					window = new FftSharp.Windows.Blackman();    // best?
+					break;
+				case "Cosine":
+					window = new FftSharp.Windows.Cosine();    // best?
+					break;
+				case "FlatTop":
+					window = new FftSharp.Windows.FlatTop();    // best?
+					break;
+				case "Hamming":
+					window = new FftSharp.Windows.Hamming();    // best?
+					break;
+				case "Hann":
+					window = new FftSharp.Windows.Hanning();    // best?
+					break;
+				case "Kaiser":
+					window = new FftSharp.Windows.Kaiser();    // best?
+					break;
+				case "Rectangular":
+					window = new FftSharp.Windows.Rectangular();    // best?
+					break;
+				case "Tukey":
+					window = new FftSharp.Windows.Tukey();    // best?
+					break;
+				case "Welch":
+					window = new FftSharp.Windows.Welch();    // best?
+					break;
+			}
+			return window;
+		}
+
+		public static LeftRightFrequencySeries CalculateSpectrum(LeftRightTimeSeries lrfs, string windowing)
+		{
+			LeftRightFrequencySeries lfs = new();
+			var timeSeries = lrfs;
+			var m2 = Math.Sqrt(2);
+			// Left channel
+			// only take half of the data since it's symmetric so length of freq data = 1/2 length of time data
+			var window = GetWindowType(windowing);
+			double[] wdwLeft = window.Apply(timeSeries.Left, true);
+			System.Numerics.Complex[] specLeft = FFT.Forward(wdwLeft).Take(timeSeries.Left.Length / 2).ToArray();
+
+			double[] wdwRight = window.Apply(timeSeries.Right, true);
+			System.Numerics.Complex[] specRight = FFT.Forward(wdwRight).Take(timeSeries.Left.Length / 2).ToArray();
+
+			lfs.Left = specLeft.Select(x => x.Magnitude * m2).ToArray();
+			lfs.Right = specRight.Select(x => x.Magnitude * m2).ToArray();
+			var nca2 = (int)(0.01 + 1 / timeSeries.dt);      // total time in tics = sample rate
+			lfs.Df = nca2 / (double)timeSeries.Left.Length; // ???
+			return lfs;
+		}
+
 		private static List<double> MakeWave(GenWaveform gw, GenWaveSample samples)
 		{
 			var dvamp = gw.Voltage * Math.Sqrt(2); // rms voltage -> peak voltage

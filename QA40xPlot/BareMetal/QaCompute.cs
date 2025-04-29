@@ -50,50 +50,50 @@ namespace QA40xPlot.BareMetal
 			return new(thdLeft, thdRight);
 		}
 
-		internal static LeftRightPair GetSnrDb(LeftRightSeries lrs, double fundFreq, double minFreq, double maxFreq)
+		internal static LeftRightPair GetSnrDb(LeftRightFrequencySeries lrs, double fundFreq, double minFreq, double maxFreq)
 		{
-			if (lrs.FreqRslt == null)
+			if (lrs == null)
 				return new();
 
-			var ffs = lrs.FreqRslt.Left;
-			var thdLeft = ComputeSnrRatio(ffs, lrs.FreqRslt.Df, fundFreq, false);
+			var ffs = lrs.Left;
+			var thdLeft = ComputeSnrRatio(ffs, lrs.Df, fundFreq, false);
 			thdLeft = QaLibrary.ConvertVoltage(thdLeft, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-			ffs = lrs.FreqRslt.Right;
-			var thdRight = ComputeSnrRatio(ffs, lrs.FreqRslt.Df, fundFreq, false);
+			ffs = lrs.Right;
+			var thdRight = ComputeSnrRatio(ffs, lrs.Df, fundFreq, false);
 			thdRight = QaLibrary.ConvertVoltage(thdRight, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
 			return new(thdLeft, thdRight);
 		}
 
-		internal static LeftRightPair GetThdDb(LeftRightSeries lrs, double fundFreq, double minFreq, double maxFreq)
+		internal static LeftRightPair GetThdDb(LeftRightFrequencySeries lrs, double fundFreq, double minFreq, double maxFreq)
 		{
 			// double[] signalFreqLin, double[] frequencies, double fundamental,
 			// int numHarmonics = 5, bool debug = false
-			if (lrs.FreqRslt == null)
+			if (lrs == null)
 				return new();
 
-			var ffs = lrs.FreqRslt.Left;
-			var thdLeft = ComputeThdLinear(ffs, lrs.FreqRslt.Df, fundFreq, 5, false);
+			var ffs = lrs.Left;
+			var thdLeft = ComputeThdLinear(ffs, lrs.Df, fundFreq, 5, false);
 			thdLeft = QaLibrary.ConvertVoltage(thdLeft, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-			ffs = lrs.FreqRslt.Right;
-			var thdRight = ComputeThdLinear(ffs, lrs.FreqRslt.Df, fundFreq, 5, false);
+			ffs = lrs.Right;
+			var thdRight = ComputeThdLinear(ffs, lrs.Df, fundFreq, 5, false);
 			thdRight = QaLibrary.ConvertVoltage(thdRight, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
 			return new(thdLeft, thdRight);
 		}
 
-		internal static LeftRightPair GetThdnDb(LeftRightSeries lrs, double fundFreq, double minFreq, double maxFreq)
+		internal static LeftRightPair GetThdnDb(LeftRightFrequencySeries lrs, double fundFreq, double minFreq, double maxFreq)
 		{
 			// double[] signalFreqLin, double[] frequencies, double fundamental, double notchOctaves = 0.5,
 			// double startFreq = 20.0, double stopFreq = 20000.0, bool debug = false
-			if (lrs.FreqRslt == null)
+			if (lrs == null)
 				return new();
 
-			var ffs = lrs.FreqRslt.Left;
-			var thdLeft = ComputeThdnLinear(ffs, lrs.FreqRslt.Df, fundFreq);
+			var ffs = lrs.Left;
+			var thdLeft = ComputeThdnLinear(ffs, lrs.Df, fundFreq);
 			thdLeft = QaLibrary.ConvertVoltage(thdLeft, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-			ffs = lrs.FreqRslt.Right;
-			var thdRight = ComputeThdnLinear(ffs, lrs.FreqRslt.Df, fundFreq);
+			ffs = lrs.Right;
+			var thdRight = ComputeThdnLinear(ffs, lrs.Df, fundFreq);
 			thdRight = QaLibrary.ConvertVoltage(thdRight, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
 			return new(thdLeft, thdRight);
@@ -338,22 +338,5 @@ namespace QA40xPlot.BareMetal
 			}
 			return Math.Sqrt(sum); // RMS calculation
 		}
-
-		//internal static double ComputeRmsFreq2(double[] signalFreqLin, double[] frequencies, double lowerBound, double upperBound)
-		//{
-		//	var indices = frequencies
-		//		.Select((freq, index) => (freq, index))
-		//		.Where(f => f.freq >= lowerBound && f.freq <= upperBound)
-		//		.Select(f => f.index)
-		//		.ToArray();
-
-		//	if (indices.Length == 0)
-		//	{
-		//		return 0.0;
-		//	}
-
-		//	double sumSquares = indices.Sum(idx => Math.Pow(signalFreqLin[idx], 2));
-		//	return Math.Sqrt(sumSquares); // RMS calculation
-		//}
 	}
 }

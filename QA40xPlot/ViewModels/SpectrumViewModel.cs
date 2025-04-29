@@ -9,10 +9,12 @@ using System.Windows.Input;
 using ScottPlot;
 using ScottPlot.Plottables;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
+using System.Runtime.CompilerServices;
 
 namespace QA40xPlot.ViewModels
 {
-	public class SpectrumViewModel : BaseViewModel
+	public class SpectrumViewModel : BaseViewModel, ICloneable
 	{
 		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 		public static List<String> GenFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "2000", "5000", "10000" }; }
@@ -32,6 +34,10 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand ToggleGenerator { get => new RelayCommand(StopIt); }
 		[JsonIgnore]
 		public RelayCommand<object> DoFitToData { get => new RelayCommand<object>(OnFitToData); }
+		[JsonIgnore]
+		public RelayCommand DoLoad { get => new RelayCommand(LoadIt); }
+		[JsonIgnore]
+		public RelayCommand DoSave { get => new RelayCommand(SaveIt); }
 
 		#region Setters and Getters
 
@@ -151,12 +157,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowDataPercent, value);
 		}
 
-		private string _Windowing = String.Empty;
-		public string WindowingMethod
-		{
-			get => _Windowing;
-			set => SetProperty(ref _Windowing, value);
-		}
 		private int _InputRange;
 		public int InputRange
 		{
@@ -260,13 +260,67 @@ namespace QA40xPlot.ViewModels
 		{
 			// Implement the logic to start the measurement process
 			var vm = MyVModel;
-			vm.actSpec?.StartMeasurement();
+			vm.actSpec?.DoMeasurement();
 		}
 
 		private static void StopIt()
 		{
 			var vm = MyVModel;
 			vm.actSpec?.DoCancel();
+		}
+
+		private static void LoadIt()
+		{
+			OpenFileDialog openFileDialog = new OpenFileDialog
+			{
+				FileName = string.Empty, // Default file name
+				DefaultExt = ".plt", // Default file extension
+				Filter = "Plot files|*.plt|All files|*.*" // Filter files by extension
+			};
+
+			// Show save file dialog box
+			bool? result = openFileDialog.ShowDialog();
+
+			// Process save file dialog box results
+			if (result == true)
+			{
+				// open document
+				string filename = openFileDialog.FileName;
+				var vm = MyVModel;
+				vm.actSpec.LoadFromFile(filename);
+			}
+		}
+
+		private static string FileAddon()
+		{
+			DateTime now = DateTime.Now;
+			string formattedDate = $"{now:yyyy-MM-dd_HH-mm-ss}";
+			return formattedDate;
+		}
+
+		private static void SaveIt()
+		{
+			SaveFileDialog saveFileDialog = new SaveFileDialog
+			{
+				FileName = String.Format("QaSpectrum{0}", FileAddon()), // Default file name
+				DefaultExt = ".plt", // Default file extension
+				Filter = "Plot files|*.plt|All files|*.*" // Filter files by extension
+			};
+
+			// Show save file dialog box
+			bool? result = saveFileDialog.ShowDialog();
+
+			// Process save file dialog box results
+			if (result == true)
+			{
+				// Save document
+				string filename = saveFileDialog.FileName;
+				if(filename.Count() > 1)
+				{
+					var vm = MyVModel;
+					vm.actSpec.SaveToFile(filename);
+				}
+			}
 		}
 
 		private void OnFitToData(object? parameter)
@@ -358,6 +412,7 @@ namespace QA40xPlot.ViewModels
 
 		public SpectrumViewModel()
 		{
+			Name = "Spectrum";
 			PropertyChanged += CheckPropertyChanged;
 			MouseTracked += DoMouseTracked;
 
@@ -376,8 +431,6 @@ namespace QA40xPlot.ViewModels
 			ShowDataPercent = true;
 			ShowLeft = true;
 			ShowRight = false;
-
-			WindowingMethod = "Hann";
 
 			InputRange = 0;
 			RangeTopdB = "20";
