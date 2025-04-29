@@ -208,6 +208,9 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
+				case "Name":
+					actSpec?.UpdatePlotTitle();
+					break;
 				case "PlotFormat":
 					// we may need to change the axis
 					ToShowRange = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Collapsed : Visibility.Visible;
@@ -467,6 +470,7 @@ namespace QA40xPlot.ViewModels
 
 			ToShowRange = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Collapsed : Visibility.Visible;
 			ToShowdB = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Visible : Visibility.Collapsed;
+			ShowTabInfo = false;
 
 			// make a few things happen to synch the gui
 			Task.Delay(1000).ContinueWith(t => { actSpec?.UpdateGraph(true); });

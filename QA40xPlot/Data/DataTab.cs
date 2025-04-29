@@ -2,6 +2,7 @@
 using QA40xPlot.ViewModels;
 using Newtonsoft.Json;
 using Windows.Gaming.Input;
+using System.ComponentModel;
 
 namespace QA40xPlot.Data
 {
@@ -29,8 +30,23 @@ namespace QA40xPlot.Data
 			CreateDate = string.Empty;
 			Saved = false;
 			GeneratorVoltage = 1e-10;
+			PropertyChanged += ChangeDefinition;
+		}
+
+		~DataDescript()
+		{
+			PropertyChanged -= ChangeDefinition;
+		}
+
+		private void ChangeDefinition(object? sender, PropertyChangedEventArgs e)
+		{
+			if (e.PropertyName == "Name")
+			{
+				var x = 12;
+			}
 		}
 	}
+
 	// our way of storing results (pages) in our Document. Each datatab has
 	// a viewmodel, a time series and a dictionary of other properties
 	public class DataTab<T>

@@ -19,7 +19,7 @@ namespace QA40xPlot.Actions
 
 	public class ActSpectrum : ActBase
     {
-		private DataTab<SpectrumViewModel>? PageData { get; set; } // Data used in this form instance
+		private DataTab<SpectrumViewModel> PageData { get; set; } // Data used in this form instance
 		private List<DataTab<SpectrumViewModel>> OtherTabs { get; set; } = new List<DataTab<SpectrumViewModel>>(); // Other tabs in the document
 		private readonly Views.PlotControl fftPlot;
 
@@ -35,10 +35,11 @@ namespace QA40xPlot.Actions
         {
 			fftPlot = graphFft;
 			ct = new CancellationTokenSource();
+			PageData = new( MyVModel, new LeftRightTimeSeries());
 			UpdateGraph(true);
-        }
+		}
 
-        public void DoCancel()
+		public void DoCancel()
         {
             ct.Cancel();
 		}
@@ -50,8 +51,8 @@ namespace QA40xPlot.Actions
 		public DataBlob? CreateExportData()
 		{
 			var specVm = MyVModel;
-			var vm = PageData?.ViewModel;
-			if ( vm == null || PageData?.FreqRslt == null)
+			var vm = PageData.ViewModel;
+			if ( vm == null || PageData.FreqRslt == null)
 				return null;
 
 			DataBlob db = new();
@@ -184,6 +185,8 @@ namespace QA40xPlot.Actions
 			ct = new();
 			LeftRightTimeSeries lrts = new();
 			DataTab<SpectrumViewModel> NextPage = new(specVm, lrts);
+			NextPage.Definition = PageData.Definition;
+			NextPage.Definition.CreateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 			var vm = NextPage.ViewModel;
 			if (vm == null)
 				return;
@@ -218,28 +221,24 @@ namespace QA40xPlot.Actions
 			// and frequency data
 
 			var rslt = await RunAcquisition(NextPage, ct.Token);
-			if (!rslt)
-				return;
-
-			rslt = await PostProcess(NextPage, ct.Token);
+			if (rslt)
+				rslt = await PostProcess(NextPage, ct.Token);
 
 			if (rslt)
 			{
 				if (!ReferenceEquals(PageData, NextPage))
 					PageData = NextPage;        // finally update the pagedata for display and processing
+				UpdateGraph(true);
 			}
-			UpdateGraph(true);
 
-			if (PageData != null)
+			ViewSettings.Singleton.TabDefs = PageData.Definition; // link to the definitions
+			while (rslt && !ct.IsCancellationRequested)
 			{
-				ViewSettings.Singleton.TabDefs = PageData.Definition; // link to the definitions
-				while (!ct.IsCancellationRequested)
+				if (PageData.ViewModel != null)
+					MyVModel.CopyPropertiesTo(PageData.ViewModel);  // update the view model with latest settings
+				rslt = await RunAcquisition(PageData, ct.Token);
+				if (rslt)
 				{
-					if (PageData.ViewModel != null)
-						MyVModel.CopyPropertiesTo(PageData.ViewModel);  // update the view model with latest settings
-					rslt = await RunAcquisition(PageData, ct.Token);
-					if (!rslt)
-						return;
 					rslt = await PostProcess(PageData, ct.Token);
 					UpdateGraph(false);
 				}
@@ -247,7 +246,7 @@ namespace QA40xPlot.Actions
 
 			specVm.IsRunning = false;
 			await showMessage("");
-			MyVModel.HasExport = NextPage.FreqRslt != null;
+			MyVModel.HasExport = PageData.FreqRslt != null;
 			EndAction();
 		}
 
@@ -314,6 +313,8 @@ namespace QA40xPlot.Actions
 				if (msr.NoiseFloor == null)
 				{
 					var noisy = await MeasureNoise(ct);
+					if (ct.IsCancellationRequested)
+						return false;
 					msr.NoiseFloor = new LeftRightPair();
 					msr.NoiseFloor.Right = QaCompute.CalculateNoise(noisy.FreqRslt, true);
 					msr.NoiseFloor.Left = QaCompute.CalculateNoise(noisy.FreqRslt, false);
@@ -342,11 +343,16 @@ namespace QA40xPlot.Actions
 				lrfs = await QaUsb.DoAcquireUser(vm.Averages, ct, wave, wave, false);
 
 				if (lrfs.TimeRslt != null)
+				{
 					msr.TimeRslt = lrfs.TimeRslt;
-
-				await showProgress(50);
-				BuildFrequencies(msr);		// do the relevant fft work
-				await showProgress(90);
+					await showProgress(50);
+					BuildFrequencies(msr);      // do the relevant fft work
+					await showProgress(90);
+				}
+				else
+				{
+					return false;
+				}
 			}
 			catch (Exception ex)
 			{
@@ -631,7 +637,7 @@ namespace QA40xPlot.Actions
 
 		public Rect GetDataBounds()
 		{
-			var vm = PageData?.ViewModel;	// measurement settings
+			var vm = PageData.ViewModel;	// measurement settings
 			if(vm == null || PageData == null || PageData.FreqRslt == null)
 				return Rect.Empty;
 
@@ -672,7 +678,7 @@ namespace QA40xPlot.Actions
 		/// <returns>a tuple of df, value, value in pct</returns>
 		public ValueTuple<double,double,double> LookupXY(double freq, double posndBV, bool useRight)
 		{
-			var fftdata = PageData?.FreqRslt;
+			var fftdata = PageData.FreqRslt;
 			if (freq <= 0 || fftdata == null || PageData == null)
 				return ValueTuple.Create(0.0,0.0,0.0);
 			try
@@ -720,6 +726,15 @@ namespace QA40xPlot.Actions
 			return MathUtil.ToDouble(stri);
 		}
 
+		public void UpdatePlotTitle()
+		{
+			var thdFreq = MyVModel;
+			ScottPlot.Plot myPlot = fftPlot.ThePlot;
+			myPlot.Title("Spectrum");
+			if (PageData.Definition.Name != null && PageData.Definition.Name.Length > 0)
+				myPlot.Title("Spectrum : " + PageData.Definition.Name);
+		}
+
 		/// <summary>
 		/// Initialize the magnitude plot
 		/// </summary>
@@ -734,7 +749,7 @@ namespace QA40xPlot.Actions
 
 			myPlot.Axes.SetLimitsY( ToD(thdFreq.RangeBottomdB), ToD(thdFreq.RangeTopdB), myPlot.Axes.Left);
 
-			myPlot.Title("Spectrum");
+			UpdatePlotTitle();
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
 
@@ -843,7 +858,7 @@ namespace QA40xPlot.Actions
 			PlotValues(PageData, resultNr++);
 
 
-            if( PageData?.FreqRslt != null)
+            if( PageData.FreqRslt != null)
             {
 				ShowHarmonicMarkers(PageData);
 				ShowPowerMarkers(PageData);

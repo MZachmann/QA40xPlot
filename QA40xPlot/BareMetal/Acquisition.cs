@@ -76,19 +76,17 @@ namespace QA40xPlot.BareMetal
                 // other UI tasks. This is known in C# as the Task-based Asynchronous Pattern in case the syntax is confusing to
                 // a non-c# developer
                 await t;
-
-                // Return true to let the caller know the task succeeded and finished
-                return r;
             }
             else
             {
                 // Acquisition is already in progress. 
                 r.Valid = false;
-                return r;
             }
-        }
+			// Return true to let the caller know the task succeeded and finished
+			return r;
+		}
 
-        public static AcqResult DoStreaming(CancellationToken ct, double[] leftOut, double[] rightOut)
+		public static AcqResult DoStreaming(CancellationToken ct, double[] leftOut, double[] rightOut)
         {
             AcqResult r = new AcqResult();
             r.Valid = true;
@@ -169,7 +167,7 @@ namespace QA40xPlot.BareMetal
                 var bufr = QaUsb.ReadDataEnd();
                 usbRxBuffers.Add(bufr);
 
-                if (ct.IsCancellationRequested == false)
+                if (true) // !! ct.IsCancellationRequested == false)
                 {
                     // Kick off another read and write
                     QaUsb.ReadDataBegin(usbBufSize);
@@ -185,7 +183,7 @@ namespace QA40xPlot.BareMetal
 
             // At this point, all buffers have been sent and there are two RX
             // buffers in-flight. Collect those
-            var remaining = prereader - (ct.IsCancellationRequested ? 1 : 0);
+            var remaining = prereader; // - (ct.IsCancellationRequested ? 1 : 0);
 			for (int i = 0; i < remaining; i++)
             {
                 var bufr = QaUsb.ReadDataEnd();
@@ -208,25 +206,31 @@ namespace QA40xPlot.BareMetal
 
 			// Note that left and right data is swapped on QA402, QA403, QA404. We do that via arg ordering below.
 			FromByteStream(rxData, out r.Right, out r.Left);
-            // Convert from dBFS to dBV. Note the 6 dB factor--the ADC is differential
-			var adcCorrection = Math.Pow(10, (aParams.MaxInputLevel - 6.0) / 20);
-            var tused = aParams.FFTSize;    // should be fftsize
+            if(r.Valid == true && r.Left.Length > prebuf.Length)
+            {
+				// Convert from dBFS to dBV. Note the 6 dB factor--the ADC is differential
+				var adcCorrection = Math.Pow(10, (aParams.MaxInputLevel - 6.0) / 20);
+				var tused = aParams.FFTSize;    // should be fftsize
 
-            // Apply scaling factor to map from dBFS to Volts. 
-            var loff = 0;
-            var rlf = r.Left.Skip(prebuf.Length + loff).Take(tused);
-            var roff = rlf.Sum() / rlf.Count();  // dc offset
-			r.Left = rlf.Select(x => (x - roff) * adcCal.Left * adcCorrection).ToArray();
+				// Apply scaling factor to map from dBFS to Volts. 
+				var loff = 0;
+				var rlf = r.Left.Skip(prebuf.Length + loff).Take(tused);
+				var roff = rlf.Sum() / rlf.Count();  // dc offset
+				r.Left = rlf.Select(x => (x - roff) * adcCal.Left * adcCorrection).ToArray();
 
-            var rrf = r.Right.Skip(prebuf.Length + loff).Take(tused);
-            roff = rrf.Sum() / rlf.Count();  // dc offset
-            r.Right = rrf.Select(x => (x - roff) * adcCal.Right * adcCorrection).ToArray();
+				var rrf = r.Right.Skip(prebuf.Length + loff).Take(tused);
+				roff = rrf.Sum() / rlf.Count();  // dc offset
+				r.Right = rrf.Select(x => (x - roff) * adcCal.Right * adcCorrection).ToArray();
 
-			Debug.WriteLine($"Attenuation: {aParams.MaxInputLevel}  Output Level: {aParams.MaxOutputLevel}");
-			Debug.WriteLine($"Peak Left: {r.Left.Max():0.000}   Peak right: {r.Right.Max():0.000}");
-			Debug.WriteLine($"Total Left: {Math.Sqrt(r.Left.Sum(x=>x*x)):0.000}   Total right: {Math.Sqrt(r.Right.Sum(x=>x*x)):0.000}");
-
-			return r;
+				Debug.WriteLine($"Attenuation: {aParams.MaxInputLevel}  Output Level: {aParams.MaxOutputLevel}");
+				Debug.WriteLine($"Peak Left: {r.Left.Max():0.000}   Peak right: {r.Right.Max():0.000}");
+				Debug.WriteLine($"Total Left: {Math.Sqrt(r.Left.Sum(x => x * x)):0.000}   Total right: {Math.Sqrt(r.Right.Sum(x => x * x)):0.000}");
+			}
+            else
+            {
+                r.Valid = false;
+            }
+            return r;
         }
 
         /// <summary>
