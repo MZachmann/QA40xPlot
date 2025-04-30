@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 
 namespace QA40xPlot.ViewModels
 {
@@ -13,15 +7,17 @@ namespace QA40xPlot.ViewModels
 		public static List<String> UsbBufferSizes { get => new List<string>() { "2048", "4096", "8192", "16384", "32768", "65536"}; }
 
 		#region setters and getters
-		private Rect _WindowPlace;
-		public Rect WindowPlace
+		private bool _UseREST;
+		public bool UseREST
 		{
-			get { return _WindowPlace; }
+			get { return _UseREST; }
 			set
 			{
-				SetProperty(ref _WindowPlace, value);
+				SetProperty(ref _UseREST, value);
+				WindowingTypes = value ? WindowingRESTTypes : WindowingUSBTypes;
 			}
 		}
+
 		private string _TestChannel = "Left";
 		public string TestChannel
 		{

@@ -265,7 +265,7 @@ namespace QA40xPlot.Actions
 			// ********************************************************************
 			// Do noise floor measurement
 			// ********************************************************************
-			if (true != QaUsb.InitializeDevice(msr.SampleRateVal, msr.FftSizeVal, msr.WindowingMethod, 12))
+			if (true != await QaComm.InitializeDevice(msr.SampleRateVal, msr.FftSizeVal, msr.WindowingMethod, 12))
 			{
 				return false;
 			}
@@ -279,7 +279,7 @@ namespace QA40xPlot.Actions
 
 			var binSize = QaLibrary.CalcBinSize(msr.SampleRateVal, msr.FftSizeVal);
 			uint fundamentalBin = QaLibrary.GetBinOfFrequency(testFrequency, binSize);
-			QaUsb.SetOutputSource(OutputSources.Sine);                // We need to call this before all the testing
+			await QaComm.SetOutputSource(OutputSources.Sine);                // We need to call this before all the testing
 
 			// ********************************************************************
 			// Step through the list of voltages
@@ -297,8 +297,8 @@ namespace QA40xPlot.Actions
 				var generatorVoltageV = stepInVoltages[i];
 
 				// Set generator
-				QaUsb.SetGen1(testFrequency, generatorVoltageV, true);      // Set the generator in dBV
-				QaUsb.SetInputRange(attenuate);
+				WaveGenerator.SetGen1(testFrequency, generatorVoltageV, true);      // Set the generator in dBV
+				await QaComm.SetInputRange(attenuate);
 				thdaVm.Attenuation = attenuate;	// update the GUI
 
 				LeftRightSeries? lrfs = null;
@@ -306,7 +306,7 @@ namespace QA40xPlot.Actions
 				{
 					try
 					{
-						lrfs = await QaUsb.DoAcquisitions(msr.Averages, ct);  // Do acquisitions
+						lrfs = await QaComm.DoAcquisitions(msr.Averages, ct);  // Do acquisitions
 					}
 					catch (HttpRequestException ex)
 					{
@@ -382,7 +382,7 @@ namespace QA40xPlot.Actions
 
 			}
 
-			EndAction();
+			await EndAction();
 
 			// Show message
 			await showMessage(ct.IsCancellationRequested ? $"Measurement cancelled!" : $"Measurement finished!");
@@ -645,7 +645,7 @@ namespace QA40xPlot.Actions
 		public async void StartMeasurement()
 		{
 			var thdAmp = MyVModel;
-			if (!StartAction(thdAmp))
+			if (!await StartAction(thdAmp))
 				return;
 
 			ct = new();

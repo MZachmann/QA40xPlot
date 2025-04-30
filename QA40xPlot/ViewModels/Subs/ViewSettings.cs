@@ -51,6 +51,8 @@ namespace QA40xPlot.ViewModels
 
 		[JsonIgnore]
 		public static bool IsSaveOnExit { get => ViewSettings.Singleton.SettingsVm?.SaveOnExit == "True"; }
+		[JsonIgnore]
+		public static bool IsUseREST { get => ViewSettings.Singleton.SettingsVm?.UseREST == true; }
 
 		public void GetSettingsFrom( Dictionary<string, Dictionary<string,object>> vws)
 		{

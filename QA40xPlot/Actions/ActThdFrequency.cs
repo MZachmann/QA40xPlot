@@ -192,7 +192,7 @@ namespace QA40xPlot.Actions
 
             }
 			// Turn the generator off no matter what, since there are random returns in the perform code
-			QaUsb.SetOutputSource(OutputSources.Off);
+			await QaComm.SetOutputSource(OutputSources.Off);
 			return rslt;
 		}
 
@@ -246,7 +246,7 @@ namespace QA40xPlot.Actions
 
                 // Set the new input range
                 MyVModel.Attenuation = attenuation;   // visible display
-                QaUsb.SetInputRange(attenuation);
+                await QaComm.SetInputRange(attenuation);
 
                 // Check if cancel button pressed
                 if (ct.IsCancellationRequested)
@@ -269,7 +269,7 @@ namespace QA40xPlot.Actions
 				// ********************************************************************  
 				// Load a settings we want since we're done autoscaling
 				// ********************************************************************  
-				if (true != QaUsb.InitializeDevice(msr.SampleRateVal, msr.FftSizeVal, msr.WindowingMethod, attenuation))
+				if (true != await QaComm.InitializeDevice(msr.SampleRateVal, msr.FftSizeVal, msr.WindowingMethod, attenuation))
 					return false;
 				
                 // ********************************************************************
@@ -280,8 +280,8 @@ namespace QA40xPlot.Actions
                     return false;
 
 				// Set the generator
-				QaUsb.SetGen1(stepBinFrequencies[0], genVolt, true);
-				QaUsb.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
+				WaveGenerator.SetGen1(stepBinFrequencies[0], genVolt, true);
+				await QaComm.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
 
 				// ********************************************************************
 				// Step through the list of frequencies
@@ -291,9 +291,9 @@ namespace QA40xPlot.Actions
                     var freqy = stepBinFrequencies[f];
                     await showMessage($"Measuring {freqy:0.#} Hz at {genVolt:G3} V.");
                     await showProgress(100 * (f + 1) / stepBinFrequencies.Length);
-                    QaUsb.SetGen1(freqy, genVolt, true);
+                    WaveGenerator.SetGen1(freqy, genVolt, true);
 
-                    LeftRightSeries lrfs = await QaUsb.DoAcquisitions(msr.Averages, ct);
+                    LeftRightSeries lrfs = await QaComm.DoAcquisitions(msr.Averages, ct);
                     if (ct.IsCancellationRequested)
                         break;
 
@@ -341,7 +341,7 @@ namespace QA40xPlot.Actions
             // Show message
             await showMessage(ct.IsCancellationRequested ? $"Measurement cancelled!" : $"Measurement finished!");
 
-            EndAction();
+            await EndAction();
 
             return true;
         }
@@ -614,7 +614,7 @@ namespace QA40xPlot.Actions
         public async void StartMeasurement()
         {
             ThdFreqViewModel thd = MyVModel;
-			if (!StartAction(thd))
+			if (!await StartAction(thd))
 				return; 
 			ct = new();
             await PerformMeasurementSteps(ct.Token);

@@ -61,7 +61,7 @@ namespace QA40xPlot.Actions
 		public async void StartMeasurement()
 		{
 			var vm = MyVModel;
-			if (!StartAction(vm))
+			if (! await StartAction(vm))
 				return;
 
 			vm.HasExport = false;
@@ -123,7 +123,7 @@ namespace QA40xPlot.Actions
         {
 			if (ct.Token.IsCancellationRequested)
 				return new();
-			var lfrs = await QaUsb.DoAcquisitions(msr.Averages, ct.Token);
+			var lfrs = await QaComm.DoAcquisitions(msr.Averages, ct.Token);
             if (lfrs == null)
                 return new();
 			MeasurementResult.FrequencyResponseData = lfrs;
@@ -239,7 +239,7 @@ namespace QA40xPlot.Actions
 			if (ct.IsCancellationRequested)
                 return false;
 
-            QaUsb.SetOutputSource(OutputSources.Sine);
+            await QaComm.SetOutputSource(OutputSources.Sine);
 
             var ttype = frqrsVm.GetTestingType(msr.TestType);
 			var genVolt = Math.Pow(10, voltagedBV / 20);
@@ -255,9 +255,9 @@ namespace QA40xPlot.Actions
                         break;
                     var dfreq = stepBinFrequencies[steps];
                     if (dfreq > 0)
-                        QaUsb.SetGen1(dfreq, genVolt, true);
+                        WaveGenerator.SetGen1(dfreq, genVolt, true);
                     else
-                        QaUsb.SetGen1(1000, genVolt, false);
+                        WaveGenerator.SetGen1(1000, genVolt, false);
 
                     if (msr.Averages > 0)
                     {
@@ -324,7 +324,7 @@ namespace QA40xPlot.Actions
 				var genv = msr.ToGenVoltage(msr.Gen1Voltage, [], GEN_INPUT, LRGains?.Left);
 
 				var chirpy = Chirps.ChirpVp((int)msr.FftSizeVal, msr.SampleRateVal, genv, startf, endf, 0.8);
-				LeftRightSeries lfrs = await QaUsb.DoAcquireUser(frqrsVm.Averages, ct.Token, chirpy, chirpy, false);
+				LeftRightSeries lfrs = await QaComm.DoAcquireUser(frqrsVm.Averages, ct.Token, chirpy, chirpy, false);
 				if (lfrs?.TimeRslt == null)
                     return false;
 				if (ct.IsCancellationRequested)
@@ -452,7 +452,7 @@ namespace QA40xPlot.Actions
 			var genVolt = frqrsVm.ToGenVoltage(msr.Gen1Voltage, frqtest, GEN_INPUT, LRGains?.Left);
 			var voltagedBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);  // in dbv
 
-			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, "Hann", (int)msr.Attenuation))
+			if (true != await QaComm.InitializeDevice(sampleRate, fftsize, "Hann", (int)msr.Attenuation))
 			{
 				return false;
 			}
@@ -506,7 +506,7 @@ namespace QA40xPlot.Actions
 
             UpdateGraph(false);
 			MyVModel.HasExport = true;
-            EndAction();
+            await EndAction();
 
 			return ct.IsCancellationRequested;
         }
@@ -516,9 +516,9 @@ namespace QA40xPlot.Actions
         {
             Complex gain = new();
             if(showBoth)
-				gain = QAMath.CalculateDualGain(dFreq, data);
+				gain = QaMath.CalculateDualGain(dFreq, data);
             else
-				gain = QAMath.CalculateGainPhase(dFreq, data);
+				gain = QaMath.CalculateGainPhase(dFreq, data);
 			return gain;
         }
 

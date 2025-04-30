@@ -309,7 +309,7 @@ namespace QA40xPlot.ViewModels
 				// open document
 				string filename = openFileDialog.FileName;
 				var vm = MyVModel;
-				vm.actSpec.LoadFromFile(filename);
+				vm.actSpec.LoadFromFile(filename).Wait();
 			}
 		}
 

@@ -106,7 +106,7 @@ namespace QA40xPlot.Actions
 			// ********************************************************************  
 			// Load a settings we want
 			// ********************************************************************  
-			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, msr.MeasurementSettings.WindowingMethod, (int)msr.MeasurementSettings.Attenuation))
+			if (true != await QaComm.InitializeDevice(sampleRate, fftsize, msr.MeasurementSettings.WindowingMethod, (int)msr.MeasurementSettings.Attenuation))
 				return false;
 
 			try
@@ -178,13 +178,13 @@ namespace QA40xPlot.Actions
 							gwho = [gw1];
 						else
 							gwho = [gw2];
-						var wave = QAMath.CalculateWaveform(gwho, gws);
-						lrfs = await QaUsb.DoAcquireUser(1, ct, wave.ToArray(), wave.ToArray(), true);
+						var wave = QaMath.CalculateWaveform(gwho, gws);
+						lrfs = await QaComm.DoAcquireUser(1, ct, wave.ToArray(), wave.ToArray(), true);
 					}
 					else
 					{
-						QaUsb.SetOutputSource(OutputSources.Off);            // We need to call this to make the averages reset
-						lrfs = await QaUsb.DoAcquisitions(1, ct);
+						await QaComm.SetOutputSource(OutputSources.Off);            // We need to call this to make the averages reset
+						lrfs = await QaComm.DoAcquisitions(1, ct);
 					}
 					if (lrfs == null)
 						break;
@@ -531,7 +531,7 @@ namespace QA40xPlot.Actions
         public async void StartMeasurement()
         {
 			var scopeVm = MyVModel;
-			if (!StartAction(scopeVm))
+			if (!await StartAction(scopeVm))
 				return;
 
 			ct = new();
@@ -617,7 +617,7 @@ namespace QA40xPlot.Actions
 			scopeVm.IsRunning = false;
 			await showMessage("");
 			MyVModel.HasExport = this.MeasurementResult.FrequencySteps.Count > 0;
-			EndAction();
+			await EndAction();
 		}
 
 

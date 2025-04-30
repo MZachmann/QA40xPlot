@@ -3,6 +3,7 @@ using LibUsbDotNet.Main;
 using QA40x_BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
+using QA40xPlot.ViewModels;
 using System.Diagnostics;
 
 // Written by MZachmann 4-24-2025
@@ -16,9 +17,6 @@ namespace QA40xPlot.BareMetal
 	public class QaAnalyzer
 	{
 		public AnalyzerParams? Params { get; private set; }
-
-		public GenWaveform GenParams { get; private set; }
-		public GenWaveform Gen2Params { get; private set; }
 
 		public byte[] CalData { get; private set; } // readonly
 		public (double,double)[] FCalData { get; private set; } // readonly
@@ -38,22 +36,6 @@ namespace QA40xPlot.BareMetal
 			Device = null;
 			CalData = [];
 			FCalData = [];
-			GenParams = new GenWaveform()
-			{
-				Name = "Sine",
-				Frequency = 1000,
-				FreqEnd = 20000,
-				Voltage = 0.5,
-				Enabled = false
-			};
-			Gen2Params = new GenWaveform()
-			{
-				Name = "Sine",
-				Frequency = 1000,
-				FreqEnd = 20000,
-				Voltage = 0.5,
-				Enabled = false
-			};
 		}
 
 		public void SetParams(AnalyzerParams? analyzerParams)

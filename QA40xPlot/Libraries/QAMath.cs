@@ -14,7 +14,7 @@ using System.Windows;
 
 namespace QA40xPlot.Libraries
 {
-    public interface QAMath
+    public interface QaMath
     {
 
 		public static double MagAtFreq(double[] pts, double df, double dFreq)
@@ -125,6 +125,20 @@ namespace QA40xPlot.Libraries
 					break;
 			}
 			return window;
+		}
+
+		public static LeftRightFrequencySeries? CalculateChirpFreq(LeftRightTimeSeries? lrts, double[] signal, double voltage, uint sampleRate, uint sampleSize)
+		{
+			LeftRightFrequencySeries? fs = null;
+			if (lrts != null)
+			{
+				var norms = Chirps.NormalizeChirpDbl(signal, voltage, (lrts.Left, lrts.Right));
+				fs = new();
+				fs.Left = norms.Item1;
+				fs.Right = norms.Item2;
+				fs.Df = QaLibrary.CalcBinSize(sampleRate, sampleSize);
+			}
+			return fs;
 		}
 
 		public static LeftRightFrequencySeries CalculateSpectrum(LeftRightTimeSeries lrfs, string windowing)

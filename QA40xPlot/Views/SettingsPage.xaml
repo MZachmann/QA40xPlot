@@ -61,5 +61,10 @@
         <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" MaxWidth="600" 
                    Text="Set the size of the usb block. Careful!." 
                    Grid.Row="6" Grid.Column="4" />
+        <local:GroupHeader Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="5"  />
+        <CheckBox VerticalAlignment="Top" Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2" IsChecked="{Binding UseREST}" Content="Use REST interface instead of USB" />
+        <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" MaxWidth="600" 
+                   Text="If you have issues with USB support try the REST interface." 
+                   Grid.Row="8" Grid.Column="4" />
     </Grid>
 </UserControl>

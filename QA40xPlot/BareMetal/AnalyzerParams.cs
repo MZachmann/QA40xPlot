@@ -74,7 +74,7 @@ namespace QA40xPlot.BareMetal
 
 		private double[] GetWindowing(string windowType, int size)
 		{
-			var wind = QAMath.GetWindowType(windowType);
+			var wind = QaMath.GetWindowType(windowType);
 			double[] wdw = new double[size];
 			wdw = wdw.Select(x => 1.0).ToArray();
 			return wind.Apply(wdw).ToArray();

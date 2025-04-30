@@ -196,9 +196,9 @@ namespace QA40xPlot.Actions
 			var fftsize = msrImd.FftSizeVal;
 			freq = QaLibrary.GetNearestBinFrequency(freq, sampleRate, fftsize); // make sure it's a bin center frequency
 			freq2 = QaLibrary.GetNearestBinFrequency(freq2, sampleRate, fftsize); // make sure it's a bin center frequency
-			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, msrImd.WindowingMethod, (int)msrImd.Attenuation))
+			if (true != await QaComm.InitializeDevice(sampleRate, fftsize, msrImd.WindowingMethod, (int)msrImd.Attenuation))
 				return false;
-			QaUsb.SetOutputSource(OutputSources.Off);            // We need to call this to make it turn on or off
+			await QaComm.SetOutputSource(OutputSources.Off);            // We need to call this to make it turn on or off
 
 			try
 			{
@@ -237,19 +237,19 @@ namespace QA40xPlot.Actions
 					await showProgress(0);
 
                     // Set the generators
-                    QaUsb.SetGen1(stepBinFrequencies[0], genVolt, msrImd.UseGenerator);
-					QaUsb.SetGen2(stepBinFrequencies[1], genVolt2, msrImd.UseGenerator2);
+                    WaveGenerator.SetGen1(stepBinFrequencies[0], genVolt, msrImd.UseGenerator);
+					WaveGenerator.SetGen2(stepBinFrequencies[1], genVolt2, msrImd.UseGenerator2);
 					// for the first go around, turn on the generator
 					if ( msrImd.UseGenerator || msrImd.UseGenerator2)
                     {
-						QaUsb.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
+						await QaComm.SetOutputSource(OutputSources.Sine);            // We need to call this to make the averages reset
 					}
 					else
 					{
-						QaUsb.SetOutputSource(OutputSources.Off);            // We need to call this to make the averages reset
+						await QaComm.SetOutputSource(OutputSources.Off);            // We need to call this to make the averages reset
 					}
 
-					LeftRightSeries lrfs = await QaUsb.DoAcquisitions(msrImd.Averages, ct);
+					LeftRightSeries lrfs = await QaComm.DoAcquisitions(msrImd.Averages, ct);
                     if (ct.IsCancellationRequested || lrfs.FreqRslt?.Left == null)
                         break;
 
@@ -389,7 +389,7 @@ namespace QA40xPlot.Actions
 				// find if 50 or 60hz is higher, indicating power line frequency
 				foreach (double freq in freqchecks)
 				{
-					var data = QAMath.MagAtFreq(fftdata, df ?? 1, freq);
+					var data = QaMath.MagAtFreq(fftdata, df ?? 1, freq);
                     if(data > maxdata)
                     {
                         fsel = freq;
@@ -399,7 +399,7 @@ namespace QA40xPlot.Actions
                 for(int i=1; i<4; i++)
                 {
 					var actfreq = QaLibrary.GetNearestBinFrequency(fsel * i, sampleRate, fftsize);
-					var data = QAMath.MagAtFreq(fftdata, df ?? 1, actfreq);
+					var data = QaMath.MagAtFreq(fftdata, df ?? 1, actfreq);
 					double udif = 20 * Math.Log10(data);
                     AddAMarker(fmr, actfreq, true);
 				}
@@ -490,12 +490,12 @@ namespace QA40xPlot.Actions
 			for (int harmonicNumber = 0; harmonicNumber < harmonicFreq.Length; harmonicNumber++)                                                  // For now up to 12 harmonics, start at 2nd
             {
                 double harmonicFrequency = harmonicFreq[harmonicNumber];
-				double amplitude_V = QAMath.MagAtFreq(ffts, binSize, harmonicFrequency);
+				double amplitude_V = QaMath.MagAtFreq(ffts, binSize, harmonicFrequency);
                 double noise_V = channelData.TotalNoiseFloor_V;
 
 				double amplitude_dBV = 20 * Math.Log10(amplitude_V);
                 double thd_Percent = (amplitude_V / vsum) * 100;
-				var noiseAt = QAMath.MagAtFreq(noiseFlr ?? [], binSize, harmonicFrequency);
+				var noiseAt = QaMath.MagAtFreq(noiseFlr ?? [], binSize, harmonicFrequency);
 				double thdN_Percent = ((amplitude_V - noiseAt) / vsum) * 100;
 
 				HarmonicData harmonic = new()
@@ -545,9 +545,9 @@ namespace QA40xPlot.Actions
 			// get fundamentals and harmonic distortion
 			for(int j=1; j<10; j++)
 			{
-				var hda = QAMath.MagAtFreq(ffts, binSize, step.Gen1Freq * j);
+				var hda = QaMath.MagAtFreq(ffts, binSize, step.Gen1Freq * j);
 				hdtotal += hda * hda;
-				hda = QAMath.MagAtFreq(ffts, binSize, step.Gen2Freq * j);
+				hda = QaMath.MagAtFreq(ffts, binSize, step.Gen2Freq * j);
 				hdtotal += hda * hda;
 			}
 
@@ -687,7 +687,7 @@ namespace QA40xPlot.Actions
 		public async void StartMeasurement()
         {
 			var imdVm = MyVModel;
-			if (!StartAction(imdVm))
+			if (! await StartAction(imdVm))
 				return; 
             ct = new();
 
@@ -772,7 +772,7 @@ namespace QA40xPlot.Actions
 			imdVm.IsRunning = false;
 			await showMessage("");
 			MyVModel.HasExport = MeasurementResult.FrequencySteps.Count > 0;
-			EndAction();
+			await EndAction();
 		}
 
 

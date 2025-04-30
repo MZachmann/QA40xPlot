@@ -189,7 +189,7 @@ namespace QA40xPlot.BareMetal
 		{
 			var maxFreq = df * signalFreqLin.Length;
 
-			double fundamentalAmplitude = QAMath.MagAtFreq(signalFreqLin, df, fundamental);
+			double fundamentalAmplitude = QaMath.MagAtFreq(signalFreqLin, df, fundamental);
 
 			// Debugging: Show the peak amplitude in dB
 			if (debug)
@@ -206,7 +206,7 @@ namespace QA40xPlot.BareMetal
 				if (harmonicFreq > maxFreq)
 					break;
 
-				double harmonicAmplitude = QAMath.MagAtFreq(signalFreqLin, df, harmonicFreq);
+				double harmonicAmplitude = QaMath.MagAtFreq(signalFreqLin, df, harmonicFreq);
 				harmonicAmplitudesSqSum += Math.Pow(harmonicAmplitude, 2);
 
 				// Debugging: Show the harmonic amplitude in dB and the bins being examined

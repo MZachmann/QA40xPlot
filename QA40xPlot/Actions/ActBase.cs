@@ -23,7 +23,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="bvm">the local video model</param>
 		/// <returns>true if all good</returns>
-		public static bool StartAction(BaseViewModel bvm)
+		public static async Task<bool> StartAction(BaseViewModel bvm)
 		{
 			if (bvm.IsRunning)
 			{
@@ -33,33 +33,44 @@ namespace QA40xPlot.Actions
 			bvm.IsRunning = true;
 
 			// attach to usb port if required
-			if (QaLowUsb.IsDeviceConnected() == false)
+			if( ViewSettings.IsUseREST)
 			{
-				try
+				if (await QaLibrary.CheckDeviceConnected() == false)
 				{
-					QaLowUsb.AttachDevice();
-				}
-				catch(Exception ex)
-				{
-					MessageBox.Show(ex.Message, "Please check your connection.", MessageBoxButton.OK, MessageBoxImage.Information);
+					bvm.IsRunning = false;
+					return false;
 				}
 			}
-
-			if (QaLowUsb.IsDeviceConnected() == false)
+			else
 			{
-				bvm.IsRunning = false;
-				return false;
+				if (QaLowUsb.IsDeviceConnected() == false)
+				{
+					try
+					{
+						QaLowUsb.AttachDevice();
+					}
+					catch (Exception ex)
+					{
+						MessageBox.Show(ex.Message, "Please check your connection.", MessageBoxButton.OK, MessageBoxImage.Information);
+					}
+				}
+
+				if (QaLowUsb.IsDeviceConnected() == false)
+				{
+					bvm.IsRunning = false;
+					return false;
+				}
 			}
 			return true;
 		}
 
-		public static void EndAction()
+		public static async Task EndAction()
 		{
 			// Turn the generator off
-			QaUsb.SetOutputSource(OutputSources.Off);
-			QaUsb.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION);  // set max attenuation while idle...
+			await QaComm.SetOutputSource(OutputSources.Off);
+			await QaComm.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION);  // set max attenuation while idle...
 																	// detach from usb port
-			QaUsb.Close(false);
+			QaComm.Close(false);
 		}
 
 		protected async Task showMessage(String msg, int delay = 0)
@@ -86,20 +97,22 @@ namespace QA40xPlot.Actions
 
 		protected async Task<LeftRightSeries> MeasureNoise(CancellationToken ct, bool setRange = false)
 		{
-			var range = QaUsb.GetInputRange();
+			var range = 0;
+			if(setRange)
+				range = QaComm.GetInputRange();
 			// ********************************************************************
 			// Do noise floor measurement with source off
 			// ********************************************************************
 			await showMessage($"Determining noise floor.");
 			System.Diagnostics.Debug.WriteLine("***-------------Measuring noise-------------.");
-			QaUsb.SetOutputSource(OutputSources.Off);
+			await QaComm.SetOutputSource(OutputSources.Off);
 			if( setRange)
-				QaUsb.SetInputRange(6); // and a small range for better noise...
+				await QaComm.SetInputRange(6); // and a small range for better noise...
 			//Thread.Sleep(1000);
-			await QaUsb.DoAcquisitions(1, ct);			// this one returns a high value until settled
-			var lrs = await QaUsb.DoAcquisitions(1, ct); // now that it's settled...
+			await QaComm.DoAcquisitions(1, ct);			// this one returns a high value until settled
+			var lrs = await QaComm.DoAcquisitions(1, ct); // now that it's settled...
 			if (setRange)
-				QaUsb.SetInputRange(range); // restore the range
+				await QaComm.SetInputRange(range); // restore the range
 
 			return lrs;
 		}
@@ -109,19 +122,19 @@ namespace QA40xPlot.Actions
 			// initialize very quick run
 			uint fftsize = 65536;
 			uint sampleRate = 96000;
-			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, "Hann", QaLibrary.DEVICE_MAX_ATTENUATION))
+			if (true != await QaComm.InitializeDevice(sampleRate, fftsize, "Hann", QaLibrary.DEVICE_MAX_ATTENUATION))
 				return null;
 
 			// the simplest thing here is to do a quick burst low value...
 			var generatorV = 0.01;          // random low test value
 			// we must have this in the bin center here
 			dfreq = QaLibrary.GetNearestBinFrequency(dfreq, sampleRate, fftsize);
-			QaUsb.SetGen1(dfreq, generatorV, true);			// send a sine wave
-			QaUsb.SetOutputSource(OutputSources.Sine);      // since we're single frequency
+			WaveGenerator.SetGen1(dfreq, generatorV, true);			// send a sine wave
+			await QaComm.SetOutputSource(OutputSources.Sine);      // since we're single frequency
 			var ct = new CancellationTokenSource();
 			// do two and average them
-			await QaUsb.DoAcquisitions(1, ct.Token);        // Do a single acquisition to settle stuff
-			LeftRightSeries acqData = await QaUsb.DoAcquisitions(1, ct.Token);        // Do a single acquisition
+			await QaComm.DoAcquisitions(1, ct.Token);        // Do a single acquisition to settle stuff
+			LeftRightSeries acqData = await QaComm.DoAcquisitions(1, ct.Token);        // Do a single acquisition
 			if (acqData == null || acqData.FreqRslt == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
 				return null;
 
@@ -138,10 +151,10 @@ namespace QA40xPlot.Actions
 			if (maxi < 0.1)
 			{
 				// get some more accuracy with this
-				QaUsb.SetInputRange(18);
+				await QaComm.SetInputRange(18);
 				// do two and average them
-				await QaUsb.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
-				acqData = await QaUsb.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
+				await QaComm.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
+				acqData = await QaComm.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
 				if (acqData == null || acqData.FreqRslt == null || ct.IsCancellationRequested)
 					return null;
 			}
@@ -155,7 +168,7 @@ namespace QA40xPlot.Actions
 			// if we're asking for averaging
 			for (int j = 1; j < average; j++)
 			{
-				acqData = await QaUsb.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
+				acqData = await QaComm.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
 				if (acqData == null || acqData.FreqRslt == null || ct.IsCancellationRequested)
 					return null;
 
@@ -176,7 +189,8 @@ namespace QA40xPlot.Actions
 			// initialize very quick run
 			uint fftsize = 65536;
 			uint sampleRate = 96000;
-			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, "Rectangular", QaLibrary.DEVICE_MAX_ATTENUATION))
+			string swindow = ViewSettings.IsUseREST ? "Rectangle" : "Rectangular";
+			if (true != await QaComm.InitializeDevice(sampleRate, fftsize, swindow, QaLibrary.DEVICE_MAX_ATTENUATION))
 				return null;
 
 			{
@@ -185,8 +199,8 @@ namespace QA40xPlot.Actions
 				var chirpy = Chirps.ChirpVp((int)fftsize, sampleRate, generatorV, 6, 24000);
 				var ct = new CancellationTokenSource();
 				// do two and average them
-				await QaUsb.DoAcquireUser(1, ct.Token, chirpy, chirpy, false); // settle
-				LeftRightSeries acqData = await QaUsb.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
+				await QaComm.DoAcquireUser(1, ct.Token, chirpy, chirpy, false); // settle
+				LeftRightSeries acqData = await QaComm.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
 				if (acqData == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
 					return null;
 
@@ -201,10 +215,10 @@ namespace QA40xPlot.Actions
 				if( maxi < 0.1)
 				{
 					// get some more accuracy with this
-					QaUsb.SetInputRange(18);
+					await QaComm.SetInputRange(18);
 					// do two and average them
-					await QaUsb.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
-					acqData = await QaUsb.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
+					await QaComm.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
+					acqData = await QaComm.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
 					if (acqData == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
 						return null;
 				}
@@ -217,7 +231,7 @@ namespace QA40xPlot.Actions
 				//
 				for(int j=1; j<average; j++)
 				{
-					acqData = await QaUsb.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);        // Do a single aqcuisition
+					acqData = await QaComm.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);        // Do a single aqcuisition
 					if (acqData == null || (acqData.TimeRslt == null) || ct.IsCancellationRequested)
 						return null;
 

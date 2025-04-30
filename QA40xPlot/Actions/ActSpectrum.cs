@@ -97,7 +97,7 @@ namespace QA40xPlot.Actions
 			return true;
 		}
 
-		public void LoadFromFile(string fileName)
+		public async Task LoadFromFile(string fileName)
 		{
 			try
 			{
@@ -127,7 +127,7 @@ namespace QA40xPlot.Actions
 						MyVModel.LinkAbout(PageData.Definition);
 						// now recalculate everything
 						BuildFrequencies(PageData);
-						PostProcess(PageData, ct.Token).Wait();
+						await PostProcess(PageData, ct.Token);
 						UpdateGraph(true);
 					}
 					catch (Exception ex)
@@ -166,7 +166,7 @@ namespace QA40xPlot.Actions
 			double[] wave;
 			if (vm.UseGenerator)
 			{
-				wave = QAMath.CalculateWaveform([waveForm], waveSample).ToArray();
+				wave = QaMath.CalculateWaveform([waveForm], waveSample).ToArray();
 			}
 			else
 			{
@@ -181,7 +181,7 @@ namespace QA40xPlot.Actions
 		public async void DoMeasurement()
 		{
 			var specVm = MyVModel;			// the active viewmodel
-			if (!StartAction(specVm))
+			if (!await StartAction(specVm))
 				return;
 
 			ct = new();
@@ -249,7 +249,7 @@ namespace QA40xPlot.Actions
 			specVm.IsRunning = false;
 			await showMessage("");
 			MyVModel.HasExport = PageData.FreqRslt != null;
-			EndAction();
+			await EndAction();
 		}
 
 		static void BuildFrequencies(DataTab<SpectrumViewModel> page)
@@ -261,12 +261,12 @@ namespace QA40xPlot.Actions
 			LeftRightFrequencySeries? fseries;
 			if(vm.Gen1Waveform != "Chirp")
 			{
-				fseries = QAMath.CalculateSpectrum(page.TimeRslt, vm.WindowingMethod);  // do the fft and calculate the frequency response
+				fseries = QaMath.CalculateSpectrum(page.TimeRslt, vm.WindowingMethod);  // do the fft and calculate the frequency response
 			}
 			else
 			{
 				var wave = BuildWave(page);
-				fseries = QaUsb.CalculateChirpFreq(page.TimeRslt, wave.ToArray(), page.Definition.GeneratorVoltage, vm.SampleRateVal, vm.FftSizeVal);   // normalize the result for flat response
+				fseries = QaMath.CalculateChirpFreq(page.TimeRslt, wave.ToArray(), page.Definition.GeneratorVoltage, vm.SampleRateVal, vm.FftSizeVal);   // normalize the result for flat response
 			}
 			if (fseries != null)
 			{
@@ -297,7 +297,7 @@ namespace QA40xPlot.Actions
 			// ********************************************************************  
 			// Load a settings we want for the noise floor run
 			// ********************************************************************  
-			if (true != QaUsb.InitializeDevice(sampleRate, fftsize, vm.WindowingMethod, (int)vm.Attenuation))
+			if (true != await QaComm.InitializeDevice(sampleRate, fftsize, vm.WindowingMethod, (int)vm.Attenuation))
 				return false;
 
 			LeftRightSeries lrfs = new();
@@ -342,7 +342,7 @@ namespace QA40xPlot.Actions
 				await showProgress(25);
 
 				var wave = BuildWave(msr);   // also update the waveform variables
-				lrfs = await QaUsb.DoAcquireUser(vm.Averages, ct, wave, wave, false);
+				lrfs = await QaComm.DoAcquireUser(vm.Averages, ct, wave, wave, false);
 
 				if (lrfs.TimeRslt != null)
 				{
@@ -390,9 +390,9 @@ namespace QA40xPlot.Actions
 			var lrfs = msr.FreqRslt;    // frequency response
 
 			uint fundamental1Bin = QaLibrary.GetBinOfFrequency(freq, (uint)vm.SampleRateVal, (uint)vm.FftSizeVal);
-			var x = QAMath.MagAtFreq(msr.FreqRslt.Left, msr.FreqRslt.Df, freq);
+			var x = QaMath.MagAtFreq(msr.FreqRslt.Left, msr.FreqRslt.Df, freq);
 			left.FundamentalVolts = x;
-			x = QAMath.MagAtFreq(msr.FreqRslt.Right, msr.FreqRslt.Df, freq);
+			x = QaMath.MagAtFreq(msr.FreqRslt.Right, msr.FreqRslt.Df, freq);
 			right.FundamentalVolts = x;
 
 			var maxf = 20000; // the app seems to use 20,000 so not sampleRate/ 2.0;
@@ -489,7 +489,7 @@ namespace QA40xPlot.Actions
 				if(harmonicFrequency > maxfreq)
 					break;  // no more harmonics
 
-				double amplitude_V = QAMath.MagAtFreq(page.FreqRslt.Left, binSize, harmonicFrequency);
+				double amplitude_V = QaMath.MagAtFreq(page.FreqRslt.Left, binSize, harmonicFrequency);
 				double amplitude_dBV = 20 * Math.Log10(amplitude_V);
 				double thdPercent = (amplitude_V / left.FundamentalVolts) * 100;
 
@@ -513,7 +513,7 @@ namespace QA40xPlot.Actions
 				if (harmonicFrequency > maxfreq)
 					break;  // no more harmonics
 
-				double amplitude_V = QAMath.MagAtFreq(page.FreqRslt.Right, binSize, harmonicFrequency);
+				double amplitude_V = QaMath.MagAtFreq(page.FreqRslt.Right, binSize, harmonicFrequency);
 				double amplitude_dBV = 20 * Math.Log10(amplitude_V);
 				double thdPercent = (amplitude_V / right.FundamentalVolts) * 100;
 

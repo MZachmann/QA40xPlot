@@ -39,7 +39,7 @@ namespace QA40xPlot.BareMetal
 			QA40x_BareMetal.QaUsb.Open();
 			TestCal();
 			var tstA = QA40x_BareMetal.QaUsb.QAnalyzer;
-			var chirp = QAMath.CalculateChirp(20, 20000, 0.1, 16384, 48000);
+			var chirp = QaMath.CalculateChirp(20, 20000, 0.1, 16384, 48000);
 			CancellationToken ct = new CancellationToken();
 			var newData = await Acquisition.DoStreamingAsync(ct, chirp.ToArray(), chirp.ToArray());
 			var x = newData.Left;

@@ -76,8 +76,8 @@ namespace QA40x_BareMetal
 			var datapt = new double[QAnalyzer?.Params?.FFTSize ?? 0];
             if( QAnalyzer?.Params?.OutputSource == OutputSources.Sine)
             {
-				var gp1 = QAnalyzer?.GenParams;
-				var gp2 = QAnalyzer?.Gen2Params;
+				var gp1 = WaveGenerator.Singleton.GenParams;
+				var gp2 = WaveGenerator.Singleton.Gen2Params;
 				double dt = 1.0 / (QAnalyzer?.Params.SampleRate ?? 1);
 				if (gp1?.Enabled == true)
 				{
@@ -90,35 +90,6 @@ namespace QA40x_BareMetal
 			}
 			var lrfs = await DoAcquireUser(averages, ct, datapt, datapt, getFreq);
 			return lrfs;
-		}
-
-        /// <summary>
-        /// set a waveform to sine with parameters as given
-        /// </summary>
-        /// <param name="gwf">the genwaveform</param>
-        /// <param name="freq"></param>
-        /// <param name="volts"></param>
-        /// <param name="ison"></param>
-        private static void SetParams(GenWaveform gwf, double freq, double volts, bool ison)
-        {
-			gwf.Name = "Sine";
-			gwf.Voltage = volts;
-			gwf.Frequency = freq;
-			gwf.Enabled = ison;
-		}
-
-		public static void SetGen2(double freq, double volts, bool ison)
-        {
-            if (QAnalyzer == null)
-                return;
-            SetParams(QAnalyzer.Gen2Params, freq, volts, ison);
-		}
-
-        public static void SetGen1(double freq, double volts, bool ison)
-        {
-            if(QAnalyzer == null)
-				return;
-			SetParams(QAnalyzer.GenParams, freq, volts, ison);
 		}
 
         public static void SetInputRange(int range)
@@ -151,21 +122,7 @@ namespace QA40x_BareMetal
 				return null;
 
 			// calculate the frequency spectrum
-			return QAMath.CalculateSpectrum(lrts, QAnalyzer.Params.WindowType);
-		}
-
-		public static LeftRightFrequencySeries? CalculateChirpFreq(LeftRightTimeSeries? lrts, double[] signal, double voltage, uint sampleRate, uint sampleSize)
-		{
-            LeftRightFrequencySeries? fs = null;
-			if (QAnalyzer?.Params != null && lrts != null)
-			{
-				var norms = Chirps.NormalizeChirpDbl(signal, voltage, (lrts.Left, lrts.Right));
-                fs = new();
-				fs.Left = norms.Item1;
-				fs.Right = norms.Item2;
-				fs.Df = QaLibrary.CalcBinSize(sampleRate, sampleSize);
-			}
-            return fs;
+			return QaMath.CalculateSpectrum(lrts, QAnalyzer.Params.WindowType);
 		}
 
 		/// <summary>
@@ -268,8 +225,8 @@ namespace QA40x_BareMetal
                 //qan.SetOutput(18); // this is set when we do an acquisition based on the voltage output data
                 qan.Params.SetWindowing(Windowing);
 				qan.Params.FFTSize = (int)fftsize;
-                qan.GenParams.Enabled = false;
-				qan.Gen2Params.Enabled = false;
+                WaveGenerator.Singleton.GenParams.Enabled = false;
+				WaveGenerator.Singleton.Gen2Params.Enabled = false;
 				return true;
 			}
 			catch (Exception ex)
@@ -338,6 +295,9 @@ namespace QA40x_BareMetal
             {
                 if (_qAnalyzer != null)
                 {
+					// Stop streaming. This also extinguishes the RUN led
+					WriteRegister(8, 0);
+                    //
 					_qAnalyzer.Close(OnExit);
 					_qAnalyzer = null;
                 }

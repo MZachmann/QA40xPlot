@@ -1,4 +1,5 @@
 using QA40x_BareMetal;
+using QA40xPlot.ViewModels;
 using System.Diagnostics;
 
 // Written by MZachmann 4-24-2025
@@ -37,6 +38,7 @@ namespace QA40xPlot.BareMetal
 
 		public static void SetOutput(int gain)
 		{
+			Debug.Assert(!ViewSettings.IsUseREST, "SetupOut using REST.");
 			if (!_Output2Reg.TryGetValue(gain, out int val))
 				throw new ArgumentException("Invalid output gain value.");
 			QaUsb.WriteRegister(6, (byte)val);
@@ -45,6 +47,7 @@ namespace QA40xPlot.BareMetal
 
 		public static void SetInput(int gain)
 		{
+			Debug.Assert(!ViewSettings.IsUseREST, "SetupInput using REST."); 
 			if (!_Input2Reg.TryGetValue(gain, out int val))
 				throw new ArgumentException("Invalid input gain value.");
 			QaUsb.WriteRegister(5, (byte)val);
@@ -53,6 +56,7 @@ namespace QA40xPlot.BareMetal
 
 		public static void SetSampleRate(int rate)
 		{
+			Debug.Assert(!ViewSettings.IsUseREST, "SetSampleRate using REST.");
 			if (!_Samplerate2Reg.TryGetValue(rate, out int val))
 				throw new ArgumentException("Invalid sample rate value.");
 			QaUsb.WriteRegister(9, (byte)val);
@@ -65,6 +69,7 @@ namespace QA40xPlot.BareMetal
 		/// <returns>a list of calibration values in dB</returns>
 		public static byte[] LoadCalibration()
 		{
+			Debug.Assert(!ViewSettings.IsUseREST, "LoadCalibration using REST.");
 			QaUsb.WriteRegister(0xD, 0x10);
 			int pageSize = 512;
 			byte[] calData = new byte[pageSize];
@@ -88,6 +93,7 @@ namespace QA40xPlot.BareMetal
 		/// <exception cref="ArgumentException"></exception>
 		public static (double Left, double Right) GetAdcCal(byte[] calData, int fullScaleInputLevel)
 		{
+			Debug.Assert(!ViewSettings.IsUseREST, "GetAdcCal using REST.");
 			var offsets = new Dictionary<int, int>
 			{
 				{ 0, 24 }, { 6, 36 }, { 12, 48 }, { 18, 60 }, { 24, 72 }, { 30, 84 }, { 36, 96 }, { 42, 108 }
@@ -116,6 +122,7 @@ namespace QA40xPlot.BareMetal
 		/// <exception cref="ArgumentException"></exception>
 		public static (double Left, double Right) GetDacCal(byte[] calData, int fullScaleOutputLevel)
 		{
+			Debug.Assert(!ViewSettings.IsUseREST, "GetDacCal using REST.");
 			var offsets = new Dictionary<int, int>
 			{
 				{ 18, 156 }, { 8, 144 }, { -2, 132 }, { -12, 120 }
