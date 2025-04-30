@@ -1,4 +1,6 @@
 ﻿using QA40x_BareMetal;
+using QA40xPlot.Libraries;
+using QA40xPlot.ViewModels;
 using System.Diagnostics;
 
 // Written by MZachmann 4-24-2025
@@ -102,11 +104,18 @@ namespace QA40xPlot.BareMetal
 			var dacCal = Control.GetDacCal(QaUsb.QAnalyzer.CalData, aParams.MaxOutputLevel);
 			var adcCal = Control.GetAdcCal(QaUsb.QAnalyzer.CalData, aParams.MaxInputLevel);
 
-			int usbBufSize = (int)Math.Pow(2, 13);   // If bigger than 2^15, then OS USB code will chunk it down into 16K buffers (Windows). So, not much point making larger than 32K. 
+			// bufsize is leftout.length and usbBufSize is the size of the usb buffer
+			// bufSize * 8 must be >= to usbBufSize, and bufSize * 8 must be an integer multiple of usbBufSize
+            var usize = MathUtil.ToInt(ViewSettings.Singleton.SettingsVm.UsbBufferSize, 16384);
+            double fusize = Math.Pow(2, Math.Floor(Math.Log(usize,2)));     // nearest power of 2
+            fusize = Math.Max(Math.Min(fusize, 131072), 2048);   // 2k to 128k ???
+
+            int usbBufSize = (int)(0.1+fusize);
+			// (int)Math.Pow(2, 13);   // If bigger than 2^15, then OS USB code will chunk it down into 16K buffers (Windows). So, not much point making larger than 32K. 
 
 			// The scale factor converts the volts to dBFS. The max output is 8Vrms = 11.28Vp = 0 dBFS. 
 			// The above calcs assume DAC relays set to 18 dBV = 8Vrms full scale
-            var dbfsAdjustment = Math.Pow(10, -((aParams.MaxOutputLevel + 3.0) / 20));
+			var dbfsAdjustment = Math.Pow(10, -((aParams.MaxOutputLevel + 3.0) / 20));
 			var lout = leftOut.Select(x => x * dbfsAdjustment * dacCal.Left).ToList();
             var rout = rightOut.Select(x => x * dbfsAdjustment * dacCal.Right).ToList();
 
@@ -159,19 +168,30 @@ namespace QA40xPlot.BareMetal
 				QaUsb.WriteDataBegin(txData, usbBufSize * i, usbBufSize);
 			}
 
+            var remaining = prereader;  // # of blocks still to read after all is sent
+
 			// Loop and send/receive the remaining blocks. Everytime we get some RX data, we'll send another block of 
 			// TX data. This is how we maintain timing with the hardware. 
 			for (int i = prereader; i < blocks; i++)
             {
                 // Wait for RX data to arrive then, for speed, just append the array to our list of receipts
                 var bufr = QaUsb.ReadDataEnd();
-                usbRxBuffers.Add(bufr);
+                if(bufr.Length > 0)
+                {
+					usbRxBuffers.Add(bufr);
+				}
+                else
+                {
+					Debug.WriteLine("Empty buffer received from USB");
+				}
+				remaining--;
 
-                if (true) // !! ct.IsCancellationRequested == false)
+                if (ct.IsCancellationRequested == false && bufr.Length > 0)
                 {
                     // Kick off another read and write
                     QaUsb.ReadDataBegin(usbBufSize);
                     QaUsb.WriteDataBegin(txData, i * usbBufSize, usbBufSize);
+                    remaining++;
                 }
                 else
                 {
@@ -181,9 +201,8 @@ namespace QA40xPlot.BareMetal
                 }
             }
 
-            // At this point, all buffers have been sent and there are two RX
+            // At this point, all buffers have been sent and there are two or three RX
             // buffers in-flight. Collect those
-            var remaining = prereader; // - (ct.IsCancellationRequested ? 1 : 0);
 			for (int i = 0; i < remaining; i++)
             {
                 var bufr = QaUsb.ReadDataEnd();

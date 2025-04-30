@@ -19,7 +19,7 @@ namespace QA40xPlot.Actions
 
 	public class ActSpectrum : ActBase
     {
-		private DataTab<SpectrumViewModel> PageData { get; set; } // Data used in this form instance
+		public DataTab<SpectrumViewModel> PageData { get; private set; } // Data used in this form instance
 		private List<DataTab<SpectrumViewModel>> OtherTabs { get; set; } = new List<DataTab<SpectrumViewModel>>(); // Other tabs in the document
 		private readonly Views.PlotControl fftPlot;
 
@@ -122,8 +122,10 @@ namespace QA40xPlot.Actions
 						// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
 						jsonObject.ViewModel.CopyPropertiesTo<SpectrumViewModel>(PageData.ViewModel);
 						jsonObject.ViewModel.CopyPropertiesTo<SpectrumViewModel>(ViewSettings.Singleton.SpectrumVm);    // retract the gui
-						MyVModel.LinkAbout(PageData.Definition); // link the info dlg page to the new data
-																			  // now recalculate everything
+
+						// relink to the new definition
+						MyVModel.LinkAbout(PageData.Definition);
+						// now recalculate everything
 						BuildFrequencies(PageData);
 						PostProcess(PageData, ct.Token).Wait();
 						UpdateGraph(true);
@@ -185,7 +187,7 @@ namespace QA40xPlot.Actions
 			ct = new();
 			LeftRightTimeSeries lrts = new();
 			DataTab<SpectrumViewModel> NextPage = new(specVm, lrts);
-			NextPage.Definition = PageData.Definition;
+			PageData.Definition.CopyPropertiesTo(NextPage.Definition);
 			NextPage.Definition.CreateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 			var vm = NextPage.ViewModel;
 			if (vm == null)
@@ -230,8 +232,8 @@ namespace QA40xPlot.Actions
 					PageData = NextPage;        // finally update the pagedata for display and processing
 				UpdateGraph(true);
 			}
+			specVm.LinkAbout(PageData.Definition);	// ensure we're linked right during replays
 
-			ViewSettings.Singleton.TabDefs = PageData.Definition; // link to the definitions
 			while (rslt && !ct.IsCancellationRequested)
 			{
 				if (PageData.ViewModel != null)

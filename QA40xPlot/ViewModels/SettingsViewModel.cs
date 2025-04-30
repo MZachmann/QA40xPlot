@@ -10,6 +10,8 @@ namespace QA40xPlot.ViewModels
 {
 	public class SettingsViewModel : BaseViewModel
 	{
+		public static List<String> UsbBufferSizes { get => new List<string>() { "2048", "4096", "8192", "16384", "32768", "65536"}; }
+
 		#region setters and getters
 		private Rect _WindowPlace;
 		public Rect WindowPlace
@@ -39,7 +41,7 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		private string _SaveOnExit = "False";
+		private string _SaveOnExit;
 		public string SaveOnExit
 		{
 			get { return _SaveOnExit; }
@@ -48,13 +50,25 @@ namespace QA40xPlot.ViewModels
 				SetProperty(ref _SaveOnExit, value);
 			}
 		}
+
+		private string _UsbBufferSize;
+		public string UsbBufferSize
+		{
+			get { return _UsbBufferSize; }
+			set
+			{
+				SetProperty(ref _UsbBufferSize, value);
+			}
+		}
 		#endregion
 
 
 		public SettingsViewModel() 
 		{
 			Name = "Settings";
-			this.AmplifierLoad = "10";
+			_AmplifierLoad = "10";
+			_UsbBufferSize = "16384";
+			_SaveOnExit = "False";
 		}
 	}
 }

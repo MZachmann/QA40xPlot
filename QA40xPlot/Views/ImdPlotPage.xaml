@@ -226,6 +226,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
+                    <Label Content="Units" Grid.Row="0" Grid.Column="0"  />
                     <ComboBox MinWidth="70" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"  SelectedItem="{Binding PlotFormat}" ItemsSource="{Binding DataFormats}">
                     </ComboBox>
                     <Label Content="Top" Grid.Row="1" Grid.Column="0"  />
@@ -253,6 +254,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
+                    <Label Content="Units" Grid.Row="0" Grid.Column="0"  />
                     <ComboBox MinWidth="70" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"  SelectedItem="{Binding PlotFormat}" ItemsSource="{Binding DataFormats}">
                     </ComboBox>
                     <Label Content="Top" Grid.Row="1" Grid.Column="0"  />

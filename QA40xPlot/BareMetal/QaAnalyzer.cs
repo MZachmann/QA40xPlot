@@ -1,5 +1,6 @@
 using LibUsbDotNet;
 using LibUsbDotNet.Main;
+using QA40x_BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using System.Diagnostics;
@@ -20,6 +21,7 @@ namespace QA40xPlot.BareMetal
 		public GenWaveform Gen2Params { get; private set; }
 
 		public byte[] CalData { get; private set; } // readonly
+		public (double,double)[] FCalData { get; private set; } // readonly
 
 		// the usb device we talk to
 		public UsbDevice? Device { get; private set; }
@@ -35,6 +37,7 @@ namespace QA40xPlot.BareMetal
 			Params = null;
 			Device = null;
 			CalData = [];
+			FCalData = [];
 			GenParams = new GenWaveform()
 			{
 				Name = "Sine",
@@ -70,6 +73,8 @@ namespace QA40xPlot.BareMetal
 				throw new InvalidOperationException("Analyzer parameters not initialized.");
 			Control.SetSampleRate(sampleRate);
 			Params.SampleRate = sampleRate;
+			// bufsize is leftout.length and usbBufSize is the size of the usb buffer
+			// bufSize * 8 must be >= to usbBufSize, and bufSize * 8 must be an integer multiple of usbBufSize
 			Params.PostBuffer = 4096;
 			Params.PreBuffer = 16384;
 		}
@@ -108,6 +113,14 @@ namespace QA40xPlot.BareMetal
 			DataWriter = Device.OpenEndpointWriter(WriteEndpointID.Ep02);
 
 			CalData = Control.LoadCalibration();
+			// convert to doubles from byte stream
+			var incals = Enumerable.Range(0, 7).Select(x => x * 6);
+			var fcals = incals.Select(x => Control.GetAdcCal(CalData, x)).ToList();
+			incals = Enumerable.Range(0, 3).Select(x => 18 - x * 10);
+			var gcals = incals.Select(x => Control.GetDacCal(CalData, x)).ToList();
+			fcals.AddRange(gcals);
+			FCalData = fcals.ToArray();		// doubles instead of bytes mainly for debugging
+			Debug.WriteLine($"Calibration data: {string.Join(", ", FCalData)}");
 
 			// Load calibration data
 			var newParams = new AnalyzerParams(sampleRate, maxInputLevel, maxOutputLevel, preBuf, postBuf, fftSize, OutputSources.Off, windowType);

@@ -1,7 +1,6 @@
 ﻿using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using Newtonsoft.Json;
-using Windows.Gaming.Input;
 using System.ComponentModel;
 
 namespace QA40xPlot.Data
@@ -40,10 +39,7 @@ namespace QA40xPlot.Data
 
 		private void ChangeDefinition(object? sender, PropertyChangedEventArgs e)
 		{
-			if (e.PropertyName == "Name")
-			{
-				var x = 12;
-			}
+			return;
 		}
 	}
 

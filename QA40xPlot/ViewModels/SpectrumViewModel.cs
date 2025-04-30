@@ -261,6 +261,7 @@ namespace QA40xPlot.ViewModels
 			info2.SetDataContext(ViewSettings.Singleton.ChannelRight);
 			about.SetDataContext(ViewSettings.Singleton.TabDefs);
 			SetupMainPlot(plot);
+			LinkAbout(actSpec.PageData.Definition);
 			actPlot = plot;
 			ShowInfos();
 		}

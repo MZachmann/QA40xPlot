@@ -181,8 +181,8 @@ namespace QA40xPlot.Libraries
 			{
 				case "SPL":
 					return (x => 20 * Math.Log10(x) );
-				case "dBFS":    // the generator has 18dBV output
-					return (x => 20 * Math.Log10(x) - 18);
+				case "dBFS":    // the generator has 18dBV output, the input has 32dBV maximum
+					return (x => 20 * Math.Log10(x) - 32);
 				case "dBr":
 					return (x => 20 * Math.Log10(x / refX));
 				case "dBu":

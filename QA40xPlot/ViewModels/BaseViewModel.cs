@@ -25,7 +25,7 @@ namespace QA40xPlot.ViewModels
 		public static List<String> BottomDbs { get => new List<string> { "0", "-50", "-100", "-120", "-140", "-160", "-180", "-200" }; }
 		public static List<String> StartPercents { get => new List<string> { "1000", "100", "10", "1", "0.1", "0.01" }; }
 		public static List<String> EndPercents { get => new List<string> { "0.1", "0.01", "0.001", "0.0001", "0.00001", "0.000001", "0.0000001" }; }
-		public static List<String> SampleRates { get => new List<string> { "48000", "96000", "192000", "384000" }; }
+		public static List<String> SampleRates { get => new List<string> { "48000", "96000", "192000"}; }
 		public static List<String>	FftSizes { get => new List<string> { "32K", "64K", "128K", "256K", "512K", "1024K" }; }
 		public static List<uint>	FftActualSizes { get => new List<uint> { 32768, 65536, 131072, 262144, 524288, 1048576 }; }
 		public static List<String> GenVoltages { get => new List<string> { "0.05", "0.1", "0.25", "0.5", "0.75", "1", "2", "5" }; }

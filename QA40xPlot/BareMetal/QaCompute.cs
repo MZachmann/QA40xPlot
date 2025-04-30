@@ -306,11 +306,18 @@ namespace QA40xPlot.BareMetal
 		internal static double ComputeRmsF(double[] signalFreqLin, double df, double lowerBound, double upperBound)
 		{
 			double sum = 0;
-			var lb = (int)(lowerBound / df);
-			var ub = (int)(upperBound / df);
-			for (int i = lb; i < ub; i++)
+			try
 			{
-				sum += signalFreqLin[i] * signalFreqLin[i];
+				var lb = (int)(lowerBound / df);
+				var ub = (int)(upperBound / df);
+				for (int i = lb; i < ub; i++)
+				{
+					sum += signalFreqLin[i] * signalFreqLin[i];
+				}
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine($"Error in ComputeRmsF: {ex.Message}");
 			}
 			return Math.Sqrt(sum); // RMS calculation
 		}

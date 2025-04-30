@@ -1,4 +1,5 @@
 ﻿using QA40x_BareMetal;
+using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 
 using QA40xPlot.Libraries;
@@ -7,6 +8,7 @@ using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
 using System.Windows;
+using System.Windows.Interop;
 using static QA40xPlot.ViewModels.BaseViewModel;
 
 
@@ -315,9 +317,11 @@ namespace QA40xPlot.Actions
                         lrfs.FreqRslt.Left, MeasurementResult.NoiseFloor?.FreqRslt?.Left, ViewSettings.AmplifierLoad);
                     step.Right = ChannelCalculations(binSize, step.FundamentalFrequency, genVolt, 
                         lrfs.FreqRslt.Right, MeasurementResult.NoiseFloor?.FreqRslt?.Right, ViewSettings.AmplifierLoad);
+					step.Left.TotalNoiseFloor_V = QaCompute.CalculateNoise(MeasurementResult.NoiseFloor.FreqRslt, true);
+					step.Right.TotalNoiseFloor_V = QaCompute.CalculateNoise(MeasurementResult.NoiseFloor.FreqRslt, false);
 
-                    // Add step data to list
-                    MeasurementResult.FrequencySteps.Add(step);
+					// Add step data to list
+					MeasurementResult.FrequencySteps.Add(step);
                     AddColumn(step);
 
                     UpdateGraph(false);
@@ -367,7 +371,7 @@ namespace QA40xPlot.Actions
                 Fundamental_V = fftData[fundamentalBin],
                 Fundamental_dBV = 20 * Math.Log10(fftData[fundamentalBin]),
                 Gain_dB = 20 * Math.Log10(fftData[fundamentalBin] / generatorV)
-            };
+			};
 
 			// Reset harmonic distortion variables
 			double distortionSqrtTotal = 0;

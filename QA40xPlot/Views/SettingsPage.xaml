@@ -33,6 +33,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Label Content="Amplifier Load: " Grid.Row="0" Grid.Column="0" />
         <ComboBox IsEditable="True" Grid.Row="0" Grid.Column="1" MinWidth="80" 
@@ -54,5 +55,11 @@
         <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" MaxWidth="600" 
                    Text="Automatically save the current settings as default on exit." 
                    Grid.Row="4" Grid.Column="4" />
+        <local:GroupHeader Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="5"  />
+        <Label Content="Usb Buffer Size: " Grid.Row="6" Grid.Column="0" />
+        <ComboBox VerticalAlignment="Top" Grid.Row="6" Grid.Column="1" MinWidth="80" SelectedValue="{Binding UsbBufferSize}" ItemsSource="{Binding UsbBufferSizes}" />
+        <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" MaxWidth="600" 
+                   Text="Set the size of the usb block. Careful!." 
+                   Grid.Row="6" Grid.Column="4" />
     </Grid>
 </UserControl>
