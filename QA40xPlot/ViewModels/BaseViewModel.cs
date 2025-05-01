@@ -17,8 +17,7 @@ namespace QA40xPlot.ViewModels
 	{
 		// public INavigation ViewNavigator { get; set; }
 		#region Shared Properties
-		public static List<String> WindowingRESTTypes { get => new List<string> { "Rectangle", "Hann", "FlatTop" }; }
-		public static List<String> WindowingUSBTypes { get => new List<string> { "Bartlett", "Blackman", "Cosine", "FlatTop", "Hamming", "Hann", "Kaiser", "Rectangular", "Tukey", "Welch" }; }
+		public static List<String> WindowingTypes { get => new List<string> { "Bartlett", "Blackman", "Cosine", "FlatTop", "Hamming", "Hann", "Kaiser", "Rectangular", "Tukey", "Welch" }; }
 		public static List<String> EndFrequencies { get => new List<string> { "1000", "2000", "5000", "10000", "20000", "50000", "100000" }; }
 		public static List<String> StartFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "5000", "10000" }; }
 		public static List<String> TopDbs { get => new List<string> { "100", "50", "20", "0", "-50", "-80"  }; }
@@ -45,13 +44,8 @@ namespace QA40xPlot.ViewModels
 		#endregion
 
 		#region Setters and Getters
-		// the power display variables, all readonly
-		private List<string> _WindowingTypes = WindowingUSBTypes;
 		[JsonIgnore]
-		public List<string> WindowingTypes 
-		{ get { return _WindowingTypes; }
-		  set { SetProperty(ref _WindowingTypes, value); }
-		}
+		protected TabAbout actAbout { get; set; } = new();
 
 		[JsonIgnore]
 		public bool IsGenPower { get => (GenDirection == MeasureVoltsFull[2]); }
@@ -60,11 +54,25 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public string GenAmpUnits { get => (IsGenPower ? "W" : "V"); }
 
+		private bool _ShowTabInfo = false;
+		public bool ShowTabInfo
+		{
+			get => _ShowTabInfo;
+			set => SetProperty(ref _ShowTabInfo, value);
+		}
+
 		private string _Name = string.Empty;         // name of the test
 		public string Name
 		{
 			get => _Name;
 			set => SetProperty(ref _Name, value);
+		}
+
+		private bool _ShowSummary = false;
+		public bool ShowSummary
+		{
+			get => _ShowSummary;
+			set => SetProperty(ref _ShowSummary, value);
 		}
 
 		private string _PlotFormat = "dBV";
@@ -235,6 +243,11 @@ namespace QA40xPlot.ViewModels
 			return this.MemberwiseClone();
 		}
 
+		public void LinkAbout(DataDescript fmv)
+		{
+			actAbout.SetDataContext(fmv);
+		}
+
 		/// <summary>
 		/// Given an input voltage determine the output voltage for this channel
 		/// </summary>
@@ -369,6 +382,7 @@ namespace QA40xPlot.ViewModels
 			Averages = 1;
 			PlotFormat = "dBV";
 			WindowingMethod = "Hann";
+			ShowTabInfo = false;
 		}
 
 		public void SetupMainPlot(PlotControl plot)

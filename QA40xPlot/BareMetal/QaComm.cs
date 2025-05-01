@@ -63,8 +63,8 @@ namespace QA40xPlot.BareMetal
 			bool rslt = false;
 			if (ViewSettings.IsUseREST)
 			{
-
-				rslt = await QaLibrary.InitializeDevice(sampleRate, fftsize, Windowing, attenuation, !_WasInitialized);
+				// rest doesn't support much windowing but we don't use it anyway so...
+				rslt = await QaLibrary.InitializeDevice(sampleRate, fftsize, "Hann", attenuation, !_WasInitialized);
 			}
 			else
 				rslt = QaUsb.InitializeDevice(sampleRate, fftsize, Windowing, attenuation);

@@ -16,9 +16,9 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public RelayCommand DoExport { get => new RelayCommand(OnExport); }
 		[JsonIgnore]
-		public RelayCommand DoSave { get => new RelayCommand(OnSave); }
+		public RelayCommand DoSaveCfg { get => new RelayCommand(OnSaveCfg); }
 		[JsonIgnore]
-		public RelayCommand DoLoad { get => new RelayCommand(OnLoad); }
+		public RelayCommand DoLoadCfg { get => new RelayCommand(OnLoadCfg); }
 
 
 		#region Setters and Getters
@@ -176,7 +176,7 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		public async void DoPhoto(Window parent)        
+		public async Task DoPhoto(Window parent)        
 		{
 			DateTime now = DateTime.Now;
 			string formattedDate = $"{now:yyyy-MM-dd HH:mm:ss}";
@@ -222,7 +222,7 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		private void OnSave()
+		private void OnSaveCfg()
 		{
 			SaveFileDialog saveFileDialog = new SaveFileDialog
 			{
@@ -244,7 +244,7 @@ namespace QA40xPlot.ViewModels
 
 		}
 
-		private void OnLoad()
+		private void OnLoadCfg()
 		{
 			OpenFileDialog openFileDialog = new OpenFileDialog
 			{

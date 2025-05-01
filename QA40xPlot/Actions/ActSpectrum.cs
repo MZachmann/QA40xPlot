@@ -7,12 +7,11 @@ using ScottPlot.Plottables;
 using System.Data;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
-using QA40x_BareMetal;
 using Newtonsoft.Json;
 using System.IO;
-using System.Windows.Interop;
 
-// various things for the thd vs frequency activity
+// this is the top level class for the spectrum test
+// the code that runs the test and analyzes the results
 
 namespace QA40xPlot.Actions
 {
@@ -31,7 +30,7 @@ namespace QA40xPlot.Actions
         /// <summary>
         /// Constructor
         /// </summary>
-        public ActSpectrum(ref SpectrumData data, Views.PlotControl graphFft)
+        public ActSpectrum(Views.PlotControl graphFft)
         {
 			fftPlot = graphFft;
 			ct = new CancellationTokenSource();
@@ -75,9 +74,10 @@ namespace QA40xPlot.Actions
 			return db;
 		}
 
+
 		public bool SaveToFile(string fileName)
 		{
-			if(PageData == null)
+			if (PageData == null)
 				return false;
 			try
 			{
@@ -90,7 +90,8 @@ namespace QA40xPlot.Actions
 				// Write the JSON string to a file
 				File.WriteAllText(fileName, jsonString);
 			}
-			catch (Exception ex) {
+			catch (Exception ex)
+			{
 				MessageBox.Show(ex.Message, "A save error occurred.", MessageBoxButton.OK, MessageBoxImage.Information);
 				return false;
 			}
@@ -178,7 +179,7 @@ namespace QA40xPlot.Actions
 		/// <summary>
 		///  Start measurement button click
 		/// </summary>
-		public async void DoMeasurement()
+		public async Task DoMeasurement()
 		{
 			var specVm = MyVModel;			// the active viewmodel
 			if (!await StartAction(specVm))
@@ -232,7 +233,7 @@ namespace QA40xPlot.Actions
 					PageData = NextPage;        // finally update the pagedata for display and processing
 				UpdateGraph(true);
 			}
-			specVm.LinkAbout(PageData.Definition);	// ensure we're linked right during replays
+			MyVModel.LinkAbout(PageData.Definition);	// ensure we're linked right during replays
 
 			while (rslt && !ct.IsCancellationRequested)
 			{
@@ -286,7 +287,7 @@ namespace QA40xPlot.Actions
 
 			var freq = MathUtil.ToDouble(vm.Gen1Frequency, 0);
 			var sampleRate = vm.SampleRateVal;
-			if (freq == 0 || sampleRate == 0 || !SpectrumViewModel.FftSizes.Contains(vm.FftSize))
+			if (freq == 0 || sampleRate == 0 || !BaseViewModel.FftSizes.Contains(vm.FftSize))
 			{
 				MessageBox.Show("Invalid settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 				return false;
@@ -378,83 +379,46 @@ namespace QA40xPlot.Actions
 
 			// left and right channels summary info to fill in
 			var left = new ThdChannelViewModel();
+			left.IsLeft = true;
 			var right = new ThdChannelViewModel();
+			right.IsLeft = false;
 			SpectrumViewModel vm = msr.ViewModel;
 
 			var freq = MathUtil.ToDouble(vm.Gen1Frequency, 0);
-			left.FundamentalFrequency = freq;
-			left.GeneratorVolts = msr.Definition.GeneratorVoltage;
-			right.FundamentalFrequency = freq;
-			right.GeneratorVolts = msr.Definition.GeneratorVoltage;
-
 			var lrfs = msr.FreqRslt;    // frequency response
-
-			uint fundamental1Bin = QaLibrary.GetBinOfFrequency(freq, (uint)vm.SampleRateVal, (uint)vm.FftSizeVal);
-			var x = QaMath.MagAtFreq(msr.FreqRslt.Left, msr.FreqRslt.Df, freq);
-			left.FundamentalVolts = x;
-			x = QaMath.MagAtFreq(msr.FreqRslt.Right, msr.FreqRslt.Df, freq);
-			right.FundamentalVolts = x;
 
 			var maxf = 20000; // the app seems to use 20,000 so not sampleRate/ 2.0;
 			LeftRightPair snrdb = QaCompute.GetSnrDb(lrfs, freq, 20.0, maxf);
 			LeftRightPair thds = QaCompute.GetThdDb(lrfs, freq, 20.0, maxf);
 			LeftRightPair thdN = QaCompute.GetThdnDb(lrfs, freq, 20.0, maxf);
 
-			left.SNRatio = snrdb.Left;
-			right.SNRatio = snrdb.Right;
-			left.ENOB = (snrdb.Left - 1.76) / 6.02;
-			right.ENOB = (snrdb.Right - 1.76) / 6.02;
-			left.ThdNInV = left.FundamentalVolts * QaLibrary.ConvertVoltage(thdN.Left, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
-			right.ThdNInV = left.FundamentalVolts * QaLibrary.ConvertVoltage(thdN.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
-			left.ThdInV = left.FundamentalVolts * QaLibrary.ConvertVoltage(thds.Left, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
-			right.ThdInV = left.FundamentalVolts * QaLibrary.ConvertVoltage(thds.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
-			left.NoiseFloorV = msr.NoiseFloor?.Left ?? 1e-10;
-			right.NoiseFloorV = msr.NoiseFloor?.Right ?? 1e-10;
-			left.NoiseFloorPct = 100 * left.NoiseFloorV / left.FundamentalVolts;
-			right.NoiseFloorPct = 100 * right.NoiseFloorV / right.FundamentalVolts;
-			left.ThdInPercent = 100 * Math.Pow(10, thdN.Left / 20);
-			right.ThdInPercent = 100 * Math.Pow(10, thdN.Right / 20);
-			left.ThdNInPercent = 100 * left.ThdNInV / left.FundamentalVolts;
-			right.ThdNInPercent = 100 * right.ThdNInV / right.FundamentalVolts;
-			left.ThdNIndB = thdN.Left;
-			right.ThdNIndB = thdN.Right;
-			left.ThdIndB = thds.Left;
-			right.ThdIndB = thds.Right;
-
-			left.NoiseFloorPct = 100 * (left.NoiseFloorV / left.FundamentalVolts);
-			right.NoiseFloorPct = 100 * (right.NoiseFloorV / right.FundamentalVolts);
-			left.GaindB = 20 * Math.Log10(left.FundamentalVolts / Math.Max(1e-10, left.GeneratorVolts));
-			right.GaindB = 20 * Math.Log10(right.FundamentalVolts / Math.Max(1e-10, right.GeneratorVolts));
-
-			left.NoiseFloorView = GraphUtil.DoValueFormat(vm.PlotFormat, left.NoiseFloorV, left.FundamentalVolts);
-			left.AmplitudeView = GraphUtil.DoValueFormat(vm.PlotFormat, left.FundamentalVolts, left.FundamentalVolts);
-			right.NoiseFloorView = GraphUtil.DoValueFormat(vm.PlotFormat, right.NoiseFloorV, right.FundamentalVolts);
-			right.AmplitudeView = GraphUtil.DoValueFormat(vm.PlotFormat, right.FundamentalVolts, right.FundamentalVolts);
-
-			left.TotalW = left.FundamentalVolts * left.FundamentalVolts / ViewSettings.AmplifierLoad;
-			right.TotalW = right.FundamentalVolts * right.FundamentalVolts / ViewSettings.AmplifierLoad;
-
-			left.ShowDataPercents = vm.ShowDataPercent;
-			right.ShowDataPercents = vm.ShowDataPercent;
-
-			var ltdata = msr.TimeRslt.Left;
-			// this should never happen
-			if (ltdata != null)
+			ThdChannelViewModel[] steps = [left, right];
+			foreach (var step in steps)
 			{
-				double allvolts = Math.Sqrt(ltdata.Select(x => x * x).Sum() / ltdata.Count()); // use the time data for best accuracy gain math
-				left.FundamentalVolts = allvolts;
-			}
-			ltdata = msr.TimeRslt.Right;
-			// this should never happen
-			if (ltdata != null)
-			{
-				double allvolts = Math.Sqrt(ltdata.Select(x => x * x).Sum() / ltdata.Count()); // use the time data for best accuracy gain math
-				right.FundamentalVolts = allvolts;
+				bool isleft = step.IsLeft;
+				var frq = isleft ? msr.FreqRslt.Left : msr.FreqRslt.Right;
+
+				step.FundamentalFrequency = freq;
+				step.GeneratorVolts = msr.Definition.GeneratorVoltage;
+				step.FundamentalVolts = QaMath.MagAtFreq(frq, msr.FreqRslt.Df, freq);
+				step.SNRatio = isleft ? snrdb.Left : snrdb.Right;
+				step.ENOB = (step.SNRatio - 1.76) / 6.02;
+				step.ThdNInV = step.FundamentalVolts * QaLibrary.ConvertVoltage(isleft ? thdN.Left : thdN.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
+				step.NoiseFloorV = (isleft ? msr.NoiseFloor?.Left : msr.NoiseFloor?.Right) ?? 1e-10;
+				step.NoiseFloorPct = 100 * step.NoiseFloorV / step.FundamentalVolts;
+				step.ThdInV = step.FundamentalVolts * QaLibrary.ConvertVoltage(isleft ? thds.Left : thds.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
+				step.ThdInPercent = 100 * step.ThdInV / step.FundamentalVolts;
+				step.ThdNInPercent = 100 * step.ThdNInV / step.FundamentalVolts;
+				step.ThdNIndB = isleft ? thdN.Left : thdN.Right;
+				step.ThdIndB = isleft ? thds.Left : thds.Right;
+				step.GaindB = 20 * Math.Log10(step.FundamentalVolts / Math.Max(1e-10, step.GeneratorVolts));
+				step.TotalW = step.FundamentalVolts * step.FundamentalVolts / ViewSettings.AmplifierLoad;
+				step.ShowDataPercents = vm.ShowDataPercent;
+				step.NoiseFloorView = GraphUtil.DoValueFormat(vm.PlotFormat, step.NoiseFloorV, step.FundamentalVolts);
+				step.AmplitudeView = GraphUtil.DoValueFormat(vm.PlotFormat, step.FundamentalVolts, step.FundamentalVolts);
 			}
 
 			CalculateHarmonics(msr, left, right);
-			ViewSettings.Singleton.ChannelLeft.Harmonics = new List<HarmonicData>();
-			ViewSettings.Singleton.ChannelRight.Harmonics = new List<HarmonicData>();
 
 			// we're nearly done
 			msr.SetProperty("Left", left);
@@ -472,7 +436,6 @@ namespace QA40xPlot.Actions
 
 		private void CalculateHarmonics(DataTab<SpectrumViewModel> page, ThdChannelViewModel left, ThdChannelViewModel right)
 		{
-			List<HarmonicData> harmonics = new List<HarmonicData>();
 			var vm = page.ViewModel;
 			if(page.FreqRslt == null)
 				return;
@@ -482,53 +445,34 @@ namespace QA40xPlot.Actions
 			freq = QaLibrary.GetNearestBinFrequency(freq, vm.SampleRateVal, vm.FftSizeVal);
 			var maxfreq = vm.SampleRateVal / 2.0;
 			var binSize = QaLibrary.CalcBinSize(vm.SampleRateVal, vm.FftSizeVal);
+			ThdChannelViewModel[] steps = [left, right];
 
-			for (int harmonicNumber = 2; harmonicNumber <= 10; harmonicNumber++)                                                  // For now up to 12 harmonics, start at 2nd
+			foreach (var step in steps)
 			{
-				double harmonicFrequency = freq * harmonicNumber;
-				if(harmonicFrequency > maxfreq)
-					break;  // no more harmonics
-
-				double amplitude_V = QaMath.MagAtFreq(page.FreqRslt.Left, binSize, harmonicFrequency);
-				double amplitude_dBV = 20 * Math.Log10(amplitude_V);
-				double thdPercent = (amplitude_V / left.FundamentalVolts) * 100;
-
-				HarmonicData harmonic = new()
+				List<HarmonicData> harmonics = new List<HarmonicData>();
+				for (int harmonicNumber = 2; harmonicNumber <= 10; harmonicNumber++)                                                  // For now up to 12 harmonics, start at 2nd
 				{
-					HarmonicNr = harmonicNumber,
-					Frequency = harmonicFrequency,
-					Amplitude_V = amplitude_V,
-					Amplitude_dBV = amplitude_dBV,
-					Thd_Percent = thdPercent,
-					Thd_dB = 20 * Math.Log10(thdPercent / 100.0),
-				};
-				harmonics.Add(harmonic);
+					double harmonicFrequency = freq * harmonicNumber;
+					if (harmonicFrequency > maxfreq) harmonicFrequency = maxfreq / 2;
+
+					var ffts = step.IsLeft ? page.FreqRslt.Left : page.FreqRslt.Right;
+					double amplitude_V = QaMath.MagAtFreq(ffts, binSize, harmonicFrequency);
+					double amplitude_dBV = 20 * Math.Log10(amplitude_V);
+					double thdPercent = (amplitude_V / left.FundamentalVolts) * 100;
+
+					HarmonicData harmonic = new()
+					{
+						HarmonicNr = harmonicNumber,
+						Frequency = harmonicFrequency,
+						Amplitude_V = amplitude_V,
+						Amplitude_dBV = amplitude_dBV,
+						Thd_Percent = thdPercent,
+						Thd_dB = 20 * Math.Log10(thdPercent / 100.0),
+					};
+					harmonics.Add(harmonic);
+				}
+				step.Harmonics = harmonics;
 			}
-			left.Harmonics = harmonics;
-
-			harmonics = new List<HarmonicData>();
-			for (int harmonicNumber = 2; harmonicNumber <= 10; harmonicNumber++)                                                  // For now up to 12 harmonics, start at 2nd
-			{
-				double harmonicFrequency = freq * harmonicNumber;
-				if (harmonicFrequency > maxfreq)
-					break;  // no more harmonics
-
-				double amplitude_V = QaMath.MagAtFreq(page.FreqRslt.Right, binSize, harmonicFrequency);
-				double amplitude_dBV = 20 * Math.Log10(amplitude_V);
-				double thdPercent = (amplitude_V / right.FundamentalVolts) * 100;
-
-				HarmonicData harmonic = new()
-				{
-					HarmonicNr = harmonicNumber,
-					Frequency = harmonicFrequency,
-					Amplitude_V = amplitude_V,
-					Amplitude_dBV = amplitude_dBV,
-					Thd_Percent = thdPercent,
-					Thd_dB = 20 * Math.Log10(thdPercent / 100.0),
-				};
-				harmonics.Add(harmonic);
-			}
-			right.Harmonics = harmonics;
 
 			return;
 		}
@@ -602,36 +546,32 @@ namespace QA40xPlot.Actions
 			if (!vm.ShowLeft && !vm.ShowRight)
 				return;
 
-            List<double> freqchecks = new List<double> { 50, 60 };
+            List<double> freqchecks = new List<double> { 50, 60, 100, 150, 120, 180 };
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			if (vm.ShowPowerMarkers)
 			{
 				var sampleRate = vm.SampleRateVal;
 				var fftsize = vm.FftSizeVal;
-                double fsel = 0;
-                double maxdata = -10;
+				double fsel = 0;
+				double maxdata = -10;
 				var fftdata = vm.ShowLeft ? page.FreqRslt?.Left : page.FreqRslt?.Right;
 				if (fftdata == null)
 					return;
 				// find if 50 or 60hz is higher, indicating power line frequency
 				foreach (double freq in freqchecks)
 				{
-					var actfreq = QaLibrary.GetNearestBinFrequency(freq, sampleRate, fftsize);
-					int bin = (int)QaLibrary.GetBinOfFrequency(actfreq, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
-					var data = fftdata[bin];
-                    if(data > maxdata)
-                    {
-                        fsel = freq;
-                    }
+					var data = QaMath.MagAtFreq(fftdata, vm.FftSizeVal, freq);
+					if (data > maxdata)
+					{
+						fsel = (freq == 50 || freq == 100 || freq==150) ? 50 : 60;
+					}
 				}
-                // check 4 harmonics of power frequency
-                for(int i=1; i<4; i++)
+				// mark 4 harmonics of power frequency
+				for (int i=1; i<5; i++)
                 {
-                    var actfreq = QaLibrary.GetNearestBinFrequency(fsel * i, sampleRate, fftsize);
-					int bin = (int)QaLibrary.GetBinOfFrequency(actfreq, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
-                    var data = fftdata[bin];
+					var data = QaMath.MagAtFreq(fftdata, vm.FftSizeVal, fsel*i);
                     double udif = 20 * Math.Log10(data);
-                    AddAMarker(page, actfreq, true);
+                    AddAMarker(page, fsel*i, true);
 				}
 			}
 		}

@@ -14,7 +14,6 @@ namespace QA40xPlot.ViewModels
 			set
 			{
 				SetProperty(ref _UseREST, value);
-				WindowingTypes = value ? WindowingRESTTypes : WindowingUSBTypes;
 			}
 		}
 

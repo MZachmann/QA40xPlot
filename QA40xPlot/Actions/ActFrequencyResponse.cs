@@ -58,7 +58,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		public async void StartMeasurement()
+		public async Task StartMeasurement()
 		{
 			var vm = MyVModel;
 			if (! await StartAction(vm))

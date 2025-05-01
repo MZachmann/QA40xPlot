@@ -12,7 +12,7 @@ namespace QA40xPlot.Views
 			InitializeComponent();
 			var vm = ViewModels.ViewSettings.Singleton.ImdVm;
 			this.DataContext = vm;
-			vm.SetAction(this.WpfPlot1, this.Info1);
+			vm.SetAction(this.WpfPlot1, this.Info1, this.Info2, this.TAbout); 
 		}
 
 		public void OnChangedIntermod(object sender, EventArgs e)

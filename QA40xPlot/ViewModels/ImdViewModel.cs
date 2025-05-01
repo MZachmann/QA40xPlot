@@ -9,6 +9,7 @@ using System.Windows.Input;
 using ScottPlot;
 using ScottPlot.Plottables;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
 
 namespace QA40xPlot.ViewModels
 {
@@ -21,7 +22,8 @@ namespace QA40xPlot.ViewModels
 			"TDFD Phono (3005Hz.4462Hz 1:1)" }; }
 		private ActImd actImd { get;  set; }
 		private PlotControl actPlot { get; set; }
-		private ImdChannelInfo actInfo { get;  set; }
+		private ImdChannelInfo actInfoLeft { get;  set; }
+		private ImdChannelInfo actInfoRight { get; set; }
 		[JsonIgnore]
 		public RelayCommand<object> SetAttenuate { get => new RelayCommand<object>(SetAtten); }
 		[JsonIgnore]
@@ -32,6 +34,13 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand ToggleGenerator { get => new RelayCommand(StopIt); }
 		[JsonIgnore]
 		public RelayCommand<object> DoFitToData { get => new RelayCommand<object>(OnFitToData); }
+		[JsonIgnore]
+		public RelayCommand DoLoad { get => new RelayCommand(LoadIt); }
+		[JsonIgnore]
+		public RelayCommand DoSave { get => new RelayCommand(SaveIt); }
+
+		private static ImdViewModel MyVModel { get => ViewSettings.Singleton.ImdVm; }
+
 
 		#region Setters and Getters
 
@@ -129,13 +138,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowThickLines, value);
 		}
 
-		private bool _ShowSummary = true;
-		public bool ShowSummary
-		{
-			get => _ShowSummary;
-			set => SetProperty(ref _ShowSummary, value);
-		}
-
 		private bool _ShowMarkers = false;
 		public bool ShowMarkers
 		{
@@ -230,13 +232,18 @@ namespace QA40xPlot.ViewModels
 				case "PlotFormat":
 					// we may need to change the axis
 					ToShowRange = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Collapsed : Visibility.Visible;
-					ToShowdB = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Visible : Visibility.Collapsed;
+					ToShowdB = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Visible : Visibility.Collapsed; 
 					OnPropertyChanged("GraphUnit");
 					actImd?.UpdateGraph(true);
 					break;
+				case "ShowTabInfo":
 				case "ShowSummary":
-					if (actInfo != null)
-						actInfo.Visibility = ShowSummary ? Visibility.Visible : Visibility.Hidden;
+					ShowInfos();
+					break;
+				case "ShowRight":
+				case "ShowLeft":
+					ShowInfos();
+					actImd?.UpdateGraph(true);
 					break;
 				case "IntermodType":
 				case "GraphStartFreq":
@@ -247,8 +254,6 @@ namespace QA40xPlot.ViewModels
 				case "RangeTop":
 					actImd?.UpdateGraph(true);
 					break;
-				case "ShowRight":
-				case "ShowLeft":
 				case "ShowThickLines":
 				case "ShowMarkers":
 				case "ShowPowerMarkers":
@@ -259,11 +264,12 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		public void SetAction(PlotControl plot, ImdChannelInfo info)
+		public void SetAction(PlotControl plot, ImdChannelInfo info, ImdChannelInfo info2, TabAbout tinfo)
 		{
-			ImdData data = new ImdData();
-			actImd = new ActImd(ref data, plot);
-			actInfo = info;
+			actImd = new ActImd(plot);
+			actInfoLeft = info;
+			actInfoRight = info2;
+			actAbout = tinfo;
 			SetupMainPlot(plot);
 			actPlot = plot;
 		}
@@ -279,13 +285,67 @@ namespace QA40xPlot.ViewModels
 		{
 			// Implement the logic to start the measurement process
 			var vm = ViewSettings.Singleton.ImdVm;
-			vm?.actImd?.StartMeasurement();
+			vm?.actImd?.DoMeasurement();
 		}
 
 		private static void StopIt()
 		{
 			var vm = ViewSettings.Singleton.ImdVm;
 			vm?.actImd?.DoCancel();
+		}
+
+		private static void LoadIt()
+		{
+			OpenFileDialog openFileDialog = new OpenFileDialog
+			{
+				FileName = string.Empty, // Default file name
+				DefaultExt = ".plt", // Default file extension
+				Filter = "Plot files|*.plt|All files|*.*" // Filter files by extension
+			};
+
+			// Show save file dialog box
+			bool? result = openFileDialog.ShowDialog();
+
+			// Process save file dialog box results
+			if (result == true)
+			{
+				// open document
+				string filename = openFileDialog.FileName;
+				var vm = MyVModel;
+				vm.actImd.LoadFromFile(filename).Wait();
+			}
+		}
+
+		private static string FileAddon()
+		{
+			DateTime now = DateTime.Now;
+			string formattedDate = $"{now:yyyy-MM-dd_HH-mm-ss}";
+			return formattedDate;
+		}
+
+		private static void SaveIt()
+		{
+			SaveFileDialog saveFileDialog = new SaveFileDialog
+			{
+				FileName = String.Format("QaImd{0}", FileAddon()), // Default file name
+				DefaultExt = ".plt", // Default file extension
+				Filter = "Plot files|*.plt|All files|*.*" // Filter files by extension
+			};
+
+			// Show save file dialog box
+			bool? result = saveFileDialog.ShowDialog();
+
+			// Process save file dialog box results
+			if (result == true)
+			{
+				// Save document
+				string filename = saveFileDialog.FileName;
+				if (filename.Count() > 1)
+				{
+					var vm = MyVModel;
+					vm.actImd.SaveToFile(filename);
+				}
+			}
 		}
 
 		private void OnFitToData(object? parameter)
@@ -320,6 +380,16 @@ namespace QA40xPlot.ViewModels
 					break;
 			}
 			actImd?.UpdateGraph(false);
+		}
+
+		private void ShowInfos()
+		{
+			if (actInfoLeft != null)
+				actInfoLeft.Visibility = (ShowSummary && ShowLeft) ? Visibility.Visible : Visibility.Hidden;
+			if (actInfoRight != null)
+				actInfoRight.Visibility = (ShowSummary && ShowRight) ? Visibility.Visible : Visibility.Hidden;
+			if (actAbout != null)
+				actAbout.Visibility = ShowTabInfo ? Visibility.Visible : Visibility.Hidden;
 		}
 
 		private void ExecIm(int df1, int df2, int divisor)
@@ -469,7 +539,7 @@ namespace QA40xPlot.ViewModels
 		{
 			PropertyChanged -= CheckPropertyChanged;
 			MouseTracked -= DoMouseTracked;
-			 
+		 
 		}
 
 		public ImdViewModel()
@@ -480,7 +550,8 @@ namespace QA40xPlot.ViewModels
 
 			// eliminate warnings
 			this.actPlot = default!;
-			this.actInfo = default!;
+			this.actInfoLeft = default!;
+			this.actInfoRight = default!;
 			this.actImd = default!;
 
 			GraphStartFreq = "20";
@@ -516,7 +587,7 @@ namespace QA40xPlot.ViewModels
 			PlotFormat = "dBV";
 
 			ToShowRange = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Collapsed : Visibility.Visible;
-			ToShowdB = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Visible : Visibility.Collapsed;
+			ToShowdB = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Visible : Visibility.Collapsed; 
 
 			// make a few things happen to synch the gui
 			Task.Delay(1000).ContinueWith(t => { actImd?.UpdateGraph(true); });

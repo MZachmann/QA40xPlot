@@ -12,7 +12,7 @@ namespace QA40xPlot.Views
 			InitializeComponent();
 			var vm = ViewModels.ViewSettings.Singleton.ScopeVm;
 			this.DataContext = vm;
-			vm.SetAction(this.WpfPlot1, this.Info1);
+			vm.SetAction(this.WpfPlot1, this.TAbout);
 		}
 	}
 }

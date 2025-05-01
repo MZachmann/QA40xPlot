@@ -193,7 +193,7 @@ namespace QA40x_BareMetal
 		}
 
 		/// <summary>
-		/// Do the startup of the QA40x, checking the rest interface for existance
+		/// Do the startup of the QA40x, attaching USB if needed
 		/// </summary>
 		/// <param name="sampleRate"></param>
 		/// <param name="fftsize"></param>

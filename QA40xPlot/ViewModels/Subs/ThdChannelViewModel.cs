@@ -12,6 +12,9 @@ namespace QA40xPlot.ViewModels
 {
 	public class ThdChannelViewModel : FloorViewModel
 	{
+		[JsonIgnore]
+		public bool IsLeft { get; set; } = false; // true = left, false = right
+
 		private List<HarmonicData> _Harmonics = new List<HarmonicData>();         // type of alert
 		public List<HarmonicData> Harmonics
 		{

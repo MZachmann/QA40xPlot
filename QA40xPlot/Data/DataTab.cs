@@ -22,6 +22,7 @@ namespace QA40xPlot.Data
 		public string CreateDate { get; set; }  // Measurement date time
 		public bool Saved { get; set; }
 		public double GeneratorVoltage { get; set; } // the generator voltage, if any
+
 		public DataDescript()
 		{
 			Name = string.Empty;

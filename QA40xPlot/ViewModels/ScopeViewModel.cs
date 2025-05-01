@@ -9,6 +9,8 @@ using System.Windows.Input;
 using ScottPlot;
 using ScottPlot.Plottables;
 using CommunityToolkit.Mvvm.Input;
+using System.Runtime.CompilerServices;
+using Microsoft.Win32;
 
 namespace QA40xPlot.ViewModels
 {
@@ -19,6 +21,7 @@ namespace QA40xPlot.ViewModels
 		public static List<String> AbsoluteValues { get => new List<string> { "5", "2", "1", "0.5", "0.1", "0.05", "-0.05", "-0.1", "-0.5", "-1", "-2", "-5" }; }
 		public static List<String> TimeSteps { get => new List<string> { "0",".1",".5","1","5", "10", "20", "50", "100", "200", "500", "1000", "5000", "10000" }; }
 
+		private static ScopeViewModel MyVModel { get => ViewSettings.Singleton.ScopeVm; }
 		private PlotControl actPlot {  get; set; }
 		private ActScope actScope { get;  set; }
 		private ThdChannelInfo actInfo { get;  set; }
@@ -32,6 +35,10 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand ToggleGenerator { get => new RelayCommand(StopIt); }
 		[JsonIgnore]
 		public RelayCommand<object> DoFitToData { get => new RelayCommand<object>(OnFitToData); }
+		[JsonIgnore]
+		public RelayCommand DoLoadTab { get => new RelayCommand(LoadItTab); }
+		[JsonIgnore]
+		public RelayCommand DoSaveTab { get => new RelayCommand(SaveItTab); }
 
 		#region Setters and Getters
 
@@ -130,13 +137,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowThickLines, value);
 		}
 
-		private bool _ShowSummary = true;
-		public bool ShowSummary
-		{
-			get => _ShowSummary;
-			set => SetProperty(ref _ShowSummary, value);
-		}
-
 		private bool _ShowMarkers = false;
 		public bool ShowMarkers
 		{
@@ -169,9 +169,13 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
+				case "ShowTabInfo":
+					if (actAbout != null)
+						actAbout.Visibility = ShowTabInfo ? Visibility.Visible : Visibility.Hidden;
+					break;
 				case "ShowSummary":
-					if (actInfo != null)
-						actInfo.Visibility = ShowSummary ? Visibility.Visible : Visibility.Hidden;
+					//if (actInfo != null)
+					//	actInfo.Visibility = ShowSummary ? Visibility.Visible : Visibility.Hidden;
 					break;
 				case "GraphStartTime":
 				case "GraphEndTime":
@@ -197,14 +201,15 @@ namespace QA40xPlot.ViewModels
 			return actScope?.CreateExportData();
 		}
 
-		public void SetAction(PlotControl plot, ThdChannelInfo info)
+		public void SetAction(PlotControl plot, TabAbout tinfo)
 		{
-			ScopeData data = new ScopeData();
-			actScope = new ActScope(ref data, plot);
-			actInfo = info;
-			info.SetDataContext(ViewSettings.Singleton.ScopeChanLeft);
+			actScope = new ActScope(plot);
+			actAbout = tinfo;
+			//actInfo = info;
+			//info.SetDataContext(ViewSettings.Singleton.ScopeChanLeft);
 			SetupMainPlot(plot);
 			actPlot = plot;
+			LinkAbout(actScope.PageData.Definition);
 		}
 
 		private static void SetAtten(object? parameter)
@@ -218,13 +223,67 @@ namespace QA40xPlot.ViewModels
 		{
 			// Implement the logic to start the measurement process
 			var vm = ViewSettings.Singleton.ScopeVm;
-			vm.actScope?.StartMeasurement();
+			vm.actScope?.DoMeasurement();
 		}
 
 		private static void StopIt()
 		{
 			var vm = ViewSettings.Singleton.ScopeVm;
 			vm.actScope?.DoCancel();
+		}
+
+		private static void LoadItTab()
+		{
+			OpenFileDialog openFileDialog = new OpenFileDialog
+			{
+				FileName = string.Empty, // Default file name
+				DefaultExt = ".plt", // Default file extension
+				Filter = "Plot files|*.plt|All files|*.*" // Filter files by extension
+			};
+
+			// Show save file dialog box
+			bool? result = openFileDialog.ShowDialog();
+
+			// Process save file dialog box results
+			if (result == true)
+			{
+				// open document
+				string filename = openFileDialog.FileName;
+				var vm = MyVModel;
+				vm.actScope.LoadFromFile(filename).Wait();
+			}
+		}
+
+		private static string FileAddon()
+		{
+			DateTime now = DateTime.Now;
+			string formattedDate = $"{now:yyyy-MM-dd_HH-mm-ss}";
+			return formattedDate;
+		}
+
+		private static void SaveItTab()
+		{
+			SaveFileDialog saveFileDialog = new SaveFileDialog
+			{
+				FileName = String.Format("QaScope{0}", FileAddon()), // Default file name
+				DefaultExt = ".plt", // Default file extension
+				Filter = "Plot files|*.plt|All files|*.*" // Filter files by extension
+			};
+
+			// Show save file dialog box
+			bool? result = saveFileDialog.ShowDialog();
+
+			// Process save file dialog box results
+			if (result == true)
+			{
+				// Save document
+				string filename = saveFileDialog.FileName;
+				if (filename.Count() > 1)
+				{
+					var vm = MyVModel;
+					vm.actScope.SaveToFile(filename);
+				}
+			}
 		}
 
 		private void OnFitToData(object? parameter)
@@ -306,7 +365,6 @@ namespace QA40xPlot.ViewModels
 			RangeBottom = "-1";
 
 			ShowThickLines = true;
-			ShowSummary = true;
 			ShowLeft = true;
 			ShowRight = false;
 

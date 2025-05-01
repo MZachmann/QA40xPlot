@@ -611,7 +611,7 @@ namespace QA40xPlot.Actions
             /// <summary>
         ///  Start measurement button click
         /// </summary>
-        public async void StartMeasurement()
+        public async Task StartMeasurement()
         {
             ThdFreqViewModel thd = MyVModel;
 			if (!await StartAction(thd))

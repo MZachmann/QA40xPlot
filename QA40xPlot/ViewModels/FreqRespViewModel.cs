@@ -162,13 +162,6 @@ public class FreqRespViewModel : BaseViewModel
 		set => SetProperty(ref _ShowPoints, value);
 	}
 
-	private bool _ShowSummary = true;
-	public bool ShowSummary
-	{
-		get => _ShowSummary;
-		set => SetProperty(ref _ShowSummary, value);
-	}
-
 	private bool _ShowPercent;
 	public bool ShowPercent
 	{
@@ -414,7 +407,6 @@ public class FreqRespViewModel : BaseViewModel
 		RangeBottom = "0.001";
 
 		ShowThickLines = true;
-		ShowSummary = true;
 		ShowPercent = false;
 		ShowLeft = true;
 		ShowRight = false;

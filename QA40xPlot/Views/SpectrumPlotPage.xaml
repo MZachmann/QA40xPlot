@@ -179,11 +179,11 @@
         </StackPanel>
         <Grid Grid.Column="1">
             <views:PlotControl x:Name="WpfPlot1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
-            <views:ThdChannelInfo x:Name="Info1"  
-                  VerticalAlignment="Top" HorizontalAlignment="Left" Margin="80,50,0,0" />
-            <views:ThdChannelInfo x:Name="Info2"  
-                  VerticalAlignment="Top" HorizontalAlignment="Left" Margin="80,260,0,0" />
-            <views:TabAbout x:Name="TAbout"  
+            <views:ThdChannelInfo x:Name="Info1"  Visibility="Hidden"
+                  VerticalAlignment="Top" HorizontalAlignment="Left" Margin="60,50,0,0" />
+            <views:ThdChannelInfo x:Name="Info2"  Visibility="Hidden"
+                  VerticalAlignment="Top" HorizontalAlignment="Left" Margin="60,280,0,0" />
+            <views:TabAbout x:Name="TAbout"  Visibility="Hidden"
                   VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,50,34,0" />
         </Grid>
         <StackPanel Grid.Column="2" Orientation="Vertical">

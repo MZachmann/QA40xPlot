@@ -139,7 +139,7 @@ namespace QA40xPlot.BareMetal
 		{
 			// Calculate notch filter bounds in Hz
 			//var notchOctaves = 0.5; // aes-17 2015 standard notch
-			var notchOctaves = 0.1; // my preferred notch much tighter and more realistic nowadays
+			var notchOctaves = 0.05; // my preferred notch much tighter and more realistic nowadays
 			double notchLowerBound = fundamental / Math.Pow(2, notchOctaves);
 			double notchUpperBound = fundamental * Math.Pow(2, notchOctaves);
 
@@ -308,8 +308,8 @@ namespace QA40xPlot.BareMetal
 			double sum = 0;
 			try
 			{
-				var lb = (int)(lowerBound / df);
-				var ub = (int)(upperBound / df);
+				var lb = Math.Max(1,(int)(lowerBound / df));
+				var ub = Math.Min(signalFreqLin.Length-1, (int)(upperBound / df));
 				for (int i = lb; i < ub; i++)
 				{
 					sum += signalFreqLin[i] * signalFreqLin[i];
