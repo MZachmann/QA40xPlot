@@ -264,6 +264,8 @@ namespace QA40xPlot.ViewModels
 			actAbout = tinfo;
 			SetupMainPlot(plot);
 			actPlot = plot;
+			info.SetDataContext(true);
+			info2.SetDataContext(false);
 			MyVModel.LinkAbout(actImd.PageData.Definition);
 		}
 

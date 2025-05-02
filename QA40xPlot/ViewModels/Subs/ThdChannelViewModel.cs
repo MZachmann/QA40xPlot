@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using QA40xPlot.Libraries;
+using System.Drawing;
 
 namespace QA40xPlot.ViewModels
 {
@@ -14,6 +15,14 @@ namespace QA40xPlot.ViewModels
 	{
 		[JsonIgnore]
 		public bool IsLeft { get; set; } = false; // true = left, false = right
+
+		private System.Windows.Media.Brush _BorderColor = System.Windows.Media.Brushes.Green;
+		[JsonIgnore]
+		public System.Windows.Media.Brush BorderColor
+		{
+			get => _BorderColor;
+			set => SetProperty(ref _BorderColor, value);
+		}
 
 		private List<HarmonicData> _Harmonics = new List<HarmonicData>();         // type of alert
 		public List<HarmonicData> Harmonics

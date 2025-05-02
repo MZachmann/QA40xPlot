@@ -389,6 +389,7 @@ namespace QA40xPlot.Actions
 				bool isleft = step.IsLeft;
 				var frq = isleft ? msr.FreqRslt.Left : msr.FreqRslt.Right;
 
+				step.BorderColor = isleft ? System.Windows.Media.Brushes.Blue : System.Windows.Media.Brushes.Red;
 				step.Fundamental1Frequency = freq;
 				step.Fundamental2Frequency = freq2;
 				step.Generator1Volts = msr.Definition.GeneratorVoltage;

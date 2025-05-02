@@ -22,6 +22,15 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _Harmonics, value);
 		}
 
+
+		private System.Windows.Media.Brush _BorderColor = System.Windows.Media.Brushes.Green;
+		[JsonIgnore]
+		public System.Windows.Media.Brush BorderColor
+		{
+			get => _BorderColor;
+			set => SetProperty(ref _BorderColor, value);
+		}
+
 		private double _Generator1Volts = 0;         // type of alert
 		public double Generator1Volts
 		{

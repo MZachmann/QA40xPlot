@@ -13,9 +13,9 @@ namespace QA40xPlot.Libraries
     {
         public static ScottPlot.Color BlueColor { get => new ScottPlot.Color(1, 97, 170, 255); }
         public static ScottPlot.Color RedColor { get => new ScottPlot.Color(220, 5, 46, 255); }
-        public static ScottPlot.Color RedXColor { get => new ScottPlot.Color(220, 5, 46, 120); }
-		public static ScottPlot.Color GreenXColor { get => new ScottPlot.Color(1, 170, 97, 120); }
-		public static ScottPlot.Color OrangeXColor { get => new ScottPlot.Color(170, 170, 5, 120); }
+        public static ScottPlot.Color RedXColor { get => new ScottPlot.Color(220, 5, 46, 150); }
+		public static ScottPlot.Color GreenXColor { get => new ScottPlot.Color(40, 150, 0, 150); }
+		public static ScottPlot.Color OrangeXColor { get => new ScottPlot.Color(110, 0, 95, 150); }
 
 		public static double MINIMUM_GENERATOR_VOLTAGE_V = 0.001;
         public static double MAXIMUM_GENERATOR_VOLTAGE_V = 7.9;
