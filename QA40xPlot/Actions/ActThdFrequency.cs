@@ -317,8 +317,8 @@ namespace QA40xPlot.Actions
                         lrfs.FreqRslt.Left, MeasurementResult.NoiseFloor?.FreqRslt?.Left, ViewSettings.AmplifierLoad);
                     step.Right = ChannelCalculations(binSize, step.FundamentalFrequency, genVolt, 
                         lrfs.FreqRslt.Right, MeasurementResult.NoiseFloor?.FreqRslt?.Right, ViewSettings.AmplifierLoad);
-					step.Left.TotalNoiseFloor_V = QaCompute.CalculateNoise(MeasurementResult.NoiseFloor.FreqRslt, true);
-					step.Right.TotalNoiseFloor_V = QaCompute.CalculateNoise(MeasurementResult.NoiseFloor.FreqRslt, false);
+					step.Left.TotalNoiseFloor_V = QaCompute.CalculateNoise(MeasurementResult.NoiseFloor?.FreqRslt, true);
+					step.Right.TotalNoiseFloor_V = QaCompute.CalculateNoise(MeasurementResult.NoiseFloor?.FreqRslt, false);
 
 					// Add step data to list
 					MeasurementResult.FrequencySteps.Add(step);

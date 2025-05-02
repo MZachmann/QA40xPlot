@@ -340,9 +340,17 @@ public class FreqRespViewModel : BaseViewModel
 
 	private static void SaveItTab()
 	{
+		string prefix = "QaFile";
+		var ttype = MyVModel.GetTestingType(MyVModel.TestType);
+		if (ttype == TestingType.Response)
+			prefix = "QaResponse";
+		else if (ttype == TestingType.Impedance)
+			prefix = "QaImpedance";
+		else if (ttype == TestingType.Gain)
+			prefix = "QaGain";
 		SaveFileDialog saveFileDialog = new SaveFileDialog
 		{
-			FileName = String.Format("QaScope{0}", FileAddon()), // Default file name
+			FileName = prefix + FileAddon(),
 			DefaultExt = ".plt", // Default file extension
 			Filter = PlotFileFilter // Filter files by extension
 		};

@@ -1,6 +1,5 @@
 ﻿using FftSharp;
 using Newtonsoft.Json;
-using QA40x_BareMetal;
 using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
@@ -9,7 +8,6 @@ using ScottPlot;
 using ScottPlot.AxisRules;
 using ScottPlot.Plottables;
 using System.Data;
-using System.IO;
 using System.Numerics;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;

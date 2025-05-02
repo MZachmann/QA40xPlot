@@ -46,6 +46,9 @@ The program should automatically find the QA40x hardware and connect to it.
 
 The USB connection is active only while a test is running.
 
+If you experience issues with the USB connection, which is dependent on things like CPU performance, then
+there is a setting touse the REST interface provided by the QA40x factory application.
+
 ### Default Configuration
 
 **At startup** the program looks in your My Documents folder (usually \Users\yourname\Documents) and if it finds 

@@ -135,6 +135,15 @@ Along the top right of the screen are a few command buttons. If this becomes too
 <p>All 3 response tests (Response, Gain, Impedance) use a single generator voltage just like the THD vs Frequency test.</p>
 <h1>Cursor</h1>
 <p>All of the tests support a <strong>cursor</strong>. As you move your mouse in the plot a small box in the lower right shows the nearest data point. Some charts have a visual on-screen point, some don&#39;t.</p>
+<h1>Tab Load and Save</h1>
+<p>Each tab has a Load and Save button in the left hand column at the bottom. When clicked, the tab settings and plot data
+are saved to a compressed .plt file. This file can be manually opened in the OS and the contents are a JSON text file. It can also, of course,
+be loaded.</p>
+<p>When a saved tab is loaded two things happen. First, the plot data is displayed. Second, the original sweep settings are
+entered back into the user interface. So, the screen will look exactly as it did when the sweep/test was run. This lets you know
+exactly what settings you used for the test. It also allows for limited examination of the plot data.</p>
+<p>This interface and functionality are guaranteed to change. The current implementation is more a proof of concept.</p>
+
 <h1 style="color:red">Test Descriptions</h1>
 <h1 style="color:green">Spectrum Test</h1>
 <p>This test sends a single sine wave out from the generator and plots the received frequency spectral data (value vs frequency). For a Sine wave this produces a skinny spike at the sine frequency surrounded by background noise and (usually harmonic) distortion spikes.</p>
@@ -161,11 +170,11 @@ Along the top right of the screen are a few command buttons. If this becomes too
         </tr>
         <tr>
             <td>Generator 1</td>
-            <td>Select the frequency and signal voltage.</td>
+            <td>Select the frequency, signal voltage, and waveform.</td>
         </tr>
         <tr>
             <td></td>
-            <td>The Set _DUT option lets you program an output value rather than just the generator setting</td>
+            <td>The Set DUT option lets you program an output value rather than just the generator setting</td>
         </tr>
         <tr>
             <td>Sampling</td>
@@ -438,7 +447,7 @@ Along the top right of the screen are a few command buttons. If this becomes too
 </table>
 <h1 style="color:green">Response Test</h1>
 <p>
-    This is a conventional frequency response test. The output is in dBV and can cover both channels or just one. 
+    This is a conventional frequency response test. The output is in dBV and can cover both channels or just one.
 </p>
 <h2>Options</h2>
 <ul>
