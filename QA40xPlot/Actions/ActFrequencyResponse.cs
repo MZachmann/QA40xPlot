@@ -61,7 +61,7 @@ namespace QA40xPlot.Actions
 
 		public async Task LoadFromFile(string fileName)
 		{
-			var page = await LoadFile(fileName);
+			var page = LoadFile(fileName);
 			await FinishLoad(page);
 		}
 
@@ -70,9 +70,9 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="fileName">full path name</param>
 		/// <returns>a datatab with no frequency info</returns>
-		public async Task<DataTab<FreqRespViewModel>> LoadFile(string fileName)
+		public DataTab<FreqRespViewModel> LoadFile(string fileName)
 		{
-			return await Util.LoadFile<FreqRespViewModel>(PageData, fileName);
+			return Util.LoadFile<FreqRespViewModel>(PageData, fileName);
 		}
 
 		/// <summary>
@@ -379,8 +379,8 @@ namespace QA40xPlot.Actions
 				rrc.Y = msd.Min(x => x.Magnitude);
 				rrc.Height = msd.Max(x => x.Magnitude) - rrc.Y;
 			}
-            else
-            {   // impedance
+            else if(PageData.GainData != null && PageData.GainData.Length > 0)
+			{   // impedance
 				double rref = ViewSettings.AmplifierLoad;
 				var minL = PageData.GainData.Min(x => ToImpedance(x).Magnitude);
 				var maxL = PageData.GainData.Max(x => ToImpedance(x).Magnitude);
@@ -456,8 +456,9 @@ namespace QA40xPlot.Actions
 
 			try
 			{
-
-                if (ct.IsCancellationRequested)
+				page.GainData = []; // new list of complex data
+				page.GainFrequencies = []; // new list of frequencies
+				if (ct.IsCancellationRequested)
                     return false;
                 for (int steps = 0; steps < stepBinFrequencies.Count(); steps++)
                 {
@@ -483,27 +484,21 @@ namespace QA40xPlot.Actions
                         {
                             total += f;
                         }
-						if(page.GainData != null)
-						{
-							page.GainData = page.GainData.Append(total / vm.Averages).ToArray();
-						}
+						page.GainData = page.GainData.Append(total / vm.Averages).ToArray();
 					}
                     else
                     {
                         await showMessage(string.Format("Checking + {0:0}", dfreq));   // need a delay to actually see it
                         var ga = await GetGain(dfreq, vm, ttype);
-						if (page.GainData != null)
-						{
-							page.GainData = page.GainData.Append(ga).ToArray();
-						}
+						page.GainData = page.GainData.Append(ga).ToArray();
                     }
                     if (page.FreqRslt != null)
                     {
                         QaLibrary.PlotMiniFftGraph(fftPlot, page.FreqRslt, true, false);
                         QaLibrary.PlotMiniTimeGraph(timePlot, page.TimeRslt, dfreq, true, false);
                     }
-                    page.GainFrequencies = page.GainFrequencies.Append(dfreq).ToArray();
-                    UpdateGraph(false);
+					page.GainFrequencies = page.GainFrequencies.Append(dfreq).ToArray();
+					UpdateGraph(false);
                     if (!vm.IsTracking)
                     {
                         vm.RaiseMouseTracked("track");
@@ -716,7 +711,7 @@ namespace QA40xPlot.Actions
                 freqX[0] = 1e-6;    // so can log10
 
             double[] logFreqX = freqX.Select(Math.Log10).ToArray();
-            float lineWidth = frqrsVm.ShowThickLines ? 1.6f : 1;
+            float lineWidth = frqrsVm.ShowThickLines ? _Thickness : 1;
             float markerSize = frqrsVm.ShowPoints ? lineWidth + 3 : 1;
 
             var colors = new GraphColors();
@@ -870,7 +865,7 @@ namespace QA40xPlot.Actions
 
                 // Draw bandwidth lines
                 var colors = new GraphColors();
-                float lineWidth = frqrsVm.ShowThickLines ? 1.6f : 1;
+                float lineWidth = frqrsVm.ShowThickLines ? _Thickness : 1;
 
                 if (frqrsVm.ShowLeft && frqrsVm.LeftChannel)
                 {
@@ -922,7 +917,7 @@ namespace QA40xPlot.Actions
 
                     // Draw bandwidth lines
                     var colors = new GraphColors();
-                    float lineWidth = frqrsVm.ShowThickLines ? 1.6f : 1;
+                    float lineWidth = frqrsVm.ShowThickLines ? _Thickness : 1;
 
                     if (frqrsVm.ShowLeft && frqrsVm.LeftChannel)
                     {
@@ -1059,7 +1054,7 @@ namespace QA40xPlot.Actions
 			var frqrsVm = MyVModel;
 
 			var colors = new GraphColors();
-            float lineWidth = frqrsVm.ShowThickLines ? 1.6f : 1;
+            float lineWidth = frqrsVm.ShowThickLines ? _Thickness : 1;
 
             // Low frequency vertical line
             var lowerFreq_dBV_left = Math.Log10(channelData.LowerFreq);

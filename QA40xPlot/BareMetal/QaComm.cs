@@ -38,7 +38,6 @@ namespace QA40xPlot.BareMetal
 				await Qa40x.SetOutputSource(source);
 			else
 				QaUsb.SetOutputSource(source);
-			var x = 12;
 		}
 
 		public static void Close(bool onExit)

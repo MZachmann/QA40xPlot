@@ -68,13 +68,7 @@ namespace QA40xPlot.BareMetal
 
 		public static bool IsDeviceConnected()
 		{
-			if( _AttachedDevice == null)
-			{
-				return false;
-			}
-			// Check if the device is still connected
-
-			return true;
+			return (_AttachedDevice == null);
 		}
 	}
 }

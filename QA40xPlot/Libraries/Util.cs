@@ -17,7 +17,7 @@ namespace QA40xPlot.Libraries
 		/// </summary>
 		/// <param name="fileName">full path name</param>
 		/// <returns>a datatab with no frequency info</returns>
-		public static async Task<DataTab<Model>> LoadFile<Model>(DataTab<Model> model, string fileName)
+		public static DataTab<Model> LoadFile<Model>(DataTab<Model> model, string fileName)
 		{
 			// a new DataTab
 			var page = new DataTab<Model>(model.ViewModel, new LeftRightTimeSeries());
@@ -47,7 +47,8 @@ namespace QA40xPlot.Libraries
 						page.NoiseFloor = jsonObject.NoiseFloor;
 						page.Definition = jsonObject.Definition;
 						page.TimeRslt = jsonObject.TimeRslt;
-						jsonObject.ViewModel.CopyPropertiesTo(page.ViewModel);
+						if(page.ViewModel != null)
+							jsonObject.ViewModel.CopyPropertiesTo(page.ViewModel);
 					}
 					catch (Exception ex)
 					{

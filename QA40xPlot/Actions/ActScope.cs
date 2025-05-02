@@ -79,7 +79,7 @@ namespace QA40xPlot.Actions
 
 		public async Task LoadFromFile(string fileName)
 		{
-			var page = await LoadFile(fileName);
+			var page = LoadFile(fileName);
 			await FinishLoad(page);
 		}
 
@@ -88,9 +88,9 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="fileName">full path name</param>
 		/// <returns>a datatab with no frequency info</returns>
-		public async Task<DataTab<ScopeViewModel>> LoadFile(string fileName)
+		public DataTab<ScopeViewModel> LoadFile(string fileName)
 		{
-			return await Util.LoadFile<ScopeViewModel>(PageData, fileName);
+			return Util.LoadFile<ScopeViewModel>(PageData, fileName);
 		}
 
 		/// <summary>
@@ -335,52 +335,6 @@ namespace QA40xPlot.Actions
 			var thd = msr.ViewModel;
 			try
 			{ 
-				//uint fundamentalBin = QaLibrary.GetBinOfFrequency(stepBinFrequencies[0], binSize);
-    //            if (fundamentalBin >= (lrfs.FreqRslt?.Left.Length ?? -1))               // Check in bin within range
-    //                break;
-
-    //            ThdFrequencyStep step = new()
-    //            {
-    //                FundamentalFrequency = stepBinFrequencies[0],
-    //                GeneratorVoltage = genVolt,
-    //                fftData = lrfs.FreqRslt,
-    //                timeData = lrfs.TimeRslt
-    //            };
-
-				//step.Left = ChannelCalculations(binSize, genVolt, step, msr, false);
-				//step.Right = ChannelCalculations(binSize, genVolt, step, msr, true);
-
-				//// Calculate the THD
-				//{
-				//	var maxf = 20000;   // the app seems to use 20,000 so not sampleRate/ 2.0;
-				//	if(lrfs != null && lrfs.FreqRslt != null)
-				//	{
-				//		LeftRightPair snrdb = QaCompute.GetSnrDb(lrfs.FreqRslt, stepBinFrequencies[0], 20.0, maxf);
-				//		LeftRightPair thds = QaCompute.GetThdDb(lrfs.FreqRslt, stepBinFrequencies[0], 20.0, maxf);
-				//		LeftRightPair thdN = QaCompute.GetThdnDb(lrfs.FreqRslt, stepBinFrequencies[0], 20.0, maxf);
-
-				//		step.Left.Thd_dBN = thdN.Left;
-				//		step.Right.Thd_dBN = thdN.Right;
-				//		step.Left.Thd_dB = thds.Left;
-				//		step.Right.Thd_dB = thds.Right;
-				//		step.Left.Snr_dB = snrdb.Left;
-				//		step.Right.Snr_dB = snrdb.Right;
-				//		step.Left.Thd_Percent = 100 * Math.Pow(10, thds.Left / 20);
-				//		step.Right.Thd_Percent = 100 * Math.Pow(10, thds.Right / 20);
-				//		step.Left.Thd_PercentN = 100 * Math.Pow(10, thdN.Left / 20);
-				//		step.Right.Thd_PercentN = 100 * Math.Pow(10, thdN.Right / 20);
-				//	}
-				//}
-
-				//// Here we replace the last frequency step with the new one
-				//msr.FrequencySteps.Clear();
-				//msr.FrequencySteps.Add(step);
-
-				//// For now clear measurements to allow only one until we have a UI to manage them.
-				//if ( Data.Measurements.Count == 0)
-				//	Data.Measurements.Add(MeasurementResult);
-
-				ClearPlot();
 				UpdateGraph(false);
 				if(! thd.IsTracking)
 				{
@@ -394,7 +348,8 @@ namespace QA40xPlot.Actions
             }
 
             // Show message
-			await showMessage($"Measurement finished");
+			await showMessage("Measurement finished");
+			await Task.Delay(100);	// let it be seen
 
             return !ct.IsCancellationRequested;
         }

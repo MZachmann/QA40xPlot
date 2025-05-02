@@ -19,6 +19,8 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand DoSaveCfg { get => new RelayCommand(OnSaveCfg); }
 		[JsonIgnore]
 		public RelayCommand DoLoadCfg { get => new RelayCommand(OnLoadCfg); }
+		[JsonIgnore]
+		public AsyncRelayCommand DoPhoto { get => new AsyncRelayCommand(OnPhoto); }
 
 
 		#region Setters and Getters
@@ -176,7 +178,7 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		public async Task DoPhoto(Window parent)        
+		public async Task OnPhoto()        
 		{
 			DateTime now = DateTime.Now;
 			string formattedDate = $"{now:yyyy-MM-dd HH:mm:ss}";
@@ -196,7 +198,8 @@ namespace QA40xPlot.ViewModels
 			{
 				// Save document
 				string filename = saveFileDialog.FileName;
-				SaveToPng(parent, filename);
+				var mainwnd = Application.Current.MainWindow;
+				SaveToPng(mainwnd, filename);
 			}
 			await SetProgressMessage(string.Empty);
 		}

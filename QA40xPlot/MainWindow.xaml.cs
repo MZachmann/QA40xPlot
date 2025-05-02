@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -87,14 +88,6 @@ namespace QA40xPlot
 			}
 		}
 
-		private void OnPhoto(object sender, RoutedEventArgs e)
-		{
-			if (DataContext != null && DataContext is MainViewModel)
-			{
-				((MainViewModel)DataContext).DoPhoto(this);
-			}
-		}
-
 		private void OnHelp(object sender, RoutedEventArgs e)
 		{
 			try
@@ -142,7 +135,7 @@ namespace QA40xPlot
 					if( !ViewSettings.IsUseREST)
 					{
 						// set max attenuation for safety, turns on ATTEN led
-						QaComm.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION);
+						QaComm.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION).Wait(200);
 						// now close down
 						QaComm.Close(true);
 					}

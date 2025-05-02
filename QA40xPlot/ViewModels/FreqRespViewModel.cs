@@ -20,7 +20,7 @@ public class FreqRespViewModel : BaseViewModel
 	private PlotControl actPlot { get; set; }
 	private ActFrequencyResponse actFreq { get;  set; }
 	[JsonIgnore]
-	public RelayCommand DoStart { get => new RelayCommand(StartIt); }
+	public AsyncRelayCommand DoStart { get => new AsyncRelayCommand(StartIt); }
 	[JsonIgnore]
 	public RelayCommand DoStop { get => new RelayCommand(StopIt); }
 	[JsonIgnore]
@@ -290,11 +290,11 @@ public class FreqRespViewModel : BaseViewModel
 		MyVModel.LinkAbout(actFreq.PageData.Definition);
 	}
 
-	private static void StartIt()
+	private static async Task StartIt()
 	{
 		// Implement the logic to start the measurement process
 		var vm = MyVModel;
-		vm.actFreq.DoMeasurement();
+		await vm.actFreq.DoMeasurement();
 	}
 
 	private static void StopIt()
