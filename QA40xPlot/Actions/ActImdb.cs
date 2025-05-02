@@ -793,6 +793,7 @@ namespace QA40xPlot.Actions
 				}
 			}
 
+			PlotValues(PageData, resultNr++, true);
 			if (thd.ShowOtherLeft || thd.ShowOtherRight)
 			{
 				if (OtherTabs.Count > 0)
@@ -804,9 +805,6 @@ namespace QA40xPlot.Actions
 					}
 				}
 			}
-
-			PlotValues(PageData, resultNr++, true);
-
 
 			if (PageData.FreqRslt != null)
 			{
