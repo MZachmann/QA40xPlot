@@ -116,10 +116,7 @@ namespace QA40xPlot.Actions
 				// relink to the new definition
 				MyVModel.LinkAbout(page.Definition);
 
-				var left = page.GetProperty("Left") as ThdChannelViewModel;
-				var right = page.GetProperty("Right") as ThdChannelViewModel;
-				left.CopyPropertiesTo(ViewSettings.Singleton.ChannelLeft);  // clone to our statics
-				right.CopyPropertiesTo(ViewSettings.Singleton.ChannelRight);
+				ShowPageInfo(page); // show the page info in the display
 			}
 			else
 			{
@@ -159,6 +156,14 @@ namespace QA40xPlot.Actions
 				wave = new double[waveSample.SampleSize];
 			}
 			return wave;
+		}
+
+		private void ShowPageInfo(DataTab<SpectrumViewModel> page)
+		{
+			var left = page.GetProperty("Left") as ThdChannelViewModel;
+			var right = page.GetProperty("Right") as ThdChannelViewModel;
+			left.CopyPropertiesTo(ViewSettings.Singleton.ChannelLeft);  // clone to our statics
+			right.CopyPropertiesTo(ViewSettings.Singleton.ChannelRight);
 		}
 
 		/// <summary>
@@ -211,6 +216,7 @@ namespace QA40xPlot.Actions
 			var rslt = await RunAcquisition(NextPage, ct.Token);
 			if (rslt)
 				rslt = await PostProcess(NextPage, ct.Token);
+			ShowPageInfo(NextPage); // show the page info in the display
 
 			if (rslt)
 			{
@@ -228,6 +234,7 @@ namespace QA40xPlot.Actions
 				if (rslt)
 				{
 					rslt = await PostProcess(PageData, ct.Token);
+					ShowPageInfo(PageData);
 					UpdateGraph(false);
 				}
 			}

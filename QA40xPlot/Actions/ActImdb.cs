@@ -111,11 +111,7 @@ namespace QA40xPlot.Actions
 									// we can't overwrite the viewmodel since it links to the display proper
 									// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
 				PageData.ViewModel.CopyPropertiesTo<ImdViewModel>(ViewSettings.Singleton.ImdVm);    // retract the gui
-				var left = page.GetProperty("Left") as ImdChannelViewModel;
-				var right = page.GetProperty("Right") as ImdChannelViewModel;
-				left.CopyPropertiesTo(ViewSettings.Singleton.ImdChannelLeft);  // clone to our statics
-				right.CopyPropertiesTo(ViewSettings.Singleton.ImdChannelRight);
-
+				ShowPageInfo(PageData);
 				// relink to the new definition
 				MyVModel.LinkAbout(PageData.Definition);
 			}
@@ -821,6 +817,14 @@ namespace QA40xPlot.Actions
 			fftPlot.Refresh();
 		}
 
+		private void ShowPageInfo(DataTab<ImdViewModel> page)
+		{
+			var left = page.GetProperty("Left") as ImdChannelViewModel;
+			var right = page.GetProperty("Right") as ImdChannelViewModel;
+			left.CopyPropertiesTo(ViewSettings.Singleton.ImdChannelLeft);  // clone to our statics
+			right.CopyPropertiesTo(ViewSettings.Singleton.ImdChannelRight);
+		}
+
 		/// <summary>
 		///  Start measurement button click
 		/// </summary>
@@ -887,6 +891,7 @@ namespace QA40xPlot.Actions
 			{
 				if (!ReferenceEquals(PageData, NextPage))
 					PageData = NextPage;        // finally update the pagedata for display and processing
+				ShowPageInfo(PageData);
 				UpdateGraph(true);
 			}
 			MyVModel.LinkAbout(PageData.Definition);  // ensure we're linked right during replays
@@ -899,6 +904,7 @@ namespace QA40xPlot.Actions
 				if (rslt)
 				{
 					rslt = await PostProcess(PageData, ct.Token);
+					ShowPageInfo(PageData);
 					UpdateGraph(false);
 				}
 			}
