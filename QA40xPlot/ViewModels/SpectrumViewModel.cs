@@ -35,9 +35,9 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public RelayCommand<object> DoFitToData { get => new RelayCommand<object>(OnFitToData); }
 		[JsonIgnore]
-		public RelayCommand DoLoad { get => new RelayCommand(LoadIt); }
+		public AsyncRelayCommand DoLoadTab { get => new AsyncRelayCommand(LoadIt); }
 		[JsonIgnore]
-		public RelayCommand DoSave { get => new RelayCommand(SaveIt); }
+		public RelayCommand DoSaveTab { get => new RelayCommand(SaveIt); }
 
 		#region Setters and Getters
 
@@ -256,13 +256,13 @@ namespace QA40xPlot.ViewModels
 			vm.actSpec?.DoCancel();
 		}
 
-		private static void LoadIt()
+		private static async Task LoadIt()
 		{
 			OpenFileDialog openFileDialog = new OpenFileDialog
 			{
 				FileName = string.Empty, // Default file name
-				DefaultExt = ".plt", // Default file extension
-				Filter = "Plot files|*.plt|All files|*.*" // Filter files by extension
+				DefaultExt = ".zip", // Default file extension
+				Filter = PlotFileFilter // Filter files by extension
 			};
 
 			// Show save file dialog box
@@ -274,7 +274,7 @@ namespace QA40xPlot.ViewModels
 				// open document
 				string filename = openFileDialog.FileName;
 				var vm = MyVModel;
-				vm.actSpec.LoadFromFile(filename).Wait();
+				await vm.actSpec.LoadFromFile(filename);
 			}
 		}
 
@@ -291,7 +291,7 @@ namespace QA40xPlot.ViewModels
 			{
 				FileName = String.Format("QaSpectrum{0}", FileAddon()), // Default file name
 				DefaultExt = ".plt", // Default file extension
-				Filter = "Plot files|*.plt|All files|*.*" // Filter files by extension
+				Filter = PlotFileFilter // Filter files by extension
 			};
 
 			// Show save file dialog box

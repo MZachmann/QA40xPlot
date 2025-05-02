@@ -33,6 +33,7 @@ namespace QA40xPlot.ViewModels
 		public static List<String> MeasureVoltsFull { get => new List<string> { "Input Voltage", "Output Voltage", "Output Power" }; }
 		public static List<String> Impedances { get => new List<string> { "2","4", "8", "10","16", "20", "100", "500", "1000" }; }
 		public static List<String> Waveforms { get => new List<string> { "Sine", "Square", "Impulse", "Chirp" }; }
+		public static string PlotFileFilter { get => "Plot files|*.plt;*.zip|All files|*.*"; }
 		public static string DutInfo { get => "DUT = Device Under Test"; }
 		public static string DutDescript { get => "Input Voltage = DUT Input(Generator Output), Output Voltage = DUT Output(QA40x Input)"; }
 		public static string AutoRangeDescript { get => "When the test is started a safe Attenuation value is calculated based on a test at 42."; }

@@ -56,25 +56,7 @@ namespace QA40xPlot.Actions
 
 		public bool SaveToFile(string fileName)
 		{
-			if (PageData == null)
-				return false;
-			try
-			{
-				var tofile = PageData;
-				var container = new Dictionary<string, object>();
-				container["PageData"] = tofile;
-				// Serialize the object to a JSON string
-				string jsonString = JsonConvert.SerializeObject(tofile, Formatting.Indented);
-
-				// Write the JSON string to a file
-				File.WriteAllText(fileName, jsonString);
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(ex.Message, "A save error occurred.", MessageBoxButton.OK, MessageBoxImage.Information);
-				return false;
-			}
-			return true;
+			return Util.SaveToFile<FreqRespViewModel>(PageData, fileName);
 		}
 
 		public async Task LoadFromFile(string fileName)
@@ -90,37 +72,7 @@ namespace QA40xPlot.Actions
 		/// <returns>a datatab with no frequency info</returns>
 		public async Task<DataTab<FreqRespViewModel>> LoadFile(string fileName)
 		{
-			// a new DataTab
-			var page = new DataTab<FreqRespViewModel>(MyVModel, new LeftRightTimeSeries());
-			try
-			{
-				// Read the JSON file into a string
-				string jsonContent = File.ReadAllText(fileName);
-				// Deserialize the JSON string into an object
-				var jsonObject = JsonConvert.DeserializeObject<DataTab<FreqRespViewModel>>(jsonContent);
-				if (jsonObject != null)
-				{
-					try
-					{
-						page.NoiseFloor = new LeftRightPair();
-
-						// file pagedata with new stuff
-						page.NoiseFloor = jsonObject.NoiseFloor;
-						page.Definition = jsonObject.Definition;
-						page.TimeRslt = jsonObject.TimeRslt;
-						jsonObject.ViewModel.CopyPropertiesTo<FreqRespViewModel>(page.ViewModel);
-					}
-					catch (Exception ex)
-					{
-						MessageBox.Show(ex.Message, "A load error occurred.", MessageBoxButton.OK, MessageBoxImage.Information);
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(ex.Message, "A load error occurred.", MessageBoxButton.OK, MessageBoxImage.Information);
-			}
-			return page;
+			return await Util.LoadFile<FreqRespViewModel>(PageData, fileName);
 		}
 
 		/// <summary>
@@ -139,8 +91,17 @@ namespace QA40xPlot.Actions
 			MyVModel.LinkAbout(PageData.Definition);
 			// now recalculate everything
 			BuildFrequencies(PageData);
-			//await PostProcess(PageData, ct.Token);
+			await PostProcess(PageData, ct.Token);
 			UpdateGraph(true);
+		}
+
+		private async Task<bool> PostProcess(DataTab<FreqRespViewModel> msr, CancellationToken ct)
+		{
+			if (msr.TimeRslt == null)
+			{
+				await showMessage("No frequency result");
+			}
+			return false;
 		}
 
 		private static double[] BuildWave(DataTab<FreqRespViewModel> page)

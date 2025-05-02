@@ -74,25 +74,7 @@ namespace QA40xPlot.Actions
 
 		public bool SaveToFile(string fileName)
 		{
-			if (PageData == null)
-				return false;
-			try
-			{
-				var tofile = PageData;
-				var container = new Dictionary<string, object>();
-				container["PageData"] = tofile;
-				// Serialize the object to a JSON string
-				string jsonString = JsonConvert.SerializeObject(tofile, Formatting.Indented);
-
-				// Write the JSON string to a file
-				File.WriteAllText(fileName, jsonString);
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(ex.Message, "A save error occurred.", MessageBoxButton.OK, MessageBoxImage.Information);
-				return false;
-			}
-			return true;
+			return Util.SaveToFile<ScopeViewModel>(PageData, fileName);
 		}
 
 		public async Task LoadFromFile(string fileName)
@@ -108,37 +90,7 @@ namespace QA40xPlot.Actions
 		/// <returns>a datatab with no frequency info</returns>
 		public async Task<DataTab<ScopeViewModel>> LoadFile(string fileName)
 		{
-			// a new DataTab
-			var page = new DataTab<ScopeViewModel>(MyVModel, new LeftRightTimeSeries());
-			try
-			{
-				// Read the JSON file into a string
-				string jsonContent = File.ReadAllText(fileName);
-				// Deserialize the JSON string into an object
-				var jsonObject = JsonConvert.DeserializeObject<DataTab<ScopeViewModel>>(jsonContent);
-				if (jsonObject != null)
-				{
-					try
-					{
-						page.NoiseFloor = new LeftRightPair();
-
-						// file pagedata with new stuff
-						page.NoiseFloor = jsonObject.NoiseFloor;
-						page.Definition = jsonObject.Definition;
-						page.TimeRslt = jsonObject.TimeRslt;
-						jsonObject.ViewModel.CopyPropertiesTo<ScopeViewModel>(page.ViewModel);
-					}
-					catch (Exception ex)
-					{
-						MessageBox.Show(ex.Message, "A load error occurred.", MessageBoxButton.OK, MessageBoxImage.Information);
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(ex.Message, "A load error occurred.", MessageBoxButton.OK, MessageBoxImage.Information);
-			}
-			return page;
+			return await Util.LoadFile<ScopeViewModel>(PageData, fileName);
 		}
 
 		/// <summary>
@@ -720,74 +672,6 @@ namespace QA40xPlot.Actions
 			MyVModel.HasExport = (PageData.TimeRslt.Left.Length > 0);
 			await EndAction();
 		}
-#if false
-		private void Leftover()
-		{ 
-			bool rslt = await PerformMeasurementSteps(MeasurementResult, ct.Token);
-            var fftsize = scopeVm.FftSize;
-            var sampleRate = scopeVm.SampleRate;
-            var atten = scopeVm.Attenuation;
-            if (rslt)
-            {
-                await showMessage("Running");
-                while (!ct.IsCancellationRequested)
-                {
-					var msrSet = MeasurementResult.MeasurementSettings;
-                    await Task.Delay(250);
-                    if (ct.IsCancellationRequested)
-                        break;
-					if( scopeVm.Gen1Frequency != msrSet.Gen1Frequency || msrSet.GenDirection != scopeVm.GenDirection)
-					{
-						msrSet.Gen1Frequency = scopeVm.Gen1Frequency;
-						msrSet.GenDirection = scopeVm.GenDirection;
-						var genoType = ToDirection(msrSet.GenDirection);
-						if (LRGains != null && genoType == E_GeneratorDirection.OUTPUT_VOLTAGE)
-						{
-							await showMessage("Calculating DUT gain");
-							LRGains = await DetermineGainAtFreq(MathUtil.ToDouble(msrSet.Gen1Frequency, 1000), false, 1);
-						}
-					}
-                    if (scopeVm.FftSize != fftsize || scopeVm.SampleRate != sampleRate || scopeVm.Attenuation != atten)
-                    {
-						fftsize = scopeVm.FftSize;
-						sampleRate = scopeVm.SampleRate;
-						atten = scopeVm.Attenuation;
-						MeasurementResult = new(scopeVm)
-                        {
-                            CreateDate = DateTime.Now,
-                            Show = true,                                      // Show in graph
-                        };
-                    }
-                    else
-                    {
-                        MyVModel.CopyPropertiesTo(MeasurementResult.MeasurementSettings);
-                    }
-					rslt = await PerformMeasurementSteps(MeasurementResult, ct.Token);
-					if (ct.IsCancellationRequested || !rslt)
-						break;
-				}
-			}
-
-			scopeVm.IsRunning = false;
-			await showMessage("");
-			MyVModel.HasExport = this.MeasurementResult.FrequencySteps.Count > 0;
-			await EndAction();
-		}
-#endif
-
-        /// <summary>
-        /// Validate the generator voltage and show red text if invalid
-        /// </summary>
-        /// <param name="sender"></param>
-        //private void ValidateGeneratorAmplitude(object sender)
-        //{
-        //    if (cmbGeneratorVoltageUnit.SelectedIndex == (int)E_VoltageUnit.MilliVolt)
-        //        QaLibrary.ValidateRangeAdorner(sender, QaLibrary.MINIMUM_GENERATOR_VOLTAGE_MV, QaLibrary.MAXIMUM_GENERATOR_VOLTAGE_MV);        // mV
-        //    else if (cmbGeneratorVoltageUnit.SelectedIndex == (int)E_VoltageUnit.Volt)
-        //        QaLibrary.ValidateRangeAdorner(sender, QaLibrary.MINIMUM_GENERATOR_VOLTAGE_V, QaLibrary.MAXIMUM_GENERATOR_VOLTAGE_V);     // V
-        //    else
-        //        QaLibrary.ValidateRangeAdorner(sender, QaLibrary.MINIMUM_GENERATOR_VOLTAGE_DBV, QaLibrary.MAXIMUM_GENERATOR_VOLTAGE_DBV);       // dBV
-        //}
         
         // show the latest step values in the table
         public void DrawChannelInfoTable()

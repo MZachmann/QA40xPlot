@@ -75,25 +75,7 @@ namespace QA40xPlot.Actions
 
 		public bool SaveToFile(string fileName)
 		{
-			if (PageData == null)
-				return false;
-			try
-			{
-				var tofile = PageData;
-				var container = new Dictionary<string, object>();
-				container["PageData"] = tofile;
-				// Serialize the object to a JSON string
-				string jsonString = JsonConvert.SerializeObject(tofile, Formatting.Indented);
-
-				// Write the JSON string to a file
-				File.WriteAllText(fileName, jsonString);
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(ex.Message, "A save error occurred.", MessageBoxButton.OK, MessageBoxImage.Information);
-				return false;
-			}
-			return true;
+			return Util.SaveToFile<ImdViewModel>(PageData, fileName);
 		}
 
 		public async Task LoadFromFile(string fileName)
@@ -109,37 +91,7 @@ namespace QA40xPlot.Actions
 		/// <returns>a datatab with no frequency info</returns>
 		public async Task<DataTab<ImdViewModel>> LoadFile(string fileName)
 		{
-			// a new DataTab
-			var page = new DataTab<ImdViewModel>(MyVModel, new LeftRightTimeSeries());
-			try
-			{
-				// Read the JSON file into a string
-				string jsonContent = File.ReadAllText(fileName);
-				// Deserialize the JSON string into an object
-				var jsonObject = JsonConvert.DeserializeObject<DataTab<ImdViewModel>>(jsonContent);
-				if (jsonObject != null)
-				{
-					try
-					{
-						page.NoiseFloor = new LeftRightPair();
-
-						// file pagedata with new stuff
-						page.NoiseFloor = jsonObject.NoiseFloor;
-						page.Definition = jsonObject.Definition;
-						page.TimeRslt = jsonObject.TimeRslt;
-						jsonObject.ViewModel.CopyPropertiesTo<ImdViewModel>(page.ViewModel);
-					}
-					catch (Exception ex)
-					{
-						MessageBox.Show(ex.Message, "A load error occurred.", MessageBoxButton.OK, MessageBoxImage.Information);
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(ex.Message, "A load error occurred.", MessageBoxButton.OK, MessageBoxImage.Information);
-			}
-			return page;
+			return await Util.LoadFile<ImdViewModel>(PageData, fileName);
 		}
 
 		/// <summary>
@@ -470,8 +422,6 @@ namespace QA40xPlot.Actions
 
 			return !ct.IsCancellationRequested;
 		}
-
-
 
 		private void AddAMarker(DataTab<ImdViewModel> page, double frequency, bool isred = false)
 		{

@@ -77,72 +77,43 @@ namespace QA40xPlot.Actions
 
 		public bool SaveToFile(string fileName)
 		{
-			if (PageData == null)
-				return false;
-			try
-			{
-				var tofile = PageData;
-				var container = new Dictionary<string, object>();
-				container["PageData"] = tofile;
-				// Serialize the object to a JSON string
-				string jsonString = JsonConvert.SerializeObject(tofile, Formatting.Indented);
-
-				// Write the JSON string to a file
-				File.WriteAllText(fileName, jsonString);
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(ex.Message, "A save error occurred.", MessageBoxButton.OK, MessageBoxImage.Information);
-				return false;
-			}
-			return true;
+			return Util.SaveToFile<SpectrumViewModel>(PageData, fileName);
 		}
 
 		public async Task LoadFromFile(string fileName)
 		{
-			try
-			{
-				// Read the JSON file into a string
-				string jsonContent = File.ReadAllText(fileName);
-				// Deserialize the JSON string into an object
-				var jsonObject = JsonConvert.DeserializeObject<DataTab<SpectrumViewModel>>(jsonContent);
-				if (jsonObject != null)
-				{
-					try
-					{
-						if(PageData == null)
-						{
-							PageData = new DataTab<SpectrumViewModel>(MyVModel, new LeftRightTimeSeries());
-							PageData.NoiseFloor = new LeftRightPair();
-						}
-						// file pagedata with new stuff
-						PageData.NoiseFloor = jsonObject.NoiseFloor;
-						PageData.Definition = jsonObject.Definition;
-						PageData.TimeRslt = jsonObject.TimeRslt;
-						// we can't overwrite the viewmodel since it links to the display proper
-						// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
-						jsonObject.ViewModel.CopyPropertiesTo<SpectrumViewModel>(PageData.ViewModel);
-						jsonObject.ViewModel.CopyPropertiesTo<SpectrumViewModel>(ViewSettings.Singleton.SpectrumVm);    // retract the gui
+			var page = await Util.LoadFile<SpectrumViewModel>(PageData, fileName);
+			await FinishLoad(page);
+		}
 
-						// relink to the new definition
-						MyVModel.LinkAbout(PageData.Definition);
-						// now recalculate everything
-						BuildFrequencies(PageData);
-						await PostProcess(PageData, ct.Token);
-						UpdateGraph(true);
-					}
-					catch (Exception ex)
-					{
-						MessageBox.Show(ex.Message, "A load error occurred.", MessageBoxButton.OK, MessageBoxImage.Information);
-					}
+		/// <summary>
+		/// Load a file into a DataTab
+		/// </summary>
+		/// <param name="fileName">full path name</param>
+		/// <returns>a datatab with no frequency info</returns>
+		public async Task<DataTab<SpectrumViewModel>> LoadFile(DataTab<SpectrumViewModel> page, string fileName)
+		{
+			return await Util.LoadFile<SpectrumViewModel>(page, fileName);
+		}
 
-				}
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(ex.Message, "A load error occurred.", MessageBoxButton.OK, MessageBoxImage.Information);
-			}
+		/// <summary>
+		/// given a datatab, integrate it into the gui as the current datatab
+		/// </summary>
+		/// <param name="page"></param>
+		/// <returns></returns>
+		public async Task FinishLoad(DataTab<SpectrumViewModel> page)
+		{
+			PageData = page;    // set the current page to the loaded one
+								// we can't overwrite the viewmodel since it links to the display proper
+								// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
+			PageData.ViewModel.CopyPropertiesTo<SpectrumViewModel>(ViewSettings.Singleton.SpectrumVm);    // retract the gui
 
+			// relink to the new definition
+			MyVModel.LinkAbout(PageData.Definition);
+			// now recalculate everything
+			BuildFrequencies(PageData);
+			await PostProcess(PageData, ct.Token);
+			UpdateGraph(true);
 		}
 
 		private static double[] BuildWave(DataTab<SpectrumViewModel> page)

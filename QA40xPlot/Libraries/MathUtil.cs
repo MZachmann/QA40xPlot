@@ -9,6 +9,7 @@ namespace QA40xPlot.Libraries
 {
 	public interface MathUtil
 	{
+
 		/// <summary>
 		/// Parse text to double. Return fallback double if failed
 		/// </summary>

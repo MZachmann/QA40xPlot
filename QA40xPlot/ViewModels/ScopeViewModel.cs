@@ -36,7 +36,7 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public RelayCommand<object> DoFitToData { get => new RelayCommand<object>(OnFitToData); }
 		[JsonIgnore]
-		public RelayCommand DoLoadTab { get => new RelayCommand(LoadItTab); }
+		public AsyncRelayCommand DoLoadTab { get => new AsyncRelayCommand(LoadItTab); }
 		[JsonIgnore]
 		public RelayCommand DoSaveTab { get => new RelayCommand(SaveItTab); }
 
@@ -209,7 +209,7 @@ namespace QA40xPlot.ViewModels
 			//info.SetDataContext(ViewSettings.Singleton.ScopeChanLeft);
 			SetupMainPlot(plot);
 			actPlot = plot;
-			LinkAbout(actScope.PageData.Definition);
+			MyVModel.LinkAbout(actScope.PageData.Definition);
 		}
 
 		private static void SetAtten(object? parameter)
@@ -232,13 +232,13 @@ namespace QA40xPlot.ViewModels
 			vm.actScope?.DoCancel();
 		}
 
-		private static void LoadItTab()
+		private static async Task LoadItTab()
 		{
 			OpenFileDialog openFileDialog = new OpenFileDialog
 			{
 				FileName = string.Empty, // Default file name
 				DefaultExt = ".plt", // Default file extension
-				Filter = "Plot files|*.plt|All files|*.*" // Filter files by extension
+				Filter = PlotFileFilter // Filter files by extension
 			};
 
 			// Show save file dialog box
@@ -250,7 +250,7 @@ namespace QA40xPlot.ViewModels
 				// open document
 				string filename = openFileDialog.FileName;
 				var vm = MyVModel;
-				vm.actScope.LoadFromFile(filename).Wait();
+				await vm.actScope.LoadFromFile(filename);
 			}
 		}
 
@@ -267,7 +267,7 @@ namespace QA40xPlot.ViewModels
 			{
 				FileName = String.Format("QaScope{0}", FileAddon()), // Default file name
 				DefaultExt = ".plt", // Default file extension
-				Filter = "Plot files|*.plt|All files|*.*" // Filter files by extension
+				Filter = PlotFileFilter // Filter files by extension
 			};
 
 			// Show save file dialog box

@@ -53,7 +53,7 @@
                     </Grid.RowDefinitions>
                     <Label Grid.Row="0" Grid.Column="0" Content="N:" HorizontalAlignment="Right"/>
                     <Label Grid.Row="0" Grid.Column="1" Content="{Binding NoiseFloorView}" />
-                    <Label Grid.Row="0" Grid.Column="2" Content="{Binding TotalNoiseFloorV, Converter={StaticResource VoltFormatter}}" />
+                    <Label Grid.Row="0" Grid.Column="2" Content="{Binding NoiseFloorV, Converter={StaticResource VoltFormatter}}" />
 
                     <Label Grid.Row="1" Grid.Column="0" Content="IMD:" HorizontalAlignment="Right"/>
                     <Label Grid.Row="1" Grid.Column="1" Content="{Binding ThdIndB}" ContentStringFormat="{}{0:F2} dB"/>

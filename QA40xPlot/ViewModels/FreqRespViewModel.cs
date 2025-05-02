@@ -28,7 +28,7 @@ public class FreqRespViewModel : BaseViewModel
 	[JsonIgnore]
 	public RelayCommand<object> DoFitToData { get => new RelayCommand<object>(OnFitToData); }
 	[JsonIgnore]
-	public RelayCommand DoLoadTab { get => new RelayCommand(LoadItTab); }
+	public AsyncRelayCommand DoLoadTab { get => new AsyncRelayCommand(LoadItTab); }
 	[JsonIgnore]
 	public RelayCommand DoSaveTab { get => new RelayCommand(SaveItTab); }
 
@@ -309,13 +309,13 @@ public class FreqRespViewModel : BaseViewModel
 		return vm.actFreq.CreateExportData();
 	}
 
-	private static void LoadItTab()
+	private static async Task LoadItTab()
 	{
 		OpenFileDialog openFileDialog = new OpenFileDialog
 		{
 			FileName = string.Empty, // Default file name
 			DefaultExt = ".plt", // Default file extension
-			Filter = "Plot files|*.plt|All files|*.*" // Filter files by extension
+			Filter = PlotFileFilter // Filter files by extension
 		};
 
 		// Show save file dialog box
@@ -327,7 +327,7 @@ public class FreqRespViewModel : BaseViewModel
 			// open document
 			string filename = openFileDialog.FileName;
 			var vm = MyVModel;
-			vm.actFreq.LoadFromFile(filename).Wait();
+			await vm.actFreq.LoadFromFile(filename);
 		}
 	}
 
@@ -344,7 +344,7 @@ public class FreqRespViewModel : BaseViewModel
 		{
 			FileName = String.Format("QaScope{0}", FileAddon()), // Default file name
 			DefaultExt = ".plt", // Default file extension
-			Filter = "Plot files|*.plt|All files|*.*" // Filter files by extension
+			Filter = PlotFileFilter // Filter files by extension
 		};
 
 		// Show save file dialog box
