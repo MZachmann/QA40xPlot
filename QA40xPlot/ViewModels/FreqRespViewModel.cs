@@ -30,6 +30,8 @@ public class FreqRespViewModel : BaseViewModel
 	[JsonIgnore]
 	public AsyncRelayCommand DoLoadTab { get => new AsyncRelayCommand(LoadItTab); }
 	[JsonIgnore]
+	public AsyncRelayCommand DoGetTab { get => new AsyncRelayCommand(GetItTab); }
+	[JsonIgnore]
 	public RelayCommand DoSaveTab { get => new RelayCommand(SaveItTab); }
 
 	[JsonIgnore]
@@ -213,6 +215,10 @@ public class FreqRespViewModel : BaseViewModel
 	{
 		switch (e.PropertyName)
 		{
+			case "ShowOtherLeft":
+			case "ShowOtherRight":
+				actFreq?.UpdateGraph(false);
+				break;
 			case "ShowTabInfo":
 				if (actAbout != null)
 					actAbout.Visibility = ShowTabInfo ? Visibility.Visible : Visibility.Hidden;
@@ -309,12 +315,12 @@ public class FreqRespViewModel : BaseViewModel
 		return vm.actFreq.CreateExportData();
 	}
 
-	private static async Task LoadItTab()
+	private static async Task DoGetLoad(bool isLoad)
 	{
 		OpenFileDialog openFileDialog = new OpenFileDialog
 		{
 			FileName = string.Empty, // Default file name
-			DefaultExt = ".plt", // Default file extension
+			DefaultExt = ".zip", // Default file extension
 			Filter = PlotFileFilter // Filter files by extension
 		};
 
@@ -327,9 +333,20 @@ public class FreqRespViewModel : BaseViewModel
 			// open document
 			string filename = openFileDialog.FileName;
 			var vm = MyVModel;
-			await vm.actFreq.LoadFromFile(filename);
+			await vm.actFreq.LoadFromFile(filename, isLoad);
 		}
 	}
+
+	private static async Task LoadItTab()
+	{
+		await DoGetLoad(true);
+	}
+
+	private static async Task GetItTab()
+	{
+		await DoGetLoad(false);
+	}
+
 
 	private static string FileAddon()
 	{

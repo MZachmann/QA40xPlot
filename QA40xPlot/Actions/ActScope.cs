@@ -77,10 +77,10 @@ namespace QA40xPlot.Actions
 			return Util.SaveToFile<ScopeViewModel>(PageData, fileName);
 		}
 
-		public async Task LoadFromFile(string fileName)
+		public async Task LoadFromFile(string fileName, bool isMain)
 		{
 			var page = LoadFile(fileName);
-			await FinishLoad(page);
+			await FinishLoad(page, isMain);
 		}
 
 		/// <summary>
@@ -98,18 +98,27 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="page"></param>
 		/// <returns></returns>
-		public async Task FinishLoad(DataTab<ScopeViewModel> page)
+		public async Task FinishLoad(DataTab<ScopeViewModel> page, bool isMain)
 		{
-			PageData = page;    // set the current page to the loaded one
-								// we can't overwrite the viewmodel since it links to the display proper
-								// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
-			page.ViewModel.CopyPropertiesTo<ScopeViewModel>(ViewSettings.Singleton.ScopeVm);    // retract the gui
-
-			// relink to the new definition
-			MyVModel.LinkAbout(PageData.Definition);
 			// now recalculate everything
-			BuildFrequencies(PageData);
-			await PostProcess(PageData, ct.Token);
+			BuildFrequencies(page);
+			await PostProcess(page, ct.Token);
+			if(isMain)
+			{
+				PageData = page;    // set the current page to the loaded one
+									// we can't overwrite the viewmodel since it links to the display proper
+									// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
+				page.ViewModel.CopyPropertiesTo<ScopeViewModel>(MyVModel);    // retract the gui
+
+				// relink to the new definition
+				MyVModel.LinkAbout(PageData.Definition);
+			}
+			else
+			{
+				// add to the other tabs
+				OtherTabs.Clear();
+				OtherTabs.Add(page);
+			}
 			UpdateGraph(true);
 		}
 
@@ -491,14 +500,13 @@ namespace QA40xPlot.Actions
         /// Plot the THD % graph
         /// </summary>
         /// <param name="data"></param>
-        void PlotValues(DataTab<ScopeViewModel> page, int measurementNr)
+        void PlotValues(DataTab<ScopeViewModel> page, int measurementNr, bool isMain)
         {
 			ScottPlot.Plot myPlot = timePlot.ThePlot;
-			myPlot.Clear();
 
 			var scopeVm = MyVModel;
-			bool leftChannelEnabled = scopeVm.ShowLeft;	// dynamically update these
-			bool rightChannelEnabled = scopeVm.ShowRight;
+			bool leftChannelEnabled = isMain ? scopeVm.ShowLeft : scopeVm.ShowOtherLeft;	// dynamically update these
+			bool rightChannelEnabled = isMain ? scopeVm.ShowRight : scopeVm.ShowOtherRight;
 
 			var timeData = page.TimeRslt;
 			if (timeData == null || timeData.Left.Length == 0)
@@ -514,7 +522,7 @@ namespace QA40xPlot.Actions
 			{
 				Scatter pLeft = myPlot.Add.Scatter(timeX, timeData.Left);
 				pLeft.LineWidth = showThick ? _Thickness : 1;
-				pLeft.Color = QaLibrary.BlueColor;  // Blue
+				pLeft.Color = isMain ? QaLibrary.BlueColor : QaLibrary.GreenXColor;  // Blue
 				pLeft.MarkerSize = markerSize;
 			}
 
@@ -522,7 +530,9 @@ namespace QA40xPlot.Actions
 			{
 				Scatter pRight = myPlot.Add.Scatter(timeX, timeData.Right);
 				pRight.LineWidth = showThick ? _Thickness : 1;
-				if (leftChannelEnabled)
+				if(!isMain)
+					pRight.Color = QaLibrary.OrangeXColor; // Red transparant
+				else if (leftChannelEnabled)
 					pRight.Color = QaLibrary.RedXColor; // Red transparant
 				else
 					pRight.Color = QaLibrary.RedColor; // Red
@@ -649,7 +659,18 @@ namespace QA40xPlot.Actions
                 InitializeMagnitudePlot();
             }
 
-			PlotValues(PageData, resultNr++);
+			if (thd.ShowOtherLeft || thd.ShowOtherRight)
+			{
+				if (OtherTabs.Count > 0)
+				{
+					foreach (var other in OtherTabs)
+					{
+						if (other != null)
+							PlotValues(other, resultNr++, false);
+					}
+				}
+			}
+			PlotValues(PageData, resultNr++, true);
 
    //         if( MeasurementResult.FrequencySteps.Count > 0)
    //         {

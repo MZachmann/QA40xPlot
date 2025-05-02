@@ -37,6 +37,8 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public AsyncRelayCommand DoLoadTab { get => new AsyncRelayCommand(LoadIt); }
 		[JsonIgnore]
+		public AsyncRelayCommand DoGetTab { get => new AsyncRelayCommand(GetIt); }
+		[JsonIgnore]
 		public RelayCommand DoSaveTab { get => new RelayCommand(SaveIt); }
 
 		#region Setters and Getters
@@ -179,6 +181,10 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
+				case "ShowOtherLeft":
+				case "ShowOtherRight":
+					actSpec?.UpdateGraph(false);
+					break;
 				case "Name":
 					actSpec?.UpdatePlotTitle();
 					break;
@@ -256,7 +262,7 @@ namespace QA40xPlot.ViewModels
 			vm.actSpec?.DoCancel();
 		}
 
-		private static async Task LoadIt()
+		private static async Task DoGetLoad(bool isLoad)
 		{
 			OpenFileDialog openFileDialog = new OpenFileDialog
 			{
@@ -274,8 +280,18 @@ namespace QA40xPlot.ViewModels
 				// open document
 				string filename = openFileDialog.FileName;
 				var vm = MyVModel;
-				await vm.actSpec.LoadFromFile(filename);
+				await vm.actSpec.LoadFromFile(filename, isLoad);
 			}
+		}
+
+		private static async Task LoadIt()
+		{
+			await DoGetLoad(true);
+		}
+
+		private static async Task GetIt()
+		{
+			await DoGetLoad(false);
 		}
 
 		private static string FileAddon()

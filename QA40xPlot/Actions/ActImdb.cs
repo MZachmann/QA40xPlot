@@ -78,10 +78,10 @@ namespace QA40xPlot.Actions
 			return Util.SaveToFile<ImdViewModel>(PageData, fileName);
 		}
 
-		public async Task LoadFromFile(string fileName)
+		public async Task LoadFromFile(string fileName, bool isMain)
 		{
 			var page = LoadFile(fileName);
-			await FinishLoad(page);
+			await FinishLoad(page, isMain);
 		}
 
 		/// <summary>
@@ -99,18 +99,33 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="page"></param>
 		/// <returns></returns>
-		public async Task FinishLoad(DataTab<ImdViewModel> page)
+		public async Task FinishLoad(DataTab<ImdViewModel> page, bool isMain)
 		{
-			PageData = page;    // set the current page to the loaded one
-								// we can't overwrite the viewmodel since it links to the display proper
-								// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
-			PageData.ViewModel.CopyPropertiesTo<ImdViewModel>(ViewSettings.Singleton.ImdVm);    // retract the gui
-
-			// relink to the new definition
-			MyVModel.LinkAbout(PageData.Definition);
 			// now recalculate everything
-			BuildFrequencies(PageData);
-			await PostProcess(PageData, ct.Token);
+			BuildFrequencies(page);
+			await PostProcess(page, ct.Token);
+
+			if( isMain)
+			{
+				PageData = page;    // set the current page to the loaded one
+									// we can't overwrite the viewmodel since it links to the display proper
+									// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
+				PageData.ViewModel.CopyPropertiesTo<ImdViewModel>(ViewSettings.Singleton.ImdVm);    // retract the gui
+				var left = page.GetProperty("Left") as ImdChannelViewModel;
+				var right = page.GetProperty("Right") as ImdChannelViewModel;
+				left.CopyPropertiesTo(ViewSettings.Singleton.ImdChannelLeft);  // clone to our statics
+				right.CopyPropertiesTo(ViewSettings.Singleton.ImdChannelRight);
+
+				// relink to the new definition
+				MyVModel.LinkAbout(PageData.Definition);
+			}
+			else
+			{
+				// this is a secondary page, so just set the data
+				OtherTabs.Clear();
+				OtherTabs.Add(page);
+			}
+
 			UpdateGraph(true);
 		}
 
@@ -414,8 +429,6 @@ namespace QA40xPlot.Actions
 			msr.SetProperty("Right", right);
 
 			// CalculateDistortion(msr, left, right);
-			left.CopyPropertiesTo(ViewSettings.Singleton.ImdChannelLeft);  // clone to our statics
-			right.CopyPropertiesTo(ViewSettings.Singleton.ImdChannelRight);
 
 			// Show message
 			await showMessage($"Measurement finished");
@@ -705,17 +718,17 @@ namespace QA40xPlot.Actions
 		/// Plot all of the spectral data values
 		/// </summary>
 		/// <param name="data"></param>
-		void PlotValues(DataTab<ImdViewModel>? page, int measurementNr)
+		void PlotValues(DataTab<ImdViewModel>? page, int measurementNr, bool isMain)
 		{
 			if (page == null)
 				return;
 
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
-			myPlot.Clear();
 
 			var specVm = MyVModel;
-			bool useLeft = specVm.ShowLeft; // dynamically update these
-			bool useRight = specVm.ShowRight;
+			bool useLeft = isMain ? specVm.ShowLeft : specVm.ShowOtherLeft; // dynamically update these
+			bool useRight = isMain ? specVm.ShowRight : specVm.ShowOtherRight;
+
 			var fftData = page.FreqRslt;
 			if (fftData == null)
 				return;
@@ -739,7 +752,7 @@ namespace QA40xPlot.Actions
 
 				Scatter plotLeft = myPlot.Add.Scatter(freqLogX, leftdBV);
 				plotLeft.LineWidth = lineWidth;
-				plotLeft.Color = QaLibrary.BlueColor;  // Blue
+				plotLeft.Color = isMain ? QaLibrary.BlueColor : QaLibrary.GreenXColor;  // Blue
 				plotLeft.MarkerSize = 1;
 			}
 
@@ -753,7 +766,9 @@ namespace QA40xPlot.Actions
 
 				Scatter plotRight = myPlot.Add.Scatter(freqLogX, rightdBV);
 				plotRight.LineWidth = lineWidth;
-				if (useLeft)
+				if(isMain)
+					plotRight.Color = QaLibrary.OrangeXColor; // Red transparant
+				else if (useLeft)
 					plotRight.Color = QaLibrary.RedXColor; // Red transparant
 				else
 					plotRight.Color = QaLibrary.RedColor; // Red
@@ -782,7 +797,19 @@ namespace QA40xPlot.Actions
 				}
 			}
 
-			PlotValues(PageData, resultNr++);
+			if (thd.ShowOtherLeft || thd.ShowOtherRight)
+			{
+				if (OtherTabs.Count > 0)
+				{
+					foreach (var other in OtherTabs)
+					{
+						if (other != null)
+							PlotValues(other, resultNr++, false);
+					}
+				}
+			}
+
+			PlotValues(PageData, resultNr++, true);
 
 
 			if (PageData.FreqRslt != null)

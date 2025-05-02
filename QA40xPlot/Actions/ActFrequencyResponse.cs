@@ -57,10 +57,10 @@ namespace QA40xPlot.Actions
 			return Util.SaveToFile<FreqRespViewModel>(PageData, fileName);
 		}
 
-		public async Task LoadFromFile(string fileName)
+		public async Task LoadFromFile(string fileName, bool isMain)
 		{
 			var page = LoadFile(fileName);
-			await FinishLoad(page);
+			await FinishLoad(page, isMain);
 		}
 
 		/// <summary>
@@ -78,18 +78,28 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="page"></param>
 		/// <returns></returns>
-		public async Task FinishLoad(DataTab<FreqRespViewModel> page)
+		public async Task FinishLoad(DataTab<FreqRespViewModel> page, bool isMain)
 		{
-			PageData = page;    // set the current page to the loaded one
-								// we can't overwrite the viewmodel since it links to the display proper
-								// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
-			PageData.ViewModel.CopyPropertiesTo<FreqRespViewModel>(ViewSettings.Singleton.FreqRespVm);    // retract the gui
-
-			// relink to the new definition
-			MyVModel.LinkAbout(PageData.Definition);
 			// now recalculate everything
-			BuildFrequencies(PageData);
-			await PostProcess(PageData, ct.Token);
+			BuildFrequencies(page);
+			await PostProcess(page, ct.Token);
+			if(isMain)
+			{
+				//
+				PageData = page;    // set the current page to the loaded one
+									// we can't overwrite the viewmodel since it links to the display proper
+									// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
+				PageData.ViewModel.CopyPropertiesTo<FreqRespViewModel>(ViewSettings.Singleton.FreqRespVm);    // retract the gui
+
+				// relink to the new definition
+				MyVModel.LinkAbout(PageData.Definition);
+			}
+			else
+			{
+				// add to the other tabs
+				OtherTabs.Clear();
+				OtherTabs.Add(page);
+			}
 			UpdateGraph(true);
 		}
 
@@ -692,7 +702,7 @@ namespace QA40xPlot.Actions
 		/// Plot the magnitude graph
 		/// </summary>
 		/// <param name="measurementResult">Data to plot</param>
-		void PlotValues(DataTab<FreqRespViewModel> page, int measurementNr, bool showLeftChannel, bool showRightChannel, E_FrequencyResponseGraphType graphType)
+		void PlotValues(DataTab<FreqRespViewModel> page, int measurementNr, bool isMain)
         {
 			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
 			var frqrsVm = MyVModel;
@@ -730,7 +740,7 @@ namespace QA40xPlot.Actions
 				case TestingType.Response:
 					YValues = gainY.Select(x => 20 * Math.Log10(x.Real)).ToArray(); // real is the left gain
 					phaseValues = gainY.Select(x => 20 * Math.Log10(x.Imaginary)).ToArray();
-					legendname = "Left dBV";
+					legendname = "dBV";
 					break;
 				case TestingType.Impedance:
 					YValues = gainY.Select(x => rref * ToImpedance(x).Magnitude).ToArray();
@@ -767,7 +777,7 @@ namespace QA40xPlot.Actions
 			//SetMagFreqRule(myPlot);
 			var plot = myPlot.Add.Scatter(logFreqX, YValues);
 			plot.LineWidth = lineWidth;
-			plot.Color = colors.GetColor(0, color);
+			plot.Color = isMain ? QaLibrary.BlueColor : QaLibrary.GreenXColor;  // colors.GetColor(0, color);
 			plot.MarkerSize = markerSize;
             plot.LegendText = legendname;
 			plot.LinePattern = LinePattern.Solid;
@@ -787,7 +797,7 @@ namespace QA40xPlot.Actions
 					plot.LegendText = "Right dBV";
 				}
 				plot.LineWidth = lineWidth;
-				plot.Color = colors.GetColor(3, color);
+				plot.Color = isMain ? QaLibrary.RedColor : QaLibrary.OrangeXColor;  // Blue
 				plot.MarkerSize = markerSize;
 				plot.LinePattern = LinePattern.Solid;
 			}
@@ -820,7 +830,18 @@ namespace QA40xPlot.Actions
                 InitializePlot();
             }
 
-            PlotValues(PageData, resultNr++, frqsrVm.ShowLeft, frqsrVm.ShowRight, E_FrequencyResponseGraphType.DBV);  // frqsrVm.GraphType);
+			if (frqsrVm.ShowOtherLeft || frqsrVm.ShowOtherRight)
+			{
+				if (OtherTabs.Count > 0)
+				{
+					foreach (var other in OtherTabs)
+					{
+						if (other != null)
+							PlotValues(other, resultNr++, false);
+					}
+				}
+			}
+			PlotValues(PageData, resultNr++, true);  // frqsrVm.GraphType);
 
             PlotBandwidthLines();
             frqrsPlot.Refresh();

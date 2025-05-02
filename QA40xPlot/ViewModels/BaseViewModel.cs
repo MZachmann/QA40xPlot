@@ -134,6 +134,20 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowRight, value);
 		}
 
+		private bool _ShowOtherLeft = false;
+		public bool ShowOtherLeft
+		{
+			get => _ShowOtherLeft;
+			set => SetProperty(ref _ShowOtherLeft, value);
+		}
+
+		private bool _ShowOtherRight = false;
+		public bool ShowOtherRight
+		{
+			get => _ShowOtherRight;
+			set => SetProperty(ref _ShowOtherRight, value);
+		}
+
 		private string _GenDirection = string.Empty;
 		public string GenDirection
 		{

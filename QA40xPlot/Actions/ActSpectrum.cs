@@ -80,10 +80,10 @@ namespace QA40xPlot.Actions
 			return Util.SaveToFile<SpectrumViewModel>(PageData, fileName);
 		}
 
-		public async Task LoadFromFile(string fileName)
+		public async Task LoadFromFile(string fileName, bool doLoad)
 		{
 			var page = Util.LoadFile<SpectrumViewModel>(PageData, fileName);
-			await FinishLoad(page);
+			await FinishLoad(page, doLoad);
 		}
 
 		/// <summary>
@@ -101,18 +101,32 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="page"></param>
 		/// <returns></returns>
-		public async Task FinishLoad(DataTab<SpectrumViewModel> page)
+		public async Task FinishLoad(DataTab<SpectrumViewModel> page, bool doLoad)
 		{
-			PageData = page;    // set the current page to the loaded one
-								// we can't overwrite the viewmodel since it links to the display proper
-								// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
-			PageData.ViewModel.CopyPropertiesTo<SpectrumViewModel>(ViewSettings.Singleton.SpectrumVm);    // retract the gui
-
-			// relink to the new definition
-			MyVModel.LinkAbout(PageData.Definition);
 			// now recalculate everything
-			BuildFrequencies(PageData);
-			await PostProcess(PageData, ct.Token);
+			BuildFrequencies(page);
+			await PostProcess(page, ct.Token);
+			if( doLoad)
+			{
+				PageData = page;    // set the current page to the loaded one
+									// we can't overwrite the viewmodel since it links to the display proper
+									// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
+				page.ViewModel.CopyPropertiesTo<SpectrumViewModel>(ViewSettings.Singleton.SpectrumVm);    // retract the gui
+
+				// relink to the new definition
+				MyVModel.LinkAbout(page.Definition);
+
+				var left = page.GetProperty("Left") as ThdChannelViewModel;
+				var right = page.GetProperty("Right") as ThdChannelViewModel;
+				left.CopyPropertiesTo(ViewSettings.Singleton.ChannelLeft);  // clone to our statics
+				right.CopyPropertiesTo(ViewSettings.Singleton.ChannelRight);
+			}
+			else
+			{
+				OtherTabs.Clear(); // clear the other tabs
+				OtherTabs.Add(page); // add the new one
+			}
+
 			UpdateGraph(true);
 		}
 
@@ -396,8 +410,6 @@ namespace QA40xPlot.Actions
 			msr.SetProperty("Right", right);
 
 			// CalculateDistortion(msr, left, right);
-			left.CopyPropertiesTo(ViewSettings.Singleton.ChannelLeft);	// clone to our statics
-			right.CopyPropertiesTo(ViewSettings.Singleton.ChannelRight);
 
 			// Show message
 			await showMessage($"Measurement finished");
@@ -691,17 +703,27 @@ namespace QA40xPlot.Actions
         /// Plot all of the spectral data values
         /// </summary>
         /// <param name="data"></param>
-        void PlotValues(DataTab<SpectrumViewModel>? page, int measurementNr)
+        void PlotValues(DataTab<SpectrumViewModel>? page, int measurementNr, bool isMain)
         {
 			if (page == null)
 				return;
 
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
-			myPlot.Clear();
 
 			var specVm = MyVModel;
-			bool useLeft = specVm.ShowLeft;	// dynamically update these
-			bool useRight = specVm.ShowRight;
+			bool useLeft;	// dynamically update these
+			bool useRight;
+			if( isMain)
+			{
+				useLeft = specVm.ShowLeft; // dynamically update these
+				useRight = specVm.ShowRight;
+			}
+			else
+			{
+				useLeft = specVm.ShowOtherLeft; // dynamically update these
+				useRight = specVm.ShowOtherRight;
+			}
+
 			var fftData = page.FreqRslt;
 			if (fftData == null)
 				return;
@@ -725,7 +747,7 @@ namespace QA40xPlot.Actions
 
 				Scatter plotLeft = myPlot.Add.Scatter(freqLogX, leftdBV);
 				plotLeft.LineWidth = lineWidth;
-				plotLeft.Color = QaLibrary.BlueColor;  // Blue
+				plotLeft.Color = isMain ? QaLibrary.BlueColor : QaLibrary.GreenXColor;  // Blue
 				plotLeft.MarkerSize = 1;
 			}
 
@@ -739,10 +761,17 @@ namespace QA40xPlot.Actions
 
 				Scatter plotRight = myPlot.Add.Scatter(freqLogX, rightdBV);
 				plotRight.LineWidth = lineWidth;
-				if (useLeft)
-					plotRight.Color = QaLibrary.RedXColor; // Red transparant
+				if (!isMain)
+				{
+					plotRight.Color = QaLibrary.OrangeXColor; // Green
+				}
 				else
-					plotRight.Color = QaLibrary.RedColor; // Red
+				{
+					if (useLeft)
+						plotRight.Color = QaLibrary.RedXColor; // Red transparant
+					else
+						plotRight.Color = QaLibrary.RedColor; // Red
+				}
 				plotRight.MarkerSize = 1;
 			}
 
@@ -768,7 +797,18 @@ namespace QA40xPlot.Actions
 				}
 			}
 
-			PlotValues(PageData, resultNr++);
+			if (thd.ShowOtherLeft || thd.ShowOtherRight)
+			{
+				if (OtherTabs.Count > 0)
+				{
+					foreach (var other in OtherTabs)
+					{
+						if (other != null)
+							PlotValues(other, resultNr++, false);
+					}
+				}
+			}
+			PlotValues(PageData, resultNr++, true);
 
 
             if( PageData.FreqRslt != null)

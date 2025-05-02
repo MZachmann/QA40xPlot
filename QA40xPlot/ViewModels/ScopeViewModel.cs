@@ -38,6 +38,8 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public AsyncRelayCommand DoLoadTab { get => new AsyncRelayCommand(LoadItTab); }
 		[JsonIgnore]
+		public AsyncRelayCommand DoGetTab { get => new AsyncRelayCommand(GetItTab); }
+		[JsonIgnore]
 		public RelayCommand DoSaveTab { get => new RelayCommand(SaveItTab); }
 
 		#region Setters and Getters
@@ -169,6 +171,10 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
+				case "ShowOtherLeft":
+				case "ShowOtherRight":
+					actScope?.UpdateGraph(false);
+					break;
 				case "ShowTabInfo":
 					if (actAbout != null)
 						actAbout.Visibility = ShowTabInfo ? Visibility.Visible : Visibility.Hidden;
@@ -232,12 +238,12 @@ namespace QA40xPlot.ViewModels
 			vm.actScope?.DoCancel();
 		}
 
-		private static async Task LoadItTab()
+		private static async Task DoGetLoad(bool isLoad)
 		{
 			OpenFileDialog openFileDialog = new OpenFileDialog
 			{
 				FileName = string.Empty, // Default file name
-				DefaultExt = ".plt", // Default file extension
+				DefaultExt = ".zip", // Default file extension
 				Filter = PlotFileFilter // Filter files by extension
 			};
 
@@ -250,9 +256,20 @@ namespace QA40xPlot.ViewModels
 				// open document
 				string filename = openFileDialog.FileName;
 				var vm = MyVModel;
-				await vm.actScope.LoadFromFile(filename);
+				await vm.actScope.LoadFromFile(filename, isLoad);
 			}
 		}
+
+		private static async Task LoadItTab()
+		{
+			await DoGetLoad(true);
+		}
+
+		private static async Task GetItTab()
+		{
+			await DoGetLoad(false);
+		}
+
 
 		private static string FileAddon()
 		{

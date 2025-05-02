@@ -37,7 +37,9 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public AsyncRelayCommand DoLoadTab { get => new AsyncRelayCommand(LoadIt); }
 		[JsonIgnore]
-		public RelayCommand DoSaveTab { get => new RelayCommand(SaveIt); }
+		public AsyncRelayCommand DoGetTab { get => new AsyncRelayCommand(GetIt); }
+		[JsonIgnore]
+		public RelayCommand DoSaveTab { get => new RelayCommand(SaveItTab); }
 
 		private static ImdViewModel MyVModel { get => ViewSettings.Singleton.ImdVm; }
 
@@ -210,6 +212,10 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
+				case "ShowOtherLeft":
+				case "ShowOtherRight":
+					actImd?.UpdateGraph(false);
+					break;
 				case "GenDirection":
 				case "Gen1Voltage":
 					// synchronize voltage 2
@@ -281,40 +287,11 @@ namespace QA40xPlot.ViewModels
 			vm?.actImd?.DoCancel();
 		}
 
-		private static async Task LoadIt()
-		{
-			OpenFileDialog openFileDialog = new OpenFileDialog
-			{
-				FileName = string.Empty, // Default file name
-				DefaultExt = ".plt", // Default file extension
-				Filter = PlotFileFilter // Filter files by extension
-			};
-
-			// Show save file dialog box
-			bool? result = openFileDialog.ShowDialog();
-
-			// Process save file dialog box results
-			if (result == true)
-			{
-				// open document
-				string filename = openFileDialog.FileName;
-				var vm = MyVModel;
-				await vm.actImd.LoadFromFile(filename);
-			}
-		}
-
-		private static string FileAddon()
-		{
-			DateTime now = DateTime.Now;
-			string formattedDate = $"{now:yyyy-MM-dd_HH-mm-ss}";
-			return formattedDate;
-		}
-
-		private static void SaveIt()
+		private static void SaveItTab()
 		{
 			SaveFileDialog saveFileDialog = new SaveFileDialog
 			{
-				FileName = String.Format("QaImd{0}", FileAddon()), // Default file name
+				FileName = String.Format("QaIntermod{0}", FileAddon()), // Default file name
 				DefaultExt = ".plt", // Default file extension
 				Filter = PlotFileFilter // Filter files by extension
 			};
@@ -334,6 +311,47 @@ namespace QA40xPlot.ViewModels
 				}
 			}
 		}
+
+
+		private static string FileAddon()
+		{
+			DateTime now = DateTime.Now;
+			string formattedDate = $"{now:yyyy-MM-dd_HH-mm-ss}";
+			return formattedDate;
+		}
+
+		private static async Task DoGetLoad(bool isLoad)
+		{
+			OpenFileDialog openFileDialog = new OpenFileDialog
+			{
+				FileName = string.Empty, // Default file name
+				DefaultExt = ".zip", // Default file extension
+				Filter = PlotFileFilter // Filter files by extension
+			};
+
+			// Show save file dialog box
+			bool? result = openFileDialog.ShowDialog();
+
+			// Process save file dialog box results
+			if (result == true)
+			{
+				// open document
+				string filename = openFileDialog.FileName;
+				var vm = MyVModel;
+				await vm.actImd.LoadFromFile(filename, isLoad);
+			}
+		}
+
+		private static async Task LoadIt()
+		{
+			await DoGetLoad(true);
+		}
+
+		private static async Task GetIt()
+		{
+			await DoGetLoad(false);
+		}
+
 
 		private void OnFitToData(object? parameter)
 		{
