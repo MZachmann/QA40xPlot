@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 using System.Windows.Interop;
+using Microsoft.Win32;
 
 
 public class FreqRespViewModel : BaseViewModel
@@ -26,6 +27,11 @@ public class FreqRespViewModel : BaseViewModel
 	public RelayCommand ToggleGenerator { get => new RelayCommand(StopIt); }
 	[JsonIgnore]
 	public RelayCommand<object> DoFitToData { get => new RelayCommand<object>(OnFitToData); }
+	[JsonIgnore]
+	public RelayCommand DoLoadTab { get => new RelayCommand(LoadItTab); }
+	[JsonIgnore]
+	public RelayCommand DoSaveTab { get => new RelayCommand(SaveItTab); }
+
 	[JsonIgnore]
 	private static FreqRespViewModel MyVModel { get => ViewSettings.Singleton.FreqRespVm; }
 	[JsonIgnore]
@@ -194,20 +200,6 @@ public class FreqRespViewModel : BaseViewModel
 		get => _Show1dBBandwidth_R;
 		set => SetProperty(ref _Show1dBBandwidth_R, value);
 	}
-	private Visibility _ToShowRange;
-	[JsonIgnore]
-	public Visibility ToShowRange
-	{
-		get => _ToShowRange;
-		set => SetProperty(ref _ToShowRange, value);
-	}
-	private Visibility _ToShowdB;
-	[JsonIgnore]
-	public Visibility ToShowdB
-	{
-		get => _ToShowdB;
-		set => SetProperty(ref _ToShowdB, value);
-	}
 	#endregion
 
 	public TestingType GetTestingType(string type)
@@ -221,6 +213,10 @@ public class FreqRespViewModel : BaseViewModel
 	{
 		switch (e.PropertyName)
 		{
+			case "ShowTabInfo":
+				if (actAbout != null)
+					actAbout.Visibility = ShowTabInfo ? Visibility.Visible : Visibility.Hidden;
+				break;
 			case "Voltage":
 			case "AmpLoad":
 			case "OutPower":
@@ -284,19 +280,21 @@ public class FreqRespViewModel : BaseViewModel
 		}
 	}
 
-	public void SetAction(PlotControl plot, PlotControl plot2, PlotControl plot3)
+	public void SetAction(PlotControl plot, PlotControl plot2, PlotControl plot3, TabAbout TAbout)
 	{
 		FrequencyResponseData data = new FrequencyResponseData();
-		actFreq = new ActFrequencyResponse(ref data, plot, plot2, plot3);
+		actFreq = new ActFrequencyResponse(plot, plot2, plot3);
+		actAbout = TAbout;
 		SetupMainPlot(plot);
 		actPlot = plot;
+		MyVModel.LinkAbout(actFreq.PageData.Definition);
 	}
 
 	private static void StartIt()
 	{
 		// Implement the logic to start the measurement process
 		var vm = MyVModel;
-		vm.actFreq.StartMeasurement();
+		vm.actFreq.DoMeasurement();
 	}
 
 	private static void StopIt()
@@ -309,6 +307,60 @@ public class FreqRespViewModel : BaseViewModel
 	{
 		var vm = MyVModel;
 		return vm.actFreq.CreateExportData();
+	}
+
+	private static void LoadItTab()
+	{
+		OpenFileDialog openFileDialog = new OpenFileDialog
+		{
+			FileName = string.Empty, // Default file name
+			DefaultExt = ".plt", // Default file extension
+			Filter = "Plot files|*.plt|All files|*.*" // Filter files by extension
+		};
+
+		// Show save file dialog box
+		bool? result = openFileDialog.ShowDialog();
+
+		// Process save file dialog box results
+		if (result == true)
+		{
+			// open document
+			string filename = openFileDialog.FileName;
+			var vm = MyVModel;
+			vm.actFreq.LoadFromFile(filename).Wait();
+		}
+	}
+
+	private static string FileAddon()
+	{
+		DateTime now = DateTime.Now;
+		string formattedDate = $"{now:yyyy-MM-dd_HH-mm-ss}";
+		return formattedDate;
+	}
+
+	private static void SaveItTab()
+	{
+		SaveFileDialog saveFileDialog = new SaveFileDialog
+		{
+			FileName = String.Format("QaScope{0}", FileAddon()), // Default file name
+			DefaultExt = ".plt", // Default file extension
+			Filter = "Plot files|*.plt|All files|*.*" // Filter files by extension
+		};
+
+		// Show save file dialog box
+		bool? result = saveFileDialog.ShowDialog();
+
+		// Process save file dialog box results
+		if (result == true)
+		{
+			// Save document
+			string filename = saveFileDialog.FileName;
+			if (filename.Count() > 1)
+			{
+				var vm = MyVModel;
+				vm.actFreq.SaveToFile(filename);
+			}
+		}
 	}
 
 	private void OnFitToData(object? parameter)

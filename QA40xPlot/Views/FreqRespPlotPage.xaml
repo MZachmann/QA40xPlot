@@ -155,9 +155,24 @@
                           Grid.Column="1" Grid.Row="0" ItemsSource="{Binding Impedances}"  />
                 <Label Content="Ohms" Grid.Column="2" Grid.Row="0"  />
             </Grid>
+            <views:GroupHeader Header="Storage" />
+            <Grid >
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="15" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Button Content="Sav_e" IsEnabled="{Binding HasExport}" FontSize="14" Command="{Binding DoSaveTab}" Grid.Column="0" Grid.Row="0"  HorizontalAlignment="Right"></Button>
+                <Button Content="_Load" IsEnabled="{Binding IsNotRunning}" FontSize="14" Command="{Binding DoLoadTab}" Grid.Column="2" Grid.Row="0" HorizontalAlignment="Left"></Button>
+            </Grid>
         </StackPanel>
         <Grid Grid.Column="1">
             <views:PlotControl x:Name="WpfPlot1"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
+            <views:TabAbout x:Name="TAbout" Visibility="Hidden"
+                  VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,50,54,0" />
         </Grid>
         <StackPanel Grid.Column="2" Orientation="Vertical">
             <GroupBox Header="Y Axis" Visibility="{Binding ToShowdB}">
@@ -231,6 +246,15 @@
                     <Label Content="Hz" Grid.Row="1"  Grid.Column="2" />
                     <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="XF"
                             Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Right" Grid.ColumnSpan="2" />
+                </Grid>
+            </GroupBox>
+            <GroupBox Header="Graph Data">
+                <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <CheckBox Content="Tab Info" IsChecked="{Binding ShowTabInfo}" Grid.Row="0"  />
                 </Grid>
             </GroupBox>
             <GroupBox Header="Options">

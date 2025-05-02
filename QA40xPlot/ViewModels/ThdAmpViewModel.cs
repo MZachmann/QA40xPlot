@@ -175,20 +175,6 @@ namespace QA40xPlot.ViewModels
 			get => _ShowNoiseFloor;
 			set => SetProperty(ref _ShowNoiseFloor, value);
 		}
-		private Visibility _ToShowRange;
-		[JsonIgnore]
-		public Visibility ToShowRange
-		{
-			get => _ToShowRange;
-			set => SetProperty(ref _ToShowRange, value);
-		}
-		private Visibility _ToShowdB;
-		[JsonIgnore]
-		public Visibility ToShowdB
-		{
-			get => _ToShowdB;
-			set => SetProperty(ref _ToShowdB, value);
-		}
 		#endregion
 
 		// the property change is used to trigger repaints of the graph

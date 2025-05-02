@@ -21,7 +21,7 @@ namespace QA40xPlot.Views
 			InitializeComponent();
 			var vm = ViewModels.ViewSettings.Singleton.FreqRespVm;
 			this.DataContext = vm;
-			vm.SetAction(this.WpfPlot1, this.WpfPlot2, this.WpfPlot3);
+			vm.SetAction(this.WpfPlot1, this.WpfPlot2, this.WpfPlot3, this.TAbout);
 		}
 	}
 }

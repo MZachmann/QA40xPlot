@@ -165,20 +165,6 @@ namespace QA40xPlot.ViewModels
 			get => _InputRange;
 			set => SetProperty(ref _InputRange, value);
 		}
-		private Visibility _ToShowRange;
-		[JsonIgnore]
-		public Visibility ToShowRange
-		{
-			get => _ToShowRange;
-			set => SetProperty(ref _ToShowRange, value);
-		}
-		private Visibility _ToShowdB;
-		[JsonIgnore]
-		public Visibility ToShowdB
-		{
-			get => _ToShowdB;
-			set => SetProperty(ref _ToShowdB, value);
-		}
 		private bool _UseGenerator;
 		public bool UseGenerator
 		{

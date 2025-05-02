@@ -67,7 +67,20 @@ namespace QA40xPlot.ViewModels
 			get => _Name;
 			set => SetProperty(ref _Name, value);
 		}
-
+		private Visibility _ToShowRange;
+		[JsonIgnore]
+		public Visibility ToShowRange
+		{
+			get => _ToShowRange;
+			set => SetProperty(ref _ToShowRange, value);
+		}
+		private Visibility _ToShowdB;
+		[JsonIgnore]
+		public Visibility ToShowdB
+		{
+			get => _ToShowdB;
+			set => SetProperty(ref _ToShowdB, value);
+		}
 		private bool _ShowSummary = false;
 		public bool ShowSummary
 		{

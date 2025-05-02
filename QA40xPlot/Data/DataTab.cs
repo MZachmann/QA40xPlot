@@ -2,6 +2,8 @@
 using QA40xPlot.ViewModels;
 using Newtonsoft.Json;
 using System.ComponentModel;
+using System.Numerics;
+using Newtonsoft.Json.Linq;
 
 namespace QA40xPlot.Data
 {
@@ -48,7 +50,7 @@ namespace QA40xPlot.Data
 	// a viewmodel, a time series and a dictionary of other properties
 	public class DataTab<T>
 	{
-		public static List<string> Glossary = new List<string>() { "FFT", "Left", "Right" };
+		public static List<string> Glossary = new List<string>() { "FFT", "GainData", "GainFreq" };
 
 		// ------------------------------------------------------------------
 		// we only serialize these things
@@ -62,7 +64,20 @@ namespace QA40xPlot.Data
 		[JsonIgnore]
 		public bool Show { get; set; }                                                  // Show in graph
 		[JsonIgnore]
-		public LeftRightFrequencySeries? FreqRslt { get { return GetProperty<LeftRightFrequencySeries>("FFT"); } }
+		public LeftRightFrequencySeries? FreqRslt { 
+			get { return GetProperty<LeftRightFrequencySeries>("FFT"); }
+			set { SetProperty("FFT", value); }
+		}
+		[JsonIgnore]
+		public Complex[]? GainData { 
+			get { return GetProperty<Complex[]>("GainData"); }
+			set { SetProperty("GainData", value); }
+		}
+		[JsonIgnore]
+		public Double[]? GainFrequencies	{
+			get { return GetProperty<Double[]>("GainFreq"); }
+			set { SetProperty("GainFreq", value); }
+		}
 
 		[JsonIgnore]
 		public Dictionary<string, object> PropertySet { get; private set; }
