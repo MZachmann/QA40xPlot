@@ -7,6 +7,8 @@ using Newtonsoft.Json;
 using System.Windows;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
+using System;
+using Microsoft.Win32;
 
 namespace QA40xPlot.ViewModels
 {
@@ -23,8 +25,21 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand DoStop { get => new RelayCommand(StopIt); }
 		[JsonIgnore]
 		public RelayCommand<object> DoFitToData { get => new RelayCommand<object>(OnFitToData); }
+		[JsonIgnore]
+		public AsyncRelayCommand DoLoadTab { get => new AsyncRelayCommand(LoadItTab); }
+		[JsonIgnore]
+		public AsyncRelayCommand DoGetTab { get => new AsyncRelayCommand(GetItTab); }
+		[JsonIgnore]
+		public RelayCommand DoSaveTab { get => new RelayCommand(SaveItTab); }
+		private static ThdFreqViewModel MyVModel { get => ViewSettings.Singleton.ThdFreq; }
 
 		#region Setters and Getters
+		[JsonIgnore]
+		public string GraphUnit
+		{
+			get => GraphUtil.GetFormatSuffix(PlotFormat);
+		}
+
 		private string _GenVoltage = string.Empty;
 		public string GenVoltage
 		{
@@ -179,7 +194,7 @@ namespace QA40xPlot.ViewModels
 		{
 			// Implement the logic to start the measurement process
 			var vm = ViewSettings.Singleton.ThdFreq;
-			vm.actThd?.StartMeasurement();
+			vm.actThd?.DoMeasurement();
 		}
 
 		private static void StopIt()
@@ -193,6 +208,13 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
+				case "PlotFormat":
+					// we may need to change the axis
+					ToShowRange = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Collapsed : Visibility.Visible;
+					ToShowdB = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Visible : Visibility.Collapsed;
+					OnPropertyChanged("GraphUnit");
+					actThd?.UpdateGraph(true);
+					break;
 				case "Voltage":
 				case "OutPower":
 				case "GenDirection":
@@ -234,7 +256,7 @@ namespace QA40xPlot.ViewModels
 		public void SetAction(PlotControl plot, PlotControl plot1, PlotControl plot2)
 		{
 			ThdFrequencyData data = new ThdFrequencyData();
-			actThd = new ActThdFrequency(ref data, plot, plot1, plot2);
+			actThd = new ActThdFrequency(plot, plot1, plot2);
 			SetupMainPlot(plot);
 			actPlot = plot;
 		}
@@ -279,6 +301,70 @@ namespace QA40xPlot.ViewModels
 			return sout;
 		}
 
+		private static async Task DoGetLoad(bool isLoad)
+		{
+			OpenFileDialog openFileDialog = new OpenFileDialog
+			{
+				FileName = string.Empty, // Default file name
+				DefaultExt = ".zip", // Default file extension
+				Filter = PlotFileFilter // Filter files by extension
+			};
+
+			// Show save file dialog box
+			bool? result = openFileDialog.ShowDialog();
+
+			// Process save file dialog box results
+			if (result == true)
+			{
+				// open document
+				string filename = openFileDialog.FileName;
+				var vm = MyVModel;
+				await vm.actThd.LoadFromFile(filename, isLoad);
+			}
+		}
+
+		private static async Task LoadItTab()
+		{
+			await DoGetLoad(true);
+		}
+
+		private static async Task GetItTab()
+		{
+			await DoGetLoad(false);
+		}
+
+
+		private static string FileAddon()
+		{
+			DateTime now = DateTime.Now;
+			string formattedDate = $"{now:yyyy-MM-dd_HH-mm-ss}";
+			return formattedDate;
+		}
+
+		private static void SaveItTab()
+		{
+			SaveFileDialog saveFileDialog = new SaveFileDialog
+			{
+				FileName = String.Format("QaTFreq{0}", FileAddon()), // Default file name
+				DefaultExt = ".plt", // Default file extension
+				Filter = PlotFileFilter // Filter files by extension
+			};
+
+			// Show save file dialog box
+			bool? result = saveFileDialog.ShowDialog();
+
+			// Process save file dialog box results
+			if (result == true)
+			{
+				// Save document
+				string filename = saveFileDialog.FileName;
+				if (filename.Count() > 1)
+				{
+					var vm = MyVModel;
+					vm.actThd.SaveToFile(filename);
+				}
+			}
+		}
 
 		private void OnFitToData(object? parameter)
 		{

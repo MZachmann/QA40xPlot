@@ -8,18 +8,20 @@ using System.Data;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
 using Newtonsoft.Json;
-using System.IO;
+
 
 // this is the top level class for the spectrum test
 // the code that runs the test and analyzes the results
 
+
 namespace QA40xPlot.Actions
 {
+	using MyDataTab = DataTab<SpectrumViewModel>;
 
 	public class ActSpectrum : ActBase
     {
-		public DataTab<SpectrumViewModel> PageData { get; private set; } // Data used in this form instance
-		private List<DataTab<SpectrumViewModel>> OtherTabs { get; set; } = new List<DataTab<SpectrumViewModel>>(); // Other tabs in the document
+		public MyDataTab PageData { get; private set; } // Data used in this form instance
+		private List<MyDataTab> OtherTabs { get; set; } = new List<MyDataTab>(); // Other tabs in the document
 		private readonly Views.PlotControl fftPlot;
 
         private float _Thickness = 2.0f;
@@ -91,7 +93,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="fileName">full path name</param>
 		/// <returns>a datatab with no frequency info</returns>
-		public DataTab<SpectrumViewModel> LoadFile(DataTab<SpectrumViewModel> page, string fileName)
+		public MyDataTab LoadFile(MyDataTab page, string fileName)
 		{
 			return Util.LoadFile<SpectrumViewModel>(page, fileName);
 		}
@@ -101,7 +103,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="page"></param>
 		/// <returns></returns>
-		public async Task FinishLoad(DataTab<SpectrumViewModel> page, bool doLoad)
+		public async Task FinishLoad(MyDataTab page, bool doLoad)
 		{
 			// now recalculate everything
 			BuildFrequencies(page);
@@ -125,7 +127,7 @@ namespace QA40xPlot.Actions
 			UpdateGraph(true);
 		}
 
-		private static double[] BuildWave(DataTab<SpectrumViewModel> page)
+		private static double[] BuildWave(MyDataTab page)
 		{
 			var vm = page.ViewModel;
 
@@ -156,7 +158,7 @@ namespace QA40xPlot.Actions
 			return wave;
 		}
 
-		private void ShowPageInfo(DataTab<SpectrumViewModel> page)
+		private void ShowPageInfo(MyDataTab page)
 		{
 			List<ThdChannelViewModel?> channels = new();
 			var specVm = MyVModel;  // the active viewmodel
@@ -221,7 +223,7 @@ namespace QA40xPlot.Actions
 
 			ct = new();
 			LeftRightTimeSeries lrts = new();
-			DataTab<SpectrumViewModel> NextPage = new(specVm, lrts);
+			MyDataTab NextPage = new(specVm, lrts);
 			PageData.Definition.CopyPropertiesTo(NextPage.Definition);
 			NextPage.Definition.CreateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 			var vm = NextPage.ViewModel;
@@ -230,7 +232,6 @@ namespace QA40xPlot.Actions
 
 			var genType = ToDirection(vm.GenDirection);
 			var freq = MathUtil.ToDouble(vm.Gen1Frequency, 1000);
-			var binSize = QaLibrary.CalcBinSize(vm.SampleRateVal, vm.FftSizeVal);
 
 			// if we're doing adjusting here we need gain information
 			if (vm.DoAutoAttn || genType != E_GeneratorDirection.INPUT_VOLTAGE)
@@ -287,7 +288,7 @@ namespace QA40xPlot.Actions
 			await EndAction();
 		}
 
-		static void BuildFrequencies(DataTab<SpectrumViewModel> page)
+		static void BuildFrequencies(MyDataTab page)
 		{
 			var vm = page.ViewModel;
 			if(vm == null)
@@ -315,7 +316,7 @@ namespace QA40xPlot.Actions
 		/// <param name="msr">the datatab we're using</param>
 		/// <param name="ct"></param>
 		/// <returns></returns>
-		async Task<bool> RunAcquisition(DataTab<SpectrumViewModel> msr, CancellationToken ct)
+		async Task<bool> RunAcquisition(MyDataTab msr, CancellationToken ct)
 		{
 			SpectrumViewModel vm = msr.ViewModel; // cached model
 
@@ -347,7 +348,7 @@ namespace QA40xPlot.Actions
 				// do the noise floor acquisition and math
 				// note measurenoise uses the existing init setup
 				// except InputRange (attenuation) which is push/pop-ed
-				if (msr.NoiseFloor == null)
+				if (msr.NoiseFloor.Left == 0)
 				{
 					var noisy = await MeasureNoise(ct);
 					if (ct.IsCancellationRequested)
@@ -403,7 +404,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="ct">Cancellation token</param>
 		/// <returns>result. false if cancelled</returns>
-		private async Task<bool> PostProcess(DataTab<SpectrumViewModel> msr, CancellationToken ct)
+		private async Task<bool> PostProcess(MyDataTab msr, CancellationToken ct)
         {
 			if(msr.FreqRslt == null)
 			{
@@ -439,7 +440,7 @@ namespace QA40xPlot.Actions
 				step.SNRatio = isleft ? snrdb.Left : snrdb.Right;
 				step.ENOB = (step.SNRatio - 1.76) / 6.02;
 				step.ThdNInV = step.FundamentalVolts * QaLibrary.ConvertVoltage(isleft ? thdN.Left : thdN.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
-				step.NoiseFloorV = (isleft ? msr.NoiseFloor?.Left : msr.NoiseFloor?.Right) ?? 1e-10;
+				step.NoiseFloorV = (isleft ? msr.NoiseFloor.Left : msr.NoiseFloor.Right);
 				step.NoiseFloorPct = 100 * step.NoiseFloorV / step.FundamentalVolts;
 				step.ThdInV = step.FundamentalVolts * QaLibrary.ConvertVoltage(isleft ? thds.Left : thds.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
 				step.ThdInPercent = 100 * step.ThdInV / step.FundamentalVolts;
@@ -467,7 +468,7 @@ namespace QA40xPlot.Actions
             return !ct.IsCancellationRequested;
         }
 
-		private void CalculateHarmonics(DataTab<SpectrumViewModel> page, ThdChannelViewModel left, ThdChannelViewModel right)
+		private void CalculateHarmonics(MyDataTab page, ThdChannelViewModel left, ThdChannelViewModel right)
 		{
 			var vm = page.ViewModel;
 			if(page.FreqRslt == null)
@@ -510,7 +511,7 @@ namespace QA40xPlot.Actions
 			return;
 		}
 
-		private void AddAMarker(DataTab<SpectrumViewModel> page, double frequency, bool isred = false)
+		private void AddAMarker(MyDataTab page, double frequency, bool isred = false)
 		{
 			var vm = page.ViewModel;
 
@@ -548,7 +549,7 @@ namespace QA40xPlot.Actions
 			mymark.LegendText = string.Format("{1}: {0:F1}", GraphUtil.PrettyPrint(markVal, vm.PlotFormat), (int)frequency);
 		}
 
-		private void ShowHarmonicMarkers(DataTab<SpectrumViewModel> page)
+		private void ShowHarmonicMarkers(MyDataTab page)
 		{
 			var vm = page.ViewModel;
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
@@ -573,7 +574,7 @@ namespace QA40xPlot.Actions
 			}
 		}
 
-		private void ShowPowerMarkers(DataTab<SpectrumViewModel> page)
+		private void ShowPowerMarkers(MyDataTab page)
 		{
 			var vm = page.ViewModel;
 			if (!vm.ShowLeft && !vm.ShowRight)
@@ -739,10 +740,10 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
-            SpectrumViewModel thd = MyVModel;
-            myPlot.Axes.SetLimits(Math.Log10(ToD(thd.GraphStartFreq)), Math.Log10(ToD(thd.GraphEndFreq)), 
+			SpectrumViewModel thd = MyVModel;
+			myPlot.Axes.SetLimits(Math.Log10(ToD(thd.GraphStartFreq)), Math.Log10(ToD(thd.GraphEndFreq)),
 				Math.Log10(ToD(thd.RangeBottom)) - 0.00000001, Math.Log10(ToD(thd.RangeTop)));  // - 0.000001 to force showing label
-            myPlot.Title("Spectrum");
+			myPlot.Title("Spectrum");
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
 
@@ -753,7 +754,7 @@ namespace QA40xPlot.Actions
         /// Plot all of the spectral data values
         /// </summary>
         /// <param name="data"></param>
-        void PlotValues(DataTab<SpectrumViewModel>? page, int measurementNr, bool isMain)
+        void PlotValues(MyDataTab? page, int measurementNr, bool isMain)
         {
 			if (page == null)
 				return;

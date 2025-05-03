@@ -42,13 +42,12 @@ namespace QA40xPlot.Libraries
 				{
 					try
 					{
-						page.NoiseFloor = new LeftRightPair();
-
-						// file pagedata with new stuff
+						// fill pagedata with new stuff
 						page.NoiseFloor = jsonObject.NoiseFloor;
 						page.Definition = jsonObject.Definition;
 						page.TimeRslt = jsonObject.TimeRslt;
-						if(page.ViewModel != null)
+						page.Sweep = jsonObject.Sweep;
+						if (page.ViewModel != null)
 							jsonObject.ViewModel.CopyPropertiesTo(page.ViewModel);
 					}
 					catch (Exception ex)

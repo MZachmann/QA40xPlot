@@ -13,11 +13,12 @@ using static QA40xPlot.ViewModels.BaseViewModel;
 
 namespace QA40xPlot.Actions
 {
+	using MyDataTab = DataTab<ImdViewModel>;
 
 	public class ActImd : ActBase
     {
-		public DataTab<ImdViewModel> PageData { get; private set; } // Data used in this form instance
-		private List<DataTab<ImdViewModel>> OtherTabs { get; set; } = new List<DataTab<ImdViewModel>>(); // Other tabs in the document
+		public MyDataTab PageData { get; private set; } // Data used in this form instance
+		private List<MyDataTab> OtherTabs { get; set; } = new List<MyDataTab>(); // Other tabs in the document
 		private readonly Views.PlotControl fftPlot;
 
 		private float _Thickness = 2.0f;
@@ -85,7 +86,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="fileName">full path name</param>
 		/// <returns>a datatab with no frequency info</returns>
-		public DataTab<ImdViewModel> LoadFile(string fileName)
+		public MyDataTab LoadFile(string fileName)
 		{
 			return Util.LoadFile<ImdViewModel>(PageData, fileName);
 		}
@@ -95,7 +96,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="page"></param>
 		/// <returns></returns>
-		public async Task FinishLoad(DataTab<ImdViewModel> page, bool isMain)
+		public async Task FinishLoad(MyDataTab page, bool isMain)
 		{
 			// now recalculate everything
 			BuildFrequencies(page);
@@ -120,7 +121,7 @@ namespace QA40xPlot.Actions
 			UpdateGraph(true);
 		}
 
-		private static double[] BuildWave(DataTab<ImdViewModel> page)
+		private static double[] BuildWave(MyDataTab page)
 		{
 			var vm = page.ViewModel;
 
@@ -167,7 +168,7 @@ namespace QA40xPlot.Actions
 			return wave;
 		}
 
-		static void BuildFrequencies(DataTab<ImdViewModel> page)
+		static void BuildFrequencies(MyDataTab page)
 		{
 			var vm = page.ViewModel;
 			if (vm == null)
@@ -273,7 +274,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="ct">Cancellation token</param>
 		/// <returns>result. false if cancelled</returns>
-		async Task<bool> RunAcquisition(DataTab<ImdViewModel> msr, CancellationToken ct)
+		async Task<bool> RunAcquisition(MyDataTab msr, CancellationToken ct)
 		{
 			// Setup
 			ImdViewModel msrImd = msr.ViewModel;
@@ -303,7 +304,7 @@ namespace QA40xPlot.Actions
 				// do the noise floor acquisition and math
 				// note measurenoise uses the existing init setup
 				// except InputRange (attenuation) which is push/pop-ed
-				if (msr.NoiseFloor == null)
+				if (msr.NoiseFloor.Left == 0)
 				{
 					var noisy = await MeasureNoise(ct);
 					if (ct.IsCancellationRequested)
@@ -353,7 +354,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="ct">Cancellation token</param>
 		/// <returns>result. false if cancelled</returns>
-		private async Task<bool> PostProcess(DataTab<ImdViewModel> msr, CancellationToken ct)
+		private async Task<bool> PostProcess(MyDataTab msr, CancellationToken ct)
 		{
 			if (msr.FreqRslt == null)
 			{
@@ -395,7 +396,7 @@ namespace QA40xPlot.Actions
 				step.SNRatio = isleft ? snrimdb.Left : snrimdb.Right;
 				step.ENOB = (step.SNRatio - 1.76) / 6.02;
 				step.ThdNInV = step.Fundamental1Volts * QaLibrary.ConvertVoltage(isleft ? thdN.Left : thdN.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
-				step.NoiseFloorV = (isleft ? msr.NoiseFloor?.Left : msr.NoiseFloor?.Right) ?? 1e-10;
+				step.NoiseFloorV = (isleft ? msr.NoiseFloor.Left : msr.NoiseFloor.Right);
 				step.NoiseFloorPct = 100 * step.NoiseFloorV / step.Fundamental1Volts;
 				step.ThdInV = step.Fundamental1Volts * QaLibrary.ConvertVoltage(isleft ? thds.Left : thds.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
 				step.ThdInPercent = 100 * step.ThdInV / step.Fundamental1Volts;
@@ -428,7 +429,7 @@ namespace QA40xPlot.Actions
 			return !ct.IsCancellationRequested;
 		}
 
-		private void AddAMarker(DataTab<ImdViewModel> page, double frequency, bool isred = false)
+		private void AddAMarker(MyDataTab page, double frequency, bool isred = false)
 		{
 			var vm = page.ViewModel;
 
@@ -466,7 +467,7 @@ namespace QA40xPlot.Actions
 			mymark.LegendText = string.Format("{1}: {0:F1}", GraphUtil.PrettyPrint(markVal, vm.PlotFormat), (int)frequency);
 		}
 
-		private void ShowHarmonicMarkers(DataTab<ImdViewModel> page)
+		private void ShowHarmonicMarkers(MyDataTab page)
 		{
 			var vm = page.ViewModel;
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
@@ -496,7 +497,7 @@ namespace QA40xPlot.Actions
 			}
 		}
 
-		private void ShowPowerMarkers(DataTab<ImdViewModel> page)
+		private void ShowPowerMarkers(MyDataTab page)
 		{
 			var vm = page.ViewModel;
 			if (!vm.ShowLeft && !vm.ShowRight)
@@ -585,7 +586,7 @@ namespace QA40xPlot.Actions
 		/// Plot all of the spectral data values
 		/// </summary>
 		/// <param name="data"></param>
-		void PlotValues(DataTab<ImdViewModel>? page, int measurementNr, bool isMain)
+		void PlotValues(MyDataTab? page, int measurementNr, bool isMain)
 		{
 			if (page == null)
 				return;
@@ -688,7 +689,7 @@ namespace QA40xPlot.Actions
 			fftPlot.Refresh();
 		}
 
-		private void ShowPageInfo(DataTab<ImdViewModel> page)
+		private void ShowPageInfo(MyDataTab page)
 		{
 			List<ImdChannelViewModel?> channels = new();
 			var specVm = MyVModel;  // the active viewmodel
@@ -754,7 +755,7 @@ namespace QA40xPlot.Actions
 
 			// sweep data
 			LeftRightTimeSeries lrts = new();
-			DataTab<ImdViewModel> NextPage = new(imdVm, lrts);
+			MyDataTab NextPage = new(imdVm, lrts);
 			PageData.Definition.CopyPropertiesTo(NextPage.Definition);
 			NextPage.Definition.CreateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 			var vm = NextPage.ViewModel;
@@ -882,7 +883,7 @@ namespace QA40xPlot.Actions
 			fftPlot.Refresh();
 		}
 
-		private void CalculateHarmonics(DataTab<ImdViewModel> page, ImdChannelViewModel left, ImdChannelViewModel right)
+		private void CalculateHarmonics(MyDataTab page, ImdChannelViewModel left, ImdChannelViewModel right)
 		{
 			var vm = page.ViewModel;
 			if (page.FreqRslt == null)

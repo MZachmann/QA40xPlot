@@ -15,11 +15,12 @@ using static QA40xPlot.ViewModels.BaseViewModel;
 
 namespace QA40xPlot.Actions
 {
+	using MyDataTab = DataTab<FreqRespViewModel>;
 
-    public partial class ActFrequencyResponse : ActBase
+	public partial class ActFrequencyResponse : ActBase
     {
-		public DataTab<FreqRespViewModel> PageData { get; private set; } // Data used in this form instance
-		private List<DataTab<FreqRespViewModel>> OtherTabs { get; set; } = new(); // Other tabs in the document
+		public MyDataTab PageData { get; private set; } // Data used in this form instance
+		private List<MyDataTab> OtherTabs { get; set; } = new(); // Other tabs in the document
 		private readonly Views.PlotControl fftPlot;
 		private readonly Views.PlotControl timePlot;
 		private readonly Views.PlotControl frqrsPlot;
@@ -68,7 +69,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="fileName">full path name</param>
 		/// <returns>a datatab with no frequency info</returns>
-		public DataTab<FreqRespViewModel> LoadFile(string fileName)
+		public MyDataTab LoadFile(string fileName)
 		{
 			return Util.LoadFile<FreqRespViewModel>(PageData, fileName);
 		}
@@ -78,7 +79,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="page"></param>
 		/// <returns></returns>
-		public async Task FinishLoad(DataTab<FreqRespViewModel> page, bool isMain)
+		public async Task FinishLoad(MyDataTab page, bool isMain)
 		{
 			// now recalculate everything
 			BuildFrequencies(page);
@@ -103,7 +104,7 @@ namespace QA40xPlot.Actions
 			UpdateGraph(true);
 		}
 
-		private async Task<bool> PostProcess(DataTab<FreqRespViewModel> msr, CancellationToken ct)
+		private async Task<bool> PostProcess(MyDataTab msr, CancellationToken ct)
 		{
 			if (msr.TimeRslt == null)
 			{
@@ -112,7 +113,7 @@ namespace QA40xPlot.Actions
 			return false;
 		}
 
-		private static double[] BuildWave(DataTab<FreqRespViewModel> page)
+		private static double[] BuildWave(MyDataTab page)
 		{
 			var vm = page.ViewModel;
 
@@ -137,7 +138,7 @@ namespace QA40xPlot.Actions
 			return wave;
 		}
 
-		static void BuildFrequencies(DataTab<FreqRespViewModel> page)
+		static void BuildFrequencies(MyDataTab page)
 		{
 			var vm = page.ViewModel;
 			if (vm == null)
@@ -174,7 +175,7 @@ namespace QA40xPlot.Actions
 
 			// sweep data
 			LeftRightTimeSeries lrts = new();
-			DataTab<FreqRespViewModel> NextPage = new(vmFreq, lrts);
+			MyDataTab NextPage = new(vmFreq, lrts);
 			PageData.Definition.CopyPropertiesTo(NextPage.Definition);
 			NextPage.Definition.CreateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 			var msr = NextPage.ViewModel;
@@ -450,7 +451,7 @@ namespace QA40xPlot.Actions
 		/// <param name="stepBinFrequencies">the frequencies to test at</param>
 		/// <param name="voltagedBV">the sine generator voltage</param>
 		/// <returns></returns>
-		private async Task<bool> RunFreqTest(DataTab<FreqRespViewModel> page, double[] stepBinFrequencies, double voltagedBV)
+		private async Task<bool> RunFreqTest(MyDataTab page, double[] stepBinFrequencies, double voltagedBV)
         {
             var vm = page.ViewModel;
 			// Check if cancel button pressed
@@ -525,7 +526,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="voltagedBV">the sine generator voltage</param>
 		/// <returns></returns>
-		private async Task<bool> RunChirpTest(DataTab<FreqRespViewModel>page, double voltagedBV)
+		private async Task<bool> RunChirpTest(MyDataTab page, double voltagedBV)
 		{
 			var vm = page.ViewModel;
 			// Check if cancel button pressed
@@ -702,7 +703,7 @@ namespace QA40xPlot.Actions
 		/// Plot the magnitude graph
 		/// </summary>
 		/// <param name="measurementResult">Data to plot</param>
-		void PlotValues(DataTab<FreqRespViewModel> page, int measurementNr, bool isMain)
+		void PlotValues(MyDataTab page, int measurementNr, bool isMain)
         {
 			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
 			var frqrsVm = MyVModel;

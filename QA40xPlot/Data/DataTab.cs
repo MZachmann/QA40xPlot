@@ -46,6 +46,13 @@ namespace QA40xPlot.Data
 		}
 	}
 
+	public class SweepData
+	{
+		public double[] X { get; set; } = [];       // X values, freq or time or amplitude...
+		public double[] RawLeft { get; set; } = [];   // columnar data for distortion sweeps
+		public double[] RawRight { get; set; } = [];  // columnar data for sweeps
+	}
+
 	// our way of storing results (pages) in our Document. Each datatab has
 	// a viewmodel, a time series and a dictionary of other properties
 	public class DataTab<T>
@@ -54,8 +61,10 @@ namespace QA40xPlot.Data
 		// we only serialize these things
 		public DataDescript Definition { get; set; } = new DataDescript();
 		public T ViewModel { get; private set; }
-		public LeftRightTimeSeries TimeRslt { get; set; }
-		public LeftRightPair? NoiseFloor { get; set; }
+		public LeftRightTimeSeries TimeRslt { get; set; }   // if we acquired data
+		public LeftRightPair NoiseFloor { get; set; } = new();		// if we have the noise floor measurement
+		// for sweeps
+		public SweepData Sweep { get; set; } = new();			// X values, freq or time or amplitude...
 
 		// ------------------------------------------------------------------
 		// all other properties are calculated but may be cached in PropertySet

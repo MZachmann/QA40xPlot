@@ -1,4 +1,5 @@
-﻿using System;
+﻿using QA40xPlot.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,5 +22,14 @@ namespace QA40xPlot.Data
 		// inputs
 		public double GenVolts { get; set; }
 		public double Freq { get; set; }
+
+		public ThdColumn()
+		{
+		}
+
+		public ThdColumn(object o)
+		{
+
+		}
 	}
 }

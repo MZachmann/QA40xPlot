@@ -16,11 +16,12 @@ using static QA40xPlot.ViewModels.BaseViewModel;
 
 namespace QA40xPlot.Actions
 {
+	using MyDataTab = DataTab<ScopeViewModel>;
 
 	public class ActScope : ActBase
     {
-		public DataTab<ScopeViewModel> PageData { get; private set; } // Data used in this form instance
-		private List<DataTab<ScopeViewModel>> OtherTabs { get; set; } = new List<DataTab<ScopeViewModel>>(); // Other tabs in the document
+		public MyDataTab PageData { get; private set; } // Data used in this form instance
+		private List<MyDataTab> OtherTabs { get; set; } = new List<MyDataTab>(); // Other tabs in the document
 		private readonly Views.PlotControl timePlot;
 
 		private float _Thickness = 2.0f;
@@ -88,7 +89,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="fileName">full path name</param>
 		/// <returns>a datatab with no frequency info</returns>
-		public DataTab<ScopeViewModel> LoadFile(string fileName)
+		public MyDataTab LoadFile(string fileName)
 		{
 			return Util.LoadFile<ScopeViewModel>(PageData, fileName);
 		}
@@ -98,7 +99,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="page"></param>
 		/// <returns></returns>
-		public async Task FinishLoad(DataTab<ScopeViewModel> page, bool isMain)
+		public async Task FinishLoad(MyDataTab page, bool isMain)
 		{
 			// now recalculate everything
 			BuildFrequencies(page);
@@ -122,7 +123,7 @@ namespace QA40xPlot.Actions
 			UpdateGraph(true);
 		}
 
-		private static double[] BuildWave(DataTab<ScopeViewModel> page)
+		private static double[] BuildWave(MyDataTab page)
 		{
 			var vm = page.ViewModel;
 
@@ -172,7 +173,7 @@ namespace QA40xPlot.Actions
 			return wave;
 		}
 
-		static void BuildFrequencies(DataTab<ScopeViewModel> page)
+		static void BuildFrequencies(MyDataTab page)
 		{
 			var vm = page.ViewModel;
 			if (vm == null)
@@ -255,7 +256,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="ct">Cancellation token</param>
 		/// <returns>result. false if cancelled</returns>
-		async Task<bool> RunAcquisition(DataTab<ScopeViewModel> msr, CancellationToken ct)
+		async Task<bool> RunAcquisition(MyDataTab msr, CancellationToken ct)
         {
 			// Setup
 			ScopeViewModel thd = msr.ViewModel;
@@ -287,15 +288,15 @@ namespace QA40xPlot.Actions
 				// do the noise floor acquisition and math
 				// note measurenoise uses the existing init setup
 				// except InputRange (attenuation) which is push/pop-ed
-				//if (msr.NoiseFloor == null)
-    //            {
-				//	var noisy = await MeasureNoise(ct);
-				//	if (ct.IsCancellationRequested)
-				//		return false;
-				//	msr.NoiseFloor = new LeftRightPair();
-				//	msr.NoiseFloor.Right = QaCompute.CalculateNoise(noisy.FreqRslt, true);
-				//	msr.NoiseFloor.Left = QaCompute.CalculateNoise(noisy.FreqRslt, false);
-				//}
+				// if (msr.NoiseFloor.Left == 0)
+					//            {
+					//	var noisy = await MeasureNoise(ct);
+					//	if (ct.IsCancellationRequested)
+					//		return false;
+					//	msr.NoiseFloor = new LeftRightPair();
+					//	msr.NoiseFloor.Right = QaCompute.CalculateNoise(noisy.FreqRslt, true);
+					//	msr.NoiseFloor.Left = QaCompute.CalculateNoise(noisy.FreqRslt, false);
+					//}
 
 				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
 				var genVolt = thd.ToGenVoltage(thd.Gen1Voltage, [], GEN_INPUT, gains) ;
@@ -339,7 +340,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="ct">Cancellation token</param>
 		/// <returns>result. false if cancelled</returns>
-		private async Task<bool> PostProcess(DataTab<ScopeViewModel> msr, CancellationToken ct)
+		private async Task<bool> PostProcess(MyDataTab msr, CancellationToken ct)
 		{
 			var thd = msr.ViewModel;
 			try
@@ -409,7 +410,7 @@ namespace QA40xPlot.Actions
         /// Plot the THD % graph
         /// </summary>
         /// <param name="data"></param>
-        void PlotValues(DataTab<ScopeViewModel> page, int measurementNr, bool isMain)
+        void PlotValues(MyDataTab page, int measurementNr, bool isMain)
         {
 			ScottPlot.Plot myPlot = timePlot.ThePlot;
 
@@ -483,7 +484,7 @@ namespace QA40xPlot.Actions
 
 			// sweep data
 			LeftRightTimeSeries lrts = new();
-			DataTab<ScopeViewModel> NextPage = new(scopeVm, lrts);
+			MyDataTab NextPage = new(scopeVm, lrts);
 			PageData.Definition.CopyPropertiesTo(NextPage.Definition);
 			NextPage.Definition.CreateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 			var vm = NextPage.ViewModel;

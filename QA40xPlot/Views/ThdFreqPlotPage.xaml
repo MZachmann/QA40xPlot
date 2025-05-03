@@ -116,6 +116,20 @@
                 <Label Content="_Averages" HorizontalAlignment="Right"  Grid.Column="0" Grid.Row="2" Target="{Binding ElementName=xcaverages}"  />
                 <xctk:IntegerUpDown x:Name="xcaverages" Value="{Binding Averages}" Minimum="1" Maximum="6" VerticalAlignment="Center" Grid.Column="1" Grid.Row="2"  />
             </Grid>
+            <views:GroupHeader Header="Storage" />
+            <Grid >
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Button Content="_Get" IsEnabled="{Binding IsNotRunning}"  Command="{Binding DoGetTab}" Grid.Column="0" Grid.Row="0"  HorizontalAlignment="Center"></Button>
+                <Button Content="_Load" IsEnabled="{Binding IsNotRunning}" Command="{Binding DoLoadTab}" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center"></Button>
+                <Button Content="Sav_e" IsEnabled="{Binding IsNotRunning}"    Command="{Binding DoSaveTab}" Grid.Column="2" Grid.Row="0"  HorizontalAlignment="Center"></Button>
+            </Grid>
             <views:PlotControl x:Name="WpfPlot2" Width="150" Height="100" Margin="0,4,0,0" />
             <views:PlotControl x:Name="WpfPlot3" Width="150"  Height="100" Margin="0,4" />
         </StackPanel>
@@ -134,17 +148,21 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <Label Content="Top" Grid.Row="0" Grid.Column="0"  />
-                    <ComboBox IsEditable="True" MinWidth="70"  Grid.Row="0" Grid.Column="1"  Text="{Binding RangeTopdB}" ItemsSource="{Binding TopDbs}">
+                    <Label Content="Units" Grid.Row="0" Grid.Column="0"  />
+                    <ComboBox MinWidth="70" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"  SelectedItem="{Binding PlotFormat}" ItemsSource="{Binding DataFormats}">
                     </ComboBox>
-                    <Label Content="dBV" Grid.Row="0" Grid.Column="2"  />
-                    <Label Content="Bottom" Grid.Row="1" Grid.Column="0"  />
-                    <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1"  Text="{Binding RangeBottomdB}" ItemsSource="{Binding BottomDbs}">
+                    <Label Content="Top" Grid.Row="1" Grid.Column="0"  />
+                    <ComboBox IsEditable="True" MinWidth="70"  Grid.Row="1" Grid.Column="1"  Text="{Binding RangeTopdB}" ItemsSource="{Binding TopDbs}">
                     </ComboBox>
                     <Label Content="dBV" Grid.Row="1" Grid.Column="2"  />
+                    <Label Content="Bottom" Grid.Row="2" Grid.Column="0"  />
+                    <ComboBox IsEditable="True" Grid.Row="2" Grid.Column="1"  Text="{Binding RangeBottomdB}" ItemsSource="{Binding BottomDbs}">
+                    </ComboBox>
+                    <Label Content="dBV" Grid.Row="2" Grid.Column="2"  />
                     <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="YM"
-                            Margin="0,4,0,0" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Right"  />
+                            Margin="0,4,0,0" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Right"  />
                 </Grid>
             </GroupBox>
             <GroupBox Header="Y Axis" Visibility="{Binding ToShowRange}">
@@ -158,17 +176,21 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <Label Content="Top" Grid.Row="0" Grid.Column="0"  />
-                    <ComboBox Grid.Column="1"  Grid.Row="0"  SelectedValue="{Binding RangeTop}" ItemsSource="{Binding StartPercents}">
+                    <Label Content="Units" Grid.Row="0" Grid.Column="0"  />
+                    <ComboBox MinWidth="70" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"  SelectedItem="{Binding PlotFormat}" ItemsSource="{Binding DataFormats}">
                     </ComboBox>
-                    <Label Content="%" Grid.Row="0" Grid.Column="2"  />
-                    <Label Content="Bottom" Grid.Row="1" Grid.Column="0"  />
-                    <ComboBox Grid.Column="1" MinWidth="70"  Grid.Row="1"  SelectedValue="{Binding RangeBottom}" ItemsSource="{Binding EndPercents}">
+                    <Label Content="Top" Grid.Row="1" Grid.Column="0"  />
+                    <ComboBox Grid.Column="1"  Grid.Row="1"  SelectedValue="{Binding RangeTop}" ItemsSource="{Binding StartPercents}">
                     </ComboBox>
                     <Label Content="%" Grid.Row="1" Grid.Column="2"  />
+                    <Label Content="Bottom" Grid.Row="2" Grid.Column="0"  />
+                    <ComboBox Grid.Column="1" MinWidth="70"  Grid.Row="2"  SelectedValue="{Binding RangeBottom}" ItemsSource="{Binding EndPercents}">
+                    </ComboBox>
+                    <Label Content="%" Grid.Row="2" Grid.Column="2"  />
                     <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="YP"
-                            Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Right" Grid.ColumnSpan="2"  />
+                            Margin="0,4,0,0" Grid.Row="3" Grid.Column="0"  HorizontalAlignment="Right" Grid.ColumnSpan="2"  />
                 </Grid>
             </GroupBox>
             <GroupBox Header="X Axis">
