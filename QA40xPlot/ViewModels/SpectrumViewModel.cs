@@ -168,10 +168,19 @@ namespace QA40xPlot.ViewModels
 
 		private void ShowInfos()
 		{
+			uint frames = 0;
+			if (ShowLeft)
+				frames++;
+			if(ShowRight)
+				frames++;
+			if(ShowOtherLeft)
+				frames++;
+			if (ShowOtherRight)
+				frames++;
 			if (actInfoLeft != null)
-				actInfoLeft.Visibility = (ShowSummary && ShowLeft) ? Visibility.Visible : Visibility.Hidden;
+				actInfoLeft.Visibility = (ShowSummary && frames > 0) ? Visibility.Visible : Visibility.Hidden;
 			if (actInfoRight != null)
-				actInfoRight.Visibility = (ShowSummary && ShowRight) ? Visibility.Visible : Visibility.Hidden;
+				actInfoRight.Visibility = (ShowSummary && frames > 1) ? Visibility.Visible : Visibility.Hidden;
 			if (actAbout != null)
 				actAbout.Visibility = ShowTabInfo ? Visibility.Visible : Visibility.Hidden;
 		}
@@ -181,10 +190,6 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
-				case "ShowOtherLeft":
-				case "ShowOtherRight":
-					actSpec?.UpdateGraph(false);
-					break;
 				case "Name":
 					actSpec?.UpdatePlotTitle();
 					break;
@@ -199,6 +204,8 @@ namespace QA40xPlot.ViewModels
 				case "ShowSummary":
 					ShowInfos();
 					break;
+				case "ShowOtherLeft":
+				case "ShowOtherRight":
 				case "ShowRight":
 				case "ShowLeft":
 					ShowInfos();

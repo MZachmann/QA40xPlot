@@ -115,8 +115,6 @@ namespace QA40xPlot.Actions
 
 				// relink to the new definition
 				MyVModel.LinkAbout(page.Definition);
-
-				ShowPageInfo(page); // show the page info in the display
 			}
 			else
 			{
@@ -160,10 +158,56 @@ namespace QA40xPlot.Actions
 
 		private void ShowPageInfo(DataTab<SpectrumViewModel> page)
 		{
-			var left = page.GetProperty("Left") as ThdChannelViewModel;
-			var right = page.GetProperty("Right") as ThdChannelViewModel;
-			left.CopyPropertiesTo(ViewSettings.Singleton.ChannelLeft);  // clone to our statics
-			right.CopyPropertiesTo(ViewSettings.Singleton.ChannelRight);
+			List<ThdChannelViewModel?> channels = new();
+			var specVm = MyVModel;  // the active viewmodel
+			if (specVm.ShowLeft)
+			{
+				var mdl = page.GetProperty("Left") as ThdChannelViewModel;
+				if (mdl != null)
+				{
+					channels.Add(mdl);
+					mdl.BorderColor = System.Windows.Media.Brushes.Blue;
+				}
+			}
+			if (specVm.ShowRight)
+			{
+				var mdl = page.GetProperty("Right") as ThdChannelViewModel;
+				if (mdl != null)
+				{
+					channels.Add(mdl);
+					mdl.BorderColor = System.Windows.Media.Brushes.Red;
+				}
+			}
+			if( OtherTabs.Count > 0)
+			{
+				if (channels.Count() < 2 && specVm.ShowOtherLeft)
+				{
+					var mdl = OtherTabs.First()?.GetProperty("Left") as ThdChannelViewModel;
+					if(mdl != null)
+					{
+						channels.Add(mdl);
+						mdl.BorderColor = System.Windows.Media.Brushes.DarkGreen;
+					}
+				}
+				if (channels.Count() < 2 && specVm.ShowOtherRight)
+				{
+					var mdl = OtherTabs.First()?.GetProperty("Right") as ThdChannelViewModel;
+					if (mdl != null)
+					{
+						channels.Add(mdl);
+						mdl.BorderColor = System.Windows.Media.Brushes.DarkOrange;
+					}
+				}
+			}
+
+			if (channels.Count > 0)
+			{
+				channels[0].CopyPropertiesTo(ViewSettings.Singleton.ChannelLeft);  // clone to our statics
+			}
+			if (channels.Count > 1)
+			{
+				channels[1].CopyPropertiesTo(ViewSettings.Singleton.ChannelRight);
+			}
 		}
 
 		/// <summary>
@@ -216,7 +260,6 @@ namespace QA40xPlot.Actions
 			var rslt = await RunAcquisition(NextPage, ct.Token);
 			if (rslt)
 				rslt = await PostProcess(NextPage, ct.Token);
-			ShowPageInfo(NextPage); // show the page info in the display
 
 			if (rslt)
 			{
@@ -234,7 +277,6 @@ namespace QA40xPlot.Actions
 				if (rslt)
 				{
 					rslt = await PostProcess(PageData, ct.Token);
-					ShowPageInfo(PageData);
 					UpdateGraph(false);
 				}
 			}
@@ -805,6 +847,7 @@ namespace QA40xPlot.Actions
 				}
 			}
 
+			ShowPageInfo(PageData); // show the page info in the display
 			PlotValues(PageData, resultNr++, true);
 			if (thd.ShowOtherLeft || thd.ShowOtherRight)
 			{

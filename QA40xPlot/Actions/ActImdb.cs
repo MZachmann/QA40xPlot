@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using QA40x_BareMetal;
 using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
@@ -111,7 +112,6 @@ namespace QA40xPlot.Actions
 									// we can't overwrite the viewmodel since it links to the display proper
 									// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
 				PageData.ViewModel.CopyPropertiesTo<ImdViewModel>(ViewSettings.Singleton.ImdVm);    // retract the gui
-				ShowPageInfo(PageData);
 				// relink to the new definition
 				MyVModel.LinkAbout(PageData.Definition);
 			}
@@ -794,6 +794,8 @@ namespace QA40xPlot.Actions
 				}
 			}
 
+			ShowPageInfo(PageData);
+
 			PlotValues(PageData, resultNr++, true);
 			if (thd.ShowOtherLeft || thd.ShowOtherRight)
 			{
@@ -818,10 +820,56 @@ namespace QA40xPlot.Actions
 
 		private void ShowPageInfo(DataTab<ImdViewModel> page)
 		{
-			var left = page.GetProperty("Left") as ImdChannelViewModel;
-			var right = page.GetProperty("Right") as ImdChannelViewModel;
-			left.CopyPropertiesTo(ViewSettings.Singleton.ImdChannelLeft);  // clone to our statics
-			right.CopyPropertiesTo(ViewSettings.Singleton.ImdChannelRight);
+			List<ImdChannelViewModel?> channels = new();
+			var specVm = MyVModel;  // the active viewmodel
+			if (specVm.ShowLeft)
+			{
+				var mdl = page.GetProperty("Left") as ImdChannelViewModel;
+				if (mdl != null)
+				{
+					channels.Add(mdl);
+					mdl.BorderColor = System.Windows.Media.Brushes.Blue;
+				}
+			}
+			if (specVm.ShowRight)
+			{
+				var mdl = page.GetProperty("Right") as ImdChannelViewModel;
+				if (mdl != null)
+				{
+					channels.Add(mdl);
+					mdl.BorderColor = System.Windows.Media.Brushes.Red;
+				}
+			}
+			if (OtherTabs.Count > 0)
+			{
+				if (channels.Count() < 2 && specVm.ShowOtherLeft)
+				{
+					var mdl = OtherTabs.First()?.GetProperty("Left") as ImdChannelViewModel;
+					if (mdl != null)
+					{
+						channels.Add(mdl);
+						mdl.BorderColor = System.Windows.Media.Brushes.DarkGreen;
+					}
+				}
+				if (channels.Count() < 2 && specVm.ShowOtherRight)
+				{
+					var mdl = OtherTabs.First()?.GetProperty("Right") as ImdChannelViewModel;
+					if (mdl != null)
+					{
+						channels.Add(mdl);
+						mdl.BorderColor = System.Windows.Media.Brushes.Purple;
+					}
+				}
+			}
+
+			if (channels.Count > 0)
+			{
+				channels[0].CopyPropertiesTo(ViewSettings.Singleton.ImdChannelLeft);  // clone to our statics
+			}
+			if (channels.Count > 1)
+			{
+				channels[1].CopyPropertiesTo(ViewSettings.Singleton.ImdChannelRight);
+			}
 		}
 
 		/// <summary>
@@ -890,7 +938,6 @@ namespace QA40xPlot.Actions
 			{
 				if (!ReferenceEquals(PageData, NextPage))
 					PageData = NextPage;        // finally update the pagedata for display and processing
-				ShowPageInfo(PageData);
 				UpdateGraph(true);
 			}
 			MyVModel.LinkAbout(PageData.Definition);  // ensure we're linked right during replays
@@ -903,7 +950,6 @@ namespace QA40xPlot.Actions
 				if (rslt)
 				{
 					rslt = await PostProcess(PageData, ct.Token);
-					ShowPageInfo(PageData);
 					UpdateGraph(false);
 				}
 			}
