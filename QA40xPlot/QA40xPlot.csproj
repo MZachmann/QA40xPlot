@@ -47,6 +47,9 @@
     <Compile Update="Views\ScopePlotPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Subs\ScopeInfo.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\Subs\ImdChannelInfo.xaml.cs">
       <SubType>Code</SubType>
     </Compile>

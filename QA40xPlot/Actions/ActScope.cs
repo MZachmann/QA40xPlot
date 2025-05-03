@@ -363,129 +363,38 @@ namespace QA40xPlot.Actions
             return !ct.IsCancellationRequested;
         }
 
-        private void AddAMarker(ScopeMeasurementResult fmr, double frequency, bool isred = false)
-		{
-			var vm = MyVModel;
-			ScottPlot.Plot myPlot = timePlot.ThePlot;
-			var sampleRate = fmr.MeasurementSettings.SampleRateVal;
-			var fftsize = fmr.MeasurementSettings.FftSizeVal;
-			int bin = (int)QaLibrary.GetBinOfFrequency(frequency, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
-			var leftData = fmr.FrequencySteps[0].fftData?.Left;
-			var rightData = fmr.FrequencySteps[0].fftData?.Right;
+  //      private void AddAMarker(ScopeMeasurementResult fmr, double frequency, bool isred = false)
+		//{
+		//	var vm = MyVModel;
+		//	ScottPlot.Plot myPlot = timePlot.ThePlot;
+		//	var sampleRate = fmr.MeasurementSettings.SampleRateVal;
+		//	var fftsize = fmr.MeasurementSettings.FftSizeVal;
+		//	int bin = (int)QaLibrary.GetBinOfFrequency(frequency, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
+		//	var leftData = fmr.FrequencySteps[0].fftData?.Left;
+		//	var rightData = fmr.FrequencySteps[0].fftData?.Right;
 
-			double markVal = 0;
-			if (rightData != null && !vm.ShowLeft)
-			{
-				markVal = 20 * Math.Log10(rightData[bin]);
-			}
-			else if(leftData != null )
-			{
-				markVal = 20 * Math.Log10(leftData[bin]);
-			}
-			ScottPlot.Color markerCol = new ScottPlot.Color();
-            if( ! vm.ShowLeft)
-            {
-                markerCol = isred ? Colors.Green : Colors.DarkGreen;
-			}
-            else
-            {
-				markerCol = isred ? Colors.Red : Colors.DarkOrange;
-			}
-			var mymark = myPlot.Add.Marker(Math.Log10(frequency), markVal,
-				MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), markerCol);
-			mymark.LegendText = string.Format("{1}: {0:F1}", markVal, (int)frequency);
-		}
-
-		/// <summary>
-		/// Perform the calculations of a single channel (left or right)
-		/// </summary>
-		/// <param name="binSize"></param>
-		/// <param name="fundamentalFrequency"></param>
-		/// <param name="generatorAmplitudeDbv"></param>
-		/// <param name="fftData"></param>
-		/// <param name="noiseFloorFftData"></param>
-		/// <returns></returns>
-		private ThdFrequencyStepChannel ChannelCalculations(double binSize, double generatorV, ThdFrequencyStep step, ScopeMeasurementResult msr, bool isRight)
-		{
-			uint fundamentalBin = QaLibrary.GetBinOfFrequency(step.FundamentalFrequency, binSize);
-			var ffts = isRight ? step.fftData?.Right : step.fftData?.Left;
-			var ltdata = step.timeData?.Left;
-
-			// this should never happen
-			if (ffts == null || ltdata == null)
-				return new();
-
-			double allvolts = Math.Sqrt(ltdata.Select(x => x * x ).Sum() / ltdata.Count()); // use the time data for best accuracy gain math
-
-			ThdFrequencyStepChannel channelData = new()
-			{
-				Fundamental_V = ffts[fundamentalBin],
-				Total_V = allvolts,
-				Total_W = allvolts * allvolts / ViewSettings.AmplifierLoad,
-				Fundamental_dBV = 20 * Math.Log10(ffts[fundamentalBin]),
-				Gain_dB = 20 * Math.Log10(ffts[fundamentalBin] / generatorV)
-
-			};
-			// Calculate average noise floor
-			var noiseFlr = (msr.NoiseFloor == null) ? null : (isRight ? msr.NoiseFloor.FreqRslt?.Left : msr.NoiseFloor.FreqRslt?.Right);
-			channelData.TotalNoiseFloor_V = QaCompute.CalculateNoise(msr.NoiseFloor?.FreqRslt, !isRight);
-
-
-			// Reset harmonic distortion variables
-			double distortionSqrtTotal = 0;
-			double distortionSqrtTotalN = 0;
-			double distortionD6plus = 0;
-
-			// Loop through harmonics up tot the 10th
-			for (int harmonicNumber = 2; harmonicNumber <= 10; harmonicNumber++)                                                  // For now up to 12 harmonics, start at 2nd
-			{
-				double harmonicFrequency = step.FundamentalFrequency * harmonicNumber;
-				uint bin = QaLibrary.GetBinOfFrequency(harmonicFrequency, binSize);        // Calculate bin of the harmonic frequency
-
-				if (bin >= ffts.Length)
-					bin = (uint)Math.Max(0, ffts.Length - 1);             // Invalid bin, skip harmonic
-
-				double amplitude_V = ffts[bin];
-				double noise_V = channelData.TotalNoiseFloor_V;
-
-				double amplitude_dBV = 20 * Math.Log10(amplitude_V);
-				double thd_Percent = (amplitude_V / channelData.Fundamental_V) * 100;
-				double thdN_Percent = (noiseFlr == null) ? 0 : ((amplitude_V - noiseFlr[bin]) / channelData.Fundamental_V) * 100;
-
-				HarmonicData harmonic = new()
-				{
-					HarmonicNr = harmonicNumber,
-					Frequency = harmonicFrequency,
-					Amplitude_V = amplitude_V,
-					Amplitude_dBV = amplitude_dBV,
-					Thd_Percent = thd_Percent,
-					Thd_dB = 20 * Math.Log10(thd_Percent / 100.0),
-					Thd_dBN = 20 * Math.Log10(thdN_Percent / 100.0),
-					NoiseAmplitude_V = (noiseFlr == null) ? 1e-3 : noiseFlr[bin]
-				};
-
-				if (harmonicNumber >= 6)
-					distortionD6plus += Math.Pow(amplitude_V, 2);
-
-				distortionSqrtTotal += Math.Pow(amplitude_V, 2);
-				distortionSqrtTotalN += Math.Pow(amplitude_V, 2);
-				channelData.Harmonics.Add(harmonic);
-			}
-
-			// Calculate D6+ (D6 - D12)
-			if (distortionD6plus != 0)
-            {
-                channelData.D6Plus_dBV = 20 * Math.Log10(Math.Sqrt(distortionD6plus));
-                channelData.ThdPercent_D6plus = Math.Sqrt(distortionD6plus / Math.Pow(channelData.Fundamental_V, 2)) * 100;
-                channelData.ThdDbD6plus = 20 * Math.Log10(channelData.ThdPercent_D6plus / 100.0);
-            }
-
-            // If load not zero then calculate load power
-            if (ViewSettings.AmplifierLoad != 0)
-                channelData.Power_Watt = Math.Pow(channelData.Fundamental_V, 2) / ViewSettings.AmplifierLoad;
-
-            return channelData;
-        }
+		//	double markVal = 0;
+		//	if (rightData != null && !vm.ShowLeft)
+		//	{
+		//		markVal = 20 * Math.Log10(rightData[bin]);
+		//	}
+		//	else if(leftData != null )
+		//	{
+		//		markVal = 20 * Math.Log10(leftData[bin]);
+		//	}
+		//	ScottPlot.Color markerCol = new ScottPlot.Color();
+  //          if( ! vm.ShowLeft)
+  //          {
+  //              markerCol = isred ? Colors.Green : Colors.DarkGreen;
+		//	}
+  //          else
+  //          {
+		//		markerCol = isred ? Colors.Red : Colors.DarkOrange;
+		//	}
+		//	var mymark = myPlot.Add.Marker(Math.Log10(frequency), markVal,
+		//		MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), markerCol);
+		//	mymark.LegendText = string.Format("{1}: {0:F1}", markVal, (int)frequency);
+		//}
 
         /// <summary>
         /// Clear the plot
@@ -642,9 +551,9 @@ namespace QA40xPlot.Actions
         public void DrawChannelInfoTable()
         {
 			var thd = MyVModel;
-			var vm = ViewSettings.Singleton.ScopeChanLeft;
-            vm.FundamentalFrequency = 0;
-            vm.CalculateChannelValues(MathUtil.ToDouble( thd.Gen1Frequency), false);
+			var vm = ViewSettings.Singleton.ScopeInfoLeft;
+            //vm.FundamentalFrequency = 0;
+            //vm.CalculateChannelValues(MathUtil.ToDouble( thd.Gen1Frequency), false);
 		}
 
 		public void UpdateGraph(bool settingsChanged)

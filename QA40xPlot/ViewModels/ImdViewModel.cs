@@ -574,10 +574,7 @@ namespace QA40xPlot.ViewModels
 			RangeBottom = "0.001";
 
 			ShowThickLines = true;
-			ShowSummary = true;
 			ShowDataPercent = true;
-			ShowLeft = true;
-			ShowRight = false;
 
 			InputRange = 0;
 			RangeTopdB = "20";

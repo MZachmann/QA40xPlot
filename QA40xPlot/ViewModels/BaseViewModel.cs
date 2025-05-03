@@ -403,14 +403,15 @@ namespace QA40xPlot.ViewModels
 		{
 			HasExport = false;
 			GenDirection = MeasureVolts[0];
-			ShowLeft = true;
-			ShowRight = true;
 			SampleRate = "48000";
 			FftSize = "64K";
 			Averages = 1;
 			PlotFormat = "dBV";
 			WindowingMethod = "Hann";
+			ShowLeft = true;
+			ShowRight = false;
 			ShowTabInfo = false;
+			ShowSummary = false;
 		}
 
 		public void SetupMainPlot(PlotControl plot)

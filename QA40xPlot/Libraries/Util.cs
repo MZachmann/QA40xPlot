@@ -21,6 +21,7 @@ namespace QA40xPlot.Libraries
 		{
 			// a new DataTab
 			var page = new DataTab<Model>(model.ViewModel, new LeftRightTimeSeries());
+			page.FileName = fileName;
 			try
 			{
 				string jsonContent = string.Empty;

@@ -288,7 +288,6 @@ public class FreqRespViewModel : BaseViewModel
 
 	public void SetAction(PlotControl plot, PlotControl plot2, PlotControl plot3, TabAbout TAbout)
 	{
-		FrequencyResponseData data = new FrequencyResponseData();
 		actFreq = new ActFrequencyResponse(plot, plot2, plot3);
 		actAbout = TAbout;
 		SetupMainPlot(plot);
@@ -485,8 +484,6 @@ public class FreqRespViewModel : BaseViewModel
 
 		ShowThickLines = true;
 		ShowPercent = false;
-		ShowLeft = true;
-		ShowRight = false;
 
 		RangeTopdB = "20";
 		RangeBottomdB = "-180";

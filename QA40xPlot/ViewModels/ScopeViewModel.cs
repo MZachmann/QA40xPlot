@@ -24,7 +24,8 @@ namespace QA40xPlot.ViewModels
 		private static ScopeViewModel MyVModel { get => ViewSettings.Singleton.ScopeVm; }
 		private PlotControl actPlot {  get; set; }
 		private ActScope actScope { get;  set; }
-		private ThdChannelInfo actInfo { get;  set; }
+		private ScopeInfo actInfoLeft { get;  set; }
+		private ScopeInfo actInfoRight { get; set; }
 		[JsonIgnore]
 		public RelayCommand<object> SetAttenuate { get => new RelayCommand<object>(SetAtten); }
 		[JsonIgnore]
@@ -171,17 +172,16 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
+				case "ShowTabInfo":
+				case "ShowSummary":
+					ShowInfos();
+					break;
 				case "ShowOtherLeft":
 				case "ShowOtherRight":
+				case "ShowRight":
+				case "ShowLeft":
+					ShowInfos();
 					actScope?.UpdateGraph(false);
-					break;
-				case "ShowTabInfo":
-					if (actAbout != null)
-						actAbout.Visibility = ShowTabInfo ? Visibility.Visible : Visibility.Hidden;
-					break;
-				case "ShowSummary":
-					//if (actInfo != null)
-					//	actInfo.Visibility = ShowSummary ? Visibility.Visible : Visibility.Hidden;
 					break;
 				case "GraphStartTime":
 				case "GraphEndTime":
@@ -189,8 +189,6 @@ namespace QA40xPlot.ViewModels
 				case "RangeTop":
 					actScope?.UpdateGraph(true);
 					break;
-				case "ShowRight":
-				case "ShowLeft":
 				case "ShowThickLines":
 				case "ShowMarkers":
 				case "ShowPowerMarkers":
@@ -207,12 +205,14 @@ namespace QA40xPlot.ViewModels
 			return actScope?.CreateExportData();
 		}
 
-		public void SetAction(PlotControl plot, TabAbout tinfo)
+		public void SetAction(PlotControl plot, ScopeInfo info, ScopeInfo info2, TabAbout tinfo)
 		{
 			actScope = new ActScope(plot);
 			actAbout = tinfo;
-			//actInfo = info;
-			//info.SetDataContext(ViewSettings.Singleton.ScopeChanLeft);
+			actInfoLeft = info;
+			actInfoRight = info2;
+			info.SetDataContext(ViewSettings.Singleton.ScopeInfoLeft);
+			info2.SetDataContext(ViewSettings.Singleton.ScopeInfoRight);
 			SetupMainPlot(plot);
 			actPlot = plot;
 			MyVModel.LinkAbout(actScope.PageData.Definition);
@@ -303,6 +303,25 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
+		private void ShowInfos()
+		{
+			uint frames = 0;
+			if (ShowLeft)
+				frames++;
+			if (ShowRight)
+				frames++;
+			if (ShowOtherLeft)
+				frames++;
+			if (ShowOtherRight)
+				frames++;
+			if (actInfoLeft != null)
+				actInfoLeft.Visibility = (ShowSummary && frames > 0) ? Visibility.Visible : Visibility.Hidden;
+			if (actInfoRight != null)
+				actInfoRight.Visibility = (ShowSummary && frames > 1) ? Visibility.Visible : Visibility.Hidden;
+			if (actAbout != null)
+				actAbout.Visibility = ShowTabInfo ? Visibility.Visible : Visibility.Hidden;
+		}
+
 		private void OnFitToData(object? parameter)
 		{
 			var bounds = actScope.GetDataBounds();
@@ -372,9 +391,10 @@ namespace QA40xPlot.ViewModels
 			PropertyChanged += CheckPropertyChanged;
 			MouseTracked += DoMouseTracked;
 
-			this.actPlot = default!;
-			this.actInfo = default!;
-			this.actScope = default!;
+			actPlot = default!;
+			actInfoLeft = default!;
+			actInfoRight = default!;
+			actScope = default!;
 
 			GraphStartTime = "0";
 			GraphEndTime = "10";
@@ -382,9 +402,6 @@ namespace QA40xPlot.ViewModels
 			RangeBottom = "-1";
 
 			ShowThickLines = true;
-			ShowLeft = true;
-			ShowRight = false;
-
 			InputRange = 0;
 
 			ShowMarkers = false;

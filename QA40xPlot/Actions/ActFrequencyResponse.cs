@@ -19,7 +19,7 @@ namespace QA40xPlot.Actions
     public partial class ActFrequencyResponse : ActBase
     {
 		public DataTab<FreqRespViewModel> PageData { get; private set; } // Data used in this form instance
-		private List<DataTab<FreqRespViewModel>> OtherTabs { get; set; } = new List<DataTab<FreqRespViewModel>>(); // Other tabs in the document
+		private List<DataTab<FreqRespViewModel>> OtherTabs { get; set; } = new(); // Other tabs in the document
 		private readonly Views.PlotControl fftPlot;
 		private readonly Views.PlotControl timePlot;
 		private readonly Views.PlotControl frqrsPlot;

@@ -10,7 +10,7 @@ using ScottPlot;
 using ScottPlot.Plottables;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
-using System.Runtime.CompilerServices;
+
 
 namespace QA40xPlot.ViewModels
 {
@@ -438,8 +438,6 @@ namespace QA40xPlot.ViewModels
 
 			ShowThickLines = true;
 			ShowDataPercent = true;
-			ShowLeft = true;
-			ShowRight = false;
 
 			InputRange = 0;
 			RangeTopdB = "20";

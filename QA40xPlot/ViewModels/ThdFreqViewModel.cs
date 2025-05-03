@@ -373,8 +373,7 @@ namespace QA40xPlot.ViewModels
 			ShowThickLines = true;
 			ShowPoints = false;
 			ShowPercent = false;
-			ShowLeft = true;
-			ShowRight = false;
+
 			ShowTHD = true;
 			ShowMagnitude = true;
 			ShowD2 = true;

@@ -1,16 +1,11 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json;
-using QA40x_BareMetal;
-using QA40xPlot.BareMetal;
+﻿using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
-using System.IO;
 using System.Windows;
-using System.Windows.Controls;
 using static QA40xPlot.ViewModels.BaseViewModel;
 
 // this is the top level class for the Intermodulation test
@@ -207,15 +202,15 @@ namespace QA40xPlot.Actions
 					int bin = 0;
 					ScottPlot.Plot myPlot = fftPlot.ThePlot;
 					var pixel = myPlot.GetPixel(new Coordinates(Math.Log10(freq), posndBV));
-					var left = ViewSettings.Singleton.ChannelLeft;
-					var right = ViewSettings.Singleton.ChannelRight;
+					var left = ViewSettings.Singleton.ImdChannelLeft;
+					var right = ViewSettings.Singleton.ImdChannelRight;
 
 					// get screen coords for some of the data
 					int abin = (int)(freq / fftdata.Df);       // apporoximate bin
 					var binmin = Math.Max(1, abin - 5);            // random....
 					var binmax = Math.Min(ffs.Length - 1, abin + 5);           // random....
 					var msr = PageData.ViewModel;
-					var vfi = GraphUtil.GetLogFormatter(msr.PlotFormat, useRight ? right.FundamentalVolts : left.FundamentalVolts);
+					var vfi = GraphUtil.GetLogFormatter(msr.PlotFormat, useRight ? right.Fundamental1Volts : left.Fundamental1Volts);
 					var distsx = ffs.Skip(binmin).Take(binmax - binmin);
 					IEnumerable<Pixel> distasx = distsx.Select((fftd, index) =>
 							myPlot.GetPixel(new Coordinates(Math.Log10((index + binmin) * fftdata.Df),
@@ -227,7 +222,7 @@ namespace QA40xPlot.Actions
 					var vm = MyVModel;
 					if (bin < ffs.Length)
 					{
-						var vfun = useRight ? right.FundamentalVolts : left.FundamentalVolts;
+						var vfun = useRight ? right.Fundamental1Volts : left.Fundamental1Volts;
 						return ValueTuple.Create(bin * fftdata.Df, ffs[bin], vfun);
 					}
 				}
@@ -565,131 +560,6 @@ namespace QA40xPlot.Actions
 			return hf.ToArray();
 		}
 
-		/// <summary>
-		/// Perform the calculations of a single channel (left or right)
-		/// </summary>
-		/// <param name="binSize"></param>
-		/// <param name="fundamentalFrequency"></param>
-		/// <param name="generatorAmplitudeDbv"></param>
-		/// <param name="fftData"></param>
-		/// <param name="noiseFloorFftData"></param>
-		/// <returns></returns>
-		private ImdStepChannel ChannelCalculations(double binSize, double generatorV, ImdStep step, ImdMeasurementResult msr, bool isRight)
-		{
-			if (step == null)
-				return new();
-
-			uint fundamental1Bin = QaLibrary.GetBinOfFrequency(step.Gen1Freq, binSize);
-			uint fundamental2Bin = QaLibrary.GetBinOfFrequency(step.Gen2Freq, binSize);
-			var ffts = isRight ? step.fftData?.Right : step.fftData?.Left;
-			var times = isRight ? step.timeData?.Right : step.timeData?.Left;
-			var lfdata = step.timeData?.Left;
-			if(ffts == null || lfdata == null)
-				return new();
-
-			double allvolts = Math.Sqrt(lfdata.Select(x => x * x).Sum() / lfdata.Count());  // use the time data for best accuracy gain math
-
-			ImdStepChannel channelData = new()
-			{
-				Fundamental1_V = ffts[fundamental1Bin],
-				Fundamental1_dBV = 20 * Math.Log10(ffts[fundamental1Bin]),
-				Fundamental2_V = ffts[fundamental2Bin],
-				Fundamental2_dBV = 20 * Math.Log10(ffts[fundamental2Bin]),
-				Total_V = allvolts,
-				Total_W = allvolts * allvolts / ViewSettings.AmplifierLoad,
-				Gain_dB = 20 * Math.Log10(ffts[fundamental1Bin] / generatorV),
-			};
-			// shorter name...
-			var cd = channelData;
-			cd.Fundamentals_V = Math.Sqrt(cd.Fundamental1_V * cd.Fundamental1_V + cd.Fundamental2_V * cd.Fundamental2_V);
-			cd.Fundamentals_dBV = 20 * Math.Log10(cd.Fundamentals_V);
-			cd.Fundamentals_W = Math.Pow(cd.Fundamentals_V, 2) / ViewSettings.AmplifierLoad;
-			// Calculate average noise floor
-			var noiseFlr = (msr.NoiseFloor == null) ? null : (isRight ? msr.NoiseFloor.FreqRslt?.Left : msr.NoiseFloor.FreqRslt?.Right);
-			cd.TotalNoiseFloor_V = QaCompute.CalculateNoise(msr.NoiseFloor?.FreqRslt, !isRight);
-
-			// Reset harmonic distortion variables
-			double distortionSqrtTotal = 0;
-			double distortionSqrtTotalN = 0;
-			double distortionD6plus = 0;
-            // Loop through harmonics up tot the 12th
-			var vsum = Math.Sqrt(channelData.Fundamental1_V * channelData.Fundamental1_V + channelData.Fundamental2_V * channelData.Fundamental2_V);
-
-			var harmonicFreq = MakeHarmonics(step.Gen1Freq, step.Gen2Freq);
-			var maxfreq = binSize * ffts.Count();
-
-			for (int harmonicNumber = 0; harmonicNumber < harmonicFreq.Length; harmonicNumber++)                                                  // For now up to 12 harmonics, start at 2nd
-            {
-                double harmonicFrequency = harmonicFreq[harmonicNumber];
-				double amplitude_V = QaMath.MagAtFreq(ffts, binSize, harmonicFrequency);
-                double noise_V = channelData.TotalNoiseFloor_V;
-
-				double amplitude_dBV = 20 * Math.Log10(amplitude_V);
-                double thd_Percent = (amplitude_V / vsum) * 100;
-				var noiseAt = QaMath.MagAtFreq(noiseFlr ?? [], binSize, harmonicFrequency);
-				double thdN_Percent = ((amplitude_V - noiseAt) / vsum) * 100;
-
-				HarmonicData harmonic = new()
-                {
-                    HarmonicNr = harmonicNumber,
-                    Frequency = harmonicFrequency,
-                    Amplitude_V = amplitude_V,
-                    Amplitude_dBV = amplitude_dBV,
-                    Thd_Percent = thd_Percent,
-					Thd_dB = 20 * Math.Log10(thd_Percent / 100.0),
-					Thd_dBN = 20 * Math.Log10(thdN_Percent / 100.0),
-					NoiseAmplitude_V = 1e-6
-                };
-
-				harmonic.NoiseAmplitude_V = noiseAt;
-
-				if (harmonicNumber >= 6)
-                    distortionD6plus += Math.Pow(amplitude_V, 2);
-
-				distortionSqrtTotal += Math.Pow(amplitude_V, 2);
-				distortionSqrtTotalN += Math.Pow(amplitude_V, 2);
-				channelData.Harmonics.Add(harmonic);
-            }
-
-			// Calculate THD
-			if (distortionSqrtTotal != 0)
-			{
-				channelData.Thd_Percent = (Math.Sqrt(distortionSqrtTotal) / vsum) * 100;
-				channelData.Thd_PercentN = (Math.Sqrt(distortionSqrtTotal) / vsum) * 100;
-				channelData.Thd_dB = 20 * Math.Log10(channelData.Thd_Percent / 100.0);
-				var Thdn_Percent = (Math.Sqrt(distortionSqrtTotalN) / vsum) * 100;
-				channelData.Thd_dBN = 20 * Math.Log10(Thdn_Percent / 100.0);
-			}
-
-			// Calculate D6+ (D6 - D12)
-			if (distortionD6plus != 0)
-            {
-                channelData.D6Plus_dBV = 20 * Math.Log10(Math.Sqrt(distortionD6plus));
-                channelData.ThdPercent_D6plus = 100 * Math.Sqrt(distortionD6plus) / vsum;
-                channelData.ThdDbD6plus = 20 * Math.Log10(channelData.ThdPercent_D6plus / 100.0);
-            }
-
-			var powertotal = 10.0;
-			if(times != null)
-				powertotal = times.Select(x => x * x).Sum() / times.Length;
-			double hdtotal = 0;
-			// get fundamentals and harmonic distortion
-			for(int j=1; j<10; j++)
-			{
-				var hda = QaMath.MagAtFreq(ffts, binSize, step.Gen1Freq * j);
-				hdtotal += hda * hda;
-				hda = QaMath.MagAtFreq(ffts, binSize, step.Gen2Freq * j);
-				hdtotal += hda * hda;
-			}
-
-			// If load not zero then calculate load power
-			if (ViewSettings.AmplifierLoad != 0)
-                channelData.Power_Watt = Math.Pow(vsum, 2) / ViewSettings.AmplifierLoad;
-
-            return channelData;
-        }
-
-
         /// <summary>
         /// Clear the plot
         /// </summary>
@@ -763,7 +633,7 @@ namespace QA40xPlot.Actions
 
 				Scatter plotRight = myPlot.Add.Scatter(freqLogX, rightdBV);
 				plotRight.LineWidth = lineWidth;
-				if(isMain)
+				if(!isMain)
 					plotRight.Color = QaLibrary.OrangeXColor; // Red transparant
 				else if (useLeft)
 					plotRight.Color = QaLibrary.RedXColor; // Red transparant

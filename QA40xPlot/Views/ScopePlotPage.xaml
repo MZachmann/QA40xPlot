@@ -211,6 +211,10 @@
         </StackPanel>
         <Grid Grid.Column="1">
             <views:PlotControl x:Name="WpfPlot1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
+            <views:ScopeInfo x:Name="Info1"
+                  VerticalAlignment="Top" HorizontalAlignment="Left" Margin="60,50,0,0" />
+            <views:ScopeInfo x:Name="Info2"
+                  VerticalAlignment="Top" HorizontalAlignment="Left" Margin="60,330,0,0" />
             <views:TabAbout x:Name="TAbout"  Visibility="Hidden"
                   VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,50,34,0" />
         </Grid>
@@ -272,6 +276,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
+                    <CheckBox Content="Summary Data" IsChecked="{Binding ShowSummary}" Grid.Row="0"  />
                     <CheckBox Content="Tab Info" IsChecked="{Binding ShowTabInfo}" Grid.Row="1"  />
                 </Grid>
             </GroupBox>

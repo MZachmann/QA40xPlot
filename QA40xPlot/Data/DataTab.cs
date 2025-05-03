@@ -50,8 +50,6 @@ namespace QA40xPlot.Data
 	// a viewmodel, a time series and a dictionary of other properties
 	public class DataTab<T>
 	{
-		public static List<string> Glossary = new List<string>() { "FFT", "GainData", "GainFreq" };
-
 		// ------------------------------------------------------------------
 		// we only serialize these things
 		public DataDescript Definition { get; set; } = new DataDescript();
@@ -62,7 +60,9 @@ namespace QA40xPlot.Data
 		// ------------------------------------------------------------------
 		// all other properties are calculated but may be cached in PropertySet
 		[JsonIgnore]
-		public bool Show { get; set; }                                                  // Show in graph
+		public bool Show { get; set; }        // Show in graph
+		[JsonIgnore]
+		public string FileName { get; set; }  // file name if loaded
 		[JsonIgnore]
 		public LeftRightFrequencySeries? FreqRslt { 
 			get { return GetProperty<LeftRightFrequencySeries>("FFT"); }
@@ -133,6 +133,7 @@ namespace QA40xPlot.Data
 		/// <param name="dct"></param>
 		public DataTab(T viewModel, LeftRightTimeSeries series, Dictionary<string,object>? dct = null)
 		{
+			FileName = string.Empty;
 			if (viewModel != null)
 			{
 				ViewModel = (T)((ICloneable)viewModel).Clone();   // get a blank vm
@@ -141,7 +142,7 @@ namespace QA40xPlot.Data
 			{
 				ViewModel = default!;
 			}
-				var nama = ViewModel?.GetType();
+			//var nama = ViewModel?.GetType();	// debug view
 			TimeRslt = series;
 			Definition.Name = string.Empty;
 			Definition.Description = string.Empty;

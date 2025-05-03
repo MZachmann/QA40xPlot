@@ -7,6 +7,7 @@ using System.Windows;
 using Newtonsoft.Json;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
+using QA40xPlot.Views;
 
 namespace QA40xPlot.ViewModels
 {
@@ -27,13 +28,13 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public List<object> MyTabLibrary { get; private set; } = new List<object>();
 		[JsonIgnore]
+		public ScopeInfoViewModel ScopeInfoLeft { get; private set; }
+		[JsonIgnore]
+		public ScopeInfoViewModel ScopeInfoRight { get; private set; }
+		[JsonIgnore]
 		public ThdChannelViewModel ChannelLeft { get; private set; }
 		[JsonIgnore]
 		public ThdChannelViewModel ChannelRight { get; private set; }
-		[JsonIgnore]
-		public ThdChannelViewModel ScopeChanLeft { get; private set; }
-		[JsonIgnore]
-		public ThdChannelViewModel ScopeChanRight { get; private set; }
 		[JsonIgnore]
 		public ImdChannelViewModel ImdChannelLeft { get; private set; }
 		[JsonIgnore]
@@ -72,8 +73,8 @@ namespace QA40xPlot.ViewModels
 			Main = new MainViewModel();
 			ChannelLeft = new ThdChannelViewModel();
 			ChannelRight = new ThdChannelViewModel();
-			ScopeChanLeft = new ThdChannelViewModel();
-			ScopeChanRight = new ThdChannelViewModel();
+			ScopeInfoLeft = new ScopeInfoViewModel();
+			ScopeInfoRight = new ScopeInfoViewModel();
 			ImdChannelLeft = new ImdChannelViewModel();
 			ImdChannelRight = new ImdChannelViewModel();
 			SpectrumVm = new SpectrumViewModel();
