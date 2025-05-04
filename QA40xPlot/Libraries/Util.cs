@@ -4,7 +4,6 @@ using System.Reflection;
 using System.Windows;
 using System.Text;
 using Newtonsoft.Json;
-using System.Drawing.Drawing2D;
 using QA40xPlot.Data;
 using QA40xPlot.ViewModels;
 

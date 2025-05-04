@@ -72,7 +72,7 @@ namespace QA40xPlot.ViewModels
 			get { return _CurrentView; }
 			set { 
 				SetProperty(ref _CurrentView, value);
-				OnPropertyChanged("HasExport");	// always update this
+				RaisePropertyChanged("HasExport");	// always update this
 				}
 			}
 

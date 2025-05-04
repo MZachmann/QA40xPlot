@@ -134,7 +134,8 @@
             <views:PlotControl x:Name="WpfPlot3" Width="150"  Height="100" Margin="0,4" />
         </StackPanel>
         <Grid Grid.Column="1">
-            <views:PlotControl x:Name="WpfPlot1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
+            <Label Content="{Binding DsHeading}" HorizontalAlignment="Center" VerticalAlignment="Top" />
+            <views:PlotControl x:Name="WpfPlot1"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="0,20,0,0" />
             <views:TabAbout x:Name="TAbout" 
                   VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,50,34,0" />
         </Grid>

@@ -13,6 +13,8 @@
                 <Label Content="Name" />
                 <TextBox Text="{Binding Name}"  MinWidth="120" />
             </StackPanel>
+            <Label Content="Heading" />
+            <TextBox Text="{Binding Heading}"  MinWidth="180" />
             <Label Content="Description" />
             <TextBox Text="{Binding Description}" Height="200" AcceptsReturn="True" TextWrapping="Wrap"  />
         </StackPanel>

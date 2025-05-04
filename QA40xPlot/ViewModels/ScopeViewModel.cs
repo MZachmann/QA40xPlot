@@ -9,7 +9,6 @@ using System.Windows.Input;
 using ScottPlot;
 using ScottPlot.Plottables;
 using CommunityToolkit.Mvvm.Input;
-using System.Runtime.CompilerServices;
 using Microsoft.Win32;
 
 namespace QA40xPlot.ViewModels
@@ -69,7 +68,7 @@ namespace QA40xPlot.ViewModels
 		public bool DoAutoAttn
 		{
 			get { return _DoAutoAttn; }
-			set { if ( SetProperty(ref _DoAutoAttn, value)) OnPropertyChanged("AttenColor"); }
+			set { if ( SetProperty(ref _DoAutoAttn, value)) RaisePropertyChanged("AttenColor"); }
 		}
 
 		private bool _ShowPoints = false;
@@ -172,6 +171,12 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
+				case "DsHeading":
+					actScope?.UpdateGraph(true);
+					break;
+				case "DsName":
+					actScope?.UpdatePlotTitle();
+					break;
 				case "ShowTabInfo":
 				case "ShowSummary":
 					ShowInfos();

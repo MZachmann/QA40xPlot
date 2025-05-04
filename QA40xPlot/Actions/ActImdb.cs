@@ -570,15 +570,15 @@ namespace QA40xPlot.Actions
             fftPlot.Refresh();
         }
 
-		void SetTheTitle(ScottPlot.Plot myPlot)
+		string GetTheTitle(ScottPlot.Plot myPlot)
 		{
 			var imdVm = MyVModel;
 			if( imdVm.IntermodType == "Custom")
-				myPlot.Title("Intermodulation Distortion");
+				return "Intermodulation Distortion";
 			else
 			{
 				var vsa = imdVm.IntermodType.Split('(').First();
-				myPlot.Title(String.Format("{0} Intermodulation Distortion", vsa ));
+				return String.Format("{0} Intermodulation Distortion", vsa);
 			}
 		}
 
@@ -839,9 +839,10 @@ namespace QA40xPlot.Actions
 		{
 			var thdFreq = MyVModel;
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
-			myPlot.Title("Intermodulation");
-			if (PageData.Definition.Name != null && PageData.Definition.Name.Length > 0)
-				myPlot.Title("Intermodulation : " + PageData.Definition.Name);
+			var title = GetTheTitle(myPlot);
+			myPlot.Title(title);
+			if (PageData.Definition.Name.Length > 0)
+				myPlot.Title(title + " : " + PageData.Definition.Name);
 		}
 
 		/// <summary>
@@ -876,10 +877,10 @@ namespace QA40xPlot.Actions
 			ImdViewModel imdVm = MyVModel;
 			myPlot.Axes.SetLimits(Math.Log10(ToD(imdVm.GraphStartFreq)), Math.Log10(ToD(imdVm.GraphEndFreq)),
 				Math.Log10(ToD(imdVm.RangeBottom)) - 0.00000001, Math.Log10(ToD(imdVm.RangeTop)));  // - 0.000001 to force showing label
-			myPlot.Title("Spectrum");
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
 
+			UpdatePlotTitle();
 			fftPlot.Refresh();
 		}
 

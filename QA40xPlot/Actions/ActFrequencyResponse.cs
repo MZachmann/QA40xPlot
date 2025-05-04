@@ -53,6 +53,17 @@ namespace QA40xPlot.Actions
             ct.Cancel();
 		}
 
+		public void UpdatePlotTitle()
+		{
+			var vm = MyVModel;
+			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
+			var title = GetTheTitle();
+			if (PageData.Definition.Name.Length > 0)
+				myPlot.Title(title + " : " + PageData.Definition.Name);
+			else
+				myPlot.Title(title);
+		}
+
 		public bool SaveToFile(string fileName)
 		{
 			return Util.SaveToFile<FreqRespViewModel>(PageData, fileName);
@@ -291,7 +302,7 @@ namespace QA40xPlot.Actions
 			await EndAction(vmFreq);
 			await showMessage("Finished");
 			vmFreq.IsRunning = false;
-			vmFreq.HasExport = (PageData.TimeRslt.Left.Length > 0);
+			vmFreq.HasExport = (PageData.GainFrequencies.Length > 0);
 		}
 
 		// create a blob with F,Left,Right data for export
@@ -634,10 +645,30 @@ namespace QA40xPlot.Actions
 			return gain;
         }
 
-        /// <summary>
-        /// Initialize the magnitude plot
-        /// </summary>
-        void InitializePlot()
+		private string GetTheTitle()
+		{
+			var frqrsVm = MyVModel;
+			var ttype = frqrsVm.GetTestingType(frqrsVm.TestType);
+			string title = string.Empty;
+			switch (ttype)
+			{
+				case TestingType.Response:
+					title = "Frequency Response";
+					break;
+				case TestingType.Gain:
+					title = "Gain";
+					break;
+				case TestingType.Impedance:
+					title = "Impedance";
+					break;
+			}
+			return title;
+		}
+
+		/// <summary>
+		/// Initialize the magnitude plot
+		/// </summary>
+		void InitializePlot()
         {
 			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
 			var frqrsVm = MyVModel;
@@ -654,23 +685,21 @@ namespace QA40xPlot.Actions
             switch( ttype)
             {
                 case TestingType.Response:
-					myPlot.Title("Frequency Response (dBV)");
 					myPlot.YLabel("dBV");
 					myPlot.Axes.Right.Label.Text = string.Empty;
 					break;
 				case TestingType.Gain:
 					PlotUtil.AddPhasePlot(myPlot);
-					myPlot.Title("Gain");
 					myPlot.YLabel("dB");
 					myPlot.Axes.Right.Label.Text = "Phase (Deg)";
 					break;
 				case TestingType.Impedance:
 					PlotUtil.AddPhasePlot(myPlot);
-					myPlot.Title("Impedance");
 					myPlot.YLabel("|Z| Ohms");
 					myPlot.Axes.Right.Label.Text = "Phase (Deg)";
 					break;
 			}
+			UpdatePlotTitle();
 			myPlot.XLabel("Frequency (Hz)");
 			frqrsPlot.Refresh();
         }
@@ -808,7 +837,8 @@ namespace QA40xPlot.Actions
 
 		public void UpdateGraph(bool settingsChanged)
         {
-            frqrsPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
+			frqrsPlot.ThePlot.Remove<Marker>();             // Remove all current lines
+			frqrsPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
 			var frqsrVm = MyVModel;
 
 			int resultNr = 0;
@@ -831,6 +861,7 @@ namespace QA40xPlot.Actions
                 InitializePlot();
             }
 
+			PlotValues(PageData, resultNr++, true);  // frqsrVm.GraphType);
 			if (frqsrVm.ShowOtherLeft || frqsrVm.ShowOtherRight)
 			{
 				if (OtherTabs.Count > 0)
@@ -842,9 +873,8 @@ namespace QA40xPlot.Actions
 					}
 				}
 			}
-			PlotValues(PageData, resultNr++, true);  // frqsrVm.GraphType);
 
-            PlotBandwidthLines();
+			PlotBandwidthLines();
             frqrsPlot.Refresh();
         }
 

@@ -47,6 +47,8 @@ namespace QA40xPlot.ViewModels
 		#region Setters and Getters
 		[JsonIgnore]
 		protected TabAbout actAbout { get; set; } = new();
+		[JsonIgnore]
+		public DataDescript DataInfo { get; set; } = new();	// set when we set the datapage via linkabout
 
 		[JsonIgnore]
 		public bool IsGenPower { get => (GenDirection == MeasureVoltsFull[2]); }
@@ -54,6 +56,8 @@ namespace QA40xPlot.ViewModels
 		public string GenAmpDescript { get => (IsGenPower ? "Po_wer" : "_Voltage"); }
 		[JsonIgnore]
 		public string GenAmpUnits { get => (IsGenPower ? "W" : "V"); }
+		[JsonIgnore]
+		public string DsHeading { get => DataInfo.Heading; }
 
 		private bool _ShowTabInfo = true;
 		public bool ShowTabInfo
@@ -154,8 +158,8 @@ namespace QA40xPlot.ViewModels
 			get => _GenDirection;
 			set { 
 				SetProperty(ref _GenDirection, value);
-				OnPropertyChanged("GenAmpDescript"); 
-				OnPropertyChanged("GenAmpUnits"); 
+				RaisePropertyChanged("GenAmpDescript"); 
+				RaisePropertyChanged("GenAmpUnits"); 
 			}
 		}
 		private double _Attenuation;
@@ -274,6 +278,8 @@ namespace QA40xPlot.ViewModels
 		public void LinkAbout(DataDescript fmv)
 		{
 			actAbout.SetDataContext(fmv);
+			DataInfo = fmv; // point to the primary vm for messaging
+			fmv.MainVm = this;	// point to the primary vm for messaging
 		}
 
 		/// <summary>
@@ -403,7 +409,7 @@ namespace QA40xPlot.ViewModels
 		{
 			HasExport = false;
 			GenDirection = MeasureVolts[0];
-			SampleRate = "48000";
+			SampleRate = "96000";
 			FftSize = "64K";
 			Averages = 1;
 			PlotFormat = "dBV";

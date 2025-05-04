@@ -94,6 +94,17 @@ namespace QA40xPlot.Actions
 			return Util.LoadFile<ScopeViewModel>(PageData, fileName);
 		}
 
+		public void UpdatePlotTitle()
+		{
+			var vm = MyVModel;
+			ScottPlot.Plot myPlot = timePlot.ThePlot;
+			var title = "Scope";
+			if (PageData.Definition.Name.Length > 0)
+				myPlot.Title(title + " : " + PageData.Definition.Name);
+			else
+				myPlot.Title(title);
+		}
+
 		/// <summary>
 		/// given a datatab, integrate it into the gui as the current datatab
 		/// </summary>
@@ -359,7 +370,7 @@ namespace QA40xPlot.Actions
 
             // Show message
 			await showMessage("Measurement finished");
-			await Task.Delay(100);	// let it be seen
+			await Task.Delay(1);	// let it be seen
 
             return !ct.IsCancellationRequested;
         }
@@ -465,7 +476,7 @@ namespace QA40xPlot.Actions
 			myPlot.Axes.SetLimits(MathUtil.ToDouble(thdFreq.GraphStartTime), MathUtil.ToDouble(thdFreq.GraphEndTime), 
 				MathUtil.ToDouble(thdFreq.RangeBottom), MathUtil.ToDouble(thdFreq.RangeTop));
 
-            myPlot.Title("Scope");
+			UpdatePlotTitle();
 			myPlot.XLabel("Time (mS)");
 			myPlot.YLabel("Voltage");
 

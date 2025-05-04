@@ -44,7 +44,7 @@ public class FreqRespViewModel : BaseViewModel
 	public bool IsChirp
 	{
 		get { return _IsChirp; }
-		set { SetProperty(ref _IsChirp, value); OnPropertyChanged("IsNotChirp"); }
+		set { SetProperty(ref _IsChirp, value); RaisePropertyChanged("IsNotChirp"); }
 	}
 
 	private string _ZReference = string.Empty;
@@ -215,6 +215,12 @@ public class FreqRespViewModel : BaseViewModel
 	{
 		switch (e.PropertyName)
 		{
+			case "DsHeading":
+				actFreq?.UpdateGraph(true);
+				break;
+			case "DsName":
+				actFreq?.UpdatePlotTitle();
+				break;
 			case "ShowOtherLeft":
 			case "ShowOtherRight":
 				actFreq?.UpdateGraph(false);

@@ -6,7 +6,6 @@ using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
-using System.Diagnostics.Eventing.Reader;
 using System.Net.Http;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
@@ -54,6 +53,17 @@ namespace QA40xPlot.Actions
 		public void DoCancel()
 		{
 			ct.Cancel();
+		}
+
+		public void UpdatePlotTitle()
+		{
+			var vm = MyVModel;
+			ScottPlot.Plot myPlot = thdPlot.ThePlot;
+			var title = SetPlotLabels();
+			if (PageData.Definition.Name.Length > 0)
+				myPlot.Title(title + " : " + PageData.Definition.Name);
+			else
+				myPlot.Title(title);
 		}
 
 		private double[] ColumnToArray(ThdColumn col)
@@ -463,26 +473,28 @@ namespace QA40xPlot.Actions
 			thdPlot.Refresh();
 		}
 
-		private void SetPlotLabels()
+		private string SetPlotLabels()
 		{
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;
 			var thdAmp = MyVModel;
 			var tt = ToDirection(thdAmp.GenDirection);
+			string title = string.Empty;
 			if (tt == E_GeneratorDirection.INPUT_VOLTAGE)
 			{
 				myPlot.XLabel("Input voltage (Vrms)");
-				myPlot.Title("Distortion vs Voltage");
+				title = "Distortion vs Voltage";
 			}
 			else if (tt == E_GeneratorDirection.OUTPUT_VOLTAGE)
 			{
 				myPlot.XLabel("Output voltage (Vrms)");
-				myPlot.Title("Distortion vs Voltage");
+				title = "Distortion vs Voltage";
 			}
 			else if (tt == E_GeneratorDirection.OUTPUT_POWER)
 			{
 				myPlot.XLabel("Output power (W)");
-				myPlot.Title("Distortion vs Power");
+				title = "Distortion vs Power";
 			}
+			return title;
 		}
 
 		/// <summary>
@@ -570,7 +582,7 @@ namespace QA40xPlot.Actions
 			var thdFreq = MyVModel;
 			myPlot.Axes.SetLimits(Math.Log10(ToD(thdFreq.GraphStartVolts)), Math.Log10(ToD(thdFreq.GraphEndVolts)),
 				Math.Log10(ToD(thdFreq.RangeBottom)), Math.Log10(ToD(thdFreq.RangeTop)));
-			SetPlotLabels();
+			UpdatePlotTitle();
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
 			thdPlot.Refresh();
 		}
@@ -586,7 +598,7 @@ namespace QA40xPlot.Actions
 
 			myPlot.Axes.SetLimits(Math.Log10(ToD(thdFreq.GraphStartVolts)), Math.Log10(ToD(thdFreq.GraphEndVolts)),
 				ToD(thdFreq.RangeBottomdB), ToD(thdFreq.RangeTopdB));
-			SetPlotLabels();
+			UpdatePlotTitle();
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
 			thdPlot.Refresh();
 		}

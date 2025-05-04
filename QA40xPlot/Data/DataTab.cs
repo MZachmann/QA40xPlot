@@ -3,7 +3,6 @@ using QA40xPlot.ViewModels;
 using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Numerics;
-using Newtonsoft.Json.Linq;
 
 namespace QA40xPlot.Data
 {
@@ -15,6 +14,12 @@ namespace QA40xPlot.Data
 			get => _Name;
 			set => SetProperty(ref _Name, value);
 		}
+		private string _Heading = string.Empty;
+		public string Heading
+		{
+			get => _Heading;
+			set => SetProperty(ref _Heading, value);
+		}
 		private string _Description = string.Empty;
 		public string Description
 		{
@@ -24,11 +29,14 @@ namespace QA40xPlot.Data
 		public string CreateDate { get; set; }  // Measurement date time
 		public bool Saved { get; set; }
 		public double GeneratorVoltage { get; set; } // the generator voltage, if any
+		[JsonIgnore]
+		public BaseViewModel? MainVm { get; set; } = null; // the generator, if any
 
 		public DataDescript()
 		{
 			Name = string.Empty;
 			Description = string.Empty;
+			Heading = string.Empty;
 			CreateDate = string.Empty;
 			Saved = false;
 			GeneratorVoltage = 1e-10;
@@ -42,6 +50,10 @@ namespace QA40xPlot.Data
 
 		private void ChangeDefinition(object? sender, PropertyChangedEventArgs e)
 		{
+			if(MainVm != null && (e.PropertyName?.Length ?? 0) > 0)
+			{
+				MainVm.RaisePropertyChanged("Ds" + e.PropertyName);
+			}
 			return;
 		}
 	}
@@ -78,14 +90,34 @@ namespace QA40xPlot.Data
 			set { SetProperty("FFT", value); }
 		}
 		[JsonIgnore]
-		public Complex[]? GainData { 
-			get { return GetProperty<Complex[]>("GainData"); }
-			set { SetProperty("GainData", value); }
+		public Complex[] GainData { 
+			get {
+				if (Sweep.RawLeft.Length == 0)
+					return [];
+				try
+				{
+					return Sweep.RawLeft.Zip(Sweep.RawRight, (x, y) => new Complex(x, y)).ToArray();
+				}
+				catch (Exception)
+				{
+				}
+				return [];
+			}
+			set { 
+				if(value == null || value.Length == 0)
+					Sweep.RawLeft = [];
+				else
+					Sweep.RawLeft = value.Select(x => x.Real).ToArray();
+				if (value == null || value.Length == 0)
+					Sweep.RawRight = [];
+				else
+					Sweep.RawRight = value.Select(x => x.Imaginary).ToArray();
+			}
 		}
 		[JsonIgnore]
-		public Double[]? GainFrequencies	{
-			get { return GetProperty<Double[]>("GainFreq"); }
-			set { SetProperty("GainFreq", value); }
+		public double[] GainFrequencies	{
+			get { return Sweep.X; }
+			set { Sweep.X = value; }
 		}
 
 		[JsonIgnore]

@@ -61,7 +61,7 @@ namespace QA40xPlot.ViewModels
 		public bool DoAutoAttn
 		{
 			get { return _DoAutoAttn; }
-			set { if(SetProperty(ref _DoAutoAttn, value)) OnPropertyChanged("AttenColor"); }
+			set { if(SetProperty(ref _DoAutoAttn, value)) RaisePropertyChanged("AttenColor"); }
 		}
 
 		private string _Gen1Frequency = string.Empty;
@@ -212,6 +212,12 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
+				case "DsHeading":
+					actImd?.UpdateGraph(true);
+					break;
+				case "DsName":
+					actImd?.UpdatePlotTitle();
+					break;
 				case "GenDirection":
 				case "Gen1Voltage":
 					// synchronize voltage 2
@@ -221,7 +227,7 @@ namespace QA40xPlot.ViewModels
 					// we may need to change the axis
 					ToShowRange = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Collapsed : Visibility.Visible;
 					ToShowdB = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Visible : Visibility.Collapsed; 
-					OnPropertyChanged("GraphUnit");
+					RaisePropertyChanged("GraphUnit");
 					actImd?.UpdateGraph(true);
 					break;
 				case "ShowTabInfo":

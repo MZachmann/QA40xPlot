@@ -208,11 +208,17 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
+				case "DsHeading":
+					actThd?.UpdateGraph(true);
+					break;
+				case "DsName":
+					actThd?.UpdatePlotTitle();
+					break;
 				case "PlotFormat":
 					// we may need to change the axis
 					ToShowRange = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Collapsed : Visibility.Visible;
 					ToShowdB = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Visible : Visibility.Collapsed;
-					OnPropertyChanged("GraphUnit");
+					RaisePropertyChanged("GraphUnit");
 					actThd?.UpdateGraph(true);
 					break;
 				case "GraphStartFreq":

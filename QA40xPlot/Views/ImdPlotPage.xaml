@@ -220,7 +220,8 @@
             </Grid>
         </StackPanel>
         <Grid Grid.Column="1">
-            <views:PlotControl x:Name="WpfPlot1"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
+            <Label Content="{Binding DsHeading}" HorizontalAlignment="Center" VerticalAlignment="Top" />
+            <views:PlotControl x:Name="WpfPlot1"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="0,20,0,0" />
             <views:ImdChannelInfo x:Name="Info1"
                   VerticalAlignment="Top" HorizontalAlignment="Left" Margin="60,50,0,0" />
             <views:ImdChannelInfo x:Name="Info2"

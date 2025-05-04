@@ -59,7 +59,7 @@ namespace QA40xPlot.ViewModels
 		public bool DoAutoAttn
 		{
 			get { return _DoAutoAttn; }
-			set { if ( SetProperty(ref _DoAutoAttn, value)) OnPropertyChanged("AttenColor"); }
+			set { if ( SetProperty(ref _DoAutoAttn, value)) RaisePropertyChanged("AttenColor"); }
 		}
 
 		private string _Gen1Waveform = string.Empty;
@@ -190,14 +190,17 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
-				case "Name":
+				case "DsHeading":
+					actSpec?.UpdateGraph(true);
+					break;
+				case "DsName":
 					actSpec?.UpdatePlotTitle();
 					break;
 				case "PlotFormat":
 					// we may need to change the axis
 					ToShowRange = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Collapsed : Visibility.Visible;
 					ToShowdB = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Visible : Visibility.Collapsed;
-					OnPropertyChanged("GraphUnit");
+					RaisePropertyChanged("GraphUnit");
 					actSpec?.UpdateGraph(true);
 					break;
 				case "ShowTabInfo":

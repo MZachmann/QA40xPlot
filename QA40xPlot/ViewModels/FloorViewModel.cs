@@ -44,7 +44,7 @@ namespace QA40xPlot.ViewModels
 		/// Tell the window a property has changed
 		/// </summary>
 		/// <param name="propertyName"></param>
-		protected void RaisePropertyChanged(string? propertyName = null)
+		public void RaisePropertyChanged(string? propertyName = null)
 		{
 			OnPropertyChanged(propertyName);
 		}

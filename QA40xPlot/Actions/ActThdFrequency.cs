@@ -59,6 +59,17 @@ namespace QA40xPlot.Actions
             ct.Cancel();
         }
 
+		public void UpdatePlotTitle()
+		{
+			var vm = MyVModel;
+			ScottPlot.Plot myPlot = thdPlot.ThePlot;
+			var title = "Distortion vs Frequency";
+			if (PageData.Definition.Name.Length > 0)
+				myPlot.Title(title + " : " + PageData.Definition.Name);
+			else
+				myPlot.Title(title);
+		}
+
 		private double[] ColumnToArray(ThdColumn col)
 		{
 			return new double[] { col.Freq, col.Mag, col.THD, col.Noise, col.D2, col.D3, col.D4, col.D5, col.D6P, col.GenVolts };
@@ -270,7 +281,30 @@ namespace QA40xPlot.Actions
 			if (!await StartAction(freqVm))
 				return;
 
-			ct = new();
+			try
+			{
+				ct = new();
+				await RunAcquisition();
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
+			}
+
+			PageData.TimeRslt = new();
+			PageData.FreqRslt = null;
+
+			// Show message
+			await showMessage(ct.IsCancellationRequested ? $"Measurement cancelled!" : $"Measurement finished!");
+
+			await EndAction(freqVm);
+
+			await showMessage("Finished");
+		}
+
+		public async Task<bool> RunAcquisition()
+		{
+			var freqVm = MyVModel;          // the active viewmodel
 			LeftRightTimeSeries lrts = new();
 			MyDataTab NextPage = new(freqVm, lrts);
 			PageData.Definition.CopyPropertiesTo(NextPage.Definition);
@@ -279,7 +313,7 @@ namespace QA40xPlot.Actions
             var page = PageData;    // alias
 			var vm = page.ViewModel;
 			if (vm == null)
-				return;
+				return false;
 			var genType = ToDirection(vm.GenDirection);
 
 			// Init mini plots
@@ -295,7 +329,7 @@ namespace QA40xPlot.Actions
 			await showMessage("Calculating DUT gain");
 			LRGains = await DetermineGainCurve(true, 1);   // read the gain curve
 			if (LRGains == null)
-				return;
+				return false;
 
 			var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
 			int[] frqtest = [ToBinNumber(startFreq, LRGains), ToBinNumber(endFreq, LRGains)];
@@ -321,7 +355,7 @@ namespace QA40xPlot.Actions
 
 				// Check if cancel button pressed
 				if (ct.IsCancellationRequested)
-					return;
+					return false;
 
 				// ********************************************************************
 				// Calculate frequency steps to do
@@ -342,14 +376,14 @@ namespace QA40xPlot.Actions
 				// Load a settings we want since we're done autoscaling
 				// ********************************************************************  
 				if (true != await QaComm.InitializeDevice(vm.SampleRateVal, vm.FftSizeVal, vm.WindowingMethod, attenuation))
-					return;
+					return false;
 
 				// ********************************************************************
 				// Do noise floor measurement
 				// ********************************************************************
 				var noisy = await MeasureNoise(ct.Token);
 				if (ct.IsCancellationRequested)
-					return;
+					return false;
 				page.NoiseFloor = new LeftRightPair();
 				page.NoiseFloor.Right = QaCompute.CalculateNoise(noisy.FreqRslt, true);
 				page.NoiseFloor.Left = QaCompute.CalculateNoise(noisy.FreqRslt, false);
@@ -399,16 +433,7 @@ namespace QA40xPlot.Actions
 			{
 				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
 			}
-
-			PageData.TimeRslt = new();
-			PageData.FreqRslt = null;
-
-			// Show message
-			await showMessage(ct.IsCancellationRequested ? $"Measurement cancelled!" : $"Measurement finished!");
-
-			await EndAction(freqVm);
-
-			await showMessage("Finished");
+			return !ct.IsCancellationRequested;
 		}
 
 		/// <summary>
@@ -502,8 +527,8 @@ namespace QA40xPlot.Actions
 
 			var thd = MyVModel;
 			myPlot.Axes.SetLimits(Math.Log10(ToD(thd.GraphStartFreq)), Math.Log10(ToD(thd.GraphEndFreq)),
-				Math.Log10(ToD(thd.RangeBottom)) - 0.00000001, Math.Log10(ToD(thd.RangeTop)));  // - 0.000001 to force showing label            myPlot.Title("Distortion vs Frequency (%)");
-			myPlot.Title("Distortion vs Frequency");
+				Math.Log10(ToD(thd.RangeBottom)) - 0.00000001, Math.Log10(ToD(thd.RangeTop)));  // - 0.000001 to force showing label
+			UpdatePlotTitle();
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
 			thdPlot.Refresh();
@@ -523,8 +548,8 @@ namespace QA40xPlot.Actions
 
 			myPlot.Axes.SetLimitsY(ToD(thdFreq.RangeBottomdB), ToD(thdFreq.RangeTopdB), myPlot.Axes.Left);
 
-			myPlot.Title("Distortion vs Frequency");
-            myPlot.XLabel("Frequency (Hz)");
+			UpdatePlotTitle();
+			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
 			thdPlot.Refresh();
         }
