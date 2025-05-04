@@ -384,7 +384,7 @@ namespace QA40xPlot.ViewModels
 				default:
 					break;
 			}
-			actImd?.UpdateGraph(false);
+			actImd?.UpdateGraph(true);
 		}
 
 		private void ShowInfos()

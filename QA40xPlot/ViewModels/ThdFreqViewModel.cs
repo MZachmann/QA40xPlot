@@ -215,17 +215,6 @@ namespace QA40xPlot.ViewModels
 					OnPropertyChanged("GraphUnit");
 					actThd?.UpdateGraph(true);
 					break;
-				case "Voltage":
-				case "OutPower":
-				case "GenDirection":
-				case "VoltageUnits":
-					//actThd?.UpdateGeneratorParameters();
-					break;
-				case "ShowPercent":
-					ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
-					ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;
-					actThd?.UpdateGraph(true);
-					break;
 				case "GraphStartFreq":
 				case "GraphEndFreq":
 				case "RangeBottomdB":
@@ -364,8 +353,7 @@ namespace QA40xPlot.ViewModels
 				string filename = saveFileDialog.FileName;
 				if (filename.Count() > 1)
 				{
-					var vm = MyVModel;
-					vm.actThd.SaveToFile(filename);
+					MyVModel.actThd.SaveToFile(filename);
 				}
 			}
 		}
@@ -393,7 +381,7 @@ namespace QA40xPlot.ViewModels
 				default:
 					break;
 			}
-			actThd?.UpdateGraph(false);
+			actThd?.UpdateGraph(true);
 		}
 
 		// when the mouse moves in the plotcontrol window it sends a mouseevent to the parent view model (this)

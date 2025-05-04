@@ -828,7 +828,7 @@ namespace QA40xPlot.Actions
 			imdVm.IsRunning = false;
 			await showMessage("");
 			MyVModel.HasExport = PageData.FreqRslt != null && PageData.FreqRslt.Left?.Length > 0;
-			await EndAction();
+			await EndAction(imdVm);
 		}
 		private double ToD(string stri)
 		{

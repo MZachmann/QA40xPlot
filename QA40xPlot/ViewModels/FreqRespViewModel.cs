@@ -227,13 +227,7 @@ public class FreqRespViewModel : BaseViewModel
 			case "AmpLoad":
 			case "OutPower":
 			case "GenDirection":
-			case "VoltageUnits":
 				//actFreq?.UpdateGeneratorParameters();
-				break;
-			case "ShowPercent":
-				ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
-				ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;
-				actFreq?.UpdateGraph(true);
 				break;
 			case "TestType":
 				// set the tab header as we change type
@@ -419,7 +413,7 @@ public class FreqRespViewModel : BaseViewModel
 			default:
 				break;
 		}
-		actFreq?.UpdateGraph(false);
+		actFreq?.UpdateGraph(true);
 	}
 
 	// when the mouse moves in the plotcontrol window it sends a mouseevent to the parent view model (this)

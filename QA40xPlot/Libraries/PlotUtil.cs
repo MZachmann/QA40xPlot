@@ -275,12 +275,20 @@ namespace QA40xPlot.Libraries
 			SetPctAmpRule(myPlot);
 		}
 
-		public static void InitializeMagAmpPlot(ScottPlot.Plot myPlot)
+		public static void InitializeMagAmpPlot(ScottPlot.Plot myPlot, string plotFormat)
 		{
 			InitializeAPlot(myPlot);
-			SetupMagTics(myPlot);
 			SetupAmpTics(myPlot);
-			SetMagAmpRule(myPlot);
+			if (GraphUtil.IsPlotFormatLog(plotFormat))
+			{
+				SetupMagTics(myPlot);
+				SetMagAmpRule(myPlot);
+			}
+			else
+			{
+				SetupPercentTics(myPlot);
+				SetPctAmpRule(myPlot);
+			}
 		}
 
 		public static void InitializeMagTimePlot(ScottPlot.Plot myPlot)

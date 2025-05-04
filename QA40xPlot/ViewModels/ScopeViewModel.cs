@@ -338,7 +338,7 @@ namespace QA40xPlot.ViewModels
 				default:
 					break;
 			}
-			actScope?.UpdateGraph(false);
+			actScope?.UpdateGraph(true);
 		}
 
 		// when the mouse moves in the plotcontrol window it sends a mouseevent to the parent view model (this)

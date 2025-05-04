@@ -288,10 +288,10 @@ namespace QA40xPlot.Actions
 
 			UpdateGraph(false);
 
-			await EndAction();
+			await EndAction(vmFreq);
 			await showMessage("Finished");
-			MyVModel.IsRunning = false;
-			MyVModel.HasExport = (PageData.TimeRslt.Left.Length > 0);
+			vmFreq.IsRunning = false;
+			vmFreq.HasExport = (PageData.TimeRslt.Left.Length > 0);
 		}
 
 		// create a blob with F,Left,Right data for export

@@ -14,32 +14,31 @@ using static QA40xPlot.ViewModels.BaseViewModel;
 namespace QA40xPlot.Actions
 {
 
+	using MyDataTab = DataTab<ThdAmpViewModel>;
+
 	public partial class ActThdAmplitude : ActBase
 	{
-		public ThdAmplitudeData Data { get; set; }       // Data used in this form instance
 		private readonly Views.PlotControl thdPlot;
 		private readonly Views.PlotControl fftPlot;
 		private readonly Views.PlotControl timePlot;
 
-		private ThdAmplitudeMeasurementResult MeasurementResult;
+		public MyDataTab PageData { get; private set; } // Data used in this form instance
+		private List<MyDataTab> OtherTabs { get; set; } = new List<MyDataTab>(); // Other tabs in the document
+
+		private float _Thickness = 2.0f;
+
 		private static ThdAmpViewModel MyVModel { get => ViewSettings.Singleton.ThdAmp; }
-
-
-		CancellationTokenSource ct;                                 // Measurement cancelation token
+		CancellationTokenSource ct;                                  // Measurement cancelation token
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		public ActThdAmplitude(ref ThdAmplitudeData data, Views.PlotControl graphThd, Views.PlotControl graphFft, Views.PlotControl graphTime)
 		{
-			Data = data;
-			ThdAmpViewModel thd = MyVModel;
-			MeasurementResult = new(thd); // TODO. Add to list
-
 			ct = new CancellationTokenSource();
+			PageData = new(MyVModel, new LeftRightTimeSeries());
 
 			// Show empty graphs
-
 			thdPlot = graphThd;
 			fftPlot = graphFft;
 			timePlot = graphTime;
@@ -57,6 +56,62 @@ namespace QA40xPlot.Actions
 			ct.Cancel();
 		}
 
+		private double[] ColumnToArray(ThdColumn col)
+		{
+			return new double[] { col.Freq, col.Mag, col.THD, col.Noise, col.D2, col.D3, col.D4, col.D5, col.D6P, col.GenVolts };
+		}
+
+		private ThdColumn ArrayToColumn(double[] rawData, uint startIdx)
+		{
+			ThdColumn col = new();
+			col.Freq = rawData[startIdx];
+			col.Mag = rawData[startIdx + 1];
+			col.THD = rawData[startIdx + 2];
+			col.Noise = rawData[startIdx + 3];
+			col.D2 = rawData[startIdx + 4];
+			col.D3 = rawData[startIdx + 5];
+			col.D4 = rawData[startIdx + 6];
+			col.D5 = rawData[startIdx + 7];
+			col.D6P = rawData[startIdx + 8];
+			col.GenVolts = rawData[startIdx + 9];
+			return col;
+		}
+
+		private ThdColumn[] RawToColumn(double[] raw)
+		{
+			if (raw.Length == 0)
+				return [];
+			List<ThdColumn> left = new();
+			for (int i = 0; i < raw.Length; i += 10)
+			{
+				var col = ArrayToColumn(raw, (uint)i);
+				left.Add(col);
+			}
+			return left.ToArray();
+		}
+
+		// convert the raw data into columns of data
+		private void RawToThdColumns(MyDataTab page)
+		{
+			var u = RawToColumn(page.Sweep.RawLeft);
+			var v = RawToColumn(page.Sweep.RawRight);
+			page.SetProperty("Left", u);
+			page.SetProperty("Right", v);
+		}
+
+		/// <summary>
+		/// add a column to the data table columns
+		/// </summary>
+		/// <param name="x"></param>
+		/// <param name="left"></param>
+		/// <param name="right"></param>
+		private void AddColumn(MyDataTab page, double x, ThdColumn left, ThdColumn right)
+		{
+			page.Sweep.X = page.Sweep.X.Append(x).ToArray();
+			page.Sweep.RawLeft = page.Sweep.RawLeft.Concat(ColumnToArray(left)).ToArray();
+			page.Sweep.RawRight = page.Sweep.RawRight.Concat(ColumnToArray(right)).ToArray();
+		}
+
 		private double ConvertToInputVoltage(double outV, double[] gains)
 		{
 			return outV * gains[0];
@@ -64,222 +119,238 @@ namespace QA40xPlot.Actions
 
 		public Rect GetDataBounds()
 		{
-			var msr = MeasurementResult.MeasurementSettings;    // measurement settings
-			if (msr == null || MeasurementResult.AmplitudeSteps.Count == 0)
-				return Rect.Empty;
-			var vmr = MeasurementResult.AmplitudeSteps.First(); // test data
-			if (vmr == null || vmr.fftData == null)
+			var msr = PageData.ViewModel;    // measurement settings
+			var Xvalues = PageData.Sweep.X;
+			if (msr == null || Xvalues.Length == 0)
 				return Rect.Empty;
 			var specVm = MyVModel;     // current settings
 
+			ThdColumn[] steps = (ThdColumn[])((msr.ShowLeft ? PageData.GetProperty("Left") : PageData.GetProperty("Right")) ?? new());
+			if (steps.Length == 0)
+				return Rect.Empty;
+
 			Rect rrc = new Rect(0, 0, 0, 0);
-			var steps = MeasurementResult.AmplitudeSteps;
-			rrc.X = steps.First().GeneratorVoltage;
-			rrc.Width = steps.Last().GeneratorVoltage - rrc.X;       // max frequency
-			rrc.Y = 1e-15;
-			rrc.Height = 1 - rrc.Y;
-			double maxY = 1;
-			if( specVm.ShowLeft)
-			{
-				rrc.Y = steps.Select(x => x.fftData?.Left.Min()).Min() ?? 1e-12;
-				maxY = steps.Select(x => x.fftData?.Left.Max()).Max() ?? 1;
-				if (specVm.ShowRight)
-				{
-					rrc.Y = Math.Min(rrc.Y, steps.Select(x => x.fftData?.Right.Min()).Min() ?? rrc.Y);
-					maxY = Math.Max(maxY, steps.Select(x => x.fftData?.Left.Max()).Max() ?? maxY);
-				}
-			}
-			else if (specVm.ShowRight)
-			{
-				rrc.Y = steps.Select(x => x.fftData?.Right.Min()).Min() ?? 1e-12;
-				maxY = steps.Select(x => x.fftData?.Right.Max()).Max() ?? 1;
-			}
+			rrc.X = Xvalues.Min();              // min X/Freq value
+			rrc.Width = Xvalues.Max() - rrc.X;  // max frequency
+
+			double maxY = 0;
+			rrc.Y = steps.Min(x => Math.Min(Math.Min(x.THD, x.D2), x.D5));      // min magnitude will be min value shown
+			maxY = steps.Max(x => Math.Max(x.Mag, x.THD));      // maximum magnitude will be max value shown
 			rrc.Height = maxY - rrc.Y;      // max voltage absolute
 
-			var start = rrc.X;
-			var end = rrc.X + rrc.Width;  // our input voltage boundary
-			var ttype = ToDirection(specVm.GenDirection);
-			var freq = MathUtil.ToDouble(msr.TestFreq);
-			if (ttype == E_GeneratorDirection.OUTPUT_POWER || ttype == E_GeneratorDirection.OUTPUT_VOLTAGE)
-			{
-				var lrGains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
-				if(lrGains != null)
-				{
-					var startOut = ToGenOutVolts(start, [], lrGains);
-					var endOut = ToGenOutVolts(end, [], lrGains);
-					if (ttype == E_GeneratorDirection.OUTPUT_VOLTAGE)
-					{
-						rrc.X = startOut;
-						rrc.Width = endOut - startOut;
-					}
-					else
-					{
-						rrc.X = startOut * startOut / ViewSettings.AmplifierLoad;
-						rrc.Width = endOut * endOut / ViewSettings.AmplifierLoad - rrc.X;
-					}
-				}
-			}
-			else
-			{
-				rrc.X = start;
-				rrc.Width = end - start;
-			}
 			return rrc;
 		}
 
-		public ValueTuple<ThdColumn?, ThdColumn?> LookupX(double amp)
+		private (ThdColumn, ThdColumn) LookupColumn(MyDataTab page, double freq)
 		{
 			var vm = MyVModel;
-			var vf = vm.ShowLeft ? MeasurementResult.LeftColumns : MeasurementResult.RightColumns;
-			if (vf == null || vf.Count == 0)
+			var vf = page.Sweep.X;
+			if (vf.Length == 0)
 			{
-				return ValueTuple.Create((ThdColumn?)null, (ThdColumn?)null);
+				return (new ThdColumn(), new ThdColumn());
 			}
-			var freq = vf[0].Freq;
-			var vinp = vm.ToGenVoltage(amp.ToString(), [(int)Math.Floor(freq / (LRGains?.Df ?? 1))], GEN_INPUT, LRGains?.Left);
-
 			// find nearest amplitude (both left and right will be identical here if scanned)
-			// determine amp as an input voltage
-			var bin = vf.Count(x => x.GenVolts < vinp) - 1;    // find first freq less than me
+			var bin = vf.Count(x => x < freq) - 1;    // find first freq less than me
 			if (bin == -1)
 				bin = 0;
-			var anearest = vf[bin].GenVolts;
-			if (bin < (vf.Count - 1) && Math.Abs(vinp - anearest) > Math.Abs(vinp - vf[bin + 1].GenVolts))
+			var anearest = vf[bin];
+			if (bin < (vf.Length - 1) && Math.Abs(freq - anearest) > Math.Abs(freq - vf[bin + 1]))
 			{
 				bin++;
 			}
+			ThdColumn? mf1 = new ThdColumn();
+			ThdColumn? mf2 = new ThdColumn();
+			var u = page.GetProperty("Left");
+			if (u != null)
+				mf1 = ((ThdColumn[])u)[bin];    // get the left channel
+			u = page.GetProperty("Right");
+			if (u != null)
+				mf2 = ((ThdColumn[])u)[bin];    // get the left channel
+			return (mf1, mf2);
+		}
 
-			ThdColumn? mf1 = null;
-			ThdColumn? mf2 = null;
-
-			if( vm.ShowLeft)
-				mf1 = MeasurementResult.LeftColumns?.ElementAt(bin);
+		public ThdColumn[] LookupX(double freq)
+		{
+			var vm = MyVModel;
+			List<ThdColumn> myset = new();
+			var all = LookupColumn(PageData, freq); // lookup the columns
+			if (vm.ShowLeft)
+				myset.Add(all.Item1);
 			if (vm.ShowRight)
-				mf2 = MeasurementResult.RightColumns?.ElementAt(bin);
-
-			return ValueTuple.Create(mf1, mf2);
+				myset.Add(all.Item2);
+			if (OtherTabs.Count() > 0)
+			{
+				var all2 = LookupColumn(OtherTabs.First(), freq); // lookup the columns
+				if (vm.ShowOtherLeft)
+					myset.Add(all2.Item1);
+				if (vm.ShowOtherRight)
+					myset.Add(all2.Item2);
+			}
+			return myset.ToArray();
 		}
 
-		private ThdColumn? MakeColumn(ThdFrequencyStepChannel chan)
+		public bool SaveToFile(string fileName)
 		{
-			if (chan == null)
-				return null;
-			var cl = new ThdColumn();
-			cl.Mag = chan.Fundamental_V;
-			cl.THD = chan.Thd_dB;
-			cl.D2 = cl.D3 = cl.D4 = cl.D5 = -180;
-			try
-			{
-				cl.D2 = chan.Harmonics[0].Thd_dB;
-				cl.D3 = chan.Harmonics[1].Thd_dB;
-				cl.D4 = chan.Harmonics[2].Thd_dB;
-				cl.D5 = chan.Harmonics[3].Thd_dB;
-			}
-			catch { }
-
-			cl.D6P = chan.D6Plus_dBV;
-			cl.Noise = QaLibrary.ConvertVoltage( chan.TotalNoiseFloor_V, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-			//
-			cl.Freq = MathUtil.ToDouble(MeasurementResult.MeasurementSettings.TestFreq, 10);
-			cl.GenVolts = chan.Fundamental_V;
-			return cl;
+			return Util.SaveToFile<ThdAmpViewModel>(PageData, fileName);
 		}
 
-		private void AddColumn(double inputVolt, ThdAmplitudeStep step)
+		public async Task LoadFromFile(string fileName, bool doLoad)
 		{
-			var f = MeasurementResult.LeftColumns;
-			if (f != null)
-			{
-				var cl = MakeColumn(step.Left);
-				if (cl != null)
-				{
-					cl.GenVolts = inputVolt;
-					MeasurementResult.LeftColumns.Add(cl);
-				}
-			}
-			f = MeasurementResult.RightColumns;
-			if (f != null)
-			{
-				var cl = MakeColumn(step.Right);
-				if (cl != null)
-				{
-					cl.GenVolts = inputVolt;
-					MeasurementResult.RightColumns.Add(cl);
-				}
-			}
+			var page = Util.LoadFile<ThdAmpViewModel>(PageData, fileName);
+			RawToThdColumns(page);
+			await FinishLoad(page, doLoad);
 		}
-
 
 		/// <summary>
-		/// Perform the measurement
+		/// Load a file into a DataTab
 		/// </summary>
-		/// <param name="ct">Cancellation token</param>
-		/// <returns>result. false if cancelled</returns>
-		async Task<bool> PerformMeasurementSteps(CancellationToken ct)
+		/// <param name="fileName">full path name</param>
+		/// <returns>a datatab with no frequency info</returns>
+		public MyDataTab LoadFile(MyDataTab page, string fileName)
 		{
-			ClearPlot();
-			// Clear measurement result
-			MeasurementResult = new(MyVModel)
+			return Util.LoadFile<ThdAmpViewModel>(page, fileName);
+		}
+
+		/// <summary>
+		/// given a datatab, integrate it into the gui as the current datatab
+		/// </summary>
+		/// <param name="page"></param>
+		/// <returns></returns>
+		public async Task FinishLoad(MyDataTab page, bool doLoad)
+		{
+			// now recalculate everything
+			await PostProcess(page, ct.Token);
+			if (doLoad)
 			{
-				CreateDate = DateTime.Now,
-				Show = true,                       // Show in graph
+				PageData = page;    // set the current page to the loaded one
+									// we can't overwrite the viewmodel since it links to the display proper
+									// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
+				page.ViewModel.CopyPropertiesTo<ThdAmpViewModel>(ViewSettings.Singleton.ThdAmp);    // retract the gui
+
+				// relink to the new definition
+				MyVModel.LinkAbout(page.Definition);
+			}
+			else
+			{
+				OtherTabs.Clear(); // clear the other tabs
+				OtherTabs.Add(page); // add the new one
+			}
+
+			UpdateGraph(true);
+		}
+
+		// build a sinewave for the sweep
+		private static double[] BuildWave(MyDataTab page, double dFreq)
+		{
+			var vm = page.ViewModel;
+
+			// for the first go around, turn on the generator
+			// Set the generators via a usermode
+			var waveForm = new GenWaveform()
+			{
+				Frequency = dFreq,
+				Voltage = page.Definition.GeneratorVoltage,
+				Name = "Sine"
 			};
-			var msr = MeasurementResult.MeasurementSettings;
-			var thdaVm = MyVModel;
+			var waveSample = new GenWaveSample()
+			{
+				SampleRate = (int)vm.SampleRateVal,
+				SampleSize = (int)vm.FftSizeVal
+			};
 
-			// For now clear measurements to allow only one until we have a UI to manage them.
-			Data.Measurements.Clear();
+			double[] wave = QaMath.CalculateWaveform([waveForm], waveSample).ToArray();
+			return wave;
+		}
 
-			// Add to list
-			Data.Measurements.Add(MeasurementResult);
+		/// <summary>
+		/// Start measurement button clicked
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		public async Task DoMeasurement()
+		{
+			var thdAmp = MyVModel;
+			if (!await StartAction(thdAmp))
+				return;
+			try
+			{
+				await RunMeasurement();
+			}
+			catch (Exception ex)
+			{
+				await showMessage(ex.Message.ToString());
+			}
+			await EndAction(thdAmp);
+		}
+
+		public async Task RunMeasurement()
+		{ 
+			var thdAmp = MyVModel;
+
+			ct = new();
+			LeftRightTimeSeries lrts = new();
+			MyDataTab NextPage = new(thdAmp, lrts);
+			PageData.Definition.CopyPropertiesTo(NextPage.Definition);
+			NextPage.Definition.CreateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+			PageData = NextPage;    // set the current page to the loaded one
+			var page = PageData;    // alias
+			var vm = page.ViewModel;
+			if (vm == null)
+				return;
+			var genType = ToDirection(vm.GenDirection);
 
 			// Init mini plots
 			QaLibrary.InitMiniFftPlot(fftPlot, 10, 100000, -150, 20);
 			QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -1, 1);
 
-			double testFreq = MathUtil.ToDouble(msr.TestFreq, 1000);
-			double testFrequency = QaLibrary.GetNearestBinFrequency(testFreq, msr.SampleRateVal, msr.FftSizeVal);
+			double testFreq = MathUtil.ToDouble(vm.TestFreq, 1000);
+			double testFrequency = QaLibrary.GetNearestBinFrequency(testFreq, vm.SampleRateVal, vm.FftSizeVal);
 
 			await showMessage("Calculating DUT gain");
 			LRGains = await DetermineGainAtFreq(testFrequency, true, 2);
 			if (LRGains == null)
-				return false;
+				return;
 
 			// ********************************************************************
 			// Determine voltage sequences
 			// ********************************************************************
 			// specified voltages boundaries
-			var startV = MathUtil.ToDouble(msr.StartVoltage, 1);
-			var endV = MathUtil.ToDouble(msr.EndVoltage, 1);
-			var stepVoltages = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(startV, endV, msr.StepsOctave);
+			var startV = MathUtil.ToDouble(vm.StartVoltage, 1);
+			var endV = MathUtil.ToDouble(vm.EndVoltage, 1);
+			var stepVoltages = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(startV, endV, vm.StepsOctave);
 			// now convert all of the step voltages to input voltages
 			var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
-			var stepInVoltages = stepVoltages.Select(x => msr.ToGenVoltage(x.ToString(), [], GEN_INPUT, gains)).ToArray();
+			var stepInVoltages = stepVoltages.Select(x => vm.ToGenVoltage(x.ToString(), [], GEN_INPUT, gains)).ToArray();
 			// get output values for left and right so we can attenuate
 			var stepOutLVoltages = stepInVoltages.Select(x => ToGenOutVolts(x, [], LRGains.Left)).ToArray();
 			var stepOutRVoltages = stepInVoltages.Select(x => ToGenOutVolts(x, [], LRGains.Right)).ToArray();
 
 			if (ct.IsCancellationRequested)
-				return false;
+				return;
 
 			// ********************************************************************
 			// Do noise floor measurement
 			// ********************************************************************
-			if (true != await QaComm.InitializeDevice(msr.SampleRateVal, msr.FftSizeVal, msr.WindowingMethod, 12))
+			if (true != await QaComm.InitializeDevice(vm.SampleRateVal, vm.FftSizeVal, vm.WindowingMethod, 12))
 			{
-				return false;
+				return;
 			}
 
-			MeasurementResult.NoiseFloor = await MeasureNoise(ct);
-			if (ct.IsCancellationRequested || MeasurementResult.NoiseFloor == null)
-				return false;
+			// ********************************************************************
+			// Do noise floor measurement
+			// ********************************************************************
+			var noisy = await MeasureNoise(ct.Token);
+			if (ct.IsCancellationRequested)
+				return;
+			page.NoiseFloor = new LeftRightPair();
+			page.NoiseFloor.Right = QaCompute.CalculateNoise(noisy.FreqRslt, true);
+			page.NoiseFloor.Left = QaCompute.CalculateNoise(noisy.FreqRslt, false);
 
-			QaLibrary.PlotMiniFftGraph(fftPlot, MeasurementResult.NoiseFloor.FreqRslt, msr.ShowLeft, msr.ShowRight);
-			QaLibrary.PlotMiniTimeGraph(timePlot, MeasurementResult.NoiseFloor.TimeRslt, testFrequency, msr.ShowLeft, msr.ShowRight);
+			if (ct.IsCancellationRequested)
+				return;
 
-			var binSize = QaLibrary.CalcBinSize(msr.SampleRateVal, msr.FftSizeVal);
-			uint fundamentalBin = QaLibrary.GetBinOfFrequency(testFrequency, binSize);
-			await QaComm.SetOutputSource(OutputSources.Sine);                // We need to call this before all the testing
+			QaLibrary.PlotMiniFftGraph(fftPlot, noisy.FreqRslt, vm.ShowLeft, vm.ShowRight);
+			QaLibrary.PlotMiniTimeGraph(timePlot, noisy.TimeRslt, testFrequency, vm.ShowLeft, vm.ShowRight);
 
 			// ********************************************************************
 			// Step through the list of voltages
@@ -295,57 +366,47 @@ namespace QA40xPlot.Actions
 
 				// Convert generator voltage from V to dBV
 				var generatorVoltageV = stepInVoltages[i];
+				page.Definition.GeneratorVoltage = generatorVoltageV;
 
 				// Set generator
-				WaveGenerator.SetGen1(testFrequency, generatorVoltageV, true);      // Set the generator in dBV
 				await QaComm.SetInputRange(attenuate);
-				thdaVm.Attenuation = attenuate;	// update the GUI
+				thdAmp.Attenuation = attenuate;	// update the GUI
+				vm.Attenuation = attenuate; // update the model data
 
 				LeftRightSeries? lrfs = null;
-				do
+				try
 				{
-					try
-					{
-						lrfs = await QaComm.DoAcquisitions(msr.Averages, ct);  // Do acquisitions
-					}
-					catch (HttpRequestException ex)
-					{
-						if (ex.Message.Contains("400 (Acquisition Overload)"))
-						{
-							await showMessage(ex.Message.ToString());
-						}
-						else
-						{
-							await showMessage(ex.Message.ToString());
-						}
-						break;
-					}
-					catch (Exception ex2)
-					{
-						await showMessage(ex2.Message.ToString());
-						break;
-					}
-					if (ct.IsCancellationRequested)
-						break;
-				} while (lrfs == null);     // Loop until we have an acquisition result
-
-				if (lrfs == null || lrfs.FreqRslt == null || MeasurementResult.NoiseFloor?.FreqRslt == null)
-					break;
-
-				if (fundamentalBin >= lrfs.FreqRslt.Left.Length)                   // Check if bin within array bounds
-					break;
-
-				ThdAmplitudeStep step = new()
+					var wave = BuildWave(page, testFrequency);   // also update the waveform variables
+					lrfs = await QaComm.DoAcquireUser(vm.Averages, ct.Token, wave, wave, true);
+				}
+				catch (HttpRequestException ex)
 				{
-					FundamentalFrequency = testFrequency,
-					GeneratorVoltage = generatorVoltageV,
-					fftData = lrfs.FreqRslt,
-					timeData = lrfs.TimeRslt
-				};
+					if (ex.Message.Contains("400 (Acquisition Overload)"))
+					{
+						await showMessage(ex.Message.ToString());
+					}
+					else
+					{
+						await showMessage(ex.Message.ToString());
+					}
+					break;
+				}
+				catch (Exception ex2)
+				{
+					await showMessage(ex2.Message.ToString());
+					break;
+				}
+				if (ct.IsCancellationRequested)
+					break;
+				page.TimeRslt = lrfs.TimeRslt ?? new();
+				page.FreqRslt = lrfs.FreqRslt;
+
+				if (page.TimeRslt.Left.Length == 0 || lrfs.FreqRslt == null )               // Check in bin within range
+					break;
 
 				// Plot the mini graphs
-				QaLibrary.PlotMiniFftGraph(fftPlot, lrfs.FreqRslt, msr.ShowLeft, msr.ShowRight);
-				QaLibrary.PlotMiniTimeGraph(timePlot, lrfs.TimeRslt, step.FundamentalFrequency, msr.ShowLeft, msr.ShowRight);
+				QaLibrary.PlotMiniFftGraph(fftPlot, lrfs.FreqRslt, vm.ShowLeft, vm.ShowRight);
+				QaLibrary.PlotMiniTimeGraph(timePlot, lrfs.TimeRslt, testFrequency, vm.ShowLeft, vm.ShowRight);
 
 				// Check if cancel button pressed
 				if (ct.IsCancellationRequested)
@@ -353,17 +414,12 @@ namespace QA40xPlot.Actions
 					break;
 				}
 
-				step.Left = ChannelCalculations(binSize, step.FundamentalFrequency, generatorVoltageV, 
-					lrfs.FreqRslt.Left, MeasurementResult.NoiseFloor.FreqRslt.Left, ViewSettings.AmplifierLoad);
-				step.Right = ChannelCalculations(binSize, step.FundamentalFrequency, generatorVoltageV, 
-					lrfs.FreqRslt.Right, MeasurementResult.NoiseFloor.FreqRslt.Right, ViewSettings.AmplifierLoad);
-				step.Left.TotalNoiseFloor_V = QaCompute.CalculateNoise(MeasurementResult.NoiseFloor.FreqRslt, true);
-				step.Right.TotalNoiseFloor_V = QaCompute.CalculateNoise(MeasurementResult.NoiseFloor.FreqRslt, false);
+				var work = CalculateColumn(page, testFrequency, generatorVoltageV, ct.Token); // do the math for the columns
+				if (work.Item1 != null && work.Item2 != null)
+					AddColumn(page, generatorVoltageV, work.Item1, work.Item2);
 
-				// Add step data to list
-				MeasurementResult.AmplitudeSteps.Add(step);
-				AddColumn(generatorVoltageV, step);
-
+				MyVModel.LinkAbout(PageData.Definition);
+				RawToThdColumns(page);
 				UpdateGraph(false);
 
 				// Check if cancel button pressed
@@ -375,106 +431,27 @@ namespace QA40xPlot.Actions
 				// Get maximum signal for attenuation prediction of next step
 				//prevInputAmplitudedBV = 20 * Math.Log10(lrfs.FreqRslt.Left.Max());
 				//prevInputAmplitudedBV = Math.Max(prevInputAmplitudedBV, 20 * Math.Log10(lrfs.FreqRslt.Left.Max()));
-				if (!msr.IsTracking)
+				if (!vm.IsTracking)
 				{
-					msr.RaiseMouseTracked("track");
+					vm.RaiseMouseTracked("track");
 				}
 
 			}
 
-			await EndAction();
+			PageData.TimeRslt = new();
+			PageData.FreqRslt = null;
 
 			// Show message
 			await showMessage(ct.IsCancellationRequested ? $"Measurement cancelled!" : $"Measurement finished!");
 
-			return true;
+			await showMessage("Finished");
 		}
-
 
 		private double SafeLog(double? din)
 		{
 			if (din == null || din == 0)
 				return -9;
 			return Math.Log10((double)din);
-		}
-
-		private ThdFrequencyStepChannel ChannelCalculations(double binSize, double fundamentalFrequency, double generatorAmplitudeV, double[] fftData, double[] noiseFloorFftData, double load)
-		{
-			uint fundamentalBin = QaLibrary.GetBinOfFrequency(fundamentalFrequency, binSize);
-			int binmin = (int)Math.Max(0, fundamentalBin - 2);
-			int bintrack = (int)(Math.Min(fftData.Length, fundamentalBin + 2) - binmin);
-
-			// the amplitude is max of a small area
-			var fftVal = fftData.Skip(binmin).Take(bintrack).Max();
-
-			// Get and store step data
-			ThdFrequencyStepChannel channelData = new()
-			{
-				Fundamental_V = fftVal,
-				Fundamental_dBV = QaLibrary.ConvertVoltage(fftVal, E_VoltageUnit.Volt, E_VoltageUnit.dBV),
-				Gain_dB = QaLibrary.ConvertVoltage((fftVal / generatorAmplitudeV), E_VoltageUnit.Volt, E_VoltageUnit.dBV)
-			};
-
-			// Reset harmonic distortion variables
-			double distortionSqrtTotal = 0;
-			double distiortionD6plus = 0;
-
-			// Loop through harmonics up to the 12th
-			for (int h = 2; h <= 12; h++)
-			{
-				var harmonicFrequency = fundamentalFrequency * h;
-				uint bin = QaLibrary.GetBinOfFrequency(harmonicFrequency, binSize);
-
-				if (bin >= fftData.Length)
-					break;
-
-				HarmonicData harmonic = new()
-				{
-					HarmonicNr = h,
-					Frequency = harmonicFrequency,
-				};
-				if( bin < fftData.Length)
-				{
-					harmonic.Amplitude_V = fftData[bin];
-					harmonic.NoiseAmplitude_V = noiseFloorFftData[bin];
-					harmonic.Amplitude_dBV = 20 * Math.Log10(fftData[bin]);
-					harmonic.Thd_Percent = (fftData[bin] / channelData.Fundamental_V) * 100;
-					harmonic.Thd_dB = 20 * Math.Log10(fftData[bin] / channelData.Fundamental_V);
-				}
-				else
-				{
-					harmonic.Amplitude_V = 0;
-					harmonic.NoiseAmplitude_V = 0;
-					harmonic.Amplitude_dBV = -180;
-					harmonic.Thd_Percent = 0;
-					harmonic.Thd_dB = -180;
-				}
-
-				if (h >= 6)
-					distiortionD6plus += Math.Pow(harmonic.Amplitude_V, 2);
-
-				distortionSqrtTotal += Math.Pow(harmonic.Amplitude_V, 2);
-				channelData.Harmonics.Add(harmonic);
-			}
-
-			// Calculate THD of current step
-			channelData.Thd_Percent = (Math.Sqrt(distortionSqrtTotal) / channelData.Fundamental_V) * 100;
-			channelData.Thd_dB = 20 * SafeLog(channelData.Thd_Percent / 100.0);
-
-			// Calculate D6+ (D6 - D12)
-			if (distiortionD6plus != 0)
-			{
-				channelData.D6Plus_dBV = 20 * SafeLog(Math.Sqrt(distiortionD6plus));
-				channelData.ThdPercent_D6plus = Math.Sqrt(distiortionD6plus / Math.Pow(channelData.Fundamental_V, 2)) * 100;
-				channelData.ThdDbD6plus = 20 * SafeLog(channelData.ThdPercent_D6plus / 100.0);
-			}
-
-			// If load not zero then calculate load power
-			if (load == 0)
-				load = 8;
-			channelData.Power_Watt = Math.Pow(channelData.Fundamental_V, 2) / load;
-
-			return channelData;
 		}
 
 		/// <summary>
@@ -509,46 +486,135 @@ namespace QA40xPlot.Actions
 		}
 
 		/// <summary>
+		/// do post processing, just a bunch of easy math and moving stuff into viewmodels
+		/// </summary>
+		/// <param name="ct">Cancellation token</param>
+		/// <returns>result. false if cancelled</returns>
+		private async Task<bool> PostProcess(MyDataTab msr, CancellationToken ct)
+		{
+			await Task.Delay(1); // allow the UI to update
+			return true;
+		}
+
+		/// <summary>
+		/// do post processing, just a bunch of easy math and moving stuff into viewmodels
+		/// </summary>
+		/// <param name="ct">Cancellation token</param>
+		/// <returns>result. false if cancelled</returns>
+		private (ThdColumn?, ThdColumn?) CalculateColumn(MyDataTab msr, double dFreq, double dVolts, CancellationToken ct)
+		{
+			if (msr.FreqRslt == null)
+			{
+				return (null, null);
+			}
+
+			// left and right channels summary info to fill in
+			var left = new ThdColumn();
+			var right = new ThdColumn();
+			ThdColumn[] steps = [left, right];
+			ThdAmpViewModel vm = msr.ViewModel;
+
+			var lrfs = msr.FreqRslt;    // frequency response
+
+			var maxf = msr.FreqRslt.Df * msr.FreqRslt.Left.Length;
+			//LeftRightPair snrdb = QaCompute.GetSnrDb(lrfs, dFreq, 20.0, maxf);
+			LeftRightPair thds = QaCompute.GetThdDb(lrfs, dFreq, 20.0, Math.Min(20000, maxf));
+			//LeftRightPair thdN = QaCompute.GetThdnDb(lrfs, dFreq, 20.0, maxf);
+
+			var frq = msr.FreqRslt.Left;    // start with left
+			foreach (var step in steps)
+			{
+				step.GenVolts = dVolts;
+				step.Freq = dFreq;
+				step.Mag = QaMath.MagAtFreq(frq, msr.FreqRslt.Df, dFreq);
+				step.D2 = (maxf > (2 * dFreq)) ? QaMath.MagAtFreq(frq, msr.FreqRslt.Df, 2 * dFreq) : 1e-10;
+				step.D3 = (maxf > (3 * dFreq)) ? QaMath.MagAtFreq(frq, msr.FreqRslt.Df, 3 * dFreq) : step.D2;
+				step.D4 = (maxf > (4 * dFreq)) ? QaMath.MagAtFreq(frq, msr.FreqRslt.Df, 4 * dFreq) : step.D3;
+				step.D5 = (maxf > (5 * dFreq)) ? QaMath.MagAtFreq(frq, msr.FreqRslt.Df, 5 * dFreq) : step.D4;
+				step.D6P = 0;
+				if (maxf > (6 * dFreq))
+				{
+					for (int i = 6; i < 12; i++)
+					{
+						step.D6P += (maxf > (i * dFreq)) ? QaMath.MagAtFreq(frq, msr.FreqRslt.Df, i * dFreq) : 0;
+					}
+				}
+				else
+				{
+					step.D6P = step.D5;
+				}
+				frq = msr.FreqRslt.Right;   // now right
+			}
+			left.THD = left.Mag * Math.Pow(10, thds.Left / 20); // in volts from dB relative to mag
+			right.THD = right.Mag * Math.Pow(10, thds.Right / 20); ;
+			left.Noise = Math.Max(1e-10, msr.NoiseFloor.Left);
+			right.Noise = Math.Max(1e-10, msr.NoiseFloor.Right);
+
+			return (left, right);
+		}
+
+
+		private double ToD(string stri)
+		{
+			return MathUtil.ToDouble(stri);
+		}
+
+		/// <summary>
 		/// Initialize the THD % plot
 		/// </summary>
-		void InitializeThdPlot()
+		void InitializeThdPlot(string plotFormat = "%")
 		{
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;
-			PlotUtil.InitializePctAmpPlot(myPlot);
-			var thdAmp = MyVModel;
-			myPlot.Axes.SetLimits(Math.Log10(MathUtil.ToDouble(thdAmp.GraphStartVolts)), Math.Log10(MathUtil.ToDouble(thdAmp.GraphEndVolts)),
-				Math.Log10(MathUtil.ToDouble(thdAmp.RangeBottom)), Math.Log10(MathUtil.ToDouble(thdAmp.RangeTop)));
+			PlotUtil.InitializeMagAmpPlot(myPlot, plotFormat);
+
+			var thdFreq = MyVModel;
+			myPlot.Axes.SetLimits(Math.Log10(ToD(thdFreq.GraphStartVolts)), Math.Log10(ToD(thdFreq.GraphEndVolts)),
+				Math.Log10(ToD(thdFreq.RangeBottom)), Math.Log10(ToD(thdFreq.RangeTop)));
 			SetPlotLabels();
-			myPlot.YLabel("Distortion (%)");
+			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
 			thdPlot.Refresh();
 		}
 
 		/// <summary>
 		/// Initialize the THD magnitude (dB) plot
 		/// </summary>
-		void InitializeMagnitudePlot()
+		void InitializeMagnitudePlot(string plotFormat = "dBV")
 		{
+			var thdFreq = MyVModel;
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;
-			PlotUtil.InitializeMagAmpPlot(myPlot);
-			var thdAmp = MyVModel;
-			myPlot.Axes.SetLimits(Math.Log10(MathUtil.ToDouble(thdAmp.GraphStartVolts)), Math.Log10(MathUtil.ToDouble(thdAmp.GraphEndVolts)),
-				MathUtil.ToDouble(thdAmp.RangeBottomdB), MathUtil.ToDouble(thdAmp.RangeTopdB));
+			PlotUtil.InitializeMagAmpPlot(myPlot, plotFormat);
+
+			myPlot.Axes.SetLimits(Math.Log10(ToD(thdFreq.GraphStartVolts)), Math.Log10(ToD(thdFreq.GraphEndVolts)),
+				ToD(thdFreq.RangeBottomdB), ToD(thdFreq.RangeTopdB));
 			SetPlotLabels();
-			myPlot.YLabel("Distortion (dB)");
+			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
 			thdPlot.Refresh();
 		}
 
+		// this always uses the 'global' format so others work too
+		private double FormVal(double d1, double dMax)
+		{
+			var x = GraphUtil.ReformatValue(MyVModel.PlotFormat, d1, dMax);
+			return GraphUtil.IsPlotFormatLog(MyVModel.PlotFormat) ? x : Math.Log10(x);
+		}
 
 		/// <summary>
 		/// Plot the  THD magnitude (dB) data
 		/// </summary>
 		/// <param name="data">The data to plot</param>
-		private void PlotValues(ThdAmplitudeMeasurementResult measurementResult, int measurementNr, bool showLeftChannel, bool showRightChannel)
+		private void PlotValues(MyDataTab page, int measurementNr, bool isMain)
 		{
-			if (!showLeftChannel && !showRightChannel)
+			var thdAmp = MyVModel;
+			ThdColumn[] leftCol = page.GetProperty("Left") as ThdColumn[] ?? [];
+			ThdColumn[] rightCol = page.GetProperty("Right") as ThdColumn[] ?? [];
+			if (leftCol.Length == 0)
 				return;
 
-			var thdAmp = MyVModel;
+			var showLeft = isMain ? thdAmp.ShowLeft : thdAmp.ShowOtherLeft;
+			var showRight = isMain ? thdAmp.ShowRight : thdAmp.ShowOtherRight;
+			if (!showLeft && !showRight)
+				return;
+
 			float lineWidth = thdAmp.ShowThickLines ? 1.6f : 1;
 			float markerSize = thdAmp.ShowPoints ? lineWidth + 3 : 1;
 
@@ -558,17 +624,10 @@ namespace QA40xPlot.Actions
 			// here Y values are in dBV
 			void AddPlot(double[] xValues, List<double> yValues, int colorIndex, string legendText, LinePattern linePattern)
 			{
+				var u = measurementNr;
 				if (yValues.Count == 0) return;
 				Scatter? plot = null;
-				if( thdAmp.ShowPercent)
-				{
-					var vals = yValues.Select(x => 2 + x / 20).ToArray();		// convert to volts then 100 then back to log10
-					plot = thdPlot.ThePlot.Add.Scatter(xValues, vals);
-				}
-				else
-				{
-					plot = thdPlot.ThePlot.Add.Scatter(xValues, yValues.ToArray());
-				}
+				plot = thdPlot.ThePlot.Add.Scatter(xValues, yValues.ToArray());
 				plot.LineWidth = lineWidth;
 				plot.Color = colors.GetColor(colorIndex, color);
 				plot.MarkerSize = markerSize;
@@ -577,23 +636,24 @@ namespace QA40xPlot.Actions
 			}
 
 			// which columns are we displaying? left, right or both
-			List<ThdColumn>[] columns;
-			if(showLeftChannel && showRightChannel)
+			// which columns are we displaying? left, right or both
+			List<ThdColumn[]> columns;
+			if (showLeft && showRight)
 			{
-				columns = [MeasurementResult.LeftColumns, MeasurementResult.RightColumns];
+				columns = [leftCol, rightCol];
 			}
-			else if(!showRightChannel)
+			else if (!showRight)
 			{
-				columns = [MeasurementResult.LeftColumns];
+				columns = [leftCol];
 			}
 			else
 			{
-				columns = [MeasurementResult.RightColumns];
+				columns = [rightCol];
 			}
 
 			string suffix = string.Empty;
-			var lp = LinePattern.Solid;
-			if (showRightChannel && showLeftChannel)
+			var lp = isMain ? LinePattern.Solid : LinePattern.Dashed;
+			if (showRight && showLeft)
 				suffix = "-L";
 
 			// copy the vector of columns into vectors of values
@@ -615,74 +675,59 @@ namespace QA40xPlot.Actions
 				}
 				amps = amps.Select(x => Math.Log10(x)).ToArray();
 				if (thdAmp.ShowMagnitude)
-					AddPlot(amps, col.Select(x => x.Mag).ToList(), 9, "Mag" + suffix, LinePattern.DenselyDashed);
+					AddPlot(amps, col.Select(x => FormVal(x.Mag, x.Mag)).ToList(), 9, "Mag" + suffix, LinePattern.DenselyDashed);
 				if (thdAmp.ShowTHD)
-					AddPlot(amps, col.Select(x => x.THD).ToList(), 8, "THD" + suffix, lp);
+					AddPlot(amps, col.Select(x => FormVal(x.THD, x.Mag)).ToList(), 8, "THD" + suffix, lp);
 				if (thdAmp.ShowD2)
-					AddPlot(amps, col.Select(x => x.D2).ToList(), 0, "D2" + suffix, lp);
+					AddPlot(amps, col.Select(x => FormVal(x.D2, x.Mag)).ToList(), 0, "D2" + suffix, lp);
 				if (thdAmp.ShowD3)
-					AddPlot(amps, col.Select(x => x.D3).ToList(), 1, "D3" + suffix, lp);
+					AddPlot(amps, col.Select(x => FormVal(x.D3, x.Mag)).ToList(), 1, "D3" + suffix, lp);
 				if (thdAmp.ShowD4)
-					AddPlot(amps, col.Select(x => x.D4).ToList(), 2, "D4" + suffix, lp);
+					AddPlot(amps, col.Select(x => FormVal(x.D4, x.Mag)).ToList(), 2, "D4" + suffix, lp);
 				if (thdAmp.ShowD5)
-					AddPlot(amps, col.Select(x => x.D5).ToList(), 3, "D5" + suffix, lp);
+					AddPlot(amps, col.Select(x => FormVal(x.D5, x.Mag)).ToList(), 3, "D5" + suffix, lp);
 				if (thdAmp.ShowD6)
-					AddPlot(amps, col.Select(x => x.D6P).ToList(), 3, "D6+" + suffix, lp);
+					AddPlot(amps, col.Select(x => FormVal(x.D6P, x.Mag)).ToList(), 3, "D6+" + suffix, lp);
 				if (thdAmp.ShowNoiseFloor)
-					AddPlot(amps, col.Select(x => x.Noise).ToList(), 3, "Noise" + suffix, LinePattern.Dotted);
-				suffix = "-R";			// second pass iff there are both channels
-				lp = LinePattern.DenselyDashed;
+					AddPlot(amps, col.Select(x => FormVal(x.Noise, x.Mag)).ToList(), 3, "Noise" + suffix, LinePattern.Dotted);
+				suffix = "-R";          // second pass iff there are both channels
+				lp = isMain ? LinePattern.DenselyDashed : LinePattern.Dotted;
 			}
 
 			thdPlot.Refresh();
-		}
-
-		/// <summary>
-		/// Start measurement button clicked
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
-		public async Task StartMeasurement()
-		{
-			var thdAmp = MyVModel;
-			if (!await StartAction(thdAmp))
-				return;
-
-			ct = new();
-			await PerformMeasurementSteps(ct.Token);
-			await showMessage("Finished");
-			thdAmp.IsRunning = false;
 		}
 
 
 		public void UpdateGraph(bool settingsChanged)
 		{
 			thdPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
-			var thdAmp = MyVModel;
 			int resultNr = 0;
+			ThdAmpViewModel thd = MyVModel;
 
-			if (!thdAmp.ShowPercent)
+			if (GraphUtil.IsPlotFormatLog(thd.PlotFormat))
 			{
 				if (settingsChanged)
 				{
-					InitializeMagnitudePlot();
-				}
-
-				foreach (var result in Data.Measurements.Where(m => m.Show))
-				{
-					PlotValues(result, resultNr++, thdAmp.ShowLeft, thdAmp.ShowRight);
+					InitializeMagnitudePlot(thd.PlotFormat);
 				}
 			}
 			else
 			{
 				if (settingsChanged)
 				{
-					InitializeThdPlot();
+					InitializeThdPlot(thd.PlotFormat);
 				}
-
-				foreach (var result in Data.Measurements.Where(m => m.Show))
+			}
+			PlotValues(PageData, resultNr++, true);
+			if (thd.ShowOtherLeft || thd.ShowOtherRight)
+			{
+				if (OtherTabs.Count > 0)
 				{
-					PlotValues(result, resultNr++, thdAmp.ShowLeft, thdAmp.ShowRight);
+					foreach (var other in OtherTabs)
+					{
+						if (other != null)
+							PlotValues(other, resultNr++, false);
+					}
 				}
 			}
 		}

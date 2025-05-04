@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using System.Windows;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
 
 namespace QA40xPlot.ViewModels
 {
@@ -15,6 +16,7 @@ namespace QA40xPlot.ViewModels
 		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 		public static List<String> StartVoltages { get => new List<string> { "0.0001", "0.0002", "0.0005", "0.001", "0.002", "0.005", "0.01", "0.02", "0.05", "0.1", "0.2", "0.5" }; }
 		public static List<String> EndVoltages { get => new List<string> { "1", "2", "5", "10", "20", "50", "100", "200" }; }
+		private static ThdAmpViewModel MyVModel { get => ViewSettings.Singleton.ThdAmp; }
 
 		private ActThdAmplitude actThd { get; set; }
 		private PlotControl actPlot {  get; set; }
@@ -25,6 +27,12 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand DoStop { get => new RelayCommand(StopIt); }
 		[JsonIgnore]
 		public RelayCommand<object> DoFitToData { get => new RelayCommand<object>(OnFitToData); }
+		[JsonIgnore]
+		public AsyncRelayCommand DoLoadTab { get => new AsyncRelayCommand(LoadItTab); }
+		[JsonIgnore]
+		public AsyncRelayCommand DoGetTab { get => new AsyncRelayCommand(GetItTab); }
+		[JsonIgnore]
+		public RelayCommand DoSaveTab { get => new RelayCommand(SaveItTab); }
 
 		#region Setters and Getters
 		private string _StartVoltage = string.Empty;         // type of alert
@@ -182,19 +190,14 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
-				case "GenDirection":
-					//UpdateGeneratorParameters();
+				case "PlotFormat":
+					// we may need to change the axis
+					ToShowRange = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Collapsed : Visibility.Visible;
+					ToShowdB = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Visible : Visibility.Collapsed;
+					OnPropertyChanged("GraphUnit");
 					actThd?.UpdateGraph(true);
 					break;
-				case "StartVoltage":
-					//actThd?.UpdateStartVoltageDisplay();
-					break;
-				case "EndVoltage":
-					//actThd?.UpdateEndVoltageDisplay();
-					break;
-				case "ShowPercent":
-					ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
-					ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;
+				case "GenDirection":
 					actThd?.UpdateGraph(true);
 					break;
 				case "XAxisType":
@@ -206,8 +209,14 @@ namespace QA40xPlot.ViewModels
 				case "RangeTop":
 					actThd?.UpdateGraph(true);
 					break;
+				case "ShowOtherLeft":
+				case "ShowOtherRight":
 				case "ShowRight":
 				case "ShowLeft":
+				case "ShowTabInfo":
+					ShowInfos();
+					actThd?.UpdateGraph(false);
+					break;
 				case "ShowTHD":
 				case "ShowMagnitude":
 				case "ShowD2":
@@ -229,7 +238,7 @@ namespace QA40xPlot.ViewModels
 		{
 			// Implement the logic to start the measurement process
 			var vm = ViewSettings.Singleton.ThdAmp;
-			vm.actThd?.StartMeasurement();
+			vm.actThd?.DoMeasurement();
 		}
 
 		private static void StopIt()
@@ -238,12 +247,83 @@ namespace QA40xPlot.ViewModels
 			vm.actThd?.DoCancel();
 		}
 
-		public void SetAction(PlotControl plot, PlotControl plot1, PlotControl plot2)
+		private void ShowInfos()
+		{
+			if (actAbout != null)
+				actAbout.Visibility = ShowTabInfo ? Visibility.Visible : Visibility.Hidden;
+		}
+
+		public void SetAction(PlotControl plot, PlotControl plot1, PlotControl plot2, TabAbout tAbout)
 		{
 			ThdAmplitudeData data = new ThdAmplitudeData();
 			actThd = new ActThdAmplitude(ref data, plot, plot1, plot2);
 			SetupMainPlot(plot);
 			actPlot = plot;
+			actAbout = tAbout;
+			MyVModel.LinkAbout(actThd.PageData.Definition);
+		}
+
+		private static async Task DoGetLoad(bool isLoad)
+		{
+			OpenFileDialog openFileDialog = new OpenFileDialog
+			{
+				FileName = string.Empty, // Default file name
+				DefaultExt = ".zip", // Default file extension
+				Filter = PlotFileFilter // Filter files by extension
+			};
+
+			// Show save file dialog box
+			bool? result = openFileDialog.ShowDialog();
+
+			// Process save file dialog box results
+			if (result == true)
+			{
+				// open document
+				string filename = openFileDialog.FileName;
+				await MyVModel.actThd.LoadFromFile(filename, isLoad);
+			}
+		}
+
+		private static async Task LoadItTab()
+		{
+			await DoGetLoad(true);
+		}
+
+		private static async Task GetItTab()
+		{
+			await DoGetLoad(false);
+		}
+
+
+		private static string FileAddon()
+		{
+			DateTime now = DateTime.Now;
+			string formattedDate = $"{now:yyyy-MM-dd_HH-mm-ss}";
+			return formattedDate;
+		}
+
+		private void SaveItTab()
+		{
+			SaveFileDialog saveFileDialog = new SaveFileDialog
+			{
+				FileName = String.Format("QaTAmp{0}", FileAddon()), // Default file name
+				DefaultExt = ".plt", // Default file extension
+				Filter = PlotFileFilter // Filter files by extension
+			};
+
+			// Show save file dialog box
+			bool? result = saveFileDialog.ShowDialog();
+
+			// Process save file dialog box results
+			if (result == true)
+			{
+				// Save document
+				string filename = saveFileDialog.FileName;
+				if (filename.Count() > 1)
+				{
+					actThd.SaveToFile(filename);
+				}
+			}
 		}
 
 		private void OnFitToData(object? parameter)
@@ -270,7 +350,7 @@ namespace QA40xPlot.ViewModels
 				default:
 					break;
 			}
-			actThd?.UpdateGraph(false);
+			actThd?.UpdateGraph(true);
 		}
 
 
@@ -282,42 +362,33 @@ namespace QA40xPlot.ViewModels
 			thdAmpVm.DoMouse(sender, e);
 		}
 
-		private string FormatValue(double value)
+		// this always uses the 'global' format so others work too
+		private static string FormatValue(double d1, double dMax)
 		{
-			if( ! ShowPercent)
-				return MathUtil.FormatLogger(value) + " dB";
-			return MathUtil.FormatPercent(Math.Pow(10,value/20 + 2)) + " %";
+			var vm = MyVModel;
+			var x = GraphUtil.ReformatValue(vm.PlotFormat, d1, dMax);
+			return GraphUtil.PrettyPrint(x, vm.PlotFormat);
 		}
 
-		private string FormatColumn( ThdColumn column )
-		{
-			var vm = ViewSettings.Singleton.ThdAmp;
-			string sout = "Mag: ";
-			if (ShowPercent)
-			{
-				var MagValue = Math.Pow(10, column.Mag / 20);
-				sout += MathUtil.FormatVoltage(MagValue);
-			}
-			else
-			{
-				sout += MathUtil.FormatLogger(column.Mag) + " dBV";
-			}
-			sout += Environment.NewLine;
 
-			if( vm.ShowTHD)
-				sout += "THD: " + FormatValue(column.THD) + Environment.NewLine;
+		private static string FormatCursor(ThdColumn column)
+		{
+			var vm = MyVModel;
+			string sout = "Mag: " + FormatValue(column.Mag, column.Mag) + Environment.NewLine;
+			if (vm.ShowTHD)
+				sout += "THD: " + FormatValue(column.THD, column.Mag) + Environment.NewLine;
 			if (vm.ShowNoiseFloor)
-				sout += "Noise: " + FormatValue(column.Noise) + Environment.NewLine;
+				sout += "Noise: " + FormatValue(column.Noise, column.Mag) + Environment.NewLine;
 			if (vm.ShowD2)
-				sout += "D2: " + FormatValue(column.D2) + Environment.NewLine;
+				sout += "D2: " + FormatValue(column.D2, column.Mag) + Environment.NewLine;
 			if (vm.ShowD3)
-				sout += "D3: " + FormatValue(column.D3) + Environment.NewLine;
+				sout += "D3: " + FormatValue(column.D3, column.Mag) + Environment.NewLine;
 			if (vm.ShowD4)
-				sout += "D4: " + FormatValue(column.D4) + Environment.NewLine;
+				sout += "D4: " + FormatValue(column.D4, column.Mag) + Environment.NewLine;
 			if (vm.ShowD5)
-				sout += "D5: " + FormatValue(column.D5) + Environment.NewLine;
+				sout += "D5: " + FormatValue(column.D5, column.Mag) + Environment.NewLine;
 			if (vm.ShowD6)
-				sout += "D6+: " + FormatValue(column.D6P) + Environment.NewLine;
+				sout += "D6+: " + FormatValue(column.D6P, column.Mag) + Environment.NewLine;
 			return sout;
 		}
 
@@ -330,22 +401,24 @@ namespace QA40xPlot.ViewModels
 				var cord = ConvertScottCoords(actPlot, p.X, p.Y);
 				FreqValue = Math.Pow(10, cord.Item1); // amplitude actually
 			}
-			var zv = actThd.LookupX(FreqValue);
+
 			ZValue = string.Empty;
-			if( zv.Item1 != null )
+			var zv = actThd.LookupX(FreqValue);
+			if (zv.Length > 0)
 			{
-				FreqShow = MathUtil.FormatVoltage(zv.Item1.GenVolts) + " -> " + MathUtil.FormatVoltage(zv.Item1.Mag);
-				if (zv.Item2 != null)
-					ZValue += "Left: " + Environment.NewLine;
-				ZValue += FormatColumn( zv.Item1 );
+				FreqShow = MathUtil.FormatLogger(zv[0].Freq);
+				foreach (var item in zv)
+				{
+					if (item != null)
+					{
+						ZValue += FormatCursor(item);
+						ZValue += "------------" + Environment.NewLine;
+					}
+				}
 			}
-			if (zv.Item2 != null)
+			else
 			{
-				if (zv.Item1 == null)
-					FreqShow = MathUtil.FormatVoltage(zv.Item2.GenVolts) + " -> " + MathUtil.FormatVoltage(zv.Item2.Mag);
-				else
-					ZValue += "Right: " + Environment.NewLine;
-				ZValue += FormatColumn(zv.Item2);
+				FreqShow = "";
 			}
 		}
 

@@ -61,7 +61,7 @@ namespace QA40xPlot.Actions
 
 		private double[] ColumnToArray(ThdColumn col)
 		{
-			return new double[] { col.Freq, col.Mag, col.THD, col.Noise, col.D2, col.D3, col.D4, col.D5, col.D6P };
+			return new double[] { col.Freq, col.Mag, col.THD, col.Noise, col.D2, col.D3, col.D4, col.D5, col.D6P, col.GenVolts };
 		}
 
 		private ThdColumn ArrayToColumn(double[] rawData, uint startIdx)
@@ -76,6 +76,7 @@ namespace QA40xPlot.Actions
 			col.D4 = rawData[startIdx + 6];
 			col.D5 = rawData[startIdx + 7];
 			col.D6P = rawData[startIdx + 8];
+			col.GenVolts = rawData[startIdx + 9];
 			return col;
 		}
 
@@ -84,7 +85,7 @@ namespace QA40xPlot.Actions
 			if (raw.Length == 0)
 				return [];
 			List<ThdColumn> left = new();
-			for (int i = 0; i < raw.Length; i += 9)
+			for (int i = 0; i < raw.Length; i += 10)
 			{
 				var col = ArrayToColumn(raw, (uint)i);
 				left.Add(col);
@@ -155,10 +156,14 @@ namespace QA40xPlot.Actions
 			{
 				bin++;
 			}
-			ThdColumn mf1 = new ThdColumn();
-			ThdColumn mf2 = new ThdColumn();
-			mf1 = ((ThdColumn[])page.GetProperty("Left"))[bin];
-			mf2 = ((ThdColumn[])page.GetProperty("Right"))[bin];
+			ThdColumn? mf1 = new ThdColumn();
+			ThdColumn? mf2 = new ThdColumn();
+			var u = page.GetProperty("Left");
+			if(u != null)
+				mf1 = ((ThdColumn[])u)[bin];    // get the left channel
+			u = page.GetProperty("Right");
+			if (u != null)
+				mf2 = ((ThdColumn[])u)[bin];    // get the left channel
 			return (mf1, mf2);
 		}
 
@@ -261,13 +266,13 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		public async Task DoMeasurement()
 		{
-			var specVm = MyVModel;          // the active viewmodel
-			if (!await StartAction(specVm))
+			var freqVm = MyVModel;          // the active viewmodel
+			if (!await StartAction(freqVm))
 				return;
 
 			ct = new();
 			LeftRightTimeSeries lrts = new();
-			MyDataTab NextPage = new(specVm, lrts);
+			MyDataTab NextPage = new(freqVm, lrts);
 			PageData.Definition.CopyPropertiesTo(NextPage.Definition);
 			NextPage.Definition.CreateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 			PageData = NextPage;    // set the current page to the loaded one
@@ -401,10 +406,9 @@ namespace QA40xPlot.Actions
 			// Show message
 			await showMessage(ct.IsCancellationRequested ? $"Measurement cancelled!" : $"Measurement finished!");
 
-			await EndAction();
+			await EndAction(freqVm);
 
 			await showMessage("Finished");
-			MyVModel.IsRunning = false;
 		}
 
 		/// <summary>
@@ -457,8 +461,8 @@ namespace QA40xPlot.Actions
 			}
 			left.THD = left.Mag * Math.Pow(10,thds.Left/20);	// in volts from dB relative to mag
 			right.THD = right.Mag * Math.Pow(10, thds.Right / 20); ;
-			left.Noise = Math.Max(1e-10, PageData.NoiseFloor.Left);
-			right.Noise = Math.Max(1e-10, PageData.NoiseFloor.Right);
+			left.Noise = Math.Max(1e-10, msr.NoiseFloor.Left);
+			right.Noise = Math.Max(1e-10, msr.NoiseFloor.Right);
 
 			return (left, right);
 		}

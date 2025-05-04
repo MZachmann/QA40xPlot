@@ -542,10 +542,9 @@ namespace QA40xPlot.Actions
 				}
 			}
 
-			scopeVm.IsRunning = false;
 			await showMessage("");
-			MyVModel.HasExport = (PageData.TimeRslt.Left.Length > 0);
-			await EndAction();
+			scopeVm.HasExport = (PageData.TimeRslt.Left.Length > 0);
+			await EndAction(scopeVm);
 		}
         
         // show the latest step values in the table

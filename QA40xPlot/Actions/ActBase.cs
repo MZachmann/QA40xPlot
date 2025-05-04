@@ -1,10 +1,6 @@
-﻿using FftSharp;
-using QA40x_BareMetal;
-using QA40xPlot.BareMetal;
-using QA40xPlot.Data;
+﻿using QA40xPlot.BareMetal;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
-using QA40xPlot.Views;
 using System.Windows;
 
 namespace QA40xPlot.Actions
@@ -66,13 +62,15 @@ namespace QA40xPlot.Actions
 			return true;
 		}
 
-		public static async Task EndAction()
+		public static async Task EndAction(BaseViewModel bvm)
 		{
 			// Turn the generator off
 			await QaComm.SetOutputSource(OutputSources.Off);
 			await QaComm.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION);  // set max attenuation while idle...
 																	// detach from usb port
 			QaComm.Close(false);
+			bvm.IsRunning = false;
+
 		}
 
 		protected async Task showMessage(String msg, int delay = 0)
