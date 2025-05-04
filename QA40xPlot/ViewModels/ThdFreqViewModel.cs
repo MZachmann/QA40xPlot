@@ -234,8 +234,15 @@ namespace QA40xPlot.ViewModels
 				case "RangeTop":
 					actThd?.UpdateGraph(true);
 					break;
+				case "ShowOtherLeft":
+				case "ShowOtherRight":
 				case "ShowRight":
 				case "ShowLeft":
+				case "ShowTabInfo":
+					ShowInfos();
+					actThd?.UpdateGraph(false);
+					break;
+
 				case "ShowTHD":
 				case "ShowMagnitude":
 				case "ShowD2":
@@ -253,51 +260,48 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		public void SetAction(PlotControl plot, PlotControl plot1, PlotControl plot2)
+		public void SetAction(PlotControl plot, PlotControl plot1, PlotControl plot2, TabAbout tAbout)
 		{
 			ThdFrequencyData data = new ThdFrequencyData();
 			actThd = new ActThdFrequency(plot, plot1, plot2);
 			SetupMainPlot(plot);
 			actPlot = plot;
+			actAbout = tAbout;
+			MyVModel.LinkAbout(actThd.PageData.Definition);
 		}
 
-
-		private string FormatValue(double value)
+		private void ShowInfos()
 		{
-			if (!ShowPercent)
-				return MathUtil.FormatLogger(value) + " dBV";
-			return MathUtil.FormatPercent(Math.Pow(10, value / 20 + 2)) + " %";
+			if (actAbout != null)
+				actAbout.Visibility = ShowTabInfo ? Visibility.Visible : Visibility.Hidden;
 		}
 
-		private string FormatCursor(ThdColumn column)
+		// this always uses the 'global' format so others work too
+		private static string FormatValue(double d1, double dMax)
 		{
-			var vm = ViewSettings.Singleton.ThdFreq;
-			string sout = "Mag: ";
-			if (ShowPercent)
-			{
-				var MagValue = Math.Pow(10, column.Mag / 20);
-				sout += MathUtil.FormatVoltage(MagValue);
-			}
-			else
-			{
-				sout += MathUtil.FormatLogger(column.Mag) + " dBV";
-			}
-			sout += Environment.NewLine;
+			var vm = MyVModel;
+			var x = GraphUtil.ReformatValue(vm.PlotFormat, d1, dMax);
+			return GraphUtil.PrettyPrint(x, vm.PlotFormat);
+		}
 
+		private static string FormatCursor(ThdColumn column)
+		{
+			var vm = MyVModel;
+			string sout = "Mag: " + FormatValue(column.Mag, column.Mag) + Environment.NewLine;
 			if (vm.ShowTHD)
-				sout += "THD: " + FormatValue(column.THD) + Environment.NewLine;
+				sout += "THD: " + FormatValue(column.THD, column.Mag) + Environment.NewLine;
 			if (vm.ShowNoiseFloor)
-				sout += "Noise: " + FormatValue(column.Noise) + Environment.NewLine;
+				sout += "Noise: " + FormatValue(column.Noise, column.Mag) + Environment.NewLine;
 			if (vm.ShowD2)
-				sout += "D2: " + FormatValue(column.D2) + Environment.NewLine;
+				sout += "D2: " + FormatValue(column.D2, column.Mag) + Environment.NewLine;
 			if (vm.ShowD3)
-				sout += "D3: " + FormatValue(column.D3) + Environment.NewLine;
+				sout += "D3: " + FormatValue(column.D3, column.Mag) + Environment.NewLine;
 			if (vm.ShowD4)
-				sout += "D4: " + FormatValue(column.D4) + Environment.NewLine;
+				sout += "D4: " + FormatValue(column.D4, column.Mag) + Environment.NewLine;
 			if (vm.ShowD5)
-				sout += "D5: " + FormatValue(column.D5) + Environment.NewLine;
+				sout += "D5: " + FormatValue(column.D5, column.Mag) + Environment.NewLine;
 			if (vm.ShowD6)
-				sout += "D6+: " + FormatValue(column.D6P) + Environment.NewLine;
+				sout += "D6+: " + FormatValue(column.D6P, column.Mag) + Environment.NewLine;
 			return sout;
 		}
 
@@ -409,22 +413,23 @@ namespace QA40xPlot.ViewModels
 				var cord = ConvertScottCoords(actPlot, p.X, p.Y);
 				FreqValue = Math.Pow(10, cord.Item1); // frequency
 			}
-			var zv = actThd.LookupX(FreqValue);
 			ZValue = string.Empty;
-			if (zv.Item1 != null)
+			var zv = actThd.LookupX(FreqValue);
+			if(zv.Length > 0)
 			{
-				FreqShow = MathUtil.FormatLogger(zv.Item1.Freq);
-				if (zv.Item2 != null)
-					ZValue += "Left: " + Environment.NewLine;
-				ZValue += FormatCursor(zv.Item1);
+				FreqShow = MathUtil.FormatLogger(zv[0].Freq);
+				foreach (var item in zv)
+				{
+					if (item != null)
+					{
+						ZValue += FormatCursor(item);
+						ZValue += "------------" + Environment.NewLine;
+					}
+				}
 			}
-			if (zv.Item2 != null)
+			else
 			{
-				if (zv.Item1 == null)
-					FreqShow = MathUtil.FormatLogger(zv.Item2.Freq);
-				else
-					ZValue += "Right: " + Environment.NewLine;
-				ZValue += FormatCursor(zv.Item2);
+				FreqShow = "";
 			}
 		}
 

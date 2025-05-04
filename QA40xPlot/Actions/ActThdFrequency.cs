@@ -111,7 +111,7 @@ namespace QA40xPlot.Actions
         {
 			page.Sweep.X = page.Sweep.X.Append(x).ToArray();
 			page.Sweep.RawLeft = page.Sweep.RawLeft.Concat(ColumnToArray(left)).ToArray();
-			page.Sweep.RawRight = page.Sweep.RawLeft.Concat(ColumnToArray(right)).ToArray();
+			page.Sweep.RawRight = page.Sweep.RawRight.Concat(ColumnToArray(right)).ToArray();
 		}
 
 		public Rect GetDataBounds()
@@ -138,15 +138,14 @@ namespace QA40xPlot.Actions
             return rrc;
 		}
 
-		public ValueTuple<ThdColumn?, ThdColumn?> LookupX(double freq)
+		private (ThdColumn, ThdColumn) LookupColumn(MyDataTab page, double freq)
 		{
 			var vm = MyVModel;
-			var vf = PageData.Sweep.X;
+			var vf = page.Sweep.X;
 			if (vf.Length == 0)
 			{
-				return ValueTuple.Create((ThdColumn?)null, (ThdColumn?)null);
+				return (new ThdColumn(), new ThdColumn());
 			}
-
 			// find nearest amplitude (both left and right will be identical here if scanned)
 			var bin = vf.Count(x => x < freq) - 1;    // find first freq less than me
 			if (bin == -1)
@@ -156,16 +155,31 @@ namespace QA40xPlot.Actions
 			{
 				bin++;
 			}
+			ThdColumn mf1 = new ThdColumn();
+			ThdColumn mf2 = new ThdColumn();
+			mf1 = ((ThdColumn[])page.GetProperty("Left"))[bin];
+			mf2 = ((ThdColumn[])page.GetProperty("Right"))[bin];
+			return (mf1, mf2);
+		}
 
-			ThdColumn? mf1 = null;
-			ThdColumn? mf2 = null;
-
+		public ThdColumn[] LookupX(double freq)
+		{
+			var vm = MyVModel;
+			List<ThdColumn> myset = new();
+			var all = LookupColumn(PageData, freq); // lookup the columns
 			if (vm.ShowLeft)
-				mf1 = ((ThdColumn[])PageData.GetProperty("Left"))[bin];
+				myset.Add(all.Item1);
 			if (vm.ShowRight)
-				mf2 = ((ThdColumn[])PageData.GetProperty("Right"))[bin];
-
-			return ValueTuple.Create(mf1, mf2);
+				myset.Add(all.Item2);
+			if(OtherTabs.Count() > 0)
+			{
+				var all2 = LookupColumn(OtherTabs.First(), freq); // lookup the columns
+				if (vm.ShowOtherLeft)
+					myset.Add(all2.Item1);
+				if (vm.ShowOtherRight)
+					myset.Add(all2.Item2);
+			}
+			return myset.ToArray();
 		}
 
 
@@ -365,6 +379,7 @@ namespace QA40xPlot.Actions
 					if(work.Item1 != null && work.Item2 != null)
 						AddColumn(page, freqy, work.Item1, work.Item2);
 
+					MyVModel.LinkAbout(PageData.Definition); 
 					RawToThdColumns(page);
 					UpdateGraph(false);
 
@@ -521,15 +536,15 @@ namespace QA40xPlot.Actions
 		/// Plot the  THD magnitude (dB) data
 		/// </summary>
 		/// <param name="data">The data to plot</param>
-        private void PlotValues(MyDataTab page, int measurementNr, bool showLeftChannel, bool showRightChannel)
+        private void PlotValues(MyDataTab page, int measurementNr, bool isMain)
         {
-            if (!showLeftChannel && !showRightChannel)
-                return;
-			if (page.Sweep.RawLeft.Length == 0)
+			var thdFreq = MyVModel;
+			var showLeft = isMain ? thdFreq.ShowLeft : thdFreq.ShowOtherLeft;
+			var showRight = isMain ? thdFreq.ShowRight : thdFreq.ShowOtherRight;
+			if (!showLeft && !showRight)
 				return;
 
-            var thdFreq = page.ViewModel;
-            float lineWidth = thdFreq.ShowThickLines ? 1.6f : 1;
+			float lineWidth = thdFreq.ShowThickLines ? 1.6f : 1;
             float markerSize = thdFreq.ShowPoints ? lineWidth + 3 : 1;
 
             var colors = new GraphColors();
@@ -539,7 +554,6 @@ namespace QA40xPlot.Actions
             void AddPlot(double[] xValues, List<double> yValues, int colorIndex, string legendText, LinePattern linePattern)
             {
 				var u = measurementNr;
-
 				if (yValues.Count == 0) return;
                 Scatter? plot = null;
 				plot = thdPlot.ThePlot.Add.Scatter(xValues, yValues.ToArray());
@@ -554,11 +568,11 @@ namespace QA40xPlot.Actions
 			List<ThdColumn[]> columns;
 			ThdColumn[] leftCol = page.GetProperty("Left") as ThdColumn[] ?? [];
 			ThdColumn[] rightCol = page.GetProperty("Right") as ThdColumn[] ?? [];
-			if (showLeftChannel && showRightChannel)
+			if (showLeft && showRight)
             {
                 columns = [leftCol, rightCol];
             }
-            else if (!showRightChannel)
+            else if (!showRight)
             {
                 columns = [leftCol];
             }
@@ -568,13 +582,13 @@ namespace QA40xPlot.Actions
             }
 
             string suffix = string.Empty;
-            var lp = LinePattern.Solid;
-            if (showRightChannel && showLeftChannel)
+            var lp = isMain ? LinePattern.Solid : LinePattern.Dashed;
+            if (showRight && showLeft)
                 suffix = "-L";
 
-            // copy the vector of columns into vectors of values
+			// copy the vector of columns into vectors of values
 			// scaling by X.mag since it's all relative to the fundamental
-            foreach (var col in columns)
+			foreach (var col in columns)
             {
                 var freq = col.Select(x => Math.Log10(x.Freq)).ToArray();
                 if (thdFreq.ShowMagnitude)
@@ -594,7 +608,7 @@ namespace QA40xPlot.Actions
                 if (thdFreq.ShowNoiseFloor)
                     AddPlot(freq, col.Select(x => FormVal(x.Noise, x.Mag)).ToList(), 3, "Noise" + suffix, LinePattern.Dotted);
                 suffix = "-R";          // second pass iff there are both channels
-                lp = LinePattern.DenselyDashed;
+                lp = isMain ? LinePattern.DenselyDashed : LinePattern.Dotted;
             }
 
             thdPlot.Refresh();
@@ -620,7 +634,18 @@ namespace QA40xPlot.Actions
                     InitializeThdPlot(thd.PlotFormat);
 				}
             }
-			PlotValues(PageData, resultNr++, thd.ShowLeft, thd.ShowRight);
+			PlotValues(PageData, resultNr++, true);
+			if (thd.ShowOtherLeft || thd.ShowOtherRight)
+			{
+				if (OtherTabs.Count > 0)
+				{
+					foreach (var other in OtherTabs)
+					{
+						if (other != null)
+							PlotValues(other, resultNr++, false);
+					}
+				}
+			}
 		}
 
 

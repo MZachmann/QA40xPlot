@@ -55,7 +55,7 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public string GenAmpUnits { get => (IsGenPower ? "W" : "V"); }
 
-		private bool _ShowTabInfo = false;
+		private bool _ShowTabInfo = true;
 		public bool ShowTabInfo
 		{
 			get => _ShowTabInfo;

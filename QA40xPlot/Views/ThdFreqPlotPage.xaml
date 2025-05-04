@@ -133,7 +133,11 @@
             <views:PlotControl x:Name="WpfPlot2" Width="150" Height="100" Margin="0,4,0,0" />
             <views:PlotControl x:Name="WpfPlot3" Width="150"  Height="100" Margin="0,4" />
         </StackPanel>
-        <views:PlotControl x:Name="WpfPlot1"  Grid.Column="1" />
+        <Grid Grid.Column="1">
+            <views:PlotControl x:Name="WpfPlot1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
+            <views:TabAbout x:Name="TAbout" 
+                  VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,50,34,0" />
+        </Grid>
         <StackPanel Grid.Column="2" Orientation="Vertical">
             <GroupBox Header="Y Axis" Visibility="{Binding ToShowdB}">
                 <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
@@ -228,17 +232,20 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
                     <CheckBox Content="Magnitude" IsChecked="{Binding ShowMagnitude}" Grid.Row="0"  />
-                    <CheckBox Content="THD" IsChecked="{Binding ShowTHD}" Grid.Row="1"  />
-                    <CheckBox Content="D2" IsChecked="{Binding ShowD2}" Grid.Row="2"  />
-                    <CheckBox Content="D3" IsChecked="{Binding ShowD3}" Grid.Row="3"  />
-                    <CheckBox Content="D4" IsChecked="{Binding ShowD4}" Grid.Row="4"  />
-                    <CheckBox Content="D5" IsChecked="{Binding ShowD5}" Grid.Row="5"  />
-                    <CheckBox Content="D6+" IsChecked="{Binding ShowD6}" Grid.Row="6"  />
-                    <CheckBox Content="Noise Floor" IsChecked="{Binding ShowNoiseFloor}" Grid.Row="7"  />
+                    <CheckBox Content="THD" IsChecked="{Binding ShowTHD}" Grid.Row="1" Grid.Column="0"  />
+                    <CheckBox Content="D2" IsChecked="{Binding ShowD2}" Grid.Row="1" Grid.Column="1"  />
+                    <CheckBox Content="D3" IsChecked="{Binding ShowD3}" Grid.Row="2" Grid.Column="0"  />
+                    <CheckBox Content="D4" IsChecked="{Binding ShowD4}" Grid.Row="2"  Grid.Column="1" />
+                    <CheckBox Content="D5" IsChecked="{Binding ShowD5}" Grid.Row="3" Grid.Column="0" />
+                    <CheckBox Content="D6+" IsChecked="{Binding ShowD6}" Grid.Row="3" Grid.Column="1" />
+                    <CheckBox Content="Noise Floor" IsChecked="{Binding ShowNoiseFloor}" Grid.Row="4"  />
+                    <CheckBox Content="Tab Info" IsChecked="{Binding ShowTabInfo}" Grid.Row="5"  />
                 </Grid>
             </GroupBox>
             <GroupBox Header="Options">
@@ -249,12 +256,15 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="0"  />
                     <CheckBox Content="Data Points" IsChecked="{Binding ShowPoints}" Grid.Row="1"  />
-                    <CheckBox Content="% - Y axis" IsChecked="{Binding ShowPercent}" Grid.Row="2"  />
                     <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="3"  />
                     <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="4"  />
+                    <CheckBox Content="Left Other" IsChecked="{Binding ShowOtherLeft}" Grid.Row="5"  />
+                    <CheckBox Content="Right Other" IsChecked="{Binding ShowOtherRight}" Grid.Row="6"  />
                 </Grid>
             </GroupBox>
             <GroupBox Header="Cursor" >
