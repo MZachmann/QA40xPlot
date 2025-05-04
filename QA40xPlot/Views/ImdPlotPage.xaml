@@ -223,11 +223,11 @@
             <Label Content="{Binding DsHeading}" HorizontalAlignment="Center" VerticalAlignment="Top" />
             <views:PlotControl x:Name="WpfPlot1"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="0,20,0,0" />
             <views:ImdChannelInfo x:Name="Info1"
-                  VerticalAlignment="Top" HorizontalAlignment="Left" Margin="60,50,0,0" />
+                  VerticalAlignment="Top" HorizontalAlignment="Left" Margin="60,70,0,0" />
             <views:ImdChannelInfo x:Name="Info2"
-                  VerticalAlignment="Top" HorizontalAlignment="Left" Margin="60,330,0,0" />
+                  VerticalAlignment="Top" HorizontalAlignment="Left" Margin="60,350,0,0" />
             <views:TabAbout x:Name="TAbout"
-                  VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,50,34,0" />
+                  VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,70,34,0" />
         </Grid>
         <StackPanel Grid.Column="2" Orientation="Vertical">
             <GroupBox Header="Y Axis" Visibility="{Binding ToShowdB}">

@@ -93,7 +93,7 @@ namespace QA40xPlot.Actions
 		public async Task FinishLoad(MyDataTab page, bool isMain)
 		{
 			// now recalculate everything
-			BuildFrequencies(page);
+			// BuildFrequencies(page);
 			await PostProcess(page, ct.Token);
 			if(isMain)
 			{
@@ -117,7 +117,7 @@ namespace QA40xPlot.Actions
 
 		private async Task<bool> PostProcess(MyDataTab msr, CancellationToken ct)
 		{
-			if (msr.TimeRslt == null)
+			if (msr == null)
 			{
 				await showMessage("No frequency result");
 			}
@@ -298,7 +298,7 @@ namespace QA40xPlot.Actions
 			await showMessage($"Measurement finished!");
 
 			UpdateGraph(false);
-
+			PageData.TimeRslt = new();  // clear this before saving stuff
 			await EndAction(vmFreq);
 			await showMessage("Finished");
 			vmFreq.IsRunning = false;
