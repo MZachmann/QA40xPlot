@@ -196,7 +196,6 @@ namespace QA40xPlot.ViewModels
 					break;
 				case "ShowThickLines":
 				case "ShowMarkers":
-				case "ShowPowerMarkers":
 				case "ShowPoints":
 					actScope?.UpdateGraph(false);
 					break;

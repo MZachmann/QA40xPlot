@@ -55,6 +55,16 @@ namespace QA40xPlot.ViewModels
 				SetProperty(ref _UsbBufferSize, value);
 			}
 		}
+
+		private string _PowerFrequency;
+		public string PowerFrequency
+		{
+			get { return _PowerFrequency; }
+			set
+			{
+				SetProperty(ref _PowerFrequency, value);
+			}
+		}
 		#endregion
 
 
@@ -64,6 +74,7 @@ namespace QA40xPlot.ViewModels
 			_AmplifierLoad = "10";
 			_UsbBufferSize = "16384";
 			_SaveOnExit = "False";
+			_PowerFrequency = "60";
 		}
 	}
 }

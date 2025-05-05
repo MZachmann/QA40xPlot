@@ -26,6 +26,8 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -44,27 +46,35 @@
                    Text="The amplifier load is used to convert power to voltage for all tests." 
                    Grid.Row="0" Grid.Column="4" />
         <local:GroupHeader Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5"  />
-        <Label Content="Test Channel: " Grid.Row="2" Grid.Column="0" />
-        <ComboBox VerticalAlignment="Top" Grid.Row="2" Grid.Column="1" MinWidth="80" SelectedValue="{Binding TestChannel}" ItemsSource="{Binding ChannelList}" />
+        <Label Content="Powerline Frequency: " Grid.Row="2" Grid.Column="0" />
+        <ComboBox VerticalAlignment="Top" Grid.Row="2" Grid.Column="1" MinWidth="80" SelectedValue="{Binding PowerFrequency}" 
+                  ItemsSource="{Binding PowerFreqList}" />
+        <Label Content="Hz" Grid.Row="2" Grid.Column="2" />
         <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" MaxWidth="600" 
-                   Text="All tests except impedance and gain use this channel as the reference for i/o voltage and power conversions." 
+                   Text="When showing power markers, this is the fundamental frequency used." 
                    Grid.Row="2" Grid.Column="4" />
         <local:GroupHeader Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5"  />
-        <Label Content="Save on Exit: " Grid.Row="4" Grid.Column="0" />
-        <ComboBox VerticalAlignment="Top" Grid.Row="4" Grid.Column="1" MinWidth="80" SelectedValue="{Binding SaveOnExit}" ItemsSource="{Binding TrueFalseList}" />
+        <Label Content="Test Channel: " Grid.Row="4" Grid.Column="0" />
+        <ComboBox VerticalAlignment="Top" Grid.Row="4" Grid.Column="1" MinWidth="80" SelectedValue="{Binding TestChannel}" ItemsSource="{Binding ChannelList}" />
         <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" MaxWidth="600" 
-                   Text="Automatically save the current settings as default on exit." 
+                   Text="All tests except impedance and gain use this channel as the reference for i/o voltage and power conversions." 
                    Grid.Row="4" Grid.Column="4" />
         <local:GroupHeader Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="5"  />
-        <Label Content="Usb Buffer Size: " Grid.Row="6" Grid.Column="0" />
-        <ComboBox VerticalAlignment="Top" Grid.Row="6" Grid.Column="1" MinWidth="80" SelectedValue="{Binding UsbBufferSize}" ItemsSource="{Binding UsbBufferSizes}" />
+        <Label Content="Save on Exit: " Grid.Row="6" Grid.Column="0" />
+        <ComboBox VerticalAlignment="Top" Grid.Row="6" Grid.Column="1" MinWidth="80" SelectedValue="{Binding SaveOnExit}" ItemsSource="{Binding TrueFalseList}" />
         <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" MaxWidth="600" 
-                   Text="Set the size of the usb block. Careful!." 
+                   Text="Automatically save the current settings as default on exit." 
                    Grid.Row="6" Grid.Column="4" />
         <local:GroupHeader Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="5"  />
-        <CheckBox VerticalAlignment="Top" Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2" IsChecked="{Binding UseREST}" Content="Use REST interface instead of USB" />
+        <Label Content="Usb Buffer Size: " Grid.Row="8" Grid.Column="0" />
+        <ComboBox VerticalAlignment="Top" Grid.Row="8" Grid.Column="1" MinWidth="80" SelectedValue="{Binding UsbBufferSize}" ItemsSource="{Binding UsbBufferSizes}" />
+        <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" MaxWidth="600" 
+                   Text="Set the size of the usb block. Careful!." 
+                   Grid.Row="8" Grid.Column="4" />
+        <local:GroupHeader Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="5"  />
+        <CheckBox VerticalAlignment="Top" Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="2" IsChecked="{Binding UseREST}" Content="Use REST interface instead of USB" />
         <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" MaxWidth="600" 
                    Text="If you have issues with USB support try the REST interface." 
-                   Grid.Row="8" Grid.Column="4" />
+                   Grid.Row="10" Grid.Column="4" />
     </Grid>
 </UserControl>

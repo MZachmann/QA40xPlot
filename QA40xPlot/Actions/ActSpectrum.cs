@@ -587,19 +587,22 @@ namespace QA40xPlot.Actions
 				var sampleRate = vm.SampleRateVal;
 				var fftsize = vm.FftSizeVal;
 				double fsel = 0;
-				double maxdata = -10;
+				//double maxdata = -10;
 				var fftdata = vm.ShowLeft ? page.FreqRslt?.Left : page.FreqRslt?.Right;
 				if (fftdata == null)
 					return;
 				// find if 50 or 60hz is higher, indicating power line frequency
-				foreach (double freq in freqchecks)
-				{
-					var data = QaMath.MagAtFreq(fftdata, vm.FftSizeVal, freq);
-					if (data > maxdata)
-					{
-						fsel = (freq == 50 || freq == 100 || freq==150) ? 50 : 60;
-					}
-				}
+				//foreach (double freq in freqchecks)
+				//{
+				//	var data = QaMath.MagAtFreq(fftdata, vm.FftSizeVal, freq);
+				//	if (data > maxdata)
+				//	{
+				//		fsel = (freq == 50 || freq == 100 || freq==150) ? 50 : 60;
+				//	}
+				//}
+				fsel = ToD(ViewSettings.Singleton.SettingsVm.PowerFrequency); // 50 or 60hz
+				if (fsel < 10)
+					fsel = 60;
 				// mark 4 harmonics of power frequency
 				for (int i=1; i<5; i++)
                 {

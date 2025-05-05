@@ -627,7 +627,7 @@ namespace QA40xPlot.Actions
 			if (!showLeft && !showRight)
 				return;
 
-			float lineWidth = thdAmp.ShowThickLines ? 1.6f : 1;
+			float lineWidth = thdAmp.ShowThickLines ? _Thickness : 1;
 			float markerSize = thdAmp.ShowPoints ? lineWidth + 3 : 1;
 
 			var colors = new GraphColors();
