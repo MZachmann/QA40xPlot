@@ -8,6 +8,9 @@ using System.Windows;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
+using ScottPlot.MultiplotLayouts;
+using OpenTK.Compute.OpenCL;
+using ScottPlot.Colormaps;
 
 namespace QA40xPlot.ViewModels
 {
@@ -338,20 +341,28 @@ namespace QA40xPlot.ViewModels
 			switch (parameter)
 			{
 				case "XM":  // X magnitude
-							// calculate the bounds here
-					this.GraphStartVolts = bounds.Left.ToString("0.##");
-					this.GraphEndVolts = bounds.Right.ToString("0.##");
+					// calculate the bounds here. X is provided in input or output volts/power
+					this.GraphStartVolts = bounds.Left.ToString("G2");
+					this.GraphEndVolts = (bounds.Left + bounds.Right).ToString("G2");
 					break;
 				case "YP":  // Y percents
-					var xp = bounds.Y + bounds.Height;  // max Y value
-					var bot = ((100 * bounds.Y) / xp);  // bottom value in percent
-					bot = Math.Pow(10, Math.Max(-7, Math.Floor(Math.Log10(bot))));  // nearest power of 10
-					this.RangeTop = "100";  // always 100%
-					this.RangeBottom = bot.ToString("0.##########");
+					{
+						var xp = bounds.Y + bounds.Height;  // max Y value
+						var bot = GraphUtil.ReformatLogValue(PlotFormat, bounds.Y, xp);
+						bot = Math.Pow(10, Math.Max(-7, Math.Floor(bot)));  // nearest power of 10
+						var top = Math.Floor(GraphUtil.ReformatLogValue(PlotFormat, xp, xp));
+						top = Math.Pow(10, Math.Min(3, top));
+						this.RangeTop = top.ToString("0.##########");
+						this.RangeBottom = bot.ToString("0.##########");
+					}
 					break;
 				case "YM":  // Y magnitude
-					this.RangeBottomdB = (20 * Math.Log10(Math.Max(1e-14, bounds.Y))).ToString("0");
-					this.RangeTopdB = Math.Ceiling((20 * Math.Log10(Math.Max(1e-14, bounds.Height + bounds.Y)))).ToString("0");
+					{
+						var bot = GraphUtil.ReformatLogValue(PlotFormat, bounds.Y, bounds.Y + bounds.Height);
+						this.RangeBottomdB = bot.ToString("0");
+						var top = GraphUtil.ReformatLogValue(PlotFormat, bounds.Y + bounds.Height, bounds.Y + bounds.Height);
+						this.RangeTopdB = Math.Ceiling(top).ToString("0");
+					}
 					break;
 				default:
 					break;
@@ -412,7 +423,7 @@ namespace QA40xPlot.ViewModels
 			var zv = actThd.LookupX(FreqValue);
 			if (zv.Length > 0)
 			{
-				FreqShow = MathUtil.FormatLogger(zv[0].Freq);
+				FreqShow = MathUtil.FormatLogger(zv[0].GenVolts) + "->" + MathUtil.FormatLogger(zv[0].Mag);
 				foreach (var item in zv)
 				{
 					if (item != null)

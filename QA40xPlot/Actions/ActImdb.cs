@@ -238,33 +238,39 @@ namespace QA40xPlot.Actions
 		public Rect GetDataBounds()
 		{
 			var vm = PageData.ViewModel;    // measurement settings
-			if (vm == null || PageData == null || PageData.FreqRslt == null)
-				return Rect.Empty;
+			if (PageData.FreqRslt == null && OtherTabs.Count() == 0)
+				return new Rect(0, 0, 0, 0);
 
 			var specVm = MyVModel;     // current settings
 			var ffs = PageData.FreqRslt;
 
 			Rect rrc = new Rect(0, 0, 0, 0);
-			double maxY = 0;
-			if (specVm.ShowLeft)
+			List<double[]> tabs = new List<double[]>();
+			if (specVm.ShowLeft && ffs != null)
 			{
-				rrc.Y = ffs.Left.Min();
-				maxY = ffs.Left.Max();
-				if (specVm.ShowRight)
-				{
-					rrc.Y = Math.Min(rrc.Y, ffs.Right.Min());
-					maxY = Math.Max(maxY, ffs.Right.Max());
-				}
+				tabs.Add(ffs.Left);
 			}
-			else if (specVm.ShowRight)
+			if (specVm.ShowRight && ffs != null)
 			{
-				rrc.Y = ffs.Right.Min();
-				maxY = ffs.Right.Max();
+				tabs.Add(ffs.Right);
+			}
+			var u = OtherTabs.FirstOrDefault();
+			if (OtherTabs.Count() > 0 && u?.FreqRslt != null && u.FreqRslt.Left.Length > 0)
+			{
+				if (specVm.ShowOtherLeft)
+					tabs.Add(u.FreqRslt.Left);
+				if (specVm.ShowOtherLeft && OtherTabs.First().FreqRslt != null)
+					tabs.Add(u.FreqRslt.Right);
 			}
 
-			rrc.X = 20;
-			rrc.Width = ffs.Left.Length * ffs.Df - rrc.X;       // max frequency
-			rrc.Height = maxY - rrc.Y;      // max voltage absolute
+			if (tabs.Count() == 0)
+				return new Rect(0, 0, 0, 0);
+
+			rrc.X = ffs?.Df ?? 1.0; // ignore 0
+			rrc.Y = tabs.Min(x => x.Min());
+			rrc.Width = (ffs?.Df ?? 1) * tabs.First().Length - rrc.X;
+			rrc.Height = tabs.Max(x => x.Max()) - rrc.Y;
+
 
 			return rrc;
 		}

@@ -231,33 +231,40 @@ namespace QA40xPlot.Actions
 
 		public Rect GetDataBounds()
 		{
-			var msr = PageData.ViewModel;    // measurement settings
-			if (msr == null || PageData.TimeRslt.Left.Length == 0)
-				return Rect.Empty;
-			var scopeVm = MyVModel;     // current settings
-			var timeData = PageData.TimeRslt;
+			var vm = PageData.ViewModel;    // measurement settings
+			if (PageData.TimeRslt.Left.Length == 0 && OtherTabs.Count() == 0)
+				return new Rect(0, 0, 0, 0);
+
+			var specVm = MyVModel;     // current settings
+			var ffs = PageData.TimeRslt;
+			var hasdata = ffs.Left.Length > 0;
 
 			Rect rrc = new Rect(0, 0, 0, 0);
-			rrc.X = 0;
-			double maxY = 0;
-			if (scopeVm.ShowLeft)
+			List<double[]> tabs = new List<double[]>();
+			if (specVm.ShowLeft && hasdata)
 			{
-				rrc.Y = timeData.Left.Min();
-				maxY = timeData.Left.Max();
-				if (scopeVm.ShowRight)
-				{
-					rrc.Y = Math.Min(rrc.Y, timeData.Right.Min());
-					maxY = Math.Max(maxY, timeData.Right.Max());
-				}
+				tabs.Add(ffs.Left);
 			}
-			else if (scopeVm.ShowRight)
+			if (specVm.ShowRight && hasdata)
 			{
-				rrc.Y = timeData.Right.Min();
-				maxY = timeData.Right.Max();
+				tabs.Add(ffs.Right);
+			}
+			var u = OtherTabs.FirstOrDefault();
+			if (OtherTabs.Count() > 0 && u?.TimeRslt != null && u.TimeRslt.Left.Length > 0)
+			{
+				if (specVm.ShowOtherLeft)
+					tabs.Add(u.TimeRslt.Left);
+				if (specVm.ShowOtherLeft && OtherTabs.First().TimeRslt.Left.Length > 0)
+					tabs.Add(u.TimeRslt.Right);
 			}
 
-			rrc.Width = 1000 * timeData.Left.Length * timeData.dt - rrc.X;       // max ms
-			rrc.Height = maxY - rrc.Y;      // max voltage absolute
+			if (tabs.Count() == 0)
+				return new Rect(0, 0, 0, 0);
+
+			rrc.X = 0;
+			rrc.Y = tabs.Min(x => x.Min());
+			rrc.Width = 1000 * ffs.dt * tabs.First().Length - rrc.X;
+			rrc.Height = tabs.Max(x => x.Max()) - rrc.Y;
 
 			return rrc;
 		}

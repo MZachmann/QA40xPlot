@@ -127,31 +127,91 @@ namespace QA40xPlot.Actions
 			return outV * gains[0];
 		}
 
+
 		public Rect GetDataBounds()
 		{
-			var msr = PageData.ViewModel;    // measurement settings
-			var Xvalues = PageData.Sweep.X;
-			if (msr == null || Xvalues.Length == 0)
-				return Rect.Empty;
-			var specVm = MyVModel;     // current settings
-
-			ThdColumn[] steps = (ThdColumn[])((msr.ShowLeft ? PageData.GetProperty("Left") : PageData.GetProperty("Right")) ?? new());
-			if (steps.Length == 0)
-				return Rect.Empty;
-
 			Rect rrc = new Rect(0, 0, 0, 0);
-			rrc.X = Xvalues.Min();              // min X/Freq value
-			rrc.Width = Xvalues.Max() - rrc.X;  // max frequency
+			try
+			{
+				var vm = PageData.ViewModel;    // measurement settings cloned to not shift...
+				var Xvalues = PageData.Sweep.X;
+				if (vm == null || Xvalues.Length == 0)
+					return Rect.Empty;
 
-			double maxY = 0;
-			rrc.Y = steps.Min(x => Math.Min(Math.Min(x.THD, x.D2), x.D5));      // min magnitude will be min value shown
-			maxY = steps.Max(x => Math.Max(x.Mag, x.THD));      // maximum magnitude will be max value shown
-			rrc.Height = maxY - rrc.Y;      // max voltage absolute
+				var specVm = MyVModel;     // current settings
 
+				List<ThdColumn[]> steps = new();
+				if (vm.ShowLeft)
+				{
+					var a1 = PageData.GetProperty("Left");
+					if (a1 != null)
+						steps.Add((ThdColumn[])a1);
+				}
+				if (specVm.ShowRight)
+				{
+					var a1 = PageData.GetProperty("Right");
+					if (a1 != null)
+						steps.Add((ThdColumn[])a1);
+				}
+				if (OtherTabs.Count() > 0 && OtherTabs.FirstOrDefault() != null)
+				{
+					var page = OtherTabs.First();
+					if (specVm.ShowOtherLeft)
+					{
+						var a1 = page.GetProperty("Left");
+						if (a1 != null)
+							steps.Add((ThdColumn[])a1);
+					}
+					if (specVm.ShowOtherRight)
+					{
+						var a1 = page.GetProperty("Right");
+						if (a1 != null)
+							steps.Add((ThdColumn[])a1);
+					}
+				}
+
+				if (steps.Count() == 0)
+					return Rect.Empty;
+				double[] xvalues = [];
+				// handle the direction issues
+				{
+					var ttype = ToDirection(specVm.GenDirection);
+					switch (ttype)
+					{
+						case E_GeneratorDirection.INPUT_VOLTAGE:
+							xvalues = Xvalues;
+							break;
+						case E_GeneratorDirection.OUTPUT_VOLTAGE:
+							xvalues = [steps.Min(vec => vec.Min(x => x.Mag)), steps.Max(vec => vec.Max(x => x.Mag))];
+							break;
+						case E_GeneratorDirection.OUTPUT_POWER:
+							xvalues = [steps.Min(vec => vec.Min(x => x.Mag)), steps.Max(vec => vec.Max(x => x.Mag))];
+							xvalues = xvalues.Select(x => x * x / ViewSettings.AmplifierLoad).ToArray(); // convert to power
+							break;
+					}
+				}
+
+				rrc.X = xvalues.Min();              // min X/Freq value
+				rrc.Width = xvalues.Max() - rrc.X;  // max frequency
+
+				double maxY = 0;
+				rrc.Y = steps.Min(vec => vec.Min(x => Math.Min(Math.Min(x.THD, x.D2), x.D5)));      // min magnitude will be min value shown
+				maxY = steps.Max(vec => vec.Max(x => Math.Max(x.THD, x.Mag)));       // maximum magnitude will be max value shown
+				rrc.Height = maxY - rrc.Y;      // max voltage absolute
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
+			}
 			return rrc;
 		}
-
-		private (ThdColumn, ThdColumn) LookupColumn(MyDataTab page, double freq)
+		/// <summary>
+		/// find a column by X coordinate where X is amplitude of generator input voltage 
+		/// </summary>
+		/// <param name="page"></param>
+		/// <param name="x">genV value</param>
+		/// <returns></returns>
+		private (ThdColumn, ThdColumn) LookupColumn(MyDataTab page, double xValue)
 		{
 			var vm = MyVModel;
 			var vf = page.Sweep.X;
@@ -160,11 +220,11 @@ namespace QA40xPlot.Actions
 				return (new ThdColumn(), new ThdColumn());
 			}
 			// find nearest amplitude (both left and right will be identical here if scanned)
-			var bin = vf.Count(x => x < freq) - 1;    // find first freq less than me
+			var bin = vf.Count(x => x < xValue) - 1;    // find first freq less than me
 			if (bin == -1)
 				bin = 0;
 			var anearest = vf[bin];
-			if (bin < (vf.Length - 1) && Math.Abs(freq - anearest) > Math.Abs(freq - vf[bin + 1]))
+			if (bin < (vf.Length - 1) && Math.Abs(xValue - anearest) > Math.Abs(xValue - vf[bin + 1]))
 			{
 				bin++;
 			}
@@ -174,23 +234,33 @@ namespace QA40xPlot.Actions
 			if (u != null)
 				mf1 = ((ThdColumn[])u)[bin];    // get the left channel
 			u = page.GetProperty("Right");
+
 			if (u != null)
 				mf2 = ((ThdColumn[])u)[bin];    // get the left channel
 			return (mf1, mf2);
 		}
 
+		/// <summary>
+		/// find the column by X coordinate where X is formatted inputv
+		/// </summary>
+		/// <param name="freq"></param>
+		/// <returns></returns>
 		public ThdColumn[] LookupX(double freq)
 		{
 			var vm = MyVModel;
 			List<ThdColumn> myset = new();
-			var all = LookupColumn(PageData, freq); // lookup the columns
+			// freq here is going to be in the units of the X value so we have to undo that
+			// convert to the input voltage
+			var gains = (ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right) ?? [1.0];
+			var x = vm.ToGenVoltage(freq.ToString(), [], GEN_INPUT, gains);
+			var all = LookupColumn(PageData, x); // lookup the columns
 			if (vm.ShowLeft)
 				myset.Add(all.Item1);
 			if (vm.ShowRight)
 				myset.Add(all.Item2);
 			if (OtherTabs.Count() > 0)
 			{
-				var all2 = LookupColumn(OtherTabs.First(), freq); // lookup the columns
+				var all2 = LookupColumn(OtherTabs.First(), x); // lookup the columns
 				if (vm.ShowOtherLeft)
 					myset.Add(all2.Item1);
 				if (vm.ShowOtherRight)

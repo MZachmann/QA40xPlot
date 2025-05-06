@@ -128,26 +128,62 @@ namespace QA40xPlot.Actions
 
 		public Rect GetDataBounds()
 		{
-			var msr = PageData.ViewModel;    // measurement settings
-            var Xvalues = PageData.Sweep.X;
-			if (msr == null || Xvalues.Length == 0)
-				return Rect.Empty;
-			var specVm = MyVModel;     // current settings
-
-			ThdColumn[] steps = (ThdColumn[])((msr.ShowLeft ? PageData.GetProperty("Left") : PageData.GetProperty("Right")) ?? new());
-			if (steps.Length == 0)
-				return Rect.Empty;
-
 			Rect rrc = new Rect(0, 0, 0, 0);
-            rrc.X = Xvalues.Min();              // min X/Freq value
-            rrc.Width = Xvalues.Max() - rrc.X;  // max frequency
+			try
+			{
+				var vm = PageData.ViewModel;    // measurement settings cloned to not shift...
+				var Xvalues = PageData.Sweep.X;
+				if (vm == null || Xvalues.Length == 0)
+					return Rect.Empty;
 
-            double maxY = 0;
-            rrc.Y = steps.Min(x => Math.Min(Math.Min(x.THD, x.D2),x.D5));      // min magnitude will be min value shown
-            maxY = steps.Max(x => Math.Max(x.Mag, x.THD));      // maximum magnitude will be max value shown
-            rrc.Height = maxY - rrc.Y;      // max voltage absolute
+				var specVm = MyVModel;     // current settings
 
-            return rrc;
+				List<ThdColumn[]> steps = new();
+				if (vm.ShowLeft)
+				{
+					var a1 = PageData.GetProperty("Left");
+					if (a1 != null)
+						steps.Add((ThdColumn[])a1);
+				}
+				if (specVm.ShowRight)
+				{
+					var a1 = PageData.GetProperty("Right");
+					if (a1 != null)
+						steps.Add((ThdColumn[])a1);
+				}
+				if (OtherTabs.Count() > 0 && OtherTabs.FirstOrDefault() != null)
+				{
+					var page = OtherTabs.First();
+					if (specVm.ShowOtherLeft)
+					{
+						var a1 = page.GetProperty("Left");
+						if (a1 != null)
+							steps.Add((ThdColumn[])a1);
+					}
+					if (specVm.ShowOtherRight)
+					{
+						var a1 = page.GetProperty("Right");
+						if (a1 != null)
+							steps.Add((ThdColumn[])a1);
+					}
+				}
+
+				if (steps.Count() == 0)
+					return Rect.Empty;
+
+				rrc.X = Xvalues.Min();              // min X/Freq value
+				rrc.Width = Xvalues.Max() - rrc.X;  // max frequency
+
+				double maxY = 0;
+				rrc.Y = steps.Min(vec => vec.Min(x =>Math.Min(Math.Min(x.THD, x.D2), x.D5)));      // min magnitude will be min value shown
+				maxY = steps.Max(vec => vec.Max(x => Math.Max(x.THD, x.Mag)));       // maximum magnitude will be max value shown
+				rrc.Height = maxY - rrc.Y;      // max voltage absolute
+			}
+			catch( Exception ex)
+			{
+				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
+			}
+			return rrc;
 		}
 
 		private (ThdColumn, ThdColumn) LookupColumn(MyDataTab page, double freq)
