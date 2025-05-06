@@ -271,6 +271,7 @@ namespace QA40xPlot.ViewModels
 			info.SetDataContext(true);
 			info2.SetDataContext(false);
 			MyVModel.LinkAbout(actImd.PageData.Definition);
+			ShowInfos();
 		}
 
 		private static void SetAtten(object? parameter)

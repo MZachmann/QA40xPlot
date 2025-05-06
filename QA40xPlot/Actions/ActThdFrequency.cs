@@ -5,11 +5,7 @@ using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Interop;
 using static QA40xPlot.ViewModels.BaseViewModel;
 
 

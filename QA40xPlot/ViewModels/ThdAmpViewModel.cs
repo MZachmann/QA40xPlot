@@ -270,6 +270,8 @@ namespace QA40xPlot.ViewModels
 			actPlot = plot;
 			actAbout = tAbout;
 			MyVModel.LinkAbout(actThd.PageData.Definition);
+			ShowInfos();
+
 		}
 
 		private static async Task DoGetLoad(bool isLoad)

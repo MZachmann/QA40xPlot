@@ -60,7 +60,7 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public string DsHeading { get => DataInfo.Heading; }
 
-		private bool _ShowTabInfo = true;
+		private bool _ShowTabInfo = false;
 		public bool ShowTabInfo
 		{
 			get => _ShowTabInfo;
