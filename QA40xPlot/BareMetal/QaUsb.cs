@@ -143,7 +143,7 @@ namespace QA40x_BareMetal
             maxOut = Math.Max(Math.Abs(maxOut), Math.Abs(minOut));  // maximum output voltage
             // don't bother setting output amplitude if we have no output
 			var mlevel = Control.DetermineOutput(1.1 * ((maxOut > 0) ? maxOut : 1e-8) ); // the setting for our voltage + 10%
-			SetOutputRange(mlevel); // set the output voltage
+			QaComm.SetOutputRange(mlevel); // set the output voltage
 
 			for (int rrun = 0; rrun < averages; rrun++)
                 {
@@ -201,7 +201,7 @@ namespace QA40x_BareMetal
 		/// <param name="attenuation"></param>
 		/// <param name="setdefault">this may take a little time, so do it once?</param>
 		/// <returns>success true or false</returns>
-		public static bool InitializeDevice(uint sampleRate, uint fftsize, string Windowing, int attenuation)
+		public static async Task<bool> InitializeDevice(uint sampleRate, uint fftsize, string Windowing, int attenuation)
 		{
 			try
 			{
@@ -221,7 +221,8 @@ namespace QA40x_BareMetal
 					return false;
 
 				qan.SetSampleRate((int)sampleRate);
-				qan.SetInput(attenuation);
+                await QaComm.SetInputRange(attenuation);
+				//qan.SetInput(attenuation);
                 //qan.SetOutput(18); // this is set when we do an acquisition based on the voltage output data
                 qan.Params.SetWindowing(Windowing);
 				qan.Params.FFTSize = (int)fftsize;
@@ -490,17 +491,21 @@ namespace QA40x_BareMetal
         /// <returns></returns>
         static public byte[] ReadDataEnd()
         {
-            AsyncResult ar = ReadQueue[0];
-            ReadQueue.RemoveAt(0);
-            if (ar.Wait() == 0)
+            if(ReadQueue.Count() > 0)
             {
-                return [];
-            }
-            else
-            {
-                return ar.ReadBuffer;
-            }
-        }
+				AsyncResult ar = ReadQueue[0];
+				ReadQueue.RemoveAt(0);
+				if (ar.Wait() == 0)
+				{
+					return [];
+				}
+				else
+				{
+					return ar.ReadBuffer;
+				}
+			}
+            return [];
+		}
 
 	}
 }

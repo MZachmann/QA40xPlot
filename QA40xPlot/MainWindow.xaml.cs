@@ -6,6 +6,7 @@ using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using SkiaSharp;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -128,22 +129,33 @@ namespace QA40xPlot
 
 		protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
 		{
-			if (QaLowUsb.IsDeviceConnected() == true)
+			try
 			{
-				try
+				if (ViewSettings.Singleton.SettingsVm.RelayUsage != "Never")
 				{
-					if( !ViewSettings.IsUseREST)
+					if (!ViewSettings.IsUseREST && QaLowUsb.IsDeviceConnected() == false)
 					{
-						// set max attenuation for safety, turns on ATTEN led
-						QaComm.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION).Wait(200);
-						// now close down
-						QaComm.Close(true);
+						QaUsb.Open();
 					}
+					// set max attenuation for safety, turns on ATTEN led
+					QaComm.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION).Wait(200);
 				}
-				catch (Exception ex)
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
+			}
+			try
+			{
+				if (!ViewSettings.IsUseREST && QaLowUsb.IsDeviceConnected() == true)
 				{
-					MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
+					// now close down
+					QaComm.Close(true);
 				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
 			}
 			// do my stuff before closing
 			if ( ViewSettings.IsSaveOnExit)

@@ -68,7 +68,7 @@ namespace QA40xPlot.BareMetal
 
 		public static bool IsDeviceConnected()
 		{
-			return (_AttachedDevice == null);
+			return (_AttachedDevice != null);
 		}
 	}
 }

@@ -5,6 +5,7 @@ namespace QA40xPlot.ViewModels
 	public class SettingsViewModel : BaseViewModel
 	{
 		public static List<String> UsbBufferSizes { get => new List<string>() { "2048", "4096", "8192", "16384", "32768", "65536"}; }
+		public static List<String> RelayUsageList { get => new List<string>() { "Never", "OnFinish", "OnExit" }; }
 
 		#region setters and getters
 		private bool _UseREST;
@@ -33,6 +34,16 @@ namespace QA40xPlot.ViewModels
 			set
 			{
 				SetProperty(ref _AmplifierLoad, value);
+			}
+		}
+		// how to use the relay... OnExit / OnFinish / Never
+		private string _RelayUsage = "OnExit";
+		public string RelayUsage
+		{
+			get { return _RelayUsage; }
+			set
+			{
+				SetProperty(ref _RelayUsage, value);
 			}
 		}
 

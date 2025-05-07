@@ -7,23 +7,40 @@ namespace QA40xPlot.BareMetal
 {
 	public class QaComm
 	{
-		private static int _CurrentInput = 42;
-		private static uint _CurrentFftSize = 32768;
-		private static uint _CurrentSampleRate = 48000;
-		private static OutputSources _CurrentOutputSource = OutputSources.Off;
+		private static int _CurrentInput = 55;
+		private static int _CurrentOutput = 55;
+		private static uint _CurrentFftSize = 1;
+		private static uint _CurrentSampleRate = 1;
+		private static OutputSources _CurrentOutputSource = OutputSources.WhiteNoise;
+
+		private static void ResetConstants()
+		{
+			_CurrentInput = 55;
+			_CurrentOutput = 55;
+			_CurrentFftSize = 1;
+			_CurrentSampleRate = 1;
+			_CurrentOutputSource = OutputSources.Off;
+		}
 
 		public static async Task SetInputRange(int range)
 		{
-			_CurrentInput = range;
-			if (ViewSettings.IsUseREST)
-				await Qa40x.SetInputRange(range);
-			else
-				QaUsb.SetInputRange(range);
+			if(_CurrentInput != range)
+			{
+				_CurrentInput = range;
+				if (ViewSettings.IsUseREST)
+					await Qa40x.SetInputRange(range);
+				else
+					QaUsb.SetInputRange(range);
+			}
 		}
 		public static void SetOutputRange(int range)
 		{
-			if (!ViewSettings.IsUseREST)
-				QaUsb.SetOutputRange(range);
+			if(_CurrentOutput != range)
+			{
+				_CurrentOutput = range;
+				if (!ViewSettings.IsUseREST)
+					QaUsb.SetOutputRange(range);
+			}
 		}
 
 		public static int GetInputRange()
@@ -33,15 +50,19 @@ namespace QA40xPlot.BareMetal
 
 		public static async Task SetOutputSource(OutputSources source)
 		{
-			_CurrentOutputSource = source;
-			if (ViewSettings.IsUseREST)
-				await Qa40x.SetOutputSource(source);
-			else
-				QaUsb.SetOutputSource(source);
+			if(_CurrentOutputSource != source)
+			{
+				_CurrentOutputSource = source;
+				if (ViewSettings.IsUseREST)
+					await Qa40x.SetOutputSource(source);
+				else
+					QaUsb.SetOutputSource(source);
+			}
 		}
 
 		public static void Close(bool onExit)
 		{
+			ResetConstants();
 			if (!ViewSettings.IsUseREST)
 				QaUsb.Close(onExit);
 		}
@@ -66,7 +87,7 @@ namespace QA40xPlot.BareMetal
 				rslt = await QaLibrary.InitializeDevice(sampleRate, fftsize, "Hann", attenuation, !_WasInitialized);
 			}
 			else
-				rslt = QaUsb.InitializeDevice(sampleRate, fftsize, Windowing, attenuation);
+				rslt = await QaUsb.InitializeDevice(sampleRate, fftsize, Windowing, attenuation);
 			_WasInitialized = true;
 			return rslt;
 		}

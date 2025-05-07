@@ -66,9 +66,10 @@ namespace QA40xPlot.Actions
 		{
 			// Turn the generator off
 			await QaComm.SetOutputSource(OutputSources.Off);
-			await QaComm.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION);  // set max attenuation while idle...
+			if( ViewSettings.Singleton.SettingsVm.RelayUsage == "OnFinish")
+				await QaComm.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION);  // set max attenuation while idle...
 																	// detach from usb port
-			QaComm.Close(false);
+			//QaComm.Close(false);
 			bvm.IsRunning = false;
 
 		}
