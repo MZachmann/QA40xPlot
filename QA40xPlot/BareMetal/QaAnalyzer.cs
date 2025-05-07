@@ -1,6 +1,6 @@
 using LibUsbDotNet;
 using LibUsbDotNet.Main;
-using QA40x_BareMetal;
+using QA40x.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
@@ -14,6 +14,7 @@ using System.Diagnostics;
 
 namespace QA40xPlot.BareMetal
 {
+#if false
 	public class QaAnalyzer
 	{
 		public AnalyzerParams? Params { get; private set; }
@@ -129,5 +130,5 @@ namespace QA40xPlot.BareMetal
 		}
 
 	}
-
+#endif
 }

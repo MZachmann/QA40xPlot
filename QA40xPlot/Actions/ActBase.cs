@@ -33,7 +33,7 @@ namespace QA40xPlot.Actions
 			// attach to usb port if required
 			if( ViewSettings.IsUseREST)
 			{
-				if (await QaLibrary.CheckDeviceConnected() == false)
+				if (await QaREST.CheckDeviceConnected() == false)
 				{
 					bvm.IsRunning = false;
 					return false;
@@ -100,7 +100,7 @@ namespace QA40xPlot.Actions
 		{
 			var range = 0;
 			if(setRange)
-				range = QaComm.GetInputRange();
+				range = await QaComm.GetInputRange();
 			// ********************************************************************
 			// Do noise floor measurement with source off
 			// ********************************************************************

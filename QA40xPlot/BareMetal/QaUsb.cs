@@ -4,7 +4,9 @@ using LibUsbDotNet.Main;
 using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
+using QA40xPlot.ViewModels;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 // Written by MZachmann 4-24-2025
 // much of the bare metal code comes originally from the PyQa40x library and from the Qa40x_BareMetal library on github
@@ -12,12 +14,19 @@ using System.Diagnostics;
 // and https://github.com/QuantAsylum/PyQa40x
 
 
-namespace QA40x_BareMetal
+namespace QA40x.BareMetal
 {
-    /// <summary>
-    /// A simple class to help wrap async transfers
-    /// </summary>
-    class AsyncResult
+	class AcqResult
+	{
+		public bool Valid = false;
+		public double[] Left = [];
+		public double[] Right = [];
+	}
+
+	/// <summary>
+	/// A simple class to help wrap async transfers
+	/// </summary>
+	class AsyncResult
     {
         /// <summary>
         /// This is specific to the underlying library. LIBUSBDOTNET uses UsbTransfer. 
@@ -57,140 +66,35 @@ namespace QA40x_BareMetal
     /// higher level calls and basic read/writes. It also has replacment calls
     /// for the common QaLibrary methods such as DoAcquisition and InitializeDevice.
 	/// </summary>
-	static class QaUsb
+	class QaUsb
     {
-		// singleton QaAnalyzer object - works but...
-		private static QaAnalyzer? _qAnalyzer;
-		public static QaAnalyzer? QAnalyzer => _qAnalyzer;
+        object ReadRegLock = new object();
 
-        static object ReadRegLock = new object();
+        List<AsyncResult> WriteQueue = new List<AsyncResult>();
+        List<AsyncResult> ReadQueue = new List<AsyncResult>();
+		/// Tracks whether or not an acq is in process. The count starts at one, and when it goes busy
+		/// it will drop to zero, and then return to 1 when not busy
+		static SemaphoreSlim AcqSemaphore = new SemaphoreSlim(1);
 
-        static List<AsyncResult> WriteQueue = new List<AsyncResult>();
-        static List<AsyncResult> ReadQueue = new List<AsyncResult>();
+		readonly int RegReadWriteTimeout = 20;
+        readonly int MainI2SReadWriteTimeout = 2000;
 
-        static readonly int RegReadWriteTimeout = 20;
-        static readonly int MainI2SReadWriteTimeout = 2000;
+        public byte[] CalData { get; private set; } = []; // readonly
+        public (double, double)[] FCalData { get; private set; } = []; // readonly
 
-        public static async Task<LeftRightSeries> DoAcquisitions(uint averages, CancellationToken ct, bool getFreq = true)
+		// the usb device we talk to
+		public UsbDevice? Device { get; private set; } = null;
+
+		// the reader/writer pairs for register and data endpoints
+		public UsbEndpointReader? RegisterReader { get; private set; } = null;
+		public UsbEndpointWriter? RegisterWriter { get; private set; } = null;
+		public UsbEndpointReader? DataReader { get; private set; } = null;
+		public UsbEndpointWriter? DataWriter { get; private set; } = null;
+
+        public QaUsb()
         {
-			var datapt = new double[QAnalyzer?.Params?.FFTSize ?? 0];
-            if( QAnalyzer?.Params?.OutputSource == OutputSources.Sine)
-            {
-				var gp1 = WaveGenerator.Singleton.GenParams;
-				var gp2 = WaveGenerator.Singleton.Gen2Params;
-				double dt = 1.0 / (QAnalyzer?.Params.SampleRate ?? 1);
-				if (gp1?.Enabled == true)
-				{
-					datapt = datapt.Select((x, index) => x + (gp1.Voltage * Math.Sqrt(2)) * Math.Sin(2 * Math.PI * gp1.Frequency * dt * index)).ToArray();
-				}
-				if (gp2?.Enabled == true)
-				{
-					datapt = datapt.Select((x, index) => x + (gp2.Voltage * Math.Sqrt(2)) * Math.Sin(2 * Math.PI * gp2.Frequency * dt * index)).ToArray();
-				}
-			}
-			var lrfs = await DoAcquireUser(averages, ct, datapt, datapt, getFreq);
-			return lrfs;
-		}
 
-        public static void SetInputRange(int range)
-		{
-			if (QAnalyzer == null )
-				return;
-            if(QAnalyzer.Params == null)
-            {
-                Debug.WriteLine("*** Write to null params");
-                return;
-			}
-			QAnalyzer.SetInput(range);
-		}
-
-		public static int GetInputRange()
-		{
-            return QAnalyzer?.Params?.MaxInputLevel ?? 42;
-		}
-
-		public static void SetOutputRange(int range)
-		{
-			if (QAnalyzer == null || QAnalyzer.Params == null)
-				return;
-			QAnalyzer.SetOutput(range);
-		}
-
-        public static LeftRightFrequencySeries? CalculateFreq(LeftRightTimeSeries? lrts)
-        {
-            if( lrts == null || QAnalyzer?.Params == null)
-				return null;
-
-			// calculate the frequency spectrum
-			return QaMath.CalculateSpectrum(lrts, QAnalyzer.Params.WindowType);
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="ct"></param>
-		/// <param name="datapt"></param>
-		/// <param name="getFreq"></param>
-		/// <returns></returns>
-		public static async Task<LeftRightSeries> DoAcquireUser(uint averages, CancellationToken ct, double[] dataLeft, double[] dataRight, bool getFreq)
-		{
-			LeftRightSeries lrfs = new LeftRightSeries();
-            var dpt = new double[dataLeft.Length];
-			List<AcqResult> runList = new List<AcqResult>();
-            // set the output amplitude to support the data
-            var maxOut = Math.Max(dataLeft.Max(), dataRight.Max());
-			var minOut = Math.Min(dataLeft.Min(), dataRight.Min());
-            maxOut = Math.Max(Math.Abs(maxOut), Math.Abs(minOut));  // maximum output voltage
-            // don't bother setting output amplitude if we have no output
-			var mlevel = Control.DetermineOutput(1.1 * ((maxOut > 0) ? maxOut : 1e-8) ); // the setting for our voltage + 10%
-			QaComm.SetOutputRange(mlevel); // set the output voltage
-
-			for (int rrun = 0; rrun < averages; rrun++)
-                {
-                    try
-                    {
-                        var newData = await Acquisition.DoStreamingAsync(ct, dataLeft, dataRight);
-                        if (ct.IsCancellationRequested || lrfs == null || newData.Valid == false)
-                            return lrfs ?? new();
-                        runList.Add(newData);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"Error: {ex.Message}");
-                        return lrfs ?? new();
-                    }
-                }
-
-			{
-                lrfs.TimeRslt = new();
-                if (runList.Count == 1)
-                {
-                    lrfs.TimeRslt.Left = runList.First().Left;
-                    lrfs.TimeRslt.Right = runList.First().Right;
-                }
-                else
-                {
-					var left = runList.First().Left;
-					var right = runList.First().Right;
-                    for(int i=1; i<runList.Count; i++)
-					{
-						left = left.Zip(runList[i].Left, (x, y) => x + y).ToArray();
-						right = right.Zip(runList[i].Right, (x, y) => x + y).ToArray();
-					}
-                    lrfs.TimeRslt.Left = left.Select(x => x / runList.Count).ToArray();
-                    lrfs.TimeRslt.Right = right.Select(x => x / runList.Count).ToArray();
-				}
-				lrfs.TimeRslt.dt = 1.0 / (_qAnalyzer?.Params?.SampleRate ?? 1);
-			}
-			if (ct.IsCancellationRequested)
-				return lrfs;
-
-            if (getFreq)
-            {
-				lrfs.FreqRslt = CalculateFreq(lrfs.TimeRslt);
-            }
-			return lrfs;        // Only one measurement
-		}
+        }
 
 		/// <summary>
 		/// Do the startup of the QA40x, attaching USB if needed
@@ -208,24 +112,12 @@ namespace QA40x_BareMetal
                 // ********************************************************************  
                 // Load a settings we want
                 // ********************************************************************  
-                if (_qAnalyzer == null )
-                {
-					Open();
-                }
-				var qan = _qAnalyzer;
-				//if (setdefault && qan != null)
-    //            {
-    //                qan?.DataReader?.Reset();
-    //            }
-				if (qan == null || qan.Params == null)
-					return false;
-
-				qan.SetSampleRate((int)sampleRate);
+				await QaComm.SetSampleRate(sampleRate);
                 await QaComm.SetInputRange(attenuation);
+				await QaComm.SetFftSize(fftsize);
+				await QaComm.SetWindowing(Windowing);
 				//qan.SetInput(attenuation);
-                //qan.SetOutput(18); // this is set when we do an acquisition based on the voltage output data
-                qan.Params.SetWindowing(Windowing);
-				qan.Params.FFTSize = (int)fftsize;
+				//qan.SetOutput(18); // this is set when we do an acquisition based on the voltage output data
                 WaveGenerator.Singleton.GenParams.Enabled = false;
 				WaveGenerator.Singleton.Gen2Params.Enabled = false;
 				return true;
@@ -237,90 +129,81 @@ namespace QA40x_BareMetal
 			return false;
 		}
 
-        /// <summary>
-        /// SetOutputSource
-        /// </summary>
-        /// <param name="src"></param>
-        /// <returns>true if it worked</returns>
-        public static bool SetOutputSource(OutputSources src)
+		public bool IsOpen()
 		{
-			var qan = _qAnalyzer;
-			if (qan == null || qan.Params == null)
-				return false;
-            qan.Params.OutputSource = src;
-			return true;
+			return Device != null;
 		}
 
 		/// <summary>
 		/// Attempts to open the USB connection to a device
 		/// </summary>
 		/// <returns></returns>
-		public static bool Open()
+		public bool Open()
         {
-            Random r = new Random();
+			Debug.Assert(Device == null, "Open called when device is already open");
+			bool brslt = false;
+            // Attempt to open QA402 or QA403 device
             try
             {
-                _qAnalyzer = new QaAnalyzer();
-                _qAnalyzer?.Init();
+				Device = QaLowUsb.AttachDevice();
+				RegisterReader = Device.OpenEndpointReader(ReadEndpointID.Ep01);
+				RegisterWriter = Device.OpenEndpointWriter(WriteEndpointID.Ep01);
+				DataReader = Device.OpenEndpointReader(ReadEndpointID.Ep02);
+				DataWriter = Device.OpenEndpointWriter(WriteEndpointID.Ep02);
 
-                try
-                {
-                    if (VerifyConnection())
-                    {
-                        return true;
-                    }
-
-                }
-                catch (Exception )
-                {
-                   
-                }
-
-                return false;
-            }
+				CalData = LoadCalibration();
+				// convert to doubles from byte stream
+				var incals = Enumerable.Range(0, 7).Select(x => x * 6);
+				var fcals = incals.Select(x => GetAdcCal(CalData, x)).ToList();
+				incals = Enumerable.Range(0, 3).Select(x => 18 - x * 10);
+				var gcals = incals.Select(x => GetDacCal(CalData, x)).ToList();
+				fcals.AddRange(gcals);
+				FCalData = fcals.ToArray();     // doubles instead of bytes mainly for debugging
+				Debug.WriteLine($"Calibration data: {string.Join(", ", FCalData)}");
+                brslt = true;
+			}
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error: {ex.Message}");
             }
 
-            return false;
+            return brslt;
         }
 
         /// <summary>
         /// Closes a USB connection (if it's open)
         /// </summary>
         /// <returns></returns>
-        static public bool Close(bool OnExit)
+        public bool Close(bool OnExit)
         {
-            try
-            {
-                if (_qAnalyzer != null)
+			try
+			{
+				// Stop streaming. This also extinguishes the RUN led
+				WriteRegister(8, 0);
+                // if we're exiting really close this stuff
+                if(OnExit)
                 {
-					// Stop streaming. This also extinguishes the RUN led
-					WriteRegister(8, 0);
-                    //
-					_qAnalyzer.Close(OnExit);
-					_qAnalyzer = null;
-                }
-
-                // Needed for linux, harmless for win
-                UsbDevice.Exit();
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error: {ex.Message}");
+					// clear stuff
+					DataReader = null;
+					DataWriter = null;
+					RegisterReader = null;
+					RegisterWriter = null;
+					QaLowUsb.DetachDevice(OnExit);
+					Device = null;
+				}
 			}
-
-            return false;
-        }
+			catch (Exception e)
+			{
+				Debug.WriteLine($"An error occurred during cleanup: {e.Message}");
+			}
+            return true;
+		}
 
         /// <summary>
         /// Generates a random number, writes that to register 0, and attempts to read that same value back.
         /// </summary>
         /// <returns></returns>
-        static public bool VerifyConnection()
+        public bool VerifyConnection()
         {
             uint val;
 
@@ -329,20 +212,385 @@ namespace QA40x_BareMetal
                 val = Convert.ToUInt32(new Random().Next());
             }
 
-            QaUsb.WriteRegister(0, val);
+            WriteRegister(0, val);
 
-            if (QaUsb.ReadRegister(0) == val)
+            if (ReadRegister(0) == val)
                 return true;
             else
                 return false;
         }
+
+		/// <summary>
+		/// read the calibration data from the device
+		/// </summary>
+		/// <returns>a list of calibration values in dB</returns>
+		public byte[] LoadCalibration()
+		{
+			Debug.Assert(!ViewSettings.IsUseREST, "LoadCalibration using REST.");
+			WriteRegister(0xD, 0x10);
+			int pageSize = 512;
+			byte[] calData = new byte[pageSize];
+
+			for (int i = 0; i < pageSize / 4; i++)
+			{
+				uint d = (uint)(ReadRegister(0x19));
+				byte[] array = BitConverter.GetBytes(d);
+				Array.Copy(array, 0, calData, i * 4, 4);
+			}
+
+			return calData;
+		}
+
+		/// <summary>
+		/// get ADC calibration data for a given full scale input setting
+		/// </summary>
+		/// <param name="calData">calibration data</param>
+		/// <param name="fullScaleInputLevel">the full scale input setting</param>
+		/// <returns>(left,right) multipliers</returns>
+		/// <exception cref="ArgumentException"></exception>
+		public static (double Left, double Right) GetAdcCal(byte[] calData, int fullScaleInputLevel)
+		{
+			Debug.Assert(!ViewSettings.IsUseREST, "GetAdcCal using REST.");
+			var offsets = new Dictionary<int, int>
+			{
+				{ 0, 24 }, { 6, 36 }, { 12, 48 }, { 18, 60 }, { 24, 72 }, { 30, 84 }, { 36, 96 }, { 42, 108 }
+			};
+
+			if (!offsets.TryGetValue(fullScaleInputLevel, out int leftOffset))
+				throw new ArgumentException("Invalid input level. Must be one of 0, 6, 12, 18, 24, 30, 36, 42.");
+
+			int rightOffset = leftOffset + 6;
+
+			float leftLevel = BitConverter.ToSingle(calData, leftOffset + 2);
+			float rightLevel = BitConverter.ToSingle(calData, rightOffset + 2);
+
+			double leftValue = Math.Pow(10, leftLevel / 20);
+			double rightValue = Math.Pow(10, rightLevel / 20);
+
+			return (leftValue, rightValue);
+		}
+
+		/// <summary>
+		/// get ADC calibration data for a given full scale output setting
+		/// </summary>
+		/// <param name="calData">the calibration data</param>
+		/// <param name="fullScaleOutputLevel">the current full scale output level</param>
+		/// <returns>(left,right) multipliers</returns>
+		/// <exception cref="ArgumentException"></exception>
+		public static (double Left, double Right) GetDacCal(byte[] calData, int fullScaleOutputLevel)
+		{
+			Debug.Assert(!ViewSettings.IsUseREST, "GetDacCal using REST.");
+			var offsets = new Dictionary<int, int>
+			{
+				{ 18, 156 }, { 8, 144 }, { -2, 132 }, { -12, 120 }
+			};
+
+			if (!offsets.TryGetValue(fullScaleOutputLevel, out int leftOffset))
+				throw new ArgumentException("Invalid output level. Must be one of 18, 8, -2, -12.");
+
+			int rightOffset = leftOffset + 6;
+
+			float leftLevel = BitConverter.ToSingle(calData, leftOffset + 2);
+			float rightLevel = BitConverter.ToSingle(calData, rightOffset + 2);
+
+			double leftValue = Math.Pow(10, leftLevel / 20);
+			double rightValue = Math.Pow(10, rightLevel / 20);
+
+			return (leftValue, rightValue);
+		}
+
+		public static void DumpCalibrationData(byte[] calData)
+		{
+			string hexData = BitConverter.ToString(calData).Replace("-", " ");
+			Debug.WriteLine(hexData);
+
+			var (adcLeft, adcRight) = GetAdcCal(calData, 42);
+			Debug.WriteLine($"ADC Left level: {adcLeft}, Right level: {adcRight}");
+
+			var (dacLeft, dacRight) = GetDacCal(calData, -2);
+			Debug.WriteLine($"DAC Left level: {dacLeft}, Right level: {dacRight}");
+		}
+
+
+		/// <summary>
+		/// Provides an async method for doign the DAC/ADC streaming. You can submit separate buffers for the left and right channels.
+		/// When the acquisition is finished, the AcqResult return value will contain the Left and Right values captured by the ADC
+		/// </summary>
+		/// <param name="ct"></param>
+		/// <param name="leftOut"></param>
+		/// <param name="rightOut"></param>
+		/// <returns></returns>
+		public async Task<AcqResult> DoStreamingAsync(CancellationToken ct, double[] leftOut, double[] rightOut)
+		{
+			Debug.Assert(!ViewSettings.IsUseREST, "Error*** Do streaming with REST enabled");
+			AcqResult r = new AcqResult();
+			r.Valid = true;
+
+			// Check if acq is already in progress
+			if (AcqSemaphore.CurrentCount > 0)
+			{
+				// In here, acq is not in progress. Take semaphore, waiting if needed. Since we checked above, we should never have to wait
+				await AcqSemaphore.WaitAsync();
+
+				// Start a new task to run the acquisition
+				Task t = Task.Run(async () =>
+				{
+					try
+					{
+						r = await DoStreaming(ct, leftOut, rightOut);
+					}
+					catch (OperationCanceledException)
+					{
+						// If we cancel an acq via the CancellationToken, we'll end up here
+						r.Valid = false;
+					}
+					catch (Exception ex)
+					{
+						// Other exceptions will end up here
+						Debug.WriteLine($"Error in acquisition: {ex.Message}");
+						r.Valid = false;
+					}
+					finally
+					{
+						// Indicate an acq is not longer in progress
+						AcqSemaphore.Release();
+					}
+				});
+
+				// Wait for the task above to complete. Note we're on the UI thread here, but the task code above will be running
+				// in another thread. By "awaiting" on the task above, the UI thread blocks here BUT remains active, able to handle
+				// other UI tasks. This is known in C# as the Task-based Asynchronous Pattern in case the syntax is confusing to
+				// a non-c# developer
+				await t;
+			}
+			else
+			{
+				// Acquisition is already in progress. 
+				r.Valid = false;
+			}
+			// Return true to let the caller know the task succeeded and finished
+			return r;
+		}
+
+		public async Task<AcqResult> DoStreaming(CancellationToken ct, double[] leftOut, double[] rightOut)
+		{
+			AcqResult r = new AcqResult();
+			r.Valid = true;
+
+			//if (_QaUsb == null)
+			//{
+			//	r.Valid = false;
+			//	return r;
+			//}
+			Debug.Assert(leftOut.Length == rightOut.Length, "Out buffers must be the same length");
+			var maxOutput = await QaComm.GetOutputRange();
+			var maxInput = await QaComm.GetInputRange();
+			var preBuf = QaComm.GetPreBuffer();
+			var postBuf = QaComm.GetPostBuffer();
+			var FftSize = await QaComm.GetFftSize();
+
+			var dacCal = GetDacCal(CalData, maxOutput);
+			var adcCal = GetAdcCal(CalData, maxInput);
+
+			// bufsize is leftout.length and usbBufSize is the size of the usb buffer
+			// bufSize * 8 must be >= to usbBufSize, and bufSize * 8 must be an integer multiple of usbBufSize
+			var usize = MathUtil.ToInt(ViewSettings.Singleton.SettingsVm.UsbBufferSize, 16384);
+			double fusize = Math.Pow(2, Math.Floor(Math.Log(usize, 2)));     // nearest power of 2
+			fusize = Math.Max(Math.Min(fusize, 131072), 2048);   // 2k to 128k ???
+
+			int usbBufSize = (int)(0.1 + fusize);
+			// (int)Math.Pow(2, 13);   // If bigger than 2^15, then OS USB code will chunk it down into 16K buffers (Windows). So, not much point making larger than 32K. 
+
+			// The scale factor converts the volts to dBFS. The max output is 8Vrms = 11.28Vp = 0 dBFS. 
+			// The above calcs assume DAC relays set to 18 dBV = 8Vrms full scale
+			var dbfsAdjustment = Math.Pow(10, -((maxOutput + 3.0) / 20));
+			List<double> lout = leftOut.Select(x => x * dbfsAdjustment * dacCal.Left).ToList();
+			List<double> rout = rightOut.Select(x => x * dbfsAdjustment * dacCal.Right).ToList();
+
+			// now pad front and back of the values via prebuf and postbuf 
+			double[] prebuf = new double[Math.Max(preBuf, usbBufSize / 2)];
+			double[] postbuf = new double[Math.Max(postBuf, usbBufSize / 2)];
+			lout.InsertRange(0, prebuf);
+			lout.AddRange(postbuf);
+			rout.InsertRange(0, prebuf);
+			rout.AddRange(postbuf);
+
+			// Convert to byte stream. This will be sent over USB
+			byte[] txData = ToByteStream(lout.ToArray(), rout.ToArray());
+			byte[] rxData = new byte[txData.Length];
+
+			// Determine the number of blocks needed
+			int blocks = txData.Length / usbBufSize;
+			int remainder = txData.Length - blocks * usbBufSize;
+
+			// Verify we have integer number of blocks
+			if (blocks == 0 || remainder != 0)
+			{
+				// Error! The bufSize must be an integer multiple of the usbBufSize. For example, a 16K bufSize will have 16K left doubles, and
+				// 16K right doubles. This is 16K * 8 = 128K. The USB buffer size (bytes sent over the wire) can be 32K, 16K, 8K, etc.
+				throw new Exception("bufSize * 8 must be >= to usbBufSize, and bufSize * 8 must be an integer multiple of usbBufSize");
+			}
+
+			InitOverlapped();
+
+			// Start streaming DAC, with ADC autostreamed after DAC is seeing live data
+			// Important! Enabled streaming AND THEN send data. This will also illuminate the 
+			// RUN led
+			WriteRegister(8, 0x5);
+
+			// list of rx blocks
+			List<byte[]> usbRxBuffers = new List<byte[]>();
+			int prereader = 3;  // number of buffers to keep running
+
+			// Prime the pump with two reads. This way we can handle one buffer while the other is being
+			// used by the OS
+			// Send out two data writes as we begin working our way through the txData buffer
+			//
+			// do these as close together as possible...
+			ReadDataBegin(usbBufSize);
+			WriteDataBegin(txData, 0, usbBufSize);
+			//
+			for (int i = 1; i < prereader; i++)
+			{
+				ReadDataBegin(usbBufSize);
+				WriteDataBegin(txData, usbBufSize * i, usbBufSize);
+			}
+
+			var remaining = prereader;  // # of blocks still to read after all is sent
+
+			// Loop and send/receive the remaining blocks. Everytime we get some RX data, we'll send another block of 
+			// TX data. This is how we maintain timing with the hardware. 
+			for (int i = prereader; i < blocks; i++)
+			{
+				// Wait for RX data to arrive then, for speed, just append the array to our list of receipts
+				var bufr = ReadDataEnd();
+				if (bufr.Length > 0)
+				{
+					usbRxBuffers.Add(bufr);
+				}
+				else
+				{
+					Debug.WriteLine("Empty buffer received from USB");
+				}
+				remaining--;
+
+				if (ct.IsCancellationRequested == false && bufr.Length > 0)
+				{
+					// Kick off another read and write
+					ReadDataBegin(usbBufSize);
+					WriteDataBegin(txData, i * usbBufSize, usbBufSize);
+					remaining++;
+				}
+				else
+				{
+					// Cancellation has been requested. At this point there is one buffer in flight. 
+					// Break out of this loop and handle the rest of the cancellation below.
+					break;
+				}
+			}
+
+			// At this point, all buffers have been sent and there are two or three RX
+			// buffers in-flight. Collect those
+			for (int i = 0; i < remaining; i++)
+			{
+				var bufr = ReadDataEnd();
+				usbRxBuffers.Add(bufr);
+			}
+
+			// Stop streaming. This also extinguishes the RUN led
+			WriteRegister(8, 0);
+
+			// we now have a list of all the rx buffers to convert to an array
+			// use fixed size so that frombytestream and others work ok
+			rxData = new byte[usbBufSize * usbRxBuffers.Count()];
+			int offset = 0;
+			foreach (var b in usbRxBuffers)
+			{
+				Buffer.BlockCopy(b, 0, rxData, offset, b.Length);
+				offset += b.Length;
+			}
+			usbRxBuffers.Clear();   // empty the ram here
+
+			// Note that left and right data is swapped on QA402, QA403, QA404. We do that via arg ordering below.
+			FromByteStream(rxData, out r.Right, out r.Left);
+			if (r.Valid == true && r.Left.Length > prebuf.Length)
+			{
+				// Convert from dBFS to dBV. Note the 6 dB factor--the ADC is differential
+				var adcCorrection = Math.Pow(10, (maxInput - 6.0) / 20);
+				int tused = (int)FftSize;    // should be fftsize
+
+				// Apply scaling factor to map from dBFS to Volts. 
+				var loff = 0;
+				var rlf = r.Left.Skip(prebuf.Length + loff).Take(tused);
+				var roff = rlf.Sum() / rlf.Count();  // dc offset
+				r.Left = rlf.Select(x => (x - roff) * adcCal.Left * adcCorrection).ToArray();
+
+				var rrf = r.Right.Skip(prebuf.Length + loff).Take(tused);
+				roff = rrf.Sum() / rlf.Count();  // dc offset
+				r.Right = rrf.Select(x => (x - roff) * adcCal.Right * adcCorrection).ToArray();
+
+				Debug.WriteLine($"Attenuation: {maxInput}  Output Level: {maxOutput}");
+				Debug.WriteLine($"Peak Left: {r.Left.Max():0.000}   Peak right: {r.Right.Max():0.000}");
+				Debug.WriteLine($"Total Left: {Math.Sqrt(r.Left.Sum(x => x * x)):0.000}   Total right: {Math.Sqrt(r.Right.Sum(x => x * x)):0.000}");
+			}
+			else
+			{
+				r.Valid = false;
+			}
+			return r;
+		}
+
+		/// <summary>
+		/// Converts left and right channels of doubles to interleaved byte stream suitable for transmission over USB wire
+		/// </summary>
+		/// <param name="leftData"></param>
+		/// <param name="rightData"></param>
+		/// <returns></returns>
+		static public byte[] ToByteStream(double[] leftData, double[] rightData)
+		{
+			if (leftData.Length != rightData.Length)
+				throw new InvalidOperationException("Data length must be the same");
+
+			int[] ili = new int[leftData.Length * 2];
+
+			// left and right are flipped so,...
+			for (int i = 0; i < leftData.Length; i++)
+			{
+				ili[i * 2 + 1] = (int)(leftData[i] * int.MaxValue);
+				ili[i * 2] = (int)(rightData[i] * int.MaxValue);
+			}
+
+			byte[] buffer = new byte[leftData.Length * 8];  // 4 bytes for right, 4 bytes for left
+			Buffer.BlockCopy(ili, 0, buffer, 0, buffer.Length); // convert ints to bytes
+			return buffer;
+		}
+
+		/// <summary>
+		/// Converts interleaved data received over the USB wire to left and right doubles
+		/// </summary>
+		/// <param name="buffer"></param>
+		/// <param name="left"></param>
+		/// <param name="right"></param>
+		static public void FromByteStream(byte[] buffer, out double[] left, out double[] right)
+		{
+			int[] ili = new int[buffer.Length / sizeof(int)];
+			Buffer.BlockCopy(buffer, 0, ili, 0, buffer.Length);     // convert bytes to ints
+			left = new double[ili.Length / 2];
+			right = new double[left.Length];
+			double ddiv = (double)int.MaxValue;     // the original python has a /2 here ?
+			for (int j = 0; j < left.Length; j++)
+			{
+				left[j] = ili[j * 2 + 1] / ddiv;
+				right[j] = ili[j * 2] / ddiv;
+			}
+		}
 
         /// <summary>
         /// Performs a read on a USB register
         /// </summary>
         /// <param name="reg"></param>
         /// <returns></returns>
-        static public UInt32 ReadRegister(byte reg)
+        public UInt32 ReadRegister(byte reg)
         {
             byte[] data = new byte[4];
             UInt32 val;
@@ -357,7 +605,7 @@ namespace QA40x_BareMetal
                     byte[] txBuf = WriteRegisterPrep((byte)(0x80 + reg), 0);
                     WriteRegisterRaw(txBuf);
                     int len = 0;
-                    QAnalyzer?.RegisterReader?.Read(data, RegReadWriteTimeout, out len);
+                    RegisterReader?.Read(data, RegReadWriteTimeout, out len);
 
                     if (len == 0)
                         throw new Exception($"Usb.ReadRegister failed to read data. Register: {reg}");
@@ -380,7 +628,7 @@ namespace QA40x_BareMetal
         /// </summary>
         /// <param name="reg"></param>
         /// <param name="val"></param>
-        static public void WriteRegister(byte reg, uint val)
+        public void WriteRegister(byte reg, uint val)
         {
             // Values greater than or equal to 0x80 signify a read. Not allowed here
             if (reg >= 0x80)
@@ -396,12 +644,12 @@ namespace QA40x_BareMetal
             }
         }
 
-        static void WriteRegisterRaw(byte[] data)
+        void WriteRegisterRaw(byte[] data)
         {
             int len = data.Length;
             try
             {
-				QAnalyzer?.RegisterWriter?.Write(data, RegReadWriteTimeout, out len);
+				RegisterWriter?.Write(data, RegReadWriteTimeout, out len);
             }
             catch (Exception ex)
             {
@@ -410,7 +658,7 @@ namespace QA40x_BareMetal
             }
         }
 
-        static byte[] WriteRegisterPrep(byte reg, uint val)
+        byte[] WriteRegisterPrep(byte reg, uint val)
         {
             byte[] array = BitConverter.GetBytes(val).Reverse().ToArray();
 			byte[] r = new byte[5];
@@ -426,7 +674,7 @@ namespace QA40x_BareMetal
         // that the c# List<AsyncResult> type isn't thread safe. Thus the restriction
         //
 
-        static public void InitOverlapped()
+        public void InitOverlapped()
         {
             WriteQueue.Clear();
             ReadQueue.Clear();
@@ -437,7 +685,7 @@ namespace QA40x_BareMetal
         /// copied to a local buffer before returning.
         /// </summary>
         /// <param name="data"></param>
-        static public void WriteDataBegin(byte[] data, int offset, int len)
+        public void WriteDataBegin(byte[] data, int offset, int len)
         {
             ErrorCode ec;
 
@@ -447,7 +695,7 @@ namespace QA40x_BareMetal
             byte[] localBuf = new byte[len];
             Array.Copy(data, offset, localBuf, 0, len);
 			UsbTransfer? ar = null;
-			ec = QAnalyzer?.DataWriter?.SubmitAsyncTransfer(localBuf, 0, localBuf.Length, MainI2SReadWriteTimeout, out ar) ?? ErrorCode.UnknownError;
+			ec = DataWriter?.SubmitAsyncTransfer(localBuf, 0, localBuf.Length, MainI2SReadWriteTimeout, out ar) ?? ErrorCode.UnknownError;
             if (ec != ErrorCode.None)
             {
                 //Log.WriteLine(LogType.Error, "Error code in Usb.WriteDataBegin: ");
@@ -462,7 +710,7 @@ namespace QA40x_BareMetal
         /// The number of bytes written is returned.
         /// </summary>
         /// <returns></returns>
-        static public int WriteDataEnd()
+        public int WriteDataEnd()
         {
             if (WriteQueue.Count == 0)
                 throw new Exception("No buffers in Usb WriteDataEnd()");
@@ -476,11 +724,11 @@ namespace QA40x_BareMetal
         /// Creates and submits a buffer to be read asynchronously. Returns immediately.
         /// </summary>
         /// <param name="data"></param>
-        static public void ReadDataBegin(int bufSize)
+        public void ReadDataBegin(int bufSize)
         {
             byte[] readBuffer = new byte[bufSize];
 			UsbTransfer? ar = null;
-			QAnalyzer?.DataReader?.SubmitAsyncTransfer(readBuffer, 0, readBuffer.Length, MainI2SReadWriteTimeout, out ar);
+			DataReader?.SubmitAsyncTransfer(readBuffer, 0, readBuffer.Length, MainI2SReadWriteTimeout, out ar);
             if(ar != null)
                 ReadQueue.Add(new AsyncResult(ar, readBuffer));
         }
@@ -489,7 +737,7 @@ namespace QA40x_BareMetal
         /// Waits until the oldest submitted buffer has been read successfully OR timed out
         /// </summary>
         /// <returns></returns>
-        static public byte[] ReadDataEnd()
+        public byte[] ReadDataEnd()
         {
             if(ReadQueue.Count() > 0)
             {

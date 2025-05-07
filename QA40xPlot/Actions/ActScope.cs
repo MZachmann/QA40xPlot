@@ -1,14 +1,10 @@
-﻿using Newtonsoft.Json;
-using QA40x_BareMetal;
-using QA40xPlot.BareMetal;
+﻿using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
-using System;
 using System.Data;
-using System.IO;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
 

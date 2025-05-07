@@ -9,6 +9,7 @@ using QA40xPlot.Libraries;
 
 namespace QA40xPlot.BareMetal
 {
+#if false
 	public class AnalyzerParams
 	{
 		public int SampleRate { get;  set; }
@@ -115,4 +116,5 @@ namespace QA40xPlot.BareMetal
 			return table;
 		}
 	}
+#endif
 }

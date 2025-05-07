@@ -9,6 +9,7 @@ using System.Diagnostics;
 
 namespace QA40xPlot.BareMetal
 {
+#if false
 	internal class TestUsbLib
 	{
 		private static QaAnalyzer? TestCal()
@@ -36,7 +37,7 @@ namespace QA40xPlot.BareMetal
 
 		public static async Task Test()
 		{
-			QA40x_BareMetal.QaUsb.Open();
+			//QA40x_BareMetal.QaUsb.Open();
 			TestCal();
 			var tstA = QA40x_BareMetal.QaUsb.QAnalyzer;
 			var chirp = QaMath.CalculateChirp(20, 20000, 0.1, 16384, 48000);
@@ -47,4 +48,5 @@ namespace QA40xPlot.BareMetal
 			var z = x.Length;
 		}
 	}
+#endif
 }

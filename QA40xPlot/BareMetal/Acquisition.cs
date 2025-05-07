@@ -1,5 +1,4 @@
-﻿using QA40x_BareMetal;
-using QA40xPlot.Libraries;
+﻿using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using System.Diagnostics;
 
@@ -10,6 +9,7 @@ using System.Diagnostics;
 
 namespace QA40xPlot.BareMetal
 {
+#if false
     class AcqResult
     {
         public bool Valid = false;
@@ -39,7 +39,8 @@ namespace QA40xPlot.BareMetal
         /// <returns></returns>
         static public async Task<AcqResult> DoStreamingAsync(CancellationToken ct, double[] leftOut, double[] rightOut)
         {
-            AcqResult r = new AcqResult();
+            Debug.Assert(ViewSettings.IsUseREST, "Error*** Do streaming with REST enabled");
+			AcqResult r = new AcqResult();
             r.Valid = true;
 
             // Check if acq is already in progress
@@ -297,4 +298,5 @@ namespace QA40xPlot.BareMetal
 			}
 		}
     }
+#endif
 }

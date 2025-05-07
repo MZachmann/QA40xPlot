@@ -1,5 +1,4 @@
-﻿using QA40x_BareMetal;
-using QA40xPlot.BareMetal;
+﻿using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;

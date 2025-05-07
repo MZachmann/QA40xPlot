@@ -9,7 +9,7 @@ using QA40xPlot.Data;
 
 namespace QA40xPlot.Libraries
 {
-    public enum OutputSources { Off, User, Sine, Multitone, WhiteNoise, ExpoChirp }
+    public enum OutputSources { Off, User, Sine, Multitone, WhiteNoise, ExpoChirp, Invalid }
 
     public enum Windowing { Rectangle, Bartlett, Hamming, Hann, FlatTop }
 

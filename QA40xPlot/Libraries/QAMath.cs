@@ -14,7 +14,7 @@ using System.Windows;
 
 namespace QA40xPlot.Libraries
 {
-    public interface QaMath
+    public static class QaMath
     {
 
 		public static double MagAtFreq(double[] pts, double df, double dFreq)

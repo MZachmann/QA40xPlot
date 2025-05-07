@@ -1,4 +1,4 @@
-using QA40x_BareMetal;
+using QA40x.BareMetal;
 using QA40xPlot.ViewModels;
 using System.Diagnostics;
 
@@ -10,6 +10,7 @@ using System.Diagnostics;
 
 namespace QA40xPlot.BareMetal
 {
+#if false
 	public static class Control
 	{
 		private static readonly Dictionary<int, int> _Output2Reg = new() { { 18, 3 }, { 8, 2 }, { -2, 1 }, { -12, 0 } };
@@ -154,5 +155,5 @@ namespace QA40xPlot.BareMetal
 			Debug.WriteLine($"DAC Left level: {dacLeft}, Right level: {dacRight}");
 		}
 	}
-
+#endif
 }

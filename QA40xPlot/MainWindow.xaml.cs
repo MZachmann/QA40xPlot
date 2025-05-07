@@ -1,22 +1,15 @@
 ﻿using Microsoft.Win32;
 using Newtonsoft.Json;
-using QA40x_BareMetal;
 using QA40xPlot.BareMetal;
-using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
-using SkiaSharp;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Interop;
-using System.Windows.Media.Imaging;
 
 
 namespace QA40xPlot
@@ -135,10 +128,11 @@ namespace QA40xPlot
 				{
 					if (!ViewSettings.IsUseREST && QaLowUsb.IsDeviceConnected() == false)
 					{
-						QaUsb.Open();
+						//QaUsb.Open();
 					}
 					// set max attenuation for safety, turns on ATTEN led
-					QaComm.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION).Wait(200);
+					var tsk = QaComm.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION);
+					tsk.AsTask().Wait();
 				}
 			}
 			catch (Exception ex)
@@ -150,7 +144,8 @@ namespace QA40xPlot
 				if (!ViewSettings.IsUseREST && QaLowUsb.IsDeviceConnected() == true)
 				{
 					// now close down
-					QaComm.Close(true);
+					var tsk = QaComm.Close(true);
+					tsk.AsTask().Wait();
 				}
 			}
 			catch (Exception ex)
