@@ -126,9 +126,10 @@ namespace QA40xPlot
 			{
 				if (ViewSettings.Singleton.SettingsVm.RelayUsage != "Never")
 				{
-					if (!ViewSettings.IsUseREST && QaLowUsb.IsDeviceConnected() == false)
+					if (!ViewSettings.IsUseREST )
 					{
-						//QaUsb.Open();
+						var qadev = QaComm.CheckDeviceConnected();	// this will try to reopen the usb
+						var iscon = qadev.AsTask().Wait(50);
 					}
 					// set max attenuation for safety, turns on ATTEN led
 					var tsk = QaComm.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION);

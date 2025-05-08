@@ -386,11 +386,6 @@ namespace QA40x.BareMetal
 			AcqResult r = new AcqResult();
 			r.Valid = true;
 
-			//if (_QaUsb == null)
-			//{
-			//	r.Valid = false;
-			//	return r;
-			//}
 			Debug.Assert(leftOut.Length == rightOut.Length, "Out buffers must be the same length");
 			var maxOutput = QaComm.GetOutputRange();
 			var maxInput = QaComm.GetInputRange();
