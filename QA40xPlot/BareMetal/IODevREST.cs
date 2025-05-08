@@ -35,17 +35,17 @@ namespace QA40xPlot.BareMetal
 			return ValueTask.CompletedTask;
 		}
 
-		public ValueTask<uint> GetFftSize() { return new ValueTask<uint>(_FftSize); }
+		public uint GetFftSize() { return _FftSize; }
 
-		public ValueTask<int> GetInputRange() { return new ValueTask<int>(_Attenuation); }
+		public int GetInputRange() { return _Attenuation; }
 
-		public ValueTask<int> GetOutputRange() { return new ValueTask<int>(_OutputRange); }
+		public int GetOutputRange() { return _OutputRange; }
 
-		public ValueTask<uint> GetSampleRate() { return new ValueTask<uint>(_SampleRate); }
+		public uint GetSampleRate() { return _SampleRate; }
 
-		public ValueTask<OutputSources> GetOutputSource() {  return new ValueTask<OutputSources>(_OutputSource); }
+		public OutputSources GetOutputSource() {  return _OutputSource; }
 
-		public ValueTask<string> GetWindowing() { return new ValueTask<string>(_Windowing); }
+		public string GetWindowing() { return _Windowing; }
 
 		public ValueTask<bool> IsServerRunning()
 		{
@@ -97,24 +97,12 @@ namespace QA40xPlot.BareMetal
 
 		public async ValueTask<LeftRightSeries> DoAcquisitions(uint averages, CancellationToken ct, bool getFreq)
 		{
-			var ffts = await GetFftSize();
+			var ffts = GetFftSize();
 			var datapt = new double[ffts];
-			var osource = await GetOutputSource();
-			var srate = await GetSampleRate();
-			if (osource == OutputSources.Sine)
-			{
-				var gp1 = WaveGenerator.Singleton.GenParams;
-				var gp2 = WaveGenerator.Singleton.Gen2Params;
-				double dt = 1.0 / srate;
-				if (gp1?.Enabled == true)
-				{
-					datapt = datapt.Select((x, index) => x + (gp1.Voltage * Math.Sqrt(2)) * Math.Sin(2 * Math.PI * gp1.Frequency * dt * index)).ToArray();
-				}
-				if (gp2?.Enabled == true)
-				{
-					datapt = datapt.Select((x, index) => x + (gp2.Voltage * Math.Sqrt(2)) * Math.Sin(2 * Math.PI * gp2.Frequency * dt * index)).ToArray();
-				}
-			}
+			var osource = GetOutputSource();
+			var srate = GetSampleRate();
+			datapt = WaveGenerator.Generate(srate, ffts);
+
 
 			return await QaREST.DoAcquireUser(ct, datapt, getFreq);
 		}

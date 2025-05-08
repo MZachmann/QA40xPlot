@@ -31,13 +31,14 @@ namespace QA40xPlot.BareMetal
 		public ValueTask<bool> IsOpen();
 		public ValueTask<bool> Open();
 		public ValueTask Close(bool onExit);
-		// properties
-		public ValueTask<int> GetInputRange();
-		public ValueTask<int>  GetOutputRange();
-		public ValueTask<uint> GetSampleRate();
-		public ValueTask<uint> GetFftSize();
-		public ValueTask<string> GetWindowing();
-		public ValueTask<OutputSources> GetOutputSource();
+		// properties. getters are not async every since we cache this stuff.
+		public int GetInputRange();
+		public int  GetOutputRange();
+		public uint GetSampleRate();
+		public uint GetFftSize();
+		public string GetWindowing();
+		public OutputSources GetOutputSource();
+
 		public ValueTask SetInputRange(int range);
 		public ValueTask SetOutputRange(int range);
 		public ValueTask SetSampleRate(uint range);

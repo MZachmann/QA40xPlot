@@ -322,24 +322,12 @@ namespace QA40xPlot.Actions
 		private static double[] BuildWave(MyDataTab page, double dFreq)
 		{
 			var vm = page.ViewModel;
-
-			// for the first go around, turn on the generator
-			// Set the generators via a usermode
-			var waveForm = new GenWaveform()
-			{
-				Frequency = dFreq,
-				Voltage = page.Definition.GeneratorVoltage,
-				Name = "Sine"
-			};
-			var waveSample = new GenWaveSample()
-			{
-				SampleRate = (int)vm.SampleRateVal,
-				SampleSize = (int)vm.FftSizeVal
-			};
-
-			double[] wave = QaMath.CalculateWaveform([waveForm], waveSample).ToArray();
-			return wave;
+			var v1 = page.Definition.GeneratorVoltage;
+			WaveGenerator.SetEnabled(true);          // enable the generator
+			WaveGenerator.SetGen1(dFreq, v1, true);          // send a sine wave
+			return WaveGenerator.Generate((uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
 		}
+
 
 		/// <summary>
 		/// Start measurement button clicked
@@ -431,6 +419,7 @@ namespace QA40xPlot.Actions
 			QaLibrary.PlotMiniFftGraph(fftPlot, noisy.FreqRslt, vm.ShowLeft, vm.ShowRight);
 			QaLibrary.PlotMiniTimeGraph(timePlot, noisy.TimeRslt, testFrequency, vm.ShowLeft, vm.ShowRight);
 
+			WaveGenerator.SetEnabled(true);	 // turn on the generator
 			// ********************************************************************
 			// Step through the list of voltages
 			// ********************************************************************

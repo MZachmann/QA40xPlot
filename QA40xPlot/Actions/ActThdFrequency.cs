@@ -281,28 +281,28 @@ namespace QA40xPlot.Actions
 			UpdateGraph(true);
 		}
 
-        // build a sinewave for the sweep
-		private static double[] BuildWave(MyDataTab page, double dFreq)
-		{
-			var vm = page.ViewModel;
+  //      // build a sinewave for the sweep
+		//private static double[] BuildWave(MyDataTab page, double dFreq)
+		//{
+		//	var vm = page.ViewModel;
 
-			// for the first go around, turn on the generator
-			// Set the generators via a usermode
-			var waveForm = new GenWaveform()
-			{
-				Frequency = dFreq,
-				Voltage = page.Definition.GeneratorVoltage,
-				Name = "Sine"
-			};
-			var waveSample = new GenWaveSample()
-			{
-				SampleRate = (int)vm.SampleRateVal,
-				SampleSize = (int)vm.FftSizeVal
-			};
+		//	// for the first go around, turn on the generator
+		//	// Set the generators via a usermode
+		//	var waveForm = new GenWaveform()
+		//	{
+		//		Frequency = dFreq,
+		//		Voltage = page.Definition.GeneratorVoltage,
+		//		Name = "Sine"
+		//	};
+		//	var waveSample = new GenWaveSample()
+		//	{
+		//		SampleRate = (int)vm.SampleRateVal,
+		//		SampleSize = (int)vm.FftSizeVal
+		//	};
 
-			double[] wave = QaMath.CalculateWaveform([waveForm], waveSample).ToArray();
-			return wave;
-		}
+		//	double[] wave = QaMath.CalculateWaveform([waveForm], waveSample).ToArray();
+		//	return wave;
+		//}
 
 		/// <summary>
 		///  Start measurement button click
@@ -420,17 +420,19 @@ namespace QA40xPlot.Actions
 				page.NoiseFloor.Right = QaCompute.CalculateNoise(noisy.FreqRslt, true);
 				page.NoiseFloor.Left = QaCompute.CalculateNoise(noisy.FreqRslt, false);
 
-				// ********************************************************************
-				// Step through the list of frequencies
-				// ********************************************************************
+				WaveGenerator.SetEnabled(true); // enable generator
+												// ********************************************************************
+												// Step through the list of frequencies
+												// ********************************************************************
 				for (int f = 0; f < stepBinFrequencies.Length; f++)
 				{
 					var freqy = stepBinFrequencies[f];
 					await showMessage($"Measuring {freqy:0.#} Hz at {genVolt:G3} V.");
 					await showProgress(100 * (f + 1) / stepBinFrequencies.Length);
 
-					var wave = BuildWave(page, freqy);   // also update the waveform variables
-					var lrfs = await QaComm.DoAcquireUser(vm.Averages, ct.Token, wave, wave, true);
+					WaveGenerator.SetGen1(freqy, genVolt, true);             // send a sine wave
+					WaveGenerator.SetGen2(0, 0, false);            // send a sine wave
+					var lrfs = await QaComm.DoAcquisitions(vm.Averages, ct.Token, true);
 
 					if (ct.IsCancellationRequested)
 						break;

@@ -36,9 +36,9 @@ namespace QA40xPlot.Libraries
 
 					await Qa40x.SetDefaults();
 					// call the QaComm version to save the variable values for other stuff
-					await QaComm.SetOutputSource(OutputSources.Off);
 				}
 				// call the QaComm version to save the variable values for other stuff
+				await QaComm.SetOutputSource(OutputSources.Off);
 				await QaComm.SetSampleRate(sampleRate);
 				await QaComm.SetFftSize(fftsize);
 				await QaComm.SetWindowing(Windowing);

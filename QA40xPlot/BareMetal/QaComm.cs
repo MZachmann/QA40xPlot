@@ -60,29 +60,29 @@ namespace QA40xPlot.BareMetal
 		{
 			await MyIoDevice.SetWindowing(range);
 		}
-		public static async ValueTask<int> GetInputRange()
+		public static int GetInputRange()
 		{
-			return await MyIoDevice.GetInputRange();
+			return MyIoDevice.GetInputRange();
 		}
-		public static async ValueTask<int> GetOutputRange()
+		public static int GetOutputRange()
 		{
-			return await MyIoDevice.GetOutputRange();
+			return MyIoDevice.GetOutputRange();
 		}
-		public static async ValueTask<uint> GetSampleRate()
+		public static uint GetSampleRate()
 		{
-			return await MyIoDevice.GetSampleRate();
+			return MyIoDevice.GetSampleRate();
 		}
-		public static async ValueTask<uint> GetFftSize()
+		public static uint GetFftSize()
 		{
-			return await MyIoDevice.GetFftSize();
+			return MyIoDevice.GetFftSize();
 		}
-		public static async ValueTask<string> GetWindowing()
+		public static string GetWindowing()
 		{
-			return await MyIoDevice.GetWindowing();
+			return MyIoDevice.GetWindowing();
 		}
-		public static async ValueTask<OutputSources> GetOutputSource()
+		public static OutputSources GetOutputSource()
 		{
-			return await MyIoDevice.GetOutputSource();
+			return MyIoDevice.GetOutputSource();
 		}
 		public static int GetPreBuffer()
 		{

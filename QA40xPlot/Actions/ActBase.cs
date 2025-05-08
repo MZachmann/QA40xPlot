@@ -34,14 +34,15 @@ namespace QA40xPlot.Actions
 				return false;
 			}
 			bvm.IsRunning = true;
+			WaveGenerator.Clear();  // disable both generators and the WaveGenerator itself
 			return true;
 		}
 
 		public static async Task EndAction(BaseViewModel bvm)
 		{
 			// Turn the generator off
-			await QaComm.SetOutputSource(OutputSources.Off);
-			if( ViewSettings.Singleton.SettingsVm.RelayUsage == "OnFinish")
+			WaveGenerator.SetEnabled(false);
+			if ( ViewSettings.Singleton.SettingsVm.RelayUsage == "OnFinish")
 				await QaComm.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION);  // set max attenuation while idle...
 																	// detach from usb port
 			//QaComm.Close(false);
@@ -75,13 +76,13 @@ namespace QA40xPlot.Actions
 		{
 			var range = 0;
 			if(setRange)
-				range = await QaComm.GetInputRange();
+				range = QaComm.GetInputRange();
 			// ********************************************************************
 			// Do noise floor measurement with source off
 			// ********************************************************************
 			await showMessage($"Determining noise floor.");
 			System.Diagnostics.Debug.WriteLine("***-------------Measuring noise-------------.");
-			await QaComm.SetOutputSource(OutputSources.Off);
+			WaveGenerator.SetEnabled(false);
 			if( setRange)
 				await QaComm.SetInputRange(6); // and a small range for better noise...
 			//Thread.Sleep(1000);
@@ -105,8 +106,8 @@ namespace QA40xPlot.Actions
 			var generatorV = 0.01;          // random low test value
 			// we must have this in the bin center here
 			dfreq = QaLibrary.GetNearestBinFrequency(dfreq, sampleRate, fftsize);
-			WaveGenerator.SetGen1(dfreq, generatorV, true);			// send a sine wave
-			await QaComm.SetOutputSource(OutputSources.Sine);      // since we're single frequency
+			WaveGenerator.SetGen1(dfreq, generatorV, true); // send a sine wave
+			WaveGenerator.SetEnabled(true);					// enable generator
 			var ct = new CancellationTokenSource();
 			// do two and average them
 			await QaComm.DoAcquisitions(1, ct.Token);        // Do a single acquisition to settle stuff
@@ -118,22 +119,22 @@ namespace QA40xPlot.Actions
 			int binmin = (int)Math.Max(0, fundamentalBin - 2);
 			int bintrack = (int)(Math.Min(fftsize, fundamentalBin + 2) - binmin);
 
-			// the amplitude is max of a small area
-			var maxl = GetFGain(acqData.FreqRslt.Left, generatorV, binmin, bintrack);
-			var maxr = GetFGain(acqData.FreqRslt.Right, generatorV, binmin, bintrack);
+			//// the amplitude is max of a small area
+			//var maxl = GetFGain(acqData.FreqRslt.Left, generatorV, binmin, bintrack);
+			//var maxr = GetFGain(acqData.FreqRslt.Right, generatorV, binmin, bintrack);
 
-			var maxi = Math.Max(maxl, maxr);
-			// since we're running with 42db of attenuation...
-			if (maxi < 0.1)
-			{
-				// get some more accuracy with this
-				await QaComm.SetInputRange(18);
-				// do two and average them
-				await QaComm.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
-				acqData = await QaComm.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
-				if (acqData == null || acqData.FreqRslt == null || ct.IsCancellationRequested)
-					return null;
-			}
+			//var maxi = Math.Max(maxl, maxr);
+			//// since we're running with 42db of attenuation...
+			//if (maxi < 0.1)
+			//{
+			//	// get some more accuracy with this
+			//	await QaComm.SetInputRange(18);
+			//	// do two and average them
+			//	await QaComm.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
+			//	acqData = await QaComm.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
+			//	if (acqData == null || acqData.FreqRslt == null || ct.IsCancellationRequested)
+			//		return null;
+			//}
 
 			// calculate gain for each channel from frequency response
 			LeftRightFrequencySeries lrfs = new LeftRightFrequencySeries();
@@ -180,24 +181,24 @@ namespace QA40xPlot.Actions
 				if (acqData == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
 					return null;
 
-				// what's the maximum input here?
-				var skips = acqData.TimeRslt.Left.Length / 10;
-				var takes = acqData.TimeRslt.Left.Length * 8 / 10;
-				var maxl = acqData.TimeRslt.Left.Skip(skips).Take(takes).Max();
-				var maxr = acqData.TimeRslt.Right.Skip(skips).Take(takes).Max();
+				//// what's the maximum input here?
+				//var skips = acqData.TimeRslt.Left.Length / 10;
+				//var takes = acqData.TimeRslt.Left.Length * 8 / 10;
+				//var maxl = acqData.TimeRslt.Left.Skip(skips).Take(takes).Max();
+				//var maxr = acqData.TimeRslt.Right.Skip(skips).Take(takes).Max();
 
-				var maxi = Math.Max(maxl, maxr);
-				// since we're running with 42db of attenuation...
-				if( maxi < 0.1)
-				{
-					// get some more accuracy with this
-					await QaComm.SetInputRange(18);
-					// do two and average them
-					await QaComm.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
-					acqData = await QaComm.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
-					if (acqData == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
-						return null;
-				}
+				//var maxi = Math.Max(maxl, maxr);
+				//// since we're running with 42db of attenuation...
+				//if( maxi < 0.1)
+				//{
+				//	// get some more accuracy with this
+				//	await QaComm.SetInputRange(18);
+				//	// do two and average them
+				//	await QaComm.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
+				//	acqData = await QaComm.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
+				//	if (acqData == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
+				//		return null;
+				//}
 
 				// calculate gain for each channel from frequency response
 				LeftRightTimeSeries lrts = new LeftRightTimeSeries();

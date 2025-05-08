@@ -130,32 +130,12 @@ namespace QA40xPlot.Actions
 		private static double[] BuildWave(MyDataTab page)
 		{
 			var vm = page.ViewModel;
-
 			var freq = MathUtil.ToDouble(vm.Gen1Frequency, 0);
-			// for the first go around, turn on the generator
-			// Set the generators via a usermode
-			var waveForm = new GenWaveform()
-			{
-				Frequency = freq,
-				Voltage = page.Definition.GeneratorVoltage,
-				Name = vm.Gen1Waveform
-			};
-			var waveSample = new GenWaveSample()
-			{
-				SampleRate = (int)vm.SampleRateVal,
-				SampleSize = (int)vm.FftSizeVal
-			};
-
-			double[] wave;
-			if (vm.UseGenerator)
-			{
-				wave = QaMath.CalculateWaveform([waveForm], waveSample).ToArray();
-			}
-			else
-			{
-				wave = new double[waveSample.SampleSize];
-			}
-			return wave;
+			var v1 = page.Definition.GeneratorVoltage;
+			WaveGenerator.SetEnabled(true);          // enable the generator
+			WaveGenerator.SetGen1(freq, v1, vm.UseGenerator, vm.Gen1Waveform);          // send a sine wave
+			WaveGenerator.SetGen2(0,0,false);          // just a sine wave
+			return WaveGenerator.Generate((uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
 		}
 
 		private void ShowPageInfo(MyDataTab page)

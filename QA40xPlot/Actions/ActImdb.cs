@@ -121,51 +121,17 @@ namespace QA40xPlot.Actions
 			UpdateGraph(true);
 		}
 
-		private static double[] BuildWave(MyDataTab page)
-		{
+		private static double[] BuildWave(MyDataTab page, double volts)
+		{ 
 			var vm = page.ViewModel;
-
 			var freq = MathUtil.ToDouble(vm.Gen1Frequency, 0);
 			var freq2 = MathUtil.ToDouble(vm.Gen2Frequency, 0);
-			// for the first go around, turn on the generator
-			// Set the generators via a usermode
-			var waveForm1 = new GenWaveform()
-			{
-				Frequency = freq,
-				Voltage = page.Definition.GeneratorVoltage,
-				Name = "Sine"
-			};
-			var waveForm2 = new GenWaveform()
-			{
-				Frequency = freq2,
-				Voltage = page.Definition.GeneratorVoltage / vm.GenDivisor,
-				Name = "Sine"
-			};
-			var waveSample = new GenWaveSample()
-			{
-				SampleRate = (int)vm.SampleRateVal,
-				SampleSize = (int)vm.FftSizeVal
-			};
-
-			double[] wave;
-
-			if (vm.UseGenerator || vm.UseGenerator2)
-			{
-				GenWaveform[] waves = [];
-				if (vm.UseGenerator && vm.UseGenerator2)
-					waves = [waveForm1, waveForm2];
-				else if (vm.UseGenerator)
-					waves = [waveForm1];
-				else if (vm.UseGenerator2)
-					waves = [waveForm2];
-
-				wave = QaMath.CalculateWaveform(waves, waveSample).ToArray();
-			}
-			else
-			{
-				wave = new double[waveSample.SampleSize];
-			}
-			return wave;
+			var v2 = volts / vm.GenDivisor;
+			var v1 = volts;
+			WaveGenerator.SetGen1(freq, v1, vm.UseGenerator);          // send a sine wave
+			WaveGenerator.SetGen2(freq2, v2, vm.UseGenerator2);          // send a sine wave
+			WaveGenerator.SetEnabled(true); // turn on the generator
+			return WaveGenerator.Generate((uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
 		}
 
 		static void BuildFrequencies(MyDataTab page)
@@ -337,7 +303,7 @@ namespace QA40xPlot.Actions
 				await showMessage($"Measuring spectrum.");
 				await showProgress(0);
 
-				var wave = BuildWave(msr);   // also update the waveform variables
+				var wave = BuildWave(msr, genVolt);   // also update the waveform variables
 				lrfs = await QaComm.DoAcquireUser(msr.ViewModel.Averages, ct, wave, wave, false);
 
 				if (lrfs.TimeRslt == null)
@@ -792,7 +758,7 @@ namespace QA40xPlot.Actions
 				var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
 
 				// find the two input voltages for our testing
-				var v1in = vm.ToGenVoltage(vm.Gen1Voltage, frqtest, GEN_INPUT, gains);  // get output voltage
+				var v1in = vm.ToGenVoltage(vm.Gen1Voltage, frqtest, GEN_INPUT, gains);  // get generator voltage
 				var v2in = v1in / vm.GenDivisor;  // get second input voltage
 																						 // now find the output voltages for this input
 				var v1lout = ToGenOutVolts(v1in, frqtest, LRGains.Left);	// left channel output V

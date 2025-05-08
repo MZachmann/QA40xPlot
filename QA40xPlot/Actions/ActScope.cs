@@ -133,51 +133,14 @@ namespace QA40xPlot.Actions
 		private static double[] BuildWave(MyDataTab page)
 		{
 			var vm = page.ViewModel;
-
 			var freq = MathUtil.ToDouble(vm.Gen1Frequency, 0);
 			var freq2 = MathUtil.ToDouble(vm.Gen2Frequency, 0);
-			// for the first go around, turn on the generator
-			// Set the generators via a usermode
-			var waveForm1 = new GenWaveform()
-			{
-				Frequency = freq,
-				Voltage = page.Definition.GeneratorVoltage,
-				Name = vm.Gen1Waveform
-			};
-			// scale generatorvoltage by the ratio of v2 and v1
 			var v2 = MathUtil.ToDouble(vm.Gen2Voltage, 1e-10);
 			var v1 = MathUtil.ToDouble(vm.Gen1Voltage, 1e-10);
-			var waveForm2 = new GenWaveform()
-			{
-				Frequency = freq2,
-				Voltage = page.Definition.GeneratorVoltage * v2 / v1,
-				Name = vm.Gen2Waveform
-			};
-			var waveSample = new GenWaveSample()
-			{
-				SampleRate = (int)vm.SampleRateVal,
-				SampleSize = (int)vm.FftSizeVal
-			};
-
-			double[] wave;
-
-			if (vm.UseGenerator1 || vm.UseGenerator2)
-			{
-				GenWaveform[] waves = [];
-				if (vm.UseGenerator1 && vm.UseGenerator2)
-					waves = [waveForm1, waveForm2];
-				else if (vm.UseGenerator1)
-					waves = [waveForm1];
-				else if (vm.UseGenerator2)
-					waves = [waveForm2];
-
-				wave = QaMath.CalculateWaveform(waves, waveSample).ToArray();
-			}
-			else
-			{
-				wave = new double[waveSample.SampleSize];
-			}
-			return wave;
+			WaveGenerator.SetGen1(freq, page.Definition.GeneratorVoltage, vm.UseGenerator1, vm.Gen1Waveform);          // send a sine wave
+			WaveGenerator.SetGen2(freq2, page.Definition.GeneratorVoltage * v2/v1, vm.UseGenerator2, vm.Gen2Waveform);          // send a sine wave
+			WaveGenerator.SetEnabled(true); // turn on the generator
+			return WaveGenerator.Generate((uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
 		}
 
 		static void BuildFrequencies(MyDataTab page)
@@ -330,7 +293,6 @@ namespace QA40xPlot.Actions
 				await showMessage($"Measuring spectrum with input of {genVolt:G3}V.");
 				await showProgress(0);
 
-
 				var wave = BuildWave(msr);   // also update the waveform variables
 				lrfs = await QaComm.DoAcquireUser(msr.ViewModel.Averages, ct, wave, wave, false);
 
@@ -377,39 +339,6 @@ namespace QA40xPlot.Actions
 
             return !ct.IsCancellationRequested;
         }
-
-  //      private void AddAMarker(ScopeMeasurementResult fmr, double frequency, bool isred = false)
-		//{
-		//	var vm = MyVModel;
-		//	ScottPlot.Plot myPlot = timePlot.ThePlot;
-		//	var sampleRate = fmr.MeasurementSettings.SampleRateVal;
-		//	var fftsize = fmr.MeasurementSettings.FftSizeVal;
-		//	int bin = (int)QaLibrary.GetBinOfFrequency(frequency, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
-		//	var leftData = fmr.FrequencySteps[0].fftData?.Left;
-		//	var rightData = fmr.FrequencySteps[0].fftData?.Right;
-
-		//	double markVal = 0;
-		//	if (rightData != null && !vm.ShowLeft)
-		//	{
-		//		markVal = 20 * Math.Log10(rightData[bin]);
-		//	}
-		//	else if(leftData != null )
-		//	{
-		//		markVal = 20 * Math.Log10(leftData[bin]);
-		//	}
-		//	ScottPlot.Color markerCol = new ScottPlot.Color();
-  //          if( ! vm.ShowLeft)
-  //          {
-  //              markerCol = isred ? Colors.Green : Colors.DarkGreen;
-		//	}
-  //          else
-  //          {
-		//		markerCol = isred ? Colors.Red : Colors.DarkOrange;
-		//	}
-		//	var mymark = myPlot.Add.Marker(Math.Log10(frequency), markVal,
-		//		MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), markerCol);
-		//	mymark.LegendText = string.Format("{1}: {0:F1}", markVal, (int)frequency);
-		//}
 
         /// <summary>
         /// Clear the plot

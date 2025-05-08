@@ -437,10 +437,12 @@ namespace QA40xPlot.ViewModels
 				return 1;
 
 			IsImdCustom = (tt == "Custom");
-			// if custom, we're done
-			if (IsImdCustom)
+			// if custom, do more math
+			if (tt == "Custom")
 			{
-				return 1;
+				var v1 = MathUtil.ToDouble(Gen1Voltage, 0);
+				var v2 = Math.Max(1e-2, MathUtil.ToDouble(Gen2Voltage));
+				return v1 / v2;
 			}
 
 			if (tt.Contains("SMPTE "))

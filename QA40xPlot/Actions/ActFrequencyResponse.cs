@@ -1,5 +1,4 @@
 ﻿using FftSharp;
-using Newtonsoft.Json;
 using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
@@ -122,31 +121,6 @@ namespace QA40xPlot.Actions
 				await showMessage("No frequency result");
 			}
 			return false;
-		}
-
-		private static double[] BuildWave(MyDataTab page)
-		{
-			var vm = page.ViewModel;
-
-			var freq = MathUtil.ToDouble(vm.StartFreq, 0);
-			var freq2 = MathUtil.ToDouble(vm.EndFreq, 0);
-			// for the first go around, turn on the generator
-			// Set the generators via a usermode
-			var waveForm1 = new GenWaveform()
-			{
-				Frequency = freq,
-				Voltage = page.Definition.GeneratorVoltage,
-				Name = "Sine"
-			};
-			var waveSample = new GenWaveSample()
-			{
-				SampleRate = (int)vm.SampleRateVal,
-				SampleSize = (int)vm.FftSizeVal
-			};
-
-			double[] wave = QaMath.CalculateWaveform([waveForm1], waveSample).ToArray();
-
-			return wave;
 		}
 
 		static void BuildFrequencies(MyDataTab page)
@@ -469,9 +443,10 @@ namespace QA40xPlot.Actions
 			if (ct.IsCancellationRequested)
                 return false;
 
-            await QaComm.SetOutputSource(OutputSources.Sine);
+            WaveGenerator.SetEnabled(true);		// enable the generator
+			WaveGenerator.SetGen2(0, 0, false); // disable the second wave
 
-            var ttype = vm.GetTestingType(vm.TestType);
+			var ttype = vm.GetTestingType(vm.TestType);
 			var genVolt = Math.Pow(10, voltagedBV / 20);
 
 			try

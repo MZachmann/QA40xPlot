@@ -342,11 +342,11 @@ namespace QA40x.BareMetal
 				await AcqSemaphore.WaitAsync();
 
 				// Start a new task to run the acquisition
-				Task t = Task.Run(async () =>
+				Task t = Task.Run(() =>
 				{
 					try
 					{
-						r = await DoStreaming(ct, leftOut, rightOut);
+						r = DoStreaming(ct, leftOut, rightOut);
 					}
 					catch (OperationCanceledException)
 					{
@@ -381,7 +381,7 @@ namespace QA40x.BareMetal
 			return r;
 		}
 
-		public async Task<AcqResult> DoStreaming(CancellationToken ct, double[] leftOut, double[] rightOut)
+		public AcqResult DoStreaming(CancellationToken ct, double[] leftOut, double[] rightOut)
 		{
 			AcqResult r = new AcqResult();
 			r.Valid = true;
@@ -392,11 +392,11 @@ namespace QA40x.BareMetal
 			//	return r;
 			//}
 			Debug.Assert(leftOut.Length == rightOut.Length, "Out buffers must be the same length");
-			var maxOutput = await QaComm.GetOutputRange();
-			var maxInput = await QaComm.GetInputRange();
+			var maxOutput = QaComm.GetOutputRange();
+			var maxInput = QaComm.GetInputRange();
 			var preBuf = QaComm.GetPreBuffer();
 			var postBuf = QaComm.GetPostBuffer();
-			var FftSize = await QaComm.GetFftSize();
+			var FftSize = QaComm.GetFftSize();
 
 			var dacCal = GetDacCal(CalData, maxOutput);
 			var adcCal = GetAdcCal(CalData, maxInput);
