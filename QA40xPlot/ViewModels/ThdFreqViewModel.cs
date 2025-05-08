@@ -257,7 +257,6 @@ namespace QA40xPlot.ViewModels
 
 		public void SetAction(PlotControl plot, PlotControl plot1, PlotControl plot2, TabAbout tAbout)
 		{
-			ThdFrequencyData data = new ThdFrequencyData();
 			actThd = new ActThdFrequency(plot, plot1, plot2);
 			SetupMainPlot(plot);
 			actPlot = plot;

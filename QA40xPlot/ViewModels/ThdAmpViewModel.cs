@@ -264,8 +264,7 @@ namespace QA40xPlot.ViewModels
 
 		public void SetAction(PlotControl plot, PlotControl plot1, PlotControl plot2, TabAbout tAbout)
 		{
-			ThdAmplitudeData data = new ThdAmplitudeData();
-			actThd = new ActThdAmplitude(ref data, plot, plot1, plot2);
+			actThd = new ActThdAmplitude(plot, plot1, plot2);
 			SetupMainPlot(plot);
 			actPlot = plot;
 			actAbout = tAbout;

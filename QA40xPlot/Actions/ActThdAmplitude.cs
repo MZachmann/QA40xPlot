@@ -31,7 +31,7 @@ namespace QA40xPlot.Actions
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public ActThdAmplitude(ref ThdAmplitudeData data, Views.PlotControl graphThd, Views.PlotControl graphFft, Views.PlotControl graphTime)
+		public ActThdAmplitude(Views.PlotControl graphThd, Views.PlotControl graphFft, Views.PlotControl graphTime)
 		{
 			ct = new CancellationTokenSource();
 			PageData = new(MyVModel, new LeftRightTimeSeries());
