@@ -132,7 +132,7 @@ namespace QA40xPlot
 					}
 					// set max attenuation for safety, turns on ATTEN led
 					var tsk = QaComm.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION);
-					tsk.AsTask().Wait();
+					tsk.AsTask().Wait(100);
 				}
 			}
 			catch (Exception ex)
@@ -145,7 +145,7 @@ namespace QA40xPlot
 				{
 					// now close down
 					var tsk = QaComm.Close(true);
-					tsk.AsTask().Wait();
+					tsk.AsTask().Wait(100);
 				}
 			}
 			catch (Exception ex)

@@ -1,102 +1,128 @@
 ﻿using QA40xPlot.Libraries;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace QA40xPlot.BareMetal
 {
 	internal class IODevREST : IODevice
 	{
+		// we keep the locals so we can answer the Get method requests
 		private uint _FftSize = 0;
 		private int _OutputRange = 0;
 		private int _Attenuation = 0;
 		private uint _SampleRate = 0;
-		private string _Windowing = "Hann"; 
-		
-		ValueTask<bool> IODevice.CheckDeviceConnected()
+		private string _Windowing = "Hann";
+		private OutputSources _OutputSource = OutputSources.Invalid; // default to sine
+
+		public string Name => "REST";    // the name of the io device
+
+		public ValueTask<bool> IsOpen()
 		{
-			throw new NotImplementedException();
+			return new ValueTask<bool>(QaREST.CheckDeviceConnected());
 		}
 
-		ValueTask<bool> IODevice.Open()
+		public async ValueTask<bool> CheckDeviceConnected()
 		{
-			throw new NotImplementedException();
+			return await QaREST.CheckDeviceConnected();
 		}
 
-		ValueTask IODevice.Close(bool onExit)
+		public ValueTask<bool> Open()
 		{
-			throw new NotImplementedException();
+			return new ValueTask<bool>(true);
 		}
 
-		ValueTask<uint> IODevice.GetFftSize() { return new ValueTask<uint>(_FftSize); }
-
-		ValueTask<int> IODevice.GetInputRange() { return new ValueTask<int>(_Attenuation); }
-
-		ValueTask<int> IODevice.GetOutputRange() { return new ValueTask<int>(_OutputRange); }
-
-		ValueTask<uint> IODevice.GetSampleRate() { return new ValueTask<uint>(_SampleRate); }
-
-
-		ValueTask<LeftRightSeries> IODevice.DoAcquireUser(uint averages, CancellationToken ct, double[] dataLeft, double[] dataRight, bool getFreq)
+		public ValueTask Close(bool onExit)
 		{
-			throw new NotImplementedException();
+			return ValueTask.CompletedTask;
 		}
 
-		ValueTask<LeftRightSeries> IODevice.DoAcquisitions(uint averages, CancellationToken ct, bool getFreq)
+		public ValueTask<uint> GetFftSize() { return new ValueTask<uint>(_FftSize); }
+
+		public ValueTask<int> GetInputRange() { return new ValueTask<int>(_Attenuation); }
+
+		public ValueTask<int> GetOutputRange() { return new ValueTask<int>(_OutputRange); }
+
+		public ValueTask<uint> GetSampleRate() { return new ValueTask<uint>(_SampleRate); }
+
+		public ValueTask<OutputSources> GetOutputSource() {  return new ValueTask<OutputSources>(_OutputSource); }
+
+		public ValueTask<string> GetWindowing() { return new ValueTask<string>(_Windowing); }
+
+		public ValueTask<bool> IsServerRunning()
 		{
-			throw new NotImplementedException();
+			return new ValueTask<bool>(QaREST.IsServerRunning());
 		}
 
-		ValueTask<bool> IODevice.InitializeDevice(uint sampleRate, uint fftsize, string Windowing, int attenuation)
+		public async ValueTask SetFftSize(uint range)
 		{
-			throw new NotImplementedException();
+			_FftSize = range;
+			await Qa40x.SetBufferSize(range);
 		}
 
-		ValueTask<bool> IODevice.IsServerRunning()
+		public async ValueTask SetInputRange(int range)
 		{
-			throw new NotImplementedException();
+			_Attenuation = range;
+			await Qa40x.SetInputRange(range);
 		}
 
-		ValueTask IODevice.SetFftSize(uint range)
+		public ValueTask SetOutputRange(int range)
 		{
-			throw new NotImplementedException();
+			// this isn't a thing with REST afaik
+			_OutputRange = range;
+			return ValueTask.CompletedTask;
 		}
 
-		ValueTask IODevice.SetInputRange(int range)
+		public async ValueTask SetSampleRate(uint range)
 		{
-			throw new NotImplementedException();
+			_SampleRate = range;
+			await Qa40x.SetSampleRate(range);
 		}
 
-		ValueTask IODevice.SetOutputRange(int range)
+		public async ValueTask SetOutputSource(OutputSources source)
 		{
-			throw new NotImplementedException();
+			_OutputSource = source;
+			await Qa40x.SetOutputSource(source);
 		}
 
-		ValueTask IODevice.SetSampleRate(uint range)
+
+		public async ValueTask SetWindowing(string windowing)
 		{
-			throw new NotImplementedException();
+			_Windowing = windowing;
+			await Qa40x.SetWindowing(windowing);
 		}
 
-		ValueTask<OutputSources> IODevice.GetOutputSource()
+		public async ValueTask<LeftRightSeries> DoAcquireUser(uint averages, CancellationToken ct, double[] dataLeft, double[] dataRight, bool getFreq)
 		{
-			throw new NotImplementedException();
+			return await QaREST.DoAcquireUser(ct, dataLeft, getFreq);
 		}
 
-		ValueTask IODevice.SetOutputSource(OutputSources source)
+		public async ValueTask<LeftRightSeries> DoAcquisitions(uint averages, CancellationToken ct, bool getFreq)
 		{
-			throw new NotImplementedException();
+			var ffts = await GetFftSize();
+			var datapt = new double[ffts];
+			var osource = await GetOutputSource();
+			var srate = await GetSampleRate();
+			if (osource == OutputSources.Sine)
+			{
+				var gp1 = WaveGenerator.Singleton.GenParams;
+				var gp2 = WaveGenerator.Singleton.Gen2Params;
+				double dt = 1.0 / srate;
+				if (gp1?.Enabled == true)
+				{
+					datapt = datapt.Select((x, index) => x + (gp1.Voltage * Math.Sqrt(2)) * Math.Sin(2 * Math.PI * gp1.Frequency * dt * index)).ToArray();
+				}
+				if (gp2?.Enabled == true)
+				{
+					datapt = datapt.Select((x, index) => x + (gp2.Voltage * Math.Sqrt(2)) * Math.Sin(2 * Math.PI * gp2.Frequency * dt * index)).ToArray();
+				}
+			}
+
+			return await QaREST.DoAcquireUser(ct, datapt, getFreq);
 		}
 
-		public ValueTask<string> GetWindowing()
+		public async ValueTask<bool> InitializeDevice(uint sampleRate, uint fftsize, string Windowing, int attenuation)
 		{
-			throw new NotImplementedException();
+			return await QaREST.InitializeDevice(sampleRate, fftsize, "Hann", attenuation);	// ignore whatever is passed in here for windowing
 		}
 
-		public ValueTask SetWindowing(string windowing)
-		{
-			throw new NotImplementedException();
-		}
 	}
 }

@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using QA40xPlot.BareMetal;
+using System.Windows;
 
 namespace QA40xPlot.ViewModels
 {
@@ -15,6 +16,8 @@ namespace QA40xPlot.ViewModels
 			set
 			{
 				SetProperty(ref _UseREST, value);
+				// change the entire interface around
+				QaComm.SetIODevice(value ? "REST" : "USB");
 			}
 		}
 

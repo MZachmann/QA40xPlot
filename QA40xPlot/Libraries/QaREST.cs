@@ -1,4 +1,5 @@
-﻿using System;
+﻿using QA40xPlot.BareMetal;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -34,13 +35,15 @@ namespace QA40xPlot.Libraries
 						return false;
 
 					await Qa40x.SetDefaults();
-					await Qa40x.SetOutputSource(OutputSources.Off);
+					// call the QaComm version to save the variable values for other stuff
+					await QaComm.SetOutputSource(OutputSources.Off);
 				}
-				await Qa40x.SetSampleRate(sampleRate);
-				await Qa40x.SetBufferSize(fftsize);
-				await Qa40x.SetWindowing(Windowing);
+				// call the QaComm version to save the variable values for other stuff
+				await QaComm.SetSampleRate(sampleRate);
+				await QaComm.SetFftSize(fftsize);
+				await QaComm.SetWindowing(Windowing);
 				await Qa40x.SetRoundFrequencies(true);
-				await Qa40x.SetInputRange(attenuation);
+				await QaComm.SetInputRange(attenuation);
 				return true;
 			}
 			catch (Exception)

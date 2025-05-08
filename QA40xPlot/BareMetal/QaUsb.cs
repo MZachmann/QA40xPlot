@@ -7,6 +7,7 @@ using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Windows;
 
 // Written by MZachmann 4-24-2025
 // much of the bare metal code comes originally from the PyQa40x library and from the Qa40x_BareMetal library on github
@@ -142,9 +143,9 @@ namespace QA40x.BareMetal
         {
 			Debug.Assert(Device == null, "Open called when device is already open");
 			bool brslt = false;
-            // Attempt to open QA402 or QA403 device
-            try
-            {
+			// Attempt to open QA402 or QA403 device
+			try
+			{
 				Device = QaLowUsb.AttachDevice();
 				RegisterReader = Device.OpenEndpointReader(ReadEndpointID.Ep01);
 				RegisterWriter = Device.OpenEndpointWriter(WriteEndpointID.Ep01);
@@ -205,19 +206,27 @@ namespace QA40x.BareMetal
         /// <returns></returns>
         public bool VerifyConnection()
         {
-            uint val;
+			if (Device == null)
+				return false;
 
-            unchecked
-            {
-                val = Convert.ToUInt32(new Random().Next());
-            }
+			try
+			{
+				uint val;
+				unchecked
+				{
+					val = Convert.ToUInt32(new Random().Next());
+				}
 
-            WriteRegister(0, val);
+				WriteRegister(0, val);
 
-            if (ReadRegister(0) == val)
-                return true;
-            else
-                return false;
+				if (ReadRegister(0) == val)
+					return true;
+			}
+			catch (Exception e)
+			{
+				Debug.WriteLine($"An error occurred during verifyconnection: {e.Message}");
+			}
+            return false;
         }
 
 		/// <summary>
@@ -529,9 +538,9 @@ namespace QA40x.BareMetal
 				roff = rrf.Sum() / rlf.Count();  // dc offset
 				r.Right = rrf.Select(x => (x - roff) * adcCal.Right * adcCorrection).ToArray();
 
-				Debug.WriteLine($"Attenuation: {maxInput}  Output Level: {maxOutput}");
-				Debug.WriteLine($"Peak Left: {r.Left.Max():0.000}   Peak right: {r.Right.Max():0.000}");
-				Debug.WriteLine($"Total Left: {Math.Sqrt(r.Left.Sum(x => x * x)):0.000}   Total right: {Math.Sqrt(r.Right.Sum(x => x * x)):0.000}");
+				//Debug.WriteLine($"Attenuation: {maxInput}  Output Level: {maxOutput}");
+				//Debug.WriteLine($"Peak Left: {r.Left.Max():0.000}   Peak right: {r.Right.Max():0.000}");
+				//Debug.WriteLine($"Total Left: {Math.Sqrt(r.Left.Sum(x => x * x)):0.000}   Total right: {Math.Sqrt(r.Right.Sum(x => x * x)):0.000}");
 			}
 			else
 			{

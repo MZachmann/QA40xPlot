@@ -23,10 +23,12 @@ namespace QA40xPlot.BareMetal
 			}
 		}
 
+		public string Name { get; }	// the name of the io device
 		// queries
 		public ValueTask<bool> IsServerRunning();
 		public ValueTask<bool> CheckDeviceConnected();
 		// open and close
+		public ValueTask<bool> IsOpen();
 		public ValueTask<bool> Open();
 		public ValueTask Close(bool onExit);
 		// properties

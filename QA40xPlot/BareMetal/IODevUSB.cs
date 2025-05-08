@@ -2,11 +2,13 @@
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using System.Diagnostics;
+using System.Windows;
 
 namespace QA40xPlot.BareMetal
 {
 	public class IODevUSB : IODevice
 	{
+		private static int _InvalidInt = 1232;
 		// convert from value to register setting
 		private static readonly Dictionary<int, int> _Output2Reg = new() { { 18, 3 }, { 8, 2 }, { -2, 1 }, { -12, 0 } };
 		private static readonly Dictionary<int, int> _Input2Reg = new() { { 0, 0 }, { 6, 1 }, { 12, 2 }, { 18, 3 }, { 24, 4 }, { 30, 5 }, { 36, 6 }, { 42, 7 } };
@@ -17,11 +19,11 @@ namespace QA40xPlot.BareMetal
 		private int _Attenuation = _InvalidInt;
 		private uint _SampleRate = (uint)_InvalidInt;
 		private OutputSources _OutputSource = OutputSources.Invalid; // default to sine
-		private string _Windowing = "Hann";
+		private string _Windowing = "Invalid";
 		//
 		private QaUsb _UsbApi = new();		// our local Usb controller
 
-		private static int _InvalidInt = 1232;
+		public string Name => "USB";    // the name of the io device
 
 		void SetParametersEmpty()
 		{
@@ -35,6 +37,16 @@ namespace QA40xPlot.BareMetal
 
 		public ValueTask<bool> CheckDeviceConnected()
 		{
+			if(!_UsbApi.IsOpen())
+			{
+				Debug.WriteLine("USB device not yet open");
+				var work = _UsbApi.Open();	// try to open it
+				if(!work)
+				{
+					Debug.WriteLine("USB device not connected");
+					return new ValueTask<bool>(false);
+				}
+			}
 			return new ValueTask<bool>(_UsbApi.VerifyConnection());
 		}
 
@@ -47,19 +59,26 @@ namespace QA40xPlot.BareMetal
 		{
 			if (!_UsbApi.IsOpen())
 			{
+				Debug.WriteLine("Opening USB device");
 				_UsbApi.Open();
 				SetParametersEmpty();       // set to invalid values
 			}
 			return new ValueTask<bool>(true);
 		}
 
+		public ValueTask<bool> IsOpen()
+		{
+			return new ValueTask<bool>(_UsbApi.IsOpen());
+		}
+
 		public ValueTask Close(bool onExit)
 		{
-			if(_UsbApi != null)
+			if(_UsbApi.IsOpen())
 			{
+				Debug.WriteLine($"Closing USB device with {onExit}");
 				_UsbApi.Close(onExit);
 			}
-			return new ValueTask();
+			return ValueTask.CompletedTask;
 		}
 
 		public ValueTask<uint> GetFftSize() { return new ValueTask<uint>(_FftSize); }
@@ -72,17 +91,24 @@ namespace QA40xPlot.BareMetal
 
 		public ValueTask<OutputSources> GetOutputSource() { return new ValueTask<OutputSources>(_OutputSource); }
 
+		public ValueTask<string> GetWindowing()
+		{
+			return new ValueTask<string>(_Windowing);
+		}
+
 		public ValueTask SetFftSize(uint range)
 		{
 			// here we just store this for the other clients
+			if (range != _FftSize)
+				Debug.WriteLine($"FFtsize set to {range} from {_FftSize}");
 			_FftSize = range;
-			return new ValueTask();
+			return ValueTask.CompletedTask;
 		}
 
 		public ValueTask SetInputRange(int range)
 		{
 			if (range == _Attenuation)
-				return new ValueTask();
+				return ValueTask.CompletedTask;
 
 			_Attenuation = range;
 			Debug.Assert(!ViewSettings.IsUseREST, "SetupInput using REST.");
@@ -90,40 +116,51 @@ namespace QA40xPlot.BareMetal
 				throw new ArgumentException("Invalid input gain value.");
 			_UsbApi.WriteRegister(5, (byte)val);
 			Debug.WriteLine($"Attenuation set to {range} dB with {val}");
-			return new ValueTask();
+			return ValueTask.CompletedTask;
 		}
 
 		public ValueTask SetOutputRange(int range)
 		{
 			if (range == _OutputRange)
-				return new ValueTask();
+				return ValueTask.CompletedTask;
 			_OutputRange = range;
 			Debug.Assert(!ViewSettings.IsUseREST, "SetupOut using REST.");
 			if (!_Output2Reg.TryGetValue(range, out int val))
 				throw new ArgumentException("Invalid output gain value.");
 			_UsbApi.WriteRegister(6, (byte)val);
 			Debug.WriteLine($"Output full scale set to {range} dB with {val}");
-			return new ValueTask();
+			return ValueTask.CompletedTask;
 		}
 
 		public ValueTask SetSampleRate(uint range)
 		{
 			if (range == _SampleRate)
-				return new ValueTask();
+				return ValueTask.CompletedTask;
 			_SampleRate = range;
 			Debug.Assert(!ViewSettings.IsUseREST, "SetSampleRate using REST.");
 			if (!_Samplerate2Reg.TryGetValue((int)range, out int val))
 				throw new ArgumentException("Invalid sample rate value.");
 			_UsbApi.WriteRegister(9, (byte)val);
 			Debug.WriteLine($"Sample rate set to {range} Hz");
-			return new ValueTask();
+			return ValueTask.CompletedTask;
 		}
 
 		public ValueTask SetOutputSource(OutputSources source)
 		{
 			// nothing to do here
+			if (_OutputSource != source)
+				Debug.WriteLine($"Output source set to {source} from {_OutputSource}");
+
 			_OutputSource = source;
-			return new ValueTask();
+			return ValueTask.CompletedTask;
+		}
+
+		public ValueTask SetWindowing(string windowing)
+		{
+			if (_Windowing != windowing)
+				Debug.WriteLine($"Windowing set to {windowing} from {_Windowing}");
+			_Windowing = windowing;
+			return ValueTask.CompletedTask;
 		}
 
 		/// <summary>
@@ -136,7 +173,6 @@ namespace QA40xPlot.BareMetal
 			// Find the smallest output setting that is greater than or equal to maxOut
 			// since maxout is a peak voltage, convert to rms
 			var maxrms = maxOut * 0.7;  // the rms voltage to produce this peak voltage
-			Debug.WriteLine($"Max rms= {maxrms}");
 			foreach (var kvp in _Output2Reg.Reverse())
 			{
 				var mvp = Math.Pow(10, kvp.Key / 20.0);
@@ -148,8 +184,14 @@ namespace QA40xPlot.BareMetal
 
 		public async ValueTask<LeftRightSeries> DoAcquireUser(uint averages, CancellationToken ct, double[] dataLeft, double[] dataRight, bool getFreq)
 		{
-			if (_UsbApi == null)
+			if (!_UsbApi.IsOpen())
 				return new LeftRightSeries();
+
+			Debug.Assert(_SampleRate != _InvalidInt, "Sample rate not set");
+			Debug.Assert(_FftSize != _InvalidInt, "FFT size not set");
+			Debug.Assert(_Attenuation != _InvalidInt, "Attenuation not set");
+			Debug.Assert(_Windowing != "Invalid", "Windows not set");
+			Debug.Assert(_OutputSource != OutputSources.Invalid, "Output source not set");
 
 			LeftRightSeries lrfs = new LeftRightSeries();
 			var dpt = new double[dataLeft.Length];
@@ -211,6 +253,9 @@ namespace QA40xPlot.BareMetal
 
 		public async ValueTask<LeftRightSeries> DoAcquisitions(uint averages, CancellationToken ct, bool getFreq)
 		{
+			if (!_UsbApi.IsOpen())
+				return new LeftRightSeries();
+
 			var datapt = new double[_FftSize];
 			if (_OutputSource == OutputSources.Sine)
 			{
@@ -232,14 +277,29 @@ namespace QA40xPlot.BareMetal
 
 		public async ValueTask<bool> InitializeDevice(uint sampleRate, uint fftsize, string Windowing, int attenuation)
 		{
-			if(!_UsbApi.IsOpen())
+			try
 			{
-				_UsbApi.Open();
+				if (!_UsbApi.IsOpen())
+				{
+					_UsbApi.Open();
+				}
+				var isConnected = await CheckDeviceConnected();
+				if(! isConnected)
+				{
+					Debug.WriteLine("USB device not connected");
+					return false;
+				}
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine($"Error opening USB device: {ex.Message}");
+				return false;
 			}
 			await QaComm.SetFftSize(fftsize);
 			await QaComm.SetSampleRate(sampleRate);
 			await QaComm.SetWindowing(Windowing);
 			await QaComm.SetInputRange(attenuation);
+			await QaComm.SetOutputSource(OutputSources.Off);
 
 			Debug.Assert(_SampleRate == sampleRate, "Sample rate not set");
 			Debug.Assert(_FftSize == fftsize, "FFT size not set");
@@ -247,17 +307,6 @@ namespace QA40xPlot.BareMetal
 			Debug.Assert(_Windowing == Windowing, "Windows not set");
 
 			return true;
-		}
-
-		public ValueTask<string> GetWindowing()
-		{
-			return new ValueTask<string>(_Windowing);
-		}
-
-		public ValueTask SetWindowing(string windowing)
-		{
-			_Windowing = windowing;
-			return new ValueTask();
 		}
 	}
 }

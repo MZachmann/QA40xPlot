@@ -28,37 +28,12 @@ namespace QA40xPlot.Actions
 				MessageBox.Show("Device is already running");
 				return false;
 			}
+			if (await QaComm.CheckDeviceConnected() == false)
+			{
+				MessageBox.Show("Unable to connect to the device.");
+				return false;
+			}
 			bvm.IsRunning = true;
-
-			// attach to usb port if required
-			if( ViewSettings.IsUseREST)
-			{
-				if (await QaREST.CheckDeviceConnected() == false)
-				{
-					bvm.IsRunning = false;
-					return false;
-				}
-			}
-			else
-			{
-				if (QaLowUsb.IsDeviceConnected() == false)
-				{
-					try
-					{
-						QaLowUsb.AttachDevice();
-					}
-					catch (Exception ex)
-					{
-						MessageBox.Show(ex.Message, "Please check your connection.", MessageBoxButton.OK, MessageBoxImage.Information);
-					}
-				}
-
-				if (QaLowUsb.IsDeviceConnected() == false)
-				{
-					bvm.IsRunning = false;
-					return false;
-				}
-			}
 			return true;
 		}
 
