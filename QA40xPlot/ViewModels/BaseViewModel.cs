@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Drawing.Drawing2D;
 using System.Runtime.CompilerServices;
 using System.Windows;
@@ -49,7 +50,7 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		protected TabAbout actAbout { get; set; } = new();
 		[JsonIgnore]
-		public DataDescript DataInfo { get; set; } = new();	// set when we set the datapage via linkabout
+		public DataDescript DataInfo { get; set; } = new(); // set when we set the datapage via linkabout
 
 		[JsonIgnore]
 		public bool IsGenPower { get => (GenDirection == MeasureVoltsFull[2]); }
@@ -59,6 +60,14 @@ namespace QA40xPlot.ViewModels
 		public string GenAmpUnits { get => (IsGenPower ? "W" : "V"); }
 		[JsonIgnore]
 		public string DsHeading { get => DataInfo.Heading; }
+
+		[JsonIgnore]
+		private ObservableCollection<OtherSet> _OtherSetList = new();
+		[JsonIgnore]
+		public ObservableCollection<OtherSet> OtherSetList {
+			get => _OtherSetList;
+			set => SetProperty(ref _OtherSetList, value);
+		}
 
 		private bool _ShowTabInfo = false;
 		public bool ShowTabInfo
@@ -137,20 +146,6 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _ShowRight;
 			set => SetProperty(ref _ShowRight, value);
-		}
-
-		private bool _ShowOtherLeft = false;
-		public bool ShowOtherLeft
-		{
-			get => _ShowOtherLeft;
-			set => SetProperty(ref _ShowOtherLeft, value);
-		}
-
-		private bool _ShowOtherRight = false;
-		public bool ShowOtherRight
-		{
-			get => _ShowOtherRight;
-			set => SetProperty(ref _ShowOtherRight, value);
 		}
 
 		private string _GenDirection = string.Empty;
@@ -278,9 +273,20 @@ namespace QA40xPlot.ViewModels
 
 		public void LinkAbout(DataDescript fmv)
 		{
+			if(DataInfo != null)
+			{
+				DataInfo.MainVm = null;	// if the last vm pointed here, empty it
+			}
+			fmv.MainVm = this;  // point to the primary vm for messaging
 			actAbout.SetDataContext(fmv);
-			DataInfo = fmv; // point to the primary vm for messaging
-			fmv.MainVm = this;	// point to the primary vm for messaging
+			DataInfo = fmv;		// and the datadescript for binding
+		}
+
+		public List<int> FindShownOthers()
+		{
+			var x = OtherSetList;
+			var y = x.Where(x => x.IsOnL || x.IsOnR).Select(x => x.Id).ToList();
+			return y;
 		}
 
 		/// <summary>

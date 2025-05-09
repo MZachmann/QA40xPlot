@@ -743,7 +743,7 @@ namespace QA40x.BareMetal
         /// <returns></returns>
         public byte[] ReadDataEnd()
         {
-            if(ReadQueue.Count() > 0)
+            if(ReadQueue.Count > 0)
             {
 				AsyncResult ar = ReadQueue[0];
 				ReadQueue.RemoveAt(0);

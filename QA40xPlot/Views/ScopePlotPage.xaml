@@ -293,8 +293,6 @@
                     </Grid.RowDefinitions>
                     <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="0"  />
                     <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="1"  />
-                    <CheckBox Content="Left Other" IsChecked="{Binding ShowOtherLeft}" Grid.Row="2"  />
-                    <CheckBox Content="Right Other" IsChecked="{Binding ShowOtherRight}" Grid.Row="3"  />
                     <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="4"  />
                     <CheckBox Content="Data Points" IsChecked="{Binding ShowPoints}" Grid.Row="5"  />
                 </Grid>

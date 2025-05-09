@@ -208,16 +208,16 @@ namespace QA40xPlot.Actions
 			{
 				tabs.Add(ffs.Right);
 			}
-			var u = OtherTabs.FirstOrDefault();
-			if (OtherTabs.Count() > 0 && u?.TimeRslt != null && u.TimeRslt.Left.Length > 0)
+			var u = DataUtil.FindShownTimes(OtherTabs);
+			if (u.Count > 0)
 			{
-				if (specVm.ShowOtherLeft)
-					tabs.Add(u.TimeRslt.Left);
-				if (specVm.ShowOtherLeft && OtherTabs.First().TimeRslt.Left.Length > 0)
-					tabs.Add(u.TimeRslt.Right);
+				foreach (var item in u)
+				{
+					tabs.Add(item);
+				}
 			}
 
-			if (tabs.Count() == 0)
+			if (tabs.Count == 0)
 				return new Rect(0, 0, 0, 0);
 
 			rrc.X = 0;
@@ -358,8 +358,18 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = timePlot.ThePlot;
 
 			var scopeVm = MyVModel;
-			bool leftChannelEnabled = isMain ? scopeVm.ShowLeft : scopeVm.ShowOtherLeft;	// dynamically update these
-			bool rightChannelEnabled = isMain ? scopeVm.ShowRight : scopeVm.ShowOtherRight;
+			bool useLeft;   // dynamically update these
+			bool useRight;
+			if (isMain)
+			{
+				useLeft = scopeVm.ShowLeft; // dynamically update these
+				useRight = scopeVm.ShowRight;
+			}
+			else
+			{
+				useLeft = 1 == (page.Show & 1); // dynamically update these
+				useRight = 2 == (page.Show & 2);
+			}
 
 			var timeData = page.TimeRslt;
 			if (timeData == null || timeData.Left.Length == 0)
@@ -371,7 +381,7 @@ namespace QA40xPlot.Actions
 			var timeX = Enumerable.Range(0, timeData.Left.Length).Select(x => x * 1000 * timeData.dt).ToArray(); // in ms
 			var showThick = MyVModel.ShowThickLines;	// so it dynamically updates
 			var markerSize = scopeVm.ShowPoints ? (showThick ? _Thickness : 1) + 3 : 1;
-			if (leftChannelEnabled)
+			if (useLeft)
 			{
 				Scatter pLeft = myPlot.Add.Scatter(timeX, timeData.Left);
 				pLeft.LineWidth = showThick ? _Thickness : 1;
@@ -379,13 +389,13 @@ namespace QA40xPlot.Actions
 				pLeft.MarkerSize = markerSize;
 			}
 
-			if (rightChannelEnabled)
+			if (useRight)
 			{
 				Scatter pRight = myPlot.Add.Scatter(timeX, timeData.Right);
 				pRight.LineWidth = showThick ? _Thickness : 1;
 				if(!isMain)
 					pRight.Color = QaLibrary.OrangeXColor; // Red transparant
-				else if (leftChannelEnabled)
+				else if (useLeft)
 					pRight.Color = QaLibrary.RedXColor; // Red transparant
 				else
 					pRight.Color = QaLibrary.RedColor; // Red
@@ -511,15 +521,12 @@ namespace QA40xPlot.Actions
                 InitializeMagnitudePlot();
             }
 
-			if (thd.ShowOtherLeft || thd.ShowOtherRight)
+			if (OtherTabs.Count > 0)
 			{
-				if (OtherTabs.Count > 0)
+				foreach (var other in OtherTabs)
 				{
-					foreach (var other in OtherTabs)
-					{
-						if (other != null)
-							PlotValues(other, resultNr++, false);
-					}
+					if (other != null && other.Show != 0)
+						PlotValues(other, resultNr++, false);
 				}
 			}
 			PlotValues(PageData, resultNr++, true);

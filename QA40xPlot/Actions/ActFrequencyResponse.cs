@@ -455,7 +455,7 @@ namespace QA40xPlot.Actions
 				page.GainFrequencies = []; // new list of frequencies
 				if (ct.IsCancellationRequested)
                     return false;
-                for (int steps = 0; steps < stepBinFrequencies.Count(); steps++)
+                for (int steps = 0; steps < stepBinFrequencies.Length; steps++)
                 {
                     if (ct.IsCancellationRequested)
                         break;
@@ -837,15 +837,12 @@ namespace QA40xPlot.Actions
             }
 
 			PlotValues(PageData, resultNr++, true);  // frqsrVm.GraphType);
-			if (frqsrVm.ShowOtherLeft || frqsrVm.ShowOtherRight)
+			if (OtherTabs.Count > 0)
 			{
-				if (OtherTabs.Count > 0)
+				foreach (var other in OtherTabs)
 				{
-					foreach (var other in OtherTabs)
-					{
-						if (other != null)
-							PlotValues(other, resultNr++, false);
-					}
+					if (other != null && other.Show != 0)
+						PlotValues(other, resultNr++, false);
 				}
 			}
 

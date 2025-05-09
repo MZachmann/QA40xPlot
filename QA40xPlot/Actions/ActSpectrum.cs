@@ -8,6 +8,8 @@ using System.Data;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
 using Newtonsoft.Json;
+using System.Collections.ObjectModel;
+using System.IO;
 
 
 // this is the top level class for the spectrum test
@@ -85,7 +87,7 @@ namespace QA40xPlot.Actions
 		public async Task LoadFromFile(string fileName, bool doLoad)
 		{
 			var page = Util.LoadFile<SpectrumViewModel>(PageData, fileName);
-			await FinishLoad(page, doLoad);
+			await FinishLoad(page, fileName, doLoad);
 		}
 
 		/// <summary>
@@ -103,10 +105,26 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="page"></param>
 		/// <returns></returns>
-		public async Task FinishLoad(MyDataTab page, bool doLoad)
+		public async Task FinishLoad(MyDataTab page, string fileName, bool doLoad)
 		{
 			// now recalculate everything
 			BuildFrequencies(page);
+			var defn = page.Definition;
+
+			if (defn.Name.Length == 0)
+			{
+				FileInfo fileInfo = new FileInfo(fileName);
+				defn.Name = fileInfo.Name;
+				if (defn.Name.EndsWith(".zip"))
+				{
+					defn.Name = defn.Name.Substring(0, defn.Name.Length - 4);
+				}
+				if (defn.Name.EndsWith(".plt"))
+				{
+					defn.Name = defn.Name.Substring(0, defn.Name.Length - 4);
+				}
+			}
+
 			await PostProcess(page, ct.Token);
 			if( doLoad)
 			{
@@ -120,11 +138,30 @@ namespace QA40xPlot.Actions
 			}
 			else
 			{
-				OtherTabs.Clear(); // clear the other tabs
+				//OtherTabs.Clear(); // clear the other tabs
+				page.Show = 1; // show the left channel new
 				OtherTabs.Add(page); // add the new one
+				var vm = page.ViewModel;
+				var uss = MyVModel.OtherSetList;
+				if(uss == null)
+				{
+					uss = new ObservableCollection<OtherSet>();
+					MyVModel.OtherSetList = uss;
+				}
+				uss.Clear();
+				foreach(var tab in OtherTabs)
+				{
+					var oss = new OtherSet(tab.Definition.Name, tab.Show, tab.Id, string.Empty);
+					uss.Add(oss);
+				}
 			}
 
 			UpdateGraph(true);
+		}
+
+		private void Oss_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+		{
+			throw new NotImplementedException();
 		}
 
 		private static double[] BuildWave(MyDataTab page)
@@ -160,20 +197,23 @@ namespace QA40xPlot.Actions
 					mdl.BorderColor = System.Windows.Media.Brushes.Red;
 				}
 			}
-			if( OtherTabs.Count > 0)
+			if(channels.Count < 2 && OtherTabs.Count > 0)
 			{
-				if (channels.Count() < 2 && specVm.ShowOtherLeft)
+				// copy the shown status from othersetlist to othertabs
+				DataUtil.ReflectOtherSet(OtherTabs, MyVModel.OtherSetList.ToList());
+				var seen = DataUtil.FindShownInfo<SpectrumViewModel, ThdChannelViewModel>(OtherTabs);
+				if (seen.Count > 0)
 				{
-					var mdl = OtherTabs.First()?.GetProperty("Left") as ThdChannelViewModel;
+					var mdl = seen[0];
 					if(mdl != null)
 					{
 						channels.Add(mdl);
 						mdl.BorderColor = System.Windows.Media.Brushes.DarkGreen;
 					}
 				}
-				if (channels.Count() < 2 && specVm.ShowOtherRight)
+				if (channels.Count < 2 && seen.Count > 1)
 				{
-					var mdl = OtherTabs.First()?.GetProperty("Right") as ThdChannelViewModel;
+					var mdl = seen[1];
 					if (mdl != null)
 					{
 						channels.Add(mdl);
@@ -597,7 +637,7 @@ namespace QA40xPlot.Actions
 		public Rect GetDataBounds()
 		{
 			var vm = PageData.ViewModel;	// measurement settings
-			if(PageData.FreqRslt == null && OtherTabs.Count() == 0)
+			if(PageData.FreqRslt == null && OtherTabs.Count == 0)
 				return new Rect(0, 0, 0, 0);
 
 			var specVm = MyVModel;     // current settings
@@ -613,16 +653,16 @@ namespace QA40xPlot.Actions
 			{
 				tabs.Add(ffs.Right);
 			}
-			var u = OtherTabs.FirstOrDefault();
-			if (OtherTabs.Count() > 0 && u?.FreqRslt != null && u.FreqRslt.Left.Length > 0) 
+			var u = DataUtil.FindShownFreqs(OtherTabs);
+			if (u.Count > 0) 
 			{
-				if (specVm.ShowOtherLeft)
-					tabs.Add(u.FreqRslt.Left);
-				if (specVm.ShowOtherLeft && OtherTabs.First().FreqRslt != null)
-					tabs.Add(u.FreqRslt.Right);
+				foreach (var item in u)
+				{
+					tabs.Add(item);
+				}
 			}
 
-			if(tabs.Count() == 0)
+			if(tabs.Count == 0)
 				return new Rect(0, 0, 0, 0);
 
 			rrc.X = ffs?.Df ?? 1.0;	// ignore 0
@@ -759,9 +799,12 @@ namespace QA40xPlot.Actions
 			}
 			else
 			{
-				useLeft = specVm.ShowOtherLeft; // dynamically update these
-				useRight = specVm.ShowOtherRight;
+				useLeft = 1 == (page.Show & 1); // dynamically update these
+				useRight = 2 == (page.Show & 2);
 			}
+
+			if(!useLeft && !useRight)
+				return;
 
 			var fftData = page.FreqRslt;
 			if (fftData == null)
@@ -838,18 +881,14 @@ namespace QA40xPlot.Actions
 
 			ShowPageInfo(PageData); // show the page info in the display
 			PlotValues(PageData, resultNr++, true);
-			if (thd.ShowOtherLeft || thd.ShowOtherRight)
+			if (OtherTabs.Count > 0)
 			{
-				if (OtherTabs.Count > 0)
+				foreach (var other in OtherTabs)
 				{
-					foreach (var other in OtherTabs)
-					{
-						if (other != null)
-							PlotValues(other, resultNr++, false);
-					}
+					if (other != null)
+						PlotValues(other, resultNr++, false);
 				}
 			}
-
 
             if( PageData.FreqRslt != null)
             {

@@ -176,7 +176,7 @@
                 <Button Content="_Load" IsEnabled="{Binding IsNotRunning}" Command="{Binding DoLoadTab}" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center"></Button>
                 <Button Content="Sav_e" IsEnabled="{Binding HasExport}"    Command="{Binding DoSaveTab}" Grid.Column="2" Grid.Row="0"  HorizontalAlignment="Center"></Button>
             </Grid>
-
+            <views:GotFileList x:Name="GotList"  HorizontalAlignment="Stretch" Margin="0,5,0,0" />
         </StackPanel>
         <Grid Grid.Column="1">
             <Label Content="{Binding DsHeading}" HorizontalAlignment="Center" VerticalAlignment="Top" />
@@ -298,8 +298,6 @@
                     </Grid.RowDefinitions>
                     <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="0"  />
                     <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="1"  />
-                    <CheckBox Content="Left Other" IsChecked="{Binding ShowOtherLeft}" Grid.Row="2"  />
-                    <CheckBox Content="Right Other" IsChecked="{Binding ShowOtherRight}" Grid.Row="3"  />
                     <CheckBox Content="% - Data Summary" IsChecked="{Binding ShowDataPercent}" Grid.Row="4"  />
                     <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="5"  />
                 </Grid>

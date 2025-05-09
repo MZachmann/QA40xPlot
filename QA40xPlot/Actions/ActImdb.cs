@@ -220,23 +220,22 @@ namespace QA40xPlot.Actions
 			{
 				tabs.Add(ffs.Right);
 			}
-			var u = OtherTabs.FirstOrDefault();
-			if (OtherTabs.Count() > 0 && u?.FreqRslt != null && u.FreqRslt.Left.Length > 0)
+			var u = DataUtil.FindShownFreqs(OtherTabs);
+			if (u.Count > 0)
 			{
-				if (specVm.ShowOtherLeft)
-					tabs.Add(u.FreqRslt.Left);
-				if (specVm.ShowOtherLeft && OtherTabs.First().FreqRslt != null)
-					tabs.Add(u.FreqRslt.Right);
+				foreach (var item in u)
+				{
+					tabs.Add(item);
+				}
 			}
 
-			if (tabs.Count() == 0)
+			if (tabs.Count == 0)
 				return new Rect(0, 0, 0, 0);
 
 			rrc.X = ffs?.Df ?? 1.0; // ignore 0
 			rrc.Y = tabs.Min(x => x.Min());
 			rrc.Width = (ffs?.Df ?? 1) * tabs.First().Length - rrc.X;
 			rrc.Height = tabs.Max(x => x.Max()) - rrc.Y;
-
 
 			return rrc;
 		}
@@ -569,8 +568,18 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 
 			var specVm = MyVModel;
-			bool useLeft = isMain ? specVm.ShowLeft : specVm.ShowOtherLeft; // dynamically update these
-			bool useRight = isMain ? specVm.ShowRight : specVm.ShowOtherRight;
+			bool useLeft;
+			bool useRight;
+			if (isMain)
+			{
+				useLeft = specVm.ShowLeft; // dynamically update these
+				useRight = specVm.ShowRight;
+			}
+			else
+			{
+				useLeft = 1 == (page.Show & 1); // dynamically update these
+				useRight = 2 == (page.Show & 2);
+			}
 
 			var fftData = page.FreqRslt;
 			if (fftData == null)
@@ -643,15 +652,12 @@ namespace QA40xPlot.Actions
 			ShowPageInfo(PageData);
 
 			PlotValues(PageData, resultNr++, true);
-			if (thd.ShowOtherLeft || thd.ShowOtherRight)
+			if (OtherTabs.Count > 0)
 			{
-				if (OtherTabs.Count > 0)
+				foreach (var other in OtherTabs)
 				{
-					foreach (var other in OtherTabs)
-					{
-						if (other != null)
-							PlotValues(other, resultNr++, false);
-					}
+					if (other != null)
+						PlotValues(other, resultNr++, false);
 				}
 			}
 
@@ -686,27 +692,31 @@ namespace QA40xPlot.Actions
 					mdl.BorderColor = System.Windows.Media.Brushes.Red;
 				}
 			}
-			if (OtherTabs.Count > 0)
+			if (channels.Count < 2 && OtherTabs.Count > 0)
 			{
-				if (channels.Count() < 2 && specVm.ShowOtherLeft)
+				// copy the shown status from othersetlist to othertabs
+				DataUtil.ReflectOtherSet(OtherTabs, MyVModel.OtherSetList.ToList());
+				var seen = DataUtil.FindShownInfo<ImdViewModel, ImdChannelViewModel>(OtherTabs);
+				if (seen.Count > 0)
 				{
-					var mdl = OtherTabs.First()?.GetProperty("Left") as ImdChannelViewModel;
+					var mdl = seen[0];
 					if (mdl != null)
 					{
 						channels.Add(mdl);
 						mdl.BorderColor = System.Windows.Media.Brushes.DarkGreen;
 					}
 				}
-				if (channels.Count() < 2 && specVm.ShowOtherRight)
+				if (channels.Count < 2 && seen.Count > 1)
 				{
-					var mdl = OtherTabs.First()?.GetProperty("Right") as ImdChannelViewModel;
+					var mdl = seen[1];
 					if (mdl != null)
 					{
 						channels.Add(mdl);
-						mdl.BorderColor = System.Windows.Media.Brushes.Purple;
+						mdl.BorderColor = System.Windows.Media.Brushes.DarkOrange;
 					}
 				}
 			}
+
 
 			if (channels.Count > 0)
 			{

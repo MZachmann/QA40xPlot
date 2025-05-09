@@ -401,10 +401,8 @@ namespace QA40xPlot.ViewModels
 				frames++;
 			if (ShowRight)
 				frames++;
-			if (ShowOtherLeft)
-				frames++;
-			if (ShowOtherRight)
-				frames++;
+			var seen = (OtherSetList == null) ? 0 : OtherSetList.Count(x => x.IsOnR) + OtherSetList.Count(x => x.IsOnL);
+			frames += (uint)seen;
 			if (actInfoLeft != null)
 				actInfoLeft.Visibility = (ShowSummary && frames > 0) ? Visibility.Visible : Visibility.Hidden;
 			if (actInfoRight != null)

@@ -439,7 +439,6 @@ namespace QA40xPlot.ViewModels
 		{
 			PropertyChanged -= CheckPropertyChanged;
 			MouseTracked -= DoMouseTracked;
-
 		}
 
 		public ThdFreqViewModel()
@@ -447,9 +446,6 @@ namespace QA40xPlot.ViewModels
 			Name = "ThdFreq";
 			PropertyChanged += CheckPropertyChanged;
 			MouseTracked += DoMouseTracked;
-
-			PropertyChanged += CheckPropertyChanged;
-
 			this.actPlot = default!;
 			this.actThd = default!;
 

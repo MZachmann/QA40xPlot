@@ -48,13 +48,14 @@ namespace QA40xPlot.Data
 			PropertyChanged -= ChangeDefinition;
 		}
 
+		// when we change the definition in the tab, notify the main viewmodel
+		// and tell it what exactly changed with a Ds prefix for uniqueness
 		private void ChangeDefinition(object? sender, PropertyChangedEventArgs e)
 		{
 			if(MainVm != null && (e.PropertyName?.Length ?? 0) > 0)
 			{
 				MainVm.RaisePropertyChanged("Ds" + e.PropertyName);
 			}
-			return;
 		}
 	}
 
@@ -69,8 +70,9 @@ namespace QA40xPlot.Data
 	// a viewmodel, a time series and a dictionary of other properties
 	public class DataTab<T>
 	{
-		// ------------------------------------------------------------------
-		// we only serialize these things
+		private static int _CurrentId = 0;      // unique id for the datatab
+												// ------------------------------------------------------------------
+												// we only serialize these things
 		public DataDescript Definition { get; set; } = new DataDescript();
 		public T ViewModel { get; private set; }
 		public LeftRightTimeSeries TimeRslt { get; set; }   // if we acquired data
@@ -81,9 +83,11 @@ namespace QA40xPlot.Data
 		// ------------------------------------------------------------------
 		// all other properties are calculated but may be cached in PropertySet
 		[JsonIgnore]
-		public bool Show { get; set; }        // Show in graph
+		public int Show { get; set; }        // Show in graph 0 = none, 1 = left, 2 = right, 3 = both
 		[JsonIgnore]
 		public string FileName { get; set; }  // file name if loaded
+		[JsonIgnore]
+		public int Id { get; set; } // the generator, if any
 		[JsonIgnore]
 		public LeftRightFrequencySeries? FreqRslt { 
 			get { return GetProperty<LeftRightFrequencySeries>("FFT"); }
@@ -174,6 +178,7 @@ namespace QA40xPlot.Data
 		/// <param name="dct"></param>
 		public DataTab(T viewModel, LeftRightTimeSeries series, Dictionary<string,object>? dct = null)
 		{
+			Id = _CurrentId++;  // unique id for the data descriptor
 			FileName = string.Empty;
 			if (viewModel != null)
 			{

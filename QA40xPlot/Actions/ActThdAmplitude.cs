@@ -152,24 +152,14 @@ namespace QA40xPlot.Actions
 					if (a1 != null)
 						steps.Add((ThdColumn[])a1);
 				}
-				if (OtherTabs.Count() > 0 && OtherTabs.FirstOrDefault() != null)
+				var seen = DataUtil.FindShownInfo<ThdAmpViewModel, ThdColumn[]>(OtherTabs);
+				foreach (var s in seen)
 				{
-					var page = OtherTabs.First();
-					if (specVm.ShowOtherLeft)
-					{
-						var a1 = page.GetProperty("Left");
-						if (a1 != null)
-							steps.Add((ThdColumn[])a1);
-					}
-					if (specVm.ShowOtherRight)
-					{
-						var a1 = page.GetProperty("Right");
-						if (a1 != null)
-							steps.Add((ThdColumn[])a1);
-					}
+					if (s != null)
+						steps.Add(s);
 				}
 
-				if (steps.Count() == 0)
+				if (steps.Count == 0)
 					return Rect.Empty;
 				double[] xvalues = [];
 				// handle the direction issues
@@ -257,13 +247,20 @@ namespace QA40xPlot.Actions
 				myset.Add(all.Item1);
 			if (vm.ShowRight)
 				myset.Add(all.Item2);
-			if (OtherTabs.Count() > 0)
+			if (myset.Count < 2 && OtherTabs.Count > 0)
 			{
-				var all2 = LookupColumn(OtherTabs.First(), x); // lookup the columns
-				if (vm.ShowOtherLeft)
-					myset.Add(all2.Item1);
-				if (vm.ShowOtherRight)
-					myset.Add(all2.Item2);
+				foreach (var o in OtherTabs)
+				{
+					var all2 = LookupColumn(o, x); // lookup the columns
+					if (1 == (o.Show & 1))
+						myset.Add(all2.Item1);
+					if(myset.Count == 2)
+						break;
+					if (2 == (o.Show & 2))
+						myset.Add(all2.Item2);
+					if (myset.Count == 2)
+						break;
+				}
 			}
 			return myset.ToArray();
 		}
@@ -680,8 +677,19 @@ namespace QA40xPlot.Actions
 			if (leftCol.Length == 0)
 				return;
 
-			var showLeft = isMain ? thdAmp.ShowLeft : thdAmp.ShowOtherLeft;
-			var showRight = isMain ? thdAmp.ShowRight : thdAmp.ShowOtherRight;
+			bool showLeft;
+			bool showRight;
+			if (isMain)
+			{
+				showLeft = thdAmp.ShowLeft; // dynamically update these
+				showRight = thdAmp.ShowRight;
+			}
+			else
+			{
+				showLeft = 1 == (page.Show & 1); // dynamically update these
+				showRight = 2 == (page.Show & 2);
+			}
+
 			if (!showLeft && !showRight)
 				return;
 
@@ -789,15 +797,12 @@ namespace QA40xPlot.Actions
 				}
 			}
 			PlotValues(PageData, resultNr++, true);
-			if (thd.ShowOtherLeft || thd.ShowOtherRight)
+			if (OtherTabs.Count > 0)
 			{
-				if (OtherTabs.Count > 0)
+				foreach (var other in OtherTabs)
 				{
-					foreach (var other in OtherTabs)
-					{
-						if (other != null)
-							PlotValues(other, resultNr++, false);
-					}
+					if (other != null && other.Show != 0)
+						PlotValues(other, resultNr++, false);
 				}
 			}
 		}
