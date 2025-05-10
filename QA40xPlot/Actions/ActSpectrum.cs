@@ -109,21 +109,7 @@ namespace QA40xPlot.Actions
 		{
 			// now recalculate everything
 			BuildFrequencies(page);
-			var defn = page.Definition;
-
-			if (defn.Name.Length == 0)
-			{
-				FileInfo fileInfo = new FileInfo(fileName);
-				defn.Name = fileInfo.Name;
-				if (defn.Name.EndsWith(".zip"))
-				{
-					defn.Name = defn.Name.Substring(0, defn.Name.Length - 4);
-				}
-				if (defn.Name.EndsWith(".plt"))
-				{
-					defn.Name = defn.Name.Substring(0, defn.Name.Length - 4);
-				}
-			}
+			ClipName(page.Definition, fileName);
 
 			await PostProcess(page, ct.Token);
 			if( doLoad)
@@ -138,22 +124,10 @@ namespace QA40xPlot.Actions
 			}
 			else
 			{
-				//OtherTabs.Clear(); // clear the other tabs
 				page.Show = 1; // show the left channel new
 				OtherTabs.Add(page); // add the new one
-				var vm = page.ViewModel;
-				var uss = MyVModel.OtherSetList;
-				if(uss == null)
-				{
-					uss = new ObservableCollection<OtherSet>();
-					MyVModel.OtherSetList = uss;
-				}
-				uss.Clear();
-				foreach(var tab in OtherTabs)
-				{
-					var oss = new OtherSet(tab.Definition.Name, tab.Show, tab.Id, string.Empty);
-					uss.Add(oss);
-				}
+				var oss = new OtherSet(page.Definition.Name, page.Show, page.Id, string.Empty);
+				MyVModel.OtherSetList.Add(oss);
 			}
 
 			UpdateGraph(true);
@@ -200,7 +174,6 @@ namespace QA40xPlot.Actions
 			if(channels.Count < 2 && OtherTabs.Count > 0)
 			{
 				// copy the shown status from othersetlist to othertabs
-				DataUtil.ReflectOtherSet(OtherTabs, MyVModel.OtherSetList.ToList());
 				var seen = DataUtil.FindShownInfo<SpectrumViewModel, ThdChannelViewModel>(OtherTabs);
 				if (seen.Count > 0)
 				{
@@ -862,7 +835,8 @@ namespace QA40xPlot.Actions
 
 		public void UpdateGraph(bool settingsChanged)
         {
-            fftPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
+			DataUtil.ReflectOtherSet(OtherTabs, MyVModel.OtherSetList);
+			fftPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
 			fftPlot.ThePlot.Remove<Marker>();             // Remove all current lines
 			int resultNr = 0;
 			SpectrumViewModel thd = MyVModel;

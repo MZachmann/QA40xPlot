@@ -4,6 +4,7 @@ using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
+using System.Collections.ObjectModel;
 using System.Data;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
@@ -77,7 +78,7 @@ namespace QA40xPlot.Actions
 		public async Task LoadFromFile(string fileName, bool isMain)
 		{
 			var page = LoadFile(fileName);
-			await FinishLoad(page, isMain);
+			await FinishLoad(page, isMain, fileName);
 		}
 
 		/// <summary>
@@ -106,8 +107,10 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="page"></param>
 		/// <returns></returns>
-		public async Task FinishLoad(MyDataTab page, bool isMain)
+		public async Task FinishLoad(MyDataTab page, bool isMain, string fileName)
 		{
+			ClipName(page.Definition, fileName);
+
 			// now recalculate everything
 			BuildFrequencies(page);
 			await PostProcess(page, ct.Token);
@@ -123,9 +126,10 @@ namespace QA40xPlot.Actions
 			}
 			else
 			{
-				// add to the other tabs
-				OtherTabs.Clear();
-				OtherTabs.Add(page);
+				page.Show = 1; // show the left channel new
+				OtherTabs.Add(page); // add the new one
+				var oss = new OtherSet(page.Definition.Name, page.Show, page.Id, string.Empty);
+				MyVModel.OtherSetList.Add(oss);
 			}
 			UpdateGraph(true);
 		}
@@ -511,7 +515,8 @@ namespace QA40xPlot.Actions
 
 		public void UpdateGraph(bool settingsChanged)
         {
-            timePlot.ThePlot.Remove<Scatter>();             // Remove all current lines
+			DataUtil.ReflectOtherSet(OtherTabs, MyVModel.OtherSetList);
+			timePlot.ThePlot.Remove<Scatter>();             // Remove all current lines
 			timePlot.ThePlot.Remove<Marker>();             // Remove all current lines
 			int resultNr = 0;
 			var thd = MyVModel;

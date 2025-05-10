@@ -25,6 +25,7 @@ namespace QA40xPlot.Data
 
 		public string Value { get; set; } = string.Empty;
 		public int Id { get; set; } = 0; // the parent data descriptor ID
+		public bool IsDeleted { get; set; } = false;
 
 		public OtherSet() { }
 		public OtherSet(string name, int isOn, int id, string value = "")

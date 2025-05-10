@@ -1,7 +1,11 @@
 ﻿using QA40xPlot.BareMetal;
+using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
+using System.Data;
+using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace QA40xPlot.Actions
 {
@@ -13,6 +17,24 @@ namespace QA40xPlot.Actions
 		{
 			get => _LRGains;
 			set => _LRGains = value;
+		}
+
+		public static void ClipName(DataDescript defn, string fileName)
+		{
+			if (defn.Name.Length == 0)
+			{
+				FileInfo fileInfo = new FileInfo(fileName);
+				defn.Name = fileInfo.Name;
+				if (defn.Name.EndsWith(".zip"))
+				{
+					defn.Name = defn.Name.Substring(0, defn.Name.Length - 4);
+				}
+				if (defn.Name.EndsWith(".plt"))
+				{
+					defn.Name = defn.Name.Substring(0, defn.Name.Length - 4);
+				}
+			}
+
 		}
 
 		/// <summary>

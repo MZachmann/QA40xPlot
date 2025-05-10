@@ -1,16 +1,14 @@
 ﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Drawing.Drawing2D;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
-using FftSharp;
+using CommunityToolkit.Mvvm.Input;
 using Newtonsoft.Json;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.Views;
 using ScottPlot;
-using Xceed.Wpf.Toolkit;
 
 namespace QA40xPlot.ViewModels
 {
@@ -409,6 +407,30 @@ namespace QA40xPlot.ViewModels
 					IsTracking = !IsTracking;
 				}
 				_DownTime = DateTime.MinValue;
+			}
+		}
+
+		public void ForceGraphUpdate()
+		{
+			RaisePropertyChanged("ShowLeft");   // cause the right kind of repaint
+		}
+
+		// here param is the id of the tab to remove from the othertab list
+		public void DoDeleteIt(string param)
+		{
+			// mark it deleted then raise the property
+			var id = MathUtil.ToInt(param, -1);
+			if(id >= 0 && OtherSetList.Count > 0)
+			{
+				foreach(var item in OtherSetList)
+				{
+					if (item.Id == id)
+					{
+						item.IsDeleted = true;
+						ForceGraphUpdate();	// cause the right kind of repaint
+						break;
+					}
+				}
 			}
 		}
 

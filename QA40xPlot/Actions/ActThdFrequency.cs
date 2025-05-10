@@ -237,7 +237,7 @@ namespace QA40xPlot.Actions
 		{
 			var page = Util.LoadFile<ThdFreqViewModel>(PageData, fileName);
 			RawToThdColumns(page);
-			await FinishLoad(page, doLoad);
+			await FinishLoad(page, doLoad, fileName);
 		}
 
 		/// <summary>
@@ -255,8 +255,9 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="page"></param>
 		/// <returns></returns>
-		public async Task FinishLoad(MyDataTab page, bool doLoad)
+		public async Task FinishLoad(MyDataTab page, bool doLoad, string fileName)
 		{
+			ClipName(page.Definition, fileName);
 			// now recalculate everything
 			await PostProcess(page, ct.Token);
 			if (doLoad)
@@ -271,8 +272,10 @@ namespace QA40xPlot.Actions
 			}
 			else
 			{
-				OtherTabs.Clear(); // clear the other tabs
+				page.Show = 1; // show the left channel new
 				OtherTabs.Add(page); // add the new one
+				var oss = new OtherSet(page.Definition.Name, page.Show, page.Id, string.Empty);
+				MyVModel.OtherSetList.Add(oss);
 			}
 
 			UpdateGraph(true);
@@ -687,7 +690,8 @@ namespace QA40xPlot.Actions
 
         public void UpdateGraph(bool settingsChanged)
         {
-            thdPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
+			DataUtil.ReflectOtherSet(OtherTabs, MyVModel.OtherSetList);
+			thdPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
             int resultNr = 0;
             ThdFreqViewModel thd = MyVModel;
 

@@ -1,4 +1,6 @@
 ﻿using QA40xPlot.Data;
+using QA40xPlot.Libraries;
+using QA40xPlot.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,5 +33,27 @@ namespace QA40xPlot.Views
 			this.DataContext = dataDef;
 		}
 
+		private void OnClick(object sender, RoutedEventArgs e)
+		{
+			var u = this.DataContext;
+			if( u != null)
+			{
+				var btu = sender as Button;
+				if(btu != null)
+				{
+					var ids = btu.CommandParameter.ToString();
+					((BaseViewModel)u).DoDeleteIt(ids);
+				}
+			}
+        }
+
+		private void ForceRepaint(object sender, RoutedEventArgs e)
+		{
+			var u = this.DataContext;
+			if (u != null)
+			{
+				((BaseViewModel)u).ForceGraphUpdate();
+			}
+		}
 	}
 }
