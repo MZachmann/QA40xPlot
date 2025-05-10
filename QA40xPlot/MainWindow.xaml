@@ -54,37 +54,37 @@
         </Grid>
         <TabControl Grid.Row="2" SelectionChanged="OnNewTab">
             <TabItem Header="Spectrum" Name="spectrum">
-                <Grid Background="#FF35E5E5">
+                <Grid Background="MintCream" >
                     <views:SpectrumPlotPage  />
                 </Grid>
             </TabItem>
             <TabItem Header="Intermodulation" Name="intermod">
-                <Grid Background="#FF35E5E5">
+                <Grid Background="MintCream">
                     <views:ImdPlotPage  />
                 </Grid>
             </TabItem>
             <TabItem Header="Scope" Name="scope">
-                <Grid Background="#FF35E5E5">
+                <Grid Background="MintCream">
                     <views:ScopePlotPage  />
                 </Grid>
             </TabItem>
             <TabItem Header="THD vs Frequency" Name="tvf">
-                <Grid Background="#FFE5E5E5">
+                <Grid Background="MintCream">
                     <views:ThdFreqPlotPage  />
                 </Grid> 
             </TabItem>
             <TabItem Header="THD vs Amplitude" Name="tva">
-                <Grid Background="#FFE5E5E5">
+                <Grid Background="MintCream">
                     <views:ThdAmpPlotPage  />
                 </Grid>
             </TabItem>
             <TabItem Header="{Binding FreqRespHdr}" Name="freqresp" >
-                <Grid Background="#FFE5E5E5">
+                <Grid Background="MintCream">
                     <views:FreqRespPlotPage  />
                 </Grid>
             </TabItem>
             <TabItem Header="Settings" Name="settings" >
-                <Grid Background="#FFE5E5E5">
+                <Grid Background="MintCream">
                     <views:SettingsPage  />
                 </Grid>
             </TabItem>
