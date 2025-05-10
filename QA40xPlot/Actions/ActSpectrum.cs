@@ -10,6 +10,7 @@ using static QA40xPlot.ViewModels.BaseViewModel;
 using Newtonsoft.Json;
 using System.Collections.ObjectModel;
 using System.IO;
+using ScottPlot.Colormaps;
 
 
 // this is the top level class for the spectrum test
@@ -230,11 +231,7 @@ namespace QA40xPlot.Actions
 			// if we're doing adjusting here we need gain information
 			if (vm.DoAutoAttn || genType != E_GeneratorDirection.INPUT_VOLTAGE)
 			{
-				// show that we're autoing...
-				if (vm.DoAutoAttn)
-					vm.Attenuation = QaLibrary.DEVICE_MAX_ATTENUATION;
-				await showMessage("Calculating DUT gain");
-				LRGains = await DetermineGainAtFreq(freq, true, 1);
+				await CalculateGainAtFreq(MyVModel, freq);
 			}
 
 			// auto attenuation?

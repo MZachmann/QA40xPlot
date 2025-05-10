@@ -378,8 +378,7 @@ namespace QA40xPlot.Actions
 			double testFreq = MathUtil.ToDouble(vm.TestFreq, 1000);
 			double testFrequency = QaLibrary.GetNearestBinFrequency(testFreq, vm.SampleRateVal, vm.FftSizeVal);
 
-			await showMessage("Calculating DUT gain");
-			LRGains = await DetermineGainAtFreq(testFrequency, true, 2);
+			await CalculateGainAtFreq(MyVModel, testFrequency);
 			if (LRGains == null)
 				return;
 
@@ -401,12 +400,13 @@ namespace QA40xPlot.Actions
 				return;
 
 			// ********************************************************************
-			// Do noise floor measurement
+			// Setup for noise floor measurement
 			// ********************************************************************
-			if (true != await QaComm.InitializeDevice(vm.SampleRateVal, vm.FftSizeVal, vm.WindowingMethod, 12))
-			{
-				return;
-			}
+			await QaComm.SetSampleRate(vm.SampleRateVal);
+			await QaComm.SetFftSize(vm.FftSizeVal);
+			await QaComm.SetWindowing(vm.WindowingMethod);
+			await QaComm.SetInputRange(6);  // set the input range to 6dB for low noise but some resistance to V
+					// this only applies for the noise measurement
 
 			// ********************************************************************
 			// Do noise floor measurement

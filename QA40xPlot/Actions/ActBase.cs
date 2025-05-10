@@ -4,6 +4,7 @@ using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using System.Data;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -116,7 +117,15 @@ namespace QA40xPlot.Actions
 			return lrs;
 		}
 
-		protected static async Task<LeftRightFrequencySeries?> DetermineGainAtFreq(double dfreq, bool inits, int average = 3)
+		/// <summary>
+		/// Determine the gain at a specific frequency. This is done by sending a sine wave at the given frequency
+		/// This set the attenuation in hardare to 42 before the test
+		/// </summary>
+		/// <param name="dfreq"></param>
+		/// <param name="inits"></param>
+		/// <param name="average"></param>
+		/// <returns></returns>
+		protected static async Task<LeftRightFrequencySeries?> DetermineGainAtFreq(double dfreq, int average = 1)
 		{
 			// initialize very quick run
 			uint fftsize = 65536;
@@ -183,6 +192,35 @@ namespace QA40xPlot.Actions
 			return lrfs;       // Return the gain information as a one element frequency series
 		}
 
+		protected async Task CalculateGainCurve(BaseViewModel bvm)
+		{
+			// show that we're autoing...
+			var atten = bvm.Attenuation;
+			bvm.Attenuation = QaLibrary.DEVICE_MAX_ATTENUATION;
+			await showMessage("Calculating DUT gain");
+			LRGains = await DetermineGainCurve(true, 1);
+			bvm.Attenuation = atten; // restore the original value just in case bvm is also the local model
+			// in general this gets reset immediately for the next test
+		}
+
+		protected async Task CalculateGainAtFreq(BaseViewModel bvm, double dFreq, int averages = 1)
+		{
+			// show that we're autoing...
+			var atten = bvm.Attenuation;
+			bvm.Attenuation = QaLibrary.DEVICE_MAX_ATTENUATION;
+			await showMessage($"Calculating DUT gain at {dFreq}");
+			LRGains = await DetermineGainAtFreq(dFreq, averages);
+			bvm.Attenuation = atten;    // restore the original value
+		}
+
+
+		/// <summary>
+		/// Determine the gain curve for the device. This is done by sending a chirp at 96KHz
+		/// this sets the attenuation in hardware to 42 before the test
+		/// </summary>
+		/// <param name="inits"></param>
+		/// <param name="average"></param>
+		/// <returns></returns>
 		protected static async Task<LeftRightFrequencySeries?> DetermineGainCurve(bool inits, int average = 1)
 		{
 			// initialize very quick run

@@ -759,11 +759,7 @@ namespace QA40xPlot.Actions
 			// calculate the gain curve if we need it
 			if (vm.DoAutoAttn || genType != E_GeneratorDirection.INPUT_VOLTAGE)
 			{
-				// show that we're autoing...
-				if (vm.DoAutoAttn)
-					imdVm.Attenuation = QaLibrary.DEVICE_MAX_ATTENUATION;
-				await showMessage("Calculating DUT gain"); 
-				LRGains = await DetermineGainCurve(true, 1);
+				await CalculateGainCurve(MyVModel);
 			}
 
 			// calculate the required attenuation

@@ -361,8 +361,7 @@ namespace QA40xPlot.Actions
 			// ********************************************************************
 			// Determine input level / attenuation
 			// ********************************************************************
-			await showMessage("Calculating DUT gain");
-			LRGains = await DetermineGainCurve(true, 1);   // read the gain curve
+			await CalculateGainCurve(MyVModel);
 			if (LRGains == null)
 				return false;
 

@@ -455,10 +455,7 @@ namespace QA40xPlot.Actions
 			if (vm.DoAutoAttn || genType != E_GeneratorDirection.INPUT_VOLTAGE)
 			{
 				// show that we're autoing...
-				if (vm.DoAutoAttn)
-					scopeVm.Attenuation = QaLibrary.DEVICE_MAX_ATTENUATION;
-				await showMessage("Calculating DUT gain"); 
-				LRGains = await DetermineGainAtFreq(freq, true, 1);
+				await CalculateGainAtFreq(MyVModel, freq);
 			}
 
 			if (scopeVm.DoAutoAttn && LRGains != null)

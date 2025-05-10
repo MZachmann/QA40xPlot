@@ -183,9 +183,7 @@ namespace QA40xPlot.Actions
 			var sampleRate = msr.SampleRateVal;
 
 			// calculate gain to autoattenuate
-			vmFreq.Attenuation = 42; // display on-screen
-			await showMessage("Calculating gain");
-			LRGains = await DetermineGainCurve(true, 1);
+			await CalculateGainCurve(MyVModel);
 			if (LRGains == null)
 			{
 				// cancelled?
