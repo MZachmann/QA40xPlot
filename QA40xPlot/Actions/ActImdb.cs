@@ -79,7 +79,8 @@ namespace QA40xPlot.Actions
 		public async Task LoadFromFile(string fileName, bool isMain)
 		{
 			var page = LoadFile(fileName);
-			await FinishLoad(page, isMain, fileName);
+			if (page != null)
+				await FinishLoad(page, isMain, fileName);
 		}
 
 		/// <summary>
@@ -87,7 +88,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="fileName">full path name</param>
 		/// <returns>a datatab with no frequency info</returns>
-		public MyDataTab LoadFile(string fileName)
+		public MyDataTab? LoadFile(string fileName)
 		{
 			return Util.LoadFile<ImdViewModel>(PageData, fileName);
 		}

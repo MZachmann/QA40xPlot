@@ -236,8 +236,11 @@ namespace QA40xPlot.Actions
 		public async Task LoadFromFile(string fileName, bool doLoad)
 		{
 			var page = Util.LoadFile<ThdFreqViewModel>(PageData, fileName);
-			RawToThdColumns(page);
-			await FinishLoad(page, doLoad, fileName);
+			if(page != null)
+			{
+				RawToThdColumns(page);
+				await FinishLoad(page, doLoad, fileName);
+			}
 		}
 
 		/// <summary>
@@ -245,7 +248,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="fileName">full path name</param>
 		/// <returns>a datatab with no frequency info</returns>
-		public MyDataTab LoadFile(MyDataTab page, string fileName)
+		public MyDataTab? LoadFile(MyDataTab page, string fileName)
 		{
 			return Util.LoadFile<ThdFreqViewModel>(page, fileName);
 		}

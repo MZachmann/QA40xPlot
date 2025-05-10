@@ -87,7 +87,8 @@ namespace QA40xPlot.Actions
 		public async Task LoadFromFile(string fileName, bool doLoad)
 		{
 			var page = Util.LoadFile<SpectrumViewModel>(PageData, fileName);
-			await FinishLoad(page, fileName, doLoad);
+			if (page != null)
+				await FinishLoad(page, fileName, doLoad);
 		}
 
 		/// <summary>
@@ -95,7 +96,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="fileName">full path name</param>
 		/// <returns>a datatab with no frequency info</returns>
-		public MyDataTab LoadFile(MyDataTab page, string fileName)
+		public MyDataTab? LoadFile(MyDataTab page, string fileName)
 		{
 			return Util.LoadFile<SpectrumViewModel>(page, fileName);
 		}

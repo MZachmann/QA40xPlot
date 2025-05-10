@@ -287,6 +287,17 @@ namespace QA40xPlot.ViewModels
 			return y;
 		}
 
+		public bool IsValidLoadModel(string name)
+		{
+			var synonym = new List<string> { "Spectrum", "Intermodulation", "Scope" };
+
+			if (name == Name)
+				return true;
+			if (synonym.Contains(name) && synonym.Contains(Name))
+				return true;
+			return false;
+		}
+
 		/// <summary>
 		/// Given an input voltage determine the output voltage for this channel
 		/// </summary>

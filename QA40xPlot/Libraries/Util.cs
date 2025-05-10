@@ -16,7 +16,7 @@ namespace QA40xPlot.Libraries
 		/// </summary>
 		/// <param name="fileName">full path name</param>
 		/// <returns>a datatab with no frequency info</returns>
-		public static DataTab<Model> LoadFile<Model>(DataTab<Model> model, string fileName)
+		public static DataTab<Model>? LoadFile<Model>(DataTab<Model> model, string fileName)
 		{
 			// a new DataTab
 			var page = new DataTab<Model>(model.ViewModel, new LeftRightTimeSeries());
@@ -35,29 +35,41 @@ namespace QA40xPlot.Libraries
 					// Read the JSON file into a string
 					jsonContent = File.ReadAllText(fileName);
 				}
-				// Deserialize the JSON string into an object
+				// check which viewmodel this was built for
+				bool isValid = false;
+				string x = string.Empty;
+				// generic deserialize first....
+				{
+					var u = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(jsonContent); // untyped seriale
+					if (u == null)
+						return null;
+					x = u["ViewModel"]["Name"].ToString() ?? String.Empty;
+					var z = model.ViewModel as BaseViewModel;
+					isValid = z?.IsValidLoadModel(x ?? "") ?? false;
+				}
+				if (!isValid)
+				{
+					MessageBox.Show($"This {x} file is not compatible with this tab.", "Incompatible file", MessageBoxButton.OK, MessageBoxImage.Warning);
+					return null;
+				}
+
+					// Deserialize the JSON string into an object
 				var jsonObject = JsonConvert.DeserializeObject<DataTab<Model>>(jsonContent);
 				if (jsonObject != null)
 				{
-					try
-					{
-						// fill pagedata with new stuff
-						page.NoiseFloor = jsonObject.NoiseFloor;
-						page.Definition = jsonObject.Definition;
-						page.TimeRslt = jsonObject.TimeRslt;
-						page.Sweep = jsonObject.Sweep;
-						if (page.ViewModel != null)
-							jsonObject.ViewModel.CopyPropertiesTo(page.ViewModel);
-					}
-					catch (Exception ex)
-					{
-						MessageBox.Show(ex.Message, "A load error occurred.", MessageBoxButton.OK, MessageBoxImage.Information);
-					}
+					// fill pagedata with new stuff
+					page.NoiseFloor = jsonObject.NoiseFloor;
+					page.Definition = jsonObject.Definition;
+					page.TimeRslt = jsonObject.TimeRslt;
+					page.Sweep = jsonObject.Sweep;
+					if (page.ViewModel != null)
+						jsonObject.ViewModel.CopyPropertiesTo(page.ViewModel);
 				}
 			}
 			catch (Exception ex)
 			{
 				MessageBox.Show(ex.Message, "A load error occurred.", MessageBoxButton.OK, MessageBoxImage.Information);
+				page = null;
 			}
 			return page;
 		}

@@ -41,7 +41,7 @@ namespace QA40xPlot.Views
 				var btu = sender as Button;
 				if(btu != null)
 				{
-					var ids = btu.CommandParameter.ToString();
+					var ids = btu.CommandParameter.ToString() ?? "";
 					((BaseViewModel)u).DoDeleteIt(ids);
 				}
 			}
