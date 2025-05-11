@@ -241,6 +241,21 @@ namespace QA40xPlot.Libraries
 			myPlot.Axes.Left.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
 			myPlot.Axes.Left.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
 
+			// change figure colors Dark mode
+			myPlot.FigureBackground.Color = new Color(0, 0, 0, 00);
+			myPlot.DataBackground.Color = new Color(0, 0, 0, 10);
+			//myPlot.FigureBackground.Color = Color.FromHex("#181818");
+			//myPlot.DataBackground.Color = Color.FromHex("#1f1f1f");
+
+			//// change axis and grid colors
+			//myPlot.Axes.Color(Color.FromHex("#d7d7d7"));
+			//myPlot.Grid.MajorLineColor = Color.FromHex("#404040");
+
+			//// change legend colors
+			//myPlot.Legend.BackgroundColor = Color.FromHex("#404040");
+			//myPlot.Legend.FontColor = Color.FromHex("#d7d7d7");
+			//myPlot.Legend.OutlineColor = Color.FromHex("#d7d7d7");
+
 			// Legend
 			SetupLegend(myPlot);
 		}

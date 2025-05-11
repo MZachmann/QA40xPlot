@@ -57,7 +57,7 @@
                   Text="{Binding BackgroundClr}" 
                   ItemsSource="{Binding BackColors}" />
         <TextBlock TextWrapping="Wrap" MaxWidth="600" 
-                   Text="Select or type a background color for the app." 
+                   Text="Select or type a background color (name or #hex value) for the app." 
                    Grid.Row="2" Grid.Column="4" />
         <local:GroupHeader Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5"  />
         <Label Content="Set Attenuate: " Grid.Row="4" Grid.Column="0" />
