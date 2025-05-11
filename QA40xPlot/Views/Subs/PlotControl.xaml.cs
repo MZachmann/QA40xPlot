@@ -1,10 +1,7 @@
-﻿using System.Windows.Controls;
-using System.Windows.Input;
+﻿using QA40xPlot.ViewModels;
 using ScottPlot.WPF;
-using System.Windows;
-using QA40xPlot.ViewModels;
-using ScottPlot;
-using System.Threading;
+using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace QA40xPlot.Views
 {

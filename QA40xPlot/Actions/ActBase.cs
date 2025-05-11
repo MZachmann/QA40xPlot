@@ -130,7 +130,8 @@ namespace QA40xPlot.Actions
 			// initialize very quick run
 			uint fftsize = 65536;
 			uint sampleRate = 96000;
-			if (true != await QaComm.InitializeDevice(sampleRate, fftsize, "Hann", QaLibrary.DEVICE_MAX_ATTENUATION))
+			// flattop windowing gives us the best fundamental value accuracy even if not bin center...
+			if (true != await QaComm.InitializeDevice(sampleRate, fftsize, "FlatTop", QaLibrary.DEVICE_MAX_ATTENUATION))
 				return null;
 
 			// the simplest thing here is to do a quick burst low value...

@@ -11,9 +11,6 @@
              d:DesignHeight="750" d:DesignWidth="800">
     <UserControl.Resources>
         <views:EnumBooleanConverter x:Key="EnumBooleanConverter"/>
-        <Style TargetType="GroupBox">
-            <Setter Property="BorderThickness" Value="1,1,1,0"/>
-        </Style>
         <Style TargetType="Label">
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
@@ -24,20 +21,6 @@
         <Style TargetType="TextBox">
             <Setter Property="VerticalAlignment" Value="Center"/>
             <!-- Ensure the readonly property is visible -->
-            <Style.Triggers>
-                <Trigger Property="IsReadOnly" Value="True">
-                    <Setter Property="Background" Value="LightGray" />
-                </Trigger>
-                <Trigger Property="IsReadOnly" Value="True">
-                    <Setter Property="Foreground" Value="DarkGray" />
-                </Trigger>
-                <Trigger Property="IsReadOnly" Value="False">
-                    <Setter Property="Background" Value="White" />
-                </Trigger>
-                <Trigger Property="IsReadOnly" Value="False">
-                    <Setter Property="Foreground" Value="Black" />
-                </Trigger>
-            </Style.Triggers>
         </Style>
     </UserControl.Resources>
     <Grid Height="Auto" Width="Auto">
@@ -46,70 +29,11 @@
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <StackPanel Grid.Column="0" Orientation="Vertical"  Margin="0,0,5,0">
-            <GroupBox Header="" BorderThickness="1" >
-                <Grid >
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="15" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Button Content="Start" IsEnabled="{Binding IsNotRunning}" FontSize="14" Command="{Binding DoStart}" Grid.Column="0" Grid.Row="0"  HorizontalAlignment="Right"></Button>
-                    <Button Content="Sto_p" IsEnabled="{Binding IsRunning}" FontSize="14" Command="{Binding DoStop}" Grid.Column="2" Grid.Row="0" HorizontalAlignment="Left"></Button>
-                </Grid>
-
-            </GroupBox>
+        <StackPanel Grid.Column="0" Margin="0,1,1,0">
+            <views:StartStop />
             <CheckBox Content="_Use Generator 1" IsChecked="{Binding UseGenerator}"  Margin="0,5,0,0" HorizontalAlignment="Center"></CheckBox>
             <CheckBox Content="Use Generator _2" IsChecked="{Binding UseGenerator2}" HorizontalAlignment="Center"></CheckBox>
-            <views:GroupHeader Header="Attenuation" />
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{Binding AttenColor}" 
-                            Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Grid.ColumnSpan="4"/>
-                <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="0" Command="{Binding SetAttenuate}" 
-                                 IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=0}"
-                                 CommandParameter="0" Grid.Row="0" Grid.Column="0" Margin="4"></RadioButton>
-                <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="6" 
-                            IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=6}"
-                            Command="{Binding SetAttenuate}" CommandParameter="6" Grid.Row="0" Grid.Column="1" Margin="4"></RadioButton>
-                <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="12" 
-                            IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=12}"
-                            Command="{Binding SetAttenuate}" CommandParameter="12" Grid.Row="0" Grid.Column="2" Margin="4"></RadioButton>
-                <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="18" 
-                            IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=18}"
-                            Command="{Binding SetAttenuate}" CommandParameter="18" Grid.Row="0" Grid.Column="3" Margin="4"></RadioButton>
-                <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="24" 
-                            IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=24}"
-                            Command="{Binding SetAttenuate}" CommandParameter="24" Grid.Row="1" Grid.Column="0" Margin="4"></RadioButton>
-                <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="30" 
-                            IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=30}"
-                            Command="{Binding SetAttenuate}" CommandParameter="30" Grid.Row="1" Grid.Column="1" Margin="4"></RadioButton>
-                <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="36" 
-                            IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=36}"
-                            Command="{Binding SetAttenuate}" CommandParameter="36" Grid.Row="1" Grid.Column="2" Margin="4"></RadioButton>
-                <RadioButton Style="{StaticResource {x:Type ToggleButton}}" Content="42" 
-                            IsChecked="{Binding Attenuation, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=42}"
-                            Command="{Binding SetAttenuate}" CommandParameter="42" Grid.Row="1" Grid.Column="3" Margin="4"></RadioButton>
-                <CheckBox Grid.Row="2" Grid.ColumnSpan="4" Content="Auto_range on start" IsChecked="{Binding DoAutoAttn}" Margin="8,2,0,2">
-                    <CheckBox.ToolTip >
-                        <ToolTip Content="{Binding AutoRangeDescript}" />
-                    </CheckBox.ToolTip>
-                </CheckBox>
-            </Grid>
-
+            <views:Attenuator />
             <views:GroupHeader Header="Intermod Test" />
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -211,20 +135,7 @@
                                SelectedValue="{Binding WindowingMethod}" ItemsSource="{Binding WindowingTypes}">
                 </ComboBox>
             </Grid>
-            <views:GroupHeader Header="Storage" />
-            <Grid >
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Button Content="_Get" IsEnabled="{Binding IsNotRunning}"  Command="{Binding DoGetTab}" Grid.Column="0" Grid.Row="0"  HorizontalAlignment="Center"></Button>
-                <Button Content="_Load" IsEnabled="{Binding IsNotRunning}" Command="{Binding DoLoadTab}" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center"></Button>
-                <Button Content="Sav_e" IsEnabled="{Binding HasExport}"    Command="{Binding DoSaveTab}" Grid.Column="2" Grid.Row="0"  HorizontalAlignment="Center"></Button>
-            </Grid>
+            <views:StorageUi />
             <views:GotFileList x:Name="GotList"  HorizontalAlignment="Stretch" MaxHeight="100" Margin="0,5,0,0"/>
         </StackPanel>
         <Grid Grid.Column="1">
@@ -238,136 +149,56 @@
                   VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,70,34,0" />
         </Grid>
         <StackPanel Grid.Column="2" Orientation="Vertical">
-            <GroupBox Header="Y Axis" Visibility="{Binding ToShowdB}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Label Content="Units" Grid.Row="0" Grid.Column="0"  />
-                    <ComboBox MinWidth="70" Grid.Row="0" Grid.Column="1"   SelectedItem="{Binding PlotFormat}" ItemsSource="{Binding DataFormats}">
-                    </ComboBox>
-                    <Label Content="Top" Grid.Row="1" Grid.Column="0"  />
-                    <ComboBox MinWidth="70" IsEditable="True" Grid.Row="1" Grid.Column="1"   Text="{Binding RangeTopdB}" ItemsSource="{Binding TopDbs}">
-                    </ComboBox>
-                    <Label Content="{Binding GraphUnit}" Grid.Row="1" Grid.Column="2"  />
-                    <Label Content="Bottom" Grid.Row="2" Grid.Column="0"  />
-                    <ComboBox IsEditable="True" Grid.Row="2" Grid.Column="1"   Text="{Binding RangeBottomdB}" ItemsSource="{Binding BottomDbs}">
-                    </ComboBox>
-                    <Label Content="{Binding GraphUnit}" Grid.Row="2" Grid.Column="2"  />
-                    <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="YM"
-                            Margin="0,4,0,0" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Right"  />
-                </Grid>
-            </GroupBox>
-            <GroupBox Header="Y Axis" Visibility="{Binding ToShowRange}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Label Content="Units" Grid.Row="0" Grid.Column="0"  />
-                    <ComboBox MinWidth="70" Grid.Row="0" Grid.Column="1"   SelectedItem="{Binding PlotFormat}" ItemsSource="{Binding DataFormats}">
-                    </ComboBox>
-                    <Label Content="Top" Grid.Row="1" Grid.Column="0"  />
-                    <ComboBox MinWidth="70" Grid.Column="1"  Grid.Row="1"   SelectedValue="{Binding RangeTop}" ItemsSource="{Binding StartPercents}">
-                    </ComboBox>
-                    <Label Content="{Binding GraphUnit}" Grid.Row="1" Grid.Column="2"  />
-                    <Label Content="Bottom" Grid.Row="2" Grid.Column="0"  />
-                    <ComboBox Grid.Column="1"  Grid.Row="2"   SelectedValue="{Binding RangeBottom}" ItemsSource="{Binding EndPercents}">
-                    </ComboBox>
-                    <Label Content="{Binding GraphUnit}" Grid.Row="2" Grid.Column="2"  />
-                    <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="YP"
-                            Margin="0,4,0,0" Grid.Row="3" Grid.Column="0"  HorizontalAlignment="Right" Grid.ColumnSpan="2"  />
-                </Grid>
-            </GroupBox>
-            <GroupBox Header="X Axis">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Label Content="From" Grid.Row="0"  Grid.Column="0" />
-                    <ComboBox MinWidth="70"  IsEditable="True" Grid.Row="0" Grid.Column="1"   Text="{Binding GraphStartFreq}" ItemsSource="{Binding StartFrequencies}">
-                    </ComboBox>
-                    <Label Content="Hz" Grid.Row="0" Grid.Column="2"  />
-                    <Label Content="To" Grid.Row="1" Grid.Column="0"  />
-                    <ComboBox  IsEditable="True" Grid.Row="1" Grid.Column="1"  Text="{Binding GraphEndFreq}" ItemsSource="{Binding EndFrequencies}">
-                    </ComboBox>
-                    <Label Content="Hz" Grid.Row="1" Grid.Column="2"  />
-                    <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="XF"
-                            Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Right" Grid.ColumnSpan="2"  />
-                </Grid>
-            </GroupBox>
-            <GroupBox Header="Graph Data">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <CheckBox Content="Summary Data" IsChecked="{Binding ShowSummary}" Grid.Row="0"  />
-                    <CheckBox Content="Tab Info" IsChecked="{Binding ShowTabInfo}" Grid.Row="1"  />
-                    <CheckBox Content="Intermod Markers" IsChecked="{Binding ShowMarkers}" Grid.Row="2"  />
-                    <CheckBox Content="Power Markers" IsChecked="{Binding ShowPowerMarkers}" Grid.Row="3"  />
-                </Grid>
-            </GroupBox>
-            <GroupBox Header="Options">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="0"  />
-                    <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="1"  />
-                    <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="4"  />
-                    <CheckBox Content="% - Data Summary" IsChecked="{Binding ShowDataPercent}" Grid.Row="5"  />
-                </Grid>
-            </GroupBox>
-            <GroupBox Header="Cursor" >
-                <Grid >
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Label Content="Frequency" Grid.Row="0" Grid.Column="0" IsEnabled="{Binding IsTracking}" />
-                    <Label Content="{Binding FreqShow}" Grid.Row="0" Grid.Column="1" IsEnabled="{Binding IsTracking}" Width="70" />
-                    <TextBox Text="{Binding ZValue}" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" TextWrapping="Wrap" 
+            <views:YAxisDb />
+            <views:YAxisPerc />
+            <views:XAxisHz />
+            <views:GroupHeader Header="Graph Data" />
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <CheckBox Content="Summary Data" IsChecked="{Binding ShowSummary}" Grid.Row="0"  />
+                <CheckBox Content="Tab Info" IsChecked="{Binding ShowTabInfo}" Grid.Row="1"  />
+                <CheckBox Content="Intermod Markers" IsChecked="{Binding ShowMarkers}" Grid.Row="2"  />
+                <CheckBox Content="Power Markers" IsChecked="{Binding ShowPowerMarkers}" Grid.Row="3"  />
+            </Grid>
+
+            <views:GroupHeader Header="Options"/>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="0"  />
+                <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="1"  />
+                <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="4"  />
+                <CheckBox Content="% - Data Summary" IsChecked="{Binding ShowDataPercent}" Grid.Row="5"  />
+            </Grid>
+
+            <views:GroupHeader Header="Cursor" />
+            <Grid >
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Label Content="Frequency" Grid.Row="0" Grid.Column="0" IsEnabled="{Binding IsTracking}" />
+                <Label Content="{Binding FreqShow}" Grid.Row="0" Grid.Column="1" IsEnabled="{Binding IsTracking}" Width="70" />
+                <TextBox Text="{Binding ZValue}" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" TextWrapping="Wrap" 
                              AcceptsReturn="True" Width="120" HorizontalAlignment="Left" />
-                </Grid>
-            </GroupBox>
+            </Grid>
+
         </StackPanel>
     </Grid>
 </UserControl>

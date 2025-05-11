@@ -89,9 +89,7 @@ namespace QA40xPlot.BareMetal
 			};
 
 			double[] wave;
-			var src = QaComm.GetOutputSource();
-
-			if (vw.IsEnabled && vw.GenParams.Enabled || vw.Gen2Params.Enabled)
+			if (vw.IsEnabled && (vw.GenParams.Enabled || vw.Gen2Params.Enabled))
 			{
 				GenWaveform[] waves = [];
 				if (vw.GenParams.Enabled && vw.Gen2Params.Enabled)

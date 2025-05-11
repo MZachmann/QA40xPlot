@@ -503,8 +503,6 @@ public class FreqRespViewModel : BaseViewModel
 		EndFreq = "20000";
 		ZReference = "10";
 
-		ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
-		ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;      
 		// make a few things happen to synch the gui
 		Task.Delay(1000).ContinueWith(t => { actFreq?.UpdateGraph(true); });
 	}
