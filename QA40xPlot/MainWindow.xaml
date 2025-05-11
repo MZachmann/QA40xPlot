@@ -6,7 +6,7 @@
         xmlns:views="clr-namespace:QA40xPlot.Views"
         xmlns:local="clr-namespace:QA40xPlot"
         mc:Ignorable="d"
-        Title="Qa40xPlot" Height="800" Width="1600" Background="MintCream">
+        Title="Qa40xPlot" Height="800" Width="1600" Background="{Binding Background, Mode=OneWay}">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -54,37 +54,37 @@
         </Grid>
         <TabControl Grid.Row="2" SelectionChanged="OnNewTab">
             <TabItem Header="Spectrum" Name="spectrum">
-                <Grid Background="MintCream" >
+                <Grid Background="{Binding Background, Mode=OneWay}" >
                     <views:SpectrumPlotPage  />
                 </Grid>
             </TabItem>
             <TabItem Header="Intermodulation" Name="intermod">
-                <Grid Background="MintCream">
+                <Grid Background="{Binding Background, Mode=OneWay}" >
                     <views:ImdPlotPage  />
                 </Grid>
             </TabItem>
             <TabItem Header="Scope" Name="scope">
-                <Grid Background="MintCream">
+                <Grid Background="{Binding Background, Mode=OneWay}" >
                     <views:ScopePlotPage  />
                 </Grid>
             </TabItem>
             <TabItem Header="THD vs Frequency" Name="tvf">
-                <Grid Background="MintCream">
+                <Grid Background="{Binding Background, Mode=OneWay}">
                     <views:ThdFreqPlotPage  />
                 </Grid> 
             </TabItem>
             <TabItem Header="THD vs Amplitude" Name="tva">
-                <Grid Background="MintCream">
+                <Grid Background="{Binding Background, Mode=OneWay}">
                     <views:ThdAmpPlotPage  />
                 </Grid>
             </TabItem>
             <TabItem Header="{Binding FreqRespHdr}" Name="freqresp" >
-                <Grid Background="MintCream">
+                <Grid Background="{Binding Background, Mode=OneWay}">
                     <views:FreqRespPlotPage  />
                 </Grid>
             </TabItem>
             <TabItem Header="Settings" Name="settings" >
-                <Grid Background="MintCream">
+                <Grid Background="{Binding Background, Mode=OneWay}">
                     <views:SettingsPage  />
                 </Grid>
             </TabItem>

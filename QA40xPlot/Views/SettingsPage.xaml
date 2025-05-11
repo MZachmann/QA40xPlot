@@ -10,8 +10,13 @@
         <Style TargetType="GroupBox">
             <Setter Property="BorderThickness" Value="1,1,1,0"/>
         </Style>
-        <Style TargetType="TextBox">
+        <Style TargetType="TextBlock">
             <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+        </Style>
+        <Style TargetType="Label">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
         </Style>
     </UserControl.Resources>
     <Grid Margin="5,5,5,5">
@@ -24,6 +29,8 @@
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -43,47 +50,55 @@
         <ComboBox IsEditable="True" Grid.Row="0" Grid.Column="1" MinWidth="80" 
                   Text="{Binding AmplifierLoad}" 
                   ItemsSource="{Binding Impedances}" />
-        <Label Content="Ohms" Grid.Row="0" Grid.Column="2" />
-        <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" MaxWidth="600" 
+        <Label Content="Ohms" Grid.Row="0" Grid.Column="2" HorizontalAlignment="Left" />
+        <TextBlock TextWrapping="Wrap" MaxWidth="600" 
                    Text="The amplifier load is used to convert power to voltage for all tests." 
                    Grid.Row="0" Grid.Column="4" />
         <local:GroupHeader Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5"  />
-        <Label Content="Set Attenuate: " Grid.Row="2" Grid.Column="0" />
-        <ComboBox VerticalAlignment="Top" Grid.Row="2" Grid.Column="1" MinWidth="80" SelectedValue="{Binding RelayUsage}" 
-                  ItemsSource="{Binding RelayUsageList}" />
-        <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" MaxWidth="600" 
-                   Text="When to reset the attenuation to full (42). Allows Never, On Exit, and When test Finishes." 
+        <Label Content="Background: " Grid.Row="2" Grid.Column="0" />
+        <ComboBox IsEditable="True" Grid.Row="2" Grid.Column="1" MinWidth="80" 
+                  Text="{Binding BackgroundClr}" 
+                  ItemsSource="{Binding BackColors}" />
+        <TextBlock TextWrapping="Wrap" MaxWidth="600" 
+                   Text="Select or type a background color for the app." 
                    Grid.Row="2" Grid.Column="4" />
         <local:GroupHeader Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5"  />
-        <Label Content="Powerline Frequency: " Grid.Row="4" Grid.Column="0" />
-        <ComboBox VerticalAlignment="Top" Grid.Row="4" Grid.Column="1" MinWidth="80" SelectedValue="{Binding PowerFrequency}" 
-                  ItemsSource="{Binding PowerFreqList}" />
-        <Label Content="Hz" Grid.Row="4" Grid.Column="2" />
-        <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" MaxWidth="600" 
-                   Text="When showing power markers, this is the fundamental frequency used." 
+        <Label Content="Set Attenuate: " Grid.Row="4" Grid.Column="0" />
+        <ComboBox  Grid.Row="4" Grid.Column="1" MinWidth="80" SelectedValue="{Binding RelayUsage}" 
+                  ItemsSource="{Binding RelayUsageList}" />
+        <TextBlock TextWrapping="Wrap" MaxWidth="600" 
+                   Text="When to reset the attenuation to full (42). Allows Never, On Exit, and When test Finishes." 
                    Grid.Row="4" Grid.Column="4" />
         <local:GroupHeader Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="5"  />
-        <Label Content="Test Channel: " Grid.Row="6" Grid.Column="0" />
-        <ComboBox VerticalAlignment="Top" Grid.Row="6" Grid.Column="1" MinWidth="80" SelectedValue="{Binding TestChannel}" ItemsSource="{Binding ChannelList}" />
-        <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" MaxWidth="600" 
-                   Text="All tests except impedance and gain use this channel as the reference for i/o voltage and power conversions." 
+        <Label Content="Powerline Frequency: " Grid.Row="6" Grid.Column="0" />
+        <ComboBox  Grid.Row="6" Grid.Column="1" MinWidth="80" SelectedValue="{Binding PowerFrequency}" 
+                  ItemsSource="{Binding PowerFreqList}" />
+        <Label Content="Hz" Grid.Row="6" Grid.Column="2" HorizontalAlignment="Left" />
+        <TextBlock TextWrapping="Wrap" MaxWidth="600" 
+                   Text="When showing power markers, this is the fundamental frequency used." 
                    Grid.Row="6" Grid.Column="4" />
         <local:GroupHeader Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="5"  />
-        <Label Content="Save on Exit: " Grid.Row="8" Grid.Column="0" />
-        <ComboBox VerticalAlignment="Top" Grid.Row="8" Grid.Column="1" MinWidth="80" SelectedValue="{Binding SaveOnExit}" ItemsSource="{Binding TrueFalseList}" />
-        <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" MaxWidth="600" 
-                   Text="Automatically save the current settings as default on exit." 
+        <Label Content="Test Channel: " Grid.Row="8" Grid.Column="0" />
+        <ComboBox  Grid.Row="8" Grid.Column="1" MinWidth="80" SelectedValue="{Binding TestChannel}" ItemsSource="{Binding ChannelList}" />
+        <TextBlock TextWrapping="Wrap" MaxWidth="600" 
+                   Text="All tests except impedance and gain use this channel as the reference for i/o voltage and power conversions." 
                    Grid.Row="8" Grid.Column="4" />
         <local:GroupHeader Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="5"  />
-        <Label Content="Usb Buffer Size: " Grid.Row="10" Grid.Column="0" />
-        <ComboBox VerticalAlignment="Top" Grid.Row="10" Grid.Column="1" MinWidth="80" SelectedValue="{Binding UsbBufferSize}" ItemsSource="{Binding UsbBufferSizes}" />
-        <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" MaxWidth="600" 
-                   Text="Set the size of the usb block. Careful!." 
+        <Label Content="Save on Exit: " Grid.Row="10" Grid.Column="0" />
+        <ComboBox  Grid.Row="10" Grid.Column="1" MinWidth="80" SelectedValue="{Binding SaveOnExit}" ItemsSource="{Binding TrueFalseList}" />
+        <TextBlock TextWrapping="Wrap" MaxWidth="600" 
+                   Text="Automatically save the current settings as default on exit." 
                    Grid.Row="10" Grid.Column="4" />
         <local:GroupHeader Grid.Row="11" Grid.Column="0" Grid.ColumnSpan="5"  />
-        <CheckBox VerticalAlignment="Top" Grid.Row="12" Grid.Column="0" Grid.ColumnSpan="2" IsChecked="{Binding UseREST}" Content="Use REST interface instead of USB" />
-        <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" MaxWidth="600" 
-                   Text="If you have issues with USB support try the REST interface." 
+        <Label Content="Usb Buffer Size: " Grid.Row="12" Grid.Column="0" />
+        <ComboBox  Grid.Row="12" Grid.Column="1" MinWidth="80" SelectedValue="{Binding UsbBufferSize}" ItemsSource="{Binding UsbBufferSizes}" />
+        <TextBlock TextWrapping="Wrap" MaxWidth="600" 
+                   Text="Set the size of the usb block. Careful!." 
                    Grid.Row="12" Grid.Column="4" />
+        <local:GroupHeader Grid.Row="13" Grid.Column="0" Grid.ColumnSpan="5"  />
+        <CheckBox  Grid.Row="14" Grid.Column="0" Grid.ColumnSpan="2" IsChecked="{Binding UseREST}" Content="Use REST interface instead of USB" />
+        <TextBlock TextWrapping="Wrap" MaxWidth="600" 
+                   Text="If you have issues with USB support try the REST interface." 
+                   Grid.Row="14" Grid.Column="4" />
     </Grid>
 </UserControl>

@@ -13,6 +13,9 @@
         <Style TargetType="ComboBox">
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
+        <Style TargetType="Label">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
         <Style TargetType="GroupBox">
             <Setter Property="BorderThickness" Value="1,1,1,0"/>
         </Style>
@@ -40,7 +43,7 @@
 
             </GroupBox>
             <views:GroupHeader Header="Generator" />
-            <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+            <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
@@ -71,7 +74,7 @@
             </Grid>
 
             <views:GroupHeader Header="Sweep" />
-            <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+            <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
@@ -104,15 +107,15 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Label Content="_Sample Rate" HorizontalAlignment="Right" Grid.Row="0" Grid.Column="0"  Target="{Binding ElementName=cbSampleRate}"  />
-                <ComboBox x:Name="cbSampleRate"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  
+                <ComboBox x:Name="cbSampleRate"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0"   
                                SelectedValue="{Binding SampleRate}" ItemsSource="{Binding SampleRates}">
                 </ComboBox>
                 <Label Content="_Fft Size" HorizontalAlignment="Right" Grid.Row="1" Grid.Column="0" Target="{Binding ElementName=cbfftSize}"  />
-                <ComboBox x:Name="cbfftSize"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Center"  
+                <ComboBox x:Name="cbfftSize"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1"   
                                SelectedValue="{Binding FftSize}" ItemsSource="{Binding FftSizes}">
                 </ComboBox>
                 <Label Content="_Averages" HorizontalAlignment="Right" Grid.Column="0" Grid.Row="2" Target="{Binding ElementName=xcaverages}"  />
-                <xctk:IntegerUpDown x:Name="xcaverages" Value="{Binding Averages}" Minimum="1" Maximum="6" VerticalAlignment="Center" Grid.Column="1" Grid.Row="2"  />
+                <xctk:IntegerUpDown x:Name="xcaverages" Value="{Binding Averages}" VerticalAlignment="Center"  Minimum="1" Maximum="6"  Grid.Column="1" Grid.Row="2"  />
             </Grid>
             <views:GroupHeader Header="Storage" />
             <Grid >
@@ -140,7 +143,7 @@
         </Grid>
         <StackPanel Grid.Column="2" Orientation="Vertical">
             <GroupBox Header="Y Axis" Visibility="{Binding ToShowdB}">
-                <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -154,7 +157,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Label Content="Units" Grid.Row="0" Grid.Column="0"  />
-                    <ComboBox MinWidth="70" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"  SelectedItem="{Binding PlotFormat}" ItemsSource="{Binding DataFormats}">
+                    <ComboBox MinWidth="70" Grid.Row="0" Grid.Column="1"   SelectedItem="{Binding PlotFormat}" ItemsSource="{Binding DataFormats}">
                     </ComboBox>
                     <Label Content="Top" Grid.Row="1" Grid.Column="0"  />
                     <ComboBox MinWidth="70" IsEditable="True" Grid.Row="1" Grid.Column="1"  Text="{Binding RangeTopdB}" ItemsSource="{Binding TopDbs}">
@@ -168,7 +171,7 @@
                             Margin="0,4,0,0" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Right"  />                </Grid>
             </GroupBox>
             <GroupBox Header="Y Axis" Visibility="{Binding ToShowRange}">
-                <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -182,7 +185,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Label Content="Units" Grid.Row="0" Grid.Column="0"  />
-                    <ComboBox MinWidth="70" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"  SelectedItem="{Binding PlotFormat}" ItemsSource="{Binding DataFormats}">
+                    <ComboBox MinWidth="70" Grid.Row="0" Grid.Column="1"   SelectedItem="{Binding PlotFormat}" ItemsSource="{Binding DataFormats}">
                     </ComboBox>
                     <Label Content="Top" Grid.Row="1" Grid.Column="0"  />
                     <ComboBox MinWidth="70" Grid.Row="1" Grid.Column="1"   SelectedValue="{Binding RangeTop}" ItemsSource="{Binding StartPercents}">
@@ -197,7 +200,7 @@
                 </Grid>
             </GroupBox>
             <GroupBox Header="X Axis">
-                <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -223,7 +226,7 @@
                 </Grid>
             </GroupBox>
             <GroupBox Header="Graph Data">
-                <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+                <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -248,7 +251,7 @@
                 </Grid>
             </GroupBox>
             <GroupBox Header="Options">
-                <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+                <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />

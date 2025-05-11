@@ -8,10 +8,11 @@ using System.Windows.Media.Imaging;
 using System.Windows;
 using System.IO;
 using CommunityToolkit.Mvvm.Input;
+using System.Windows.Media;
 
 namespace QA40xPlot.ViewModels
 {
-	public class MainViewModel : BaseViewModel
+	public class MainViewModel : FloorViewModel
 	{
 		[JsonIgnore]
 		public RelayCommand DoExport { get => new RelayCommand(OnExport); }
@@ -24,6 +25,14 @@ namespace QA40xPlot.ViewModels
 
 
 		#region Setters and Getters
+		private System.Windows.Media.SolidColorBrush _Background = System.Windows.Media.Brushes.MintCream;
+		[JsonIgnore]
+		public System.Windows.Media.SolidColorBrush Background
+		{
+			get => _Background; 
+			set => SetProperty(ref _Background, value);
+		}
+
 		private String _ProgressMessage = String.Empty;         // type of alert
 		[JsonIgnore]
 		public String ProgressMessage

@@ -1,5 +1,6 @@
 ﻿using QA40xPlot.BareMetal;
 using System.Windows;
+using System.Windows.Media;
 
 namespace QA40xPlot.ViewModels
 {
@@ -7,6 +8,7 @@ namespace QA40xPlot.ViewModels
 	{
 		public static List<String> UsbBufferSizes { get => new List<string>() { "2048", "4096", "8192", "16384", "32768", "65536"}; }
 		public static List<String> RelayUsageList { get => new List<string>() { "Never", "OnFinish", "OnExit" }; }
+		public static List<String> BackColors { get => new List<string>() { "MintCream", "LightGray", "LightBlue", "LightGreen", "LightPink", "LightSalmon", "Lavender", "LemonChiffon", "LightGoldenrodYellow", "LightCoral" }; }
 
 		#region setters and getters
 		private bool _UseREST;
@@ -18,6 +20,18 @@ namespace QA40xPlot.ViewModels
 				SetProperty(ref _UseREST, value);
 				// change the entire interface around
 				QaComm.SetIODevice(value ? "REST" : "USB");
+			}
+		}
+
+		private string _BackgroundClr = "MintCream";
+		public string BackgroundClr
+		{
+			get { return _BackgroundClr; }
+			set
+			{
+				SetProperty(ref _BackgroundClr, value);
+				var clr = (SolidColorBrush?)new BrushConverter().ConvertFrom(value);
+				if (clr != null) ViewSettings.Singleton.Main.Background = clr;
 			}
 		}
 

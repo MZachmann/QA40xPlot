@@ -14,6 +14,13 @@
         <Style TargetType="GroupBox">
             <Setter Property="BorderThickness" Value="1,1,1,0"/>
         </Style>
+        <Style TargetType="Label">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
         <Style TargetType="TextBox">
             <Setter Property="VerticalAlignment" Value="Center"/>
             <!-- Ensure the readonly property is visible -->
@@ -117,21 +124,21 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Label Content="Set _DUT" Target="{Binding ElementName=cbDUT}"  HorizontalAlignment="Right" Grid.Row="0" Grid.Column="0" ToolTip="{Binding DutInfo}"  />
-                    <ComboBox ToolTip="{Binding DutDescript}" x:Name="cbDUT"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  
+                    <ComboBox ToolTip="{Binding DutDescript}" x:Name="cbDUT"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0"   
                               SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVoltsFull}">
                     </ComboBox>
                     <Label Content="Generator 1" Grid.Row="1" Grid.Column="0"   />
                     <Label Content="_Waveform" Target="{Binding ElementName=cbWave}"  HorizontalAlignment="Right" Grid.Row="2" Grid.Column="0" ToolTip="{Binding DutInfo}"  />
-                    <ComboBox x:Name="cbWave"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="2" VerticalAlignment="Center"  
+                    <ComboBox x:Name="cbWave"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="2"   
                               SelectedValue="{Binding Gen1Waveform}" ItemsSource="{Binding Waveforms}">
                     </ComboBox>
                     <Label Content="Fre_quency" HorizontalAlignment="Right" Grid.Row="3" Grid.Column="0" Target="{Binding ElementName=cbFreq}"  />
-                    <ComboBox x:Name="cbFreq" Grid.Column="1" Grid.Row="3" VerticalAlignment="Center"  
+                    <ComboBox x:Name="cbFreq" Grid.Column="1" Grid.Row="3"   
                                IsEditable="True" Text="{Binding Gen1Frequency}" ItemsSource="{Binding GenFrequencies}" MinWidth="80" >
                     </ComboBox>
                     <Label Content="Hz" Grid.Row="3" Grid.Column="2" />
                     <Label Content="{Binding GenAmpDescript}" Target="{Binding ElementName=cbVolt}" HorizontalAlignment="Right"  Grid.Row="4" Grid.Column="0" />
-                    <ComboBox x:Name="cbVolt" IsEditable="True" Grid.Column="1" Grid.Row="4" VerticalAlignment="Center"  
+                    <ComboBox x:Name="cbVolt" IsEditable="True" Grid.Column="1" Grid.Row="4"   
                               Text="{Binding Gen1Voltage}" ItemsSource="{Binding GenVoltages}">
                     </ComboBox>
                     <Label Content="{Binding GenAmpUnits}" Grid.Row="4" Grid.Column="2" />
@@ -150,17 +157,17 @@
                     </Grid.RowDefinitions>
                     <Label Content="Generator 2" Grid.Row="0" Grid.Column="0"   />
                     <Label Content="_Waveform" Target="{Binding ElementName=cbWave2}"  HorizontalAlignment="Right" Grid.Row="1" Grid.Column="0" ToolTip="{Binding DutInfo}"  />
-                    <ComboBox x:Name="cbWave2"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Center"  
+                    <ComboBox x:Name="cbWave2"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1"   
                               SelectedValue="{Binding Gen2Waveform}" ItemsSource="{Binding Waveforms}">
                     </ComboBox>
                     <Label Content="Fre_quency" HorizontalAlignment="Right" Grid.Row="2" Grid.Column="0" Target="{Binding ElementName=cb2Freq}"  />
-                    <ComboBox x:Name="cb2Freq" Grid.Column="1" Grid.Row="2" VerticalAlignment="Center"  
+                    <ComboBox x:Name="cb2Freq" Grid.Column="1" Grid.Row="2"   
                                IsEditable="True" Text="{Binding Gen2Frequency}" ItemsSource="{Binding GenFrequencies}">
                     </ComboBox>
                     <Label Content="Hz" Grid.Row="2" Grid.Column="2" />
                     <Label Content="{Binding GenAmpDescript}" HorizontalAlignment="Right" Grid.Row="3" Grid.Column="0" Target="{Binding ElementName=cb2Volt}"  />
                     <ComboBox Text="{Binding Gen2Voltage}" x:Name="cb2Volt" IsEditable="True" 
-                              Grid.Column="1" Grid.Row="3" VerticalAlignment="Center"  
+                              Grid.Column="1" Grid.Row="3"   
                               ItemsSource="{Binding GenVoltages}">
                     </ComboBox>
                     <Label Content="{Binding GenAmpUnits}" Grid.Row="3" Grid.Column="2" />
@@ -181,15 +188,15 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Label Content="_Sample Rate" HorizontalAlignment="Right" Grid.Row="0" Grid.Column="0"  Target="{Binding ElementName=cbSampleRate}"  />
-                <ComboBox x:Name="cbSampleRate"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"  
+                <ComboBox x:Name="cbSampleRate"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0"   
                                SelectedValue="{Binding SampleRate}" ItemsSource="{Binding SampleRates}">
                 </ComboBox>
                 <Label Content="_Fft Size" HorizontalAlignment="Right" Grid.Row="1" Grid.Column="0" Target="{Binding ElementName=cbfftSize}"  />
-                <ComboBox x:Name="cbfftSize"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Center"  
+                <ComboBox x:Name="cbfftSize"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1"   
                                SelectedValue="{Binding FftSize}" ItemsSource="{Binding FftSizes}">
                 </ComboBox>
                 <Label Content="_Window" HorizontalAlignment="Right" Grid.Row="2" Grid.Column="0" Target="{Binding ElementName=cbWindow}"  />
-                <ComboBox x:Name="cbWindow" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="2" VerticalAlignment="Center"  
+                <ComboBox x:Name="cbWindow" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="2"   
                                SelectedValue="{Binding WindowingMethod}" ItemsSource="{Binding WindowingTypes}">
                 </ComboBox>
             </Grid>
@@ -221,7 +228,7 @@
         </Grid>
         <StackPanel Grid.Column="2" Orientation="Vertical">
             <GroupBox Header="Y Axis" >
-                <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -233,11 +240,11 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Label Content="Top" Grid.Row="0" Grid.Column="0"  />
-                    <ComboBox IsEditable="True" MinWidth="70" Grid.Column="1"  Grid.Row="0" VerticalAlignment="Center"  Text="{Binding RangeTop}" ItemsSource="{Binding AbsoluteValues}">
+                    <ComboBox IsEditable="True" MinWidth="70" Grid.Column="1"  Grid.Row="0"   Text="{Binding RangeTop}" ItemsSource="{Binding AbsoluteValues}">
                     </ComboBox>
                     <Label Content="V" Grid.Row="0" Grid.Column="2"  />
                     <Label Content="Bottom" Grid.Row="1" Grid.Column="0"  />
-                    <ComboBox IsEditable="True" Grid.Column="1"  Grid.Row="1" VerticalAlignment="Center"  Text="{Binding RangeBottom}" ItemsSource="{Binding AbsoluteValues}">
+                    <ComboBox IsEditable="True" Grid.Column="1"  Grid.Row="1"   Text="{Binding RangeBottom}" ItemsSource="{Binding AbsoluteValues}">
                     </ComboBox>
                     <Label Content="V" Grid.Row="1" Grid.Column="2"  />
                     <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="YM"
@@ -245,7 +252,7 @@
                 </Grid>
             </GroupBox>
             <GroupBox Header="X Axis">
-                <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -259,11 +266,11 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Label Content="From" Grid.Row="0"  Grid.Column="0" />
-                    <ComboBox  IsEditable="True" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"  Text="{Binding GraphStartTime}" ItemsSource="{Binding TimeSteps}">
+                    <ComboBox  IsEditable="True" Grid.Row="0" Grid.Column="1"   Text="{Binding GraphStartTime}" ItemsSource="{Binding TimeSteps}">
                     </ComboBox>
                     <Label Content="mS" Grid.Row="0"  Grid.Column="2" />
                     <Label Content="To" Grid.Row="1" Grid.Column="0"  />
-                    <ComboBox  MinWidth="70" IsEditable="True" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Text="{Binding GraphEndTime}" ItemsSource="{Binding TimeSteps}">
+                    <ComboBox  MinWidth="70" IsEditable="True" Grid.Row="1" Grid.Column="1"  Text="{Binding GraphEndTime}" ItemsSource="{Binding TimeSteps}">
                     </ComboBox>
                     <Label Content="mS" Grid.Row="1"  Grid.Column="2" />
                     <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="XF"
@@ -271,7 +278,7 @@
                 </Grid>
             </GroupBox>
             <GroupBox Header="Graph Data">
-                <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+                <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -282,7 +289,7 @@
                 </Grid>
             </GroupBox>
             <GroupBox Header="Options">
-                <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+                <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
