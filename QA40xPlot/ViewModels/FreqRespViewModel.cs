@@ -215,6 +215,9 @@ public class FreqRespViewModel : BaseViewModel
 	{
 		switch (e.PropertyName)
 		{
+			case "UpdateGraph":
+				actFreq?.UpdateGraph(true);
+				break;
 			case "DsHeading":
 				actFreq?.UpdateGraph(true);
 				break;

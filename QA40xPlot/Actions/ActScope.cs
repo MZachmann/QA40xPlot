@@ -361,7 +361,6 @@ namespace QA40xPlot.Actions
         void PlotValues(MyDataTab page, int measurementNr, bool isMain)
         {
 			ScottPlot.Plot myPlot = timePlot.ThePlot;
-
 			var scopeVm = MyVModel;
 			bool useLeft;   // dynamically update these
 			bool useRight;

@@ -8,7 +8,7 @@ namespace QA40xPlot.ViewModels
 	{
 		public static List<String> UsbBufferSizes { get => new List<string>() { "2048", "4096", "8192", "16384", "32768", "65536"}; }
 		public static List<String> RelayUsageList { get => new List<string>() { "Never", "OnFinish", "OnExit" }; }
-		public static List<String> BackColors { get => new List<string>() { "MintCream", "LightGray", "LightBlue", "LightGreen", "LightPink", "LightSalmon", "Lavender", "LemonChiffon", "LightGoldenrodYellow", "LightCoral" }; }
+		public static List<String> BackColors { get => new List<string>() { "#dce4e4", "MintCream", "LightGray", "LightBlue", "LightGreen", "LightPink", "LightSalmon", "Lavender", "LemonChiffon", "LightGoldenrodYellow", "LightCoral" }; }
 
 		#region setters and getters
 		private bool _UseREST;
@@ -23,7 +23,7 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		private string _BackgroundClr = "MintCream";
+		private string _BackgroundClr = BackColors[0];	// slightly darker mintcream
 		public string BackgroundClr
 		{
 			get { return _BackgroundClr; }

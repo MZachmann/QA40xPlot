@@ -1,4 +1,5 @@
-﻿using ScottPlot;
+﻿using QA40xPlot.ViewModels;
+using ScottPlot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -241,9 +242,6 @@ namespace QA40xPlot.Libraries
 			myPlot.Axes.Left.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
 			myPlot.Axes.Left.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
 
-			// change figure colors Dark mode
-			myPlot.FigureBackground.Color = new Color(0, 0, 0, 00);
-			myPlot.DataBackground.Color = new Color(0, 0, 0, 10);
 			//myPlot.FigureBackground.Color = Color.FromHex("#181818");
 			//myPlot.DataBackground.Color = Color.FromHex("#1f1f1f");
 
@@ -258,6 +256,7 @@ namespace QA40xPlot.Libraries
 
 			// Legend
 			SetupLegend(myPlot);
+			UpdateAPlot(myPlot);
 		}
 
 		public static void AddPhasePlot(ScottPlot.Plot myPlot)
@@ -331,5 +330,16 @@ namespace QA40xPlot.Libraries
 
 		}
 
+		public static void UpdateAPlot(ScottPlot.Plot myPlot)
+		{
+			// change figure colors Dark mode
+			var x = ViewSettings.Singleton.SettingsVm.BackgroundClr;
+			var color = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(x);
+			// Convert the Color object to a hexadecimal string
+			string hex = $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+
+			myPlot.DataBackground.Color = new Color(0, 0, 0, 10);
+			myPlot.FigureBackground.Color = new Color(hex);
+		}
 	}
 }

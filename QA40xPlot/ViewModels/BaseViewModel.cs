@@ -397,7 +397,6 @@ namespace QA40xPlot.ViewModels
 						vtest /= maxGain; // expected QA40x generator voltage
 					break;
 			}
-
 			return vtest;
 		}
 
@@ -423,7 +422,7 @@ namespace QA40xPlot.ViewModels
 
 		public void ForceGraphUpdate()
 		{
-			RaisePropertyChanged("ShowLeft");   // cause the right kind of repaint
+			RaisePropertyChanged("UpdateGraph");   // cause the right kind of repaint
 		}
 
 		// here param is the id of the tab to remove from the othertab list

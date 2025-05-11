@@ -208,6 +208,9 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
+				case "UpdateGraph":
+					actThd?.UpdateGraph(true);
+					break;
 				case "DsHeading":
 					actThd?.UpdateGraph(true);
 					break;

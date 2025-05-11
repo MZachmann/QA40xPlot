@@ -25,7 +25,7 @@ namespace QA40xPlot.ViewModels
 
 
 		#region Setters and Getters
-		private System.Windows.Media.SolidColorBrush _Background = System.Windows.Media.Brushes.MintCream;
+		private System.Windows.Media.SolidColorBrush _Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#dce4e4");
 		[JsonIgnore]
 		public System.Windows.Media.SolidColorBrush Background
 		{
@@ -306,6 +306,10 @@ namespace QA40xPlot.ViewModels
 				case "settings":
 					CurrentView = ViewSettings.Singleton.SettingsVm;
 					break;
+			}
+			if(CurrentView != null)
+			{
+				CurrentView.ForceGraphUpdate();
 			}
 		}
 
