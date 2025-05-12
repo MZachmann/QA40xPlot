@@ -320,7 +320,8 @@ namespace QA40x.BareMetal
 			Debug.WriteLine($"DAC Left level: {dacLeft}, Right level: {dacRight}");
 		}
 
-
+		private static int _LastInputRange = 0;
+		private static int _LastOutputRange = 0;
 		/// <summary>
 		/// Provides an async method for doign the DAC/ADC streaming. You can submit separate buffers for the left and right channels.
 		/// When the acquisition is finished, the AcqResult return value will contain the Left and Right values captured by the ADC
@@ -330,6 +331,50 @@ namespace QA40x.BareMetal
 		/// <param name="rightOut"></param>
 		/// <returns></returns>
 		public async Task<AcqResult> DoStreamingAsync(CancellationToken ct, double[] leftOut, double[] rightOut)
+		{
+			// this bunch of code is to handle the relay flipping.
+			// We need to wait a bit for the relays to settle down
+			try
+			{
+				var s = QaComm.GetInputRange();
+				var u = QaComm.GetOutputRange();
+				if (s != _LastInputRange || u != _LastOutputRange)
+				{
+					// if we flipped a relay, wait a while...
+					bool doit = ((s <= 18 && _LastInputRange > 18) || (s > 18 && _LastInputRange <= 18));
+					if (!doit)
+						doit = (u != _LastOutputRange);
+					if (doit)
+					{
+						// do at least 1.5 seconds of streaming
+						var ss = QaComm.GetSampleRate();
+						ss = ss + ss / 2;
+						var cnt = 32768;
+						while (cnt < ss)
+							cnt *= 2;
+						double[] empty = new double[cnt];			// large empty buffer...
+						await SubStreamingAsync(ct, empty, empty);	// waste some time
+					}
+					_LastInputRange = s;
+					_LastOutputRange = u;
+				}
+			}
+			catch(Exception ex)
+			{
+				Debug.WriteLine($"Error: {ex.Message}");
+			}
+			// now do the real thing
+			return await SubStreamingAsync(ct, leftOut, rightOut);
+		}
+		/// <summary>
+		/// Provides an async method for doign the DAC/ADC streaming. You can submit separate buffers for the left and right channels.
+		/// When the acquisition is finished, the AcqResult return value will contain the Left and Right values captured by the ADC
+		/// </summary>
+		/// <param name="ct"></param>
+		/// <param name="leftOut"></param>
+		/// <param name="rightOut"></param>
+		/// <returns></returns>
+		public async Task<AcqResult> SubStreamingAsync(CancellationToken ct, double[] leftOut, double[] rightOut)
 		{
 			Debug.Assert(!ViewSettings.IsUseREST, "Error*** Do streaming with REST enabled");
 			AcqResult r = new AcqResult();
@@ -381,6 +426,7 @@ namespace QA40x.BareMetal
 			return r;
 		}
 
+		private static int _DelayOffset = 0;
 		public AcqResult DoStreaming(CancellationToken ct, double[] leftOut, double[] rightOut)
 		{
 			AcqResult r = new AcqResult();
@@ -412,8 +458,10 @@ namespace QA40x.BareMetal
 			List<double> rout = rightOut.Select(x => x * dbfsAdjustment * dacCal.Right).ToList();
 
 			// now pad front and back of the values via prebuf and postbuf 
-			double[] prebuf = new double[Math.Max(preBuf, usbBufSize / 2)];
-			double[] postbuf = new double[Math.Max(postBuf, usbBufSize / 2)];
+			preBuf = Math.Max(preBuf, usbBufSize / 2);
+			postBuf = Math.Max(postBuf, usbBufSize / 2);
+			double[] prebuf = new double[preBuf];
+			double[] postbuf = new double[postBuf];
 			lout.InsertRange(0, prebuf);
 			lout.AddRange(postbuf);
 			rout.InsertRange(0, prebuf);
@@ -517,7 +565,7 @@ namespace QA40x.BareMetal
 
 			// Note that left and right data is swapped on QA402, QA403, QA404. We do that via arg ordering below.
 			FromByteStream(rxData, out r.Right, out r.Left);
-			if (r.Valid == true && r.Left.Length > prebuf.Length)
+			if (r.Valid == true && r.Left.Length > preBuf)
 			{
 				// Convert from dBFS to dBV. Note the 6 dB factor--the ADC is differential
 				var adcCorrection = Math.Pow(10, (maxInput - 6.0) / 20);
@@ -525,7 +573,32 @@ namespace QA40x.BareMetal
 
 				// Apply scaling factor to map from dBFS to Volts. 
 				var loff = 0;
-				var rlf = r.Left.Skip(prebuf.Length + loff).Take(tused);
+				// check delay offset
+				if(leftOut.Max() > 1e-10 || rightOut.Max() > 1e-10)
+				{
+					var dcoffset = (r.Left.Skip(100).Take(500).Average(),	r.Right.Skip(100).Take(500).Average());
+					for(int i=0; i<r.Left.Length; i++)
+					{
+						// empirically we get -7e-5 until signal shows up
+						// i assume that's dc offset...
+						var inx = r.Left[i] ;
+						var iny = r.Right[i];
+						if ( (inx - dcoffset.Item1) > 3e-5 || (iny-dcoffset.Item2) > 3e-5)
+						{
+							loff = i;
+							break;
+						}
+					}
+					var samplerate = QaComm.GetSampleRate();
+					// allow 1ms after the end of the prebuffer
+					if (loff > preBuf + samplerate / 1000)
+						loff = (int)(preBuf + samplerate / 1000);
+					loff = Math.Max(0, loff - preBuf);
+					Debug.WriteLine($"Delay offset: {loff:G3}   DC offset: {dcoffset.Item1:G3},{dcoffset.Item2:G3}");
+					_DelayOffset = loff;
+				}
+
+				var rlf = r.Left.Skip(preBuf + loff).Take(tused);
 				var roff = rlf.Sum() / rlf.Count();  // dc offset
 				r.Left = rlf.Select(x => (x - roff) * adcCal.Left * adcCorrection).ToArray();
 

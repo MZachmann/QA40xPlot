@@ -25,7 +25,8 @@ namespace QA40xPlot.ViewModels
 
 
 		#region Setters and Getters
-		private System.Windows.Media.SolidColorBrush _Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#dce4e4");
+		private System.Windows.Media.SolidColorBrush _Background = 
+			(new BrushConverter().ConvertFrom("#dce4e4") as SolidColorBrush) ?? System.Windows.Media.Brushes.MintCream;
 		[JsonIgnore]
 		public System.Windows.Media.SolidColorBrush Background
 		{

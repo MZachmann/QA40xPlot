@@ -109,7 +109,7 @@ namespace QA40xPlot.Actions
 			if( setRange)
 				await QaComm.SetInputRange(6); // and a small range for better noise...
 			//Thread.Sleep(1000);
-			await QaComm.DoAcquisitions(1, ct);			// this one returns a high value until settled
+			//await QaComm.DoAcquisitions(1, ct);			// this one returns a high value until settled
 			var lrs = await QaComm.DoAcquisitions(1, ct); // now that it's settled...
 			if (setRange)
 				await QaComm.SetInputRange(range); // restore the range
@@ -142,7 +142,7 @@ namespace QA40xPlot.Actions
 			WaveGenerator.SetEnabled(true);					// enable generator
 			var ct = new CancellationTokenSource();
 			// do two and average them
-			await QaComm.DoAcquisitions(1, ct.Token);        // Do a single acquisition to settle stuff
+			//await QaComm.DoAcquisitions(1, ct.Token);        // Do a single acquisition to settle stuff
 			LeftRightSeries acqData = await QaComm.DoAcquisitions(1, ct.Token);        // Do a single acquisition
 			if (acqData == null || acqData.FreqRslt == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
 				return null;
@@ -237,7 +237,7 @@ namespace QA40xPlot.Actions
 				var chirpy = Chirps.ChirpVp((int)fftsize, sampleRate, generatorV, 6, 24000);
 				var ct = new CancellationTokenSource();
 				// do two and average them
-				await QaComm.DoAcquireUser(1, ct.Token, chirpy, chirpy, false); // settle
+				//await QaComm.DoAcquireUser(1, ct.Token, chirpy, chirpy, false); // settle
 				LeftRightSeries acqData = await QaComm.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
 				if (acqData == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
 					return null;
