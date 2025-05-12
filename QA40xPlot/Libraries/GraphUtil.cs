@@ -50,6 +50,7 @@ namespace QA40xPlot.Libraries
 				case "dBu":
 				case "dBV":
 				case "dBW":
+				case "dB":
 					return true;
 			}
 			return false;
@@ -248,6 +249,8 @@ namespace QA40xPlot.Libraries
 					return plotFormat;
 				case "%":
 					return "%";
+				case "Ohms":		// not available for user...
+					return "Ohms";
 			}
 			return string.Empty; // default to none
 		}

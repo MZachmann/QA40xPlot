@@ -825,13 +825,13 @@ namespace QA40xPlot.Actions
             switch(frqsrVm.GetTestingType(frqsrVm.TestType))
             {
                 case TestingType.Response:
-					frqsrVm.GraphUnit = "dBV";
+					frqsrVm.PlotFormat = "dBV";
                     break;
 				case TestingType.Impedance:
-					frqsrVm.GraphUnit = "Ohms";
+					frqsrVm.PlotFormat = "Ohms";
 					break;
 				case TestingType.Gain:
-					frqsrVm.GraphUnit = "dB";
+					frqsrVm.PlotFormat = "SPL";
 					break;
 			}
 

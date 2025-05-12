@@ -54,14 +54,6 @@ public class FreqRespViewModel : BaseViewModel
 		set => SetProperty(ref _ZReference, value);
 	}
 
-	private string _GraphUnit = string.Empty;
-	[JsonIgnore]
-	public string GraphUnit
-	{
-		get => _GraphUnit;
-		set => SetProperty(ref _GraphUnit, value);
-	}
-
 	private string _TestType = TestTypes[0];
 	public string TestType
 	{
@@ -500,7 +492,7 @@ public class FreqRespViewModel : BaseViewModel
 		ShowPoints = true;
 		TestType = TestTypes[0];	// this messes up if we start at impedance and set to impedance later so ??
 
-		GraphUnit = "dBV";
+		PlotFormat = "dBV";
 
 		StartFreq = "20";
 		EndFreq = "20000";

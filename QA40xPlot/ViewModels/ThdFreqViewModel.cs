@@ -34,11 +34,6 @@ namespace QA40xPlot.ViewModels
 		private static ThdFreqViewModel MyVModel { get => ViewSettings.Singleton.ThdFreq; }
 
 		#region Setters and Getters
-		[JsonIgnore]
-		public string GraphUnit
-		{
-			get => GraphUtil.GetFormatSuffix(PlotFormat);
-		}
 
 		private string _GenVoltage = string.Empty;
 		public string GenVoltage

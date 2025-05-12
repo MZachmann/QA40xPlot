@@ -320,6 +320,12 @@ namespace QA40x.BareMetal
 			Debug.WriteLine($"DAC Left level: {dacLeft}, Right level: {dacRight}");
 		}
 
+		protected async Task showMessage(String msg, int delay = 0)
+		{
+			var vm = ViewSettings.Singleton.Main;
+			await vm.SetProgressMessage(msg, delay);
+		}
+
 		private static int _LastInputRange = 0;
 		private static int _LastOutputRange = 0;
 		/// <summary>
@@ -346,14 +352,16 @@ namespace QA40x.BareMetal
 						doit = (u != _LastOutputRange);
 					if (doit)
 					{
-						// do at least 1.5 seconds of streaming
-						var ss = QaComm.GetSampleRate();
-						ss = ss + ss / 2;
-						var cnt = 32768;
-						while (cnt < ss)
-							cnt *= 2;
-						double[] empty = new double[cnt];			// large empty buffer...
-						await SubStreamingAsync(ct, empty, empty);	// waste some time
+						await showMessage("Waiting for relays to settle...", 1500);
+						await showMessage("Acquiring data", 10);
+						//// do at least 1.5 seconds of streaming
+						//var ss = QaComm.GetSampleRate();
+						//ss = ss + ss / 2;
+						//var cnt = 32768;
+						//while (cnt < ss)
+						//	cnt *= 2;
+						//double[] empty = new double[cnt];			// large empty buffer...
+						//await SubStreamingAsync(ct, empty, empty);	// waste some time
 					}
 					_LastInputRange = s;
 					_LastOutputRange = u;

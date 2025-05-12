@@ -80,6 +80,11 @@ namespace QA40xPlot.ViewModels
 			get => _Name;
 			set => SetProperty(ref _Name, value);
 		}
+		[JsonIgnore]
+		public string GraphUnit
+		{
+			get => GraphUtil.GetFormatSuffix(PlotFormat);
+		}
 		private Visibility _ToShowRange;
 		[JsonIgnore]
 		public Visibility ToShowRange
@@ -105,7 +110,7 @@ namespace QA40xPlot.ViewModels
 		public string PlotFormat
 		{
 			get => _PlotFormat;
-			set => SetProperty(ref _PlotFormat, value);
+			set { SetProperty(ref _PlotFormat, value); RaisePropertyChanged("GraphUnit"); }
 		}
 
 		private string _SampleRate = String.Empty;

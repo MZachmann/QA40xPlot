@@ -51,12 +51,6 @@ namespace QA40xPlot.ViewModels
 		{
 			get => DoAutoAttn ? "#1800f000" : "Transparent";
 		}
-		[JsonIgnore]
-		public string GraphUnit
-		{
-			get => GraphUtil.GetFormatSuffix(PlotFormat);
-		}
-
 		private bool _DoAutoAttn = false;
 		public bool DoAutoAttn
 		{
