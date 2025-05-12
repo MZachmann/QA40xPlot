@@ -15,26 +15,26 @@ v 1.1.9
 - support settable background color
 - refactor most of the gui xaml by using subcontrols
 v 1.1.8
--- yank out REST use of 'internal' oscillators and queries
 - totally refactor the usb/rest code to use an interface & factory
+-- yank out REST use of 'internal' oscillators and queries
 - remove redundant color code to slim binding way down
 - fix the autorange display to show both values
 v 1.1.7
+- support multiple 'get' files
 -- upgrade all tests to enable multiples
 -- allow removing entries
 -- display r/l for each entry
 -- add a list gui
-- support multiple 'get' files
 v 1.1.6
 - lots of cleanup to the usb/rest connections to reduce overhead
 v 1.1.5
 - repair popup windows initial visual state
 - swap to manual powerline setting
 v 1.1.4
+- multiple load/save improvements
 -- inclusion in window fit calculation
 -- improved color choices/esthetics
 -- support for data summaries
-- multiple load/save improvements
 v1.1.3
 - finish tab load/save implementation as "Other"
 - add tab info display to each tab window

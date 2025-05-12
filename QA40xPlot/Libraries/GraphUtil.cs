@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Media.Imaging;
-using System.Windows.Media;
+﻿using QA40xPlot.ViewModels;
+using ScottPlot;
 using System.IO;
-using QA40xPlot.ViewModels;
-using System.Windows.Data;
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace QA40xPlot.Libraries
 {
@@ -23,6 +18,10 @@ namespace QA40xPlot.Libraries
 
 	public static class GraphUtil
 	{
+		private static IPalette _PlotPalette = new ScottPlot.Palettes.Tsitsulin();
+
+		private static IPalette PlotPalette { get => _PlotPalette; }
+
 		public static int PtToPixels(PixelSizes fontsize)
 		{
 			var vm = ViewModels.ViewSettings.Singleton.Main;
@@ -32,6 +31,20 @@ namespace QA40xPlot.Libraries
 		{
 			var vm = ViewModels.ViewSettings.Singleton.Main;
 			return (int)(fontsize * vm.ScreenDpi / 72);
+		}
+
+		public static ScottPlot.Color GetPaletteColor(int iIndex)
+		{
+			if (iIndex == 0)
+				return ScottPlot.Colors.Blue;
+			else if (iIndex == 1)
+				return ScottPlot.Colors.Red;
+			else
+			{
+				var c = PlotPalette.GetColor(iIndex);
+				var u = c.WithOpacity(0.8);	// make it slightly transparent
+				return u;
+			}
 		}
 
 		/// <summary>

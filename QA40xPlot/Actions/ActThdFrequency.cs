@@ -265,10 +265,11 @@ namespace QA40xPlot.Actions
 			await PostProcess(page, ct.Token);
 			if (doLoad)
 			{
+				// we can't overwrite the viewmodel since it links to the display proper
+				// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
+				page.ViewModel.OtherSetList = MyVModel.OtherSetList;
+				page.ViewModel.CopyPropertiesTo<ThdFreqViewModel>(MyVModel);    // retract the gui
 				PageData = page;    // set the current page to the loaded one
-									// we can't overwrite the viewmodel since it links to the display proper
-									// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
-				page.ViewModel.CopyPropertiesTo<ThdFreqViewModel>(ViewSettings.Singleton.ThdFreq);    // retract the gui
 
 				// relink to the new definition
 				MyVModel.LinkAbout(page.Definition);
@@ -623,9 +624,6 @@ namespace QA40xPlot.Actions
 			float lineWidth = thdFreq.ShowThickLines ? _Thickness : 1;
             float markerSize = thdFreq.ShowPoints ? lineWidth + 3 : 1;
 
-            var colors = new GraphColors();
-            int color = measurementNr * 2;
-
             // here Y values are in dBV
             void AddPlot(double[] xValues, List<double> yValues, int colorIndex, string legendText, LinePattern linePattern)
             {
@@ -634,7 +632,7 @@ namespace QA40xPlot.Actions
                 Scatter? plot = null;
 				plot = thdPlot.ThePlot.Add.Scatter(xValues, yValues.ToArray());
 				plot.LineWidth = lineWidth;
-                plot.Color = colors.GetColor(colorIndex, color);
+				plot.Color = GraphUtil.GetPaletteColor(colorIndex);
                 plot.MarkerSize = markerSize;
                 plot.LegendText = legendText;
                 plot.LinePattern = linePattern;
@@ -668,21 +666,21 @@ namespace QA40xPlot.Actions
             {
                 var freq = col.Select(x => Math.Log10(x.Freq)).ToArray();
                 if (thdFreq.ShowMagnitude)
-                    AddPlot(freq, col.Select(x => FormVal(x.Mag, x.Mag)).ToList(), 9, "Mag" + suffix, LinePattern.DenselyDashed);
+                    AddPlot(freq, col.Select(x => FormVal(x.Mag, x.Mag)).ToList(), 1, "Mag" + suffix, LinePattern.DenselyDashed);
                 if (thdFreq.ShowTHD)
-                    AddPlot(freq, col.Select(x => FormVal(x.THD, x.Mag)).ToList(), 8, "THD" + suffix, lp);
+                    AddPlot(freq, col.Select(x => FormVal(x.THD, x.Mag)).ToList(), 2, "THD" + suffix, lp);
                 if (thdFreq.ShowD2)
-                    AddPlot(freq, col.Select(x => FormVal(x.D2, x.Mag)).ToList(), 0, "D2" + suffix, lp);
+                    AddPlot(freq, col.Select(x => FormVal(x.D2, x.Mag)).ToList(), 3, "D2" + suffix, lp);
                 if (thdFreq.ShowD3)
-                    AddPlot(freq, col.Select(x => FormVal(x.D3, x.Mag)).ToList(), 1, "D3" + suffix, lp);
+                    AddPlot(freq, col.Select(x => FormVal(x.D3, x.Mag)).ToList(), 4, "D3" + suffix, lp);
                 if (thdFreq.ShowD4)
-                    AddPlot(freq, col.Select(x => FormVal(x.D4, x.Mag)).ToList(), 2, "D4" + suffix, lp);
+                    AddPlot(freq, col.Select(x => FormVal(x.D4, x.Mag)).ToList(), 5, "D4" + suffix, lp);
                 if (thdFreq.ShowD5)
-                    AddPlot(freq, col.Select(x => FormVal(x.D5, x.Mag)).ToList(), 3, "D5" + suffix, lp);
+                    AddPlot(freq, col.Select(x => FormVal(x.D5, x.Mag)).ToList(), 6, "D5" + suffix, lp);
                 if (thdFreq.ShowD6)
-                    AddPlot(freq, col.Select(x => FormVal(x.D6P, x.Mag)).ToList(), 3, "D6+" + suffix, lp);
+                    AddPlot(freq, col.Select(x => FormVal(x.D6P, x.Mag)).ToList(), 7, "D6+" + suffix, lp);
                 if (thdFreq.ShowNoiseFloor)
-                    AddPlot(freq, col.Select(x => FormVal(x.Noise, x.Mag)).ToList(), 3, "Noise" + suffix, LinePattern.Dotted);
+                    AddPlot(freq, col.Select(x => FormVal(x.Noise, x.Mag)).ToList(), 8, "Noise" + suffix, LinePattern.Dotted);
                 suffix = "-R";          // second pass iff there are both channels
                 lp = isMain ? LinePattern.DenselyDashed : LinePattern.Dotted;
             }
@@ -717,7 +715,8 @@ namespace QA40xPlot.Actions
 				foreach (var other in OtherTabs)
 				{
 					if (other != null && other.Show != 0)
-						PlotValues(other, resultNr++, false);
+						PlotValues(other, resultNr, false);
+					resultNr++;
 				}
 			}
 		}

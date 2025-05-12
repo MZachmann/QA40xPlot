@@ -22,8 +22,8 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
-                            <CheckBox Click="ForceRepaint" Content="L " IsChecked="{Binding IsOnL}" Grid.Row="0" Grid.Column="0" />
-                            <CheckBox Click="ForceRepaint" Content="R " IsChecked="{Binding IsOnR}" Grid.Row="0" Grid.Column="1" />
+                            <CheckBox Click="ForceRepaint" CommandParameter="{Binding Id}" Content="L " IsChecked="{Binding IsOnL}" Grid.Row="0" Grid.Column="0" />
+                            <CheckBox Click="ForceRepaint" CommandParameter="{Binding Id}" Content="R " IsChecked="{Binding IsOnR}" Grid.Row="0" Grid.Column="1" />
                             <Label Content="{Binding Name}" Grid.Row="0" Grid.Column="2" MaxWidth="120" ToolTip="{Binding Name}" Padding ="7,0,7,0" />
                             <Button Click="OnClick" CommandParameter="{Binding Id}" Content="" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" Grid.Row="0" Grid.Column="3" />
                             <!--<Label Content="{Binding Value}" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"/>-->

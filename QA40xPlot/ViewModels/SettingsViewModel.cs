@@ -1,4 +1,5 @@
 ﻿using QA40xPlot.BareMetal;
+using ScottPlot;
 using System.Windows;
 using System.Windows.Media;
 
@@ -34,6 +35,8 @@ namespace QA40xPlot.ViewModels
 				if (clr != null) ViewSettings.Singleton.Main.Background = clr;
 			}
 		}
+
+
 
 		private string _TestChannel = "Left";
 		public string TestChannel

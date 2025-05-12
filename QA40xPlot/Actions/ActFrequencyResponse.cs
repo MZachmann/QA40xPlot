@@ -100,11 +100,11 @@ namespace QA40xPlot.Actions
 			await PostProcess(page, ct.Token);
 			if(isMain)
 			{
-				//
+				// we can't overwrite the viewmodel since it links to the display proper
+				// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
+				PageData.ViewModel.OtherSetList = MyVModel.OtherSetList;
+				PageData.ViewModel.CopyPropertiesTo<FreqRespViewModel>(MyVModel);    // retract the gui
 				PageData = page;    // set the current page to the loaded one
-									// we can't overwrite the viewmodel since it links to the display proper
-									// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
-				PageData.ViewModel.CopyPropertiesTo<FreqRespViewModel>(ViewSettings.Singleton.FreqRespVm);    // retract the gui
 
 				// relink to the new definition
 				MyVModel.LinkAbout(PageData.Definition);
@@ -730,8 +730,6 @@ namespace QA40xPlot.Actions
             float lineWidth = frqrsVm.ShowThickLines ? _Thickness : 1;
             float markerSize = frqrsVm.ShowPoints ? lineWidth + 3 : 1;
 
-            var colors = new GraphColors();
-            int color = measurementNr * 2;
             var ttype = frqrsVm.GetTestingType(frqrsVm.TestType);
 
             double[] YValues = [];
@@ -785,7 +783,7 @@ namespace QA40xPlot.Actions
 			//SetMagFreqRule(myPlot);
 			var plot = myPlot.Add.Scatter(logFreqX, YValues);
 			plot.LineWidth = lineWidth;
-			plot.Color = isMain ? QaLibrary.BlueColor : QaLibrary.GreenXColor;  // colors.GetColor(0, color);
+			plot.Color = GraphUtil.GetPaletteColor(measurementNr * 2);
 			plot.MarkerSize = markerSize;
             plot.LegendText = legendname;
 			plot.LinePattern = LinePattern.Solid;
@@ -805,7 +803,7 @@ namespace QA40xPlot.Actions
 					plot.LegendText = "Right dBV";
 				}
 				plot.LineWidth = lineWidth;
-				plot.Color = isMain ? QaLibrary.RedColor : QaLibrary.OrangeXColor;  // Blue
+				plot.Color = GraphUtil.GetPaletteColor(measurementNr * 2 + 1);
 				plot.MarkerSize = markerSize;
 				plot.LinePattern = LinePattern.Solid;
 			}
@@ -890,7 +888,6 @@ namespace QA40xPlot.Actions
                 }
 
                 // Draw bandwidth lines
-                var colors = new GraphColors();
                 float lineWidth = frqrsVm.ShowThickLines ? _Thickness : 1;
 
                 if (frqrsVm.ShowLeft && frqrsVm.LeftChannel)

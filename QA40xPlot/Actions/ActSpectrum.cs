@@ -1,16 +1,12 @@
-﻿using QA40xPlot.Data;
+﻿using QA40xPlot.BareMetal;
+using QA40xPlot.Data;
 using QA40xPlot.Libraries;
-using QA40xPlot.BareMetal;
 using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
-using Newtonsoft.Json;
-using System.Collections.ObjectModel;
-using System.IO;
-using ScottPlot.Colormaps;
 
 
 // this is the top level class for the spectrum test
@@ -116,10 +112,11 @@ namespace QA40xPlot.Actions
 			await PostProcess(page, ct.Token);
 			if( doLoad)
 			{
+				// we can't overwrite the viewmodel since it links to the display proper
+				// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
+				page.ViewModel.OtherSetList = MyVModel.OtherSetList;
+				page.ViewModel.CopyPropertiesTo<SpectrumViewModel>(MyVModel);    // retract the gui
 				PageData = page;    // set the current page to the loaded one
-									// we can't overwrite the viewmodel since it links to the display proper
-									// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
-				page.ViewModel.CopyPropertiesTo<SpectrumViewModel>(ViewSettings.Singleton.SpectrumVm);    // retract the gui
 
 				// relink to the new definition
 				MyVModel.LinkAbout(page.Definition);
@@ -789,8 +786,8 @@ namespace QA40xPlot.Actions
 			string plotForm = MyVModel.PlotFormat;
 
 			// add a scatter plot to the plot
-			var lineWidth = MyVModel.ShowThickLines ? _Thickness : 1;	// so it dynamically updates
-
+			var lineWidth = MyVModel.ShowThickLines ? _Thickness : 1;   // so it dynamically updates
+			//IPalette palette = new ScottPlot.Palettes.Category20();
 			if (useLeft)
 			{
 				double maxleft = Math.Max(1e-20, fftData.Left.Max());
@@ -800,7 +797,7 @@ namespace QA40xPlot.Actions
 
 				Scatter plotLeft = myPlot.Add.Scatter(freqLogX, leftdBV);
 				plotLeft.LineWidth = lineWidth;
-				plotLeft.Color = isMain ? QaLibrary.BlueColor : QaLibrary.GreenXColor;  // Blue
+				plotLeft.Color = GraphUtil.GetPaletteColor(2*measurementNr); // zero is bad
 				plotLeft.MarkerSize = 1;
 			}
 
@@ -814,17 +811,7 @@ namespace QA40xPlot.Actions
 
 				Scatter plotRight = myPlot.Add.Scatter(freqLogX, rightdBV);
 				plotRight.LineWidth = lineWidth;
-				if (!isMain)
-				{
-					plotRight.Color = QaLibrary.OrangeXColor; // Green
-				}
-				else
-				{
-					if (useLeft)
-						plotRight.Color = QaLibrary.RedXColor; // Red transparant
-					else
-						plotRight.Color = QaLibrary.RedColor; // Red
-				}
+				plotRight.Color = GraphUtil.GetPaletteColor(2 * measurementNr + 1); // color 0 is bad
 				plotRight.MarkerSize = 1;
 			}
 
@@ -858,7 +845,8 @@ namespace QA40xPlot.Actions
 				foreach (var other in OtherTabs)
 				{
 					if (other != null)
-						PlotValues(other, resultNr++, false);
+						PlotValues(other, resultNr, false);
+					resultNr++;		// keep consistent coloring
 				}
 			}
 

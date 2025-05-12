@@ -8,9 +8,6 @@ using System.Windows;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
-using ScottPlot.MultiplotLayouts;
-using OpenTK.Compute.OpenCL;
-using ScottPlot.Colormaps;
 
 namespace QA40xPlot.ViewModels
 {

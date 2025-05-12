@@ -114,12 +114,6 @@ namespace QA40xPlot
 			}
 		}
 
-		public static void ForceRepaint()
-		{
-			// Force the entire window to repaint
-			Application.Current.MainWindow.InvalidateVisual();
-		}
-
 		protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
 		{
 			try

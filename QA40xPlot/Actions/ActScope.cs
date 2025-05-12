@@ -117,10 +117,11 @@ namespace QA40xPlot.Actions
 			await PostProcess(page, ct.Token);
 			if(isMain)
 			{
-				PageData = page;    // set the current page to the loaded one
-									// we can't overwrite the viewmodel since it links to the display proper
-									// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
+				// we can't overwrite the viewmodel since it links to the display proper
+				// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
+				page.ViewModel.OtherSetList = MyVModel.OtherSetList;
 				page.ViewModel.CopyPropertiesTo<ScopeViewModel>(MyVModel);    // retract the gui
+				PageData = page;    // set the current page to the loaded one
 
 				// relink to the new definition
 				MyVModel.LinkAbout(PageData.Definition);
@@ -389,7 +390,7 @@ namespace QA40xPlot.Actions
 			{
 				Scatter pLeft = myPlot.Add.Scatter(timeX, timeData.Left);
 				pLeft.LineWidth = showThick ? _Thickness : 1;
-				pLeft.Color = isMain ? QaLibrary.BlueColor : QaLibrary.GreenXColor;  // Blue
+				pLeft.Color = GraphUtil.GetPaletteColor(measurementNr * 2);
 				pLeft.MarkerSize = markerSize;
 			}
 
@@ -397,12 +398,7 @@ namespace QA40xPlot.Actions
 			{
 				Scatter pRight = myPlot.Add.Scatter(timeX, timeData.Right);
 				pRight.LineWidth = showThick ? _Thickness : 1;
-				if(!isMain)
-					pRight.Color = QaLibrary.OrangeXColor; // Red transparant
-				else if (useLeft)
-					pRight.Color = QaLibrary.RedXColor; // Red transparant
-				else
-					pRight.Color = QaLibrary.RedColor; // Red
+				pRight.Color = GraphUtil.GetPaletteColor(measurementNr * 2 + 1);
 				pRight.MarkerSize = markerSize;
 			}
 
@@ -523,20 +519,16 @@ namespace QA40xPlot.Actions
                 InitializeMagnitudePlot();
             }
 
+			PlotValues(PageData, resultNr++, true);
 			if (OtherTabs.Count > 0)
 			{
 				foreach (var other in OtherTabs)
 				{
 					if (other != null && other.Show != 0)
-						PlotValues(other, resultNr++, false);
+						PlotValues(other, resultNr, false);
+					resultNr++;
 				}
 			}
-			PlotValues(PageData, resultNr++, true);
-
-   //         if( MeasurementResult.FrequencySteps.Count > 0)
-   //         {
-			//	DrawChannelInfoTable();
-			//}
 
 			timePlot.Refresh();
 		}

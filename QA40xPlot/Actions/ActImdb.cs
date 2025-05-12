@@ -108,11 +108,12 @@ namespace QA40xPlot.Actions
 
 			if( isMain)
 			{
+				// we can't overwrite the viewmodel since it links to the display proper
+				// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
+				PageData.ViewModel.OtherSetList = MyVModel.OtherSetList;
+				PageData.ViewModel.CopyPropertiesTo<ImdViewModel>(MyVModel);    // retract the gui
 				PageData = page;    // set the current page to the loaded one
-									// we can't overwrite the viewmodel since it links to the display proper
-									// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
-				PageData.ViewModel.CopyPropertiesTo<ImdViewModel>(ViewSettings.Singleton.ImdVm);    // retract the gui
-				// relink to the new definition
+									// relink to the new definition
 				MyVModel.LinkAbout(PageData.Definition);
 			}
 			else
@@ -609,7 +610,7 @@ namespace QA40xPlot.Actions
 
 				Scatter plotLeft = myPlot.Add.Scatter(freqLogX, leftdBV);
 				plotLeft.LineWidth = lineWidth;
-				plotLeft.Color = isMain ? QaLibrary.BlueColor : QaLibrary.GreenXColor;  // Blue
+				plotLeft.Color = GraphUtil.GetPaletteColor(measurementNr * 2);
 				plotLeft.MarkerSize = 1;
 			}
 
@@ -623,12 +624,7 @@ namespace QA40xPlot.Actions
 
 				Scatter plotRight = myPlot.Add.Scatter(freqLogX, rightdBV);
 				plotRight.LineWidth = lineWidth;
-				if(!isMain)
-					plotRight.Color = QaLibrary.OrangeXColor; // Red transparant
-				else if (useLeft)
-					plotRight.Color = QaLibrary.RedXColor; // Red transparant
-				else
-					plotRight.Color = QaLibrary.RedColor; // Red
+				plotRight.Color = GraphUtil.GetPaletteColor(measurementNr * 2 + 1);
 				plotRight.MarkerSize = 1;
 			}
 
@@ -663,7 +659,8 @@ namespace QA40xPlot.Actions
 				foreach (var other in OtherTabs)
 				{
 					if (other != null)
-						PlotValues(other, resultNr++, false);
+						PlotValues(other, resultNr, false);
+					resultNr++;	// consistency
 				}
 			}
 

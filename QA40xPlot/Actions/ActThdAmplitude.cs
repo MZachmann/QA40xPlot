@@ -304,10 +304,11 @@ namespace QA40xPlot.Actions
 			await PostProcess(page, ct.Token);
 			if (doLoad)
 			{
+				// we can't overwrite the viewmodel since it links to the display proper
+				// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
+				page.ViewModel.OtherSetList = MyVModel.OtherSetList;
+				page.ViewModel.CopyPropertiesTo<ThdAmpViewModel>(MyVModel);    // retract the gui
 				PageData = page;    // set the current page to the loaded one
-									// we can't overwrite the viewmodel since it links to the display proper
-									// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
-				page.ViewModel.CopyPropertiesTo<ThdAmpViewModel>(ViewSettings.Singleton.ThdAmp);    // retract the gui
 
 				// relink to the new definition
 				MyVModel.LinkAbout(page.Definition);
@@ -704,9 +705,6 @@ namespace QA40xPlot.Actions
 			float lineWidth = thdAmp.ShowThickLines ? _Thickness : 1;
 			float markerSize = thdAmp.ShowPoints ? lineWidth + 3 : 1;
 
-			var colors = new GraphColors();
-			int color = measurementNr * 2;
-
 			// here Y values are in dBV
 			void AddPlot(double[] xValues, List<double> yValues, int colorIndex, string legendText, LinePattern linePattern)
 			{
@@ -715,7 +713,7 @@ namespace QA40xPlot.Actions
 				Scatter? plot = null;
 				plot = thdPlot.ThePlot.Add.Scatter(xValues, yValues.ToArray());
 				plot.LineWidth = lineWidth;
-				plot.Color = colors.GetColor(colorIndex, color);
+				plot.Color = GraphUtil.GetPaletteColor(colorIndex);
 				plot.MarkerSize = markerSize;
 				plot.LegendText = legendText;
 				plot.LinePattern = linePattern;
@@ -761,21 +759,21 @@ namespace QA40xPlot.Actions
 				}
 				amps = amps.Select(x => Math.Log10(x)).ToArray();
 				if (thdAmp.ShowMagnitude)
-					AddPlot(amps, col.Select(x => FormVal(x.Mag, x.Mag)).ToList(), 9, "Mag" + suffix, LinePattern.DenselyDashed);
+					AddPlot(amps, col.Select(x => FormVal(x.Mag, x.Mag)).ToList(), 1, "Mag" + suffix, LinePattern.DenselyDashed);
 				if (thdAmp.ShowTHD)
-					AddPlot(amps, col.Select(x => FormVal(x.THD, x.Mag)).ToList(), 8, "THD" + suffix, lp);
+					AddPlot(amps, col.Select(x => FormVal(x.THD, x.Mag)).ToList(), 2, "THD" + suffix, lp);
 				if (thdAmp.ShowD2)
-					AddPlot(amps, col.Select(x => FormVal(x.D2, x.Mag)).ToList(), 0, "D2" + suffix, lp);
+					AddPlot(amps, col.Select(x => FormVal(x.D2, x.Mag)).ToList(), 3, "D2" + suffix, lp);
 				if (thdAmp.ShowD3)
-					AddPlot(amps, col.Select(x => FormVal(x.D3, x.Mag)).ToList(), 1, "D3" + suffix, lp);
+					AddPlot(amps, col.Select(x => FormVal(x.D3, x.Mag)).ToList(), 4, "D3" + suffix, lp);
 				if (thdAmp.ShowD4)
-					AddPlot(amps, col.Select(x => FormVal(x.D4, x.Mag)).ToList(), 2, "D4" + suffix, lp);
+					AddPlot(amps, col.Select(x => FormVal(x.D4, x.Mag)).ToList(), 5, "D4" + suffix, lp);
 				if (thdAmp.ShowD5)
-					AddPlot(amps, col.Select(x => FormVal(x.D5, x.Mag)).ToList(), 3, "D5" + suffix, lp);
+					AddPlot(amps, col.Select(x => FormVal(x.D5, x.Mag)).ToList(), 6, "D5" + suffix, lp);
 				if (thdAmp.ShowD6)
-					AddPlot(amps, col.Select(x => FormVal(x.D6P, x.Mag)).ToList(), 3, "D6+" + suffix, lp);
+					AddPlot(amps, col.Select(x => FormVal(x.D6P, x.Mag)).ToList(), 7, "D6+" + suffix, lp);
 				if (thdAmp.ShowNoiseFloor)
-					AddPlot(amps, col.Select(x => FormVal(x.Noise, x.Mag)).ToList(), 3, "Noise" + suffix, LinePattern.Dotted);
+					AddPlot(amps, col.Select(x => FormVal(x.Noise, x.Mag)).ToList(), 8, "Noise" + suffix, LinePattern.Dotted);
 				suffix = "-R";          // second pass iff there are both channels
 				lp = isMain ? LinePattern.DenselyDashed : LinePattern.Dotted;
 			}
@@ -812,6 +810,7 @@ namespace QA40xPlot.Actions
 				{
 					if (other != null && other.Show != 0)
 						PlotValues(other, resultNr++, false);
+					resultNr++;
 				}
 			}
 		}

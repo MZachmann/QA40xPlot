@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.Views;
+using ScottPlot;
 
 namespace QA40xPlot.ViewModels
 {
@@ -44,6 +45,7 @@ namespace QA40xPlot.ViewModels
 
 		[JsonIgnore]
 		public static double AmplifierLoad { get => MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.AmplifierLoad, 0); }
+
 		/// <summary>
 		/// returns if left channel is our voltage output math
 		/// </summary>

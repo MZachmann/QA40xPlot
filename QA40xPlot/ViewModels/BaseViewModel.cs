@@ -432,6 +432,11 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
+		public void ForceGraphDraw()
+		{
+			RaisePropertyChanged("ShowLeft");   // cause the right kind of repaint
+		}
+
 		public void ForceGraphUpdate()
 		{
 			RaisePropertyChanged("UpdateGraph");   // cause the right kind of repaint
@@ -449,7 +454,7 @@ namespace QA40xPlot.ViewModels
 					if (item.Id == id)
 					{
 						item.IsDeleted = true;
-						ForceGraphUpdate();	// cause the right kind of repaint
+						ForceGraphDraw();	// cause the right kind of repaint
 						break;
 					}
 				}

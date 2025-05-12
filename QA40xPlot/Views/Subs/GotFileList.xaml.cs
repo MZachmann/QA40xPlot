@@ -22,24 +22,23 @@ namespace QA40xPlot.Views
 
 		private void OnClick(object sender, RoutedEventArgs e)
 		{
-			var u = this.DataContext;
-			if( u != null)
+			var u = this.DataContext as BaseViewModel;
+			var btu = sender as Button;
+			if ( u != null && btu != null)
 			{
-				var btu = sender as Button;
-				if(btu != null)
-				{
-					var ids = btu.CommandParameter.ToString() ?? "";
-					((BaseViewModel)u).DoDeleteIt(ids);
-				}
+				var ids = btu.CommandParameter.ToString() ?? "";
+				u.DoDeleteIt(ids);
 			}
         }
 
 		private void ForceRepaint(object sender, RoutedEventArgs e)
 		{
-			var u = this.DataContext;
-			if (u != null)
+			var u = this.DataContext as BaseViewModel;
+			var btu = sender as CheckBox;
+			if (btu != null && u != null)
 			{
-				((BaseViewModel)u).ForceGraphUpdate();
+				//var ids = btu.CommandParameter.ToString() ?? "";
+				u.ForceGraphDraw();
 			}
 		}
 	}
