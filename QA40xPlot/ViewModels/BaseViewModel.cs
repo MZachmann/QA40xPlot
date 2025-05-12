@@ -253,6 +253,13 @@ namespace QA40xPlot.ViewModels
 			get { return _HasExport; }
 			set { SetProperty(ref _HasExport, value); }
 		}
+		private bool _HasSave = false;
+		[JsonIgnore]
+		public bool HasSave
+		{
+			get { return _HasSave; }
+			set { SetProperty(ref _HasSave, value); }
+		}
 		#endregion
 
 		/// <summary>

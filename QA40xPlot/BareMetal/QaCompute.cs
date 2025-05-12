@@ -152,7 +152,7 @@ namespace QA40xPlot.BareMetal
 			double fundamentalRms = ComputeRmsF(signalFreqLin, df, notchLowerBound, notchUpperBound);
 			// Calculate RMS of the signal outside the notch
 			double rmsBelowNotch = ComputeRmsF(signalFreqLin, df, 20, notchLowerBound);
-			double rmsAboveNotch = ComputeRmsF(signalFreqLin, df, notchUpperBound, 20000);
+			double rmsAboveNotch = ComputeRmsF(signalFreqLin, df, notchUpperBound, Math.Max(20000, notchUpperBound*1.5));
 
 			if (fundamental2 > 0.0)
 			{

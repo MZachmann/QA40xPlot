@@ -70,7 +70,7 @@ namespace QA40xPlot.Actions
 																	// detach from usb port
 			//QaComm.Close(false);
 			bvm.IsRunning = false;
-
+			bvm.HasSave = true; // set the save flag
 		}
 
 		protected async Task showMessage(String msg, int delay = 0)
