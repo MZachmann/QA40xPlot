@@ -314,7 +314,7 @@ namespace QA40xPlot.Actions
 					break;
 				case TestingType.Impedance:
                     {
-						double rref = ViewSettings.AmplifierLoad;
+						double rref = MathUtil.ToDouble(MyVModel.ZReference, 8);
 						db.LeftData = PageData.GainData.Select(x => rref * ToImpedance(x).Magnitude).ToList();
 						// YValues = gainY.Select(x => rref * x.Magnitude/(1-x.Magnitude)).ToArray();
 						db.PhaseData = PageData.GainData.Select(x => ToImpedance(x).Phase).ToList();
