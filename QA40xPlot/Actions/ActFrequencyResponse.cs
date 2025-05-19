@@ -278,7 +278,6 @@ namespace QA40xPlot.Actions
 			PageData.TimeRslt = new();  // clear this before saving stuff
 			await EndAction(vmFreq);
 			await showMessage("Finished");
-			vmFreq.IsRunning = false;
 			vmFreq.HasExport = (PageData.GainFrequencies.Length > 0);
 		}
 

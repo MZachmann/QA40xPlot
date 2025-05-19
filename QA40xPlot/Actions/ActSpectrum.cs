@@ -270,7 +270,6 @@ namespace QA40xPlot.Actions
 				}
 			}
 
-			specVm.IsRunning = false;
 			await showMessage("");
 			MyVModel.HasExport = PageData.FreqRslt != null;
 			await EndAction(specVm);

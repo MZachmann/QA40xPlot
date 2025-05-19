@@ -82,7 +82,7 @@
                                SelectedValue="{Binding FftSize}" ItemsSource="{Binding FftSizes}">
                 </ComboBox>
                 <Label Content="_Averages" HorizontalAlignment="Right" Grid.Column="0" Grid.Row="2" Target="{Binding ElementName=xcaverages}"  />
-                <xctk:IntegerUpDown x:Name="xcaverages" Value="{Binding Averages}" Minimum="1" Maximum="6" VerticalAlignment="Center" Grid.Column="1" Grid.Row="2"  />
+                <xctk:IntegerUpDown x:Name="xcaverages" Value="{Binding Averages}" Minimum="1" Maximum="50" VerticalAlignment="Center" Grid.Column="1" Grid.Row="2"  />
 
                 <Label Content="_Window" HorizontalAlignment="Right" Grid.Row="3" Grid.Column="0" Target="{Binding ElementName=cbWindow}"  />
                 <ComboBox x:Name="cbWindow" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="3"   

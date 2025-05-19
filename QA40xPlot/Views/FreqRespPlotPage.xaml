@@ -110,7 +110,7 @@
                                SelectedValue="{Binding FftSize}" ItemsSource="{Binding FftSizes}">
                 </ComboBox>
                 <Label Content="_Averages" HorizontalAlignment="Right" Grid.Column="0" Grid.Row="2" Target="{Binding ElementName=xcaverages}"  />
-                <xctk:IntegerUpDown x:Name="xcaverages" Value="{Binding Averages}" Minimum="1" Maximum="6" VerticalAlignment="Center" Grid.Column="1" Grid.Row="2"  />
+                <xctk:IntegerUpDown x:Name="xcaverages" Value="{Binding Averages}" Minimum="1" Maximum="50" VerticalAlignment="Center" Grid.Column="1" Grid.Row="2"  />
             </Grid>
             <views:GroupHeader Header="Impedance Test" />
             <Grid>
