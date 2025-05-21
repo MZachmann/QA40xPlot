@@ -11,7 +11,6 @@ namespace QA40xPlot.Actions
 	public class ActBase
 	{
 		public List<LeftRightFrequencySeries> FrequencyHistory { get; set; } = new();   // for averaging
-		public LeftRightFrequencySeries CurrentFrequency { get; set; } = new(); // also for averaging
 
 		// this is the initial gain calculation so that we can get attenuation and input voltage settings
 		private LeftRightFrequencySeries? _LRGains = null;
