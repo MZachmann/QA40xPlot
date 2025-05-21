@@ -9,7 +9,11 @@ namespace QA40xPlot.ViewModels
 	{
 		public static List<String> UsbBufferSizes { get => new List<string>() { "2048", "4096", "8192", "16384", "32768", "65536"}; }
 		public static List<String> RelayUsageList { get => new List<string>() { "Never", "OnFinish", "OnExit" }; }
-		public static List<String> BackColors { get => new List<string>() { "#dce4e4", "MintCream", "LightGray", "LightBlue", "LightGreen", "LightPink", "LightSalmon", "Lavender", "LemonChiffon", "LightGoldenrodYellow", "LightCoral" }; }
+		public static List<String> BackColors { get => new List<string>() { "#dce4e4", "#f8f8f8", "#20ffffff",
+			"White",
+			"MintCream", "LightGray", 
+			"LightBlue", "LightGreen", "Lavender", 
+			"LightGoldenrodYellow", "LightCoral" }; }
 
 		#region setters and getters
 		private bool _UseREST;
@@ -33,6 +37,19 @@ namespace QA40xPlot.ViewModels
 				SetProperty(ref _BackgroundClr, value);
 				var clr = (SolidColorBrush?)new BrushConverter().ConvertFrom(value);
 				if (clr != null) ViewSettings.Singleton.Main.Background = clr;
+			}
+		}
+
+
+		private string _GraphBackClr = BackColors[0];  // slightly darker mintcream
+		public string GraphBackClr
+		{
+			get { return _GraphBackClr; }
+			set
+			{
+				SetProperty(ref _GraphBackClr, value);
+				var clr = (SolidColorBrush?)new BrushConverter().ConvertFrom(value);
+				if (clr != null) ViewSettings.Singleton.Main.GraphBackground = clr;
 			}
 		}
 

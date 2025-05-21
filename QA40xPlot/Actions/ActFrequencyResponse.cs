@@ -6,10 +6,10 @@ using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.AxisRules;
 using ScottPlot.Plottables;
-using System.Collections.ObjectModel;
 using System.Data;
 using System.Numerics;
 using System.Windows;
+using System.Windows.Controls;
 using static QA40xPlot.ViewModels.BaseViewModel;
 
 
@@ -328,9 +328,22 @@ namespace QA40xPlot.Actions
         {
 			if (ct.Token.IsCancellationRequested)
 				return new();
-			var lfrs = await QaComm.DoAcquisitions(msr.Averages, ct.Token);
-            if (lfrs == null || lfrs.TimeRslt == null || lfrs.FreqRslt == null)
-                return new();
+
+			LeftRightSeries lfrs = new();
+			FrequencyHistory.Clear();
+			for (int i = 0; i < msr.Averages-1; i++)
+			{
+				lfrs = await QaComm.DoAcquisitions(1, ct.Token, true);
+				if (lfrs == null || lfrs.TimeRslt == null || lfrs.FreqRslt == null)
+					return new();
+				FrequencyHistory.Add(lfrs.FreqRslt);
+			}
+			{
+				lfrs = await QaComm.DoAcquisitions(1, ct.Token, true);
+				if (lfrs == null || lfrs.TimeRslt == null || lfrs.FreqRslt == null)
+					return new();
+				lfrs.FreqRslt = CalculateAverages(lfrs.FreqRslt, msr.Averages);
+			}
 
 			PageData.TimeRslt = lfrs.TimeRslt;
 			PageData.FreqRslt = lfrs.FreqRslt;
@@ -509,6 +522,55 @@ namespace QA40xPlot.Actions
             return true;
 		}
 
+		private async Task<(LeftRightSeries?, Complex[], Complex[])> RunChirpAcquire(MyDataTab page, double voltagedBV)
+		{
+			var vm = page.ViewModel;
+
+			var startf = MathUtil.ToDouble(vm.StartFreq) / 3;
+			var endf = MathUtil.ToDouble(vm.EndFreq) * 3;
+			endf = Math.Min(endf, vm.SampleRateVal / 2);
+			var genv = vm.ToGenVoltage(vm.Gen1Voltage, [], GEN_INPUT, LRGains?.Left);
+			var chirpy = Chirps.ChirpVp((int)vm.FftSizeVal, vm.SampleRateVal, genv, startf, endf, 0.8);
+			LeftRightSeries lfrs = await QaComm.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
+			if (lfrs?.TimeRslt == null)
+				return (null,[],[]);
+			page.TimeRslt = lfrs.TimeRslt;
+			if (ct.IsCancellationRequested)
+				return (null, [], []);
+
+			Complex[] leftFft = [];
+			Complex[] rightFft = [];
+			var flength = lfrs.TimeRslt.Left.Length / 2;        // we want half this since freq is symmetric
+
+			var ttype = vm.GetTestingType(vm.TestType);
+			if (ttype == TestingType.Response)
+			{
+				var lft = Chirps.NormalizeChirpCplx(chirpy, genv, (lfrs.TimeRslt.Left, lfrs.TimeRslt.Right));
+				leftFft = lft.Item1;
+				rightFft = lft.Item2;
+			}
+			else
+			{
+				var window = new FftSharp.Windows.Rectangular();    // best?
+																	// Left channel
+				double[] lftF = window.Apply(lfrs.TimeRslt.Left, true);
+				leftFft = FFT.Forward(lftF);
+
+				double[] rgtF = window.Apply(lfrs.TimeRslt.Right, true);
+				rightFft = FFT.Forward(rgtF);
+			}
+
+			leftFft = leftFft.Take(flength).ToArray();
+			rightFft = rightFft.Take(flength).ToArray();
+			var lrfs = new LeftRightFrequencySeries();
+			// set the freq values because ?
+			lrfs.Left = leftFft.Select(x => x.Magnitude).ToArray();
+			lrfs.Right = rightFft.Select(x => x.Magnitude).ToArray();
+			lrfs.Df = 1.0 / vm.SampleRateVal;
+			lfrs.FreqRslt = lrfs;
+			return (lfrs, leftFft, rightFft);
+		}
+
 		/// <summary>
 		/// Determine the gain curve based on measurement start,end frequency
 		/// </summary>
@@ -525,48 +587,36 @@ namespace QA40xPlot.Actions
 
 			try
 			{
-				var startf = MathUtil.ToDouble(vm.StartFreq) / 3;
-                var endf = MathUtil.ToDouble(vm.EndFreq) * 3;
-                endf = Math.Min(endf, vm.SampleRateVal / 2);
-				var genv = vm.ToGenVoltage(vm.Gen1Voltage, [], GEN_INPUT, LRGains?.Left);
+				// manually average the complex data here
+				var rca = await RunChirpAcquire(page, voltagedBV);
+				LeftRightSeries lfrs = rca.Item1 ?? new();
+				var leftFft = rca.Item2;
+				var rightFft = rca.Item3;
+				if(vm.Averages > 1 && lfrs.FreqRslt != null)
+				{
+					lfrs.FreqRslt.Left = lfrs.FreqRslt.Left.Select(x => x * x).ToArray();
+					lfrs.FreqRslt.Right = lfrs.FreqRslt.Right.Select(x => x * x).ToArray();	// sum of squares
+					for (int i=1; i<vm.Averages; i++)
+					{
+						rca = await RunChirpAcquire(page, voltagedBV);
+						if(rca.Item1 != null && rca.Item1.FreqRslt != null)
+						{
+							lfrs.FreqRslt.Left = lfrs.FreqRslt.Left.Zip(rca.Item1.FreqRslt.Left, (x, y) => x + y * y).ToArray();
+							lfrs.FreqRslt.Right = lfrs.FreqRslt.Left.Zip(rca.Item1.FreqRslt.Right, (x, y) => x + y * y).ToArray();
+						}
+						leftFft = leftFft.Zip(rca.Item2, (x, y) => x + y).ToArray();
+						rightFft = rightFft.Zip(rca.Item3, (x, y) => x + y).ToArray();
+					}
+					lfrs.FreqRslt.Left = lfrs.FreqRslt.Left.Select(x => Math.Sqrt(x / vm.Averages)).ToArray();
+					lfrs.FreqRslt.Right = lfrs.FreqRslt.Right.Select(x => Math.Sqrt(x / vm.Averages)).ToArray();
+					leftFft = leftFft.Select(x => x / vm.Averages).ToArray();
+					rightFft = rightFft.Select(x => x / vm.Averages).ToArray();
+				}
 
-				var chirpy = Chirps.ChirpVp((int)vm.FftSizeVal, vm.SampleRateVal, genv, startf, endf, 0.8);
-				LeftRightSeries lfrs = await QaComm.DoAcquireUser(vm.Averages, ct.Token, chirpy, chirpy, false);
-				if (lfrs?.TimeRslt == null)
-                    return false;
-				page.TimeRslt = lfrs.TimeRslt;
-				if (ct.IsCancellationRequested)
+				if (lfrs.FreqRslt == null || lfrs.TimeRslt == null || leftFft.Length == 0)
 					return false;
 
-                Complex[] leftFft = [];
-                Complex[] rightFft = [];
-				var flength = lfrs.TimeRslt.Left.Length / 2;        // we want half this since freq is symmetric
-
-				if (ttype == TestingType.Response)
-                {
-                    var lft = Chirps.NormalizeChirpCplx(chirpy, genv, (lfrs.TimeRslt.Left, lfrs.TimeRslt.Right));
-                    leftFft = lft.Item1;
-                    rightFft = lft.Item2;
-				}
-				else
-                {
-					var window = new FftSharp.Windows.Rectangular();    // best?
-					// Left channel
-					double[] lftF = window.Apply(lfrs.TimeRslt.Left, true);
-					leftFft = FFT.Forward(lftF);
-
-					double[] rgtF = window.Apply(lfrs.TimeRslt.Right, true);
-					rightFft = FFT.Forward(rgtF);
-				}
-
-				leftFft = leftFft.Take(flength).ToArray();
-				rightFft = rightFft.Take(flength).ToArray();
-				var lrfs = new LeftRightFrequencySeries();
-				// set the freq values because ?
-				lrfs.Left = leftFft.Select(x => x.Magnitude).ToArray();
-				lrfs.Right = rightFft.Select(x => x.Magnitude).ToArray();
-				lrfs.Df = 1.0 / vm.SampleRateVal;
-
+				var flength = lfrs.FreqRslt.Left.Length;
 				var m2 = Math.Sqrt(2);
 				var nca2 = (int)(0.01 + 1 / lfrs.TimeRslt.dt);      // total time in tics = sample rate
 				var df = nca2 / (double)flength / 2;                // ???
@@ -574,8 +624,10 @@ namespace QA40xPlot.Actions
                 // trim the three vectors to the frequency range of interest
 				page.GainFrequencies = Enumerable.Range(0, leftFft.Length).Select(x => x * df).ToArray();
                 var gfr = page.GainFrequencies;
-                // restrict the data to only the frequency spectrum
-                var trimf = gfr.Count(x => x < startf);
+				// restrict the data to only the frequency spectrum
+				var startf = MathUtil.ToDouble(vm.StartFreq) / 3;
+				var endf = MathUtil.ToDouble(vm.EndFreq) * 3;
+				var trimf = gfr.Count(x => x < startf);
                 var trimEnd = gfr.Count(x => x <= endf) - trimf;
                 gfr = gfr.Skip(trimf).Take(trimEnd).ToArray();
                 var mx = leftFft.Skip(trimf).Take(trimEnd).ToArray();

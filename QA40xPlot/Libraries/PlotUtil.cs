@@ -330,16 +330,22 @@ namespace QA40xPlot.Libraries
 
 		}
 
+		private static Color StrToColor(string fromSetting)
+		{
+			var color = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(fromSetting);
+			// Convert the Color object to a hexadecimal string
+			string hex = $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+			return new Color(hex);
+		}
+
 		public static void UpdateAPlot(ScottPlot.Plot myPlot)
 		{
 			// change figure colors Dark mode
-			var x = ViewSettings.Singleton.SettingsVm.BackgroundClr;
-			var color = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(x);
-			// Convert the Color object to a hexadecimal string
-			string hex = $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+			var color = StrToColor(ViewSettings.Singleton.SettingsVm.BackgroundClr);
+			myPlot.FigureBackground.Color = color;
 
-			myPlot.DataBackground.Color = new Color(0, 0, 0, 10);
-			myPlot.FigureBackground.Color = new Color(hex);
+			color = StrToColor(ViewSettings.Singleton.SettingsVm.GraphBackClr);
+			myPlot.DataBackground.Color = color;
 		}
 	}
 }

@@ -4,14 +4,15 @@ using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using System.Data;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Windows;
-using System.Windows.Controls;
 
 namespace QA40xPlot.Actions
 {
 	public class ActBase
 	{
+		public List<LeftRightFrequencySeries> FrequencyHistory { get; set; } = new();   // for averaging
+		public LeftRightFrequencySeries CurrentFrequency { get; set; } = new(); // also for averaging
+
 		// this is the initial gain calculation so that we can get attenuation and input voltage settings
 		private LeftRightFrequencySeries? _LRGains = null;
 		public LeftRightFrequencySeries? LRGains
@@ -38,13 +39,55 @@ namespace QA40xPlot.Actions
 
 		}
 
+		protected LeftRightFrequencySeries CalculateAverages(LeftRightFrequencySeries fseries, uint averages)
+		{
+			LeftRightFrequencySeries fresult = new();
+			if (averages <= 1 || FrequencyHistory.Count == 0)
+			{
+				fresult = fseries;
+				if (averages > 1)
+					FrequencyHistory.Add(fseries);
+			}
+			else
+			{
+				// change in averages or full???
+				while (FrequencyHistory.Count > (averages - 1))
+				{
+					FrequencyHistory.RemoveAt(0);
+				}
+				if (fseries.Df != FrequencyHistory.First().Df
+					|| fseries.Left.Length != FrequencyHistory.First().Left.Length)
+				{
+					// entirely new values
+					FrequencyHistory.Clear();
+				}
+
+				// instead of doing some moving average or first-last thing just brute add it
+				// it's not that much overhead
+				FrequencyHistory.Add(fseries);          // plus 1
+														//
+				fresult.Df = FrequencyHistory.First().Df;
+				fresult.Left = new double[FrequencyHistory[0].Left.Length];
+				fresult.Right = new double[FrequencyHistory[0].Right.Length];
+				foreach (var fst in FrequencyHistory)
+				{
+					fresult.Left = fresult.Left.Zip(fst.Left, (x, y) => x + y * y).ToArray();
+					fresult.Right = fresult.Left.Zip(fst.Right, (x, y) => x + y * y).ToArray();
+				}
+				var cnt = FrequencyHistory.Count;
+				fresult.Left = fresult.Left.Select(x => Math.Sqrt(x / cnt)).ToArray();
+				fresult.Right = fresult.Right.Select(x => Math.Sqrt(x / cnt)).ToArray();
+			}
+			return fresult;
+		}
+
 		/// <summary>
 		/// Start an action by checking for device connected
 		/// If all ok set IsRunning bool and return true
 		/// </summary>
 		/// <param name="bvm">the local video model</param>
 		/// <returns>true if all good</returns>
-		public static async Task<bool> StartAction(BaseViewModel bvm)
+		public async Task<bool> StartAction(BaseViewModel bvm)
 		{
 			if (bvm.IsRunning)
 			{
@@ -58,10 +101,11 @@ namespace QA40xPlot.Actions
 			}
 			bvm.IsRunning = true;
 			WaveGenerator.Clear();  // disable both generators and the WaveGenerator itself
+			FrequencyHistory.Clear();
 			return true;
 		}
 
-		public static async Task EndAction(BaseViewModel bvm)
+		public async Task EndAction(BaseViewModel bvm)
 		{
 			// Turn the generator off
 			WaveGenerator.SetEnabled(false);
@@ -71,6 +115,7 @@ namespace QA40xPlot.Actions
 			//QaComm.Close(false);
 			bvm.IsRunning = false;
 			bvm.HasSave = true; // set the save flag
+			FrequencyHistory.Clear();	// empty averaging history
 		}
 
 		protected async Task showMessage(String msg, int delay = 0)

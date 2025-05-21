@@ -275,14 +275,14 @@ namespace QA40xPlot.Actions
 			await EndAction(specVm);
 		}
 
-		static void BuildFrequencies(MyDataTab page)
+		void BuildFrequencies(MyDataTab page)
 		{
 			var vm = page.ViewModel;
 			if(vm == null)
 				return;
 
 			LeftRightFrequencySeries? fseries;
-			if(vm.Gen1Waveform != "Chirp")
+			if (vm.Gen1Waveform != "Chirp")
 			{
 				fseries = QaMath.CalculateSpectrum(page.TimeRslt, vm.WindowingMethod);  // do the fft and calculate the frequency response
 			}
@@ -291,9 +291,11 @@ namespace QA40xPlot.Actions
 				var wave = BuildWave(page);
 				fseries = QaMath.CalculateChirpFreq(page.TimeRslt, wave.ToArray(), page.Definition.GeneratorVoltage, vm.SampleRateVal, vm.FftSizeVal);   // normalize the result for flat response
 			}
+			
 			if (fseries != null)
 			{
-				page.SetProperty("FFT", fseries); // set the frequency response
+				LeftRightFrequencySeries fresult = CalculateAverages(fseries, vm.Averages);
+				page.FreqRslt = fresult; // set the frequency response
 			}
 		}
 
@@ -365,7 +367,7 @@ namespace QA40xPlot.Actions
 				await showProgress(25);
 
 				var wave = BuildWave(msr);   // also update the waveform variables
-				lrfs = await QaComm.DoAcquireUser(vm.Averages, ct, wave, wave, false);
+				lrfs = await QaComm.DoAcquireUser(1, ct, wave, wave, false);
 
 				if (lrfs.TimeRslt != null)
 				{

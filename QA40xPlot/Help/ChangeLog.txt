@@ -2,7 +2,17 @@
 --------------------------------------------
 This changelog shows the changes made and the released via github
 --------------------------------------------
-v 1.1.10
+v 1.1.12
+- increase max # of averages to 20
+- add 88,16K fft sizes
+- swap amp load resistance to correct ZReference on impedance test
+- do averaging in the frequency domain
+- improve translucency in plot lines
+- add graph background color selection
+V 1.1.11
+- fix load of a saved tab half-erasing the get list
+- swap to more standard colors for the get list
+V 1.1.10
 - repair IMD signal to noise math when a frequency is near 20KHz
 - repair tab save never highlights in THD vs amp and THD vs frequency
 - repair unit name in THD vs amp Y axis

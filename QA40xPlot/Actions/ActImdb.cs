@@ -4,7 +4,6 @@ using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
-using System.Collections.ObjectModel;
 using System.Data;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
@@ -140,7 +139,7 @@ namespace QA40xPlot.Actions
 			return WaveGenerator.Generate((uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
 		}
 
-		static void BuildFrequencies(MyDataTab page)
+		void BuildFrequencies(MyDataTab page)
 		{
 			var vm = page.ViewModel;
 			if (vm == null)
@@ -150,7 +149,8 @@ namespace QA40xPlot.Actions
 			fseries = QaMath.CalculateSpectrum(page.TimeRslt, vm.WindowingMethod);  // do the fft and calculate the frequency response
 			if (fseries != null)
 			{
-				page.SetProperty("FFT", fseries); // set the frequency response
+				fseries = CalculateAverages(fseries, vm.Averages);
+				page.FreqRslt = fseries; // set the frequency response
 			}
 		}
 
@@ -309,7 +309,7 @@ namespace QA40xPlot.Actions
 				await showProgress(0);
 
 				var wave = BuildWave(msr, genVolt);   // also update the waveform variables
-				lrfs = await QaComm.DoAcquireUser(msr.ViewModel.Averages, ct, wave, wave, false);
+				lrfs = await QaComm.DoAcquireUser(1, ct, wave, wave, false);
 
 				if (lrfs.TimeRslt == null)
 					return false;

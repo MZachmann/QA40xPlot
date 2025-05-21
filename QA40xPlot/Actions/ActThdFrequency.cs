@@ -435,8 +435,23 @@ namespace QA40xPlot.Actions
 
 					WaveGenerator.SetGen1(freqy, genVolt, true);             // send a sine wave
 					WaveGenerator.SetGen2(0, 0, false);            // send a sine wave
-					var lrfs = await QaComm.DoAcquisitions(vm.Averages, ct.Token, true);
+					LeftRightSeries lrfs;
 
+					FrequencyHistory.Clear();
+					for (int ik = 0; ik < (vm.Averages - 1); ik++)
+					{
+						lrfs = await QaComm.DoAcquisitions(1, ct.Token, true);
+						if (lrfs == null || lrfs.TimeRslt == null || lrfs.FreqRslt == null)
+							break;
+						FrequencyHistory.Add(lrfs.FreqRslt);
+					}
+					// now FrequencyHistory has n-1 samples
+					{
+						lrfs = await QaComm.DoAcquisitions(1, ct.Token, true);
+						if (lrfs == null || lrfs.TimeRslt == null || lrfs.FreqRslt == null)
+							break;
+						lrfs.FreqRslt = CalculateAverages(lrfs.FreqRslt, vm.Averages);
+					}
 					if (ct.IsCancellationRequested)
 						break;
 

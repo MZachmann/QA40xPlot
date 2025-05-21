@@ -102,8 +102,6 @@ namespace QA40xPlot.BareMetal
 			var osource = GetOutputSource();
 			var srate = GetSampleRate();
 			datapt = WaveGenerator.Generate(srate, ffts);
-
-
 			return await QaREST.DoAcquireUser(ct, datapt, getFreq);
 		}
 

@@ -42,6 +42,7 @@ namespace QA40xPlot.ViewModels
 		public static bool GEN_INPUT { get => true; }
 		public static bool GEN_OUTPUT { get => false; }
 		public static List<String> DataFormats { get => new List<string> { "SPL", "dBFS", "dBr", "dBu", "dBV", "dBW", "%", "V", "W" }; }
+		public static int MaxAverages { get => 20; }	// there's not much reason for this to be in a setting, but here's an easy...
 		#endregion
 
 		#region Setters and Getters

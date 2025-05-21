@@ -27,11 +27,20 @@ namespace QA40xPlot.ViewModels
 		#region Setters and Getters
 		private System.Windows.Media.SolidColorBrush _Background = 
 			(new BrushConverter().ConvertFrom("#dce4e4") as SolidColorBrush) ?? System.Windows.Media.Brushes.MintCream;
+		private System.Windows.Media.SolidColorBrush _GraphBackground =
+			(new BrushConverter().ConvertFrom("#f8f8f8") as SolidColorBrush) ?? System.Windows.Media.Brushes.MintCream;
 		[JsonIgnore]
 		public System.Windows.Media.SolidColorBrush Background
 		{
 			get => _Background; 
 			set => SetProperty(ref _Background, value);
+		}
+
+		[JsonIgnore]
+		public System.Windows.Media.SolidColorBrush GraphBackground
+		{
+			get => _GraphBackground;
+			set => SetProperty(ref _GraphBackground, value);
 		}
 
 		private String _ProgressMessage = String.Empty;         // type of alert

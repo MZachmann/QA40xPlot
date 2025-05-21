@@ -4,7 +4,6 @@ using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
-using System.Collections.ObjectModel;
 using System.Data;
 using System.Net.Http;
 using System.Windows;
@@ -451,7 +450,21 @@ namespace QA40xPlot.Actions
 				try
 				{
 					var wave = BuildWave(page, testFrequency);   // also update the waveform variables
-					lrfs = await QaComm.DoAcquireUser(vm.Averages, ct.Token, wave, wave, true);
+
+					FrequencyHistory.Clear();
+					for (int ik = 0; ik < (thdAmp.Averages - 1); ik++)
+					{
+						lrfs = await QaComm.DoAcquireUser(1, ct.Token, wave, wave, true);
+						if (lrfs == null || lrfs.TimeRslt == null || lrfs.FreqRslt == null)
+							break;
+						FrequencyHistory.Add(lrfs.FreqRslt);
+					}
+					{
+						lrfs = await QaComm.DoAcquireUser(1, ct.Token, wave, wave, true);
+						if (lrfs == null || lrfs.TimeRslt == null || lrfs.FreqRslt == null)
+							break;
+						lrfs.FreqRslt = CalculateAverages(lrfs.FreqRslt, thdAmp.Averages);
+					}
 				}
 				catch (HttpRequestException ex)
 				{

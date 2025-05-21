@@ -78,7 +78,7 @@ namespace QA40xPlot.Data
 		public LeftRightTimeSeries TimeRslt { get; set; }   // if we acquired data
 		public LeftRightPair NoiseFloor { get; set; } = new();		// if we have the noise floor measurement
 		// for sweeps
-		public SweepData Sweep { get; set; } = new();			// X values, freq or time or amplitude...
+		public SweepData Sweep { get; set; } = new();           // X values, freq or time or amplitude...
 
 		// ------------------------------------------------------------------
 		// all other properties are calculated but may be cached in PropertySet
