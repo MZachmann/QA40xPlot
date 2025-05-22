@@ -280,30 +280,10 @@ namespace QA40xPlot.Actions
 				var generatorV = 0.01;			// random low test value
 				var chirpy = Chirps.ChirpVp((int)fftsize, sampleRate, generatorV, 6, 24000);
 				var ct = new CancellationTokenSource();
-				// do two and average them
-				//await QaComm.DoAcquireUser(1, ct.Token, chirpy, chirpy, false); // settle
+				// get the data
 				LeftRightSeries acqData = await QaComm.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
 				if (acqData == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
 					return null;
-
-				//// what's the maximum input here?
-				//var skips = acqData.TimeRslt.Left.Length / 10;
-				//var takes = acqData.TimeRslt.Left.Length * 8 / 10;
-				//var maxl = acqData.TimeRslt.Left.Skip(skips).Take(takes).Max();
-				//var maxr = acqData.TimeRslt.Right.Skip(skips).Take(takes).Max();
-
-				//var maxi = Math.Max(maxl, maxr);
-				//// since we're running with 42db of attenuation...
-				//if( maxi < 0.1)
-				//{
-				//	// get some more accuracy with this
-				//	await QaComm.SetInputRange(18);
-				//	// do two and average them
-				//	await QaComm.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
-				//	acqData = await QaComm.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
-				//	if (acqData == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
-				//		return null;
-				//}
 
 				// calculate gain for each channel from frequency response
 				LeftRightTimeSeries lrts = new LeftRightTimeSeries();

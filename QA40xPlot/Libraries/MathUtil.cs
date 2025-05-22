@@ -106,30 +106,89 @@ namespace QA40xPlot.Libraries
 		/// <summary>
 		/// <param name="val">value to format</param>
 		/// <returns>string with best suffix</returns>
-		public static string FormatVoltage(double val)
+		public static string FormatUnits(double val, string units)
 		{
 			var sign = Math.Sign(val);
 			val = Math.Abs(val);
 			string rslt = string.Empty;
-			if (val >= .01)
+			if (val >= 1000000)
 			{
-				rslt = val.ToString("0.###") + " V";
+				rslt = (val / 1000000).ToString("0.###") + "M" + units;
 			}
-			else if (val >= 1e-5)
+			else if ( val >= 1000)
 			{
-				rslt = (1000 * val).ToString("G3") + " mV";
+				rslt = (val/1000).ToString("0.###") + "K" + units;
 			}
-			else if (val >= 1e-8)
+			else if (val >= 1)
 			{
-				rslt = (1000000 * val).ToString("G3") + " uV";
+				rslt = val.ToString("0.###") + units;
+			}
+			else if (val >= 1e-3)
+			{
+				rslt = (1000 * val).ToString("G3") + "m" + units;
+			}
+			else if (val >= 1e-6)
+			{
+				rslt = (1000000 * val).ToString("G3") + "u" + units;
 			}
 			else
 			{
-				rslt = (1e9 * val).ToString("G3") + " nV";
+				rslt = (1e9 * val).ToString("G3") + "n" + units;
 			}
 			if (sign < 0)
 				rslt = "-" + rslt;
 			return rslt;
+		}
+
+		/// <summary>
+		/// pretty format voltage only
+		/// <summary>
+		/// <param name="val">value to format</param>
+		/// <returns>string with best suffix</returns>
+		public static string FormatVoltage(double val)
+		{
+			return FormatUnits(val, "V");
+		}
+
+		/// <summary>
+		/// pretty format resistance only
+		/// <summary>
+		/// <param name="val">value to format</param>
+		/// <returns>string with best suffix</returns>
+		public static string FormatResistance(double val)
+		{
+			return FormatUnits(val, "Ω");
+		}
+
+		/// <summary>
+		/// pretty format inductance only
+		/// <summary>
+		/// <param name="val">value to format</param>
+		/// <returns>string with best suffix</returns>
+		public static string FormatInductance(double val)
+		{
+			return FormatUnits(val, "H");
+		}
+
+		/// <summary>
+		/// pretty format capacitance only
+		/// <summary>
+		/// <param name="val">value to format</param>
+		/// <returns>string with best suffix</returns>
+		public static string FormatCapacitance(double val)
+		{
+			return FormatUnits(val, "F");
+		}
+
+		/// <summary>
+		/// pretty format capacitance only
+		/// <summary>
+		/// <param name="val">value to format</param>
+		/// <returns>string with best suffix</returns>
+		public static string FormatPhase(double val)
+		{
+			val = (int)(Math.Floor(val));
+			return FormatUnits(val, "°");
 		}
 
 	}

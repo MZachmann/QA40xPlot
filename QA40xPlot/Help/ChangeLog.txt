@@ -1,8 +1,10 @@
 ﻿The QA40xPlot Changelog
 --------------------------------------------
-This changelog shows the changes made and the released via github
+This changelog shows the changes made and then released via github
 --------------------------------------------
-v 1.1.12
+V 1.1.13
+- add inductor/capacitor cursor for impedance test
+V 1.1.12
 - increase max # of averages to 20
 - add 88,16K fft sizes
 - swap amp load resistance to correct ZReference on impedance test

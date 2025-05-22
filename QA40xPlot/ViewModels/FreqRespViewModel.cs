@@ -1,14 +1,17 @@
-﻿using QA40xPlot.Actions;
+﻿using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
+using Newtonsoft.Json;
+using QA40xPlot.Actions;
 using QA40xPlot.Data;
+using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using QA40xPlot.Views;
-using System.Windows;
 using System.ComponentModel;
-using Newtonsoft.Json;
+using System.Numerics;
+using System.Windows;
 using System.Windows.Input;
-using CommunityToolkit.Mvvm.Input;
 using System.Windows.Interop;
-using Microsoft.Win32;
+using WinRT.Interop;
 
 
 public class FreqRespViewModel : BaseViewModel
@@ -445,7 +448,22 @@ public class FreqRespViewModel : BaseViewModel
 			case TestingType.Impedance:
 				{
 
-					ZValue = "Z: " + zv.Item2.ToString("0.## Ohms") + Environment.NewLine + "  " + zv.Item3.ToString("0.## Deg");
+					ZValue = "Z: " + MathUtil.FormatUnits(zv.Item2, "|Z|") + ", " + MathUtil.FormatPhase(zv.Item3);
+					var x = Complex.FromPolarCoordinates(zv.Item2, Math.PI * zv.Item3 / 180);
+					ZValue += Environment.NewLine + "X: " + MathUtil.FormatUnits(x.Real, "R") + ", " + MathUtil.FormatUnits(x.Imaginary, "I");
+					var res = MathUtil.FormatResistance(x.Real);
+					string sadd = string.Empty;
+					if(x.Imaginary >= 0)
+					{
+						var ind = MathUtil.FormatInductance(x.Imaginary / (2 * Math.PI * zv.Item1));       // imaginary over 2piF
+						sadd = res + " + " + ind;
+					}
+					else
+					{
+						var cap = MathUtil.FormatCapacitance(-1 / (2 * Math.PI * zv.Item1 * x.Imaginary));       // 2piF / imaginary
+						sadd = res + " + " + cap;
+					}
+					ZValue += Environment.NewLine + sadd;
 				}
 				break;
 			case TestingType.Gain:
