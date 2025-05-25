@@ -14,6 +14,7 @@ namespace QA40xPlot.BareMetal
 		public static UsbDeviceFinder _USBFindQA402 = new UsbDeviceFinder(0x16c0, 0x4e37);
 		public static UsbDeviceFinder _USBFindQA403 = new UsbDeviceFinder(0x16c0, 0x4e39);
 		private static UsbDevice? _AttachedDevice = null;
+		private static string _ModelName = string.Empty;
 		private static int _IdInterface = 0;
 
 		/// <summary>
@@ -29,10 +30,20 @@ namespace QA40xPlot.BareMetal
 				return _AttachedDevice;
 
 			// Attempt to open QA402 or QA403 device
+			_ModelName = string.Empty;
 			UsbDevice usbdev = UsbDevice.OpenUsbDevice(_USBFindQA402);
 			if(usbdev == null)
 			{
 				usbdev = UsbDevice.OpenUsbDevice(_USBFindQA403);
+				if(usbdev != null)
+				{
+					_ModelName = "QA403";
+
+				}
+			}
+			else
+			{
+				_ModelName = "QA402";
 			}
 			if (usbdev == null)
 			{
@@ -48,6 +59,11 @@ namespace QA40xPlot.BareMetal
 			// keep the found device around
 			_AttachedDevice = usbdev;
 			return usbdev;
+		}
+
+		public static string GetDeviceModel()
+		{
+			return _ModelName;
 		}
 
 		// this should probably be done on exit
