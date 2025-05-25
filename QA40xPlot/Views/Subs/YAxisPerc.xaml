@@ -7,8 +7,8 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <StackPanel Visibility="{Binding ToShowRange}">
-        <local:GroupHeader Header="Y Axis" />
-        <Grid >
+        <Expander Header="—— Y Axis"  IsExpanded="{Binding ExpandYAxis}" >
+            <Grid >
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
@@ -20,20 +20,26 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Label Content="Units" Grid.Row="0" Grid.Column="0"  />
-                <ComboBox MinWidth="70" Grid.Row="0" Grid.Column="1"   SelectedItem="{Binding PlotFormat}" ItemsSource="{Binding DataFormats}">
+                <Label Content="Units" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"   />
+                <ComboBox MinWidth="70" Grid.Row="0" Grid.Column="1"   SelectedItem="{Binding PlotFormat}" 
+                           VerticalContentAlignment="Center"
+                          ItemsSource="{Binding DataFormats}">
                 </ComboBox>
-                <Label Content="Top" Grid.Row="1" Grid.Column="0"  />
-                <ComboBox MinWidth="70" Grid.Column="1"  Grid.Row="1"   SelectedValue="{Binding RangeTop}" ItemsSource="{Binding StartPercents}">
+                <Label Content="Top" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"   />
+                <ComboBox MinWidth="70" Grid.Column="1"  Grid.Row="1"   
+                           VerticalContentAlignment="Center"
+                          SelectedValue="{Binding RangeTop}" ItemsSource="{Binding StartPercents}">
                 </ComboBox>
-                <Label Content="{Binding GraphUnit}" Grid.Row="1" Grid.Column="2"  />
-                <Label Content="Bottom" Grid.Row="2" Grid.Column="0"  />
-                <ComboBox Grid.Column="1"  Grid.Row="2"   SelectedValue="{Binding RangeBottom}" ItemsSource="{Binding EndPercents}">
+                <Label Content="{Binding GraphUnit}" Grid.Row="1" Grid.Column="2" VerticalAlignment="Center"  />
+                <Label Content="Bottom" Grid.Row="2" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"   />
+                <ComboBox Grid.Column="1"  Grid.Row="2"   
+                           VerticalContentAlignment="Center"
+                          SelectedValue="{Binding RangeBottom}" ItemsSource="{Binding EndPercents}">
                 </ComboBox>
-                <Label Content="{Binding GraphUnit}" Grid.Row="2" Grid.Column="2"  />
+                <Label Content="{Binding GraphUnit}" Grid.Row="2" Grid.Column="2" VerticalAlignment="Center"  />
                 <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="YP"
-                            Margin="0,4,0,0" Grid.Row="3" Grid.Column="0"  HorizontalAlignment="Right" Grid.ColumnSpan="2"  />
+                            Margin="0,4,0,0" Grid.Row="3" Grid.Column="0"  HorizontalAlignment="Right" VerticalAlignment="Center" Grid.ColumnSpan="2"  />
             </Grid>
-
+        </Expander>
     </StackPanel>
 </UserControl>

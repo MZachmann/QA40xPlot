@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
@@ -26,6 +27,32 @@ namespace QA40xPlot.ViewModels
 
 		public FloorViewModel()
 		{
+		}
+
+		private string _ThemeBkgd = string.Empty;
+		[JsonIgnore]
+		public string ThemeBkgd
+		{
+			get => _ThemeBkgd;
+			set { SetProperty(ref _ThemeBkgd, value); RaisePropertyChanged("ThemeBackground"); }
+		}
+
+		public System.Windows.Media.Brush ThemeBackground
+		{
+			get {
+				try
+				{
+					var x = ViewSettings.Singleton.SettingsVm.ThemeSet;
+					var y = ViewSettings.Singleton.SettingsVm.GraphBackClr;
+					var color = (x == "Dark") ? System.Windows.Media.Colors.Black : System.Windows.Media.Colors.White;
+					var bclr = System.Windows.Media.Color.FromArgb(150, color.R, color.G, color.B);
+					return new System.Windows.Media.SolidColorBrush(bclr);
+				}
+				catch (Exception )
+				{
+				}
+				return System.Windows.Media.Brushes.Red;
+			}
 		}
 
 		#region INotifyPropertyChanged

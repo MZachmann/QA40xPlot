@@ -8,8 +8,8 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <StackPanel Visibility="{Binding ToShowdB}">
-        <views:GroupHeader Header="Y Axis" />
-        <Grid>
+        <Expander Header="—— Y Axis"  IsExpanded="{Binding ExpandYAxis}" >
+            <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
@@ -23,19 +23,24 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Label Content="Units" Grid.Row="0" Grid.Column="0"  />
+                <Label Content="Units" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center" />
                 <ComboBox MinWidth="70" Grid.Row="0" Grid.Column="1"   SelectedItem="{Binding PlotFormat}" ItemsSource="{Binding DataFormats}">
                 </ComboBox>
-                <Label Content="Top" Grid.Row="1" Grid.Column="0"  />
-                <ComboBox IsEditable="True" MinWidth="70"  Grid.Row="1" Grid.Column="1"  Text="{Binding RangeTopdB}" ItemsSource="{Binding TopDbs}">
+                <Label Content="Top" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"   />
+                <ComboBox IsEditable="True" MinWidth="70"  Grid.Row="1" Grid.Column="1"  
+                           VerticalContentAlignment="Center"
+                          Text="{Binding RangeTopdB}" ItemsSource="{Binding TopDbs}">
                 </ComboBox>
-            <Label Content="{Binding GraphUnit}" Grid.Row="1" Grid.Column="2"  />
-                <Label Content="Bottom" Grid.Row="2" Grid.Column="0"  />
-                <ComboBox IsEditable="True" Grid.Row="2" Grid.Column="1"  Text="{Binding RangeBottomdB}" ItemsSource="{Binding BottomDbs}">
+                <Label Content="{Binding GraphUnit}" Grid.Row="1" Grid.Column="2" VerticalAlignment="Center"   />
+                <Label Content="Bottom" Grid.Row="2" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"   />
+                <ComboBox IsEditable="True" Grid.Row="2" Grid.Column="1"  
+                           VerticalContentAlignment="Center"
+                          Text="{Binding RangeBottomdB}" ItemsSource="{Binding BottomDbs}">
                 </ComboBox>
-            <Label Content="{Binding GraphUnit}" Grid.Row="2" Grid.Column="2"  />
+                <Label Content="{Binding GraphUnit}" Grid.Row="2" Grid.Column="2" VerticalAlignment="Center"   />
                 <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="YM"
-                            Margin="0,4,0,0" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Right"  />
+                            Margin="0,4,0,0" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Right" VerticalAlignment="Center"  />
             </Grid>
+        </Expander>
     </StackPanel>
 </UserControl>

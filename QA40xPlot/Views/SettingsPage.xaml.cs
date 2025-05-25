@@ -1,4 +1,5 @@
 ﻿using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace QA40xPlot.Views
 {

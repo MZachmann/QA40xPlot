@@ -17,7 +17,7 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Button Content="Start" IsEnabled="{Binding IsNotRunning}" FontSize="14" Command="{Binding DoStart}" Grid.Column="0" Grid.Row="0"  HorizontalAlignment="Right"></Button>
-            <Button Content="Sto_p" IsEnabled="{Binding IsRunning}" FontSize="14" Command="{Binding DoStop}" Grid.Column="2" Grid.Row="0" HorizontalAlignment="Left"></Button>
+            <Button Content="Stop" IsEnabled="{Binding IsRunning}" FontSize="14" Command="{Binding DoStop}" Grid.Column="2" Grid.Row="0" HorizontalAlignment="Left"></Button>
         </Grid>
     </StackPanel>
 </UserControl>

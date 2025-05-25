@@ -7,31 +7,35 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <StackPanel>
-        <local:GroupHeader Header="X Axis" />
-        <Grid >
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-            <Label Content="From" Grid.Row="0"  Grid.Column="0" />
-            <ComboBox  IsEditable="True" Grid.Row="0" Grid.Column="1"   Text="{Binding GraphStartFreq}" ItemsSource="{Binding StartFrequencies}">
-            </ComboBox>
-            <Label Content="Hz" Grid.Row="0"  Grid.Column="2" />
-            <Label Content="To" Grid.Row="1" Grid.Column="0"  />
-            <ComboBox  MinWidth="70" IsEditable="True" Grid.Row="1" Grid.Column="1"  Text="{Binding GraphEndFreq}" ItemsSource="{Binding EndFrequencies}">
-            </ComboBox>
-            <Label Content="Hz" Grid.Row="1"  Grid.Column="2" />
-            <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="XF"
-                            Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Right" Grid.ColumnSpan="2"  />
-        </Grid>
-
+        <Expander Header="—— X Axis"  IsExpanded="{Binding ExpandXAxis}" >
+            <Grid >
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Label Content="From" Grid.Row="0"  Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"  />
+                <ComboBox  IsEditable="True" Grid.Row="0" Grid.Column="1"   
+                           VerticalContentAlignment="Center"
+                           Text="{Binding GraphStartFreq}" ItemsSource="{Binding StartFrequencies}">
+                </ComboBox>
+                <Label Content="Hz" Grid.Row="0"  Grid.Column="2" VerticalAlignment="Center"   />
+                <Label Content="To" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"  />
+                <ComboBox  MinWidth="70" IsEditable="True" Grid.Row="1" Grid.Column="1"  
+                           VerticalContentAlignment="Center"
+                           Text="{Binding GraphEndFreq}" ItemsSource="{Binding EndFrequencies}">
+                </ComboBox>
+                <Label Content="Hz" Grid.Row="1"  Grid.Column="2" VerticalAlignment="Center"   />
+                <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="XF"
+                            Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Right" VerticalAlignment="Center" Grid.ColumnSpan="2"  />
+            </Grid>
+        </Expander>
     </StackPanel>
 </UserControl>

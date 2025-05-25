@@ -341,11 +341,33 @@ namespace QA40xPlot.Libraries
 		public static void UpdateAPlot(ScottPlot.Plot myPlot)
 		{
 			// change figure colors Dark mode
-			var color = StrToColor(ViewSettings.Singleton.SettingsVm.BackgroundClr);
+			var color = StrToColor(ViewSettings.Singleton.SettingsVm.GraphBackClr);
+			myPlot.DataBackground.Color = color;
+
+			color = StrToColor(ViewSettings.Singleton.SettingsVm.GraphForeground);
 			myPlot.FigureBackground.Color = color;
 
-			color = StrToColor(ViewSettings.Singleton.SettingsVm.GraphBackClr);
-			myPlot.DataBackground.Color = color;
+			// if foreground color is dark, swap text color
+			// digital bt.601 Y = 0.299 R + 0.587 G + 0.114 B
+			var light = 0.299 * color.G + 0.587 * color.R + 0.114 * color.B;
+			var clr = ScottPlot.Colors.Black;
+			if(light < 128)
+			{
+				clr = ScottPlot.Colors.White;
+			}
+			// use dark text color
+			myPlot.Axes.Title.Label.ForeColor = clr;
+			myPlot.Axes.Bottom.Label.ForeColor = clr;
+			myPlot.Axes.Bottom.TickLabelStyle.ForeColor = clr;
+
+			myPlot.Axes.Left.Label.ForeColor = clr;
+			myPlot.Axes.Left.TickLabelStyle.ForeColor = clr;
+
+			if (myPlot.Axes.Right != null)
+			{
+				myPlot.Axes.Right.Label.ForeColor = clr;
+				myPlot.Axes.Right.TickLabelStyle.ForeColor = clr;
+			}
 		}
 	}
 }

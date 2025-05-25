@@ -11,12 +11,6 @@
              d:DesignHeight="750" d:DesignWidth="800" >
     <UserControl.Resources>
         <views:EnumBooleanConverter x:Key="EnumBooleanConverter"/>
-        <Style TargetType="Label">
-            <Setter Property="VerticalAlignment" Value="Center"/>
-        </Style>
-        <Style TargetType="ComboBox">
-            <Setter Property="VerticalAlignment" Value="Center"/>
-        </Style>
     </UserControl.Resources>
     <Grid Height="Auto" Width="Auto">
         <Grid.ColumnDefinitions>
@@ -29,70 +23,84 @@
             <CheckBox Content="_Use Generator" IsChecked="{Binding UseGenerator}" 
                       HorizontalAlignment="Center"  Margin="0,5,0,0" />
             <views:Attenuator />
-            <views:GroupHeader Header="Generator 1" />
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Label Content="Set _DUT" Target="{Binding ElementName=cbDUT}" HorizontalAlignment="Right"  Grid.Row="0" Grid.Column="0" ToolTip="{Binding DutInfo}"  />
-                <ComboBox ToolTip="{Binding DutDescript}" x:Name="cbDUT"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" 
-                            SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVoltsFull}">
-                </ComboBox>
-                <Label Content="_Waveform" Target="{Binding ElementName=cbWave}"  HorizontalAlignment="Right" Grid.Row="1" Grid.Column="0" ToolTip="{Binding DutInfo}"  />
-                <ComboBox x:Name="cbWave"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1"   
+            <Expander Header="—— Generator 1">
+                <Grid >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Label Content="Set _DUT" Target="{Binding ElementName=cbDUT}" 
+                           HorizontalAlignment="Right" VerticalAlignment="Center"  Grid.Row="0" Grid.Column="0" ToolTip="{Binding DutInfo}"  />
+                    <ComboBox ToolTip="{Binding DutDescript}" x:Name="cbDUT"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" 
+                            SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVoltsFull}"
+                              VerticalContentAlignment="Center"
+                              IsEnabled="{Binding IsNotRunning}" >
+                    </ComboBox>
+                    <Label Content="_Waveform" Target="{Binding ElementName=cbWave}"  
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="1" Grid.Column="0" ToolTip="{Binding DutInfo}"  />
+                    <ComboBox x:Name="cbWave"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1"   
+                              VerticalContentAlignment="Center"
                               SelectedValue="{Binding Gen1Waveform}" ItemsSource="{Binding Waveforms}">
-                </ComboBox>
-                <Label Content="Fre_quency" HorizontalAlignment="Right" Grid.Row="2" Grid.Column="0" Target="{Binding ElementName=cbFreq}" />
-                <ComboBox x:Name="cbFreq" Grid.Column="1" Grid.Row="2"   
+                    </ComboBox>
+                    <Label Content="Fre_quency" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="2" Grid.Column="0" Target="{Binding ElementName=cbFreq}" />
+                    <ComboBox x:Name="cbFreq" Grid.Column="1" Grid.Row="2"   
+                              VerticalContentAlignment="Center"
                                IsEditable="True" Text="{Binding Gen1Frequency}" ItemsSource="{Binding GenFrequencies}" MinWidth="80"/>
-                <Label Content="Hz" Grid.Row="2" Grid.Column="2" />
-                <Label Content="{Binding GenAmpDescript, Mode=OneWay}"  Target="{Binding ElementName=cbVolt}" HorizontalAlignment="Right" Grid.Row="3" Grid.Column="0"  />
-                <ComboBox x:Name="cbVolt" Grid.Column="1" Grid.Row="3"   
+                    <Label Content="Hz" VerticalAlignment="Center" Grid.Row="2" Grid.Column="2" />
+                    <Label Content="{Binding GenAmpDescript, Mode=OneWay}"  Target="{Binding ElementName=cbVolt}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="3" Grid.Column="0"  />
+                    <ComboBox x:Name="cbVolt" Grid.Column="1" Grid.Row="3"   
+                              VerticalContentAlignment="Center"
                               IsEditable="True" Text="{Binding Gen1Voltage}" ItemsSource="{Binding GenVoltages}"/>
-                <Label Content="{Binding GenAmpUnits, Mode=OneWay}" Grid.Row="3" Grid.Column="3" />
-            </Grid>
+                    <Label Content="{Binding GenAmpUnits, Mode=OneWay}" VerticalAlignment="Center"  Grid.Row="3" Grid.Column="3" />
+                </Grid>
+            </Expander>
 
-            <views:GroupHeader Header="Sampling" />
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Label Content="_Sample Rate" HorizontalAlignment="Right" Grid.Row="0" Grid.Column="0"  Target="{Binding ElementName=cbSampleRate}"  />
-                <ComboBox x:Name="cbSampleRate"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0"   
+            <Expander Header="—— Sampling" IsExpanded="{Binding ExpandSampling}"  >
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Label Content="_Sample Rate" 
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="0" Grid.Column="0"  Target="{Binding ElementName=cbSampleRate}"  />
+                    <ComboBox x:Name="cbSampleRate"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0"   
+                              VerticalContentAlignment="Center"
                                SelectedValue="{Binding SampleRate}" ItemsSource="{Binding SampleRates}">
-                </ComboBox>
-                <Label Content="_Fft Size" HorizontalAlignment="Right" Grid.Row="1" Grid.Column="0" Target="{Binding ElementName=cbfftSize}"  />
-                <ComboBox x:Name="cbfftSize"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1"   
+                    </ComboBox>
+                    <Label Content="_Fft Size" HorizontalAlignment="Right" 
+                           VerticalAlignment="Center" Grid.Row="1" Grid.Column="0" Target="{Binding ElementName=cbfftSize}"  />
+                    <ComboBox x:Name="cbfftSize"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1"   
+                              VerticalContentAlignment="Center"
                                SelectedValue="{Binding FftSize}" ItemsSource="{Binding FftSizes}">
-                </ComboBox>
-                <Label Content="_Averages" HorizontalAlignment="Right" Grid.Column="0" Grid.Row="2" Target="{Binding ElementName=xcaverages}"  />
-                <xctk:IntegerUpDown x:Name="xcaverages" Value="{Binding Averages}" Minimum="1" Maximum="{Binding MaxAverages}" VerticalAlignment="Center" Grid.Column="1" Grid.Row="2"  />
+                    </ComboBox>
+                    <Label Content="_Averages" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Column="0" Grid.Row="2" Target="{Binding ElementName=xcaverages}"  />
+                    <xctk:IntegerUpDown x:Name="xcaverages" Value="{Binding Averages}" Minimum="1" Maximum="{Binding MaxAverages}" VerticalAlignment="Center" Grid.Column="1" Grid.Row="2"  />
 
-                <Label Content="_Window" HorizontalAlignment="Right" Grid.Row="3" Grid.Column="0" Target="{Binding ElementName=cbWindow}"  />
-                <ComboBox x:Name="cbWindow" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="3"   
+                    <Label Content="_Window" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="3" Grid.Column="0" Target="{Binding ElementName=cbWindow}"  />
+                    <ComboBox x:Name="cbWindow" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="3"   
+                              VerticalContentAlignment="Center"
                                SelectedValue="{Binding WindowingMethod}" ItemsSource="{Binding WindowingTypes}">
-                </ComboBox>
-            </Grid>
+                    </ComboBox>
+                </Grid>
+            </Expander>
             <views:StorageUi />
             <views:GotFileList x:Name="GotList"  HorizontalAlignment="Stretch" MaxHeight="100" Margin="0,5,0,0"/>
         </StackPanel>
-        <Grid Grid.Column="1">
+        <Grid Grid.Column="1" >
             <Label Content="{Binding DsHeading}" HorizontalAlignment="Center" VerticalAlignment="Top" />
             <views:PlotControl x:Name="WpfPlot1"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="0,20,0,0" />
             <views:ThdChannelInfo x:Name="Info1" 

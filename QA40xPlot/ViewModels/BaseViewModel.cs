@@ -68,6 +68,50 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _OtherSetList, value);
 		}
 
+		[JsonIgnore]
+		private UserControl? _MyWindow = null;
+		[JsonIgnore]
+		public UserControl? MyWindow
+		{
+			get => _MyWindow;
+			set => SetProperty(ref _MyWindow, value);
+		}
+
+		private bool _ExpandGenerator = true;		// expand the generator section?
+		public bool ExpandGenerator
+		{
+			get => _ExpandGenerator;
+			set => SetProperty(ref _ExpandGenerator, value);
+		}
+
+		private bool _ExpandSampling = true;       // expand the Sampling section?
+		public bool ExpandSampling
+		{
+			get => _ExpandSampling;
+			set => SetProperty(ref _ExpandSampling, value);
+		}
+
+		private bool _ExpandYAxis = true;       // expand the YAxis section?
+		public bool ExpandYAxis
+		{
+			get => _ExpandYAxis;
+			set => SetProperty(ref _ExpandYAxis, value);
+		}
+
+		private bool _ExpandXAxis = true;       // expand the XAxis section?
+		public bool ExpandXAxis
+		{
+			get => _ExpandXAxis;
+			set => SetProperty(ref _ExpandXAxis, value);
+		}
+
+		private bool _ExpandSweep = true;       // expand the Sweep section?
+		public bool ExpandSweep
+		{
+			get => _ExpandSweep;
+			set => SetProperty(ref _ExpandSweep, value);
+		}
+
 		private bool _ShowTabInfo = false;
 		public bool ShowTabInfo
 		{

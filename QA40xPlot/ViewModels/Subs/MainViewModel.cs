@@ -29,6 +29,7 @@ namespace QA40xPlot.ViewModels
 			(new BrushConverter().ConvertFrom("#dce4e4") as SolidColorBrush) ?? System.Windows.Media.Brushes.MintCream;
 		private System.Windows.Media.SolidColorBrush _GraphBackground =
 			(new BrushConverter().ConvertFrom("#f8f8f8") as SolidColorBrush) ?? System.Windows.Media.Brushes.MintCream;
+
 		[JsonIgnore]
 		public System.Windows.Media.SolidColorBrush Background
 		{

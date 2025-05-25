@@ -6,14 +6,12 @@
              xmlns:local="clr-namespace:QA40xPlot"
              xmlns:views ="clr-namespace:QA40xPlot.Views"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="200" Background="#A0F5fffa">
+             Background="{Binding ThemeBackground}"
+             d:DesignHeight="300" d:DesignWidth="200" >
     <UserControl.Resources>
         <views:VtoPctConverter x:Key="VToPctConverter"/>
         <views:VoltFormatter x:Key="VoltFormatter"/>
         <!-- hacky way to remove some white space from the labels -->
-        <Style TargetType="Label">
-            <Setter Property="Margin" Value="0,-4,0,0"/>
-        </Style>
     </UserControl.Resources>
     <Border BorderBrush="{Binding BorderColor}" BorderThickness="1">
         <StackPanel Orientation="Vertical">
@@ -97,8 +95,6 @@
                         <Binding Path="ShowDataPercents"/>
                     </MultiBinding>
                 </Label>
-
-
                 <Label Grid.Row="2" Grid.Column="0" Content="D2L:" HorizontalAlignment="Right"/>
                 <Label Grid.Row="2" Grid.Column="1">
                     <MultiBinding Converter="{StaticResource VToPctConverter}">
@@ -116,8 +112,6 @@
                         <Binding Path="ShowDataPercents"/>
                     </MultiBinding>
                 </Label>
-
-
                 <Label Grid.Row="3" Grid.Column="0" Content="D3L:" HorizontalAlignment="Right"/>
                 <Label Grid.Row="3" Grid.Column="1">
                     <MultiBinding Converter="{StaticResource VToPctConverter}">
@@ -126,7 +120,6 @@
                         <Binding Path="ShowDataPercents"/>
                     </MultiBinding>
                 </Label>
-
                 <Label Grid.Row="3" Grid.Column="2" Content="D3H:" HorizontalAlignment="Right"/>
                 <Label Grid.Row="3" Grid.Column="3" >
                     <MultiBinding Converter="{StaticResource VToPctConverter}">
@@ -135,8 +128,6 @@
                     <Binding Path="ShowDataPercents"/>
                     </MultiBinding>
                 </Label>
-
-
                 <Label Grid.Row="4" Grid.Column="0" Content="D4L:" HorizontalAlignment="Right"/>
                 <Label Grid.Row="4" Grid.Column="1" >
                     <MultiBinding Converter="{StaticResource VToPctConverter}">
@@ -145,7 +136,6 @@
                         <Binding Path="ShowDataPercents"/>
                     </MultiBinding>
                 </Label>
-
                 <Label Grid.Row="4" Grid.Column="2" Content="D4H:" HorizontalAlignment="Right"/>
                 <Label Grid.Row="4" Grid.Column="3">
                     <MultiBinding Converter="{StaticResource VToPctConverter}">
@@ -154,8 +144,6 @@
                         <Binding Path="ShowDataPercents"/>
                     </MultiBinding>
                 </Label>
-
-
                 <Label Grid.Row="5" Grid.Column="0" Content="D5L:" HorizontalAlignment="Right"/>
                 <Label Grid.Row="5" Grid.Column="1">
                     <MultiBinding Converter="{StaticResource VToPctConverter}">
@@ -164,7 +152,6 @@
                         <Binding Path="ShowDataPercents"/>
                     </MultiBinding>
                 </Label>
-
                 <Label Grid.Row="5" Grid.Column="2" Content="D5H:" HorizontalAlignment="Right"/>
                 <Label Grid.Row="5" Grid.Column="3">
                     <MultiBinding Converter="{StaticResource VToPctConverter}">

@@ -1,4 +1,5 @@
 ﻿using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace QA40xPlot.Views
 {
@@ -12,7 +13,7 @@ namespace QA40xPlot.Views
 			InitializeComponent();
 			var vm = ViewModels.ViewSettings.Singleton.SpectrumVm;
 			this.DataContext = vm;
-			vm.SetAction(this.WpfPlot1, this.Info1, this.Info2, this.TAbout);
+			vm.SetAction(this, this.WpfPlot1, this.Info1, this.Info2, this.TAbout);
 		}
 	}
 }

@@ -49,6 +49,13 @@ namespace QA40xPlot
 
 		public MainWindow()
 		{
+			// look for a default config file before we paint the windows for theme setting...
+			var fpath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+			fpath += @"\QADefault.cfg";
+			if (File.Exists(fpath))
+			{
+				ViewSettings.Singleton.Main.LoadFromSettings(fpath);
+			}
 			InitializeComponent();
 			var vm = ViewModels.ViewSettings.Singleton.Main;
 			this.DataContext = vm;
@@ -98,20 +105,21 @@ namespace QA40xPlot
 			}
 		}
 
-		static bool bdone = false;
+		//private static bool _bDone = false;
 		private void DoContentRendered(object? sender, EventArgs e)
 		{
-			if (!bdone)
-			{
-				bdone = true;
-				// look for a default config file
-				var fpath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-				fpath += @"\QADefault.cfg";
-				if (File.Exists(fpath))
-				{
-					ViewSettings.Singleton.Main.LoadFromSettings(fpath);
-				}
-			}
+			//if (!_bDone)
+			//{
+			//	_bDone = true;
+			//	// look for a default config file
+			//	var fpath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+			//	fpath += @"\QADefault.cfg";
+			//	if (File.Exists(fpath))
+			//	{
+			//		ViewSettings.Singleton.Main.LoadFromSettings(fpath);
+			//	}
+			//}
+			this.InvalidateVisual();
 		}
 
 		protected override void OnClosing(System.ComponentModel.CancelEventArgs e)

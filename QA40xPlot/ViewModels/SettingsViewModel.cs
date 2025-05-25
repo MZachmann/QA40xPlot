@@ -9,11 +9,12 @@ namespace QA40xPlot.ViewModels
 	{
 		public static List<String> UsbBufferSizes { get => new List<string>() { "2048", "4096", "8192", "16384", "32768", "65536"}; }
 		public static List<String> RelayUsageList { get => new List<string>() { "Never", "OnFinish", "OnExit" }; }
-		public static List<String> BackColors { get => new List<string>() { "#dce4e4", "#f8f8f8", "#20ffffff",
+		public static List<String> BackColors { get => new List<string>() { "Transparent",
+			"#dce4e4", "#f8f8f8", "#20ffffff",
 			"White",
 			"MintCream", "LightGray", 
-			"LightBlue", "LightGreen", "Lavender", 
-			"LightGoldenrodYellow", "LightCoral" }; }
+			"DarkGray", "LightGreen", "Lavender" }; }
+		public static List<string> ThemeList { get => new List<string> { "None", "Light", "Dark" }; }
 
 		#region setters and getters
 		private bool _UseREST;
@@ -40,6 +41,55 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
+		private string _GraphForeground = BackColors[0];  // slightly darker mintcream
+		public string GraphForeground
+		{
+			get { return _GraphForeground; }
+			set
+			{
+				SetProperty(ref _GraphForeground, value);
+			}
+		}
+
+		private string _ThemeSet = "None";  // slightly darker mintcream
+		public string ThemeSet
+		{
+			get { return _ThemeSet; }
+			set
+			{
+				if(value != _ThemeSet)
+				{
+					SetProperty(ref _ThemeSet, value);
+					// -- set theme
+#pragma warning disable WPF0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+					switch (value)
+					{
+						case "None":
+							Application.Current.ThemeMode = ThemeMode.None;
+							if( BackgroundClr ==  BackColors[0] )
+							{
+								BackgroundClr = BackColors[1];	// transparent doesn't work well
+							}
+							break;
+						case "Light":
+							Application.Current.ThemeMode = ThemeMode.Light;
+							break;
+						case "Dark":
+							Application.Current.ThemeMode = ThemeMode.Dark;
+							BackgroundClr = BackColors[0];
+							break;
+						case "System":
+							Application.Current.ThemeMode = ThemeMode.System;
+							BackgroundClr = BackColors[0];
+							break;
+						default:
+							break;
+					}
+#pragma warning restore WPF0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+					ViewSettings.Singleton.Main.ThemeBkgd = BackgroundClr;
+				}
+			}
+		}
 
 		private string _GraphBackClr = BackColors[0];  // slightly darker mintcream
 		public string GraphBackClr

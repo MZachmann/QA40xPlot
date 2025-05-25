@@ -6,7 +6,8 @@
         xmlns:views="clr-namespace:QA40xPlot.Views"
         xmlns:local="clr-namespace:QA40xPlot"
         mc:Ignorable="d"
-        Title="Qa40xPlot" Height="800" Width="1600" Background="{Binding Background, Mode=OneWay}">
+        Title="Qa40xPlot" Height="800" Width="1600" Background="{Binding Background, Mode=OneWay}"
+        ThemeMode="None">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -78,7 +79,7 @@
                     <views:ThdAmpPlotPage  />
                 </Grid>
             </TabItem>
-            <TabItem Header="{Binding FreqRespHdr}" Name="freqresp" >
+           <TabItem Header="{Binding FreqRespHdr}" Name="freqresp" >
                 <Grid Background="{Binding Background, Mode=OneWay}">
                     <views:FreqRespPlotPage  />
                 </Grid>

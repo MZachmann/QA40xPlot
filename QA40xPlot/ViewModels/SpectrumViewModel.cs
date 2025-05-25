@@ -10,6 +10,7 @@ using ScottPlot;
 using ScottPlot.Plottables;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
+using System.Windows.Controls;
 
 
 namespace QA40xPlot.ViewModels
@@ -232,7 +233,7 @@ namespace QA40xPlot.ViewModels
 			return actSpec?.CreateExportData();
 		}
 
-		public void SetAction(PlotControl plot, ThdChannelInfo info, ThdChannelInfo info2, TabAbout about)
+		public void SetAction(UserControl myWnd, PlotControl plot, ThdChannelInfo info, ThdChannelInfo info2, TabAbout about)
 		{
 			actSpec = new ActSpectrum(plot);
 			actInfoLeft = info;
@@ -455,7 +456,7 @@ namespace QA40xPlot.ViewModels
 			ToShowdB = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Visible : Visibility.Collapsed;
 
 			// make a few things happen to synch the gui
-			Task.Delay(1000).ContinueWith(t => { actSpec?.UpdateGraph(true); });
+			//Task.Delay(1000).ContinueWith(t => { actSpec?.UpdateGraph(true); });
 		}
 	}
 }
