@@ -100,7 +100,6 @@ namespace QA40xPlot.Actions
 				return false;
 			}
 			bvm.IsRunning = true;
-			bvm.HasMiniPlots = bvm.ShowMiniPlots; // set the mini plot flag
 			bvm.ShowMiniPlots = true; // enable mini plots for the duration of the action
 			WaveGenerator.Clear();  // disable both generators and the WaveGenerator itself
 			FrequencyHistory.Clear();
@@ -117,7 +116,7 @@ namespace QA40xPlot.Actions
 			//QaComm.Close(false);
 			bvm.IsRunning = false;
 			bvm.HasSave = true; // set the save flag
-			if( !bvm.HasMiniPlots)
+			if( !bvm.KeepMiniPlots)
 			{
 				_ = Task.Delay(1000).ContinueWith(x => bvm.ShowMiniPlots = false); // disable mini plots after a second
 			}

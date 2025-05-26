@@ -49,7 +49,7 @@
                             Text="{Binding EndVoltage}" x:Name="cbV2" ItemsSource="{Binding GenVoltages}" />
                     <Label Content="{Binding GenAmpUnits, Mode=OneWay}" Grid.Column="2" Grid.Row="2" VerticalAlignment="Center"   />
                     <Label Content="Steps / _Octave" Target="{Binding ElementName=cbStO}"  HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Column="0" Grid.Row="3"  />
-                    <xctk:IntegerUpDown x:Name="cbStO" VerticalAlignment="Center" Value="{Binding StepsOctave}" Minimum="1" Grid.Column="1" Grid.Row="3"  />
+                    <views:UpDownControl x:Name="cbStO" VerticalAlignment="Center" Value="{Binding StepsOctave, Mode=TwoWay}" Minimum="1" Grid.Column="1" Grid.Row="3"  />
                 </Grid>
             </Expander>
 
@@ -101,7 +101,7 @@
                                SelectedValue="{Binding FftSize}" ItemsSource="{Binding FftSizes}">
                     </ComboBox>
                     <Label Content="_Averages" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Column="0" Grid.Row="2" Target="{Binding ElementName=xcaverages}"  />
-                    <xctk:IntegerUpDown x:Name="xcaverages" Value="{Binding Averages}" VerticalAlignment="Center"  Minimum="1" Maximum="{Binding MaxAverages}"  Grid.Column="1" Grid.Row="2"  />
+                    <views:UpDownControl x:Name="xcaverages" Value="{Binding Averages, Mode=TwoWay}" VerticalAlignment="Center"  Minimum="1" Maximum="{Binding MaxAverages}"  Grid.Column="1" Grid.Row="2"  />
                 </Grid>
             </Expander>
             <views:StorageUi />
@@ -147,48 +147,50 @@
                 </Grid>
             </Expander>
 
-            <views:GroupHeader Header="Graph Data"/>
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <CheckBox Content="Magnitude" IsChecked="{Binding ShowMagnitude}" Grid.Row="0"  />
-                <CheckBox Content="THD" IsChecked="{Binding ShowTHD}" Grid.Row="1" Grid.Column="0"  />
-                <CheckBox Content="D2" IsChecked="{Binding ShowD2}" Grid.Row="1" Grid.Column="1"  />
-                <CheckBox Content="D3" IsChecked="{Binding ShowD3}" Grid.Row="2" Grid.Column="0"  />
-                <CheckBox Content="D4" IsChecked="{Binding ShowD4}" Grid.Row="2"  Grid.Column="1" />
-                <CheckBox Content="D5" IsChecked="{Binding ShowD5}" Grid.Row="3" Grid.Column="0" />
-                <CheckBox Content="D6+" IsChecked="{Binding ShowD6}" Grid.Row="3" Grid.Column="1" />
-                <CheckBox Content="Noise Floor" IsChecked="{Binding ShowNoiseFloor}" Grid.Row="4" Grid.Column="0"  />
-                <CheckBox Content="Tab Info" IsChecked="{Binding ShowTabInfo}" Grid.Row="5" Grid.Column="0"  />
-                <CheckBox Content="Mini-Plots" IsChecked="{Binding ShowMiniPlots}" Grid.Row="6" Grid.Column="0"  />
-            </Grid>
+            <Expander Header="—— Graph Data"  IsExpanded="{Binding ExpandGraphData}" >
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <CheckBox Content="Magnitude" IsChecked="{Binding ShowMagnitude}" Grid.Row="0"  />
+                    <CheckBox Content="THD" IsChecked="{Binding ShowTHD}" Grid.Row="1" Grid.Column="0"  />
+                    <CheckBox Content="D2" IsChecked="{Binding ShowD2}" Grid.Row="1" Grid.Column="1"  />
+                    <CheckBox Content="D3" IsChecked="{Binding ShowD3}" Grid.Row="2" Grid.Column="0"  />
+                    <CheckBox Content="D4" IsChecked="{Binding ShowD4}" Grid.Row="2"  Grid.Column="1" />
+                    <CheckBox Content="D5" IsChecked="{Binding ShowD5}" Grid.Row="3" Grid.Column="0" />
+                    <CheckBox Content="D6+" IsChecked="{Binding ShowD6}" Grid.Row="3" Grid.Column="1" />
+                    <CheckBox Content="Noise Floor" IsChecked="{Binding ShowNoiseFloor}" Grid.Row="4" Grid.Column="0"  />
+                    <CheckBox Content="Tab Info" IsChecked="{Binding ShowTabInfo}" Grid.Row="5" Grid.Column="0"  />
+                    <CheckBox Content="Mini-Plots" IsChecked="{Binding KeepMiniPlots}" Grid.Row="6" Grid.Column="0"  />
+                </Grid>
+            </Expander>
 
-            <views:GroupHeader Header="Options"/>
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="0"  />
-                <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="1"  />
-                <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="2"  />
-                <CheckBox Content="Data Points" IsChecked="{Binding ShowPoints}" Grid.Row="3"  />
-            </Grid>
+            <Expander Header="—— Options"  IsExpanded="{Binding ExpandGraphOptions}" >
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="0"  />
+                    <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="1"  />
+                    <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="2"  />
+                    <CheckBox Content="Data Points" IsChecked="{Binding ShowPoints}" Grid.Row="3"  />
+                </Grid>
+            </Expander>
 
             <views:GroupHeader Header="Cursor" />
             <StackPanel Orientation="Vertical">

@@ -435,11 +435,11 @@ namespace QA40xPlot.Libraries
             double period = 1 / fundamantalFrequency;
             double displayTime = period * 1;
             if (period < 0.00005)
-                displayTime = period * 4;
+                displayTime = period * 20;
             else if (period < 0.0001)
-                displayTime = period * 2;
+                displayTime = period * 10;
             else if (period < 0.0002)
-                displayTime = period * 1.5;
+                displayTime = period * 4;
 
             // Get first zero-crossing
             int startStep = 0;

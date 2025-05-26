@@ -85,7 +85,7 @@
                                SelectedValue="{Binding FftSize}" ItemsSource="{Binding FftSizes}">
                     </ComboBox>
                     <Label Content="_Averages" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Column="0" Grid.Row="2" Target="{Binding ElementName=xcaverages}"  />
-                    <xctk:IntegerUpDown x:Name="xcaverages" Value="{Binding Averages}" Minimum="1" Maximum="{Binding MaxAverages}" VerticalAlignment="Center" Grid.Column="1" Grid.Row="2"  />
+                    <views:UpDownControl x:Name="xcaverages" Value="{Binding Averages, Mode=TwoWay}" Minimum="1" Maximum="{Binding MaxAverages}" VerticalAlignment="Center" Grid.Column="1" Grid.Row="2"  />
 
                     <Label Content="_Window" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="3" Grid.Column="0" Target="{Binding ElementName=cbWindow}"  />
                     <ComboBox x:Name="cbWindow" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="3"   
@@ -111,35 +111,37 @@
             <views:YAxisDb />
             <views:YAxisPerc />
             <views:XAxisHz />
-            <views:GroupHeader Header="Graph Data"/>
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <CheckBox Content="Summary Data" IsChecked="{Binding ShowSummary}" Grid.Row="0"  />
-                <CheckBox Content="Tab Info" IsChecked="{Binding ShowTabInfo}" Grid.Row="1"  />
-                <CheckBox Content="Harmonic Markers" IsChecked="{Binding ShowMarkers}" Grid.Row="2"  />
-                <CheckBox Content="Power Markers" IsChecked="{Binding ShowPowerMarkers}" Grid.Row="3"  />
-            </Grid>
+            <Expander Header="—— Graph Data"  IsExpanded="{Binding ExpandGraphData}" >
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <CheckBox Content="Summary Data" IsChecked="{Binding ShowSummary}" Grid.Row="0"  />
+                    <CheckBox Content="Tab Info" IsChecked="{Binding ShowTabInfo}" Grid.Row="1"  />
+                    <CheckBox Content="Harmonic Markers" IsChecked="{Binding ShowMarkers}" Grid.Row="2"  />
+                    <CheckBox Content="Power Markers" IsChecked="{Binding ShowPowerMarkers}" Grid.Row="3"  />
+                </Grid>
+            </Expander>
 
-            <views:GroupHeader Header="Options"/>
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="0"  />
-                <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="1"  />
-                <CheckBox Content="% - Data Summary" IsChecked="{Binding ShowDataPercent}" Grid.Row="4"  />
-                <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="5"  />
-            </Grid>
+            <Expander Header="—— Options"  IsExpanded="{Binding ExpandGraphOptions}" >
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="0"  />
+                    <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="1"  />
+                    <CheckBox Content="% - Data Summary" IsChecked="{Binding ShowDataPercent}" Grid.Row="4"  />
+                    <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="5"  />
+                </Grid>
+            </Expander>
 
             <views:GroupHeader Header="Cursor" />
             <Grid >

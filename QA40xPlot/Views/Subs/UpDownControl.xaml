@@ -1,0 +1,22 @@
+﻿<UserControl x:Class="QA40xPlot.Views.UpDownControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:QA40xPlot.Views" 
+             mc:Ignorable="d" 
+             d:DesignHeight="100" d:DesignWidth="100">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="1" Orientation="Horizontal">
+            <TextBox Text="{Binding Value, RelativeSource={RelativeSource AncestorType=local:UpDownControl}}" 
+                 VerticalContentAlignment="Center" HorizontalAlignment="Stretch" MinWidth="60" />
+            <Button x:Name="UpButton" Content="▲" Click="UpButton_Click" Margin="1" />
+            <Button x:Name="DownButton" Content="▼" Click="DownButton_Click" Margin="1"/>
+        </StackPanel>
+    </Grid>
+</UserControl>
+    

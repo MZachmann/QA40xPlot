@@ -77,10 +77,15 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _MyWindow, value);
 		}
 
-		[JsonIgnore]
-		public bool HasMiniPlots { get; set; } = true;	// show the mini plots in the main window
+		private bool _KeepMiniPlots = false;
+		public bool KeepMiniPlots
+		{
+			get => _KeepMiniPlots;
+			set { SetProperty(ref _KeepMiniPlots, value); ShowMiniPlots = value; }
+		}
 
-		private bool _ShowMiniPlots = true;
+		private bool _ShowMiniPlots = false;
+		[JsonIgnore]
 		public bool ShowMiniPlots
 		{
 			get => _ShowMiniPlots;
@@ -120,6 +125,22 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _ExpandSweep;
 			set => SetProperty(ref _ExpandSweep, value);
+		}
+
+
+		private bool _ExpandGraphData = true;       // expand the GraphData section?
+		public bool ExpandGraphData
+		{
+			get => _ExpandGraphData;
+			set => SetProperty(ref _ExpandGraphData, value);
+		}
+
+
+		private bool _ExpandGraphOptions = true;       // expand the GraphOptions section?
+		public bool ExpandGraphOptions
+		{
+			get => _ExpandGraphOptions;
+			set => SetProperty(ref _ExpandGraphOptions, value);
 		}
 
 		private bool _ShowTabInfo = false;
@@ -189,7 +210,8 @@ namespace QA40xPlot.ViewModels
 		private uint _Averages;         // type of alert
 		public uint Averages
 		{
-			get => _Averages; set => SetProperty(ref _Averages, value);
+			get => _Averages; 
+			set => SetProperty(ref _Averages, value);
 		}
 
 		private bool _ShowLeft;

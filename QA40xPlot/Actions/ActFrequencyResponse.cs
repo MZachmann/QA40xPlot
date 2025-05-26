@@ -152,6 +152,8 @@ namespace QA40xPlot.Actions
 			var vmFreq = MyVModel;
 			if (! await StartAction(vmFreq))
 				return;
+			if (vmFreq.IsChirp)
+				vmFreq.ShowMiniPlots = false; // don't show mini plots during chirp
 
 			vmFreq.HasExport = false;
 			ct = new();
@@ -502,10 +504,10 @@ namespace QA40xPlot.Actions
                         var ga = await GetGain(dfreq, vm, ttype);
 						page.GainData = page.GainData.Append(ga).ToArray();
                     }
-                    if (page.FreqRslt != null)
+                    if (PageData.FreqRslt != null)
                     {
-                        QaLibrary.PlotMiniFftGraph(fftPlot, page.FreqRslt, true, false);
-                        QaLibrary.PlotMiniTimeGraph(timePlot, page.TimeRslt, dfreq, true, false);
+                        QaLibrary.PlotMiniFftGraph(fftPlot, PageData.FreqRslt, true, false);
+                        QaLibrary.PlotMiniTimeGraph(timePlot, PageData.TimeRslt, dfreq, true, false);
                     }
 					page.GainFrequencies = page.GainFrequencies.Append(dfreq).ToArray();
 					UpdateGraph(false);

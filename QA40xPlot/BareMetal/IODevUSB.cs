@@ -238,13 +238,14 @@ namespace QA40xPlot.BareMetal
 				}
 				lrfs.TimeRslt.dt = 1.0 / _SampleRate;
 			}
-			if( "QA402" == QaLowUsb.GetDeviceModel())
+			// if it's a QA402 the data comes in with channels 'backwards' so we flip them
+			if ( "QA402" == QaLowUsb.GetDeviceModel())
 			{
-				// flip the channels
 				var x = lrfs.TimeRslt.Left;
 				lrfs.TimeRslt.Left = lrfs.TimeRslt.Right;
 				lrfs.TimeRslt.Right = x;
 			}
+			//
 			if (ct.IsCancellationRequested)
 				return lrfs;
 

@@ -22,7 +22,7 @@ namespace QA40x.BareMetal
 		public bool Valid = false;
 		public double[] Left = [];
 		public double[] Right = [];
-	}
+	};
 
 	/// <summary>
 	/// A simple class to help wrap async transfers
@@ -70,8 +70,9 @@ namespace QA40x.BareMetal
 	class QaUsb
     {
         object ReadRegLock = new object();
+		private readonly static int _RelayMilliseconds = 2000; // how long to wait for relays to settle down after changing input/output ranges
 
-        List<AsyncResult> WriteQueue = new List<AsyncResult>();
+		List<AsyncResult> WriteQueue = new List<AsyncResult>();
         List<AsyncResult> ReadQueue = new List<AsyncResult>();
 		/// Tracks whether or not an acq is in process. The count starts at one, and when it goes busy
 		/// it will drop to zero, and then return to 1 when not busy
@@ -352,7 +353,7 @@ namespace QA40x.BareMetal
 						doit = (u != _LastOutputRange);
 					if (doit)
 					{
-						await showMessage("Waiting for relays to settle...", 1500);
+						await showMessage("Waiting for relays to settle...", _RelayMilliseconds);
 						await showMessage("Acquiring data", 10);
 						//// do at least 1.5 seconds of streaming
 						//var ss = QaComm.GetSampleRate();
@@ -466,8 +467,8 @@ namespace QA40x.BareMetal
 			List<double> rout = rightOut.Select(x => x * dbfsAdjustment * dacCal.Right).ToList();
 
 			// now pad front and back of the values via prebuf and postbuf 
-			preBuf = Math.Max(preBuf, usbBufSize / 2);
-			postBuf = Math.Max(postBuf, usbBufSize / 2);
+			preBuf = Math.Max(preBuf, usbBufSize / 8);
+			postBuf = Math.Max(postBuf, usbBufSize / 8);
 			double[] prebuf = new double[preBuf];
 			double[] postbuf = new double[postBuf];
 			lout.InsertRange(0, prebuf);
@@ -584,25 +585,26 @@ namespace QA40x.BareMetal
 				// check delay offset
 				if(leftOut.Max() > 1e-10 || rightOut.Max() > 1e-10)
 				{
-					var dcoffset = (r.Left.Skip(100).Take(500).Average(),	r.Right.Skip(100).Take(500).Average());
-					for(int i=0; i<r.Left.Length; i++)
+					var dcoffsetL = r.Left.Skip(preBuf).Take(tused).Average();
+					var dcoffsetR = r.Right.Skip(preBuf).Take(tused).Average();
+					for(int i= preBuf; i<r.Left.Length; i++)
 					{
 						// empirically we get -7e-5 until signal shows up
 						// i assume that's dc offset...
 						var inx = r.Left[i] ;
 						var iny = r.Right[i];
-						if ( (inx - dcoffset.Item1) > 3e-5 || (iny-dcoffset.Item2) > 3e-5)
+						if ( Math.Abs(inx - dcoffsetL) > 1e-3 || Math.Abs(iny- dcoffsetR) > 1e-3)
 						{
 							loff = i;
 							break;
 						}
 					}
 					var samplerate = QaComm.GetSampleRate();
-					// allow 1ms after the end of the prebuffer
-					if (loff > preBuf + samplerate / 1000)
-						loff = (int)(preBuf + samplerate / 1000);
+					// allow 2ms after the end of the prebuffer
+					if (loff > (preBuf + samplerate / 2000))
+						loff = (int)(preBuf + samplerate / 2000);
 					loff = Math.Max(0, loff - preBuf);
-					Debug.WriteLine($"Delay offset: {loff:G3}   DC offset: {dcoffset.Item1:G3},{dcoffset.Item2:G3}");
+					Debug.WriteLine($"Delay offset: {loff:G3}   DC offset: {dcoffsetL:G3},{dcoffsetR:G3}");
 					_DelayOffset = loff;
 				}
 

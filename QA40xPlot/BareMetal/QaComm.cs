@@ -86,11 +86,11 @@ namespace QA40xPlot.BareMetal
 		}
 		public static int GetPreBuffer()
 		{
-			return 16384;
+			return 2048;
 		}
 		public static int GetPostBuffer()
 		{
-			return 4096;
+			return 2048;
 		}
 
 		public static async Task<LeftRightSeries> DoAcquireUser(uint averages, CancellationToken ct, double[] dataLeft, double[] dataRight, bool getFreq)
