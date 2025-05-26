@@ -15,8 +15,8 @@
     <AssemblyOriginatorKeyFile>Keys\sgKey.snk</AssemblyOriginatorKeyFile>
     <ApplicationIcon>Images\favicon.ico</ApplicationIcon>
     <UseWindowsForms>False</UseWindowsForms>
-    <AssemblyVersion>1.1.12</AssemblyVersion>
-    <FileVersion>1.1.12</FileVersion>
+    <AssemblyVersion>1.1.13</AssemblyVersion>
+    <FileVersion>1.1.13</FileVersion>
 	</PropertyGroup>
 
   <ItemGroup>
@@ -31,7 +31,6 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.7.25104.5739" />
     <PackageReference Include="FftSharp" Version="2.2.0" />
     <PackageReference Include="LibUsbDotNet" Version="2.2.75" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

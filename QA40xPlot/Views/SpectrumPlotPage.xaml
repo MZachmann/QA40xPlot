@@ -17,7 +17,7 @@
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0" Margin="0,1,1,0">
             <views:StartStop />
-            <CheckBox Content="_Use Generator" IsChecked="{Binding UseGenerator}" 
+            <CheckBox Content="_Use Generator" IsChecked="{Binding ExpandGenerator}" 
                       HorizontalAlignment="Center"  Margin="0,5,0,0" />
             <views:Attenuator />
             <Expander Header="—— Generator 1">

@@ -4,6 +4,12 @@ This changelog shows the changes made and then released via github
 --------------------------------------------
 V 1.1.13
 - add inductor/capacitor cursor for impedance test
+- add ability to select a theme
+- swapped out updown for a usercontrol
+- alphabetize settings
+- add expanders to the UI portion of the screen
+- move miniplots to a separate window
+- swap input channels if QA402
 V 1.1.12
 - increase max # of averages to 20
 - add 88,16K fft sizes

@@ -14,8 +14,8 @@
         <StackPanel Grid.Column="1" Orientation="Horizontal">
             <TextBox Text="{Binding Value, RelativeSource={RelativeSource AncestorType=local:UpDownControl}}" 
                  VerticalContentAlignment="Center" HorizontalAlignment="Stretch" MinWidth="60" />
-            <Button x:Name="UpButton" Content="▲" Click="UpButton_Click" Margin="1" />
-            <Button x:Name="DownButton" Content="▼" Click="DownButton_Click" Margin="1"/>
+            <Button x:Name="UpButton" Content="▲" Click="UpButton_Click" Margin="2,1" />
+            <Button x:Name="DownButton" Content="▼" Click="DownButton_Click" Margin="2,1"/>
         </StackPanel>
     </Grid>
 </UserControl>
