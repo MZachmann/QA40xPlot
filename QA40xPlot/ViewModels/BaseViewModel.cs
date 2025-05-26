@@ -77,6 +77,16 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _MyWindow, value);
 		}
 
+		[JsonIgnore]
+		public bool HasMiniPlots { get; set; } = true;	// show the mini plots in the main window
+
+		private bool _ShowMiniPlots = true;
+		public bool ShowMiniPlots
+		{
+			get => _ShowMiniPlots;
+			set => SetProperty(ref _ShowMiniPlots, value);
+		}
+
 		private bool _ExpandGenerator = true;		// expand the generator section?
 		public bool ExpandGenerator
 		{

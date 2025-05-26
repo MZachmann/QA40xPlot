@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Data;
 
-namespace QA40xPlot.Views
+namespace QA40xPlot.Converters
 {
 	public class EnumBooleanConverter : IValueConverter
 	{
@@ -10,6 +10,22 @@ namespace QA40xPlot.Views
 			return value.ToString()?.Equals(parameter.ToString()) == true;
 		}
 
+		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			return Binding.DoNothing;
+		}
+	}
+
+	public class BoolToVisibilityConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			if (value is bool boolValue)
+			{
+				return boolValue ? Visibility.Visible : Visibility.Hidden;
+			}
+			return Visibility.Hidden;
+		}
 		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
 		{
 			return Binding.DoNothing;
@@ -28,7 +44,7 @@ namespace QA40xPlot.Views
 			// three arguments are:
 			// voltage, reference voltage, usepercent
 			string rslt = string.Empty;
-			if ((bool)(value[2]))
+			if ((bool)value[2])
 			{
 				double dv = (double)value[0];
 				rslt = dv.ToString("G3") + "%";

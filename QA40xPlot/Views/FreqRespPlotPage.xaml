@@ -143,6 +143,8 @@
             <views:PlotControl x:Name="WpfPlot1"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="0,20,0,0" />
             <views:TabAbout x:Name="TAbout" Visibility="Hidden"
                   VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,50,54,0" />
+            <views:MiniShow x:Name="MiniShow" Visibility="{Binding ShowMiniPlots, Converter={StaticResource BoolVisConverter}}" 
+                            VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,80,64,0" />
         </Grid>
         <StackPanel Grid.Column="2" Orientation="Vertical">
             <Expander Header="—— Y Axis"  IsExpanded="{Binding ExpandYAxis}" >
@@ -213,6 +215,7 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <CheckBox Content="Tab Info" IsChecked="{Binding ShowTabInfo}" Grid.Row="0"  />
+                <CheckBox Content="Mini-Plots" IsChecked="{Binding ShowMiniPlots}" Grid.Row="1"  />
             </Grid>
 
             <views:GroupHeader Header="Options"/>
@@ -243,9 +246,6 @@
                 <Label Content="{Binding FreqShow}" Grid.Row="0" Grid.Column="1" IsEnabled="{Binding IsTracking}" Width="70" />
                 <TextBox Text="{Binding ZValue}" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" TextWrapping="Wrap" AcceptsReturn="True" Width="120" HorizontalAlignment="Left" />
             </Grid>
-
-            <views:PlotControl x:Name="WpfPlot2" Width="150" Height="100" Margin="0,4,0,0" />
-            <views:PlotControl x:Name="WpfPlot3" Width="150"  Height="100" Margin="0,4" />
         </StackPanel>
     </Grid>
 </UserControl>

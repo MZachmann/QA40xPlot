@@ -106,14 +106,14 @@
             </Expander>
             <views:StorageUi />
             <views:GotFileList x:Name="GotList"  HorizontalAlignment="Stretch" MaxHeight="100" Margin="0,5,0,0"/>
-            <views:PlotControl x:Name="WpfPlot2" Width="150" Height="100" Margin="0,4,0,0" />
-            <views:PlotControl x:Name="WpfPlot3" Width="150"  Height="100" Margin="0,4" />
         </StackPanel>
         <Grid Grid.Column="1">
             <Label Content="{Binding DsHeading}" HorizontalAlignment="Center" VerticalAlignment="Top" />
             <views:PlotControl x:Name="WpfPlot1"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="0,20,0,0" />
             <views:TabAbout x:Name="TAbout" 
-                  VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,50,34,0" />
+                  VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,50,54,0" />
+            <views:MiniShow x:Name="MiniShow" Visibility="{Binding ShowMiniPlots, Converter={StaticResource BoolVisConverter}}"
+                            VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,80,64,0" />
         </Grid>
         <StackPanel Grid.Column="2" Orientation="Vertical">
             <views:YAxisDb />
@@ -122,6 +122,7 @@
             <views:GroupHeader Header="Graph Data" />
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -140,8 +141,9 @@
                 <CheckBox Content="D4" IsChecked="{Binding ShowD4}" Grid.Row="2"  Grid.Column="1" />
                 <CheckBox Content="D5" IsChecked="{Binding ShowD5}" Grid.Row="3" Grid.Column="0" />
                 <CheckBox Content="D6+" IsChecked="{Binding ShowD6}" Grid.Row="3" Grid.Column="1" />
-                <CheckBox Content="Noise Floor" IsChecked="{Binding ShowNoiseFloor}" Grid.Row="4"  />
-                <CheckBox Content="Tab Info" IsChecked="{Binding ShowTabInfo}" Grid.Row="5"  />
+                <CheckBox Content="Noise Floor" IsChecked="{Binding ShowNoiseFloor}" Grid.Row="4" Grid.Column="0"  />
+                <CheckBox Content="Tab Info" IsChecked="{Binding ShowTabInfo}" Grid.Row="5" Grid.Column="0"  />
+                <CheckBox Content="Mini-Plots" IsChecked="{Binding ShowMiniPlots}" Grid.Row="6" Grid.Column="0"  />
             </Grid>
 
             <views:GroupHeader Header="Options" />

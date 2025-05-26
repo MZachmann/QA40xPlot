@@ -1,0 +1,8 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:convert="clr-namespace:QA40xPlot.Converters"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+        <convert:EnumBooleanConverter x:Key="EnumBooleanConverter"/>
+        <convert:VtoPctConverter x:Key="VToPctConverter"/>
+        <convert:VoltFormatter x:Key="VoltFormatter"/>
+    <convert:BoolToVisibilityConverter x:Key="BoolVisConverter"/>
+</ResourceDictionary>

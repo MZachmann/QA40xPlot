@@ -56,6 +56,9 @@
     <Compile Update="Views\ImdPlotPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Subs\MiniShow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\ThdAmpPlotPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>

@@ -4,6 +4,10 @@
              xmlns:local="clr-namespace:QA40xPlot"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-
-    </Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Converters/Converters.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+</Application.Resources>
 </Application>

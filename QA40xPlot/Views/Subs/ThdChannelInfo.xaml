@@ -8,10 +8,6 @@
              mc:Ignorable="d" 
              Background="{Binding ThemeBackground}"
              d:DesignHeight="300" d:DesignWidth="200" >
-    <UserControl.Resources>
-        <views:VtoPctConverter x:Key="VToPctConverter"/>
-        <views:VoltFormatter x:Key="VoltFormatter"/>
-    </UserControl.Resources>
     <Border BorderBrush="{Binding BorderColor}" BorderThickness="1">
         <StackPanel Orientation="Vertical">
             <Grid >
