@@ -47,8 +47,8 @@ namespace QA40xPlot.Views
 				"Value",                // Property name
 				typeof(int),              // Property type
 				typeof(UpDownControl),       // Owner type
-				new PropertyMetadata(        // Default value and callback
-					0)
+								new FrameworkPropertyMetadata(
+					0, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault)
 			);
 
 		public static readonly DependencyProperty MinimumProperty =

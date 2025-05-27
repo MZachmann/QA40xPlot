@@ -324,7 +324,26 @@ namespace QA40xPlot.Libraries
 
 		}
 
-		public static Color StrToColor(string fromSetting)
+		public static System.Windows.Media.Color ScottToMedia(ScottPlot.Color clr)
+		{
+			// Convert the ScottPlot Color object to a System.Windows.Media.Color object
+			return new System.Windows.Media.Color
+			{
+				A = clr.A,
+				R = clr.R,
+				G = clr.G,
+				B = clr.B
+			};
+		}
+
+		public static ScottPlot.Color MediaToScott(System.Windows.Media.Color clr)
+		{
+			// Convert the ScottPlot Color object to a System.Windows.Media.Color object
+			var c = new ScottPlot.Color( clr.A, clr.R, clr.G, clr.B);
+			return c;
+		}
+
+		public static ScottPlot.Color StrToColor(string fromSetting)
 		{
 			try
 			{

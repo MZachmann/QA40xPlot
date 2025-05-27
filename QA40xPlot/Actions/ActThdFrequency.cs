@@ -50,7 +50,14 @@ namespace QA40xPlot.Actions
             UpdateGraph(true);
         }
 
-        public void DoCancel()
+		// here param is the id of the tab to remove from the othertab list
+		public void DeleteTab(int id)
+		{
+			OtherTabs.RemoveAll(item => item.Id == id);
+			MyVModel.ForceGraphUpdate(); // force a graph update
+		}
+
+		public void DoCancel()
         {
             ct.Cancel();
         }
@@ -214,11 +221,11 @@ namespace QA40xPlot.Actions
 				foreach (var o in OtherTabs)
 				{
 					var all2 = LookupColumn(o, freq); // lookup the columns
-					if (1 == (o.Show & 1))
+					if (o.Definition.IsOnL)
 						myset.Add(all2.Item1);
 					if (myset.Count == 2)
 						break;
-					if (2 == (o.Show & 2))
+					if (o.Definition.IsOnR)
 						myset.Add(all2.Item2);
 					if (myset.Count == 2)
 						break;
@@ -279,8 +286,8 @@ namespace QA40xPlot.Actions
 			{
 				page.Show = 1; // show the left channel new
 				OtherTabs.Add(page); // add the new one
-				var oss = new OtherSet(page.Definition.Name, page.Show, page.Id, string.Empty);
-				MyVModel.OtherSetList.Add(oss);
+				//var oss = new OtherSet(page.Definition.Name, page.Show, page.Id);
+				MyVModel.OtherSetList.Add(page.Definition);
 			}
 
 			UpdateGraph(true);
@@ -630,8 +637,8 @@ namespace QA40xPlot.Actions
 			}
 			else
 			{
-				showLeft = 1 == (page.Show & 1); // dynamically update these
-				showRight = 2 == (page.Show & 2);
+				showLeft = page.Definition.IsOnL; // dynamically update these
+				showRight = page.Definition.IsOnR;
 			}
 
 			if (!showLeft && !showRight)
@@ -648,7 +655,7 @@ namespace QA40xPlot.Actions
                 Scatter? plot = null;
 				plot = thdPlot.ThePlot.Add.Scatter(xValues, yValues.ToArray());
 				plot.LineWidth = lineWidth;
-				plot.Color = GraphUtil.GetPaletteColor("Default", colorIndex);
+				plot.Color = GraphUtil.GetPaletteColor("Transparent", colorIndex);
                 plot.MarkerSize = markerSize;
                 plot.LegendText = legendText;
                 plot.LinePattern = linePattern;
@@ -706,7 +713,6 @@ namespace QA40xPlot.Actions
 
         public void UpdateGraph(bool settingsChanged)
         {
-			DataUtil.ReflectOtherSet(OtherTabs, MyVModel.OtherSetList);
 			thdPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
             int resultNr = 0;
             ThdFreqViewModel thd = MyVModel;

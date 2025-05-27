@@ -29,8 +29,45 @@ namespace QA40xPlot.Data
 		public string CreateDate { get; set; }  // Measurement date time
 		public bool Saved { get; set; }
 		public double GeneratorVoltage { get; set; } // the generator voltage, if any
-		public string LeftColor { get; set; } = "Default"; // left color for the graph
-		public string RightColor { get; set; } = "Default"; // right color for the graph
+		private string _LeftColor = "Transparent"; // left color for the graph
+		public string LeftColor
+		{
+			get => _LeftColor;
+			set { SetProperty(ref _LeftColor, value); 
+				RaisePropertyChanged("Repaint"); }  // left color for the graph
+		}
+		private string _RightColor = "Transparent"; // left color for the graph
+		public string RightColor
+		{
+				get => _RightColor;
+				set { SetProperty(ref _RightColor, value);  // left color for the graph
+						RaisePropertyChanged("Repaint");	// this will notify the main graph via special property
+			}  // left color for the graph
+		}
+
+		private bool _IsOnL = false;
+		[JsonIgnore]
+		public bool IsOnL
+		{
+			get { return _IsOnL; }
+			set { SetProperty(ref _IsOnL, value); }
+		}
+		private bool _IsOnR = false;
+		[JsonIgnore]
+		public bool IsOnR
+		{
+			get { return _IsOnR; }
+			set { SetProperty(ref _IsOnR, value); }
+		}
+
+		private int _Id = 0; // the parent data descriptor ID
+		[JsonIgnore]
+		public int Id
+		{
+			get { return _Id; }
+			set { SetProperty(ref _Id, value); }
+		}
+
 		[JsonIgnore]
 		public BaseViewModel? MainVm { get; set; } = null; // the generator, if any
 		[JsonIgnore]
@@ -56,9 +93,11 @@ namespace QA40xPlot.Data
 		// and tell it what exactly changed with a Ds prefix for uniqueness
 		private void ChangeDefinition(object? sender, PropertyChangedEventArgs e)
 		{
-			if(MainVm != null && (e.PropertyName?.Length ?? 0) > 0)
+			List<string> used = new() { "Name", "Heading", "Repaint" };
+			var mainVm = ViewSettings.Singleton.Main.CurrentView;	// ????
+			if (mainVm != null && used.Contains(e.PropertyName ?? string.Empty))
 			{
-				MainVm.RaisePropertyChanged("Ds" + e.PropertyName);
+				mainVm.RaisePropertyChanged("Ds" + e.PropertyName);
 			}
 		}
 	}
@@ -74,13 +113,13 @@ namespace QA40xPlot.Data
 	// a viewmodel, a time series and a dictionary of other properties
 	public class DataTab<T>
 	{
-		private static int _CurrentId = 0;      // unique id for the datatab
+		private static int _CurrentId = 1;      // unique id for the datatab
 												// ------------------------------------------------------------------
 												// we only serialize these things
 		public DataDescript Definition { get; set; } = new DataDescript();
 		public T ViewModel { get; private set; }
 		public LeftRightTimeSeries TimeRslt { get; set; }   // if we acquired data
-		public LeftRightPair NoiseFloor { get; set; } = new();		// if we have the noise floor measurement
+		public LeftRightPair NoiseFloor { get; set; } = new();		// if we have the noise floor measurement we just need to retain the scalars
 		// for sweeps
 		public SweepData Sweep { get; set; } = new();           // X values, freq or time or amplitude...
 
@@ -182,6 +221,7 @@ namespace QA40xPlot.Data
 		/// <param name="dct"></param>
 		public DataTab(T viewModel, LeftRightTimeSeries series, Dictionary<string,object>? dct = null)
 		{
+			Definition.Id = _CurrentId;
 			Id = _CurrentId++;  // unique id for the data descriptor
 			FileName = string.Empty;
 			if (viewModel != null)

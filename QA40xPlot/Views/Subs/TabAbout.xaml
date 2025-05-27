@@ -16,13 +16,19 @@
             <Label Content="Heading" />
             <TextBox Text="{Binding Heading}"  MinWidth="180" />
             <Label Content="Left Color" />
+            <StackPanel Orientation="Horizontal">
             <ComboBox IsEditable="True" MinWidth="80" 
-                  Text="{Binding LeftColor}" 
+                  Text="{Binding LeftColor, Mode=TwoWay}" 
                   ItemsSource="{Binding PlotColors}" />
+            <local:ColorBox Color="{Binding LeftColor}" Margin="5,0,0,0" Width="40" />
+            </StackPanel>
             <Label Content="Right Color" />
-            <ComboBox IsEditable="True" MinWidth="80" 
-                  Text="{Binding RightColor}" 
+            <StackPanel Orientation="Horizontal">
+                <ComboBox IsEditable="True" MinWidth="80" 
+                  Text="{Binding RightColor, Mode=TwoWay}" 
                   ItemsSource="{Binding PlotColors}" />
+                <local:ColorBox Color="{Binding RightColor}" Margin="5,0,0,0" Width="40" />
+            </StackPanel>
             <Label Content="Description" />
             <TextBox Text="{Binding Description}" Height="200" AcceptsReturn="True" TextWrapping="Wrap"  />
         </StackPanel>

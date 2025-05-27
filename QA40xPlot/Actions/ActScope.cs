@@ -36,7 +36,16 @@ namespace QA40xPlot.Actions
 			UpdateGraph(true);
 		}
 
-        public void DoCancel()
+
+		// here param is the id of the tab to remove from the othertab list
+		public void DeleteTab(int id)
+		{
+			OtherTabs.RemoveAll(item => item.Id == id);
+			MyVModel.ForceGraphUpdate(); // force a graph update
+		}
+
+
+		public void DoCancel()
         {
             ct.Cancel();
 		}
@@ -130,8 +139,8 @@ namespace QA40xPlot.Actions
 			{
 				page.Show = 1; // show the left channel new
 				OtherTabs.Add(page); // add the new one
-				var oss = new OtherSet(page.Definition.Name, page.Show, page.Id, string.Empty);
-				MyVModel.OtherSetList.Add(oss);
+				//var oss = new OtherSet(page.Definition.Name, page.Show, page.Id);
+				MyVModel.OtherSetList.Add(page.Definition);
 			}
 			UpdateGraph(true);
 		}
@@ -372,8 +381,8 @@ namespace QA40xPlot.Actions
 			}
 			else
 			{
-				useLeft = 1 == (page.Show & 1); // dynamically update these
-				useRight = 2 == (page.Show & 2);
+				useLeft = page.Definition.IsOnL; // dynamically update these
+				useRight = page.Definition.IsOnR;
 			}
 
 			var timeData = page.TimeRslt;
@@ -508,7 +517,6 @@ namespace QA40xPlot.Actions
 
 		public void UpdateGraph(bool settingsChanged)
         {
-			DataUtil.ReflectOtherSet(OtherTabs, MyVModel.OtherSetList);
 			timePlot.ThePlot.Remove<Scatter>();             // Remove all current lines
 			timePlot.ThePlot.Remove<Marker>();             // Remove all current lines
 			int resultNr = 0;

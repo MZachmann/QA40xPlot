@@ -17,7 +17,7 @@ namespace QA40xPlot.ViewModels
 			"DarkGray", "LightGreen", "Lavender" }; }
 		public static List<String> PlotColors
 		{
-			get => new List<string>() { "Default",
+			get => new List<string>() { "Transparent",
 			"#dce4e4", "#f8f8f8", "#20ffffff",
 			"White",
 			"MintCream", "LightGray",

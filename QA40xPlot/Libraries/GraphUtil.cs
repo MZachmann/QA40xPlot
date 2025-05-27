@@ -36,7 +36,7 @@ namespace QA40xPlot.Libraries
 
 		public static ScottPlot.Color GetPaletteColor(string colorName, int iIndex)
 		{
-			if( "Default" != colorName)
+			if("Transparent" != colorName)
 			{
 				return PlotUtil.StrToColor(colorName);
 			}

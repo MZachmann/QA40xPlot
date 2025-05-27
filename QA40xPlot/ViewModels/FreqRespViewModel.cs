@@ -6,6 +6,7 @@ using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using QA40xPlot.Views;
+using System;
 using System.ComponentModel;
 using System.Numerics;
 using System.Windows;
@@ -20,6 +21,7 @@ public class FreqRespViewModel : BaseViewModel
 	public static List<String> Smoothings { get => new List<string> { "None", "1/24", "1/6" }; }
 	public static List<String> TestTypes { get => new List<string> { "Response", "Impedance", "Gain" }; }
 
+	private ActFrequencyResponse MyAction { get => actFreq; }
 	private PlotControl actPlot { get; set; }
 	private ActFrequencyResponse actFreq { get;  set; }
 	[JsonIgnore]
@@ -211,17 +213,18 @@ public class FreqRespViewModel : BaseViewModel
 		switch (e.PropertyName)
 		{
 			case "UpdateGraph":
-				actFreq?.UpdateGraph(true);
+				MyAction?.UpdateGraph(true);
 				break;
 			case "DsHeading":
-				actFreq?.UpdateGraph(true);
+			case "DsRepaint":
+				MyAction?.UpdateGraph(true);
 				break;
 			case "DsName":
-				actFreq?.UpdatePlotTitle();
+				MyAction?.UpdatePlotTitle();
 				break;
 			case "ShowOtherLeft":
 			case "ShowOtherRight":
-				actFreq?.UpdateGraph(false);
+				MyAction?.UpdateGraph(false);
 				break;
 			case "ShowTabInfo":
 				if (actAbout != null)
@@ -231,7 +234,7 @@ public class FreqRespViewModel : BaseViewModel
 			case "AmpLoad":
 			case "OutPower":
 			case "GenDirection":
-				//actFreq?.UpdateGeneratorParameters();
+				//MyAction?.UpdateGeneratorParameters();
 				break;
 			case "TestType":
 				// set the tab header as we change type
@@ -239,7 +242,7 @@ public class FreqRespViewModel : BaseViewModel
 				{
 					ViewSettings.Singleton.Main.FreqRespHdr = TestType;
 				}
-				actFreq?.UpdateGraph(true);
+				MyAction?.UpdateGraph(true);
 				break;
 			case "GraphStartFreq":
 			case "GraphEndFreq":
@@ -247,13 +250,13 @@ public class FreqRespViewModel : BaseViewModel
 			case "RangeBottom":
 			case "RangeTopdB":
 			case "RangeTop":
-				actFreq?.UpdateGraph(true);
+				MyAction?.UpdateGraph(true);
 				break;
 			case "ShowRight":
 			case "ShowLeft":
 			case "ShowThickLines":
 			case "StepsOctave":
-				actFreq?.UpdateGraph(false);
+				MyAction?.UpdateGraph(false);
 				break;
 			case "SampleRate":
 				if(IsChirp)
@@ -291,6 +294,18 @@ public class FreqRespViewModel : BaseViewModel
 		SetupMainPlot(plot);
 		actPlot = plot;
 		MyVModel.LinkAbout(actFreq.PageData.Definition);
+	}
+
+	// here param is the id of the tab to remove from the othertab list
+	public override void DoDeleteIt(string param)
+	{
+		var id = MathUtil.ToInt(param, -1);
+		var fat = OtherSetList.FirstOrDefault(x => x.Id == id);
+		if (fat != null)
+		{
+			OtherSetList.Remove(fat);
+			MyAction.DeleteTab(id);
+		}
 	}
 
 	private static async Task StartIt()
@@ -387,7 +402,7 @@ public class FreqRespViewModel : BaseViewModel
 
 	private void OnFitToData(object? parameter)
 	{
-		var bounds = actFreq.GetDataBounds();
+		var bounds = MyAction.GetDataBounds();
 		switch (parameter)
 		{
 			case "XF":  // X frequency
@@ -417,7 +432,7 @@ public class FreqRespViewModel : BaseViewModel
 			default:
 				break;
 		}
-		actFreq?.UpdateGraph(true);
+		MyAction?.UpdateGraph(true);
 	}
 
 	// when the mouse moves in the plotcontrol window it sends a mouseevent to the parent view model (this)
@@ -437,7 +452,7 @@ public class FreqRespViewModel : BaseViewModel
 			var cord = ConvertScottCoords(actPlot, p.X, p.Y);
 			FreqValue = Math.Pow(10, cord.Item1); // frequency
 		}
-		var zv = actFreq.LookupX(FreqValue);
+		var zv = MyAction.LookupX(FreqValue);
 		var ttype = GetTestingType(TestType);
 		FreqShow = zv.Item1.ToString("0.# Hz");
 		switch ( ttype)
@@ -517,6 +532,6 @@ public class FreqRespViewModel : BaseViewModel
 		ZReference = "10";
 
 		// make a few things happen to synch the gui
-		Task.Delay(1000).ContinueWith(t => { actFreq?.UpdateGraph(true); });
+		Task.Delay(1000).ContinueWith(t => { MyAction?.UpdateGraph(true); });
 	}
 }

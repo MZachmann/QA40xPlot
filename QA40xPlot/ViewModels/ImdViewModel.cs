@@ -1,15 +1,16 @@
-﻿using QA40xPlot.Actions;
+﻿using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
+using Newtonsoft.Json;
+using QA40xPlot.Actions;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.Views;
-using System.ComponentModel;
-using Newtonsoft.Json;
-using System.Windows;
-using System.Windows.Input;
 using ScottPlot;
 using ScottPlot.Plottables;
-using CommunityToolkit.Mvvm.Input;
-using Microsoft.Win32;
+using System;
+using System.ComponentModel;
+using System.Windows;
+using System.Windows.Input;
 
 namespace QA40xPlot.ViewModels
 {
@@ -20,6 +21,7 @@ namespace QA40xPlot.ViewModels
 		public static List<String> IntermodTypes { get => new List<string> { "Custom", "SMPTE (60Hz.7KHz 4:1)", "DIN (250Hz.8KHz 4:1",
 			"CCIF (19KHz.20KHz 1:1)", "AES-17 MD (41Hz.7993Hz 4:1)", "AES-17 DFD (18KHz.20KHz 1:1)",
 			"TDFD Phono (3005Hz.4462Hz 1:1)" }; }
+		private ActImd MyAction { get => actImd; }
 		private ActImd actImd { get;  set; }
 		private PlotControl actPlot { get; set; }
 		private ImdChannelInfo actInfoLeft { get;  set; }
@@ -192,7 +194,7 @@ namespace QA40xPlot.ViewModels
 
 		public DataBlob? GetFftData()
 		{
-			return actImd.CreateExportData();
+			return MyAction.CreateExportData();
 		}
 
 		[JsonIgnore]
@@ -207,13 +209,14 @@ namespace QA40xPlot.ViewModels
 			switch (e.PropertyName)
 			{
 				case "UpdateGraph":
-					actImd?.UpdateGraph(true);
+					MyAction?.UpdateGraph(true);
 					break;
 				case "DsHeading":
-					actImd?.UpdateGraph(true);
+				case "DsRepaint":
+					MyAction?.UpdateGraph(true);
 					break;
 				case "DsName":
-					actImd?.UpdatePlotTitle();
+					MyAction?.UpdatePlotTitle();
 					break;
 				case "GenDirection":
 				case "Gen1Voltage":
@@ -225,7 +228,7 @@ namespace QA40xPlot.ViewModels
 					ToShowRange = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Collapsed : Visibility.Visible;
 					ToShowdB = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Visible : Visibility.Collapsed; 
 					RaisePropertyChanged("GraphUnit");
-					actImd?.UpdateGraph(true);
+					MyAction?.UpdateGraph(true);
 					break;
 				case "ShowTabInfo":
 				case "ShowSummary":
@@ -236,7 +239,7 @@ namespace QA40xPlot.ViewModels
 				case "ShowRight":
 				case "ShowLeft":
 					ShowInfos();
-					actImd?.UpdateGraph(false);
+					MyAction?.UpdateGraph(false);
 					break;
 				case "IntermodType":
 				case "GraphStartFreq":
@@ -245,12 +248,12 @@ namespace QA40xPlot.ViewModels
 				case "RangeBottom":
 				case "RangeTopdB":
 				case "RangeTop":
-					actImd?.UpdateGraph(true);
+					MyAction?.UpdateGraph(true);
 					break;
 				case "ShowThickLines":
 				case "ShowMarkers":
 				case "ShowPowerMarkers":
-					actImd?.UpdateGraph(false);
+					MyAction?.UpdateGraph(false);
 					break;
 				default:
 					break;
@@ -267,9 +270,22 @@ namespace QA40xPlot.ViewModels
 			actPlot = plot;
 			info.SetDataContext(true);
 			info2.SetDataContext(false);
-			MyVModel.LinkAbout(actImd.PageData.Definition);
+			MyVModel.LinkAbout(MyAction.PageData.Definition);
 			ShowInfos();
 		}
+
+		// here param is the id of the tab to remove from the othertab list
+		public override void DoDeleteIt(string param)
+		{
+			var id = MathUtil.ToInt(param, -1);
+			var fat = OtherSetList.FirstOrDefault(x => x.Id == id);
+			if (fat != null)
+			{
+				OtherSetList.Remove(fat);
+				MyAction.DeleteTab(id);
+			}
+		}
+
 
 		private static void SetAtten(object? parameter)
 		{
@@ -359,7 +375,7 @@ namespace QA40xPlot.ViewModels
 
 		private void OnFitToData(object? parameter)
 		{
-			var bounds = actImd.GetDataBounds();
+			var bounds = MyAction.GetDataBounds();
 			switch (parameter)
 			{
 				case "XF":  // X frequency
@@ -388,7 +404,7 @@ namespace QA40xPlot.ViewModels
 				default:
 					break;
 			}
-			actImd?.UpdateGraph(true);
+			MyAction?.UpdateGraph(true);
 		}
 
 		private void ShowInfos()
@@ -519,7 +535,7 @@ namespace QA40xPlot.ViewModels
 		{
 			SetMouseTrack(e);
 
-			if (IsRunning || !IsTracking || actImd == null || actPlot == null)
+			if (IsRunning || !IsTracking || MyAction == null || actPlot == null)
 				return;
 
 			var p = e.GetPosition(actPlot);
@@ -528,7 +544,7 @@ namespace QA40xPlot.ViewModels
 			var ypos = cord.Item2;
 			FreqValue = Math.Pow(10, xpos);
 
-			var zv = actImd.LookupXY(FreqValue, ypos, ShowRight && !ShowLeft);
+			var zv = MyAction.LookupXY(FreqValue, ypos, ShowRight && !ShowLeft);
 			var valdBV = GraphUtil.ReformatValue(PlotFormat, zv.Item2, zv.Item3);
 			if (!GraphUtil.IsPlotFormatLog(PlotFormat))
 			{
@@ -605,7 +621,7 @@ namespace QA40xPlot.ViewModels
 			ToShowdB = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Visible : Visibility.Collapsed; 
 
 			// make a few things happen to synch the gui
-			Task.Delay(1000).ContinueWith(t => { actImd?.UpdateGraph(true); });
+			Task.Delay(1000).ContinueWith(t => { MyAction?.UpdateGraph(true); });
 		}
 	}
 }

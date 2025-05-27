@@ -1,13 +1,14 @@
-﻿using QA40xPlot.Actions;
+﻿using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
+using Newtonsoft.Json;
+using QA40xPlot.Actions;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.Views;
+using System;
 using System.ComponentModel;
-using Newtonsoft.Json;
 using System.Windows;
 using System.Windows.Input;
-using CommunityToolkit.Mvvm.Input;
-using Microsoft.Win32;
 
 namespace QA40xPlot.ViewModels
 {
@@ -18,6 +19,7 @@ namespace QA40xPlot.ViewModels
 		public static List<String> EndVoltages { get => new List<string> { "1", "2", "5", "10", "20", "50", "100", "200" }; }
 		private static ThdAmpViewModel MyVModel { get => ViewSettings.Singleton.ThdAmp; }
 
+		private ActThdAmplitude MyAction { get => actThd; }
 		private ActThdAmplitude actThd { get; set; }
 		private PlotControl actPlot {  get; set; }
 
@@ -191,23 +193,24 @@ namespace QA40xPlot.ViewModels
 			switch (e.PropertyName)
 			{
 				case "UpdateGraph":
-					actThd?.UpdateGraph(true);
+					MyAction?.UpdateGraph(true);
 					break;
 				case "DsHeading":
-					actThd?.UpdateGraph(true);
+				case "DsRepaint":
+					MyAction?.UpdateGraph(true);
 					break;
 				case "DsName":
-					actThd?.UpdatePlotTitle();
+					MyAction?.UpdatePlotTitle();
 					break;
 				case "PlotFormat":
 					// we may need to change the axis
 					ToShowRange = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Collapsed : Visibility.Visible;
 					ToShowdB = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Visible : Visibility.Collapsed;
 					RaisePropertyChanged("GraphUnit");
-					actThd?.UpdateGraph(true);
+					MyAction?.UpdateGraph(true);
 					break;
 				case "GenDirection":
-					actThd?.UpdateGraph(true);
+					MyAction?.UpdateGraph(true);
 					break;
 				case "XAxisType":
 				case "GraphStartVolts":
@@ -216,7 +219,7 @@ namespace QA40xPlot.ViewModels
 				case "RangeBottom":
 				case "RangeTopdB":
 				case "RangeTop":
-					actThd?.UpdateGraph(true);
+					MyAction?.UpdateGraph(true);
 					break;
 				case "ShowOtherLeft":
 				case "ShowOtherRight":
@@ -224,7 +227,7 @@ namespace QA40xPlot.ViewModels
 				case "ShowLeft":
 				case "ShowTabInfo":
 					ShowInfos();
-					actThd?.UpdateGraph(false);
+					MyAction?.UpdateGraph(false);
 					break;
 				case "ShowTHD":
 				case "ShowMagnitude":
@@ -236,10 +239,22 @@ namespace QA40xPlot.ViewModels
 				case "ShowNoiseFloor":
 				case "ShowPoints":
 				case "ShowThickLines":
-					actThd?.UpdateGraph(false);
+					MyAction?.UpdateGraph(false);
 					break;
 				default:
 					break;
+			}
+		}
+
+		// here param is the id of the tab to remove from the othertab list
+		public override void DoDeleteIt(string param)
+		{
+			var id = MathUtil.ToInt(param, -1);
+			var fat = OtherSetList.FirstOrDefault(x => x.Id == id);
+			if (fat != null)
+			{
+				OtherSetList.Remove(fat);
+				MyAction.DeleteTab(id);
 			}
 		}
 
@@ -331,14 +346,14 @@ namespace QA40xPlot.ViewModels
 				string filename = saveFileDialog.FileName;
 				if (filename.Count() > 1)
 				{
-					actThd.SaveToFile(filename);
+					MyAction.SaveToFile(filename);
 				}
 			}
 		}
 
 		private void OnFitToData(object? parameter)
 		{
-			var bounds = actThd.GetDataBounds();
+			var bounds = MyAction.GetDataBounds();
 			switch (parameter)
 			{
 				case "XM":  // X magnitude
@@ -368,7 +383,7 @@ namespace QA40xPlot.ViewModels
 				default:
 					break;
 			}
-			actThd?.UpdateGraph(true);
+			MyAction?.UpdateGraph(true);
 		}
 
 
@@ -421,7 +436,7 @@ namespace QA40xPlot.ViewModels
 			}
 
 			ZValue = string.Empty;
-			var zv = actThd.LookupX(FreqValue);
+			var zv = MyAction.LookupX(FreqValue);
 			if (zv.Length > 0)
 			{
 				FreqShow = MathUtil.FormatLogger(zv[0].GenVolts) + "->" + MathUtil.FormatLogger(zv[0].Mag);
@@ -488,7 +503,7 @@ namespace QA40xPlot.ViewModels
 			ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
 			ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;          
 			// make a few things happen to synch the gui
-			Task.Delay(1000).ContinueWith(t => { actThd?.UpdateGraph(true); });
+			Task.Delay(1000).ContinueWith(t => { MyAction?.UpdateGraph(true); });
 		}
 	}
 }

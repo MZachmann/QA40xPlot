@@ -1,14 +1,15 @@
-﻿using System.Collections.ObjectModel;
-using System.Runtime.CompilerServices;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using CommunityToolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.Input;
 using Newtonsoft.Json;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.Views;
 using ScottPlot;
+using System;
+using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace QA40xPlot.ViewModels
 {
@@ -61,9 +62,9 @@ namespace QA40xPlot.ViewModels
 		public string DsHeading { get => DataInfo.Heading; }
 
 		[JsonIgnore]
-		private ObservableCollection<OtherSet> _OtherSetList = new();
+		private ObservableCollection<DataDescript> _OtherSetList = new();
 		[JsonIgnore]
-		public ObservableCollection<OtherSet> OtherSetList {
+		public ObservableCollection<DataDescript> OtherSetList {
 			get => _OtherSetList;
 			set => SetProperty(ref _OtherSetList, value);
 		}
@@ -339,6 +340,9 @@ namespace QA40xPlot.ViewModels
 		}
 		#endregion
 
+		// here param is the id of the tab to remove from the othertab list
+		public virtual void DoDeleteIt(string param) { }
+
 		/// <summary>
 		/// Convert direction string to a direction type
 		/// this works for 2-value and 3-value answers
@@ -517,25 +521,6 @@ namespace QA40xPlot.ViewModels
 		public void ForceGraphUpdate()
 		{
 			RaisePropertyChanged("UpdateGraph");   // cause the right kind of repaint
-		}
-
-		// here param is the id of the tab to remove from the othertab list
-		public void DoDeleteIt(string param)
-		{
-			// mark it deleted then raise the property
-			var id = MathUtil.ToInt(param, -1);
-			if(id >= 0 && OtherSetList.Count > 0)
-			{
-				foreach(var item in OtherSetList)
-				{
-					if (item.Id == id)
-					{
-						item.IsDeleted = true;
-						ForceGraphDraw();	// cause the right kind of repaint
-						break;
-					}
-				}
-			}
 		}
 
 		public 	BaseViewModel()

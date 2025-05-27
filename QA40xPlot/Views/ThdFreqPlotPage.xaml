@@ -74,7 +74,7 @@
                               />
                     <Label Content="Hz" Grid.Column="2" Grid.Row="1" VerticalAlignment="Center" />
                     <Label Content="Steps / _Octave" Target="{Binding ElementName=cbStO}"  HorizontalAlignment="Right" VerticalAlignment="Center"  Grid.Column="0" Grid.Row="2"  />
-                    <views:UpDownControl x:Name="cbStO" VerticalAlignment="Center"   Value="{Binding StepsOctave, Mode=TwoWay}" Minimum="1" Grid.Column="1" Grid.Row="2"  />
+                    <views:UpDownControl x:Name="cbStO" VerticalAlignment="Center"   Value="{Binding StepsOctave}" Minimum="1" Grid.Column="1" Grid.Row="2"  />
                 </Grid>
             </Expander>
             <Expander Header="—— Sampling" IsExpanded="{Binding ExpandSampling}"  >
@@ -101,7 +101,7 @@
                                SelectedValue="{Binding FftSize}" ItemsSource="{Binding FftSizes}">
                     </ComboBox>
                     <Label Content="_Averages" HorizontalAlignment="Right" VerticalAlignment="Center"  Grid.Column="0" Grid.Row="2" Target="{Binding ElementName=xcaverages}"  />
-                    <views:UpDownControl x:Name="xcaverages" Value="{Binding Averages, Mode=TwoWay}" VerticalAlignment="Center" Minimum="1" Maximum="{Binding MaxAverages}"  Grid.Column="1" Grid.Row="2"  />
+                    <views:UpDownControl x:Name="xcaverages" Value="{Binding Averages}" VerticalAlignment="Center" Minimum="1" Maximum="{Binding MaxAverages}"  Grid.Column="1" Grid.Row="2"  />
                 </Grid>
             </Expander>
             <views:StorageUi />

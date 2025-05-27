@@ -58,12 +58,14 @@ namespace QA40xPlot.Libraries
 				if (jsonObject != null)
 				{
 					// fill pagedata with new stuff
+					var id = page.Definition.Id;
 					page.NoiseFloor = jsonObject.NoiseFloor;
 					page.Definition = jsonObject.Definition;
 					page.TimeRslt = jsonObject.TimeRslt;
 					page.Sweep = jsonObject.Sweep;
 					if (page.ViewModel != null)
 						jsonObject.ViewModel.CopyPropertiesTo(page.ViewModel);
+					page.Definition.Id = id; // keep the same id
 				}
 			}
 			catch (Exception ex)

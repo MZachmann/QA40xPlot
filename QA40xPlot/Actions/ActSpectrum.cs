@@ -25,7 +25,6 @@ namespace QA40xPlot.Actions
 
         private float _Thickness = 2.0f;
 		private static SpectrumViewModel MyVModel { get => ViewSettings.Singleton.SpectrumVm; }
-
 		CancellationTokenSource ct { set; get; }                                 // Measurement cancelation token
 
         /// <summary>
@@ -43,6 +42,13 @@ namespace QA40xPlot.Actions
         {
             ct.Cancel();
 		}
+
+		public void DeleteTab(int id)
+		{
+			OtherTabs.RemoveAll(item => item.Id == id);
+			MyVModel.ForceGraphUpdate(); // force a graph update
+		}
+
 
 		/// <summary>
 		/// Create a blob for data export
@@ -126,8 +132,8 @@ namespace QA40xPlot.Actions
 			{
 				page.Show = 1; // show the left channel new
 				OtherTabs.Add(page); // add the new one
-				var oss = new OtherSet(page.Definition.Name, page.Show, page.Id, string.Empty);
-				MyVModel.OtherSetList.Add(oss);
+				//var oss = new OtherSet(page.Definition.Name, page.Show, page.Id);
+				MyVModel.OtherSetList.Add(page.Definition);
 			}
 
 			UpdateGraph(true);
@@ -769,8 +775,8 @@ namespace QA40xPlot.Actions
 			}
 			else
 			{
-				useLeft = 1 == (page.Show & 1); // dynamically update these
-				useRight = 2 == (page.Show & 2);
+				useLeft = page.Definition.IsOnL; // dynamically update these
+				useRight = page.Definition.IsOnR;
 			}
 
 			if(!useLeft && !useRight)
@@ -822,7 +828,6 @@ namespace QA40xPlot.Actions
 
 		public void UpdateGraph(bool settingsChanged)
         {
-			DataUtil.ReflectOtherSet(OtherTabs, MyVModel.OtherSetList);
 			fftPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
 			fftPlot.ThePlot.Remove<Marker>();             // Remove all current lines
 			int resultNr = 0;

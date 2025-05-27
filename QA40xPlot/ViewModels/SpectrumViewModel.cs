@@ -20,6 +20,7 @@ namespace QA40xPlot.ViewModels
 		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 		public static List<String> GenFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "2000", "5000", "10000" }; }
 
+		private ActSpectrum MyAction { get => actSpec; }
 		private static SpectrumViewModel MyVModel { get => ViewSettings.Singleton.SpectrumVm; }
 		private PlotControl actPlot {  get; set; }
 		private  ActSpectrum actSpec { get;  set; }
@@ -184,20 +185,21 @@ namespace QA40xPlot.ViewModels
 			switch (e.PropertyName)
 			{
 				case "UpdateGraph":
-					actSpec?.UpdateGraph(true);
+					MyAction?.UpdateGraph(true);
 					break;
 				case "DsHeading":
-					actSpec?.UpdateGraph(true);
+				case "DsRepaint":
+					MyAction?.UpdateGraph(true);
 					break;
 				case "DsName":
-					actSpec?.UpdatePlotTitle();
+					MyAction?.UpdatePlotTitle();
 					break;
 				case "PlotFormat":
 					// we may need to change the axis
 					ToShowRange = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Collapsed : Visibility.Visible;
 					ToShowdB = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Visible : Visibility.Collapsed;
 					RaisePropertyChanged("GraphUnit");
-					actSpec?.UpdateGraph(true);
+					MyAction?.UpdateGraph(true);
 					break;
 				case "ShowTabInfo":
 				case "ShowSummary":
@@ -208,7 +210,7 @@ namespace QA40xPlot.ViewModels
 				case "ShowRight":
 				case "ShowLeft":
 					ShowInfos();
-					actSpec?.UpdateGraph(false);
+					MyAction?.UpdateGraph(false);
 					break;
 				case "GraphStartFreq":
 				case "GraphEndFreq":
@@ -216,12 +218,12 @@ namespace QA40xPlot.ViewModels
 				case "RangeBottom":
 				case "RangeTopdB":
 				case "RangeTop":
-					actSpec?.UpdateGraph(true);
+					MyAction?.UpdateGraph(true);
 					break;
 				case "ShowThickLines":
 				case "ShowMarkers":
 				case "ShowPowerMarkers":
-					actSpec?.UpdateGraph(false);
+					MyAction?.UpdateGraph(false);
 					break;
 				default:
 					break;
@@ -230,7 +232,19 @@ namespace QA40xPlot.ViewModels
 
 		public DataBlob? GetFftData()
 		{
-			return actSpec?.CreateExportData();
+			return MyAction?.CreateExportData();
+		}
+
+				// here param is the id of the tab to remove from the othertab list
+		public override void DoDeleteIt(string param)
+		{
+			var id = MathUtil.ToInt(param, -1);
+			var fat = OtherSetList.FirstOrDefault(x => x.Id == id);
+			if(fat != null)
+			{
+				OtherSetList.Remove(fat);
+				MyAction.DeleteTab(id);
+			}
 		}
 
 		public void SetAction(UserControl myWnd, PlotControl plot, ThdChannelInfo info, ThdChannelInfo info2, TabAbout about)
@@ -243,7 +257,7 @@ namespace QA40xPlot.ViewModels
 			about.SetDataContext(ViewSettings.Singleton.TabDefs);
 			MyVModel.actAbout = about;
 			SetupMainPlot(plot);
-			MyVModel.LinkAbout(actSpec.PageData.Definition);
+			MyVModel.LinkAbout(MyAction.PageData.Definition);
 			actPlot = plot;
 			ShowInfos();
 		}
@@ -334,7 +348,7 @@ namespace QA40xPlot.ViewModels
 
 		private void OnFitToData(object? parameter)
 		{
-			var bounds = actSpec.GetDataBounds();
+			var bounds = MyAction.GetDataBounds();
 			switch (parameter)
 			{
 				case "XF":  // X frequency
@@ -363,7 +377,7 @@ namespace QA40xPlot.ViewModels
 				default:
 					break;
 			}
-			actSpec?.UpdateGraph(true);
+			MyAction?.UpdateGraph(true);
 		}
 
 		// when the mouse moves in the plotcontrol window it sends a mouseevent to the parent view model (this)
@@ -388,7 +402,7 @@ namespace QA40xPlot.ViewModels
 			var ypos = cord.Item2;
 			FreqValue = Math.Pow(10, xpos);
 
-			var zv = actSpec.LookupXY(FreqValue, ypos, ShowRight && !ShowLeft);
+			var zv = MyAction.LookupXY(FreqValue, ypos, ShowRight && !ShowLeft);
 			var valdBV = GraphUtil.ReformatValue(PlotFormat, zv.Item2, zv.Item3);
 			if( ! GraphUtil.IsPlotFormatLog(PlotFormat))
 			{

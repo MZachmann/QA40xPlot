@@ -16,6 +16,7 @@ namespace QA40xPlot.ViewModels
 	{
 		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 
+		private ActThdFrequency MyAction { get => actThd; }
 		private PlotControl actPlot { get; set; }
 		private ActThdFrequency actThd { get; set; }
 
@@ -204,20 +205,21 @@ namespace QA40xPlot.ViewModels
 			switch (e.PropertyName)
 			{
 				case "UpdateGraph":
-					actThd?.UpdateGraph(true);
+					MyAction?.UpdateGraph(true);
 					break;
 				case "DsHeading":
-					actThd?.UpdateGraph(true);
+				case "DsRepaint":
+					MyAction?.UpdateGraph(true);
 					break;
 				case "DsName":
-					actThd?.UpdatePlotTitle();
+					MyAction?.UpdatePlotTitle();
 					break;
 				case "PlotFormat":
 					// we may need to change the axis
 					ToShowRange = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Collapsed : Visibility.Visible;
 					ToShowdB = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Visible : Visibility.Collapsed;
 					RaisePropertyChanged("GraphUnit");
-					actThd?.UpdateGraph(true);
+					MyAction?.UpdateGraph(true);
 					break;
 				case "GraphStartFreq":
 				case "GraphEndFreq":
@@ -225,7 +227,7 @@ namespace QA40xPlot.ViewModels
 				case "RangeBottom":
 				case "RangeTopdB":
 				case "RangeTop":
-					actThd?.UpdateGraph(true);
+					MyAction?.UpdateGraph(true);
 					break;
 				case "ShowOtherLeft":
 				case "ShowOtherRight":
@@ -233,7 +235,7 @@ namespace QA40xPlot.ViewModels
 				case "ShowLeft":
 				case "ShowTabInfo":
 					ShowInfos();
-					actThd?.UpdateGraph(false);
+					MyAction?.UpdateGraph(false);
 					break;
 
 				case "ShowTHD":
@@ -246,7 +248,7 @@ namespace QA40xPlot.ViewModels
 				case "ShowNoiseFloor":
 				case "ShowPoints":
 				case "ShowThickLines":
-					actThd?.UpdateGraph(false);
+					MyAction?.UpdateGraph(false);
 					break;
 				default:
 					break;
@@ -261,6 +263,18 @@ namespace QA40xPlot.ViewModels
 			actAbout = tAbout;
 			MyVModel.LinkAbout(actThd.PageData.Definition);
 			ShowInfos();
+		}
+
+		// here param is the id of the tab to remove from the othertab list
+		public override void DoDeleteIt(string param)
+		{
+			var id = MathUtil.ToInt(param, -1);
+			var fat = OtherSetList.FirstOrDefault(x => x.Id == id);
+			if (fat != null)
+			{
+				OtherSetList.Remove(fat);
+				MyAction.DeleteTab(id);
+			}
 		}
 
 		private void ShowInfos()
@@ -364,7 +378,7 @@ namespace QA40xPlot.ViewModels
 
 		private void OnFitToData(object? parameter)
 		{
-			var bounds = actThd.GetDataBounds();
+			var bounds = MyAction.GetDataBounds();
 			switch (parameter)
 			{
 				case "XF":  // X frequency
@@ -393,7 +407,7 @@ namespace QA40xPlot.ViewModels
 				default:
 					break;
 			}
-			actThd?.UpdateGraph(true);
+			MyAction?.UpdateGraph(true);
 		}
 
 		// when the mouse moves in the plotcontrol window it sends a mouseevent to the parent view model (this)
@@ -414,7 +428,7 @@ namespace QA40xPlot.ViewModels
 				FreqValue = Math.Pow(10, cord.Item1); // frequency
 			}
 			ZValue = string.Empty;
-			var zv = actThd.LookupX(FreqValue);
+			var zv = MyAction.LookupX(FreqValue);
 			if(zv.Length > 0)
 			{
 				FreqShow = MathUtil.FormatLogger(zv[0].Freq);
@@ -478,7 +492,7 @@ namespace QA40xPlot.ViewModels
 			ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
 			ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;          
 			// make a few things happen to synch the gui. don't await this.
-			Task.Delay(1000).ContinueWith(t => { actThd?.UpdateGraph(true); });
+			Task.Delay(1000).ContinueWith(t => { MyAction?.UpdateGraph(true); });
 		}
 	}
 }

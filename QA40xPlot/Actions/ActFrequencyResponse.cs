@@ -9,7 +9,6 @@ using ScottPlot.Plottables;
 using System.Data;
 using System.Numerics;
 using System.Windows;
-using System.Windows.Controls;
 using static QA40xPlot.ViewModels.BaseViewModel;
 
 
@@ -20,6 +19,7 @@ namespace QA40xPlot.Actions
 	public partial class ActFrequencyResponse : ActBase
     {
 		public MyDataTab PageData { get; private set; } // Data used in this form instance
+
 		private List<MyDataTab> OtherTabs { get; set; } = new(); // Other tabs in the document
 		private readonly Views.PlotControl fftPlot;
 		private readonly Views.PlotControl timePlot;
@@ -48,7 +48,16 @@ namespace QA40xPlot.Actions
 			UpdateGraph(true);
 		}
 
-        public void DoCancel()
+
+		// here param is the id of the tab to remove from the othertab list
+		public void DeleteTab(int id)
+		{
+			OtherTabs.RemoveAll(item => item.Id == id);
+			MyVModel.ForceGraphUpdate(); // force a graph update
+		}
+
+
+		public void DoCancel()
         {
             ct.Cancel();
 		}
@@ -114,8 +123,7 @@ namespace QA40xPlot.Actions
 			{
 				page.Show = 1; // show the left channel new
 				OtherTabs.Add(page); // add the new one
-				var oss = new OtherSet(page.Definition.Name, page.Show, page.Id, string.Empty);
-				MyVModel.OtherSetList.Add(oss);
+				MyVModel.OtherSetList.Add(page.Definition);
 			}
 			UpdateGraph(true);
 		}
@@ -867,7 +875,6 @@ namespace QA40xPlot.Actions
 
 		public void UpdateGraph(bool settingsChanged)
         {
-			DataUtil.ReflectOtherSet(OtherTabs, MyVModel.OtherSetList);
 			frqrsPlot.ThePlot.Remove<Marker>();             // Remove all current lines
 			frqrsPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
 			var frqsrVm = MyVModel;

@@ -1,15 +1,16 @@
-﻿using QA40xPlot.Actions;
+﻿using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
+using Newtonsoft.Json;
+using QA40xPlot.Actions;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.Views;
-using System.ComponentModel;
-using Newtonsoft.Json;
-using System.Windows;
-using System.Windows.Input;
 using ScottPlot;
 using ScottPlot.Plottables;
-using CommunityToolkit.Mvvm.Input;
-using Microsoft.Win32;
+using System;
+using System.ComponentModel;
+using System.Windows;
+using System.Windows.Input;
 
 namespace QA40xPlot.ViewModels
 {
@@ -20,6 +21,7 @@ namespace QA40xPlot.ViewModels
 		public static List<String> AbsoluteValues { get => new List<string> { "5", "2", "1", "0.5", "0.1", "0.05", "-0.05", "-0.1", "-0.5", "-1", "-2", "-5" }; }
 		public static List<String> TimeSteps { get => new List<string> { "0",".1",".5","1","5", "10", "20", "50", "100", "200", "500", "1000", "5000", "10000" }; }
 
+		private ActScope MyAction { get => actScope; }
 		private static ScopeViewModel MyVModel { get => ViewSettings.Singleton.ScopeVm; }
 		private PlotControl actPlot {  get; set; }
 		private ActScope actScope { get;  set; }
@@ -172,13 +174,14 @@ namespace QA40xPlot.ViewModels
 			switch (e.PropertyName)
 			{
 				case "UpdateGraph":
-					actScope?.UpdateGraph(true);
+					MyAction?.UpdateGraph(true);
 					break;
 				case "DsHeading":
-					actScope?.UpdateGraph(true);
+				case "DsRepaint":
+					MyAction?.UpdateGraph(true);
 					break;
 				case "DsName":
-					actScope?.UpdatePlotTitle();
+					MyAction?.UpdatePlotTitle();
 					break;
 				case "ShowTabInfo":
 				case "ShowSummary":
@@ -189,27 +192,39 @@ namespace QA40xPlot.ViewModels
 				case "ShowRight":
 				case "ShowLeft":
 					ShowInfos();
-					actScope?.UpdateGraph(false);
+					MyAction?.UpdateGraph(false);
 					break;
 				case "GraphStartTime":
 				case "GraphEndTime":
 				case "RangeBottom":
 				case "RangeTop":
-					actScope?.UpdateGraph(true);
+					MyAction?.UpdateGraph(true);
 					break;
 				case "ShowThickLines":
 				case "ShowMarkers":
 				case "ShowPoints":
-					actScope?.UpdateGraph(false);
+					MyAction?.UpdateGraph(false);
 					break;
 				default:
 					break;
 			}
 		}
 
+		// here param is the id of the tab to remove from the othertab list
+		public override void DoDeleteIt(string param)
+		{
+			var id = MathUtil.ToInt(param, -1);
+			var fat = OtherSetList.FirstOrDefault(x => x.Id == id);
+			if (fat != null)
+			{
+				OtherSetList.Remove(fat);
+				MyAction.DeleteTab(id);
+			}
+		}
+
 		public DataBlob? GetFftData()
 		{
-			return actScope?.CreateExportData();
+			return MyAction?.CreateExportData();
 		}
 
 		public void SetAction(PlotControl plot, ScopeInfo info, ScopeInfo info2, TabAbout tinfo)
@@ -222,7 +237,7 @@ namespace QA40xPlot.ViewModels
 			info2.SetDataContext(ViewSettings.Singleton.ScopeInfoRight);
 			SetupMainPlot(plot);
 			actPlot = plot;
-			MyVModel.LinkAbout(actScope.PageData.Definition);
+			MyVModel.LinkAbout(MyAction.PageData.Definition);
 		}
 
 		private static void SetAtten(object? parameter)
@@ -329,7 +344,7 @@ namespace QA40xPlot.ViewModels
 
 		private void OnFitToData(object? parameter)
 		{
-			var bounds = actScope.GetDataBounds();
+			var bounds = MyAction.GetDataBounds();
 			switch (parameter)
 			{
 				case "XF":  // X time
@@ -343,7 +358,7 @@ namespace QA40xPlot.ViewModels
 				default:
 					break;
 			}
-			actScope?.UpdateGraph(true);
+			MyAction?.UpdateGraph(true);
 		}
 
 		// when the mouse moves in the plotcontrol window it sends a mouseevent to the parent view model (this)
@@ -368,7 +383,7 @@ namespace QA40xPlot.ViewModels
 			var ypos = cord.Item2;
 			FreqValue = xpos;
 
-			var zv = actScope.LookupXY(xpos, ypos, ShowRight && !ShowLeft);
+			var zv = MyAction.LookupXY(xpos, ypos, ShowRight && !ShowLeft);
 			// - this may be too slow, but for now....
 			if (MyMark != null)
 			{
@@ -423,7 +438,7 @@ namespace QA40xPlot.ViewModels
 			Attenuation = 42;
 
 			// make a few things happen to synch the gui
-			Task.Delay(1000).ContinueWith(t => { actScope?.UpdateGraph(true); });
+			Task.Delay(1000).ContinueWith(t => { MyAction?.UpdateGraph(true); });
 		}
 	}
 }

@@ -15,21 +15,21 @@ namespace QA40xPlot.Views
 			InitializeComponent();
 		}
 
-		public void SetDataContext(List<OtherSet> dataDef)
+		public void SetDataContext(List<DataDescript> dataDef)
 		{
 			this.DataContext = dataDef;
 		}
 
 		private void OnClick(object sender, RoutedEventArgs e)
 		{
-			var u = this.DataContext as BaseViewModel;
 			var btu = sender as Button;
-			if ( u != null && btu != null)
+			if (btu != null)
 			{
 				var ids = btu.CommandParameter.ToString() ?? "";
-				u.DoDeleteIt(ids);
+				var myVm = ViewSettings.Singleton.Main.CurrentView;
+				myVm.DoDeleteIt(ids);
 			}
-        }
+		}
 
 		private void ForceRepaint(object sender, RoutedEventArgs e)
 		{
