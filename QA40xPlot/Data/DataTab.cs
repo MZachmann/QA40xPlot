@@ -29,8 +29,12 @@ namespace QA40xPlot.Data
 		public string CreateDate { get; set; }  // Measurement date time
 		public bool Saved { get; set; }
 		public double GeneratorVoltage { get; set; } // the generator voltage, if any
+		public string LeftColor { get; set; } = "Default"; // left color for the graph
+		public string RightColor { get; set; } = "Default"; // right color for the graph
 		[JsonIgnore]
 		public BaseViewModel? MainVm { get; set; } = null; // the generator, if any
+		[JsonIgnore]
+		public static List<String> PlotColors { get => SettingsViewModel.PlotColors; } // the background colors
 
 		public DataDescript()
 		{

@@ -124,9 +124,9 @@ namespace QA40xPlot.ViewModels
 
 		public void SaveToSettings(string filename)
 		{
-			var pngData = ViewSettings.Singleton;
+			var cfgData = ViewSettings.Singleton;
 			// Serialize the object to a JSON string
-			string jsonString = JsonConvert.SerializeObject(pngData, Formatting.Indented);
+			string jsonString = JsonConvert.SerializeObject(cfgData, Formatting.Indented);
 
 			// Write the JSON string to a file
 			File.WriteAllText(filename, jsonString);
@@ -136,7 +136,7 @@ namespace QA40xPlot.ViewModels
 		{
 			try
 			{
-				var pngData = ViewSettings.Singleton;
+				var cfgData = ViewSettings.Singleton;
 				// Read the JSON file into a string
 				string jsonContent = File.ReadAllText(filename);
 				// Deserialize the JSON string into an object

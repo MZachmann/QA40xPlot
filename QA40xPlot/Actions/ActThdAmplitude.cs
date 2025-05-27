@@ -311,6 +311,7 @@ namespace QA40xPlot.Actions
 
 				// relink to the new definition
 				MyVModel.LinkAbout(page.Definition);
+				MyVModel.HasSave = true;
 			}
 			else
 			{
@@ -726,7 +727,7 @@ namespace QA40xPlot.Actions
 				Scatter? plot = null;
 				plot = thdPlot.ThePlot.Add.Scatter(xValues, yValues.ToArray());
 				plot.LineWidth = lineWidth;
-				plot.Color = GraphUtil.GetPaletteColor(colorIndex);
+				plot.Color = GraphUtil.GetPaletteColor("Default", colorIndex);
 				plot.MarkerSize = markerSize;
 				plot.LegendText = legendText;
 				plot.LinePattern = linePattern;

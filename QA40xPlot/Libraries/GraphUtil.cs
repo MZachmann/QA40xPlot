@@ -1,4 +1,5 @@
-﻿using QA40xPlot.ViewModels;
+﻿using QA40xPlot.Data;
+using QA40xPlot.ViewModels;
 using ScottPlot;
 using System.IO;
 using System.Windows;
@@ -33,8 +34,12 @@ namespace QA40xPlot.Libraries
 			return (int)(fontsize * vm.ScreenDpi / 72);
 		}
 
-		public static ScottPlot.Color GetPaletteColor(int iIndex)
+		public static ScottPlot.Color GetPaletteColor(string colorName, int iIndex)
 		{
+			if( "Default" != colorName)
+			{
+				return PlotUtil.StrToColor(colorName);
+			}
 			if (iIndex == 0)
 				return ScottPlot.Colors.Blue;
 			else if (iIndex == 1)

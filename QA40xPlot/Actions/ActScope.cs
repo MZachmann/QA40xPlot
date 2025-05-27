@@ -124,6 +124,7 @@ namespace QA40xPlot.Actions
 
 				// relink to the new definition
 				MyVModel.LinkAbout(PageData.Definition);
+				MyVModel.HasSave = true;
 			}
 			else
 			{
@@ -389,7 +390,7 @@ namespace QA40xPlot.Actions
 			{
 				Scatter pLeft = myPlot.Add.Scatter(timeX, timeData.Left);
 				pLeft.LineWidth = showThick ? _Thickness : 1;
-				pLeft.Color = GraphUtil.GetPaletteColor(measurementNr * 2);
+				pLeft.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, measurementNr * 2);
 				pLeft.MarkerSize = markerSize;
 			}
 
@@ -397,7 +398,7 @@ namespace QA40xPlot.Actions
 			{
 				Scatter pRight = myPlot.Add.Scatter(timeX, timeData.Right);
 				pRight.LineWidth = showThick ? _Thickness : 1;
-				pRight.Color = GraphUtil.GetPaletteColor(measurementNr * 2 + 1);
+				pRight.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, measurementNr * 2 + 1);
 				pRight.MarkerSize = markerSize;
 			}
 

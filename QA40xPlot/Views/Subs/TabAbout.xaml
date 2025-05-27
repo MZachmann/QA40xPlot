@@ -15,6 +15,14 @@
             </StackPanel>
             <Label Content="Heading" />
             <TextBox Text="{Binding Heading}"  MinWidth="180" />
+            <Label Content="Left Color" />
+            <ComboBox IsEditable="True" MinWidth="80" 
+                  Text="{Binding LeftColor}" 
+                  ItemsSource="{Binding PlotColors}" />
+            <Label Content="Right Color" />
+            <ComboBox IsEditable="True" MinWidth="80" 
+                  Text="{Binding RightColor}" 
+                  ItemsSource="{Binding PlotColors}" />
             <Label Content="Description" />
             <TextBox Text="{Binding Description}" Height="200" AcceptsReturn="True" TextWrapping="Wrap"  />
         </StackPanel>

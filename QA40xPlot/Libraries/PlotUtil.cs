@@ -324,12 +324,28 @@ namespace QA40xPlot.Libraries
 
 		}
 
-		private static Color StrToColor(string fromSetting)
+		public static Color StrToColor(string fromSetting)
 		{
-			var color = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(fromSetting);
-			// Convert the Color object to a hexadecimal string
-			string hex = $"#{color.R:X2}{color.G:X2}{color.B:X2}";
-			return new Color(hex);
+			try
+			{
+				var color = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(fromSetting);
+				// Convert the Color object to a hexadecimal string
+				// note that ScottPlot parses hex colors wrong with the alpha channel last not first
+				// so use WithAlpha instead of inserting into the hex
+				string hex = $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+				return new Color(hex).WithAlpha(color.A);
+			}
+			catch (FormatException)
+			{
+				// If the string is not a valid color, return a default color
+				return Colors.Black; // or any other default color you prefer
+			}
+			catch (Exception ex)
+			{
+				// Handle other exceptions if necessary
+				Console.WriteLine($"Error converting string to color: {ex.Message}");
+				return Colors.Black; // or any other default color you prefer
+			}
 		}
 
 		private static double ToBrightness(Color clr)

@@ -108,6 +108,7 @@ namespace QA40xPlot.Actions
 
 				// relink to the new definition
 				MyVModel.LinkAbout(PageData.Definition);
+				MyVModel.HasSave = true;
 			}
 			else
 			{
@@ -836,7 +837,7 @@ namespace QA40xPlot.Actions
 			//SetMagFreqRule(myPlot);
 			var plot = myPlot.Add.Scatter(logFreqX, YValues);
 			plot.LineWidth = lineWidth;
-			plot.Color = GraphUtil.GetPaletteColor(measurementNr * 2);
+			plot.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, measurementNr * 2);
 			plot.MarkerSize = markerSize;
             plot.LegendText = legendname;
 			plot.LinePattern = LinePattern.Solid;
@@ -856,7 +857,7 @@ namespace QA40xPlot.Actions
 					plot.LegendText = "Right dBV";
 				}
 				plot.LineWidth = lineWidth;
-				plot.Color = GraphUtil.GetPaletteColor(measurementNr * 2 + 1);
+				plot.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, measurementNr * 2 + 1);
 				plot.MarkerSize = markerSize;
 				plot.LinePattern = LinePattern.Solid;
 			}

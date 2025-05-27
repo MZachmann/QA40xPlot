@@ -15,6 +15,14 @@ namespace QA40xPlot.ViewModels
 			"White",
 			"MintCream", "LightGray", 
 			"DarkGray", "LightGreen", "Lavender" }; }
+		public static List<String> PlotColors
+		{
+			get => new List<string>() { "Default",
+			"#dce4e4", "#f8f8f8", "#20ffffff",
+			"White",
+			"MintCream", "LightGray",
+			"DarkGray", "LightGreen", "Lavender" };
+		}
 		public static List<string> ThemeList { get => new List<string> { "None", "Light", "Dark" }; }
 
 		#region setters and getters

@@ -114,6 +114,7 @@ namespace QA40xPlot.Actions
 				PageData = page;    // set the current page to the loaded one
 									// relink to the new definition
 				MyVModel.LinkAbout(PageData.Definition);
+				MyVModel.HasSave = true;
 			}
 			else
 			{
@@ -610,7 +611,7 @@ namespace QA40xPlot.Actions
 
 				Scatter plotLeft = myPlot.Add.Scatter(freqLogX, leftdBV);
 				plotLeft.LineWidth = lineWidth;
-				plotLeft.Color = GraphUtil.GetPaletteColor(measurementNr * 2);
+				plotLeft.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, measurementNr * 2);
 				plotLeft.MarkerSize = 1;
 			}
 
@@ -624,7 +625,7 @@ namespace QA40xPlot.Actions
 
 				Scatter plotRight = myPlot.Add.Scatter(freqLogX, rightdBV);
 				plotRight.LineWidth = lineWidth;
-				plotRight.Color = GraphUtil.GetPaletteColor(measurementNr * 2 + 1);
+				plotRight.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, measurementNr * 2 + 1);
 				plotRight.MarkerSize = 1;
 			}
 
