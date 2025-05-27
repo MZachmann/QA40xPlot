@@ -1,5 +1,6 @@
 ﻿using QA40xPlot.BareMetal;
 using ScottPlot;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
 
@@ -36,8 +37,17 @@ namespace QA40xPlot.ViewModels
 			set
 			{
 				SetProperty(ref _BackgroundClr, value);
-				var clr = (SolidColorBrush?)new BrushConverter().ConvertFrom(value);
-				if (clr != null) ViewSettings.Singleton.Main.Background = clr;
+				try
+				{
+					// set the background color of the main window
+					var clr = (SolidColorBrush?)new BrushConverter().ConvertFrom(value);
+					if (clr != null) 
+						ViewSettings.Singleton.Main.Background = clr;
+				}
+				catch (Exception ex)
+				{
+					Debug.WriteLine($"Error converting color: {ex.Message}");
+				}
 			}
 		}
 
@@ -98,8 +108,16 @@ namespace QA40xPlot.ViewModels
 			set
 			{
 				SetProperty(ref _GraphBackClr, value);
-				var clr = (SolidColorBrush?)new BrushConverter().ConvertFrom(value);
-				if (clr != null) ViewSettings.Singleton.Main.GraphBackground = clr;
+				try
+				{
+					var clr = (SolidColorBrush?)new BrushConverter().ConvertFrom(value);
+					if (clr != null) 
+						ViewSettings.Singleton.Main.GraphBackground = clr;
+				}
+				catch (Exception ex)
+				{
+					Debug.WriteLine($"Error converting color: {ex.Message}");
+				}
 			}
 		}
 

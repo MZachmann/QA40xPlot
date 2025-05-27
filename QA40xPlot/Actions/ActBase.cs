@@ -72,7 +72,7 @@ namespace QA40xPlot.Actions
 				foreach (var fst in FrequencyHistory)
 				{
 					fresult.Left = fresult.Left.Zip(fst.Left, (x, y) => x + y * y).ToArray();
-					fresult.Right = fresult.Left.Zip(fst.Right, (x, y) => x + y * y).ToArray();
+					fresult.Right = fresult.Right.Zip(fst.Right, (x, y) => x + y * y).ToArray();
 				}
 				var cnt = FrequencyHistory.Count;
 				fresult.Left = fresult.Left.Select(x => Math.Sqrt(x / cnt)).ToArray();

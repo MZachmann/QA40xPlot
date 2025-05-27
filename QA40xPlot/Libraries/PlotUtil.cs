@@ -227,12 +227,6 @@ namespace QA40xPlot.Libraries
 				myPlot.Axes.Right.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
 			}
 
-			// show grid lines for major ticks
-			myPlot.Grid.MajorLineColor = Colors.Black.WithOpacity(.35);
-			myPlot.Grid.MajorLineWidth = 1;
-			myPlot.Grid.MinorLineColor = Colors.Black.WithOpacity(.15);
-			myPlot.Grid.MinorLineWidth = 1;
-
 			myPlot.Axes.Title.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.TITLE_SIZE);
 
 			myPlot.Axes.Bottom.Label.Alignment = Alignment.MiddleCenter;
@@ -338,23 +332,37 @@ namespace QA40xPlot.Libraries
 			return new Color(hex);
 		}
 
+		private static double ToBrightness(Color clr)
+		{
+			// BT.601 Y = 0.299 R + 0.587 G + 0.114 B
+			return clr.R * 0.299 + clr.G * 0.587 + clr.B * 0.114; 
+		}
+
+		/// <summary>
+		/// Set the plot coloring based on global settings
+		/// </summary>
+		/// <param name="myPlot"></param>
 		public static void UpdateAPlot(ScottPlot.Plot myPlot)
 		{
 			// change figure colors Dark mode
-			var color = StrToColor(ViewSettings.Singleton.SettingsVm.GraphBackClr);
-			myPlot.DataBackground.Color = color;
+			var backColor = StrToColor(ViewSettings.Singleton.SettingsVm.GraphBackClr);
+			myPlot.DataBackground.Color = backColor;
 
-			color = StrToColor(ViewSettings.Singleton.SettingsVm.GraphForeground);
-			myPlot.FigureBackground.Color = color;
+			var light = ToBrightness(backColor);
+			var clr = (light < 128) ? ScottPlot.Colors.White : ScottPlot.Colors.Black;
+			myPlot.Grid.MajorLineColor = clr.WithOpacity(.35);
+			myPlot.Grid.MinorLineColor = clr.WithOpacity(.15);
+
+			var foreColor = StrToColor(ViewSettings.Singleton.SettingsVm.GraphForeground);
+			myPlot.FigureBackground.Color = foreColor;
+
+			// show grid lines for major ticks
+			myPlot.Grid.MajorLineWidth = 1;
+			myPlot.Grid.MinorLineWidth = 1;
 
 			// if foreground color is dark, swap text color
-			// digital bt.601 Y = 0.299 R + 0.587 G + 0.114 B
-			var light = 0.299 * color.G + 0.587 * color.R + 0.114 * color.B;
-			var clr = ScottPlot.Colors.Black;
-			if(light < 128)
-			{
-				clr = ScottPlot.Colors.White;
-			}
+			light = ToBrightness(foreColor);
+			clr = (light < 128) ? ScottPlot.Colors.White : ScottPlot.Colors.Black;
 			// use dark text color
 			myPlot.Axes.Title.Label.ForeColor = clr;
 			myPlot.Axes.Bottom.Label.ForeColor = clr;
@@ -368,6 +376,7 @@ namespace QA40xPlot.Libraries
 				myPlot.Axes.Right.Label.ForeColor = clr;
 				myPlot.Axes.Right.TickLabelStyle.ForeColor = clr;
 			}
+
 		}
 	}
 }

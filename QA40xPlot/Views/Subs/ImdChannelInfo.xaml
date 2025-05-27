@@ -139,22 +139,6 @@
                         <Binding Path="ShowDataPercents"/>
                     </MultiBinding>
                 </Label>
-                <Label Grid.Row="5" Grid.Column="0" Content="D5L:" HorizontalAlignment="Right"/>
-                <Label Grid.Row="5" Grid.Column="1">
-                    <MultiBinding Converter="{StaticResource VToPctConverter}">
-                        <Binding Path="Harmonics[8].Thd_Percent"/>
-                        <Binding Path="Harmonics[8].Amplitude_V"/>
-                        <Binding Path="ShowDataPercents"/>
-                    </MultiBinding>
-                </Label>
-                <Label Grid.Row="5" Grid.Column="2" Content="D5H:" HorizontalAlignment="Right"/>
-                <Label Grid.Row="5" Grid.Column="3">
-                    <MultiBinding Converter="{StaticResource VToPctConverter}">
-                        <Binding Path="Harmonics[9].Thd_Percent"/>
-                        <Binding Path="Harmonics[9].Amplitude_V"/>
-                        <Binding Path="ShowDataPercents"/>
-                    </MultiBinding>
-                </Label>
             </Grid>
     </StackPanel>
     </Border>
