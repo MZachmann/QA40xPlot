@@ -245,6 +245,13 @@ namespace QA40xPlot.BareMetal
 				lrfs.TimeRslt.Left = lrfs.TimeRslt.Right;
 				lrfs.TimeRslt.Right = x;
 			}
+			var gain = MathUtil.ToDouble(ViewSettings.ExternalGain, 0);
+			if (gain != 0.0)
+			{
+				gain = 1.0 / QaLibrary.ConvertVoltage(gain, Data.E_VoltageUnit.dBV, Data.E_VoltageUnit.Volt); // linearize
+				lrfs.TimeRslt.Left = lrfs.TimeRslt.Left.Select(x => x * gain).ToArray();
+				lrfs.TimeRslt.Right = lrfs.TimeRslt.Right.Select(x => x * gain).ToArray();
+			}
 			//
 			if (ct.IsCancellationRequested)
 				return lrfs;

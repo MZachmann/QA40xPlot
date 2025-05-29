@@ -1,10 +1,11 @@
-﻿using System.Net.Sockets;
-using ScottPlot.Plottables;
-using ScottPlot;
-using QA40xPlot.Data;
+﻿using QA40xPlot.Data;
+using QA40xPlot.ViewModels;
 using QA40xPlot.Views;
-using System.Windows;
+using ScottPlot;
+using ScottPlot.Plottables;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Windows;
 
 namespace QA40xPlot.Libraries
 {
@@ -163,7 +164,14 @@ namespace QA40xPlot.Libraries
         /// <returns>The attenuation in dB</returns>
         public static int DetermineAttenuation(double dBV)
         {
-            double testdBV = dBV + 5; // Add 5 dBV extra for better thd measurement
+			var gain = MathUtil.ToDouble(ViewSettings.ExternalGain, 0);
+			if (gain != 0.0)
+			{
+				// since all of our math subtracted the gain from the time result, we need to add it here
+				// for the proper attenuation calculation
+				dBV += gain; // Add the external gain in dBV to get what we are reading at the inputs
+			}
+			double testdBV = dBV + 5; // Add 5 dBV extra for better thd measurement
             if (testdBV <= 0) return 0;
             if (testdBV <= 6) return 6;
             if (testdBV <= 12) return 12;

@@ -52,15 +52,15 @@ namespace QA40xPlot.Converters
 			else
 			{
 				double dv = (double)value[1];
-				if (dv >= .01)
+				if (dv >= 1)
 				{
 					rslt = dv.ToString("0.###") + " V";
 				}
-				else if (dv >= 1e-5)
+				else if (dv >= 1e-3)
 				{
 					rslt = (1000 * dv).ToString("G3") + " mV";
 				}
-				else if (dv >= 1e-8)
+				else if (dv >= 1e-6)
 				{
 					rslt = (1000000 * dv).ToString("G3") + " uV";
 				}
@@ -89,15 +89,15 @@ namespace QA40xPlot.Converters
 			string rslt = string.Empty;
 			{
 				double dv = (double)value;
-				if (dv >= .01)
+				if (dv >= .099)
 				{
 					rslt = dv.ToString("0.###") + " V";
 				}
-				else if (dv >= 1e-5)
+				else if (dv >= 1e-4)
 				{
 					rslt = (1000 * dv).ToString("G3") + " mV";
 				}
-				else if (dv >= 1e-8)
+				else if (dv >= 1e-7)
 				{
 					rslt = (1000000 * dv).ToString("G3") + " uV";
 				}

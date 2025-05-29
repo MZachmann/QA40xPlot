@@ -10,9 +10,8 @@ namespace QA40xPlot.ViewModels
 	{
 		public static List<String> UsbBufferSizes { get => new List<string>() { "2048", "4096", "8192", "16384", "32768", "65536"}; }
 		public static List<String> RelayUsageList { get => new List<string>() { "Never", "OnFinish", "OnExit" }; }
-		public static List<String> BackColors { get => new List<string>() { "Transparent",
-			"#dce4e4", "#f8f8f8", "#20ffffff",
-			"White",
+		public static List<String> BackColors { get => new List<string>() { "Transparent", "#dce4e4", "#60ffffff",
+			"#f8f8f8", "White",
 			"MintCream", "LightGray", 
 			"DarkGray", "LightGreen", "Lavender" }; }
 		public static List<String> PlotColors
@@ -38,7 +37,7 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		private string _BackgroundClr = BackColors[0];	// slightly darker mintcream
+		private string _BackgroundClr = BackColors[1];	// mintcream
 		public string BackgroundClr
 		{
 			get { return _BackgroundClr; }
@@ -59,7 +58,7 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		private string _GraphForeground = BackColors[0];  // slightly darker mintcream
+		private string _GraphForeground = BackColors[2];  // brighten more
 		public string GraphForeground
 		{
 			get { return _GraphForeground; }
@@ -109,7 +108,7 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		private string _GraphBackClr = BackColors[0];  // slightly darker mintcream
+		private string _GraphBackClr = BackColors[2];  // brighten
 		public string GraphBackClr
 		{
 			get { return _GraphBackClr; }
@@ -149,7 +148,16 @@ namespace QA40xPlot.ViewModels
 				SetProperty(ref _AmplifierLoad, value);
 			}
 		}
-		// how to use the relay... OnExit / OnFinish / Never
+
+		// if the user has an external gain/attenuator, this is the gain value in power reduction or increase
+		// a negative value means attenuation, a positive value means gain
+		private string _ExternalGain = "0"; // 0, 10, 20, 30, 40, 50 dB
+		public string ExternalGain
+		{
+			get { return _ExternalGain; }
+			set { SetProperty(ref _ExternalGain, value); }	// copy to the globally visible value
+		}
+												  // how to use the relay... OnExit / OnFinish / Never
 		private string _RelayUsage = "OnExit";
 		public string RelayUsage
 		{

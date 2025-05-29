@@ -1,6 +1,8 @@
 ﻿using QA40xPlot.BareMetal;
+using QA40xPlot.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -105,21 +107,37 @@ namespace QA40xPlot.Libraries
 		{
 			LeftRightSeries lrfs = new LeftRightSeries();
 			await Qa40x.DoUserAcquisition(datapt, datapt);
-			if (ct.IsCancellationRequested || lrfs == null)
-				return lrfs ?? new();
 
-			if (getFreq)
-			{
-				lrfs.FreqRslt = await Qa40x.GetInputFrequencySeries();
-				if (ct.IsCancellationRequested || lrfs.FreqRslt == null)
-					return lrfs;
-			}
+			if (ct.IsCancellationRequested )
+				return lrfs;
 
 			{
 				lrfs.TimeRslt = await Qa40x.GetInputTimeSeries();
+				var gain = MathUtil.ToDouble(ViewSettings.ExternalGain, 0);
+				if (gain != 0.0)
+				{
+					gain = 1.0 / QaLibrary.ConvertVoltage(gain, Data.E_VoltageUnit.dBV, Data.E_VoltageUnit.Volt);	// linearize
+					lrfs.TimeRslt.Left = lrfs.TimeRslt.Left.Select(x => x * gain).ToArray();
+					lrfs.TimeRslt.Right = lrfs.TimeRslt.Right.Select(x => x * gain).ToArray();
+				}
 				if (ct.IsCancellationRequested)
 					return lrfs;
 			}
+
+			if(getFreq)
+			{
+				// we do the math here to support more windowing options
+				// but more importantly we scaled the time result for an external gain device
+				var windowing = QaComm.GetWindowing();
+				lrfs.FreqRslt = QaMath.CalculateSpectrum(lrfs.TimeRslt, windowing);
+			}
+
+			//if (getFreq)
+			//{
+			//	lrfs.FreqRslt = await Qa40x.GetInputFrequencySeries();
+			//	if (ct.IsCancellationRequested || lrfs.FreqRslt == null)
+			//		return lrfs;
+			//}
 
 			return lrfs;        // Only one measurement
 		}

@@ -2,6 +2,16 @@
 --------------------------------------------
 This changelog shows the changes made and then released via github
 --------------------------------------------
+V 1.1.15
+- enable saving loaded tests
+- add plot colors to the Get settings
+- enable color selection via a color picker dialog
+- refactor out otherset class
+- add this file (Changelog.txt) to the distribution and link to it
+V 1.1.14
+- repair right channel math error
+- swap up/down buttons on updown control
+- repair Spectrum signal expander binding
 V 1.1.13
 - add inductor/capacitor cursor for impedance test
 - add ability to select a theme

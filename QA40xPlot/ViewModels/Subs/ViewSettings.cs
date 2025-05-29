@@ -45,6 +45,8 @@ namespace QA40xPlot.ViewModels
 
 		[JsonIgnore]
 		public static double AmplifierLoad { get => MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.AmplifierLoad, 0); }
+		[JsonIgnore]
+		public static string ExternalGain { get => ViewSettings.Singleton.SettingsVm.ExternalGain; }
 
 		/// <summary>
 		/// returns if left channel is our voltage output math

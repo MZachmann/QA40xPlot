@@ -15,8 +15,8 @@
     <AssemblyOriginatorKeyFile>Keys\sgKey.snk</AssemblyOriginatorKeyFile>
     <ApplicationIcon>Images\favicon.ico</ApplicationIcon>
     <UseWindowsForms>False</UseWindowsForms>
-    <AssemblyVersion>1.1.13</AssemblyVersion>
-    <FileVersion>1.1.13</FileVersion>
+    <AssemblyVersion>1.1.15</AssemblyVersion>
+    <FileVersion>1.1.15</FileVersion>
 	</PropertyGroup>
 
   <ItemGroup>
@@ -67,6 +67,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Help\ChangeLog.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Help\HelpSummary.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

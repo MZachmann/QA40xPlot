@@ -83,7 +83,6 @@ namespace QA40xPlot.BareMetal
 			await Qa40x.SetOutputSource(source);
 		}
 
-
 		public async ValueTask SetWindowing(string windowing)
 		{
 			_Windowing = windowing;
