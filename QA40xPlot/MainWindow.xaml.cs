@@ -93,7 +93,7 @@ namespace QA40xPlot
 		{
 			try
 			{
-				var filename = "/Help/HelpSummary.html";
+				var filename = @"Help\HelpSummary.html";
 				var dir = System.AppDomain.CurrentDomain.BaseDirectory;
 				var uri = new Uri(dir + filename);
 				Process.Start(new ProcessStartInfo(dir + filename) { UseShellExecute = true });

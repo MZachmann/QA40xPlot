@@ -27,6 +27,11 @@
     <None Remove="Batches\build.cmd" />
     <None Remove="Batches\newcert.cmd" />
     <None Remove="Batches\signit.cmd" />
+    <None Remove="Images\favicon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Images\favicon.ico" />
   </ItemGroup>
 
   <ItemGroup>
