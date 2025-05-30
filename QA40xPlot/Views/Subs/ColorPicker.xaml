@@ -14,7 +14,7 @@
                 <ComboBox IsEditable="True" MinWidth="80" 
                   Text="{Binding NowColor, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=local:ColorPicker}}" 
                   ItemsSource="{Binding PlotColors, RelativeSource={RelativeSource AncestorType=local:ColorPicker}}" />
-                <Button Click="DoOk" IsDefault="True"  Background="{Binding NowColor, RelativeSource={RelativeSource AncestorType=local:ColorPicker}}" Margin="5,0,0,0" Width="40" />
+                <Button Content="✔️" Click="DoOk" ToolTip="OK" IsDefault="True"  Background="{Binding NowColor, RelativeSource={RelativeSource AncestorType=local:ColorPicker}}" Margin="5,0,0,0" Width="40" />
             </StackPanel>
             <WrapPanel Name="ColorWrapPanel" Margin="10" />
         </StackPanel>

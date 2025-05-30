@@ -443,8 +443,9 @@ namespace QA40xPlot.Actions
                     case TestingType.Impedance:
                         {   // send freq, ohms, phasedeg
 							double rref = ViewSettings.AmplifierLoad;
-							var ohms = rref * ToImpedance(PageData.GainData[bin]).Magnitude;
-							tup = ValueTuple.Create(freqs[bin], ohms, 180 * values[bin].Phase / Math.PI);
+							var impval = ToImpedance(values[bin]);
+							var ohms = rref * impval.Magnitude;
+							tup = ValueTuple.Create(freqs[bin], ohms, 180 * impval.Phase / Math.PI);
 						}
 						break;
                     case TestingType.Gain:
