@@ -27,7 +27,7 @@ namespace QA40xPlot.Views
 			{
 				var ids = btu.CommandParameter.ToString() ?? "";
 				var myVm = ViewSettings.Singleton.Main.CurrentView;
-				myVm.DoDeleteIt(ids);
+				myVm?.DoDeleteIt(ids);
 			}
 		}
 

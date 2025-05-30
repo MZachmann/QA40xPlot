@@ -8,6 +8,7 @@ V 1.1.15
 - enable color selection via a color picker dialog
 - refactor out otherset class
 - add this file (Changelog.txt) to the distribution and link to it
+- create a ClickOnce installation and use github.io for it
 V 1.1.14
 - repair right channel math error
 - swap up/down buttons on updown control

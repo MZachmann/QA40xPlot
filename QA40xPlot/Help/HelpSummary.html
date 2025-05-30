@@ -4,7 +4,7 @@
     }
 </style>
 <h3>The QA40xPlot application consists of 8 different audio tests that use a QA402 or QA403 audio analyzer from QuantAsylum.<br /><br /></h3>
-<p> The Changelog <a href = "File:../Help/ChangeLog.txt">Click here for the Changelog</a></p>
+<p> The Changelog <a href="File:../Help/ChangeLog.txt">Click here for the Changelog</a></p>
 <table>
     <thead>
         <tr>
@@ -15,11 +15,11 @@
     <tbody>
         <tr>
             <td><strong>Spectrum</strong></td>
-            <td>Capture the spectrum (dBV vs F) created by a sine wave. Analyze noise and harmonic distortion.</td>
+            <td>Capture the spectrum (V vs F) created by a sine wave. Analyze noise and harmonic distortion.</td>
         </tr>
         <tr>
             <td><strong>Intermodulation</strong></td>
-            <td>Capture the spectrum (dBV vs F) created by two sine waves. Analyze noise and intermodulation distortion.</td>
+            <td>Capture the spectrum (V vs F) created by two sine waves. Analyze noise and intermodulation distortion.</td>
         </tr>
         <tr>
             <td><strong>Scope</strong></td>
@@ -132,24 +132,36 @@ Along the top right of the screen are a few command buttons. If this becomes too
 </table>
 <h1>Attenuation Settings</h1>
 <p>QA40x attenuation is important for test device integrity. QA40xPlot tries very hard to use just enough attenuation for each test. Attenuation is always calculated based on both input channels (left and right) of the QA40x. If you only plan to test one channel we recommend you short the other QA40x input channel, which will guarantee that attenuation math ignores the shorted channel.</p>
-<p>The spectral tests (Spectrum and Intermodulation) have manual or automatic attenuation. The other tests are all automatic to avoid QA40x overload in either channel.</p>
+<p>The free-running tests: Spectrum, Intermodulation and Scope, have manual or automatic attenuation. The other tests all automatically check gain then automatically determine attenuation to avoid QA40x overload in either channel.</p>
 <p>The THD vs Frequency sweep calculates/uses one generator voltage that it then sweeps with. If you select an output amplitude that voltage ensures the maximum output of the sweep is that setting. The Input Voltage setting uses that voltage for the sweep.</p>
 <p>The THD vs Amplitude test calculates distortion at each swept amplitude and varies generator voltage accordingly. Attenuation may increase as output voltage increases.</p>
 <p>All 3 response tests (Response, Gain, Impedance) use a single generator voltage just like the THD vs Frequency test.</p>
 <h1>Cursor</h1>
 <p>All of the tests support a <strong>cursor</strong>. As you move your mouse in the plot a small box in the lower right shows the nearest data point. Some charts have a visual on-screen point, some don&#39;t.</p>
 <h1>Tab Get, Load, and Save</h1>
-<p>Each tab has a Get, a Load and a Save button in the left hand column at the bottom. When saved, the tab settings and plot data
-are saved to a compressed .plt file (by default named something.plt.zip). This file can be manually opened in Windows and the contents are a JSON text file. It can also, of course,
-be loaded.</p>
-<p>When a saved tab is loaded two things happen. First, the plot data is displayed. Second, the original sweep settings are
-entered back into the user interface. So, the screen will look exactly as it did when the sweep/test was run. This lets you know
-exactly what settings you used for the test. It also allows for limited examination of the plot data.</p>
+<p>
+    Each tab has a Get, a Load and a Save button in the left hand column at the bottom. When saved, the tab settings and plot data
+    are saved to a compressed .plt file (by default named something.plt.zip). This file can be manually opened in Windows and the contents are a JSON text file. It can also, of course,
+    be loaded.
+</p>
+<p>
+    When a saved tab is loaded two things happen. First, the plot data is displayed. Second, the original sweep settings are
+    entered back into the user interface. So, the screen will look exactly as it did when the sweep/test was run. This lets you know
+    exactly what settings you used for the test. It also allows for limited examination of the plot data.
+</p>
 <p>
     When a saved tab is gotten (Get) the name will show up under the button with an L and R checkbox.
-    Click the L and R to have the two channels show up slightly translucent on top of the current data.
+    Click the L and R to have the two channels show up on top of the current data.
+    Click the color boxes below the L and R to change the plot line colors.
     Add more saved tabs by clicking the Get button again.
-    Click the garbage icon to clear out a saved tab.
+    Click the garbage icon to remove a saved tab. This will not delete the file on-disk.
+</p>
+
+<h1 style="color:red">Settings</h1>
+<h1>The global Settings tab</h1>
+<p>
+    There is one tab named "Settings" that shows the various global settings. These include colors, color themes,
+    amplifier load, external gain block, and others.
 </p>
 
 <h1 style="color:red">Test Descriptions</h1>
@@ -212,6 +224,13 @@ exactly what settings you used for the test. It also allows for limited examinat
             <td>Select this to show the Summary box in the upper left.</td>
         </tr>
         <tr>
+            <td>Tab Info</td>
+            <td>
+                This hides/shows a box in the graph upper right with the test options, such as name and plot colors.
+                The name and heading both show up on the plot.
+            </td>
+        </tr>
+        <tr>
             <td>Harmonic Markers</td>
             <td>This will automatically mark the harmonics (and fundamental)</td>
         </tr>
@@ -220,12 +239,8 @@ exactly what settings you used for the test. It also allows for limited examinat
             <td>This will check 50Hz and 60Hz peaks, then mark the ones that seem like your power peaks.</td>
         </tr>
         <tr>
-            <td>% - Y Axis</td>
-            <td>This will show % instead of db on the Y axis. Nice for seeing distortion percents.</td>
-        </tr>
-        <tr>
             <td>% - Data Summary</td>
-            <td>Swap between percents and uV/dBV</td>
+            <td>Swap between percents and uV/dBV on the summary box(es)</td>
         </tr>
     </tbody>
 </table>
@@ -288,16 +303,19 @@ exactly what settings you used for the test. It also allows for limited examinat
             <td>Select this to show the Summary box in the upper left.</td>
         </tr>
         <tr>
+            <td>Tab Info</td>
+            <td>
+                This hides/shows a box in the graph upper right with the test options, such as name and plot colors.
+                The name and heading both show up on the plot.
+            </td>
+        </tr>
+        <tr>
             <td>Intermod Markers</td>
             <td>This will mark the standard intermodulation peaks.</td>
         </tr>
         <tr>
             <td>Power Markers</td>
             <td>This will check 50Hz and 60Hz peaks, then mark the ones that seem like your power peaks.</td>
-        </tr>
-        <tr>
-            <td>% - Y Axis</td>
-            <td>This will show % instead of db on the Y axis. Nice for seeing distortion percents.</td>
         </tr>
         <tr>
             <td>% - Data Summary</td>
@@ -355,6 +373,13 @@ exactly what settings you used for the test. It also allows for limited examinat
             <td>Summary Data</td>
             <td>Select this to show the Summary box in the upper left.</td>
         </tr>
+        <tr>
+            <td>Tab Info</td>
+            <td>
+                This hides/shows a box in the graph upper right with the test options, such as name and plot colors.
+                The name and heading both show up on the plot.
+            </td>
+        </tr>
     </tbody>
 </table>
 <h1 style="color:green">THD vs Frequency Test</h1>
@@ -403,6 +428,13 @@ exactly what settings you used for the test. It also allows for limited examinat
             <td></td>
             <td>High order harmonics may be nonsense at high frequencies</td>
         </tr>
+        <tr>
+            <td>Tab Info</td>
+            <td>
+                This hides/shows a box in the graph upper right with the test options, such as name and plot colors.
+                The name and heading both show up on the plot.
+            </td>
+        </tr>
     </tbody>
 </table>
 <h1 style="color:green">THD vs Amplitude Test</h1>
@@ -450,6 +482,13 @@ exactly what settings you used for the test. It also allows for limited examinat
         <tr>
             <td></td>
             <td>High order harmonics may be nonsense at high frequencies</td>
+        </tr>
+        <tr>
+            <td>Tab Info</td>
+            <td>
+                This hides/shows a box in the graph upper right with the test options, such as name and plot colors.
+                The name and heading both show up on the plot.
+            </td>
         </tr>
     </tbody>
 </table>
