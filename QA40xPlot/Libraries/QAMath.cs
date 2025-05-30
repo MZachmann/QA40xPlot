@@ -1,7 +1,6 @@
 ﻿using FftSharp;
 using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
-using System.Diagnostics;
 using System.Numerics;
 using System.Windows;
 

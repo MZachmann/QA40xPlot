@@ -7,7 +7,6 @@ using QA40xPlot.Libraries;
 using QA40xPlot.Views;
 using ScottPlot;
 using ScottPlot.Plottables;
-using System;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;

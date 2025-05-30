@@ -1,5 +1,4 @@
 ﻿using QA40xPlot.BareMetal;
-using ScottPlot;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;

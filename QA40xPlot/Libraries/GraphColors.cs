@@ -1,10 +1,4 @@
 ﻿using ScottPlot;
-using ScottPlot.Colormaps;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 // https://api.flutter.dev/flutter/material/Colors-class.html
 

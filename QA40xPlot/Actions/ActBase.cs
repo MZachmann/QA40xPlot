@@ -5,7 +5,6 @@ using QA40xPlot.ViewModels;
 using System.Data;
 using System.IO;
 using System.Windows;
-using Windows.UI.Composition;
 
 namespace QA40xPlot.Actions
 {

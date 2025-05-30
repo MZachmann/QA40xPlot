@@ -1,11 +1,4 @@
-﻿using QA40xPlot.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace QA40xPlot.Data
+﻿namespace QA40xPlot.Data
 {
 	// helper for thd sweeps
     public class ThdColumn

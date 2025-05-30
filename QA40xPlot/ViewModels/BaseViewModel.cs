@@ -1,10 +1,8 @@
-﻿using CommunityToolkit.Mvvm.Input;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.Views;
 using ScottPlot;
-using System;
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 using System.Windows;

@@ -1,14 +1,13 @@
-﻿using Microsoft.Win32;
+﻿using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
 using Newtonsoft.Json;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
-using System.Windows.Controls;
-using System.Windows.Interop;
-using System.Windows.Media.Imaging;
-using System.Windows;
 using System.IO;
-using CommunityToolkit.Mvvm.Input;
+using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace QA40xPlot.ViewModels
 {

@@ -1,5 +1,4 @@
-﻿using QA40xPlot.Data;
-using QA40xPlot.ViewModels;
+﻿using QA40xPlot.ViewModels;
 using ScottPlot;
 using System.IO;
 using System.Windows;

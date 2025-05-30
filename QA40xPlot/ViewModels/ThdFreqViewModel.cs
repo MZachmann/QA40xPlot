@@ -1,14 +1,13 @@
-﻿using QA40xPlot.Actions;
+﻿using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
+using Newtonsoft.Json;
+using QA40xPlot.Actions;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.Views;
 using System.ComponentModel;
-using Newtonsoft.Json;
 using System.Windows;
 using System.Windows.Input;
-using CommunityToolkit.Mvvm.Input;
-using System;
-using Microsoft.Win32;
 
 namespace QA40xPlot.ViewModels
 {

@@ -1,13 +1,6 @@
 ﻿using QA40xPlot.Data;
 using QA40xPlot.Libraries;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Xml.Linq;
 
 namespace QA40xPlot.BareMetal
 {

@@ -1,12 +1,6 @@
 ﻿using QA40xPlot.BareMetal;
 using QA40xPlot.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace QA40xPlot.Libraries

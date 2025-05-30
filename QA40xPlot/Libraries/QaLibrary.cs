@@ -3,9 +3,6 @@ using QA40xPlot.ViewModels;
 using QA40xPlot.Views;
 using ScottPlot;
 using ScottPlot.Plottables;
-using System.Net.Sockets;
-using System.Runtime.InteropServices;
-using System.Windows;
 
 namespace QA40xPlot.Libraries
 {

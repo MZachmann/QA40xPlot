@@ -5,7 +5,6 @@ using QA40xPlot.Actions;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.Views;
-using System;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;

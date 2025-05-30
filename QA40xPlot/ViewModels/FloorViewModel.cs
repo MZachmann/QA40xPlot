@@ -1,12 +1,6 @@
-﻿using System.ComponentModel;
-using System.Drawing;
+﻿using Newtonsoft.Json;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Windows;
-using System.Windows.Input;
-using Newtonsoft.Json;
-using QA40xPlot.Data;
-using QA40xPlot.Views;
-using ScottPlot;
 
 namespace QA40xPlot.ViewModels
 {

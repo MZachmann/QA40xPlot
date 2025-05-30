@@ -2,7 +2,6 @@
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using System.Diagnostics;
-using System.Windows;
 
 namespace QA40xPlot.BareMetal
 {

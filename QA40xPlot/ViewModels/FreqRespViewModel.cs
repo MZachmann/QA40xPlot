@@ -6,13 +6,10 @@ using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using QA40xPlot.Views;
-using System;
 using System.ComponentModel;
 using System.Numerics;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Interop;
-using WinRT.Interop;
 
 
 public class FreqRespViewModel : BaseViewModel

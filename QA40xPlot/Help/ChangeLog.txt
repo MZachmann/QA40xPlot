@@ -2,18 +2,20 @@
 --------------------------------------------
 This changelog shows the changes made and then released via github
 --------------------------------------------
-V 1.1.15
+v 1.1.16
+- fix the impedance cursor phase math
+v 1.1.15
 - enable saving loaded tests
 - add plot colors to the Get settings
 - enable color selection via a color picker dialog
 - refactor out otherset class
 - add this file (Changelog.txt) to the distribution and link to it
 - create a ClickOnce installation and use github.io for it
-V 1.1.14
+v 1.1.14
 - repair right channel math error
 - swap up/down buttons on updown control
 - repair Spectrum signal expander binding
-V 1.1.13
+v 1.1.13
 - add inductor/capacitor cursor for impedance test
 - add ability to select a theme
 - swapped out updown for a usercontrol
@@ -21,17 +23,17 @@ V 1.1.13
 - add expanders to the UI portion of the screen
 - move miniplots to a separate window
 - swap input channels if QA402
-V 1.1.12
+v 1.1.12
 - increase max # of averages to 20
 - add 88,16K fft sizes
 - swap amp load resistance to correct ZReference on impedance test
 - do averaging in the frequency domain
 - improve translucency in plot lines
 - add graph background color selection
-V 1.1.11
+v 1.1.11
 - fix load of a saved tab half-erasing the get list
 - swap to more standard colors for the get list
-V 1.1.10
+v 1.1.10
 - repair IMD signal to noise math when a frequency is near 20KHz
 - repair tab save never highlights in THD vs amp and THD vs frequency
 - repair unit name in THD vs amp Y axis
