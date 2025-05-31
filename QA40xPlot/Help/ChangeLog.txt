@@ -4,6 +4,7 @@ This changelog shows the changes made and then released via github
 --------------------------------------------
 v 1.1.16
 - fix the impedance cursor phase math
+- swap to not using deploy suffix but set all git to binary
 v 1.1.15
 - enable saving loaded tests
 - add plot colors to the Get settings

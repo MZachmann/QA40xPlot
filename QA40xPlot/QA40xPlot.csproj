@@ -35,6 +35,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Properties\PublishProfiles\ClickOnceProfile.pubxml.user" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="FftSharp" Version="2.2.0" />
     <PackageReference Include="LibUsbDotNet" Version="2.2.75" />
