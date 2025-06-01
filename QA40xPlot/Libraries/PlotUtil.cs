@@ -338,6 +338,14 @@ namespace QA40xPlot.Libraries
 			return c;
 		}
 
+		public static string ColorToStr(Color color)
+		{   // Convert the Color object to a hexadecimal string
+			// note that ScottPlot parses hex colors wrong with the alpha channel last not first
+			// so use WithAlpha instead of inserting into the hex
+			string hex = $"#{color.A:X2}{color.R:X2}{color.G:X2}{color.B:X2}";
+			return hex;
+		}
+
 		public static ScottPlot.Color StrToColor(string fromSetting)
 		{
 			try

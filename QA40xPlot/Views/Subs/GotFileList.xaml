@@ -11,27 +11,23 @@
             <ListBox ItemsSource="{Binding OtherSetList}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="40" />
-                                <ColumnDefinition Width="40" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="30" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-                            <CheckBox Click="ForceRepaint" CommandParameter="{Binding Id}" Content="L " IsChecked="{Binding IsOnL}" Grid.Row="0" Grid.Column="0" />
-                            <CheckBox Click="ForceRepaint" CommandParameter="{Binding Id}" Content="R " IsChecked="{Binding IsOnR}" Grid.Row="0" Grid.Column="1" />
-                            <Label Content="{Binding Name}" Grid.Row="0" Grid.Column="2" MaxWidth="120" 
-                                   VerticalContentAlignment="Center"
-                                   ToolTip="{Binding Name}" Padding ="7,0,7,0" />
-                            <Button Click="OnClick" CommandParameter="{Binding Id}" ToolTip="Remove this entry" Content="" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" Grid.Row="0" Grid.Column="3" />
-                            <local:ColorBox Color="{Binding LeftColor}" Margin="5,0,0,0" Width="30" Grid.Row="1" Grid.Column="0" />
-                            <local:ColorBox Color="{Binding RightColor}" Margin="5,0,0,0" Width="30" Grid.Row="1" Grid.Column="1"/>
-                            <!--<Label Content="{Binding Value}" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"/>-->
-                        </Grid>
+                        <StackPanel Orientation="Vertical" >
+                            <Label Content="{Binding Name}" ToolTip="{Binding FileName}"  MaxWidth="100" Margin="0" Padding="2" HorizontalAlignment="Left"/>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox Click="ForceRepaint" MinWidth="35" CommandParameter="{Binding Id}" Content="L" IsChecked="{Binding IsOnL}" />
+                                <local:ColorBox Color="{Binding LeftColor}" Width="20" Margin="0,0,6,0"  />
+                                <Label Content="    " Margin="0" Padding="0" />
+                                <CheckBox Click="ForceRepaint" MinWidth="35" CommandParameter="{Binding Id}" Content="R" IsChecked="{Binding IsOnR}"  />
+                                <local:ColorBox Color="{Binding RightColor}" Margin="0,0,6,0"  Width="20"/>
+                                <Button Click="OnClick" CommandParameter="{Binding Id}" Content="" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets">
+                                    <Button.ToolTip>
+                                        <ToolTip FontFamily="Arial" >
+                                            Remove this entry
+                                        </ToolTip>
+                                    </Button.ToolTip>
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>

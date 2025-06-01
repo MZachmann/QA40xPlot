@@ -1,6 +1,7 @@
 ﻿using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using ScottPlot;
+using ScottPlot.AxisLimitManagers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -10,11 +11,27 @@ namespace QA40xPlot.Views
 	public partial class ColorPicker : Window
 	{
 		public static List<String> PlotColors { get => SettingsViewModel.PlotColors; } // the background colors
+		public double ClrOpacity { get; set; }
+
+		/// <summary>
+		/// convert plot color to an opacity value for the slider
+		/// </summary>
+		/// <param name="opaq"></param>
+		/// <returns></returns>
+		private int TxtToOpaque(string current)
+		{
+			var x = PlotUtil.StrToColor(current);      // as a color
+			int normal = (int)Math.Floor(100.0 * x.A / 255.0);             // normalize to 0-100
+			return normal;
+		}
+
 		public ColorPicker(string currentColor = "")
 		{
 			InitializeComponent();
 			NowColor = currentColor;
 			PopulateColors();
+			ClrOpacity = TxtToOpaque(currentColor);             // normalize to 0-100
+			MySlider.Value = ClrOpacity;                  // set the slider to the current opacity
 		}
 
 		private void PopulateColors()
@@ -75,9 +92,13 @@ namespace QA40xPlot.Views
 		{
 			if (sender is Button button && button.Background is SolidColorBrush brush)
 			{
-				NowColor = brush.Color.ToString();
-				DialogResult = true;
-				Close();
+				var alphaVal = MySlider.Value; // 0...1
+				var color = brush.Color.ToString();  // update that
+				var aColor = PlotUtil.StrToColor(color).WithAlpha(alphaVal/100.0);
+				NowColor = PlotUtil.ColorToStr(aColor); // Update the NowColor property
+				//MySlider.Value = alphaVal; // set the slider to the current opacity
+				//DialogResult = true;
+				//Close();
 			}
 		}
 
@@ -104,6 +125,24 @@ namespace QA40xPlot.Views
 		private void DoOk(object sender, RoutedEventArgs e)
 		{
 			DialogResult = true;
+			Close();
+		}
+
+		private void OnChange(object sender, RoutedPropertyChangedEventArgs<double> e)
+		{
+			if (sender is Slider slider)
+			{
+				// Convert the slider value (0-100) to an opacity value (0-255)
+				var alphaVal = slider.Value / 100.0; // 0...1
+				var currentColor = PlotUtil.StrToColor(NowColor).WithAlpha(alphaVal);
+				NowColor = PlotUtil.ColorToStr(currentColor); // Update the NowColor property
+				ShowOpaque.Content = $"{slider.Value:0}"; // Show the opacity percentage
+			}
+		}
+
+		private void DoCancel(object sender, RoutedEventArgs e)
+		{
+			DialogResult = false;
 			Close();
 		}
 	}

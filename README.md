@@ -10,6 +10,9 @@ of hardware.
 This Audio Analysis application started as a Fork of https://github.com/breedj/qa40x-audio-analyser.
 Some code was borrowed from QuantAsylum's Qa40x_BareMetal and PyQa40x repositories on Github.
 
+## Installation
+The installer may be run from https://mzachmann.github.io. Once installed, copy the desktop icon to the taskbar if you wish
+to pin it there.
 ## Known Problems
 The program may rarely not start on first try. Retry and it should then start up.
 

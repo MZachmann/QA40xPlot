@@ -55,7 +55,7 @@
                     <ComboBox x:Name="cbVolt" Grid.Column="1" Grid.Row="3"   
                               VerticalContentAlignment="Center"
                               IsEditable="True" Text="{Binding Gen1Voltage}" ItemsSource="{Binding GenVoltages}"/>
-                    <Label Content="{Binding GenAmpUnits, Mode=OneWay}" VerticalAlignment="Center"  Grid.Row="3" Grid.Column="3" />
+                    <Button BorderThickness="0" Content="{Binding GenAmpUnits, Mode=OneWay}" VerticalAlignment="Center"  Grid.Row="3" Grid.Column="3" />
                 </Grid>
             </Expander>
 

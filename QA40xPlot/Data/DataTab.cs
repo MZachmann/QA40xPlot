@@ -60,7 +60,15 @@ namespace QA40xPlot.Data
 			set { SetProperty(ref _IsOnR, value); }
 		}
 
-		private int _Id = 0; // the parent data descriptor ID
+		private string _FileName = ""; // our unique FileName
+		[JsonIgnore]
+		public string FileName
+		{
+			get { return _FileName; }
+			set { SetProperty(ref _FileName, value); }
+		}
+
+		private int _Id = 0; // our unique id
 		[JsonIgnore]
 		public int Id
 		{
@@ -127,8 +135,6 @@ namespace QA40xPlot.Data
 		// all other properties are calculated but may be cached in PropertySet
 		[JsonIgnore]
 		public int Show { get; set; }        // Show in graph 0 = none, 1 = left, 2 = right, 3 = both
-		[JsonIgnore]
-		public string FileName { get; set; }  // file name if loaded
 		[JsonIgnore]
 		public int Id { get; set; } // the generator, if any
 		[JsonIgnore]
@@ -223,7 +229,6 @@ namespace QA40xPlot.Data
 		{
 			Definition.Id = _CurrentId;
 			Id = _CurrentId++;  // unique id for the data descriptor
-			FileName = string.Empty;
 			if (viewModel != null)
 			{
 				ViewModel = (T)((ICloneable)viewModel).Clone();   // get a blank vm

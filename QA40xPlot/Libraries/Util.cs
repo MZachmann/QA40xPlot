@@ -20,7 +20,7 @@ namespace QA40xPlot.Libraries
 		{
 			// a new DataTab
 			var page = new DataTab<Model>(model.ViewModel, new LeftRightTimeSeries());
-			page.FileName = fileName;
+			page.Definition.FileName = fileName;
 			try
 			{
 				string jsonContent = string.Empty;
@@ -66,6 +66,7 @@ namespace QA40xPlot.Libraries
 					if (page.ViewModel != null)
 						jsonObject.ViewModel.CopyPropertiesTo(page.ViewModel);
 					page.Definition.Id = id; // keep the same id
+					page.Definition.FileName = fileName; // re-set the filename
 				}
 			}
 			catch (Exception ex)
