@@ -1,4 +1,5 @@
-﻿using QA40xPlot.BareMetal;
+﻿using Newtonsoft.Json;
+using QA40xPlot.BareMetal;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
@@ -22,6 +23,11 @@ namespace QA40xPlot.ViewModels
 			"DarkGray", "LightGreen", "Lavender" };
 		}
 		public static List<string> ThemeList { get => new List<string> { "None", "Light", "Dark" }; }
+
+		#region temporary setters
+
+		#endregion
+
 
 		#region setters and getters
 		private bool _UseREST;
@@ -126,8 +132,6 @@ namespace QA40xPlot.ViewModels
 				}
 			}
 		}
-
-
 
 		private string _TestChannel = "Left";
 		public string TestChannel

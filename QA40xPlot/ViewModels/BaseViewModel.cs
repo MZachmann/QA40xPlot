@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using CommunityToolkit.Mvvm.Input;
+using Newtonsoft.Json;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.Views;
@@ -42,10 +43,18 @@ namespace QA40xPlot.ViewModels
 		public static bool GEN_INPUT { get => true; }
 		public static bool GEN_OUTPUT { get => false; }
 		public static List<String> DataFormats { get => new List<string> { "SPL", "dBFS", "dBr", "dBu", "dBV", "dBW", "%", "V", "W" }; }
-		public static int MaxAverages { get => 20; }	// there's not much reason for this to be in a setting, but here's an easy...
+		public static int MaxAverages { get => 20; }    // there's not much reason for this to be in a setting, but here's an easy...
+		public static List<string> PowerUnits { get => new List<string>() { "mW", "μW", "W", "dBW", "dBm" }; }
+		public static List<string> VoltageUnits { get => new List<string>() { "mV", "μV", "V", "dBV", "dBmV", "dBu", "dBFS" }; }
+		[JsonIgnore]
+		public RelayCommand DoGetGenUnits { get => new RelayCommand(GetGenUnits); }
+		[JsonIgnore]
+		public RelayCommand<object> ShowMenuCommand { get => new RelayCommand<object>(ShowMenu); }
+		[JsonIgnore]
+		public RelayCommand<object> SetGenVolts { get => new RelayCommand<object>(DoGenVolts); }
 		#endregion
 
-		#region Setters and Getters
+		#region Output Setters and Getters
 		[JsonIgnore]
 		protected TabAbout actAbout { get; set; } = new();
 		[JsonIgnore]
@@ -77,13 +86,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _MyWindow, value);
 		}
 
-		private bool _KeepMiniPlots = false;
-		public bool KeepMiniPlots
-		{
-			get => _KeepMiniPlots;
-			set { SetProperty(ref _KeepMiniPlots, value); ShowMiniPlots = value; }
-		}
-
 		private bool _ShowMiniPlots = false;
 		[JsonIgnore]
 		public bool ShowMiniPlots
@@ -92,76 +94,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowMiniPlots, value);
 		}
 
-		private bool _ExpandGenerator = true;		// expand the generator section?
-		public bool ExpandGenerator
-		{
-			get => _ExpandGenerator;
-			set => SetProperty(ref _ExpandGenerator, value);
-		}
-
-		private bool _ExpandSampling = true;       // expand the Sampling section?
-		public bool ExpandSampling
-		{
-			get => _ExpandSampling;
-			set => SetProperty(ref _ExpandSampling, value);
-		}
-
-		private bool _ExpandYAxis = true;       // expand the YAxis section?
-		public bool ExpandYAxis
-		{
-			get => _ExpandYAxis;
-			set => SetProperty(ref _ExpandYAxis, value);
-		}
-
-		private bool _ExpandXAxis = true;       // expand the XAxis section?
-		public bool ExpandXAxis
-		{
-			get => _ExpandXAxis;
-			set => SetProperty(ref _ExpandXAxis, value);
-		}
-
-		private bool _ExpandSweep = true;       // expand the Sweep section?
-		public bool ExpandSweep
-		{
-			get => _ExpandSweep;
-			set => SetProperty(ref _ExpandSweep, value);
-		}
-
-		private bool _ExpandGlobals = true;       // expand the Sweep section?
-		public bool ExpandGlobals
-		{
-			get => _ExpandGlobals;
-			set => SetProperty(ref _ExpandGlobals, value);
-		}
-
-		private bool _ExpandGraphData = true;       // expand the GraphData section?
-		public bool ExpandGraphData
-		{
-			get => _ExpandGraphData;
-			set => SetProperty(ref _ExpandGraphData, value);
-		}
-
-
-		private bool _ExpandGraphOptions = true;       // expand the GraphOptions section?
-		public bool ExpandGraphOptions
-		{
-			get => _ExpandGraphOptions;
-			set => SetProperty(ref _ExpandGraphOptions, value);
-		}
-
-		private bool _ShowTabInfo = false;
-		public bool ShowTabInfo
-		{
-			get => _ShowTabInfo;
-			set => SetProperty(ref _ShowTabInfo, value);
-		}
-
-		private string _Name = string.Empty;         // name of the test
-		public string Name
-		{
-			get => _Name;
-			set => SetProperty(ref _Name, value);
-		}
 		[JsonIgnore]
 		public string GraphUnit
 		{
@@ -181,80 +113,10 @@ namespace QA40xPlot.ViewModels
 			get => _ToShowdB;
 			set => SetProperty(ref _ToShowdB, value);
 		}
-		private bool _ShowSummary = false;
-		public bool ShowSummary
-		{
-			get => _ShowSummary;
-			set => SetProperty(ref _ShowSummary, value);
-		}
-
-		private string _PlotFormat = "dBV";
-		public string PlotFormat
-		{
-			get => _PlotFormat;
-			set { SetProperty(ref _PlotFormat, value); RaisePropertyChanged("GraphUnit"); }
-		}
-
-		private string _SampleRate = String.Empty;
-		public string SampleRate
-		{
-			get => _SampleRate;
-			set => SetProperty(ref _SampleRate, value);
-		}
-		private string _FftSize = String.Empty;
-		public string FftSize
-		{
-			get => _FftSize;
-			set => SetProperty(ref _FftSize, value);
-		}
-		private string _Windowing = string.Empty;
-		public string WindowingMethod
-		{
-			get => _Windowing;
-			set => SetProperty(ref _Windowing, value);
-		}
-		private uint _Averages;         // type of alert
-		public uint Averages
-		{
-			get => _Averages; 
-			set => SetProperty(ref _Averages, value);
-		}
-
-		private bool _ShowLeft;
-		public bool ShowLeft
-		{
-			get => _ShowLeft;
-			set => SetProperty(ref _ShowLeft, value);
-		}
-
-		private bool _ShowRight;
-		public bool ShowRight
-		{
-			get => _ShowRight;
-			set => SetProperty(ref _ShowRight, value);
-		}
-
-		private string _GenDirection = string.Empty;
-		public string GenDirection
-		{
-			get => _GenDirection;
-			set { 
-				SetProperty(ref _GenDirection, value);
-				RaisePropertyChanged("GenAmpDescript"); 
-				RaisePropertyChanged("GenAmpUnits"); 
-			}
-		}
-		private double _Attenuation;
-		public double Attenuation
-		{
-			get => _Attenuation;
-			set => SetProperty(ref _Attenuation, value);
-		}
-		#endregion
-
-		#region Output Setters and Getters
 		[JsonIgnore]
-		public uint FftSizeVal { get 
+		public uint FftSizeVal
+		{
+			get
 			{
 				var fl = FftSizes.IndexOf(FftSize);
 				if (fl == -1)
@@ -343,7 +205,264 @@ namespace QA40xPlot.ViewModels
 			get { return _HasSave; }
 			set { SetProperty(ref _HasSave, value); }
 		}
+
+		/// <summary>
+		/// for use by the unit converters
+		/// </summary>
+		private string _GenVoltageUnits = "V";
+		[JsonIgnore]
+		public string GenVoltageUnits
+		{
+			get { return _GenVoltageUnits; }
+			set
+			{
+				SetProperty(ref _GenVoltageUnits, value);
+			}
+		}
 		#endregion
+
+		#region Setters and Getters
+		private bool _KeepMiniPlots = false;
+		public bool KeepMiniPlots
+		{
+			get => _KeepMiniPlots;
+			set { SetProperty(ref _KeepMiniPlots, value); ShowMiniPlots = value; }
+		}
+
+		private bool _ExpandGenerator = true;		// expand the generator section?
+		public bool ExpandGenerator
+		{
+			get => _ExpandGenerator;
+			set => SetProperty(ref _ExpandGenerator, value);
+		}
+
+		private bool _ExpandSampling = true;       // expand the Sampling section?
+		public bool ExpandSampling
+		{
+			get => _ExpandSampling;
+			set => SetProperty(ref _ExpandSampling, value);
+		}
+
+		private bool _ExpandYAxis = true;       // expand the YAxis section?
+		public bool ExpandYAxis
+		{
+			get => _ExpandYAxis;
+			set => SetProperty(ref _ExpandYAxis, value);
+		}
+
+		private bool _ExpandXAxis = true;       // expand the XAxis section?
+		public bool ExpandXAxis
+		{
+			get => _ExpandXAxis;
+			set => SetProperty(ref _ExpandXAxis, value);
+		}
+
+		private bool _ExpandSweep = true;       // expand the Sweep section?
+		public bool ExpandSweep
+		{
+			get => _ExpandSweep;
+			set => SetProperty(ref _ExpandSweep, value);
+		}
+
+		private bool _ExpandGlobals = true;       // expand the Sweep section?
+		public bool ExpandGlobals
+		{
+			get => _ExpandGlobals;
+			set => SetProperty(ref _ExpandGlobals, value);
+		}
+
+		private bool _ExpandGraphData = true;       // expand the GraphData section?
+		public bool ExpandGraphData
+		{
+			get => _ExpandGraphData;
+			set => SetProperty(ref _ExpandGraphData, value);
+		}
+
+
+		private bool _ExpandGraphOptions = true;       // expand the GraphOptions section?
+		public bool ExpandGraphOptions
+		{
+			get => _ExpandGraphOptions;
+			set => SetProperty(ref _ExpandGraphOptions, value);
+		}
+
+		private bool _ShowTabInfo = false;
+		public bool ShowTabInfo
+		{
+			get => _ShowTabInfo;
+			set => SetProperty(ref _ShowTabInfo, value);
+		}
+
+		private string _Name = string.Empty;         // name of the test
+		public string Name
+		{
+			get => _Name;
+			set => SetProperty(ref _Name, value);
+		}
+		private bool _ShowSummary = false;
+		public bool ShowSummary
+		{
+			get => _ShowSummary;
+			set => SetProperty(ref _ShowSummary, value);
+		}
+
+		private string _PlotFormat = "dBV";
+		public string PlotFormat
+		{
+			get => _PlotFormat;
+			set { SetProperty(ref _PlotFormat, value); RaisePropertyChanged("GraphUnit"); }
+		}
+
+		private string _SampleRate = String.Empty;
+		public string SampleRate
+		{
+			get => _SampleRate;
+			set => SetProperty(ref _SampleRate, value);
+		}
+		private string _FftSize = String.Empty;
+		public string FftSize
+		{
+			get => _FftSize;
+			set => SetProperty(ref _FftSize, value);
+		}
+		private string _Windowing = string.Empty;
+		public string WindowingMethod
+		{
+			get => _Windowing;
+			set => SetProperty(ref _Windowing, value);
+		}
+		private uint _Averages;         // type of alert
+		public uint Averages
+		{
+			get => _Averages; 
+			set => SetProperty(ref _Averages, value);
+		}
+
+		private bool _ShowLeft;
+		public bool ShowLeft
+		{
+			get => _ShowLeft;
+			set => SetProperty(ref _ShowLeft, value);
+		}
+
+		private bool _ShowRight;
+		public bool ShowRight
+		{
+			get => _ShowRight;
+			set => SetProperty(ref _ShowRight, value);
+		}
+
+
+		/// <summary>
+		/// Given an input voltage format, get a display format converter
+		/// </summary>
+		/// <param name="value">the data value</param>
+		/// <param name="genFormat">the entry format</param>
+		/// <returns>a converted double that is ready to become text</returns>
+		public static string AlterDirection(string genFormat)
+		{
+			switch (genFormat)
+			{
+				// power formats
+				case "mW":    // the generator has 18dBV output, the input has 32dBV maximum
+					return "mV";
+				case "μW":
+					return "μV";
+				case "W":
+					return "V";
+				case "dBW":
+					return "dbV";
+				case "dBm":
+					return "dBmV";
+				// voltage formats
+				case "mV":
+					return "mW";
+				case "μV":
+					return "μW";
+				case "dBV":
+					return "dBW";
+				case "dBmV":
+					return "dBm";
+				case "dBu":
+					return "dBW";
+				case "dBFS":
+					return "dBW";
+			}
+			return "W"; // default to volts
+		}
+
+
+		private string _GenDirection = string.Empty;
+		public string GenDirection
+		{
+			get => _GenDirection;
+			set {
+				var oldd = IsGenPower;
+				if( SetProperty(ref _GenDirection, value))
+				{
+					RaisePropertyChanged("GenAmpDescript");
+					RaisePropertyChanged("GenAmpUnits");
+					if (oldd != IsGenPower)
+					{
+						GenVoltageUnits = AlterDirection(GenVoltageUnits);
+					}
+				}
+			}
+		}
+		private double _Attenuation;
+		public double Attenuation
+		{
+			get => _Attenuation;
+			set => SetProperty(ref _Attenuation, value);
+		}
+		#endregion
+
+
+		private static void GetGenUnits()
+		{
+		}
+
+		public void SetGeneratorVolts(string volts)
+		{
+			GenVoltageUnits = volts;
+			RaisePropertyChanged("GenVoltage");
+			RaisePropertyChanged("Gen1Voltage");
+			RaisePropertyChanged("Gen2Voltage");
+			RaisePropertyChanged("StartVoltage");
+			RaisePropertyChanged("EndVoltage");
+		}
+
+		public static void DoGenVolts(object? parameter)
+		{
+			var mvm = ViewSettings.Singleton.Main.CurrentView; // the current viewmodel
+			if (parameter != null && mvm != null)
+			{
+				mvm.SetGeneratorVolts(parameter.ToString() ?? string.Empty);
+			}
+		}
+
+		public static void ShowMenu(object? parameter)
+		{
+			var mvm = ViewSettings.Singleton.Main.CurrentView; // the current viewmodel
+			if (parameter is Button button && mvm != null)
+			{
+				button.ContextMenu = new ContextMenu(); // Clear any previous context menu
+				var dutDirection = BaseViewModel.ToDirection(mvm.GenDirection);
+				var unitList = (dutDirection == E_GeneratorDirection.OUTPUT_POWER) ? BaseViewModel.PowerUnits : BaseViewModel.VoltageUnits;
+				foreach (var unit in unitList)
+				{
+					MenuItem unitItem = new MenuItem
+					{
+						Header = unit,
+						Command = mvm.SetGenVolts, // set the unit of measure string
+						CommandParameter = unit
+					};
+					button.ContextMenu.Items.Add(unitItem);
+				}
+				button.ContextMenu.PlacementTarget = button;
+				button.ContextMenu.IsOpen = true;
+			}
+		}
 
 		// here param is the id of the tab to remove from the othertab list
 		public virtual void DoDeleteIt(string param) { }

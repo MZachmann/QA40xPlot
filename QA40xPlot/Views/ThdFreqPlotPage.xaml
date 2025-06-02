@@ -38,11 +38,14 @@
                                IsEnabled="{Binding IsNotRunning}">
                     </ComboBox>
                     <Label Content="{Binding GenAmpDescript, Mode=OneWay}" Target="{Binding ElementName=cbVolt}" HorizontalAlignment="Right" VerticalAlignment="Center"  Grid.Column="0" Grid.Row="1" />
-                    <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1"
+                    <ComboBox x:Name="cbVolt" Grid.Column="1" Grid.Row="1"   
                               VerticalContentAlignment="Center"
-                              Text="{Binding GenVoltage}" x:Name="cbVolt" ItemsSource="{Binding GenVoltages}" >
+                              Text="{Binding GenVoltage, Converter={StaticResource VoltUnitConverter}}"
+                              IsEditable="True" ItemsSource="{Binding GenVoltages}">
                     </ComboBox>
-                    <Label Content="{Binding GenAmpUnits, Mode=OneWay}" HorizontalAlignment="Right" VerticalAlignment="Center"  Grid.Column="2" Grid.Row="1"  />
+                    <Button BorderThickness="0,0,0,1" Command="{Binding ShowMenuCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
+                            Content="{Binding GenVoltageUnits}" VerticalAlignment="Center"  Grid.Row="1" Grid.Column="2">
+                    </Button>                    
                     <Label Content="Amplifier _Load" Target="{Binding ElementName=AmpLoad}"  Grid.Column="0" Grid.Row="3"  />
                     <ComboBox x:Name="AmpLoad" IsEditable="True" Grid.Row="3" Grid.Column="1" MinWidth="80" Text="{Binding AmplifierLoad}" 
                               VerticalContentAlignment="Center"

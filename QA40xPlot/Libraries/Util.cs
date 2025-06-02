@@ -135,6 +135,7 @@ namespace QA40xPlot.Libraries
 
 		public static void GetPropertiesFrom(Dictionary<string, Dictionary<string, object>> vwsIn, string name, object dest)
 		{
+			List<string> delayed = new List<string>();// { "Gen1Voltage", "Gen2Voltage", "GenVoltage", "StartVoltage", "EndVoltage" };
 			if (vwsIn == null || dest == null)
 				return;
 			if (!vwsIn.ContainsKey(name))
@@ -143,6 +144,7 @@ namespace QA40xPlot.Libraries
 
 			Type type = dest.GetType();
 			PropertyInfo[] properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+			List<PropertyInfo> pending = new List<PropertyInfo>();
 			try
 			{
 				foreach (PropertyInfo property in properties)
@@ -151,6 +153,11 @@ namespace QA40xPlot.Libraries
 					{
 						if (vws.ContainsKey(property.Name))
 						{
+							if (delayed.Contains(property.Name))  // these are set later
+							{
+								pending.Add(property);
+								continue; // skip these for now
+							}
 							object value = vws[property.Name];
 							try
 							{
@@ -159,6 +166,19 @@ namespace QA40xPlot.Libraries
 							}
 							catch (Exception) { }    // for now ignore this
 						}
+					}
+				}
+				foreach(var prop in pending)
+				{
+					if (vws.ContainsKey(prop.Name))
+					{
+						object value = vws[prop.Name];
+						try
+						{
+							//Debug.WriteLine("Property " + prop.Name);
+							prop.SetValue(dest, Convert.ChangeType(value, prop.PropertyType));
+						}
+						catch (Exception) { }    // for now ignore this
 					}
 				}
 			}

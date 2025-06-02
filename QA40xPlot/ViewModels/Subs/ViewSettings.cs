@@ -61,14 +61,14 @@ namespace QA40xPlot.ViewModels
 
 		public void GetSettingsFrom( Dictionary<string, Dictionary<string,object>> vws)
 		{
-			Util.GetPropertiesFrom(vws,"Main",Main);
 			Util.GetPropertiesFrom(vws,"SpectrumVm",SpectrumVm);
 			Util.GetPropertiesFrom(vws,"ImdVm",ImdVm);
 			Util.GetPropertiesFrom(vws,"ThdAmp",ThdAmp);
 			Util.GetPropertiesFrom(vws,"ThdFreq",ThdFreq);
 			Util.GetPropertiesFrom(vws,"FreqRespVm",FreqRespVm);
-			Util.GetPropertiesFrom(vws,"SettingsVm", SettingsVm);
 			Util.GetPropertiesFrom(vws,"ScopeVm", ScopeVm);
+			Util.GetPropertiesFrom(vws, "Main", Main);
+			Util.GetPropertiesFrom(vws, "SettingsVm", SettingsVm);	// this will update global settings last which makes sense
 		}
 
 		public ViewSettings() 
