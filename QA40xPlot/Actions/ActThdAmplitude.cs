@@ -7,6 +7,7 @@ using ScottPlot.Plottables;
 using System.Data;
 using System.Net.Http;
 using System.Windows;
+using System.Windows.Interop;
 using static QA40xPlot.ViewModels.BaseViewModel;
 
 namespace QA40xPlot.Actions
@@ -424,9 +425,7 @@ namespace QA40xPlot.Actions
 			var noisy = await MeasureNoise(ct.Token);
 			if (ct.IsCancellationRequested)
 				return;
-			page.NoiseFloor = new LeftRightPair();
-			page.NoiseFloor.Right = QaCompute.CalculateNoise(noisy.FreqRslt, true);
-			page.NoiseFloor.Left = QaCompute.CalculateNoise(noisy.FreqRslt, false);
+			page.NoiseFloor = QaCompute.CalculateNoise(noisy.FreqRslt);
 
 			if (ct.IsCancellationRequested)
 				return;

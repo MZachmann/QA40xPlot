@@ -142,11 +142,12 @@ namespace QA40xPlot.Libraries
 				return;
 			Dictionary<string, object> vws = (Dictionary<string, object>)vwsIn[name];
 
-			Type type = dest.GetType();
-			PropertyInfo[] properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-			List<PropertyInfo> pending = new List<PropertyInfo>();
 			try
 			{
+				Type type = dest.GetType();
+				// get all public properties that aren't static
+				PropertyInfo[] properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+				List<PropertyInfo> pending = new List<PropertyInfo>();
 				foreach (PropertyInfo property in properties)
 				{
 					if (property.CanRead && property.CanWrite)
@@ -162,6 +163,7 @@ namespace QA40xPlot.Libraries
 							try
 							{
 								//Debug.WriteLine("Property " + property.Name);
+								// note this will raise property changed events
 								property.SetValue(dest, Convert.ChangeType(value, property.PropertyType));
 							}
 							catch (Exception) { }    // for now ignore this

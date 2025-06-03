@@ -349,9 +349,7 @@ namespace QA40xPlot.Actions
 					var noisy = await MeasureNoise(ct);
 					if (ct.IsCancellationRequested)
 						return false;
-					msr.NoiseFloor = new LeftRightPair();
-					msr.NoiseFloor.Right = QaCompute.CalculateNoise(noisy.FreqRslt, true);
-					msr.NoiseFloor.Left = QaCompute.CalculateNoise(noisy.FreqRslt, false);
+					msr.NoiseFloor = QaCompute.CalculateNoise(noisy.FreqRslt);
 				}
 				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
 				var genVolt = vm.ToGenVoltage(vm.Gen1Voltage, [], GEN_INPUT, gains);

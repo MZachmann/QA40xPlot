@@ -284,15 +284,15 @@ namespace QA40xPlot.BareMetal
 		}
 
 		// calculate the noise from 20..20000Hz
-		internal static double CalculateNoise(LeftRightFrequencySeries? lrfs, bool useLeft = true)
+		internal static LeftRightPair CalculateNoise(LeftRightFrequencySeries? lrfs)
 		{
 			if (lrfs == null)
-				return 1e-20;
+				return new LeftRightPair(1e-20, 1e-20);
 
-			var series = useLeft ? lrfs.Left : lrfs.Right;
-			var totalv = QaCompute.ComputeRmsF(series, lrfs.Df, 20, 20000);
+			var noiseLeft = QaCompute.ComputeRmsF(lrfs.Left, lrfs.Df, 20, 20000);
+			var noiseRight = QaCompute.ComputeRmsF(lrfs.Right, lrfs.Df, 20, 20000);
 			// calculate the noise floor
-			return totalv;
+			return new LeftRightPair(noiseLeft, noiseRight);
 		}
 
 		/// <summary>

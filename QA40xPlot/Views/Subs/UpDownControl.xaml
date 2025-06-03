@@ -6,17 +6,11 @@
              xmlns:local="clr-namespace:QA40xPlot.Views" 
              mc:Ignorable="d" 
              d:DesignHeight="100" d:DesignWidth="100">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-        </Grid.ColumnDefinitions>
-        <StackPanel Grid.Column="1" Orientation="Horizontal">
+        <StackPanel Orientation="Horizontal">
             <TextBox Text="{Binding Value, RelativeSource={RelativeSource AncestorType=local:UpDownControl}}" 
                  VerticalContentAlignment="Center" HorizontalAlignment="Stretch" MinWidth="60" />
             <Button x:Name="DownButton" Content="▼" Click="DownButton_Click" Margin="2,1"/>
             <Button x:Name="UpButton" Content="▲" Click="UpButton_Click" Margin="2,1" />
         </StackPanel>
-    </Grid>
 </UserControl>
     

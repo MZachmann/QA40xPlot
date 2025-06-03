@@ -38,8 +38,9 @@
                                ToolTip="{Binding DutDescript}" x:Name="cbDUT" 
                                IsEnabled="{Binding IsNotRunning}" >
                     </ComboBox>
-                    <Label Content="{Binding GenAmpDescript, Mode=OneWay}" Target="{Binding ElementName=cbV1}" HorizontalAlignment="Right" VerticalAlignment="Center" ContentStringFormat="Start {0}" Grid.Column="0" Grid.Row="1"   />
-                    <ComboBox x:Name="cbVolt" Grid.Column="1" Grid.Row="1"   
+                    <Label Content="{Binding GenAmpDescript, Mode=OneWay}" Target="{Binding ElementName=cbV1}" 
+                           HorizontalAlignment="Right" VerticalAlignment="Center" ContentStringFormat="Start {0}" Grid.Column="0" Grid.Row="1"   />
+                    <ComboBox Grid.Column="1" Grid.Row="1"   x:Name="cbV1"
                               VerticalContentAlignment="Center"
                               Text="{Binding StartVoltage, Converter={StaticResource VoltUnitConverter}}"
                               IsEditable="True" ItemsSource="{Binding GenVoltages}">
@@ -108,8 +109,10 @@
                               VerticalContentAlignment="Center"
                                SelectedValue="{Binding FftSize}" ItemsSource="{Binding FftSizes}">
                     </ComboBox>
-                    <Label Content="_Averages" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Column="0" Grid.Row="2" Target="{Binding ElementName=xcaverages}"  />
-                    <views:UpDownControl x:Name="xcaverages" Value="{Binding Averages}" VerticalAlignment="Center"  Minimum="1" Maximum="{Binding MaxAverages}"  Grid.Column="1" Grid.Row="2"  />
+                    <Label Content="_Averages" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Column="0" 
+                           Grid.Row="2" Target="{Binding ElementName=xcaverages}"  />
+                    <views:UpDownControl x:Name="xcaverages" Value="{Binding Averages}" VerticalAlignment="Center"  
+                                         Minimum="1" Maximum="{Binding MaxAverages}"  Grid.Column="1" Grid.Row="2"  />
                 </Grid>
             </Expander>
             <views:SeeGlobals HorizontalAlignment="Stretch" Margin="0,5,0,0" />

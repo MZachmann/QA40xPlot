@@ -6,6 +6,7 @@ using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
 using System.Windows;
+using System.Windows.Interop;
 using static QA40xPlot.ViewModels.BaseViewModel;
 
 
@@ -427,9 +428,7 @@ namespace QA40xPlot.Actions
 				var noisy = await MeasureNoise(ct.Token);
 				if (ct.IsCancellationRequested)
 					return false;
-				page.NoiseFloor = new LeftRightPair();
-				page.NoiseFloor.Right = QaCompute.CalculateNoise(noisy.FreqRslt, true);
-				page.NoiseFloor.Left = QaCompute.CalculateNoise(noisy.FreqRslt, false);
+				page.NoiseFloor = QaCompute.CalculateNoise(noisy.FreqRslt);
 
 				WaveGenerator.SetEnabled(true); // enable generator
 												// ********************************************************************

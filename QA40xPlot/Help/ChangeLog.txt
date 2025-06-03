@@ -2,6 +2,12 @@
 --------------------------------------------
 This changelog shows the changes made and then released via github
 --------------------------------------------
+v 1.1.18
+- fix left/right swap of noise floor
+- repair up-down control positioning on-screen
+
+v 1.1.17
+- add unit conversion to voltage inputs (not serialized yet)
 v 1.1.16
 - fix the impedance cursor phase math
 - swap to not using deploy suffix but set all git to binary

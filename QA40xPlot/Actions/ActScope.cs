@@ -286,8 +286,8 @@ namespace QA40xPlot.Actions
 					//	if (ct.IsCancellationRequested)
 					//		return false;
 					//	msr.NoiseFloor = new LeftRightPair();
-					//	msr.NoiseFloor.Right = QaCompute.CalculateNoise(noisy.FreqRslt, true);
-					//	msr.NoiseFloor.Left = QaCompute.CalculateNoise(noisy.FreqRslt, false);
+					//	msr.NoiseFloor.Left = QaCompute.CalculateNoise(noisy.FreqRslt, true);
+					//	msr.NoiseFloor.Right = QaCompute.CalculateNoise(noisy.FreqRslt, false);
 					//}
 
 				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
@@ -306,7 +306,6 @@ namespace QA40xPlot.Actions
 				// ********************************************************************
 				// now do the step measurement
 				await showMessage($"Measuring spectrum with input of {genVolt:G3}V.");
-				await showProgress(0);
 
 				var wave = BuildWave(msr);   // also update the waveform variables
 				lrfs = await QaComm.DoAcquireUser(msr.ViewModel.Averages, ct, wave, wave, false);
@@ -477,6 +476,7 @@ namespace QA40xPlot.Actions
 
 			// do the actual measurements
 			var rslt = true;
+			await showProgress(0);
 			rslt = await RunAcquisition(NextPage, ct.Token);
 			if (rslt)
 				rslt = await PostProcess(NextPage, ct.Token);
