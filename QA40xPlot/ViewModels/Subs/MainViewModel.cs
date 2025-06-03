@@ -3,6 +3,7 @@ using Microsoft.Win32;
 using Newtonsoft.Json;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -43,9 +44,9 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _GraphBackground, value);
 		}
 
-		private String _ProgressMessage = String.Empty;         // type of alert
+		private string _ProgressMessage = string.Empty;         // type of alert
 		[JsonIgnore]
-		public String ProgressMessage
+		public string ProgressMessage
 		{
 			get => _ProgressMessage; set => SetProperty(ref _ProgressMessage, value);
 		}
@@ -93,7 +94,14 @@ namespace QA40xPlot.ViewModels
 				SetProperty(ref _CurrentView, value);
 				RaisePropertyChanged("HasExport");	// always update this
 				}
-			}
+		}
+
+		private string _CurrentWindowRect = string.Empty;
+		public string CurrentWindowRect
+		{
+			get => _CurrentWindowRect;
+			set => SetProperty(ref _CurrentWindowRect, value);
+		}
 
 		#endregion
 
@@ -121,9 +129,69 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
+		private static string GetWindowSize()
+		{
+			string rs = string.Empty;
+			try
+			{
+				// Get the width and height of the main window
+				if (Application.Current.MainWindow?.WindowState == WindowState.Normal)
+				{
+					double windowWidth = Application.Current.MainWindow.Width;
+					double windowHeight = Application.Current.MainWindow.Height;
+					double Xoffset = Application.Current.MainWindow.Left;
+					double Yoffset = Application.Current.MainWindow.Top;
+					var r = new Rect(Xoffset, Yoffset, windowWidth, windowHeight);
+					rs = r.ToString();
+				}
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine($"Error: {ex.Message}");
+			}
+			return rs;
+		}
+
+		// when we load a configuration, we get a string rect for the app window size
+		// parse it and set the window size
+		public static void SetWindowSize(string sr)
+		{
+			if(sr.Length == 0)
+				return;
+
+			try
+			{
+				var u = sr.Split(new char[] { ',' }).Select(x => MathUtil.ToDouble(x)).ToArray();
+				if (u.Length < 4)
+					return;
+
+				if (Application.Current.MainWindow != null && u[2] > 0 && u[3] > 0)
+				{
+					double screenWidth = SystemParameters.PrimaryScreenWidth;
+					double screenHeight = SystemParameters.PrimaryScreenHeight;
+					if ((u[0] + u[2]) <= screenWidth && (u[1] + u[3]) <= screenHeight)
+					{
+						Application.Current.MainWindow.Left = u[0];
+						Application.Current.MainWindow.Top = u[1];
+						Application.Current.MainWindow.Width = u[2];
+						Application.Current.MainWindow.Height = u[3];
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine($"Error: {ex.Message}");
+			}
+		}	
+
 		public void SaveToSettings(string filename)
 		{
 			var cfgData = ViewSettings.Singleton;
+			// Ensure the current window size is captured
+			var windsize = GetWindowSize();
+			if(windsize.Length > 0)
+				ViewSettings.Singleton.Main.CurrentWindowRect = windsize;
+
 			// Serialize the object to a JSON string
 			string jsonString = JsonConvert.SerializeObject(cfgData, Formatting.Indented);
 
@@ -142,6 +210,8 @@ namespace QA40xPlot.ViewModels
 				var jsonObject = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(jsonContent);
 				if( jsonObject != null)
 					ViewSettings.Singleton.GetSettingsFrom(jsonObject);
+				var winRect = ViewSettings.Singleton.Main.CurrentWindowRect;
+				SetWindowSize(winRect);
 			}
 			catch (Exception ex)
 			{

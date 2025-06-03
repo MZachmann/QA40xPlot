@@ -2,9 +2,9 @@
 using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.AxisLimitManagers;
+using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 
 namespace QA40xPlot.Views
 {
@@ -18,11 +18,17 @@ namespace QA40xPlot.Views
 		/// </summary>
 		/// <param name="opaq"></param>
 		/// <returns></returns>
-		private int TxtToOpaque(string current)
+		private double TxtToOpaque(string current)
 		{
 			var x = PlotUtil.StrToColor(current);      // as a color
-			int normal = (int)Math.Floor(100.0 * x.A / 255.0);             // normalize to 0-100
+			double normal = 100.0 * x.A / 255.0;             // normalize to 0-100
 			return normal;
+		}
+
+		public void DoShowOpaque(double alpha)
+		{
+			MySlider.Value = alpha;                  // set the slider to the current opacity
+			ShowOpaque.Content = $"{alpha:0.#}%"; // Show the opacity percentage
 		}
 
 		public ColorPicker(string currentColor = "")
@@ -31,7 +37,7 @@ namespace QA40xPlot.Views
 			NowColor = currentColor;
 			PopulateColors();
 			ClrOpacity = TxtToOpaque(currentColor);             // normalize to 0-100
-			MySlider.Value = ClrOpacity;                  // set the slider to the current opacity
+			DoShowOpaque(ClrOpacity); // Show the opacity percentage
 		}
 
 		private void PopulateColors()
@@ -71,7 +77,7 @@ namespace QA40xPlot.Views
 				System.Windows.Media.Color myclr = PlotUtil.ScottToMedia(color);
 				var colorButton = new Button
 				{
-					Background = new SolidColorBrush(myclr),
+					Background = new System.Windows.Media.SolidColorBrush(myclr),
 					Width = 30,
 					Height = 30,
 					Margin = new Thickness(5)
@@ -81,7 +87,7 @@ namespace QA40xPlot.Views
 					colorButton.Height = 32;
 					colorButton.Width = 32;
 					colorButton.BorderThickness = new Thickness(3);
-					colorButton.BorderBrush = Brushes.Red; // Highlight the current color
+					colorButton.BorderBrush = System.Windows.Media.Brushes.Red; // Highlight the current color
 				}
 				colorButton.Click += ColorButton_Click;
 				ColorWrapPanel.Children.Add(colorButton);
@@ -90,15 +96,20 @@ namespace QA40xPlot.Views
 
 		private void ColorButton_Click(object sender, RoutedEventArgs e)
 		{
-			if (sender is Button button && button.Background is SolidColorBrush brush)
+			if (sender is Button button && button.Background is System.Windows.Media.SolidColorBrush brush)
 			{
 				var alphaVal = MySlider.Value; // 0...1
+				if (alphaVal < 10)   // if nearly transparent reset to solid
+				{
+					alphaVal = 100; // avoid setting alpha to 0
+					MySlider.Value = alphaVal; // reset the slider to 100%
+				}
 				var color = brush.Color.ToString();  // update that
-				var aColor = PlotUtil.StrToColor(color).WithAlpha(alphaVal/100.0);
+				var aColor = PlotUtil.StrToColor(color).WithAlpha(alphaVal / 100.0);
 				NowColor = PlotUtil.ColorToStr(aColor); // Update the NowColor property
-				//MySlider.Value = alphaVal; // set the slider to the current opacity
-				//DialogResult = true;
-				//Close();
+														//MySlider.Value = alphaVal; // set the slider to the current opacity
+														//DialogResult = true;
+														//Close();
 			}
 		}
 
@@ -109,15 +120,17 @@ namespace QA40xPlot.Views
 				typeof(string),              // Property type
 				typeof(ColorPicker),       // Owner type
 				new FrameworkPropertyMetadata(
-					"Red", FrameworkPropertyMetadataOptions.BindsTwoWayByDefault)
+					"Red", FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnValueChange)
 			);
 
+		public string AValue = string.Empty;
 		// CLR wrapper for the dependency property
 		public string NowColor
 		{
 			get => (string)GetValue(ColorProperty);
 			set
 			{
+				AValue = value; // Store the value for later use
 				SetValue(ColorProperty, value);
 			}
 		}
@@ -128,15 +141,18 @@ namespace QA40xPlot.Views
 			Close();
 		}
 
-		private void OnChange(object sender, RoutedPropertyChangedEventArgs<double> e)
+		private void OnSliderChange(object sender, RoutedPropertyChangedEventArgs<double> e)
 		{
 			if (sender is Slider slider)
 			{
 				// Convert the slider value (0-100) to an opacity value (0-255)
-				var alphaVal = slider.Value / 100.0; // 0...1
-				var currentColor = PlotUtil.StrToColor(NowColor).WithAlpha(alphaVal);
-				NowColor = PlotUtil.ColorToStr(currentColor); // Update the NowColor property
-				ShowOpaque.Content = $"{slider.Value:0}"; // Show the opacity percentage
+				var alphaVal = slider.Value; // 0...1
+				if(alphaVal < 99 || NowColor.Contains("#"))
+				{
+					var currentColor = PlotUtil.StrToColor(NowColor).WithAlpha(alphaVal / 100.0);
+					NowColor = PlotUtil.ColorToStr(currentColor); // Update the NowColor property
+				}
+				ShowOpaque.Content = $"{alphaVal:0.#}%"; // Show the opacity percentage
 			}
 		}
 
@@ -144,6 +160,25 @@ namespace QA40xPlot.Views
 		{
 			DialogResult = false;
 			Close();
+		}
+
+		// value property change callback.
+		private static void OnValueChange(DependencyObject d, DependencyPropertyChangedEventArgs e)
+		{
+			var dx = d as ColorPicker;
+			if (dx == null)
+				return ; // not a ColorPicker
+
+			var color = e.NewValue as string;  // the new entry
+			var ecolor = dx.AValue;			// the last entry from program 
+			if (color != ecolor && color != null)
+			{
+				// we get here if use is actually editing the value manually
+				// hence the dependency property has changed without the value being 'set'
+				var aColor = PlotUtil.StrToColor(color);
+				var alpha = 100.0 * aColor.A / 255.0; // get the alpha value
+				dx.DoShowOpaque(alpha); // Show the opacity percentage
+			}
 		}
 	}
 }

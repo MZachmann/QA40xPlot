@@ -43,7 +43,7 @@ namespace QA40xPlot.Libraries
 					var u = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(jsonContent); // untyped seriale
 					if (u == null)
 						return null;
-					x = u["ViewModel"]["Name"].ToString() ?? String.Empty;
+					x = u["ViewModel"]["Name"].ToString() ?? string.Empty;
 					var z = model.ViewModel as BaseViewModel;
 					isValid = z?.IsValidLoadModel(x ?? "") ?? false;
 				}

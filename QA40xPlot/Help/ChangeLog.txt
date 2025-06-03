@@ -1,11 +1,12 @@
 ﻿The QA40xPlot Changelog
 --------------------------------------------
-This changelog shows the changes made and then released via github
+This changelog shows the changes made for each version
 --------------------------------------------
 v 1.1.18
 - fix left/right swap of noise floor
 - repair up-down control positioning on-screen
-
+- save current window size and position in configuration
+- enhance color picker transparency display
 v 1.1.17
 - add unit conversion to voltage inputs (not serialized yet)
 v 1.1.16

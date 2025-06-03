@@ -17,10 +17,10 @@ namespace QA40xPlot.ViewModels
 		public static List<String> PlotColors
 		{
 			get => new List<string>() { "Transparent",
-			"#dce4e4", "#f8f8f8", "#20ffffff",
-			"White",
-			"MintCream", "LightGray",
-			"DarkGray", "LightGreen", "Lavender" };
+			"Red", "Orange", "Yellow", "Blue", "Green", "Indigo", "Violet",
+			"Black", "White", "Gray", "Teal", "Cyan", "Magenta", "Pink",
+			"DarkRed", "DarkOrange", "DarkGreen", "DarkBlue", "DarkViolet"
+			};
 		}
 		public static List<string> ThemeList { get => new List<string> { "None", "Light", "Dark" }; }
 

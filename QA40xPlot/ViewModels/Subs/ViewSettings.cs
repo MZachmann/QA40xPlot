@@ -14,7 +14,7 @@ namespace QA40xPlot.ViewModels
 {
 	public class ViewSettings
 	{
-		private readonly Dictionary<string, string> _ProductTitle = new Dictionary<string, string>() { { "Name", "QA40xPlot" }, { "Version", "0.12"} };
+		private readonly Dictionary<string, string> _ProductTitle = new Dictionary<string, string>() { { "Name", "QA40xPlot" }, { "Version", "0.18"} };
 		public Dictionary<string, string> Product { get { return _ProductTitle; } private set {; } }
 		public static ViewSettings Singleton { get; private set; } = new ViewSettings();
 		public SpectrumViewModel SpectrumVm { get; private set; }

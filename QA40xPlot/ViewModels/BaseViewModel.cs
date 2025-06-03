@@ -313,13 +313,13 @@ namespace QA40xPlot.ViewModels
 			set { SetProperty(ref _PlotFormat, value); RaisePropertyChanged("GraphUnit"); }
 		}
 
-		private string _SampleRate = String.Empty;
+		private string _SampleRate = string.Empty;
 		public string SampleRate
 		{
 			get => _SampleRate;
 			set => SetProperty(ref _SampleRate, value);
 		}
-		private string _FftSize = String.Empty;
+		private string _FftSize = string.Empty;
 		public string FftSize
 		{
 			get => _FftSize;

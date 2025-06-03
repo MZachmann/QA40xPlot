@@ -108,17 +108,11 @@ namespace QA40xPlot
 		//private static bool _bDone = false;
 		private void DoContentRendered(object? sender, EventArgs e)
 		{
-			//if (!_bDone)
-			//{
-			//	_bDone = true;
-			//	// look for a default config file
-			//	var fpath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-			//	fpath += @"\QADefault.cfg";
-			//	if (File.Exists(fpath))
-			//	{
-			//		ViewSettings.Singleton.Main.LoadFromSettings(fpath);
-			//	}
-			//}
+			var vm = ViewSettings.Singleton?.Main;
+			if(vm != null)
+			{
+				MainViewModel.SetWindowSize(vm.CurrentWindowRect);
+			}
 			this.InvalidateVisual();
 		}
 
