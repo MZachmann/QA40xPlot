@@ -296,7 +296,7 @@ namespace QA40xPlot.Actions
 					var noisy = await MeasureNoise(ct);
 					if (ct.IsCancellationRequested)
 						return false;
-					msr.NoiseFloor = QaCompute.CalculateNoise(noisy.FreqRslt);
+					msr.NoiseFloor = QaCompute.CalculateNoise(msrImd.WindowingMethod, noisy.FreqRslt);
 				}
 
 				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
@@ -359,10 +359,11 @@ namespace QA40xPlot.Actions
 			var lrfs = msr.FreqRslt;    // frequency response
 
 			var maxf = 20000; // the app seems to use 20,000 so not sampleRate/ 2.0;
-			LeftRightPair snrdb = QaCompute.GetSnrDb(lrfs, freq, 20.0, maxf);
-			LeftRightPair thds = QaCompute.GetThdDb(lrfs, freq, 20.0, maxf);
-			LeftRightPair thdN = QaCompute.GetThdnDb(lrfs, freq, 20.0, maxf);
-			LeftRightPair snrimdb = QaCompute.GetSnrImdDb(lrfs, freq, freq2);
+			var wdw = vm.WindowingMethod; // windowing method
+			LeftRightPair snrdb = QaCompute.GetSnrDb(wdw, lrfs, freq, 20.0, maxf);
+			LeftRightPair thds = QaCompute.GetThdDb(wdw, lrfs, freq, 20.0, maxf);
+			LeftRightPair thdN = QaCompute.GetThdnDb(wdw, lrfs, freq, 20.0, maxf);
+			LeftRightPair snrimdb = QaCompute.GetSnrImdDb(wdw, lrfs, freq, freq2);
 
 			ImdChannelViewModel[] steps = [left, right];
 			foreach (var step in steps)
@@ -390,7 +391,8 @@ namespace QA40xPlot.Actions
 				step.ThdIndB = isleft ? thds.Left : thds.Right;
 				step.Gain1dB = 20 * Math.Log10(step.Fundamental1Volts / Math.Max(1e-10, step.Generator1Volts));
 				step.Gain2dB = 20 * Math.Log10(step.Fundamental2Volts / Math.Max(1e-10, step.Generator2Volts));
-				var rmsV = Math.Sqrt(step.Fundamental1Volts * step.Fundamental1Volts + step.Fundamental2Volts * step.Fundamental2Volts);
+				var rmsV = QaCompute.ComputeRmsF(frq, msr.FreqRslt.Df, 20, 20000, vm.WindowingMethod);
+				//var rmsV = Math.Sqrt(step.Fundamental1Volts * step.Fundamental1Volts + step.Fundamental2Volts * step.Fundamental2Volts);
 				step.TotalV = rmsV;
 				step.TotalW = rmsV * rmsV / ViewSettings.AmplifierLoad;
 				step.ShowDataPercents = vm.ShowDataPercent;
@@ -780,7 +782,7 @@ namespace QA40xPlot.Actions
 				var v1rout = ToGenOutVolts(v1in, frqtest, LRGains.Right);	// right channel output V
 				var v2rout = ToGenOutVolts(v2in, frq2test, LRGains.Right);
 				// just add them since they may be in phase
-				var vtotal = Math.Max(v1lout + v2lout, v1rout + v2rout);	// max sum of squares
+				var vtotal = Math.Max(v1lout + v2lout, v1rout + v2rout);	// max sum 
 
 
 				var vdbv = QaLibrary.ConvertVoltage(vtotal, E_VoltageUnit.Volt, E_VoltageUnit.dBV);

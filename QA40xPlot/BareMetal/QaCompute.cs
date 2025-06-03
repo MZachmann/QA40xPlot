@@ -13,6 +13,19 @@ namespace QA40xPlot.BareMetal
 {
 	public static class QaCompute
 	{
+		internal struct EnbwMath
+		{
+			public double Enbw;
+			public double WindowSize;
+			public string WindowType;
+			public EnbwMath(double enbw, double windowSize, string windowType)
+			{
+				Enbw = enbw;
+				WindowSize = windowSize;
+				WindowType = windowType;
+			}
+		}
+
 		/// <summary>
 		/// Get the maximum value from a range of frequencies
 		/// </summary>
@@ -35,37 +48,37 @@ namespace QA40xPlot.BareMetal
 			return maxi;
 		}
 
-		internal static LeftRightPair GetSnrImdDb(LeftRightFrequencySeries lrs, double fundFreq, double fund2Freq)
+		internal static LeftRightPair GetSnrImdDb(string windowing, LeftRightFrequencySeries lrs, double fundFreq, double fund2Freq)
 		{
 			if (lrs == null)
 				return new();
 
 			var ffs = lrs.Left;
-			var thdLeft = ComputeImdSnrRatio(ffs, lrs.Df, fundFreq, fund2Freq, false);
+			var thdLeft = ComputeImdSnrRatio(windowing, ffs, lrs.Df, fundFreq, fund2Freq, false);
 			thdLeft = QaLibrary.ConvertVoltage(thdLeft, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 			ffs = lrs.Right;
-			var thdRight = ComputeImdSnrRatio(ffs, lrs.Df, fundFreq, fund2Freq, false);
+			var thdRight = ComputeImdSnrRatio(windowing, ffs, lrs.Df, fundFreq, fund2Freq, false);
 			thdRight = QaLibrary.ConvertVoltage(thdRight, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
 			return new(thdLeft, thdRight);
 		}
 
-		internal static LeftRightPair GetSnrDb(LeftRightFrequencySeries lrs, double fundFreq, double minFreq, double maxFreq)
+		internal static LeftRightPair GetSnrDb(string windowing, LeftRightFrequencySeries lrs, double fundFreq, double minFreq, double maxFreq)
 		{
 			if (lrs == null)
 				return new();
 
 			var ffs = lrs.Left;
-			var thdLeft = ComputeSnrRatio(ffs, lrs.Df, fundFreq, false);
+			var thdLeft = ComputeSnrRatio(windowing, ffs, lrs.Df, fundFreq, false);
 			thdLeft = QaLibrary.ConvertVoltage(thdLeft, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 			ffs = lrs.Right;
-			var thdRight = ComputeSnrRatio(ffs, lrs.Df, fundFreq, false);
+			var thdRight = ComputeSnrRatio(windowing, ffs, lrs.Df, fundFreq, false);
 			thdRight = QaLibrary.ConvertVoltage(thdRight, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
 			return new(thdLeft, thdRight);
 		}
 
-		internal static LeftRightPair GetThdDb(LeftRightFrequencySeries lrs, double fundFreq, double minFreq, double maxFreq)
+		internal static LeftRightPair GetThdDb(string windowing, LeftRightFrequencySeries lrs, double fundFreq, double minFreq, double maxFreq)
 		{
 			// double[] signalFreqLin, double[] frequencies, double fundamental,
 			// int numHarmonics = 5, bool debug = false
@@ -73,16 +86,16 @@ namespace QA40xPlot.BareMetal
 				return new();
 
 			var ffs = lrs.Left;
-			var thdLeft = ComputeThdLinear(ffs, lrs.Df, fundFreq, 5, false);
+			var thdLeft = ComputeThdLinear(windowing, ffs, lrs.Df, fundFreq, 5, false);
 			thdLeft = QaLibrary.ConvertVoltage(thdLeft, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 			ffs = lrs.Right;
-			var thdRight = ComputeThdLinear(ffs, lrs.Df, fundFreq, 5, false);
+			var thdRight = ComputeThdLinear(windowing, ffs, lrs.Df, fundFreq, 5, false);
 			thdRight = QaLibrary.ConvertVoltage(thdRight, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
 			return new(thdLeft, thdRight);
 		}
 
-		internal static LeftRightPair GetThdnDb(LeftRightFrequencySeries lrs, double fundFreq, double minFreq, double maxFreq)
+		internal static LeftRightPair GetThdnDb(string windowing, LeftRightFrequencySeries lrs, double fundFreq, double minFreq, double maxFreq)
 		{
 			// double[] signalFreqLin, double[] frequencies, double fundamental, double notchOctaves = 0.5,
 			// double startFreq = 20.0, double stopFreq = 20000.0, bool debug = false
@@ -90,16 +103,16 @@ namespace QA40xPlot.BareMetal
 				return new();
 
 			var ffs = lrs.Left;
-			var thdLeft = ComputeThdnLinear(ffs, lrs.Df, fundFreq);
+			var thdLeft = ComputeThdnLinear(windowing, ffs, lrs.Df, fundFreq);
 			thdLeft = QaLibrary.ConvertVoltage(thdLeft, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 			ffs = lrs.Right;
-			var thdRight = ComputeThdnLinear(ffs, lrs.Df, fundFreq);
+			var thdRight = ComputeThdnLinear(windowing, ffs, lrs.Df, fundFreq);
 			thdRight = QaLibrary.ConvertVoltage(thdRight, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
 			return new(thdLeft, thdRight);
 		}
 
-		internal static double ComputeSnrRatio(double[] signalFreqLin, double df, double fundamental, bool debug = false)
+		internal static double ComputeSnrRatio(string windowing, double[] signalFreqLin, double df, double fundamental, bool debug = false)
 		{
 			// Calculate notch filter bounds in Hz
 			//var notchOctaves = 0.5; // aes-17 2015 standard notch
@@ -113,7 +126,7 @@ namespace QA40xPlot.BareMetal
 			}
 
 			// Calculate RMS of the fundamental within the notch
-			double fundamentalRms = ComputeRmsF(signalFreqLin, df, notchLowerBound, notchUpperBound);
+			double fundamentalRms = ComputeRmsF(signalFreqLin, df, notchLowerBound, notchUpperBound, windowing);
 
 			if (debug)
 			{
@@ -121,8 +134,8 @@ namespace QA40xPlot.BareMetal
 			}
 
 			// Calculate RMS of the signal outside the notch
-			double rmsBelowNotch = ComputeRmsF(signalFreqLin, df, 20, notchLowerBound);
-			double rmsAboveNotch = ComputeRmsF(signalFreqLin, df, notchUpperBound, 20000);
+			double rmsBelowNotch = ComputeRmsF(signalFreqLin, df, 20, notchLowerBound, windowing);
+			double rmsAboveNotch = ComputeRmsF(signalFreqLin, df, notchUpperBound, 20000, windowing);
 			double noiseRms = Math.Sqrt(Math.Pow(rmsBelowNotch, 2) + Math.Pow(rmsAboveNotch, 2));
 
 			if (debug)
@@ -135,7 +148,7 @@ namespace QA40xPlot.BareMetal
 			return fundamentalRms / noiseRms;
 		}
 
-		internal static double ComputeImdSnrRatio(double[] signalFreqLin, double df, double fundamental, double fundamental2, bool debug = false)
+		internal static double ComputeImdSnrRatio(string windowing, double[] signalFreqLin, double df, double fundamental, double fundamental2, bool debug = false)
 		{
 			// Calculate notch filter bounds in Hz
 			//var notchOctaves = 0.5; // aes-17 2015 standard notch
@@ -149,16 +162,16 @@ namespace QA40xPlot.BareMetal
 			}
 
 			// Calculate RMS of the fundamental within the notch
-			double fundamentalRms = ComputeRmsF(signalFreqLin, df, notchLowerBound, notchUpperBound);
+			double fundamentalRms = ComputeRmsF(signalFreqLin, df, notchLowerBound, notchUpperBound, windowing);
 			// Calculate RMS of the signal outside the notch
-			double rmsBelowNotch = ComputeRmsF(signalFreqLin, df, 20, notchLowerBound);
-			double rmsAboveNotch = ComputeRmsF(signalFreqLin, df, notchUpperBound, Math.Max(20000, notchUpperBound*1.5));
+			double rmsBelowNotch = ComputeRmsF(signalFreqLin, df, 20, notchLowerBound, windowing);
+			double rmsAboveNotch = ComputeRmsF(signalFreqLin, df, notchUpperBound, Math.Max(20000, notchUpperBound*1.5), windowing);
 
 			if (fundamental2 > 0.0)
 			{
 				notchLowerBound = fundamental2 / Math.Pow(2, notchOctaves);
 				notchUpperBound = fundamental2 * Math.Pow(2, notchOctaves);
-				var fundamental2Rms = ComputeRmsF(signalFreqLin, df, notchLowerBound, notchUpperBound);
+				var fundamental2Rms = ComputeRmsF(signalFreqLin, df, notchLowerBound, notchUpperBound, windowing);
 				rmsAboveNotch = Math.Sqrt(Math.Pow(rmsAboveNotch, 2) - Math.Pow(fundamental2Rms, 2));
 				fundamentalRms = Math.Sqrt(Math.Pow(fundamentalRms, 2) + Math.Pow(fundamental2Rms, 2));
 			}
@@ -185,7 +198,7 @@ namespace QA40xPlot.BareMetal
 		/// <param name="debug"></param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException"></exception>
-		internal static double ComputeThdLinear(double[] signalFreqLin, double df, double fundamental, int numHarmonics = 5, bool debug = false)
+		internal static double ComputeThdLinear(string windowing, double[] signalFreqLin, double df, double fundamental, int numHarmonics = 5, bool debug = false)
 		{
 			var maxFreq = df * signalFreqLin.Length;
 
@@ -241,7 +254,7 @@ namespace QA40xPlot.BareMetal
 		/// <param name="stopFreq"></param>
 		/// <param name="debug"></param>
 		/// <returns></returns>
-		internal static double ComputeThdnLinear(double[] signalFreqLin, double df, double fundamental, double notchOctaves = 0.5, double startFreq = 20.0, double stopFreq = 20000.0, bool debug = false)
+		internal static double ComputeThdnLinear(string windowing, double[] signalFreqLin, double df, double fundamental, double notchOctaves = 0.5, double startFreq = 20.0, double stopFreq = 20000.0, bool debug = false)
 		{
 			// Calculate notch filter bounds in Hz
 			double notchLowerBound = fundamental / Math.Pow(2, notchOctaves);
@@ -253,7 +266,7 @@ namespace QA40xPlot.BareMetal
 			}
 
 			// Calculate RMS of the fundamental within the notch
-			double fundamentalRms = ComputeRmsF(signalFreqLin, df, notchLowerBound, notchUpperBound);
+			double fundamentalRms = ComputeRmsF(signalFreqLin, df, notchLowerBound, notchUpperBound, windowing);
 
 			if (debug)
 			{
@@ -261,8 +274,8 @@ namespace QA40xPlot.BareMetal
 			}
 
 			// Calculate RMS of the signal outside the notch
-			double rmsBelowNotch = ComputeRmsF(signalFreqLin, df, startFreq, notchLowerBound);
-			double rmsAboveNotch = ComputeRmsF(signalFreqLin, df, notchUpperBound, stopFreq);
+			double rmsBelowNotch = ComputeRmsF(signalFreqLin, df, startFreq, notchLowerBound, windowing);
+			double rmsAboveNotch = ComputeRmsF(signalFreqLin, df, notchUpperBound, stopFreq, windowing);
 			double noiseRms = Math.Sqrt(Math.Pow(rmsBelowNotch, 2) + Math.Pow(rmsAboveNotch, 2));
 
 			if (debug)
@@ -284,15 +297,46 @@ namespace QA40xPlot.BareMetal
 		}
 
 		// calculate the noise from 20..20000Hz
-		internal static LeftRightPair CalculateNoise(LeftRightFrequencySeries? lrfs)
+		internal static LeftRightPair CalculateNoise(string windowing, LeftRightFrequencySeries? lrfs)
 		{
 			if (lrfs == null)
 				return new LeftRightPair(1e-20, 1e-20);
 
-			var noiseLeft = QaCompute.ComputeRmsF(lrfs.Left, lrfs.Df, 20, 20000);
-			var noiseRight = QaCompute.ComputeRmsF(lrfs.Right, lrfs.Df, 20, 20000);
+			var noiseLeft = QaCompute.ComputeRmsF(lrfs.Left, lrfs.Df, 20, 20000, windowing);
+			var noiseRight = QaCompute.ComputeRmsF(lrfs.Right, lrfs.Df, 20, 20000, windowing);
 			// calculate the noise floor
 			return new LeftRightPair(noiseLeft, noiseRight);
+		}
+
+		internal static List<EnbwMath> EnbwMaths = new List<EnbwMath>();
+
+		// caching version of calculateEnbw
+		internal static double ComputeEnbw(string windowType, uint windowSize)
+		{
+			// check if we already have this in the list
+			var em = EnbwMaths.FirstOrDefault(x => x.WindowType == windowType && x.WindowSize == windowSize);
+			if (em.WindowType == windowType)
+				return em.Enbw;
+			// calculate the ENBW
+			var enbw = CalculateEnbw(windowType, windowSize);
+			EnbwMaths.Add(new EnbwMath(enbw, windowSize, windowType));
+			return enbw;
+		}
+
+		// the equivalent noise bandwidth (ENBW) of a window
+		// we need to divide by this to get actual RMS power from the windowed FFT result
+		internal static double CalculateEnbw(string windowType, uint windowSize)
+		{
+			var wdw = QaMath.GetWindowType(windowType);
+			if(wdw != null)
+			{
+				var n = windowSize; // number of points in the window
+				var u = wdw.Create((int)n, true); // create a window of 1024 points
+				var ww = n * u.Sum(x => x * x) / (u.Sum() * u.Sum());
+				// here ww is in power, so in voltage it's sqrt
+				return Math.Sqrt(ww);
+			}
+			return 1.0;
 		}
 
 		/// <summary>
@@ -303,7 +347,7 @@ namespace QA40xPlot.BareMetal
 		/// <param name="lowerBound">lower frequency</param>
 		/// <param name="upperBound">upper frequency</param>
 		/// <returns>the equivalent rms voltage in this fft chunk via the total power</returns>
-		internal static double ComputeRmsF(double[] signalFreqLin, double df, double lowerBound, double upperBound)
+		internal static double ComputeRmsF(double[] signalFreqLin, double df, double lowerBound, double upperBound, string windowing)
 		{
 			double sum = 0;
 			try
@@ -319,7 +363,7 @@ namespace QA40xPlot.BareMetal
 			{
 				Debug.WriteLine($"Error in ComputeRmsF: {ex.Message}");
 			}
-			return Math.Sqrt(sum); // RMS calculation
+			return Math.Sqrt(sum) / CalculateEnbw(windowing, (uint)signalFreqLin.Length); // RMS calculation
 		}
 
 		/// <summary>
@@ -330,20 +374,21 @@ namespace QA40xPlot.BareMetal
 		/// <param name="lowerBound"></param>
 		/// <param name="upperBound"></param>
 		/// <returns></returns>
-		internal static double ComputeRmsFreq(double[] signalFreqLin, double[] frequencies, double lowerBound, double upperBound)
-		{
-			// *****************************************************************
-			// note that this is ~20 times faster than the Freq2 version below...
-			// *****************************************************************
-			double sum = 0;
-			for (int i = 0; i < signalFreqLin.Length; i++)
-			{
-				if (frequencies[i] >= lowerBound && frequencies[i] <= upperBound)
-				{
-					sum += signalFreqLin[i] * signalFreqLin[i];
-				}
-			}
-			return Math.Sqrt(sum); // RMS calculation
-		}
+		//internal static double ComputeRmsFreq(double[] signalFreqLin, double[] frequencies, double lowerBound, double upperBound)
+		//{
+		//	// *****************************************************************
+		//	// note that this is ~20 times faster than the Freq2 version below...
+		//	// *****************************************************************
+		//	double sum = 0;
+		//	for (int i = 0; i < signalFreqLin.Length; i++)
+		//	{
+		//		if (frequencies[i] >= lowerBound && frequencies[i] <= upperBound)
+		//		{
+		//			sum += signalFreqLin[i] * signalFreqLin[i];
+		//		}
+		//	}
+		//	return Math.Sqrt(sum); // RMS calculation
+
+		//}
 	}
 }

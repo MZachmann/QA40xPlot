@@ -92,6 +92,12 @@ namespace QA40xPlot.ViewModels
 			get => _TotalW;
 			set => SetProperty(ref _TotalW, value);
 		}
+		private double _TotalV;
+		public double TotalV
+		{
+			get => _TotalV;
+			set => SetProperty(ref _TotalV, value);
+		}
 		private double _GaindB;
 		public double GaindB
 		{

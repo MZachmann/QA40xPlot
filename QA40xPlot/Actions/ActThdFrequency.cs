@@ -426,7 +426,7 @@ namespace QA40xPlot.Actions
 				var noisy = await MeasureNoise(ct.Token);
 				if (ct.IsCancellationRequested)
 					return false;
-				page.NoiseFloor = QaCompute.CalculateNoise(noisy.FreqRslt);
+				page.NoiseFloor = QaCompute.CalculateNoise(vm.WindowingMethod, noisy.FreqRslt);
 
 				WaveGenerator.SetEnabled(true); // enable generator
 												// ********************************************************************
@@ -515,7 +515,7 @@ namespace QA40xPlot.Actions
 
 			var maxf = msr.FreqRslt.Df * msr.FreqRslt.Left.Length;
 			//LeftRightPair snrdb = QaCompute.GetSnrDb(lrfs, dFreq, 20.0, maxf);
-			LeftRightPair thds = QaCompute.GetThdDb(lrfs, dFreq, 20.0, Math.Min(20000, maxf));
+			LeftRightPair thds = QaCompute.GetThdDb(vm.WindowingMethod, lrfs, dFreq, 20.0, Math.Min(20000, maxf));
 			//LeftRightPair thdN = QaCompute.GetThdnDb(lrfs, dFreq, 20.0, maxf);
 
 			var frq = msr.FreqRslt.Left;	// start with left

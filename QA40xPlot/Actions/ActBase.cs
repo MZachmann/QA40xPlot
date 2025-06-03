@@ -291,37 +291,39 @@ namespace QA40xPlot.Actions
 				var chirpy = Chirps.ChirpVp((int)fftsize, sampleRate, generatorV, 6, 24000);
 				var ct = new CancellationTokenSource();
 				// get the data
-				LeftRightSeries acqData = await QaComm.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
-				if (acqData == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
-					return null;
-
-				// calculate gain for each channel from frequency response
-				LeftRightTimeSeries lrts = new LeftRightTimeSeries();
-				lrts.Left = acqData.TimeRslt.Left;
-				lrts.Right = acqData.TimeRslt.Right;
-				lrts.dt = acqData.TimeRslt.dt;
-				//
-				for(int j=1; j<average; j++)
+				// now do the frequency transformation
+				LeftRightFrequencySeries lrfs = new LeftRightFrequencySeries();
+				for (int j = 0; j < average; j++)
 				{
-					acqData = await QaComm.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);        // Do a single aqcuisition
-					if (acqData == null || (acqData.TimeRslt == null) || ct.IsCancellationRequested)
+					LeftRightSeries acqData = await QaComm.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
+					if (acqData == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
 						return null;
 
 					// calculate gain for each channel from frequency response
-					lrts.Left = acqData.TimeRslt.Left.Zip(lrts.Left, (x, y) => x+y).ToArray();
-					lrts.Right = acqData.TimeRslt.Right.Zip(lrts.Right, (x, y) => x + y).ToArray();
+					LeftRightTimeSeries lrts = new LeftRightTimeSeries();
+					lrts.Left = acqData.TimeRslt.Left;
+					lrts.Right = acqData.TimeRslt.Right;
+					lrts.dt = acqData.TimeRslt.dt;
+					LeftRightFrequencySeries lraddon = new LeftRightFrequencySeries();
+					(lraddon.Left, lraddon.Right) = Chirps.NormalizeChirpDbl(chirpy, generatorV, (lrts.Left, lrts.Right));
+					if(j == 0)
+					{
+						lrfs.Left = lraddon.Left;
+						lrfs.Right = lraddon.Right;
+					}
+					else
+					{
+						lrfs.Left = lrfs.Left.Zip(lraddon.Left, (x, y) => x + y).ToArray();
+						lrfs.Right = lrfs.Right.Zip(lraddon.Right, (x, y) => x + y).ToArray();
+					}
 				}
+				lrfs.Df = QaLibrary.CalcBinSize(sampleRate, fftsize);
 				if (average > 1)
 				{
-					lrts.Left = lrts.Left.Select(x => x/average).ToArray();
-					lrts.Right = lrts.Right.Select(x => x / average).ToArray();
+					lrfs.Left = lrfs.Left.Select(x => x / average).ToArray();
+					lrfs.Right = lrfs.Right.Select(x => x / average).ToArray();
 				}
-				// now do the frequency transformation
-				LeftRightFrequencySeries lrfs = new LeftRightFrequencySeries();
-				var norms = Chirps.NormalizeChirpDbl(chirpy, generatorV, (lrts.Left, lrts.Right));
-				lrfs.Left = norms.Item1;
-				lrfs.Right = norms.Item2;
-				lrfs.Df = QaLibrary.CalcBinSize(sampleRate, fftsize);
+
 				// now normalize by the input voltage so we get gain instead
 				var gv = generatorV;
 				lrfs.Left = lrfs.Left.Select(x => x / gv).ToArray();

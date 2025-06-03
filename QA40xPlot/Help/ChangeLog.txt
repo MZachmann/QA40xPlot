@@ -8,7 +8,10 @@ v 1.1.18
 - save current window size and position in configuration
 - enhance color picker transparency display
 - enhance plot color choices
-- add multitone waveform and improve voltage detection
+- add multitone (30 logarithmic spaced sines) waveform 
+   warning->much higher total power than a sine wave
+- improve auto attenuation math
+- fix enbw missing in noise floor and thd+n math
 v 1.1.17
 - add unit conversion to voltage inputs (not serialized yet)
 v 1.1.16

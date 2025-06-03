@@ -241,8 +241,8 @@ namespace QA40xPlot.Actions
 			if (vm.DoAutoAttn && LRGains != null)
 			{
 				var wave = BuildWave(NextPage, ToD(vm.Gen1Voltage), true);   // build a wave to evaluate the peak values
-												  // get the peak voltages then fake an rms math div by 2*sqrt(2) = 2.828
-												  // since I assume that's the hardware math
+				// get the peak voltages then fake an rms math div by 2*sqrt(2) = 2.828
+				// since I assume that's the hardware math
 				var waveVOut = (wave.Max() - wave.Min()) / 2.828;
 				var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
 				var vinL = vm.ToGenVoltage(waveVOut.ToString(), [], GEN_INPUT, gains); // get gen1 input voltage
@@ -352,7 +352,7 @@ namespace QA40xPlot.Actions
 					var noisy = await MeasureNoise(ct);
 					if (ct.IsCancellationRequested)
 						return false;
-					msr.NoiseFloor = QaCompute.CalculateNoise(noisy.FreqRslt);
+					msr.NoiseFloor = QaCompute.CalculateNoise(vm.WindowingMethod, noisy.FreqRslt);
 				}
 				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
 				var genVolt = vm.ToGenVoltage(vm.Gen1Voltage, [], GEN_INPUT, gains);
@@ -417,12 +417,16 @@ namespace QA40xPlot.Actions
 			SpectrumViewModel vm = msr.ViewModel;
 
 			var freq = ToD(vm.Gen1Frequency, 0);
+			if (vm.Gen1Waveform == "Multitone")
+			{
+				freq = 1016.6; // the default multitone frequency, 1016.6 Hz
+			}
 			var lrfs = msr.FreqRslt;    // frequency response
 
 			var maxf = 20000; // the app seems to use 20,000 so not sampleRate/ 2.0;
-			LeftRightPair snrdb = QaCompute.GetSnrDb(lrfs, freq, 20.0, maxf);
-			LeftRightPair thds = QaCompute.GetThdDb(lrfs, freq, 20.0, maxf);
-			LeftRightPair thdN = QaCompute.GetThdnDb(lrfs, freq, 20.0, maxf);
+			LeftRightPair snrdb = QaCompute.GetSnrDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf);
+			LeftRightPair thds = QaCompute.GetThdDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf);
+			LeftRightPair thdN = QaCompute.GetThdnDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf);
 
 			ThdChannelViewModel[] steps = [left, right];
 			foreach (var step in steps)
@@ -445,7 +449,9 @@ namespace QA40xPlot.Actions
 				step.ThdNIndB = isleft ? thdN.Left : thdN.Right;
 				step.ThdIndB = isleft ? thds.Left : thds.Right;
 				step.GaindB = 20 * Math.Log10(step.FundamentalVolts / Math.Max(1e-10, step.GeneratorVolts));
-				step.TotalW = step.FundamentalVolts * step.FundamentalVolts / ViewSettings.AmplifierLoad;
+				double rmsV = QaCompute.ComputeRmsF(frq, msr.FreqRslt.Df, 20, 20000, vm.WindowingMethod);
+				step.TotalV = rmsV;
+				step.TotalW = rmsV * rmsV / ViewSettings.AmplifierLoad;
 				step.ShowDataPercents = vm.ShowDataPercent;
 				step.NoiseFloorView = GraphUtil.DoValueFormat(vm.PlotFormat, step.NoiseFloorV, step.FundamentalVolts);
 				step.AmplitudeView = GraphUtil.DoValueFormat(vm.PlotFormat, step.FundamentalVolts, step.FundamentalVolts);
