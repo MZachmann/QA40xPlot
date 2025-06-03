@@ -35,7 +35,12 @@ namespace QA40xPlot.Actions
 					defn.Name = defn.Name.Substring(0, defn.Name.Length - 4);
 				}
 			}
+		}
 
+
+		protected static double ToD(string sval, double defval = 0.0)
+		{
+			return MathUtil.ToDouble(sval, defval);
 		}
 
 		protected LeftRightFrequencySeries CalculateAverages(LeftRightFrequencySeries fseries, uint averages)

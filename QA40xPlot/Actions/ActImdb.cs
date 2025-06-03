@@ -779,8 +779,9 @@ namespace QA40xPlot.Actions
 				var v2lout = ToGenOutVolts(v2in, frq2test, LRGains.Left);
 				var v1rout = ToGenOutVolts(v1in, frqtest, LRGains.Right);	// right channel output V
 				var v2rout = ToGenOutVolts(v2in, frq2test, LRGains.Right);
-				var vtotal = Math.Max(v1lout*v1lout + v2lout*v2lout, v1rout*v1rout + v2rout*v2rout);	// max sum of squares
-				vtotal = Math.Sqrt(vtotal);
+				// just add them since they may be in phase
+				var vtotal = Math.Max(v1lout + v2lout, v1rout + v2rout);	// max sum of squares
+
 
 				var vdbv = QaLibrary.ConvertVoltage(vtotal, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
@@ -817,10 +818,6 @@ namespace QA40xPlot.Actions
 			await showMessage("");
 			MyVModel.HasExport = PageData.FreqRslt != null && PageData.FreqRslt.Left?.Length > 0;
 			await EndAction(imdVm);
-		}
-		private double ToD(string stri)
-		{
-			return MathUtil.ToDouble(stri);
 		}
 
 		public void UpdatePlotTitle()

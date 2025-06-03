@@ -372,10 +372,8 @@ namespace QA40xPlot.Actions
 
 			ct = new();
 			LeftRightTimeSeries lrts = new();
-			MyDataTab NextPage = new(thdAmp, lrts);
-			PageData.Definition.CopyPropertiesTo(NextPage.Definition);
-			NextPage.Definition.CreateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-			PageData = NextPage;    // set the current page to the loaded one
+			MyVModel.CopyPropertiesTo(PageData.ViewModel);  // update the view model with latest settings
+			PageData.Definition.CreateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 			var page = PageData;    // alias
 			var vm = page.ViewModel;
 			if (vm == null)
@@ -649,12 +647,6 @@ namespace QA40xPlot.Actions
 			right.Noise = Math.Max(1e-10, msr.NoiseFloor.Right);
 
 			return (left, right);
-		}
-
-
-		private double ToD(string stri)
-		{
-			return MathUtil.ToDouble(stri);
 		}
 
 		/// <summary>

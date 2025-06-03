@@ -31,7 +31,7 @@ namespace QA40xPlot.ViewModels
 		public static List<String> MeasureVolts { get => new List<string> { "Input Voltage", "Output Voltage" }; }
 		public static List<String> MeasureVoltsFull { get => new List<string> { "Input Voltage", "Output Voltage", "Output Power" }; }
 		public static List<String> Impedances { get => new List<string> { "2","4", "8", "10","16", "20", "100", "500", "1000" }; }
-		public static List<String> Waveforms { get => new List<string> { "Sine", "Square", "Impulse", "Chirp" }; }
+		public static List<String> Waveforms { get => new List<string> { "Sine", "Square", "Multitone","Impulse", "Chirp" }; }
 		public static List<String> Attenuations { get => new List<string> { "0", "20", "10", "-6", "-10", "-20", "-30"}; }
 		public static string PlotFileFilter { get => "Plot files|*.plt;*.zip|All files|*.*"; }
 		public static string DutInfo { get => "DUT = Device Under Test"; }

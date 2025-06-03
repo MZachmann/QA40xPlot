@@ -93,7 +93,7 @@ namespace QA40xPlot.BareMetal
 					waves = [vw.Gen2Params];
 				Debug.Assert(waves.Min(x=>x.Voltage) > 0, "Voltage is zero");
 				Debug.Assert(waves.Min(x=>x.Frequency) > 0, "Frequency is zero");
-				wave = QaMath.CalculateWaveform(waves, waveSample).ToArray();
+				wave = QaMath.CalculateWaveform(waves, waveSample);
 			}
 			else
 			{

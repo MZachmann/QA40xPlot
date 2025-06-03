@@ -168,9 +168,35 @@ namespace QA40xPlot.Libraries
 			return lfs;
 		}
 
-		private static List<double> MakeWave(GenWaveform gw, GenWaveSample samples)
+		private static double[] MakeMultitone(GenWaveform gw, GenWaveSample samples)
 		{
 			var dvamp = gw.Voltage * Math.Sqrt(2); // rms voltage -> peak voltage
+			// is freq in left or right quadrange
+			var freqs = Enumerable.Range(0, 32).Select(x => 20 * Math.Pow(2, x / 3.0)).
+						Select(f => QaLibrary.GetNearestBinFrequency(f, (uint)samples.SampleRate, (uint)samples.SampleSize)).ToList();
+			double[] wave = new double[samples.SampleSize];
+			foreach (var f in freqs)
+			{
+				var theta = Enumerable.Range(0, samples.SampleSize).Select(x => 2 * Math.PI * f * x / samples.SampleRate);
+				var thetav = theta.Select(f => dvamp * Math.Sin(f)).ToList();
+				for(int i = 0; i < samples.SampleSize; i++)
+				{
+					wave[i] += thetav[i];   // accumulate the tone values
+				}
+			}
+			// now evaluate
+			return wave;
+		}
+
+		private static double[] MakeWave(GenWaveform gw, GenWaveSample samples)
+		{
+			if( gw.Name == "Multitone")
+			{
+				return MakeMultitone(gw, samples);
+			}
+
+			var dvamp = gw.Voltage * Math.Sqrt(2); // rms voltage -> peak voltage
+			// we always put frequencies in the bin so they don't leak into other bins when we sample them
 			var freq = QaLibrary.GetNearestBinFrequency(gw.Frequency, (uint)samples.SampleRate, (uint)samples.SampleSize);
 			// frequency vector
 			var theta = Enumerable.Range(0, samples.SampleSize).Select(x => 2 * Math.PI * freq * x / samples.SampleRate);
@@ -181,18 +207,18 @@ namespace QA40xPlot.Libraries
 				case "":		// this is just wrong... so use sine here
 				case "Sine":
 					// use a bin frequency???
-					return theta.Select(f => dvamp * Math.Sin(f)).ToList();
+					return theta.Select(f => dvamp * Math.Sin(f)).ToArray();
 				case "Square":
-					return theta.Select(f => dvamp  * Squares(f)).ToList();
+					return theta.Select(f => dvamp  * Squares(f)).ToArray();
 				case "Impulse":
-					return theta.Select(f => dvamp * Impulse(f)).ToList();
+					return theta.Select(f => dvamp * Impulse(f)).ToArray();
 				case "Chirp":
 					var chirpTwo = Chirps.ChirpVp(samples.SampleSize, samples.SampleRate, gw.Voltage, 20, 20000, 0.8);
-					return chirpTwo.ToList();
+					return chirpTwo.ToArray();
 				default:
 					break;
 			}
-			return new List<double>();
+			return [];
 		}
 
 		/// <summary>
@@ -202,13 +228,16 @@ namespace QA40xPlot.Libraries
 		/// <param name="gw2"></param>
 		/// <param name="gwSample"></param>
 		/// <returns></returns>
-		public static List<double> CalculateWaveform(GenWaveform[] gws, GenWaveSample gwSample)
+		public static double[] CalculateWaveform(GenWaveform[] gws, GenWaveSample gwSample)
 		{
-			List<double> lresult = Enumerable.Range(0, gwSample.SampleSize).Select(i => 0.0).ToList();
+			var lresult = new double[gwSample.SampleSize];
 			foreach (var gwi in gws)
 			{
 				var lr2 = MakeWave(gwi, gwSample);
-				lresult = lresult.Zip(lr2, (a, b) => a + b).ToList();
+				for(int i = 0; i < gwSample.SampleSize; i++)
+				{
+					lresult[i] += lr2[i];   // accumulate the tone values
+				}
 			}
 			return lresult;
 		}

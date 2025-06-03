@@ -144,13 +144,12 @@ namespace QA40xPlot.Actions
 			throw new NotImplementedException();
 		}
 
-		private static double[] BuildWave(MyDataTab page)
+		private static double[] BuildWave(MyDataTab page, double volts, bool force = false)
 		{
 			var vm = page.ViewModel;
-			var freq = MathUtil.ToDouble(vm.Gen1Frequency, 0);
-			var v1 = page.Definition.GeneratorVoltage;
+			var freq = ToD(vm.Gen1Frequency, 0);
 			WaveGenerator.SetEnabled(true);          // enable the generator
-			WaveGenerator.SetGen1(freq, v1, vm.UseGenerator, vm.Gen1Waveform);          // send a sine wave
+			WaveGenerator.SetGen1(freq, volts, force ? true : vm.UseGenerator, vm.Gen1Waveform);          // send a sine wave
 			WaveGenerator.SetGen2(0,0,false);          // just a sine wave
 			return WaveGenerator.Generate((uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
 		}
@@ -230,7 +229,7 @@ namespace QA40xPlot.Actions
 				return;
 
 			var genType = ToDirection(vm.GenDirection);
-			var freq = MathUtil.ToDouble(vm.Gen1Frequency, 1000);
+			var freq = ToD(vm.Gen1Frequency, 1000);
 
 			// if we're doing adjusting here we need gain information
 			if (vm.DoAutoAttn || genType != E_GeneratorDirection.INPUT_VOLTAGE)
@@ -241,8 +240,12 @@ namespace QA40xPlot.Actions
 			// auto attenuation?
 			if (vm.DoAutoAttn && LRGains != null)
 			{
+				var wave = BuildWave(NextPage, ToD(vm.Gen1Voltage), true);   // build a wave to evaluate the peak values
+												  // get the peak voltages then fake an rms math div by 2*sqrt(2) = 2.828
+												  // since I assume that's the hardware math
+				var waveVOut = (wave.Max() - wave.Min()) / 2.828;
 				var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
-				var vinL = vm.ToGenVoltage(vm.Gen1Voltage, [], GEN_INPUT, gains);   // get primary input voltage
+				var vinL = vm.ToGenVoltage(waveVOut.ToString(), [], GEN_INPUT, gains); // get gen1 input voltage
 				double voutL = ToGenOutVolts(vinL, [], LRGains.Left);   // what is that as output voltage?
 				double voutR = ToGenOutVolts(vinL, [], LRGains.Right);  // for both channels
 				var vdbv = QaLibrary.ConvertVoltage(Math.Max(voutL, voutR), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
@@ -295,7 +298,7 @@ namespace QA40xPlot.Actions
 			}
 			else
 			{
-				var wave = BuildWave(page);
+				var wave = BuildWave(page, page.Definition.GeneratorVoltage);
 				fseries = QaMath.CalculateChirpFreq(page.TimeRslt, wave.ToArray(), page.Definition.GeneratorVoltage, vm.SampleRateVal, vm.FftSizeVal);   // normalize the result for flat response
 			}
 			
@@ -316,7 +319,7 @@ namespace QA40xPlot.Actions
 		{
 			SpectrumViewModel vm = msr.ViewModel; // cached model
 
-			var freq = MathUtil.ToDouble(vm.Gen1Frequency, 0);
+			var freq = ToD(vm.Gen1Frequency, 0);
 			var sampleRate = vm.SampleRateVal;
 			if (freq == 0 || sampleRate == 0 || !BaseViewModel.FftSizes.Contains(vm.FftSize))
 			{
@@ -371,7 +374,7 @@ namespace QA40xPlot.Actions
 				await showMessage($"Measuring spectrum with input of {genVolt:G3}V.");
 				await showProgress(25);
 
-				var wave = BuildWave(msr);   // also update the waveform variables
+				var wave = BuildWave(msr, genVolt);   // also update the waveform variables
 				lrfs = await QaComm.DoAcquireUser(1, ct, wave, wave, false);
 
 				if (lrfs.TimeRslt != null)
@@ -413,7 +416,7 @@ namespace QA40xPlot.Actions
 			right.IsLeft = false;
 			SpectrumViewModel vm = msr.ViewModel;
 
-			var freq = MathUtil.ToDouble(vm.Gen1Frequency, 0);
+			var freq = ToD(vm.Gen1Frequency, 0);
 			var lrfs = msr.FreqRslt;    // frequency response
 
 			var maxf = 20000; // the app seems to use 20,000 so not sampleRate/ 2.0;
@@ -469,7 +472,7 @@ namespace QA40xPlot.Actions
 				return;
 
 			// Loop through harmonics up tot the 10th
-			var freq = MathUtil.ToDouble(vm.Gen1Frequency, 1000);
+			var freq = ToD(vm.Gen1Frequency, 1000);
 			freq = QaLibrary.GetNearestBinFrequency(freq, vm.SampleRateVal, vm.FftSizeVal);
 			var maxfreq = vm.SampleRateVal / 2.0;
 			var binSize = QaLibrary.CalcBinSize(vm.SampleRateVal, vm.FftSizeVal);
@@ -697,11 +700,6 @@ namespace QA40xPlot.Actions
 			{
 			}
 			return ValueTuple.Create(0.0,0.0,0.0);
-		}
-
-		private double ToD(string stri)
-		{
-			return MathUtil.ToDouble(stri);
 		}
 
 		public void UpdatePlotTitle()

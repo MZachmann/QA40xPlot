@@ -145,15 +145,15 @@ namespace QA40xPlot.Actions
 			UpdateGraph(true);
 		}
 
-		private static double[] BuildWave(MyDataTab page)
+		private static double[] BuildWave(MyDataTab page, double volts, bool force = false)
 		{
 			var vm = page.ViewModel;
-			var freq = MathUtil.ToDouble(vm.Gen1Frequency, 0);
-			var freq2 = MathUtil.ToDouble(vm.Gen2Frequency, 0);
-			var v2 = MathUtil.ToDouble(vm.Gen2Voltage, 1e-10);
-			var v1 = MathUtil.ToDouble(vm.Gen1Voltage, 1e-10);
-			WaveGenerator.SetGen1(freq, page.Definition.GeneratorVoltage, vm.UseGenerator1, vm.Gen1Waveform);          // send a sine wave
-			WaveGenerator.SetGen2(freq2, page.Definition.GeneratorVoltage * v2/v1, vm.UseGenerator2, vm.Gen2Waveform);          // send a sine wave
+			var freq = ToD(vm.Gen1Frequency, 0);
+			var freq2 = ToD(vm.Gen2Frequency, 0);
+			var v2 = ToD(vm.Gen2Voltage, 1e-10);
+			var v1 = ToD(vm.Gen1Voltage, 1e-10);
+			WaveGenerator.SetGen1(freq, volts, force ? true : vm.UseGenerator1, vm.Gen1Waveform);          // send a sine wave
+			WaveGenerator.SetGen2(freq2, volts * v2/v1, vm.UseGenerator2, vm.Gen2Waveform);          // send a sine wave
 			WaveGenerator.SetEnabled(true); // turn on the generator
 			return WaveGenerator.Generate((uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
 		}
@@ -253,8 +253,8 @@ namespace QA40xPlot.Actions
 			// Setup
 			ScopeViewModel thd = msr.ViewModel;
 
-			var freq = MathUtil.ToDouble(thd.Gen1Frequency, 0);
-			var freq2 = MathUtil.ToDouble(thd.Gen2Frequency, 0);
+			var freq = ToD(thd.Gen1Frequency, 0);
+			var freq2 = ToD(thd.Gen2Frequency, 0);
 			var sampleRate = thd.SampleRateVal;
 			if (freq == 0 || sampleRate == 0 || !BaseViewModel.FftSizes.Contains(thd.FftSize))
             {
@@ -307,7 +307,7 @@ namespace QA40xPlot.Actions
 				// now do the step measurement
 				await showMessage($"Measuring spectrum with input of {genVolt:G3}V.");
 
-				var wave = BuildWave(msr);   // also update the waveform variables
+				var wave = BuildWave(msr, genVolt);   // also update the waveform variables
 				lrfs = await QaComm.DoAcquireUser(msr.ViewModel.Averages, ct, wave, wave, false);
 
 				if (lrfs.TimeRslt == null)
@@ -423,8 +423,8 @@ namespace QA40xPlot.Actions
 
 			var thdFreq = MyVModel;
 
-			myPlot.Axes.SetLimits(MathUtil.ToDouble(thdFreq.GraphStartTime), MathUtil.ToDouble(thdFreq.GraphEndTime), 
-				MathUtil.ToDouble(thdFreq.RangeBottom), MathUtil.ToDouble(thdFreq.RangeTop));
+			myPlot.Axes.SetLimits(ToD(thdFreq.GraphStartTime), ToD(thdFreq.GraphEndTime), 
+				ToD(thdFreq.RangeBottom), ToD(thdFreq.RangeTop));
 
 			UpdatePlotTitle();
 			myPlot.XLabel("Time (mS)");
@@ -453,7 +453,7 @@ namespace QA40xPlot.Actions
 				return;
 
 			var genType = ToDirection(scopeVm.GenDirection);
-			var freq = MathUtil.ToDouble(scopeVm.Gen1Frequency, 1000);
+			var freq = ToD(scopeVm.Gen1Frequency, 1000);
 			// if we're doing adjusting here
 			if (vm.DoAutoAttn || genType != E_GeneratorDirection.INPUT_VOLTAGE)
 			{
@@ -463,10 +463,13 @@ namespace QA40xPlot.Actions
 
 			if (scopeVm.DoAutoAttn && LRGains != null)
 			{
+				var maxv = ToD(scopeVm.Gen1Voltage);
+				var wave = BuildWave(NextPage, maxv, true);   // build a wave to evaluate the peak values
+				// get the peak voltages then fake an rms math div by 2*sqrt(2) = 2.828
+				// since I assume that's the hardware math
+				var waveVOut = (wave.Max() - wave.Min()) / 2.828; 
 				var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
-				var vinL = scopeVm.ToGenVoltage(scopeVm.Gen1Voltage, [], GEN_INPUT, gains); // get primary input voltage
-				var vinL2 = scopeVm.ToGenVoltage(scopeVm.Gen2Voltage, [], GEN_INPUT, gains); // get primary input voltage
-				vinL = Math.Max(vinL, vinL2);
+				var vinL = scopeVm.ToGenVoltage(waveVOut.ToString(), [], GEN_INPUT, gains); // get gen1 input voltage
 				double voutL = ToGenOutVolts(vinL, [], LRGains.Left);	// what is that as output voltage?
 				double voutR = ToGenOutVolts(vinL, [], LRGains.Right);	// for both channels
 				var vdbv = QaLibrary.ConvertVoltage( Math.Max(voutL, voutR), E_VoltageUnit.Volt, E_VoltageUnit.dBV );
@@ -512,7 +515,7 @@ namespace QA40xPlot.Actions
 			var thd = MyVModel;
 			var vm = ViewSettings.Singleton.ScopeInfoLeft;
             //vm.FundamentalFrequency = 0;
-            //vm.CalculateChannelValues(MathUtil.ToDouble( thd.Gen1Frequency), false);
+            //vm.CalculateChannelValues(ToD( thd.Gen1Frequency), false);
 		}
 
 		public void UpdateGraph(bool settingsChanged)

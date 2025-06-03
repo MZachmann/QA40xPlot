@@ -351,11 +351,9 @@ namespace QA40xPlot.Actions
 		{
 			var freqVm = MyVModel;          // the active viewmodel
 			LeftRightTimeSeries lrts = new();
-			MyDataTab NextPage = new(freqVm, lrts);
-			PageData.Definition.CopyPropertiesTo(NextPage.Definition);
-			NextPage.Definition.CreateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-			PageData = NextPage;    // set the current page to the loaded one
-            var page = PageData;    // alias
+			MyVModel.CopyPropertiesTo(PageData.ViewModel);  // update the view model with latest settings
+			PageData.Definition.CreateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+			var page = PageData;    // alias
 			var vm = page.ViewModel;
 			if (vm == null)
 				return false;
@@ -570,11 +568,6 @@ namespace QA40xPlot.Actions
             thdPlot.ThePlot.Clear();
             thdPlot.Refresh();
         }
-
-		private double ToD(string stri)
-		{
-			return MathUtil.ToDouble(stri);
-		}
 
 		/// <summary>
 		/// Ititialize the THD % plot

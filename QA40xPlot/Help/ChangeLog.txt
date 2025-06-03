@@ -7,6 +7,8 @@ v 1.1.18
 - repair up-down control positioning on-screen
 - save current window size and position in configuration
 - enhance color picker transparency display
+- enhance plot color choices
+- add multitone waveform and improve voltage detection
 v 1.1.17
 - add unit conversion to voltage inputs (not serialized yet)
 v 1.1.16
