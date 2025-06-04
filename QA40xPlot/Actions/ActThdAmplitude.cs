@@ -375,6 +375,7 @@ namespace QA40xPlot.Actions
 			MyVModel.CopyPropertiesTo(PageData.ViewModel);  // update the view model with latest settings
 			PageData.Definition.CreateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 			var page = PageData;    // alias
+			page.Sweep = new();
 			var vm = page.ViewModel;
 			if (vm == null)
 				return;
