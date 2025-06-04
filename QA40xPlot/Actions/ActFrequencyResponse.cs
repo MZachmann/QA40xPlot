@@ -222,7 +222,7 @@ namespace QA40xPlot.Actions
 
 			NextPage.Definition.GeneratorVoltage = genVolt; // save the actual generator voltage
 
-			if (true != await QaComm.InitializeDevice(sampleRate, fftsize, "Hann", (int)msr.Attenuation))
+			if (true != await QaComm.InitializeDevice(sampleRate, fftsize, msr.WindowingMethod, (int)msr.Attenuation))
 			{
 				return;
 			}
@@ -401,7 +401,7 @@ namespace QA40xPlot.Actions
 			}
             else if(PageData.GainData != null && PageData.GainData.Length > 0)
 			{   // impedance
-				double rref = ViewSettings.AmplifierLoad;
+				double rref = ToD(vm.ZReference);
 				var minL = PageData.GainData.Min(x => ToImpedance(x).Magnitude);
 				var maxL = PageData.GainData.Max(x => ToImpedance(x).Magnitude);
 				var minZohms = rref * minL;
@@ -442,7 +442,7 @@ namespace QA40xPlot.Actions
                         break;
                     case TestingType.Impedance:
                         {   // send freq, ohms, phasedeg
-							double rref = ViewSettings.AmplifierLoad;
+							double rref = ToD(frsqVm.ZReference);
 							var impval = ToImpedance(values[bin]);
 							var ohms = rref * impval.Magnitude;
 							tup = ValueTuple.Create(freqs[bin], ohms, 180 * impval.Phase / Math.PI);
@@ -557,13 +557,13 @@ namespace QA40xPlot.Actions
 			var ttype = vm.GetTestingType(vm.TestType);
 			if (ttype == TestingType.Response)
 			{
-				var lft = Chirps.NormalizeChirpCplx(chirpy, genv, (lfrs.TimeRslt.Left, lfrs.TimeRslt.Right));
+				var lft = Chirps.NormalizeChirpCplx(vm.WindowingMethod, chirpy, genv, (lfrs.TimeRslt.Left, lfrs.TimeRslt.Right));
 				leftFft = lft.Item1;
 				rightFft = lft.Item2;
 			}
 			else
 			{
-				var window = new FftSharp.Windows.Rectangular();    // best?
+				var window = QaMath.GetWindowType(vm.WindowingMethod);    // best?
 																	// Left channel
 				double[] lftF = window.Apply(lfrs.TimeRslt.Left, true);
 				leftFft = FFT.Forward(lftF);
@@ -797,7 +797,7 @@ namespace QA40xPlot.Actions
 
             double[] YValues = [];
             double[] phaseValues = [];
-            double rref = ViewSettings.AmplifierLoad;
+            double rref = ToD(frqrsVm.ZReference);
 			string legendname = string.Empty;
             switch(ttype)
             {

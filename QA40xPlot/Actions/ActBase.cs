@@ -253,7 +253,7 @@ namespace QA40xPlot.Actions
 			var atten = bvm.Attenuation;
 			bvm.Attenuation = QaLibrary.DEVICE_MAX_ATTENUATION;
 			await showMessage("Calculating DUT gain");
-			LRGains = await DetermineGainCurve(true, 1);
+			LRGains = await DetermineGainCurve(bvm, true, 1);
 			bvm.Attenuation = atten; // restore the original value just in case bvm is also the local model
 			// in general this gets reset immediately for the next test
 		}
@@ -276,12 +276,12 @@ namespace QA40xPlot.Actions
 		/// <param name="inits"></param>
 		/// <param name="average"></param>
 		/// <returns></returns>
-		protected static async Task<LeftRightFrequencySeries?> DetermineGainCurve(bool inits, int average = 1)
+		protected static async Task<LeftRightFrequencySeries?> DetermineGainCurve(BaseViewModel bvm, bool inits, int average = 1)
 		{
 			// initialize very quick run
 			uint fftsize = 65536;
 			uint sampleRate = 96000;
-			string swindow = ViewSettings.IsUseREST ? "Rectangle" : "Rectangular";
+			string swindow = bvm.WindowingMethod;//  ViewSettings.IsUseREST ? "Rectangle" : "Rectangular";
 			if (true != await QaComm.InitializeDevice(sampleRate, fftsize, swindow, QaLibrary.DEVICE_MAX_ATTENUATION))
 				return null;
 
@@ -305,7 +305,7 @@ namespace QA40xPlot.Actions
 					lrts.Right = acqData.TimeRslt.Right;
 					lrts.dt = acqData.TimeRslt.dt;
 					LeftRightFrequencySeries lraddon = new LeftRightFrequencySeries();
-					(lraddon.Left, lraddon.Right) = Chirps.NormalizeChirpDbl(chirpy, generatorV, (lrts.Left, lrts.Right));
+					(lraddon.Left, lraddon.Right) = Chirps.NormalizeChirpDbl(bvm.WindowingMethod, chirpy, generatorV, (lrts.Left, lrts.Right));
 					if(j == 0)
 					{
 						lrfs.Left = lraddon.Left;

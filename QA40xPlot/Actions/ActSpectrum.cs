@@ -299,7 +299,7 @@ namespace QA40xPlot.Actions
 			else
 			{
 				var wave = BuildWave(page, page.Definition.GeneratorVoltage);
-				fseries = QaMath.CalculateChirpFreq(page.TimeRslt, wave.ToArray(), page.Definition.GeneratorVoltage, vm.SampleRateVal, vm.FftSizeVal);   // normalize the result for flat response
+				fseries = QaMath.CalculateChirpFreq(vm.WindowingMethod, page.TimeRslt, wave.ToArray(), page.Definition.GeneratorVoltage, vm.SampleRateVal, vm.FftSizeVal);   // normalize the result for flat response
 			}
 			
 			if (fseries != null)
@@ -489,7 +489,8 @@ namespace QA40xPlot.Actions
 				for (int harmonicNumber = 2; harmonicNumber <= 10; harmonicNumber++)                                                  // For now up to 12 harmonics, start at 2nd
 				{
 					double harmonicFrequency = freq * harmonicNumber;
-					if (harmonicFrequency > maxfreq) harmonicFrequency = maxfreq / 2;
+					if (harmonicFrequency > maxfreq) 
+						harmonicFrequency = maxfreq / 2;
 
 					var ffts = step.IsLeft ? page.FreqRslt.Left : page.FreqRslt.Right;
 					double amplitude_V = QaMath.MagAtFreq(ffts, binSize, harmonicFrequency);

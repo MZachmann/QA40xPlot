@@ -1,4 +1,5 @@
 using FftSharp;
+using QA40xPlot.Libraries;
 using System.Numerics;
 
 // Written by MZachmann 4-24-2025
@@ -96,12 +97,12 @@ namespace QA40xPlot.BareMetal
 			return paddedChirp;
 		}
 
-		public static (Complex[], Complex[]) NormalizeChirpCplx(double[] chirp, double Vrms, (double[]? leftData, double[]? rightData) rdata)
+		public static (Complex[], Complex[]) NormalizeChirpCplx(string windowing, double[] chirp, double Vrms, (double[]? leftData, double[]? rightData) rdata)
 		{
 			Complex[] leftFft = [];
 			Complex[] rightFft = [];
 
-			var window = new FftSharp.Windows.Rectangular();    // best?
+			 var window = QaMath.GetWindowType(windowing);    // best?
 
 			double[] inp = window.Apply(chirp, true);  // the input signal
 			var chirpFft = FFT.Forward(inp);
@@ -129,9 +130,9 @@ namespace QA40xPlot.BareMetal
 			return (leftFft, rightFft);
 		}
 
-		public static (double[], double[]) NormalizeChirpDbl(double[] chirp, double Vrms, (double[]? leftData, double[]? rightData) rdata)
+		public static (double[], double[]) NormalizeChirpDbl(string windowing, double[] chirp, double Vrms, (double[]? leftData, double[]? rightData) rdata)
 		{
-			var cplx = NormalizeChirpCplx(chirp, Vrms, rdata);
+			var cplx = NormalizeChirpCplx(windowing, chirp, Vrms, rdata);
 			double[] leftFft = cplx.Item1.Select(x => x.Magnitude).ToArray();
 			double[] rightFft = cplx.Item2.Select(x => x.Magnitude).ToArray();
 			return (leftFft, rightFft);

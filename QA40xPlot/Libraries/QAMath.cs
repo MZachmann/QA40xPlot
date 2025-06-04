@@ -126,12 +126,12 @@ namespace QA40xPlot.Libraries
 			return window;
 		}
 
-		public static LeftRightFrequencySeries? CalculateChirpFreq(LeftRightTimeSeries? lrts, double[] signal, double voltage, uint sampleRate, uint sampleSize)
+		public static LeftRightFrequencySeries? CalculateChirpFreq(string windowing, LeftRightTimeSeries? lrts, double[] signal, double voltage, uint sampleRate, uint sampleSize)
 		{
 			LeftRightFrequencySeries? fs = null;
 			if (lrts != null)
 			{
-				var norms = Chirps.NormalizeChirpDbl(signal, voltage, (lrts.Left, lrts.Right));
+				var norms = Chirps.NormalizeChirpDbl(windowing, signal, voltage, (lrts.Left, lrts.Right));
 				fs = new();
 				fs.Left = norms.Item1;
 				fs.Right = norms.Item2;
