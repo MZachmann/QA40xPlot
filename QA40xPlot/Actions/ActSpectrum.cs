@@ -147,7 +147,7 @@ namespace QA40xPlot.Actions
 		private static double[] BuildWave(MyDataTab page, double volts, bool force = false)
 		{
 			var vm = page.ViewModel;
-			var freq = ToD(vm.Gen1Frequency, 0);
+			var freq = vm.NearestBinFreq(vm.Gen1Frequency);
 			WaveGenerator.SetEnabled(true);          // enable the generator
 			WaveGenerator.SetGen1(freq, volts, force ? true : vm.UseGenerator, vm.Gen1Waveform);          // send a sine wave
 			WaveGenerator.SetGen2(0,0,false);          // just a sine wave
@@ -229,7 +229,7 @@ namespace QA40xPlot.Actions
 				return;
 
 			var genType = ToDirection(vm.GenDirection);
-			var freq = ToD(vm.Gen1Frequency, 1000);
+			var freq = vm.NearestBinFreq(vm.Gen1Frequency);
 
 			// if we're doing adjusting here we need gain information
 			if (vm.DoAutoAttn || genType != E_GeneratorDirection.INPUT_VOLTAGE)
@@ -319,7 +319,7 @@ namespace QA40xPlot.Actions
 		{
 			SpectrumViewModel vm = msr.ViewModel; // cached model
 
-			var freq = ToD(vm.Gen1Frequency, 0);
+			var freq = vm.NearestBinFreq(vm.Gen1Frequency);
 			var sampleRate = vm.SampleRateVal;
 			if (freq == 0 || sampleRate == 0 || !BaseViewModel.FftSizes.Contains(vm.FftSize))
 			{
@@ -416,7 +416,7 @@ namespace QA40xPlot.Actions
 			right.IsLeft = false;
 			SpectrumViewModel vm = msr.ViewModel;
 
-			var freq = ToD(vm.Gen1Frequency, 0);
+			var freq = vm.NearestBinFreq(vm.Gen1Frequency);
 			if (vm.Gen1Waveform == "Multitone")
 			{
 				freq = 1016.6; // the default multitone frequency, 1016.6 Hz
@@ -478,8 +478,7 @@ namespace QA40xPlot.Actions
 				return;
 
 			// Loop through harmonics up tot the 10th
-			var freq = ToD(vm.Gen1Frequency, 1000);
-			freq = QaLibrary.GetNearestBinFrequency(freq, vm.SampleRateVal, vm.FftSizeVal);
+			var freq = vm.NearestBinFreq(vm.Gen1Frequency);
 			var maxfreq = vm.SampleRateVal / 2.0;
 			var binSize = QaLibrary.CalcBinSize(vm.SampleRateVal, vm.FftSizeVal);
 			ThdChannelViewModel[] steps = [left, right];

@@ -361,8 +361,8 @@ namespace QA40xPlot.Actions
 			var genType = ToDirection(vm.GenDirection);
 
 			// Init mini plots
-			var startFreq = MathUtil.ToDouble(vm.StartFreq, 2);
-			var endFreq = MathUtil.ToDouble(vm.EndFreq, 20000);
+			var startFreq = vm.NearestBinFreq(vm.StartFreq);
+			var endFreq = vm.NearestBinFreq(vm.EndFreq);
 
 			QaLibrary.InitMiniFftPlot(fftPlot, Math.Max(10,startFreq), endFreq, -150, 20);
 			QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -1, 1);
@@ -406,7 +406,7 @@ namespace QA40xPlot.Actions
 				var binSize = QaLibrary.CalcBinSize(vm.SampleRateVal, vm.FftSizeVal);
 				// Generate a list of frequencies
 				var stepFrequencies = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(
-					MathUtil.ToDouble(vm.StartFreq, 10), MathUtil.ToDouble(vm.EndFreq, 10000), vm.StepsOctave);
+					ToD(vm.StartFreq, 10), ToD(vm.EndFreq, 10000), vm.StepsOctave);
 				var maxBinFreq = vm.SampleRateVal / 4;	// nyquist over 2 since we're looking at distortion
 				// Translate the generated list to bin center frequencies
 				var stepBinFrequencies = QaLibrary.TranslateToBinFrequencies(stepFrequencies, vm.SampleRateVal, vm.FftSizeVal);

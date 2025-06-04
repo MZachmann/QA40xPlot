@@ -22,16 +22,26 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <Label Padding="2,2" Grid.Row="0" Grid.Column="0" Content="{Binding Fundamental1Frequency}" ContentStringFormat="{}{0:F0} Hz"/>
-                <Label Padding="2,2" Grid.Row="0" Grid.Column="1" Content="{Binding Amplitude1View}" />
-                <Label Padding="2,2" Grid.Row="0" Grid.Column="2" Content="{Binding Fundamental1Volts, Converter={StaticResource VoltFormatter}}"  />
-                <Label Padding="2,2" Grid.Row="1" Grid.Column="0" Content="{Binding Fundamental2Frequency}" ContentStringFormat="{}{0:F0} Hz"/>
-                <Label Padding="2,2" Grid.Row="1" Grid.Column="1" Content="{Binding Amplitude2View}" />
-                <Label Padding="2,2" Grid.Row="1" Grid.Column="2" Content="{Binding Fundamental2Volts, Converter={StaticResource VoltFormatter}}" />
-                <Label Padding="2,2" Grid.Row="2" Grid.Column="0" Content="{Binding AmplitudesView}" />
-                <Label Padding="2,2" Grid.Row="2" Grid.Column="1" Content="{Binding TotalV, Converter={StaticResource VoltFormatter}}" />
-                <Label Padding="2,2" Grid.Row="2" Grid.Column="2" Content="{Binding TotalW}" ContentStringFormat="{}{0:0.###} W"/>
-                <Label Padding="2,2" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Center" Content="{Binding Gain1dB}" ContentStringFormat="Gain {0:F2} dB"/>
+                <Label Padding="2,2" Grid.Row="0" Grid.Column="0" ToolTip="Fundamental frequency 1"
+                       Content="{Binding Fundamental1Frequency}" ContentStringFormat="@ {0:0.#} Hz"/>
+                <Label Padding="2,2" Grid.Row="0" Grid.Column="1" ToolTip="Measured fundamental amplitude"
+                       Content="{Binding Amplitude1View}" />
+                <Label Padding="2,2" Grid.Row="0" Grid.Column="2" ToolTip="Measured fundamental voltage"
+                       Content="{Binding Fundamental1Volts, Converter={StaticResource VoltFormatter}}"  />
+                <Label Padding="2,2" Grid.Row="1" Grid.Column="0" ToolTip="Fundamental frequency 2"
+                       Content="{Binding Fundamental2Frequency}" ContentStringFormat="@ {0:0.#} Hz"/>
+                <Label Padding="2,2" Grid.Row="1" Grid.Column="1" ToolTip="Measured fundamental amplitude"
+                       Content="{Binding Amplitude2View}" />
+                <Label Padding="2,2" Grid.Row="1" Grid.Column="2" ToolTip="Measured fundamental voltage"
+                       Content="{Binding Fundamental2Volts, Converter={StaticResource VoltFormatter}}" />
+                <Label Padding="2,2" Grid.Row="2" Grid.Column="0" ToolTip="Measured total amplitude"
+                       Content="{Binding AmplitudesView}" />
+                <Label Padding="2,2" Grid.Row="2" Grid.Column="1" ToolTip="Measured total voltage"
+                       Content="{Binding TotalV, Converter={StaticResource VoltFormatter}}" />
+                <Label Padding="2,2" Grid.Row="2" Grid.Column="2" ToolTip="Measured total power"
+                       Content="{Binding TotalW}" ContentStringFormat="{}{0:0.###} W"/>
+                <Label Padding="2,2" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Center" ToolTip="Measured fundamental gain"
+                       Content="{Binding Gain1dB}" ContentStringFormat="Gain {0:F2} dB"/>
             </Grid>
             <Rectangle HorizontalAlignment="Stretch" Height="3" Fill="DarkGreen" />
             <Grid>
@@ -45,11 +55,14 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Label Padding="2,2" Grid.Row="0" Grid.Column="0" Content="N:" HorizontalAlignment="Right"/>
-                    <Label Padding="2,2" Grid.Row="0" Grid.Column="1" Content="{Binding NoiseFloorView}" />
-                    <Label Padding="2,2" Grid.Row="0" Grid.Column="2" Content="{Binding NoiseFloorV, Converter={StaticResource VoltFormatter}}" />
+                    <Label Padding="2,2" Grid.Row="0" Grid.Column="1" ToolTip="Measured noise floor"
+                           Content="{Binding NoiseFloorView}" />
+                    <Label Padding="2,2" Grid.Row="0" Grid.Column="2" ToolTip="Measured noise floor"
+                           Content="{Binding NoiseFloorV, Converter={StaticResource VoltFormatter}}" />
 
                     <Label Padding="2,2" Grid.Row="1" Grid.Column="0" Content="IMD:" HorizontalAlignment="Right"/>
-                    <Label Padding="2,2" Grid.Row="1" Grid.Column="1" Content="{Binding ThdIndB}" ContentStringFormat="{}{0:F2} dB"/>
+                    <Label Padding="2,2" Grid.Row="1" Grid.Column="1" ToolTip="Total intermodulation distortion"
+                           Content="{Binding ThdIndB}" ContentStringFormat="{}{0:F2} dB"/>
                     <Label Padding="2,2" Grid.Row="1" Grid.Column="2" Content="{Binding ThdInPercent}" ContentStringFormat="{}{0:F5} %"/>
                
             </Grid>
@@ -70,9 +83,11 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Label Padding="2,2" Grid.Row="0" Grid.Column="0" Content="SNR:" HorizontalAlignment="Right"/>
-                <Label Padding="2,2" Grid.Row="0" Grid.Column="1" Content="{Binding SNRatio}" ContentStringFormat="{}{0:F2} dB"/>
+                <Label Padding="2,2" Grid.Row="0" Grid.Column="1" ToolTip="Signal to noise ratio 20-20KHz unweighted"
+                       Content="{Binding SNRatio}" ContentStringFormat="{}{0:F2} dB"/>
                 <Label Padding="2,2" Grid.Row="0" Grid.Column="2" Content="ENOB:" HorizontalAlignment="Right"/>
-                <Label Padding="2,2" Grid.Row="0" Grid.Column="3" Content="{Binding ENOB}" ContentStringFormat="{}{0:F1} bits"/>
+                <Label Padding="2,2" Grid.Row="0" Grid.Column="3" ToolTip="Equivalent number of bits"
+                       Content="{Binding ENOB}" ContentStringFormat="{}{0:F1} bits"/>
 
                 <Label Padding="2,2" Grid.Row="1" Grid.Column="0" Content="DFD2:" HorizontalAlignment="Right"/>
                 <Label Padding="2,2" Grid.Row="1" Grid.Column="1" >

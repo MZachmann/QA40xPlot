@@ -385,8 +385,7 @@ namespace QA40xPlot.Actions
 			QaLibrary.InitMiniFftPlot(fftPlot, 10, 100000, -150, 20);
 			QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -1, 1);
 
-			double testFreq = MathUtil.ToDouble(vm.TestFreq, 1000);
-			double testFrequency = QaLibrary.GetNearestBinFrequency(testFreq, vm.SampleRateVal, vm.FftSizeVal);
+			double testFrequency = vm.NearestBinFreq(vm.TestFreq);
 
 			await CalculateGainAtFreq(MyVModel, testFrequency);
 			if (LRGains == null)

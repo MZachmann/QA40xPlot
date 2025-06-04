@@ -139,8 +139,8 @@ namespace QA40xPlot.Actions
 		private static double[] BuildWave(MyDataTab page, double volts)
 		{ 
 			var vm = page.ViewModel;
-			var freq = MathUtil.ToDouble(vm.Gen1Frequency, 0);
-			var freq2 = MathUtil.ToDouble(vm.Gen2Frequency, 0);
+			var freq = vm.NearestBinFreq(vm.Gen1Frequency);
+			var freq2 = vm.NearestBinFreq(vm.Gen2Frequency);
 			var v2 = volts / vm.GenDivisor;
 			var v1 = volts;
 			WaveGenerator.SetGen1(freq, v1, vm.UseGenerator);          // send a sine wave
@@ -264,20 +264,16 @@ namespace QA40xPlot.Actions
 		async Task<bool> RunAcquisition(MyDataTab msr, CancellationToken ct)
 		{
 			// Setup
-			ImdViewModel msrImd = msr.ViewModel;
+			ImdViewModel vm = msr.ViewModel;
 
-			var freq = MathUtil.ToDouble(msrImd.Gen1Frequency, 0);
-			var freq2 = MathUtil.ToDouble(msrImd.Gen2Frequency, 0);
-			var sampleRate = msrImd.SampleRateVal;
-			if (freq == 0 || freq2 == 0 || sampleRate == 0 || !BaseViewModel.FftSizes.Contains(msrImd.FftSize))
+			var freq = vm.NearestBinFreq(vm.Gen1Frequency); // make sure it's a bin center frequency
+			var freq2 = vm.NearestBinFreq(vm.Gen2Frequency); // make sure it's a bin center frequency
+			if (freq == 0 || freq2 == 0 || vm.SampleRateVal == 0 || !BaseViewModel.FftSizes.Contains(vm.FftSize))
 			{
 				MessageBox.Show("Invalid settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 				return false;
 			}
-			var fftsize = msrImd.FftSizeVal;
-			freq = QaLibrary.GetNearestBinFrequency(freq, sampleRate, fftsize); // make sure it's a bin center frequency
-			freq2 = QaLibrary.GetNearestBinFrequency(freq2, sampleRate, fftsize); // make sure it's a bin center frequency
-			if (true != await QaComm.InitializeDevice(sampleRate, fftsize, msrImd.WindowingMethod, (int)msrImd.Attenuation))
+			if (true != await QaComm.InitializeDevice(vm.SampleRateVal, vm.FftSizeVal, vm.WindowingMethod, (int)vm.Attenuation))
 				return false;
 
 			LeftRightSeries lrfs = new();
@@ -296,12 +292,12 @@ namespace QA40xPlot.Actions
 					var noisy = await MeasureNoise(ct);
 					if (ct.IsCancellationRequested)
 						return false;
-					msr.NoiseFloor = QaCompute.CalculateNoise(msrImd.WindowingMethod, noisy.FreqRslt);
+					msr.NoiseFloor = QaCompute.CalculateNoise(vm.WindowingMethod, noisy.FreqRslt);
 				}
 
 				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
 				int[] frqtest = [ToBinNumber(freq, LRGains)];
-				var genVolt = msrImd.ToGenVoltage(msrImd.Gen1Voltage, frqtest, GEN_INPUT, gains);   // input voltage 1
+				var genVolt = vm.ToGenVoltage(vm.Gen1Voltage, frqtest, GEN_INPUT, gains);   // input voltage 1
 
 				msr.Definition.GeneratorVoltage = genVolt;	// used by the buildwave
 
@@ -354,8 +350,8 @@ namespace QA40xPlot.Actions
 			right.IsLeft = false;
 			ImdViewModel vm = msr.ViewModel;
 
-			var freq = MathUtil.ToDouble(vm.Gen1Frequency, 0);
-			var freq2 = MathUtil.ToDouble(vm.Gen2Frequency, 0);
+			var freq = vm.NearestBinFreq(vm.Gen1Frequency);
+			var freq2 = vm.NearestBinFreq(vm.Gen2Frequency);
 			var lrfs = msr.FreqRslt;    // frequency response
 
 			var maxf = 20000; // the app seems to use 20,000 so not sampleRate/ 2.0;
@@ -758,8 +754,8 @@ namespace QA40xPlot.Actions
 				return;
 
 			var genType = ToDirection(vm.GenDirection);
-			var freq = MathUtil.ToDouble(vm.Gen1Frequency, 1000);
-			var freq2 = MathUtil.ToDouble(vm.Gen2Frequency, 1000);
+			var freq = vm.NearestBinFreq(vm.Gen1Frequency);
+			var freq2 = vm.NearestBinFreq(vm.Gen2Frequency);
 			// calculate the gain curve if we need it
 			if (vm.DoAutoAttn || genType != E_GeneratorDirection.INPUT_VOLTAGE)
 			{
@@ -878,8 +874,8 @@ namespace QA40xPlot.Actions
 				return;
 
 			// Loop through harmonics up tot the 10th
-			var freq = MathUtil.ToDouble(vm.Gen1Frequency, 1000);
-			var freq2 = MathUtil.ToDouble(vm.Gen2Frequency, 1000);
+			var freq = vm.NearestBinFreq(vm.Gen1Frequency);
+			var freq2 = vm.NearestBinFreq(vm.Gen2Frequency);
 			var maxfreq = vm.SampleRateVal / 2.0;
 
 			var freqList = MakeHarmonics(freq, freq2);

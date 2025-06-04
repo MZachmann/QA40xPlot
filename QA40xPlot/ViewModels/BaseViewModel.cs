@@ -37,6 +37,9 @@ namespace QA40xPlot.ViewModels
 		public static string DutInfo { get => "DUT = Device Under Test"; }
 		public static string DutDescript { get => "Input Voltage = DUT Input(Generator Output), Output Voltage = DUT Output(QA40x Input)"; }
 		public static string AutoRangeDescript { get => "When the test is started a safe Attenuation value is calculated based on a test at 42."; }
+		public static string TabInfoTip { get => "Click to set line colors and edit plot headings"; }
+		public static string SummaryDataTip { get => "Click to see a box with summary test statistics"; }
+		public static string MiniPlotsTip { get => "Click to show the mini plots persistently"; }
 		public static List<String> ChannelList { get => new List<string> { "Left", "Right" }; }
 		public static List<String> PowerFreqList { get => new List<string> { "50", "60" }; }
 		public static List<String> TrueFalseList { get => new List<string> { "True", "False" }; }
@@ -440,6 +443,22 @@ namespace QA40xPlot.ViewModels
 				mvm.SetGeneratorVolts(parameter.ToString() ?? string.Empty);
 			}
 		}
+
+		/// <summary>
+		/// find the closest frequency to the desired one that is a bin frequency
+		/// this uses the ViewModel's fftsize and samplerate to determine the bin size
+		/// </summary>
+		/// <param name="freq">Frequency</param>
+		/// <returns></returns>
+		public double NearestBinFreq(double freq)
+		{
+			return QaLibrary.GetNearestBinFrequency(freq, this.SampleRateVal, this.FftSizeVal);
+		}
+		public double NearestBinFreq(string sfreq)
+		{
+			return NearestBinFreq(MathUtil.ToDouble(sfreq, 1000.0));
+		}
+
 
 		public static void ShowMenu(object? parameter)
 		{

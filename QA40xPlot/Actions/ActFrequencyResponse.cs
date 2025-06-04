@@ -578,7 +578,7 @@ namespace QA40xPlot.Actions
 			// set the freq values because ?
 			lrfs.Left = leftFft.Select(x => x.Magnitude).ToArray();
 			lrfs.Right = rightFft.Select(x => x.Magnitude).ToArray();
-			lrfs.Df = 1.0 / vm.SampleRateVal;
+			lrfs.Df = QaLibrary.CalcBinSize(vm.SampleRateVal, vm.FftSizeVal); // frequency step size
 			lfrs.FreqRslt = lrfs;
 			return (lfrs, leftFft, rightFft);
 		}

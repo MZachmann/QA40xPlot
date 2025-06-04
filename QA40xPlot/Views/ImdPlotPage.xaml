@@ -164,8 +164,10 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <CheckBox Content="Summary Data" IsChecked="{Binding ShowSummary}" Grid.Row="0"  />
-                    <CheckBox Content="Tab Info" IsChecked="{Binding ShowTabInfo}" Grid.Row="1"  />
+                    <CheckBox Content="Summary Data" ToolTip="{Binding SummaryDataTip}"
+                              IsChecked="{Binding ShowSummary}" Grid.Row="0"  />
+                    <CheckBox Content="Tab Info" ToolTip="{Binding TabInfoTip}"
+                              IsChecked="{Binding ShowTabInfo}" Grid.Row="1"  />
                     <CheckBox Content="Intermod Markers" IsChecked="{Binding ShowMarkers}" Grid.Row="2"  />
                     <CheckBox Content="Power Markers" IsChecked="{Binding ShowPowerMarkers}" Grid.Row="3"  />
                 </Grid>

@@ -28,6 +28,16 @@ namespace QA40xPlot
 		// Modify the GetVersionInfo method
 		static string GetVersionInfo()
 		{
+			// try to get the clickonce version first
+			if (ApplicationDeployment.IsNetworkDeployed)
+			{
+				var appDeployment = ApplicationDeployment.CurrentDeployment;
+				if (appDeployment != null && appDeployment.CurrentVersion != null)
+				{
+					Debug.WriteLine("ClickOnce Version: " + appDeployment.CurrentVersion.ToString());
+					return appDeployment.CurrentVersion.ToString();
+				}
+			}
 			// Get the current assembly
 			Assembly assembly = Assembly.GetExecutingAssembly();
 			string productVersion = string.Empty;

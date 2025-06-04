@@ -2,6 +2,11 @@
 --------------------------------------------
 This changelog shows the changes made for each version
 --------------------------------------------
+v 1.1.19
+- start using the 4 term version # from the installer
+- Repair the constant overlaying for both THDvsAmp and THDvsFreq
+- add a bunch of tooltips including to the data summary box
+- improve binning of sweep frequencies
 v 1.1.18
 - fix left/right swap of noise floor
 - repair up-down control positioning on-screen
