@@ -194,6 +194,13 @@ namespace QA40xPlot.ViewModels
 					ShowInfos();
 					MyAction?.UpdateGraph(false);
 					break;
+				case "PlotFormat":
+					// we may need to change the axis
+					//ToShowRange = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Collapsed : Visibility.Visible;
+					//ToShowdB = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Visible : Visibility.Collapsed;
+					RaisePropertyChanged("GraphUnit");
+					MyAction?.UpdateGraph(true);
+					break;
 				case "GraphStartTime":
 				case "GraphEndTime":
 				case "RangeBottom":
@@ -238,6 +245,8 @@ namespace QA40xPlot.ViewModels
 			SetupMainPlot(plot);
 			actPlot = plot;
 			MyVModel.LinkAbout(MyAction.PageData.Definition);
+			ShowInfos();
+
 		}
 
 		private static void SetAtten(object? parameter)

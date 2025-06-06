@@ -1,4 +1,5 @@
-﻿using QA40xPlot.Libraries;
+﻿using QA40xPlot.Data;
+using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using System.Windows;
 using System.Windows.Data;
@@ -64,7 +65,7 @@ namespace QA40xPlot.Converters
 				}
 				else if (dv >= 1e-6)
 				{
-					rslt = (1000000 * dv).ToString("G3") + " uV";
+					rslt = (1000000 * dv).ToString("G3") + " μV";
 				}
 				else
 				{
@@ -91,17 +92,22 @@ namespace QA40xPlot.Converters
 			string rslt = string.Empty;
 			{
 				double dv = (double)value;
-				if (dv >= .099)
+				var adv = Math.Abs(dv);
+				if (adv >= 100)
+				{
+					rslt = dv.ToString("0.#") + " V";
+				}
+				else if (adv >= .099)
 				{
 					rslt = dv.ToString("0.###") + " V";
 				}
-				else if (dv >= 1e-4)
+				else if (adv >= 1e-4)
 				{
 					rslt = (1000 * dv).ToString("G3") + " mV";
 				}
-				else if (dv >= 1e-7)
+				else if (adv >= 1e-7)
 				{
-					rslt = (1000000 * dv).ToString("G3") + " uV";
+					rslt = (1000000 * dv).ToString("G3") + " μV";
 				}
 				else
 				{
@@ -109,6 +115,48 @@ namespace QA40xPlot.Converters
 				}
 			}
 			return rslt;
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			return Binding.DoNothing;
+		}
+	}
+
+	/// <summary>
+	/// convert a voltage to dbv format
+	/// </summary>
+	public class VoltDbvFormatter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			if (value == null || value == DependencyProperty.UnsetValue)
+				return string.Empty;
+			// three arguments are:
+			// voltage, reference voltage, usepercent
+			string rslt = string.Empty;
+			{
+				double dv = (double)value;
+				if(dv <= 0)
+				{
+					return "N/A dBV"; // no negative voltages
+				}
+				dv = QaLibrary.ConvertVoltage(dv, E_VoltageUnit.Volt, E_VoltageUnit.dBV); // convert to dBV
+				var adv = Math.Abs(dv);
+				if (adv >= 10)
+				{
+					rslt = dv.ToString("0.#");
+				}
+				else if (adv >= 1)
+				{
+					rslt = dv.ToString("0.##");
+				}
+				else 
+				{
+					rslt = dv.ToString("G3");
+				}
+			}
+			return rslt + " dBV";
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)

@@ -83,18 +83,19 @@ namespace QA40xPlot.Libraries
 		{
 			var sfx = GetFormatSuffix(plotFormat);
 			string rslt = string.Empty;
+			var adv = Math.Abs(dv);
 			if (plotFormat == "V" || plotFormat == "W")
 			{
 				{
-					if (dv >= .01)
+					if (adv >= .01)
 					{
 						rslt = dv.ToString("0.###") + " " + sfx;
 					}
-					else if (dv >= 1e-5)
+					else if (adv >= 1e-5)
 					{
 						rslt = (1000 * dv).ToString("G3") + " m" + sfx;
 					}
-					else if (dv >= 1e-8)
+					else if (adv >= 1e-8)
 					{
 						rslt = (1000000 * dv).ToString("G3") + " u" + sfx;
 					}
@@ -106,15 +107,15 @@ namespace QA40xPlot.Libraries
 			}
 			else if(plotFormat == "%")
 			{
-				if (dv <= 1e-5)
+				if (adv <= 1e-5)
 				{
 					rslt = dv.ToString("G3");
 				}
-				if (dv < 1.0)
+				if (adv < 1.0)
 				{
 					rslt =  dv.ToString("0.######");
 				}
-				else if (dv < 10.0)
+				else if (adv < 10.0)
 				{
 					rslt =  dv.ToString("0.##");
 				}
@@ -127,15 +128,15 @@ namespace QA40xPlot.Libraries
 			else
 			{
 				// the rest of these are logarithmic and take no fancy formatting...
-				if (dv < 1.0)
+				if (adv < 1.0)
 				{
 					rslt = dv.ToString("0.###");
 				}
-				if (dv < 10.0)
+				if (adv < 10.0)
 				{
 					rslt = dv.ToString("0.##");
 				}
-				else if (dv < 100.0)
+				else if (adv < 100.0)
 				{
 					rslt = dv.ToString("0.#");
 				}

@@ -46,7 +46,7 @@ namespace QA40xPlot.Libraries
 			var dt = lfrs.TimeRslt.dt;
 			var df = lfrs.FreqRslt.Df;
 
-			var totalV = Math.Sqrt(timeSeries.Select(x => x * x).Sum() / timeSeries.Length); // rms voltage
+			var totalV = QaCompute.ComputeRmsTime(timeSeries);
 			var windowBw = 1.5; // hann
 			var totalVF = Math.Sqrt(freqSeries.Select(x => x * x / windowBw).Sum()); // rms voltage
 			var fundamentalV = freqSeries.Max();	// fundamental magnitude of output

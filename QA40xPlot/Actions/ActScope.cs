@@ -6,6 +6,7 @@ using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
 using System.Windows;
+using System.Windows.Controls;
 using static QA40xPlot.ViewModels.BaseViewModel;
 
 // various things for the thd vs frequency activity
@@ -347,7 +348,9 @@ namespace QA40xPlot.Actions
                 MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
             }
 
-            // Show message
+			// Show message
+			var leftInfo = ViewSettings.Singleton.ScopeInfoLeft;
+			SetInfoChannels(msr);
 			await showMessage("Measurement finished");
 			await Task.Delay(1);	// let it be seen
 
@@ -508,14 +511,26 @@ namespace QA40xPlot.Actions
 			scopeVm.HasExport = (PageData.TimeRslt.Left.Length > 0);
 			await EndAction(scopeVm);
 		}
-        
-        // show the latest step values in the table
-        public void DrawChannelInfoTable()
+
+		private void FillChannelInfo(ScopeInfoViewModel vm, double[] timeData)
+		{
+			vm.TotalVolts = QaCompute.ComputeRmsTime(timeData); // set the total volts
+			vm.MaxVolts = timeData.Max(); // set the max Volts
+			vm.MinVolts = timeData.Min(); // set the min Volts
+			vm.PtPVolts = vm.MaxVolts - vm.MinVolts; // set the peak to peak Volts
+			vm.PlotFormat = MyVModel.PlotFormat;
+		}
+
+		// show the latest step values in the table
+		public void SetInfoChannels(MyDataTab tab)
         {
-			var thd = MyVModel;
+			var timeData = tab.TimeRslt;
+			if (timeData == null || timeData.Left.Length == 0)
+				return;
 			var vm = ViewSettings.Singleton.ScopeInfoLeft;
-            //vm.FundamentalFrequency = 0;
-            //vm.CalculateChannelValues(ToD( thd.Gen1Frequency), false);
+			FillChannelInfo(vm, timeData.Left);
+			vm = ViewSettings.Singleton.ScopeInfoRight;
+			FillChannelInfo(vm, timeData.Right);
 		}
 
 		public void UpdateGraph(bool settingsChanged)

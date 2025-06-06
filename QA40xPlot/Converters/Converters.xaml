@@ -6,4 +6,5 @@
         <convert:VoltFormatter x:Key="VoltFormatter"/>
         <convert:BoolToVisibilityConverter x:Key="BoolVisConverter"/>
         <convert:VoltUnitConverter x:Key="VoltUnitConverter" />
+        <convert:VoltDbvFormatter x:Key="VoltDbvFormatter" />
 </ResourceDictionary>

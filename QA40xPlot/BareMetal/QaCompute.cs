@@ -340,6 +340,16 @@ namespace QA40xPlot.BareMetal
 		}
 
 		/// <summary>
+		/// return the RMS voltage of a time signal
+		/// </summary>
+		/// <param name="signalTime"></param>
+		/// <returns></returns>
+		internal static double ComputeRmsTime(double[] signalTime)
+		{
+			return Math.Sqrt(signalTime.Sum(x => x * x) / signalTime.Length); // rms voltage
+		}
+
+		/// <summary>
 		/// calculate the total power of a frequency signal in usual linear frequency format
 		/// </summary>
 		/// <param name="signalFreqLin"></param>
