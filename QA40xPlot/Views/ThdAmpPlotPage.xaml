@@ -20,7 +20,7 @@
             <Expander Header="—— Generator" IsExpanded="{Binding ExpandGenerator}"  >
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" MinWidth="{Binding LeftWidth}" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
@@ -65,7 +65,7 @@
             <Expander Header="—— Sweep" IsExpanded="{Binding ExpandSweep}"  >
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" MinWidth="{Binding LeftWidth}"  />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
@@ -89,7 +89,7 @@
             <Expander Header="—— Sampling" IsExpanded="{Binding ExpandSampling}"  >
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" MinWidth="{Binding LeftWidth}" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
@@ -133,7 +133,7 @@
             <Expander Header="—— X Axis"  IsExpanded="{Binding ExpandXAxis}" >
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" MinWidth="{Binding RightWidth}" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>

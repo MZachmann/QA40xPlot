@@ -355,6 +355,20 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowRight, value);
 		}
 
+		private int _LeftWidth; // the width of the left channel in units
+		public int LeftWidth
+		{
+			get => _LeftWidth;
+			set => SetProperty(ref _LeftWidth, value);
+		}
+
+		private int _RightWidth; // the width of the left channel in units
+		public int RightWidth
+		{
+			get => _RightWidth;
+			set => SetProperty(ref _RightWidth, value);
+		}
+
 
 		/// <summary>
 		/// Given an input voltage format, get a display format converter

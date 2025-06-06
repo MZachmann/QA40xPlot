@@ -457,8 +457,12 @@ namespace QA40xPlot.ViewModels
 			Name = "ThdFreq";
 			PropertyChanged += CheckPropertyChanged;
 			MouseTracked += DoMouseTracked;
+
 			this.actPlot = default!;
 			this.actThd = default!;
+
+			LeftWidth = 95;  // reset the width of the left column
+			RightWidth = 50; // reset the width of the right column
 
 			StartFreq = "20";
 			EndFreq = "20000";

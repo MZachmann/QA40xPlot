@@ -444,6 +444,9 @@ namespace QA40xPlot.ViewModels
 			this.actInfoRight = default!;
 			this.actSpec = default!;
 
+			LeftWidth = 80;  // reset the width of the left column
+			RightWidth = 50; // reset the width of the right column
+
 			GraphStartFreq = "20";
 			GraphEndFreq = "20000";
 			RangeTop = "1";             // when graphing percents distortion this is logarithmic 0.01....

@@ -466,6 +466,10 @@ namespace QA40xPlot.ViewModels
 			PropertyChanged += CheckPropertyChanged;
 			MouseTracked += DoMouseTracked;
 
+			LeftWidth = 90;  // reset the width of the left column
+			RightWidth = 50; // reset the width of the right column
+
+
 			actPlot = default!;
 			actThd = default!;
 

@@ -17,9 +17,10 @@
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0" Margin="0,1,1,0">
             <views:StartStop />
-            <views:GroupHeader Header="Results" />
+            <views:GroupHeader Header="Testing" />
             <Grid>
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"  MinWidth="{Binding LeftWidth}"  />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
@@ -28,17 +29,26 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Label Content="T_ype" Target="{Binding ElementName=cbType}"   HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Column="0" Grid.Row="0"  />
-                <ComboBox x:Name="cbType"  SelectedItem="{Binding TestType}" Grid.Column="1" Grid.Row="0" ItemsSource="{Binding TestTypes}" 
-                        VerticalContentAlignment="Center"
-                          />
+                <Label Content="T_est Type" Target="{Binding ElementName=cbType}"   HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Column="0" Grid.Row="0"  />
+                <ComboBox x:Name="cbType"  SelectedItem="{Binding TestType}" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" ItemsSource="{Binding TestTypes}" 
+                        VerticalContentAlignment="Center" />
+                <Label Content="Reference _Z" 
+                       Target="{Binding ElementName=cbZ}"   HorizontalAlignment="Right" 
+                       VerticalAlignment="Center" Grid.Column="0" Grid.Row="1"  />
+                <ComboBox x:Name="cbZ"  IsEditable="True" Text="{Binding ZReference}" ToolTip="The series resistor value for the impedance test"
+                        VerticalContentAlignment="Center" IsEnabled="{Binding TestType, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=Impedance}"
+                          Grid.Column="1" Grid.Row="1" ItemsSource="{Binding Impedances}"  />
+                <Label Content="Ohms" Grid.Column="2" Grid.Row="1"  />
+                <CheckBox Content="Use _microphone compensation" ToolTip="See Settings to select a compensation file"
+                        VerticalContentAlignment="Center" IsEnabled="{Binding TestType, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=Response}"
+                          Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="3"  />
             </Grid>
 
             <Expander Header="—— Sweep" IsExpanded="{Binding ExpandSweep}"  >
                 <StackPanel>
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" MinWidth="{Binding LeftWidth}" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
@@ -69,7 +79,7 @@
             <Expander Header="—— Generator" IsExpanded="{Binding ExpandGenerator}"  >
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" MinWidth="{Binding LeftWidth}" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
@@ -98,7 +108,7 @@
             <Expander Header="—— Sampling" IsExpanded="{Binding ExpandSampling}"  >
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" MinWidth="{Binding LeftWidth}" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
@@ -128,24 +138,6 @@
 
                 </Grid>
             </Expander>
-            <views:GroupHeader Header="Impedance Test" />
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Label Content="Reference _Z" Target="{Binding ElementName=cbZ}"   HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Column="0" Grid.Row="0"  />
-                <ComboBox x:Name="cbZ"  IsEditable="True" Text="{Binding ZReference}" 
-                        VerticalContentAlignment="Center"
-                          Grid.Column="1" Grid.Row="0" ItemsSource="{Binding Impedances}"  />
-                <Label Content="Ohms" Grid.Column="2" Grid.Row="0"  />
-            </Grid>
             <views:SeeGlobals HorizontalAlignment="Stretch" Margin="0,5,0,0" />
             <views:StorageUi />
             <views:GotFileList HorizontalAlignment="Stretch" MaxHeight="100" Margin="0,5,0,0"/>
@@ -162,7 +154,7 @@
             <Expander Header="—— Y Axis"  IsExpanded="{Binding ExpandYAxis}" >
                 <Grid >
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" MinWidth="{Binding RightWidth}" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
@@ -192,7 +184,7 @@
             <Expander Header="—— X Axis"  IsExpanded="{Binding ExpandXAxis}" >
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" MinWidth="{Binding RightWidth}" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>

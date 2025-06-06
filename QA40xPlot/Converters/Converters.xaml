@@ -7,4 +7,5 @@
         <convert:BoolToVisibilityConverter x:Key="BoolVisConverter"/>
         <convert:VoltUnitConverter x:Key="VoltUnitConverter" />
         <convert:VoltDbvFormatter x:Key="VoltDbvFormatter" />
+        <convert:InverseBooleanConverter x:Key="InvBoolConverter" />
 </ResourceDictionary>

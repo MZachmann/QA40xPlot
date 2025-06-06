@@ -10,7 +10,7 @@
         <Expander Header="—— X Axis"  IsExpanded="{Binding ExpandXAxis}" >
             <Grid >
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" MinWidth="{Binding RightWidth}" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>

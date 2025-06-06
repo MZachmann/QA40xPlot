@@ -60,7 +60,7 @@ public class FreqRespViewModel : BaseViewModel
 	public string TestType
 	{
 		get => _TestType;
-		set => SetProperty(ref _TestType, value);
+		set { SetProperty(ref _TestType, value); } // this is used to set the tab header
 	}
 
 	private string _StartFreq = string.Empty;
@@ -488,6 +488,7 @@ public class FreqRespViewModel : BaseViewModel
 	{
 		PropertyChanged -= CheckPropertyChanged;
 		MouseTracked -= DoMouseTracked;
+
 	}
 
 	public FreqRespViewModel()
@@ -498,6 +499,9 @@ public class FreqRespViewModel : BaseViewModel
 
 		actPlot = default!;
 		actFreq = default!;
+
+		LeftWidth = 95;
+		RightWidth = 50;
 
 		GraphStartFreq = "20";
 		GraphEndFreq = "20000";

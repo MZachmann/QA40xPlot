@@ -19,13 +19,27 @@ namespace QA40xPlot.Converters
 		}
 	}
 
+	// so things can be enabled with the inverse condition
+	public class InverseBooleanConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			return !(bool)value;
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			return Binding.DoNothing;
+		}
+	}
+
 	public class BoolToVisibilityConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
 		{
 			if (value is bool boolValue)
 			{
-				return boolValue ? Visibility.Visible : Visibility.Hidden;
+				return boolValue ? Visibility.Visible : Visibility.Collapsed;
 			}
 			return Visibility.Hidden;
 		}
