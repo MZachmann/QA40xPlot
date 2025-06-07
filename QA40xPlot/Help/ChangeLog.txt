@@ -4,6 +4,10 @@ This changelog shows the changes made for each version
 --------------------------------------------
 v 1.1.20
 - add data summary box to the scope test
+- improve data entry format lineup for gutters
+- add microphone compensation to response test and settings
+- fix (more) using amplifier load for Impedance test
+- let user set windowing in frequency response test
 v 1.1.19
 - start using the 4 term version # from the installer
 - Repair the constant overlaying for both THDvsAmp and THDvsFreq

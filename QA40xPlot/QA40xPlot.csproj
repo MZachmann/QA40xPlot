@@ -15,8 +15,8 @@
     <AssemblyOriginatorKeyFile>Keys\sgKey.snk</AssemblyOriginatorKeyFile>
     <ApplicationIcon>Images\favicon.ico</ApplicationIcon>
     <UseWindowsForms>False</UseWindowsForms>
-    <AssemblyVersion>1.1.19</AssemblyVersion>
-    <FileVersion>1.1.19</FileVersion>
+    <AssemblyVersion>1.1.20</AssemblyVersion>
+    <FileVersion>1.1.20</FileVersion>
 	</PropertyGroup>
 
   <ItemGroup>
