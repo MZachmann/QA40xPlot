@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
+using Newtonsoft.Json;
 using QA40xPlot.BareMetal;
 using System.Diagnostics;
 using System.Windows;
@@ -24,6 +26,12 @@ namespace QA40xPlot.ViewModels
 		}
 		public static List<string> ThemeList { get => new List<string> { "None", "Light", "Dark" }; }
 
+		[JsonIgnore]
+		public RelayCommand DoMicCompensate { get => new RelayCommand(FindMicCompensate); }
+		[JsonIgnore]
+		public RelayCommand ClearMicCompensate { get => new RelayCommand(DelMicCompensate); }
+
+
 		#region temporary setters
 
 		#endregion
@@ -40,6 +48,12 @@ namespace QA40xPlot.ViewModels
 				// change the entire interface around
 				QaComm.SetIODevice(value ? "REST" : "USB");
 			}
+		}
+
+		private string _MicCompFile = string.Empty;
+		public string MicCompFile {
+			get => _MicCompFile;
+			set => SetProperty(ref _MicCompFile, value);
 		}
 
 		private string _BackgroundClr = BackColors[1];	// mintcream
@@ -210,6 +224,29 @@ namespace QA40xPlot.ViewModels
 			_UsbBufferSize = "16384";
 			_SaveOnExit = "False";
 			_PowerFrequency = "60";
+		}
+
+		public void FindMicCompensate()
+		{
+			OpenFileDialog openFileDialog = new OpenFileDialog
+			{
+				FileName = System.IO.Path.GetFileName( MicCompFile), // Default file name
+				DefaultExt = ".txt", // Default file extension
+				Filter = "Mic files|*.txt|All files|*.*" // Filter files by extension
+			};
+			// Show save file dialog box
+			bool? result = openFileDialog.ShowDialog();
+			if(result == true)
+			{
+				// Get the file name and display in the TextBox
+				MicCompFile = openFileDialog.FileName;
+				Debug.WriteLine($"MicCompFile set to: {MicCompFile}");
+			}
+		}
+
+		public void DelMicCompensate()
+		{
+			MicCompFile = string.Empty;
 		}
 	}
 }

@@ -15,6 +15,34 @@ namespace QA40xPlot.Libraries
 {
     public static class QaMath
     {
+		// convert from one frequency band to another
+		public static double[] LinearApproximate(double[] fIn, double[] valIn, double[] fOut)
+		{
+			if (fIn.Length != valIn.Length)
+				return [];
+			double[] result = new double[fOut.Length];
+			int idx = -1;
+			int maxl = fIn.Length - 1;
+			for (int i = 0; i < fOut.Length; i++)
+			{
+				var f = fOut[i];
+				while (idx < maxl && fIn[idx+1] < f)
+					idx++;
+				if (idx == -1)
+					result[i] = valIn[0];
+				else if(idx == maxl)
+					result[i] = valIn[maxl];
+				else
+				{
+					var x1 = fIn[idx - 1];
+					var x2 = fIn[idx];
+					var y1 = valIn[idx - 1];
+					var y2 = valIn[idx];
+					result[i] = y1 + (y2 - y1) * (f - x1) / (x2 - x1);
+				}
+			}
+			return result;
+		}
 
 		public static double MagAtFreq(double[] pts, double df, double dFreq)
 		{
@@ -263,7 +291,7 @@ namespace QA40xPlot.Libraries
 			return lout;
 		}
 
-		// given a left-right time series representing a sine wave it finds the gain/phase at freq
+		// given a left-right time series it finds the gain/phase at freq
 		// using left input as data and right input as reference (source)
 		public static System.Numerics.Complex CalculateGainPhase(double fundamentalFreq, LeftRightSeries measuredSeries)
 		{
@@ -273,21 +301,13 @@ namespace QA40xPlot.Libraries
 
 			var m2 = Math.Sqrt(2);
 			// Left channel
-			var window = new FftSharp.Windows.Hanning();
+			// we do manual FFT here because we need the complex values for phase output
+			var window = new FftSharp.Windows.FlatTop();
 			double[] windowed_measured = window.Apply(measuredTimeSeries.Left, true);
 			System.Numerics.Complex[] spectrum_measured = FFT.Forward(windowed_measured);
 
 			double[] windowed_ref = window.Apply(measuredTimeSeries.Right, true);
 			System.Numerics.Complex[] spectrum_ref = FFT.Forward(windowed_ref);
-			//var old = measuredSeries.FreqRslt;
-			if( measuredSeries.FreqRslt == null || measuredSeries.FreqRslt.Left == null)
-			{
-				measuredSeries.FreqRslt = new();
-				measuredSeries.FreqRslt.Left = spectrum_measured.Select(x => x.Magnitude * m2).ToArray();
-				measuredSeries.FreqRslt.Right = spectrum_ref.Select(x => x.Magnitude * m2).ToArray();
-				var nca2 = (int)(0.01 + 1 / measuredTimeSeries.dt);      // total time in tics = sample rate
-				measuredSeries.FreqRslt.Df = nca2 / (double)spectrum_measured.Length; // ???
-			}
 
 			System.Numerics.Complex u = new();
 			try
@@ -305,8 +325,7 @@ namespace QA40xPlot.Libraries
 			return u;
 		}
 
-		// given a left-right time series representing a sine wave it finds the gain/phase at freq
-		// using left input as data and right input as reference (source)
+		// given a left-right time series it finds the voltage at freq for both channels
 		public static System.Numerics.Complex CalculateDualGain(double fundamentalFreq, LeftRightSeries measuredSeries)
 		{
 			var measuredTimeSeries = measuredSeries.TimeRslt;
@@ -315,20 +334,13 @@ namespace QA40xPlot.Libraries
 
 			var m2 = Math.Sqrt(2);
 			// Left channel
-			var window = new FftSharp.Windows.Hanning();
+			// we do manual FFT here because we may as well and do flattop for precision
+			var window = new FftSharp.Windows.FlatTop();
 			double[] windowed_measured = window.Apply(measuredTimeSeries.Left, true);	// true == normalized by # elements
 			System.Numerics.Complex[] spectrum_measured = FFT.Forward(windowed_measured);
 
 			double[] windowed_ref = window.Apply(measuredTimeSeries.Right, true);
 			System.Numerics.Complex[] spectrum_ref = FFT.Forward(windowed_ref);
-			if (measuredSeries.FreqRslt == null || measuredSeries.FreqRslt.Left == null)
-			{
-				measuredSeries.FreqRslt = new();
-				measuredSeries.FreqRslt.Left = spectrum_measured.Select(x => x.Magnitude * m2).ToArray();
-				measuredSeries.FreqRslt.Right = spectrum_ref.Select(x => x.Magnitude * m2).ToArray();
-				var nca2 = (int)(0.01 + 1 / measuredTimeSeries.dt);      // total time in tics = sample rate
-				measuredSeries.FreqRslt.Df = nca2 / (double)spectrum_measured.Length; // ???
-			}
 
 			System.Numerics.Complex u = new();
 			try

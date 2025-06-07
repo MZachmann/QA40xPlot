@@ -42,6 +42,13 @@ public class FreqRespViewModel : BaseViewModel
 	public bool IsNotChirp { get => !_IsChirp; }
 
 	#region Setters and Getters
+	private bool _UseMUseMicCorrection = false;
+	public bool UseMicCorrection
+	{
+		get { return _UseMUseMicCorrection; }
+		set { SetProperty(ref _UseMUseMicCorrection, value); }
+	}
+
 	private bool _IsChirp;
 	public bool IsChirp
 	{

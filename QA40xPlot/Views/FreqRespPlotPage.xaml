@@ -40,6 +40,7 @@
                           Grid.Column="1" Grid.Row="1" ItemsSource="{Binding Impedances}"  />
                 <Label Content="Ohms" Grid.Column="2" Grid.Row="1"  />
                 <CheckBox Content="Use _microphone compensation" ToolTip="See Settings to select a compensation file"
+                          IsChecked="{Binding UseMicCorrection}"
                         VerticalContentAlignment="Center" IsEnabled="{Binding TestType, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=Response}"
                           Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="3"  />
             </Grid>

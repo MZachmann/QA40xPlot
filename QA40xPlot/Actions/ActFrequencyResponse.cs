@@ -151,6 +151,31 @@ namespace QA40xPlot.Actions
 			}
 		}
 
+		private static void AddMicCorrection(MyDataTab page)
+		{
+			if (page == null || page.ViewModel == null)
+				return;
+			var vm = page.ViewModel;
+			if(vm.UseMicCorrection)
+			{
+				var ttype = vm.GetTestingType(vm.TestType);
+				if(ttype != TestingType.Response)
+				{
+					// only add mic correction for response tests
+					return;
+				}
+				LeftRightFrequencySeries miccomp = Util.LoadMicCompensation();
+				if(miccomp.Left != null && miccomp.Left.Length > 0)
+				{
+					var freqs = miccomp.Left;
+					var gains = miccomp.Right.Select(x => QaLibrary.ConvertVoltage(x, E_VoltageUnit.dBV, E_VoltageUnit.Volt)).ToArray();
+					var crctdata = QaMath.LinearApproximate(freqs, gains, page.GainFrequencies); // interpolate the mic correction data
+																								 // apply mic correction to the left channel
+					page.GainData = page.GainData.Zip(crctdata, (x, y) => x * y).ToArray();
+				}
+			}
+		}
+
 		/// <summary>
 		/// Start measurement button clicked
 		/// </summary>
@@ -255,9 +280,9 @@ namespace QA40xPlot.Actions
 				if (msr.IsChirp)
 					await RunChirpTest(NextPage, voltagedBV);
 				else
-				{
 					await RunFreqTest(NextPage, stepBinFrequencies, voltagedBV);
-				}
+				AddMicCorrection(NextPage); // add mic correction if any
+
 				UpdateGraph(false);
 				if (!ReferenceEquals(PageData, NextPage))
 					PageData = NextPage;        // finally update the pagedata for display and processing
@@ -271,9 +296,9 @@ namespace QA40xPlot.Actions
 					if (msr.IsChirp)
 						await RunChirpTest(PageData, voltagedBV);
 					else
-					{
 						await RunFreqTest(PageData, stepBinFrequencies, voltagedBV);
-					}
+					AddMicCorrection(NextPage); // add mic correction if any
+
 					UpdateGraph(false);
 				} 
 			}
@@ -521,7 +546,8 @@ namespace QA40xPlot.Actions
                     }
 					page.GainFrequencies = page.GainFrequencies.Append(dfreq).ToArray();
 					UpdateGraph(false);
-                    if (!vm.IsTracking)
+					await showProgress(100 * (steps + 1) / stepBinFrequencies.Length, 100);
+					if (!vm.IsTracking)
                     {
                         vm.RaiseMouseTracked("track");
                     }

@@ -11,6 +11,67 @@ namespace QA40xPlot.Libraries
 {
 	public static class Util
 	{
+		private static string _CompensationFile = string.Empty; // mic compensation file, if any
+		private static LeftRightFrequencySeries? _MicCompensation = null; // mic compensation data, if any
+		private static DateTime? _LastCompEdit = null; // last time the mic compensation file was edited
+		public static LeftRightFrequencySeries LoadMicCompensation()
+		{
+			var compFile = ViewSettings.Singleton.SettingsVm.MicCompFile;
+			DateTime? vtd = null;
+			var lrfs = new LeftRightFrequencySeries(); // return empty if we fail
+			try
+			{
+				if (compFile.Length > 0 && compFile == _CompensationFile && _MicCompensation != null)
+				{
+					vtd = File.GetLastWriteTime(compFile); // get the last write time of the file
+					if(vtd == _LastCompEdit)
+						return _MicCompensation;
+				}
+				_CompensationFile = string.Empty; // reset the file name
+												  // not cached, load the file and parse it
+				if (string.IsNullOrEmpty(compFile) || !File.Exists(compFile))
+				{
+					MessageBox.Show("No mic compensation file was selected in settings.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+					return lrfs;
+				}
+				var txtData = File.ReadAllText(compFile);	// get the compensation data
+				var lines = txtData.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries); // lines of text w/o \r\n
+				int i = 0;
+				lines = lines.Select(x => x.TrimStart()).ToArray(); // trim whitespace
+				while (!char.IsDigit(lines[i][0]))
+				{
+					i++; // skip the header lines
+				}
+				if(i > 3)
+					throw new Exception("Invalid mic compensation file format. Expected numeric data after header lines.");
+				List<double> freq = new List<double>();
+				List<double> gain = new List<double>();
+				for(; i < lines.Length; i++)
+				{
+					var parts = lines[i].Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+					if (parts.Length < 2)
+						continue; // skip invalid lines
+					if (double.TryParse(parts[0], out double f) && double.TryParse(parts[1], out double g))
+					{
+						freq.Add(f);
+						gain.Add(g);
+					}
+				}
+				// hacky stick freq/gain into LeftRightFrequencySeries
+				lrfs.Left = freq.ToArray();
+				var mix = gain.Max(); // find the max gain value
+				lrfs.Right = gain.Select(x => x - mix).ToArray();    // convert gain curve to all less than 1
+				_CompensationFile = compFile;   // remember the file
+				_LastCompEdit = vtd;            // remember the last edit time
+				_MicCompensation = lrfs;        // cache the mic compensation data
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"Error loading mic compensation file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+				return new LeftRightFrequencySeries();
+			}
+			return lrfs; // return the loaded mic compensation data
+		}
 		/// <summary>
 		/// Load a file into a DataTab
 		/// </summary>
