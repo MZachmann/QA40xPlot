@@ -29,11 +29,11 @@ namespace QA40xPlot.Libraries
 				}
 				_CompensationFile = string.Empty; // reset the file name
 												  // not cached, load the file and parse it
-				if (string.IsNullOrEmpty(compFile) || !File.Exists(compFile))
-				{
-					MessageBox.Show("No mic compensation file was selected in settings.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-					return lrfs;
-				}
+				if (string.IsNullOrEmpty(compFile))
+					throw new Exception("No mic compensation file was selected in settings.");
+				if (!File.Exists(compFile))
+					throw new Exception("Compensation file not found.");
+
 				var txtData = File.ReadAllText(compFile);	// get the compensation data
 				var lines = txtData.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries); // lines of text w/o \r\n
 				int i = 0;
@@ -48,7 +48,7 @@ namespace QA40xPlot.Libraries
 				List<double> gain = new List<double>();
 				for(; i < lines.Length; i++)
 				{
-					var parts = lines[i].Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+					var parts = lines[i].Split(new[] { ' ', '\t', ',' }, StringSplitOptions.RemoveEmptyEntries);
 					if (parts.Length < 2)
 						continue; // skip invalid lines
 					if (double.TryParse(parts[0], out double f) && double.TryParse(parts[1], out double g))

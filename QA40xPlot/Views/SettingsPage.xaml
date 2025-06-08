@@ -46,7 +46,7 @@
         <Label VerticalAlignment="Center" Content="App Theme: " Grid.Row="0" Grid.Column="0" />
         <ComboBox  Grid.Row="0" Grid.Column="1" MinWidth="80" SelectedValue="{Binding ThemeSet}" ItemsSource="{Binding ThemeList}" />
         <TextBlock TextWrapping="Wrap" MaxWidth="600" 
-                   Text="Set the Application theme. It may interact poorly with the background color." 
+                   Text="If you change the theme, save to QADefault then restart the program for best display." 
                    HorizontalAlignment="Left" VerticalAlignment="Center"
                    Grid.Row="0" Grid.Column="4" />
         <local:GroupHeader Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5"  />

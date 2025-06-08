@@ -116,7 +116,11 @@ namespace QA40xPlot.BareMetal
 			{
 				double[] lftWdw = window.Apply(rdata.leftData, true);
 				var lFft = FFT.Forward(lftWdw);
+				// so x / chirpFft will be 1 with a gain of 1
+				// hence multiply the expected rms voltage to get fft value
+				var lfftX = lFft.Select(x => x.Magnitude).ToArray();
 				lFft = lFft.Select((x, index) => cmax * x / chirpFft[index]).ToArray();
+				var lfftY = lFft.Select(x => x.Magnitude).ToArray();
 				leftFft = lFft.Take(lFft.Length / 2).ToArray();
 			}
 

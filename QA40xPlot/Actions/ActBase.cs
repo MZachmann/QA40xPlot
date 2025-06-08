@@ -268,7 +268,6 @@ namespace QA40xPlot.Actions
 			bvm.Attenuation = atten;    // restore the original value
 		}
 
-
 		/// <summary>
 		/// Determine the gain curve for the device. This is done by sending a chirp at 96KHz
 		/// this sets the attenuation in hardware to 42 before the test
@@ -278,10 +277,10 @@ namespace QA40xPlot.Actions
 		/// <returns></returns>
 		protected static async Task<LeftRightFrequencySeries?> DetermineGainCurve(BaseViewModel bvm, bool inits, int average = 1)
 		{
-			// initialize very quick run
-			uint fftsize = 65536;
-			uint sampleRate = 96000;
-			string swindow = bvm.WindowingMethod;//  ViewSettings.IsUseREST ? "Rectangle" : "Rectangular";
+			// initialize very quick run, use 192K so valid up to 20KHz
+			uint fftsize = 32768;
+			uint sampleRate = 192000;
+			string swindow = "Hann";		// we need a reasonable windowing no matter user request
 			if (true != await QaComm.InitializeDevice(sampleRate, fftsize, swindow, QaLibrary.DEVICE_MAX_ATTENUATION))
 				return null;
 
@@ -305,7 +304,7 @@ namespace QA40xPlot.Actions
 					lrts.Right = acqData.TimeRslt.Right;
 					lrts.dt = acqData.TimeRslt.dt;
 					LeftRightFrequencySeries lraddon = new LeftRightFrequencySeries();
-					(lraddon.Left, lraddon.Right) = Chirps.NormalizeChirpDbl(bvm.WindowingMethod, chirpy, generatorV, (lrts.Left, lrts.Right));
+					(lraddon.Left, lraddon.Right) = Chirps.NormalizeChirpDbl(swindow, chirpy, generatorV, (lrts.Left, lrts.Right));
 					if(j == 0)
 					{
 						lrfs.Left = lraddon.Left;
@@ -328,6 +327,23 @@ namespace QA40xPlot.Actions
 				var gv = generatorV;
 				lrfs.Left = lrfs.Left.Select(x => x / gv).ToArray();
 				lrfs.Right = lrfs.Right.Select(x => x / gv).ToArray();
+				//
+				// now hack some stuff in for the gain curve...
+				//
+				for(int i=0; i<5; i++)
+				{
+					lrfs.Left[i] = lrfs.Left[5];
+					lrfs.Right[i] = lrfs.Right[5];
+				}
+				// smoothing
+				double dl = lrfs.Left[0];
+				double dr = lrfs.Right[0];
+				for (int i=0; i<lrfs.Left.Length; i++)
+				{
+					lrfs.Left[i] = dl * .1 + lrfs.Left[i] * 0.9;
+					lrfs.Right[i] = dl * .1 + lrfs.Right[i] * 0.9;
+				}
+				//var newlen = 10000 / lrfs.Df; // 10KHz max frequency
 				return lrfs;       // Return the new generator amplitude and acquisition data
 			}
 		}

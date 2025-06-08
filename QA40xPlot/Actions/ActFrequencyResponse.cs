@@ -168,7 +168,8 @@ namespace QA40xPlot.Actions
 				if(miccomp.Left != null && miccomp.Left.Length > 0)
 				{
 					var freqs = miccomp.Left;
-					var gains = miccomp.Right.Select(x => QaLibrary.ConvertVoltage(x, E_VoltageUnit.dBV, E_VoltageUnit.Volt)).ToArray();
+					// we want inverse gain since the mic compensation file is frequency response data for the mic
+					var gains = miccomp.Right.Select(x => QaLibrary.ConvertVoltage(-x, E_VoltageUnit.dBV, E_VoltageUnit.Volt)).ToArray();
 					var crctdata = QaMath.LinearApproximate(freqs, gains, page.GainFrequencies); // interpolate the mic correction data
 																								 // apply mic correction to the left channel
 					page.GainData = page.GainData.Zip(crctdata, (x, y) => x * y).ToArray();
@@ -228,6 +229,10 @@ namespace QA40xPlot.Actions
 
 			var fmin = MathUtil.ToDouble(msr.StartFreq);
 			var fmax = MathUtil.ToDouble(msr.EndFreq);
+			if (fmax > 10000)
+				fmax = 10000; // max frequency is 10kHz
+			if(fmin < 20)
+				fmin = 20; // min frequency is 20Hz
 
 			int[] frqtest = [ToBinNumber(fmin, LRGains), ToBinNumber(fmax, LRGains)];
 			{
@@ -242,7 +247,7 @@ namespace QA40xPlot.Actions
 				vmFreq.Attenuation = msr.Attenuation; // display on-screen
 			}
 			// get voltages for generator
-			var genVolt = vmFreq.ToGenVoltage(msr.Gen1Voltage, frqtest, GEN_INPUT, LRGains?.Left);
+			var genVolt = msr.ToGenVoltage(msr.Gen1Voltage, frqtest, GEN_INPUT, LRGains?.Left);
 			var voltagedBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);  // in dbv
 
 			NextPage.Definition.GeneratorVoltage = genVolt; // save the actual generator voltage
@@ -499,7 +504,7 @@ namespace QA40xPlot.Actions
 			WaveGenerator.SetGen2(0, 0, false); // disable the second wave
 
 			var ttype = vm.GetTestingType(vm.TestType);
-			var genVolt = Math.Pow(10, voltagedBV / 20);
+			var genVolt = QaLibrary.ConvertVoltage(voltagedBV, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
 
 			try
 			{
@@ -567,7 +572,7 @@ namespace QA40xPlot.Actions
 			var startf = MathUtil.ToDouble(vm.StartFreq) / 3;
 			var endf = MathUtil.ToDouble(vm.EndFreq) * 3;
 			endf = Math.Min(endf, vm.SampleRateVal / 2);
-			var genv = vm.ToGenVoltage(vm.Gen1Voltage, [], GEN_INPUT, LRGains?.Left);
+			var genv = QaLibrary.ConvertVoltage(voltagedBV, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
 			var chirpy = Chirps.ChirpVp((int)vm.FftSizeVal, vm.SampleRateVal, genv, startf, endf, 0.8);
 			LeftRightSeries lfrs = await QaComm.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
 			if (lfrs?.TimeRslt == null)
@@ -667,8 +672,9 @@ namespace QA40xPlot.Actions
 				var endf = MathUtil.ToDouble(vm.EndFreq) * 3;
 				var trimf = gfr.Count(x => x < startf);
                 var trimEnd = gfr.Count(x => x <= endf) - trimf;
+				// trim them all
                 gfr = gfr.Skip(trimf).Take(trimEnd).ToArray();
-                var mx = leftFft.Skip(trimf).Take(trimEnd).ToArray();
+                var mlft = leftFft.Skip(trimf).Take(trimEnd).ToArray();
                 var mref = rightFft.Skip(trimf).Take(trimEnd).ToArray();
                 // format the gain vectors as desired
                 page.GainFrequencies = gfr;
@@ -676,16 +682,16 @@ namespace QA40xPlot.Actions
                 {
 					case TestingType.Response:
 						// left, right are magnitude. left uses right as reference
-						page.GainData = mx.Zip(mref,
+						page.GainData = mlft.Zip(mref,
 							(l, r) => { return new Complex(l.Magnitude, r.Magnitude); }).ToArray();
 						break;
 					case TestingType.Gain:
 						// here complex value is the fft data left / right
-						page.GainData = mx.Zip(mref, (l, r) => { return l / r; }).ToArray();
+						page.GainData = mlft.Zip(mref, (l, r) => { return l / r; }).ToArray();
                         break;
 					case TestingType.Impedance:
 						// here complex value is the fft data left / right
-						page.GainData = mx.Zip(mref, (l, r) => { return l / r; }).ToArray();
+						page.GainData = mlft.Zip(mref, (l, r) => { return l / r; }).ToArray();
 						break;
 				}
 

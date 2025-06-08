@@ -17,14 +17,14 @@
             <TextBox Text="{Binding Heading}"  MinWidth="180" />
             <Label Content="Left Color" />
             <StackPanel Orientation="Horizontal">
-            <ComboBox IsEditable="True" MinWidth="80" 
+                <ComboBox IsEditable="True" MinWidth="80" ToolTip="Type/set the color. Transparent -> Use default" 
                   Text="{Binding LeftColor, Mode=TwoWay}" 
                   ItemsSource="{Binding PlotColors}" />
             <local:ColorBox Color="{Binding LeftColor}" Margin="5,0,0,0" Width="40" />
             </StackPanel>
             <Label Content="Right Color" />
             <StackPanel Orientation="Horizontal">
-                <ComboBox IsEditable="True" MinWidth="80" 
+                <ComboBox IsEditable="True" MinWidth="80" ToolTip="Type/set the color. Transparent -> Use default" 
                   Text="{Binding RightColor, Mode=TwoWay}" 
                   ItemsSource="{Binding PlotColors}" />
                 <local:ColorBox Color="{Binding RightColor}" Margin="5,0,0,0" Width="40" />

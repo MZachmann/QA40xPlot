@@ -242,7 +242,7 @@ namespace QA40xPlot.Libraries
 					return theta.Select(f => dvamp * Impulse(f)).ToArray();
 				case "Chirp":
 					var chirpTwo = Chirps.ChirpVp(samples.SampleSize, samples.SampleRate, gw.Voltage, 20, 20000, 0.8);
-					return chirpTwo.ToArray();
+					return chirpTwo;
 				default:
 					break;
 			}
