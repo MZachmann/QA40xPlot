@@ -179,7 +179,7 @@ namespace QA40xPlot.Actions
 		/// <param name="inits"></param>
 		/// <param name="average"></param>
 		/// <returns></returns>
-		protected static async Task<LeftRightFrequencySeries?> DetermineGainAtFreq(double dfreq, int average = 1)
+		protected static async Task<LeftRightFrequencySeries?> DetermineGainAtFreq(BaseViewModel bvm, double dfreq, int average = 1)
 		{
 			// initialize very quick run
 			uint fftsize = 65536;
@@ -193,7 +193,8 @@ namespace QA40xPlot.Actions
 			// we must have this in the bin center here
 			dfreq = QaLibrary.GetNearestBinFrequency(dfreq, sampleRate, fftsize);
 			WaveGenerator.SetGen1(dfreq, generatorV, true); // send a sine wave
-			WaveGenerator.SetEnabled(true);					// enable generator
+			WaveGenerator.SetEnabled(true);                 // enable generator
+			bvm.GeneratorVoltage = MathUtil.FormatVoltage(generatorV); // update the viewmodel so we can show it on-screen
 			var ct = new CancellationTokenSource();
 			// do two and average them
 			//await QaComm.DoAcquisitions(1, ct.Token);        // Do a single acquisition to settle stuff
@@ -264,7 +265,7 @@ namespace QA40xPlot.Actions
 			var atten = bvm.Attenuation;
 			bvm.Attenuation = QaLibrary.DEVICE_MAX_ATTENUATION;
 			await showMessage($"Calculating DUT gain at {dFreq}");
-			LRGains = await DetermineGainAtFreq(dFreq, averages);
+			LRGains = await DetermineGainAtFreq(bvm, dFreq, averages);
 			bvm.Attenuation = atten;    // restore the original value
 		}
 

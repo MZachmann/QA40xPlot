@@ -222,6 +222,21 @@ namespace QA40xPlot.ViewModels
 				SetProperty(ref _GenVoltageUnits, value);
 			}
 		}
+
+		/// <summary>
+		/// for use by the global display section
+		/// </summary>
+		private string _GeneratorVoltage = "V";
+		[JsonIgnore]
+		public string GeneratorVoltage
+		{
+			get { return _GeneratorVoltage; }
+			set
+			{
+				SetProperty(ref _GeneratorVoltage, value);
+			}
+		}
+
 		#endregion
 
 		#region Setters and Getters

@@ -352,6 +352,7 @@ namespace QA40xPlot.Actions
 					var noisy = await MeasureNoise(ct);
 					if (ct.IsCancellationRequested)
 						return false;
+					MyVModel.GeneratorVoltage = "0.0"; // no generator voltage during noise measurement
 					msr.NoiseFloor = QaCompute.CalculateNoise(vm.WindowingMethod, noisy.FreqRslt);
 				}
 				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
@@ -366,6 +367,10 @@ namespace QA40xPlot.Actions
 					return false;
 
 				msr.Definition.GeneratorVoltage = genVolt; // save the generator voltage for serialization
+				if (vm.UseGenerator)
+					MyVModel.GeneratorVoltage = MathUtil.FormatVoltage(genVolt); // update the viewmodel so we can show it on-screen
+				else
+					MyVModel.GeneratorVoltage = "0.0";
 
 				// ********************************************************************
 				// measure once

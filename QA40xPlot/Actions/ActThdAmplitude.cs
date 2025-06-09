@@ -423,6 +423,7 @@ namespace QA40xPlot.Actions
 			var noisy = await MeasureNoise(ct.Token);
 			if (ct.IsCancellationRequested)
 				return;
+			MyVModel.GeneratorVoltage = "0.0"; // no generator voltage during noise measurement
 			page.NoiseFloor = QaCompute.CalculateNoise(vm.WindowingMethod, noisy.FreqRslt);
 
 			if (ct.IsCancellationRequested)
@@ -447,6 +448,7 @@ namespace QA40xPlot.Actions
 				// Convert generator voltage from V to dBV
 				var generatorVoltageV = stepInVoltages[i];
 				page.Definition.GeneratorVoltage = generatorVoltageV;
+				MyVModel.GeneratorVoltage = MathUtil.FormatVoltage(generatorVoltageV);
 
 				// Set generator
 				await QaComm.SetInputRange(attenuate);

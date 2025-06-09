@@ -145,6 +145,27 @@ namespace QA40xPlot.Actions
 			var v1 = volts;
 			WaveGenerator.SetGen1(freq, v1, vm.UseGenerator);          // send a sine wave
 			WaveGenerator.SetGen2(freq2, v2, vm.UseGenerator2);          // send a sine wave
+			var vsee1 = MathUtil.FormatVoltage(v1);
+			var vsee2 = MathUtil.FormatVoltage(v2);
+			string vout = "";
+			if(vm.UseGenerator && vm.UseGenerator2)
+			{
+				vout = $"{vsee1}, {vsee2}";
+			}
+			else if (vm.UseGenerator)
+			{
+				vout = vsee1;
+			}
+			else if (vm.UseGenerator2)
+			{
+				vout = vsee2;
+			}
+			else
+			{
+				vout = "0.0"; // no output
+			}
+			MyVModel.GeneratorVoltage = vout; // set the generator voltage in the viewmodel
+
 			WaveGenerator.SetEnabled(true); // turn on the generator
 			return WaveGenerator.Generate((uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
 		}
@@ -292,6 +313,7 @@ namespace QA40xPlot.Actions
 					var noisy = await MeasureNoise(ct);
 					if (ct.IsCancellationRequested)
 						return false;
+					MyVModel.GeneratorVoltage = "0.0"; // no generator voltage during noise measurement
 					msr.NoiseFloor = QaCompute.CalculateNoise(vm.WindowingMethod, noisy.FreqRslt);
 				}
 

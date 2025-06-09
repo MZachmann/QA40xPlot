@@ -2,6 +2,8 @@
 --------------------------------------------
 This changelog shows the changes made for each version
 --------------------------------------------
+v 1.1.21
+- add a couple of fields to Settings display
 v 1.1.20
 - add microphone compensation to response test and settings
 	this uses linear frequency interpolation of the loaded compensation file

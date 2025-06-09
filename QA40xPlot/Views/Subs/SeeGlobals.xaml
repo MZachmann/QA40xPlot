@@ -17,6 +17,8 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Label Content="Amplifier Load: " Grid.Row="0" Grid.Column="0" Padding="0,2,0,0" />
                 <Label x:Name="AmpLoad" Content="{Binding AmplifierLoad}" ToolTip="Change this value in Settings" 
@@ -25,6 +27,13 @@
                 <Label Content="External Gain: " Grid.Row="1" Grid.Column="0"  Padding="0" />
                 <Label x:Name="EGain" Content="{Binding ExternalGain}" HorizontalAlignment="Right"  Padding="2,0"  ToolTip="Change this value in Settings" Grid.Row="1" Grid.Column="1" />
                 <Label Content="dB" Grid.Row="1" Grid.Column="2"  Padding="2,0" />
+                <Label Content="Attenuation: " Grid.Row="2" Grid.Column="0"  Padding="0" />
+                <Label Content="{Binding Attenuation}" HorizontalAlignment="Right"  Padding="2,0"  
+                       ToolTip="Current attenuation value" Grid.Row="2" Grid.Column="1" />
+                <Label Content="dB" Grid.Row="2" Grid.Column="2"  Padding="2,0" />
+                <Label Content="Generator Volts: " Grid.Row="3" Grid.Column="0"  Padding="0" />
+                <Label Content="{Binding GeneratorVoltage}" HorizontalAlignment="Right"  Padding="2,0"  
+                       ToolTip="Current attenuation value" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" />
             </Grid>
         </Expander>
     </StackPanel>

@@ -427,12 +427,14 @@ namespace QA40xPlot.Actions
 				var noisy = await MeasureNoise(ct.Token);
 				if (ct.IsCancellationRequested)
 					return false;
+				MyVModel.GeneratorVoltage = "0.0"; // no generator voltage during noise measurement
 				page.NoiseFloor = QaCompute.CalculateNoise(vm.WindowingMethod, noisy.FreqRslt);
 
 				WaveGenerator.SetEnabled(true); // enable generator
 												// ********************************************************************
 												// Step through the list of frequencies
 												// ********************************************************************
+				MyVModel.GeneratorVoltage = MathUtil.FormatVoltage(genVolt);
 				for (int f = 0; f < stepBinFrequencies.Length; f++)
 				{
 					var freqy = stepBinFrequencies[f];

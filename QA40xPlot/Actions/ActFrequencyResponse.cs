@@ -251,6 +251,7 @@ namespace QA40xPlot.Actions
 			var voltagedBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);  // in dbv
 
 			NextPage.Definition.GeneratorVoltage = genVolt; // save the actual generator voltage
+			MyVModel.GeneratorVoltage = MathUtil.FormatVoltage(genVolt); // save the actual generator voltage for display
 
 			if (true != await QaComm.InitializeDevice(sampleRate, fftsize, msr.WindowingMethod, (int)msr.Attenuation))
 			{
