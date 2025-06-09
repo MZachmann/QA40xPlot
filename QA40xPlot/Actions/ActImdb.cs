@@ -162,7 +162,7 @@ namespace QA40xPlot.Actions
 			}
 			else
 			{
-				vout = "0.0"; // no output
+				vout = "off"; // no output
 			}
 			MyVModel.GeneratorVoltage = vout; // set the generator voltage in the viewmodel
 
@@ -313,7 +313,7 @@ namespace QA40xPlot.Actions
 					var noisy = await MeasureNoise(ct);
 					if (ct.IsCancellationRequested)
 						return false;
-					MyVModel.GeneratorVoltage = "0.0"; // no generator voltage during noise measurement
+					MyVModel.GeneratorVoltage = "off"; // no generator voltage during noise measurement
 					msr.NoiseFloor = QaCompute.CalculateNoise(vm.WindowingMethod, noisy.FreqRslt);
 				}
 

@@ -423,7 +423,7 @@ namespace QA40xPlot.Actions
 			var noisy = await MeasureNoise(ct.Token);
 			if (ct.IsCancellationRequested)
 				return;
-			MyVModel.GeneratorVoltage = "0.0"; // no generator voltage during noise measurement
+			MyVModel.GeneratorVoltage = "off"; // no generator voltage during noise measurement
 			page.NoiseFloor = QaCompute.CalculateNoise(vm.WindowingMethod, noisy.FreqRslt);
 
 			if (ct.IsCancellationRequested)

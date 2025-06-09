@@ -12,7 +12,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -32,8 +32,8 @@
                        ToolTip="Current attenuation value" Grid.Row="2" Grid.Column="1" />
                 <Label Content="dB" Grid.Row="2" Grid.Column="2"  Padding="2,0" />
                 <Label Content="Generator Volts: " Grid.Row="3" Grid.Column="0"  Padding="0" />
-                <Label Content="{Binding GeneratorVoltage}" HorizontalAlignment="Right"  Padding="2,0"  
-                       ToolTip="Current attenuation value" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" />
+                <Label Content="{Binding GeneratorVoltage}" HorizontalAlignment="Left"  Padding="2,0"  
+                       ToolTip="Current DUT input voltage" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" />
             </Grid>
         </Expander>
     </StackPanel>

@@ -13,7 +13,9 @@ namespace QA40xPlot.Libraries
 		/// <returns></returns>
 		public static double ToDouble(string? text, double fallback = 1e-6)
 		{
-			if (double.TryParse(text, NumberStyles.Any, CultureInfo.CurrentCulture, out double value))
+			CultureInfo usCulture = new CultureInfo("en-US");
+			string txtInt = text.Replace(',', '.');     // convert commas to decimal points for US culture
+			if (double.TryParse(txtInt, NumberStyles.Any, usCulture, out double value))
 				return value;     // return parsed value
 
 			return fallback;

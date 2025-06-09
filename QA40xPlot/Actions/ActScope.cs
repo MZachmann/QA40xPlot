@@ -173,7 +173,7 @@ namespace QA40xPlot.Actions
 			}
 			else
 			{
-				vout = "0.0"; // no output
+				vout = "off"; // no output
 			}
 			MyVModel.GeneratorVoltage = vout; // set the generator voltage in the viewmodel
 			WaveGenerator.SetEnabled(true); // turn on the generator

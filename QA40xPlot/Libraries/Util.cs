@@ -51,7 +51,9 @@ namespace QA40xPlot.Libraries
 					var parts = lines[i].Split(new[] { ' ', '\t', ',' }, StringSplitOptions.RemoveEmptyEntries);
 					if (parts.Length < 2)
 						continue; // skip invalid lines
-					if (double.TryParse(parts[0], out double f) && double.TryParse(parts[1], out double g))
+					var f = MathUtil.ToDouble(parts[0], -1230.0); // first part is frequency
+					var g = MathUtil.ToDouble(parts[1], -1230.0); // second part is gain
+					if(f != -1230 && g != -1230)
 					{
 						freq.Add(f);
 						gain.Add(g);
