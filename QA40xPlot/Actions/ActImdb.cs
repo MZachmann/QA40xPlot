@@ -659,6 +659,27 @@ namespace QA40xPlot.Actions
 			fftPlot.Refresh();
 		}
 
+		public void ReformatChannels()
+		{
+			ReformatChannels(PageData);
+			foreach (var item in OtherTabs)
+			{
+				ReformatChannels(item);
+			}
+		}
+
+		private void ReformatChannels(MyDataTab page)
+		{
+			var left = page.GetProperty("Left") as ImdChannelViewModel;
+			var right = page.GetProperty("Right") as ImdChannelViewModel;
+			if (left != null && right != null)
+			{
+				left.ShowDataPercents = MyVModel.ShowDataPercent;
+				right.ShowDataPercents = MyVModel.ShowDataPercent;
+			}
+		}
+
+
 		public void UpdateGraph(bool settingsChanged)
 		{
 			fftPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
@@ -678,6 +699,7 @@ namespace QA40xPlot.Actions
 				}
 			}
 
+			ReformatChannels(); // ensure the channels are formatted correctly
 			ShowPageInfo(PageData);
 
 			PlotValues(PageData, resultNr++, true);

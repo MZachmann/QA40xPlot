@@ -205,8 +205,9 @@ namespace QA40xPlot.ViewModels
 				case "ShowSummary":
 					ShowInfos();
 					break;
-				case "ShowOtherLeft":
-				case "ShowOtherRight":
+				case "ShowDataPercent":
+					MyAction?.UpdateGraph(false);
+					break;
 				case "ShowRight":
 				case "ShowLeft":
 					ShowInfos();

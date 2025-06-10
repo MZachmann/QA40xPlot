@@ -187,8 +187,6 @@ namespace QA40xPlot.ViewModels
 				case "ShowSummary":
 					ShowInfos();
 					break;
-				case "ShowOtherLeft":
-				case "ShowOtherRight":
 				case "ShowRight":
 				case "ShowLeft":
 					ShowInfos();

@@ -4,6 +4,7 @@ using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
+using System;
 using System.Data;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
@@ -477,6 +478,26 @@ namespace QA40xPlot.Actions
             return !ct.IsCancellationRequested;
         }
 
+		public void ReformatChannels()
+		{
+			ReformatChannels(PageData);
+			foreach (var item in OtherTabs)
+			{
+				ReformatChannels(item);
+			}
+		}
+
+		private void ReformatChannels(MyDataTab page)
+		{
+			var left = page.GetProperty("Left") as ThdChannelViewModel;
+			var right = page.GetProperty("Right") as ThdChannelViewModel;
+			if(left != null && right != null)
+			{
+				left.ShowDataPercents = MyVModel.ShowDataPercent;
+				right.ShowDataPercents = MyVModel.ShowDataPercent;
+			}
+		}
+
 		private void CalculateHarmonics(MyDataTab page, ThdChannelViewModel left, ThdChannelViewModel right)
 		{
 			var vm = page.ViewModel;
@@ -852,6 +873,7 @@ namespace QA40xPlot.Actions
 					InitializefftPlot(thd.PlotFormat);
 				}
 			}
+			ReformatChannels(); // ensure the channels are formatted correctly
 
 			ShowPageInfo(PageData); // show the page info in the display
 			PlotValues(PageData, resultNr++, true);

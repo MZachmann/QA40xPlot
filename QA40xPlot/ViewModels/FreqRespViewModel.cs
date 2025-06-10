@@ -226,10 +226,6 @@ public class FreqRespViewModel : BaseViewModel
 			case "DsName":
 				MyAction?.UpdatePlotTitle();
 				break;
-			case "ShowOtherLeft":
-			case "ShowOtherRight":
-				MyAction?.UpdateGraph(false);
-				break;
 			case "ShowTabInfo":
 				if (actAbout != null)
 					actAbout.Visibility = ShowTabInfo ? Visibility.Visible : Visibility.Hidden;
