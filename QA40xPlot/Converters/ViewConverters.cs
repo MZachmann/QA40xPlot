@@ -3,6 +3,7 @@ using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using System.Windows;
 using System.Windows.Data;
+using Windows.Globalization.NumberFormatting;
 
 namespace QA40xPlot.Converters
 {
@@ -42,6 +43,48 @@ namespace QA40xPlot.Converters
 				return boolValue ? Visibility.Visible : Visibility.Collapsed;
 			}
 			return Visibility.Hidden;
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			return Binding.DoNothing;
+		}
+	}
+
+
+
+
+
+	/// <summary>
+	/// internationalize max # of decimal points in a double value as in 0.###
+	/// ConverterParameter is the number of digits to round to, e.g. 3 for 0.###, -3 for 0.000
+	/// because ContentFormat {0.###} does not internationalize
+	/// </summary>
+	public class DoubleIntlConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			if (parameter != null && parameter is string)
+			{
+				var idigits = MathUtil.ToInt((string)parameter, 3); // get the number of digits to round to
+				if(idigits >= 0)
+				{
+					if (value is double dblValue)
+					{
+						dblValue = Math.Round(dblValue, idigits); // round to the specified number of digits
+						return dblValue.ToString(); // format to 3 significant digits
+					}
+				}
+				else
+				{
+					// fixed format
+					if (value is double dblValue)
+					{
+						var suffix = Math.Abs(idigits).ToString(); // get the suffix for the number of digits
+						return dblValue.ToString("F"+suffix); // format to n significant digits
+					}
+				}
+			}
+			return string.Empty;
 		}
 		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
 		{

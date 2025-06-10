@@ -469,7 +469,7 @@ namespace QA40xPlot.Actions
 			}
 			var mymark = myPlot.Add.Marker(Math.Log10(frequency), markView,
 				MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), markerCol);
-			mymark.LegendText = string.Format("{1}: {0:F1}", GraphUtil.PrettyPrint(markVal, vm.PlotFormat), (int)frequency);
+			mymark.LegendText = string.Format("{1}: {0}", GraphUtil.PrettyPrint(markVal, vm.PlotFormat), (int)frequency);
 		}
 
 		private void ShowHarmonicMarkers(MyDataTab page)
@@ -528,7 +528,7 @@ namespace QA40xPlot.Actions
 				//		fsel = (freq == 50 || freq == 100 || freq==100) ? 50 : 60;
 				//	}
 				//}
-				fsel = ToD(ViewSettings.Singleton.SettingsVm.PowerFrequency); // 50 or 60hz
+				fsel = ToD(ViewSettings.Singleton.SettingsVm.PowerFrequency, 60); // 50 or 60hz
 				if (fsel < 10)
 					fsel = 60;
 				// check 4 harmonics of power frequency
@@ -859,10 +859,10 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
-			myPlot.Axes.SetLimitsX(Math.Log10(ToD(imdVm.GraphStartFreq)),
-				Math.Log10(ToD(imdVm.GraphEndFreq)), myPlot.Axes.Bottom);
+			myPlot.Axes.SetLimitsX(Math.Log10(ToD(imdVm.GraphStartFreq, 20)),
+				Math.Log10(ToD(imdVm.GraphEndFreq, 20000)), myPlot.Axes.Bottom);
 
-			myPlot.Axes.SetLimitsY(ToD(imdVm.RangeBottomdB), ToD(imdVm.RangeTopdB), myPlot.Axes.Left);
+			myPlot.Axes.SetLimitsY(ToD(imdVm.RangeBottomdB, -100), ToD(imdVm.RangeTopdB, 0), myPlot.Axes.Left);
 
 			UpdatePlotTitle();
 			myPlot.XLabel("Frequency (Hz)");
@@ -880,8 +880,8 @@ namespace QA40xPlot.Actions
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
 			ImdViewModel imdVm = MyVModel;
-			myPlot.Axes.SetLimits(Math.Log10(ToD(imdVm.GraphStartFreq)), Math.Log10(ToD(imdVm.GraphEndFreq)),
-				Math.Log10(ToD(imdVm.RangeBottom)) - 0.00000001, Math.Log10(ToD(imdVm.RangeTop)));  // - 0.000001 to force showing label
+			myPlot.Axes.SetLimits(Math.Log10(ToD(imdVm.GraphStartFreq, 20)), Math.Log10(ToD(imdVm.GraphEndFreq, 20000)),
+				Math.Log10(ToD(imdVm.RangeBottom, 1e-6)) - 0.00000001, Math.Log10(ToD(imdVm.RangeTop, 1)));  // - 0.000001 to force showing label
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
 

@@ -16,23 +16,23 @@ namespace QA40xPlot.ViewModels
 	{
 		// public INavigation ViewNavigator { get; set; }
 		#region Shared Properties
-		public static List<String> WindowingTypes { get => new List<string> { "Bartlett", "Blackman", "Cosine", "FlatTop", "Hamming", "Hann", "Kaiser", "Rectangular", "Tukey", "Welch" }; }
-		public static List<String> EndFrequencies { get => new List<string> { "1000", "2000", "5000", "10000", "20000", "50000", "100000" }; }
-		public static List<String> StartFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "5000", "10000" }; }
-		public static List<String> TopDbs { get => new List<string> { "100", "50", "20", "0", "-50", "-80"  }; }
-		public static List<String> BottomDbs { get => new List<string> { "0", "-50", "-100", "-120", "-140", "-160", "-180", "-200" }; }
-		public static List<String> StartPercents { get => new List<string> { "1000", "100", "10", "1", "0.1", "0.01" }; }
-		public static List<String> EndPercents { get => new List<string> { "0.1", "0.01", "0.001", "0.0001", "0.00001", "0.000001", "0.0000001" }; }
-		public static List<String> SampleRates { get => new List<string> { "48000", "96000", "192000", "384000"}; }
-		public static List<String>	FftSizes { get => new List<string> { "8K","16K", "32K", "64K", "128K", "256K", "512K", "1024K" }; }
+		public static List<string> WindowingTypes { get => new List<string> { "Bartlett", "Blackman", "Cosine", "FlatTop", "Hamming", "Hann", "Kaiser", "Rectangular", "Tukey", "Welch" }; }
+		public static List<string> EndFrequencies { get => new List<string> { "1000", "2000", "5000", "10000", "20000", "50000", "100000" }; }
+		public static List<string> StartFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "5000", "10000" }; }
+		public static List<string> TopDbs { get => new List<string> { "100", "50", "20", "0", "-50", "-80"  }; }
+		public static List<string> BottomDbs { get => new List<string> { "0", "-50", "-100", "-120", "-140", "-160", "-180", "-200" }; }
+		public static List<string> StartPercents { get => new List<string> { "1000", "100", "10", "1", "0.1", "0.01" }; }
+		public static List<string> EndPercents { get => new List<string> { "0.1", "0.01", "0.001", "0.0001", "0.00001", "0.000001", "0.0000001" }; }
+		public static List<string> SampleRates { get => new List<string> { "48000", "96000", "192000", "384000"}; }
+		public static List<string>	FftSizes { get => new List<string> { "8K","16K", "32K", "64K", "128K", "256K", "512K", "1024K" }; }
 		public static List<uint>	FftActualSizes { get => new List<uint> { 8192, 16384, 32768, 65536, 131072, 262144, 524288, 1048576 }; }
-		public static List<String> GenVoltages { get => new List<string> { "0.05", "0.1", "0.25", "0.5", "0.75", "1", "2", "5" }; }
-		public static List<String> GenPowers { get => new List<string> { "0.05", "0.1", "0.25", "0.5", "0.75", "1", "2", "5", "10", "25" }; }
-		public static List<String> MeasureVolts { get => new List<string> { "Input Voltage", "Output Voltage" }; }
-		public static List<String> MeasureVoltsFull { get => new List<string> { "Input Voltage", "Output Voltage", "Output Power" }; }
-		public static List<String> Impedances { get => new List<string> { "2","4", "8", "10","16", "20", "100", "500", "1000" }; }
-		public static List<String> Waveforms { get => new List<string> { "Sine", "Square", "Multitone","Impulse", "Chirp" }; }
-		public static List<String> Attenuations { get => new List<string> { "0", "20", "10", "-6", "-10", "-20", "-30"}; }
+		public static List<string> GenVoltages { get => new List<string> { "0.05", "0.1", "0.25", "0.5", "0.75", "1", "2", "5" }; }
+		public static List<string> GenPowers { get => new List<string> { "0.05", "0.1", "0.25", "0.5", "0.75", "1", "2", "5", "10", "25" }; }
+		public static List<string> MeasureVolts { get => new List<string> { "Input Voltage", "Output Voltage" }; }
+		public static List<string> MeasureVoltsFull { get => new List<string> { "Input Voltage", "Output Voltage", "Output Power" }; }
+		public static List<string> Impedances { get => new List<string> { "2","4", "8", "10","16", "20", "100", "500", "1000" }; }
+		public static List<string> Waveforms { get => new List<string> { "Sine", "Square", "Multitone","Impulse", "Chirp" }; }
+		public static List<string> Attenuations { get => new List<string> { "0", "20", "10", "-6", "-10", "-20", "-30"}; }
 		public static string PlotFileFilter { get => "Plot files|*.plt;*.zip|All files|*.*"; }
 		public static string DutInfo { get => "DUT = Device Under Test"; }
 		public static string DutDescript { get => "Input Voltage = DUT Input(Generator Output), Output Voltage = DUT Output(QA40x Input)"; }
@@ -40,12 +40,12 @@ namespace QA40xPlot.ViewModels
 		public static string TabInfoTip { get => "Click to set line colors and edit plot headings"; }
 		public static string SummaryDataTip { get => "Click to see a box with summary test statistics"; }
 		public static string MiniPlotsTip { get => "Click to show the mini plots persistently"; }
-		public static List<String> ChannelList { get => new List<string> { "Left", "Right" }; }
-		public static List<String> PowerFreqList { get => new List<string> { "50", "60" }; }
-		public static List<String> TrueFalseList { get => new List<string> { "True", "False" }; }
+		public static List<string> ChannelList { get => new List<string> { "Left", "Right" }; }
+		public static List<string> PowerFreqList { get => new List<string> { "50", "60" }; }
+		public static List<string> TrueFalseList { get => new List<string> { "True", "False" }; }
 		public static bool GEN_INPUT { get => true; }
 		public static bool GEN_OUTPUT { get => false; }
-		public static List<String> DataFormats { get => new List<string> { "SPL", "dBFS", "dBr", "dBu", "dBV", "dBW", "%", "V", "W" }; }
+		public static List<string> DataFormats { get => new List<string> { "SPL", "dBFS", "dBr", "dBu", "dBV", "dBW", "%", "V", "W" }; }
 		public static int MaxAverages { get => 20; }    // there's not much reason for this to be in a setting, but here's an easy...
 		public static List<string> PowerUnits { get => new List<string>() { "mW", "μW", "W", "dBW", "dBm" }; }
 		public static List<string> VoltageUnits { get => new List<string>() { "mV", "μV", "V", "dBV", "dBmV", "dBu", "dBFS" }; }
@@ -613,10 +613,11 @@ namespace QA40xPlot.ViewModels
 		/// <returns></returns>
 		public double ToGenVoltage(string amplitude, int[] binNumber, bool isInput, double[]? lrGains)
 		{
+			double defval = 1e-5; // default value for no gain or no input
 			var genType = ToDirection(GenDirection);
 			var vtest = MathUtil.ToDouble(amplitude, 4321);
-			if (vtest == 4321)
-				return 1e-5;
+			if (vtest == 4321 || vtest == 0)
+				return defval;
 			if (lrGains == null || (genType == E_GeneratorDirection.INPUT_VOLTAGE && isInput))
 			{
 				return vtest;

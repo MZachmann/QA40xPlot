@@ -20,14 +20,15 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <Label Padding="2,2" Grid.Row="0" Grid.Column="0" ToolTip="Fundamental frequency" Content="{Binding FundamentalFrequency}" ContentStringFormat= "@ {0:0.#} Hz"/>
+                <Label Padding="2,2" Grid.Row="0" Grid.Column="0" ToolTip="Fundamental frequency" Content="{Binding FundamentalFrequency, Converter={StaticResource DoubleIntlConverter}, ConverterParameter=1}" ContentStringFormat= "@ {0} Hz"/>
                 <Label Padding="2,2" Grid.Row="0" Grid.Column="1" ToolTip="Measured fundamental amplitude" Content="{Binding AmplitudeView}" />
                 <Label Padding="2,2" Grid.Row="0" Grid.Column="2" ToolTip="Measured fundamental voltage" Content="{Binding FundamentalVolts, Converter={StaticResource VoltFormatter}}"/>
-                <Label Padding="2,2" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Center" ToolTip="The measured DUT fundamental gain" Content="{Binding GaindB}" ContentStringFormat="Gain {0:F2} dB"/>
+                <Label Padding="2,2" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Center" ToolTip="The measured DUT fundamental gain" 
+                       Content="{Binding GaindB, Converter={StaticResource DoubleIntlConverter}, ConverterParameter=-2}" ContentStringFormat="Gain {0} dB"/>
                 <Label Padding="2,2" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" ToolTip="The total channel RMS voltage"
                        Content="{Binding TotalV, Converter={StaticResource VoltFormatter}}" />
                 <Label Padding="2,2" Grid.Row="1" Grid.Column="2" HorizontalAlignment="Center" ToolTip="The total channel power"
-                       Content="{Binding TotalW}" ContentStringFormat="{}{0:0.###} W"/>
+                       Content="{Binding TotalW, Converter={StaticResource DoubleIntlConverter}, ConverterParameter=3}" ContentStringFormat= "{}{0}W"/>
             </Grid>
             <Rectangle HorizontalAlignment="Stretch" Height="3" Fill="DarkGreen" />
             <Grid>
@@ -54,7 +55,7 @@
                 
                     <Label Padding="2,2" Grid.Row="1" Grid.Column="0" Content="THD:" HorizontalAlignment="Right"/>
                     <Label Padding="2,2" Grid.Row="1" Grid.Column="1" ToolTip="Total harmonic distortion"
-                           Content="{Binding ThdIndB}" ContentStringFormat="{}{0:F2} dB"/>
+                           Content="{Binding ThdIndB, Converter={StaticResource DoubleIntlConverter}, ConverterParameter=-2}" ContentStringFormat="{}{0} dB"/>
                     <Label Padding="2,2" Grid.Row="1" Grid.Column="2" >
                         <MultiBinding Converter="{StaticResource VToPctConverter}">
                             <Binding Path="ThdInPercent"/>
@@ -65,7 +66,7 @@
                 
                     <Label Padding="2,2" Grid.Row="2" Grid.Column="0" Content="THD+N:" HorizontalAlignment="Right"/>
                     <Label Padding="2,2" Grid.Row="2" Grid.Column="1" ToolTip="Total harmonic distortion + Noise"
-                           Content="{Binding ThdNIndB}" ContentStringFormat="{}{0:F2} dB"/>
+                           Content="{Binding ThdNIndB, Converter={StaticResource DoubleIntlConverter}, ConverterParameter=-2}" ContentStringFormat="{}{0} dB"/>
                     <Label Padding="2,2" Grid.Row="2" Grid.Column="2" >
                         <MultiBinding Converter="{StaticResource VToPctConverter}">
                             <Binding Path="ThdNInPercent"/>
@@ -90,10 +91,10 @@
                 </Grid.RowDefinitions>
                 <Label Padding="2,2" Grid.Row="0" Grid.Column="0" Content="SNR:" HorizontalAlignment="Right"/>
                 <Label Padding="2,2" Grid.Row="0" Grid.Column="1" ToolTip="Signal to noise ratio 20-20KHz unweighted"
-                    Content="{Binding SNRatio}" ContentStringFormat="{}{0:F2} dB"/>
+                    Content="{Binding SNRatio, Converter={StaticResource DoubleIntlConverter}, ConverterParameter=-2}" ContentStringFormat="{}{0} dB"/>
                 <Label Padding="2,2" Grid.Row="0" Grid.Column="2" Content="ENOB:" HorizontalAlignment="Right"/>
                 <Label Padding="2,2" Grid.Row="0" Grid.Column="3" ToolTip="Equivalent number of bits"
-                       Content="{Binding ENOB}" ContentStringFormat="{}{0:F1} bits"/>
+                       Content="{Binding ENOB, Converter={StaticResource DoubleIntlConverter}, ConverterParameter=-1}" ContentStringFormat="{}{0} bits"/>
 
                 <Label Padding="2,2" Grid.Row="1" Grid.Column="0" Content="2nd:" HorizontalAlignment="Right"/>
                 <Label Padding="2,2" Grid.Row="1" Grid.Column="2" Content="3rd:" HorizontalAlignment="Right"/>

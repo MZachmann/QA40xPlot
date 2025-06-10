@@ -660,8 +660,14 @@ namespace QA40xPlot.Actions
 			PlotUtil.InitializeMagAmpPlot(myPlot, plotFormat);
 
 			var thdFreq = MyVModel;
-			myPlot.Axes.SetLimits(Math.Log10(ToD(thdFreq.GraphStartVolts)), Math.Log10(ToD(thdFreq.GraphEndVolts)),
-				Math.Log10(ToD(thdFreq.RangeBottom)), Math.Log10(ToD(thdFreq.RangeTop)));
+			try
+			{
+				myPlot.Axes.SetLimits(Math.Log10(ToD(thdFreq.GraphStartVolts, .001)), Math.Log10(ToD(thdFreq.GraphEndVolts, .001)),
+					Math.Log10(ToD(thdFreq.RangeBottom)), Math.Log10(ToD(thdFreq.RangeTop)));
+			}
+			catch 
+			{
+			}
 			UpdatePlotTitle();
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
 			thdPlot.Refresh();
@@ -676,7 +682,7 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;
 			PlotUtil.InitializeMagAmpPlot(myPlot, plotFormat);
 
-			myPlot.Axes.SetLimits(Math.Log10(ToD(thdFreq.GraphStartVolts)), Math.Log10(ToD(thdFreq.GraphEndVolts)),
+			myPlot.Axes.SetLimits(Math.Log10(ToD(thdFreq.GraphStartVolts, .001)), Math.Log10(ToD(thdFreq.GraphEndVolts, .001)),
 				ToD(thdFreq.RangeBottomdB), ToD(thdFreq.RangeTopdB));
 			UpdatePlotTitle();
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));

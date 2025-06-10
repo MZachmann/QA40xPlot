@@ -152,8 +152,8 @@ namespace QA40xPlot.Actions
 			var vm = page.ViewModel;
 			var freq = ToD(vm.Gen1Frequency, 0);
 			var freq2 = ToD(vm.Gen2Frequency, 0);
-			var v2 = ToD(vm.Gen2Voltage, 1e-10);
-			var v1 = ToD(vm.Gen1Voltage, 1e-10);
+			var v2 = ToD(vm.Gen2Voltage, 1e-5);
+			var v1 = ToD(vm.Gen1Voltage, 1e-5);
 			WaveGenerator.SetGen1(freq, volts, force ? true : vm.UseGenerator1, vm.Gen1Waveform);          // send a sine wave
 			WaveGenerator.SetGen2(freq2, volts * v2/v1, vm.UseGenerator2, vm.Gen2Waveform);          // send a sine wave
 			var vsee1 = MathUtil.FormatVoltage(v1);
@@ -275,8 +275,8 @@ namespace QA40xPlot.Actions
 			// Setup
 			ScopeViewModel thd = msr.ViewModel;
 
-			var freq = ToD(thd.Gen1Frequency, 0);
-			var freq2 = ToD(thd.Gen2Frequency, 0);
+			var freq = ToD(thd.Gen1Frequency, 1000);
+			var freq2 = ToD(thd.Gen2Frequency, 1000);
 			var sampleRate = thd.SampleRateVal;
 			if (freq == 0 || sampleRate == 0 || !BaseViewModel.FftSizes.Contains(thd.FftSize))
             {
@@ -487,7 +487,7 @@ namespace QA40xPlot.Actions
 
 			if (scopeVm.DoAutoAttn && LRGains != null)
 			{
-				var maxv = ToD(scopeVm.Gen1Voltage);
+				var maxv = ToD(scopeVm.Gen1Voltage, .001);
 				var wave = BuildWave(NextPage, maxv, true);   // build a wave to evaluate the peak values
 				// get the peak voltages then fake an rms math div by 2*sqrt(2) = 2.828
 				// since I assume that's the hardware math

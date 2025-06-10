@@ -429,11 +429,11 @@ namespace QA40xPlot.ViewModels
 			var tt = ToDirection(GenDirection);
 			if( tt == E_GeneratorDirection.OUTPUT_POWER)
 			{
-				Gen2Voltage = (MathUtil.ToDouble(this.Gen1Voltage) / (divisor*divisor)).ToString();
+				Gen2Voltage = (MathUtil.ToDouble(this.Gen1Voltage, 1e-5) / (divisor*divisor)).ToString();
 			}
 			else
 			{
-				Gen2Voltage = (MathUtil.ToDouble(this.Gen1Voltage) / divisor).ToString();
+				Gen2Voltage = (MathUtil.ToDouble(this.Gen1Voltage, 1e-5) / divisor).ToString();
 			}
 			Gen1Frequency = df1.ToString();
 			Gen2Frequency = df2.ToString();
@@ -450,8 +450,8 @@ namespace QA40xPlot.ViewModels
 			// if custom, do more math
 			if (tt == "Custom")
 			{
-				var v1 = MathUtil.ToDouble(Gen1Voltage, 0);
-				var v2 = Math.Max(1e-2, MathUtil.ToDouble(Gen2Voltage));
+				var v1 = MathUtil.ToDouble(Gen1Voltage, 1e-5);
+				var v2 = Math.Max(1e-2, MathUtil.ToDouble(Gen2Voltage, 1e-5));
 				return v1 / v2;
 			}
 

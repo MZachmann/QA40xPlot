@@ -240,10 +240,11 @@ namespace QA40xPlot.Actions
 			// auto attenuation?
 			if (vm.DoAutoAttn && LRGains != null)
 			{
-				var wave = BuildWave(NextPage, ToD(vm.Gen1Voltage), true);   // build a wave to evaluate the peak values
+				var wave = BuildWave(NextPage, ToD(vm.Gen1Voltage, 1e-3), true);   // build a wave to evaluate the peak values
 				// get the peak voltages then fake an rms math div by 2*sqrt(2) = 2.828
 				// since I assume that's the hardware math
-				var waveVOut = (wave.Max() - wave.Min()) / 2.828;
+				var waveVOut = (wave.Max() - wave.Min()) / (2*Math.Sqrt(2));
+				waveVOut = Math.Max(waveVOut, ToD(vm.Gen1Voltage, 1e-6)); // ensure we have a minimum voltage
 				var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
 				var vinL = vm.ToGenVoltage(waveVOut.ToString(), [], GEN_INPUT, gains); // get gen1 input voltage
 				double voutL = ToGenOutVolts(vinL, [], LRGains.Left);   // what is that as output voltage?
@@ -360,7 +361,7 @@ namespace QA40xPlot.Actions
 				if (genVolt > 5)
 				{
 					await showMessage($"Requesting input voltage of {genVolt} volts, check connection and settings");
-					genVolt = 0.01;
+					genVolt = 0.001;
 				}
 				// Check if cancel button pressed
 				if (ct.IsCancellationRequested)
@@ -554,7 +555,7 @@ namespace QA40xPlot.Actions
 			}
 			var mymark = myPlot.Add.Marker(Math.Log10(frequency), markView,
 				MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), markerCol);
-			mymark.LegendText = string.Format("{1}: {0:F1}", GraphUtil.PrettyPrint(markVal, vm.PlotFormat), (int)frequency);
+			mymark.LegendText = string.Format("{1}: {0}", GraphUtil.PrettyPrint(markVal, vm.PlotFormat), (int)frequency);
 		}
 
 		private void ShowHarmonicMarkers(MyDataTab page)
@@ -608,7 +609,7 @@ namespace QA40xPlot.Actions
 				//		fsel = (freq == 50 || freq == 100 || freq==150) ? 50 : 60;
 				//	}
 				//}
-				fsel = ToD(ViewSettings.Singleton.SettingsVm.PowerFrequency); // 50 or 60hz
+				fsel = ToD(ViewSettings.Singleton.SettingsVm.PowerFrequency, 60); // 50 or 60hz
 				if (fsel < 10)
 					fsel = 60;
 				// mark 4 harmonics of power frequency
@@ -731,8 +732,8 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
-			myPlot.Axes.SetLimitsX(Math.Log10(ToD(thdFreq.GraphStartFreq)), 
-				Math.Log10(ToD(thdFreq.GraphEndFreq)), myPlot.Axes.Bottom);
+			myPlot.Axes.SetLimitsX(Math.Log10(ToD(thdFreq.GraphStartFreq, 20)), 
+				Math.Log10(ToD(thdFreq.GraphEndFreq, 20000)), myPlot.Axes.Bottom);
 
 			myPlot.Axes.SetLimitsY( ToD(thdFreq.RangeBottomdB), ToD(thdFreq.RangeTopdB), myPlot.Axes.Left);
 
@@ -752,8 +753,8 @@ namespace QA40xPlot.Actions
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
 			SpectrumViewModel thd = MyVModel;
-			myPlot.Axes.SetLimits(Math.Log10(ToD(thd.GraphStartFreq)), Math.Log10(ToD(thd.GraphEndFreq)),
-				Math.Log10(ToD(thd.RangeBottom)) - 0.00000001, Math.Log10(ToD(thd.RangeTop)));  // - 0.000001 to force showing label
+			myPlot.Axes.SetLimits(Math.Log10(ToD(thd.GraphStartFreq, 20)), Math.Log10(ToD(thd.GraphEndFreq, 20000)),
+				Math.Log10(ToD(thd.RangeBottom, -100)) - 0.00000001, Math.Log10(ToD(thd.RangeTop, -10)));  // - 0.000001 to force showing label
 			UpdatePlotTitle();
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));

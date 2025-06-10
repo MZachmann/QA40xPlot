@@ -8,4 +8,5 @@
         <convert:VoltUnitConverter x:Key="VoltUnitConverter" />
         <convert:VoltDbvFormatter x:Key="VoltDbvFormatter" />
         <convert:InverseBooleanConverter x:Key="InvBoolConverter" />
+        <convert:DoubleIntlConverter x:Key="DoubleIntlConverter" />
 </ResourceDictionary>

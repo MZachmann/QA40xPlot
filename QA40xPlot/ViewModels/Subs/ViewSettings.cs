@@ -44,7 +44,7 @@ namespace QA40xPlot.ViewModels
 		public DataDescript TabDefs { get; set; }
 
 		[JsonIgnore]
-		public static double AmplifierLoad { get => MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.AmplifierLoad, 0); }
+		public static double AmplifierLoad { get => MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.AmplifierLoad, 8); }
 		[JsonIgnore]
 		public static string ExternalGain { get => ViewSettings.Singleton.SettingsVm.ExternalGain; }
 

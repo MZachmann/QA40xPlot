@@ -432,7 +432,7 @@ namespace QA40xPlot.Actions
 			}
             else if(PageData.GainData != null && PageData.GainData.Length > 0)
 			{   // impedance
-				double rref = ToD(vm.ZReference);
+				double rref = ToD(vm.ZReference, 10);
 				var minL = PageData.GainData.Min(x => ToImpedance(x).Magnitude);
 				var maxL = PageData.GainData.Max(x => ToImpedance(x).Magnitude);
 				var minZohms = rref * minL;
@@ -473,7 +473,7 @@ namespace QA40xPlot.Actions
                         break;
                     case TestingType.Impedance:
                         {   // send freq, ohms, phasedeg
-							double rref = ToD(frsqVm.ZReference);
+							double rref = ToD(frsqVm.ZReference, 10);
 							var impval = ToImpedance(values[bin]);
 							var ohms = rref * impval.Magnitude;
 							tup = ValueTuple.Create(freqs[bin], ohms, 180 * impval.Phase / Math.PI);
@@ -830,7 +830,7 @@ namespace QA40xPlot.Actions
 
             double[] YValues = [];
             double[] phaseValues = [];
-            double rref = ToD(frqrsVm.ZReference);
+            double rref = ToD(frqrsVm.ZReference, 10);
 			string legendname = string.Empty;
             switch(ttype)
             {

@@ -581,8 +581,8 @@ namespace QA40xPlot.Actions
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
 			var thd = MyVModel;
-			myPlot.Axes.SetLimits(Math.Log10(ToD(thd.GraphStartFreq)), Math.Log10(ToD(thd.GraphEndFreq)),
-				Math.Log10(ToD(thd.RangeBottom)) - 0.00000001, Math.Log10(ToD(thd.RangeTop)));  // - 0.000001 to force showing label
+			myPlot.Axes.SetLimits(Math.Log10(ToD(thd.GraphStartFreq, 20)), Math.Log10(ToD(thd.GraphEndFreq, 20000)),
+				Math.Log10(ToD(thd.RangeBottom, -100)) - 0.00000001, Math.Log10(ToD(thd.RangeTop, -10)));  // - 0.000001 to force showing label
 			UpdatePlotTitle();
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
@@ -598,8 +598,8 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
-			myPlot.Axes.SetLimitsX(Math.Log10(ToD(thdFreq.GraphStartFreq)),
-				Math.Log10(ToD(thdFreq.GraphEndFreq)), myPlot.Axes.Bottom);
+			myPlot.Axes.SetLimitsX(Math.Log10(ToD(thdFreq.GraphStartFreq, 20)),
+				Math.Log10(ToD(thdFreq.GraphEndFreq, 20000)), myPlot.Axes.Bottom);
 
 			myPlot.Axes.SetLimitsY(ToD(thdFreq.RangeBottomdB), ToD(thdFreq.RangeTopdB), myPlot.Axes.Left);
 
