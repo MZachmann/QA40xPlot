@@ -378,10 +378,9 @@ namespace QA40xPlot.Actions
 
 			var maxf = 20000; // the app seems to use 20,000 so not sampleRate/ 2.0;
 			var wdw = vm.WindowingMethod; // windowing method
-			LeftRightPair snrdb = QaCompute.GetSnrDb(wdw, lrfs, freq, 20.0, maxf);
-			LeftRightPair thds = QaCompute.GetThdDb(wdw, lrfs, freq, 20.0, maxf);
-			LeftRightPair thdN = QaCompute.GetThdnDb(wdw, lrfs, freq, 20.0, maxf);
-			LeftRightPair snrimdb = QaCompute.GetSnrImdDb(wdw, lrfs, freq, freq2);
+			LeftRightPair thds = QaCompute.GetImdDb(wdw, lrfs, [freq,freq2], 20.0, maxf);
+			LeftRightPair thdN = QaCompute.GetImdnDb(wdw, lrfs, [freq, freq2], 20.0, maxf);
+			LeftRightPair snrimdb = QaCompute.GetSnrImdDb(wdw, lrfs, [freq, freq2], 20.0, maxf);
 
 			ImdChannelViewModel[] steps = [left, right];
 			foreach (var step in steps)
@@ -395,14 +394,15 @@ namespace QA40xPlot.Actions
 				step.Generator1Volts = msr.Definition.GeneratorVoltage;
 				var x = QaMath.MagAtFreq(frq, msr.FreqRslt.Df, freq);
 				step.Fundamental1Volts = x;
-				x = QaMath.MagAtFreq(frq, msr.FreqRslt.Df, freq2);
-				step.Fundamental2Volts = x;
+				var y = QaMath.MagAtFreq(frq, msr.FreqRslt.Df, freq2);
+				step.Fundamental2Volts = y;
+				double FundamentalVolts = Math.Sqrt(x * x + y * y);
 				step.SNRatio = isleft ? snrimdb.Left : snrimdb.Right;
 				step.ENOB = (step.SNRatio - 1.76) / 6.02;
-				step.ThdNInV = step.Fundamental1Volts * QaLibrary.ConvertVoltage(isleft ? thdN.Left : thdN.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
+				step.ThdNInV = FundamentalVolts * QaLibrary.ConvertVoltage(isleft ? thdN.Left : thdN.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
 				step.NoiseFloorV = (isleft ? msr.NoiseFloor.Left : msr.NoiseFloor.Right);
 				step.NoiseFloorPct = 100 * step.NoiseFloorV / step.Fundamental1Volts;
-				step.ThdInV = step.Fundamental1Volts * QaLibrary.ConvertVoltage(isleft ? thds.Left : thds.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
+				step.ThdInV = FundamentalVolts * QaLibrary.ConvertVoltage(isleft ? thds.Left : thds.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
 				step.ThdInPercent = 100 * step.ThdInV / step.Fundamental1Volts;
 				step.ThdNInPercent = 100 * step.ThdNInV / step.Fundamental1Volts;
 				step.ThdNIndB = isleft ? thdN.Left : thdN.Right;
@@ -556,9 +556,9 @@ namespace QA40xPlot.Actions
 				f2 = f1;
 				f1 = f2;
 			}
-			var hf = harmFreqs.Append( f2 - f1);
-			hf = hf.Append( f2 + f1);
-			hf = hf.Append( 2*f1 - f2);
+			var hf = harmFreqs.Append( f2 - f1);	// dfd2
+			hf = hf.Append( f2 + f1);				// dfd3
+			hf = hf.Append( 2*f1 - f2);				// d2hl
 			hf = hf.Append( 2*f2 - f1);
 			hf = hf.Append( 3*f1 - 2*f2);
 			hf = hf.Append( 3*f2 - 2*f1);

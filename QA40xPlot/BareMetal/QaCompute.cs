@@ -2,6 +2,7 @@
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using System.Diagnostics;
+using System.Windows.Interop;
 
 // Written by MZachmann 4-24-2025
 // much of the bare metal code comes originally from the PyQa40x library and from the Qa40x_BareMetal library on github
@@ -48,16 +49,16 @@ namespace QA40xPlot.BareMetal
 			return maxi;
 		}
 
-		internal static LeftRightPair GetSnrImdDb(string windowing, LeftRightFrequencySeries lrs, double fundFreq, double fund2Freq)
+		internal static LeftRightPair GetSnrImdDb(string windowing, LeftRightFrequencySeries lrs, double[] fundFreqs, double minFreq, double maxFreq)
 		{
 			if (lrs == null)
 				return new();
 
 			var ffs = lrs.Left;
-			var thdLeft = ComputeImdSnrRatio(windowing, ffs, lrs.Df, fundFreq, fund2Freq, false);
+			var thdLeft = ComputeImdSnrRatio(windowing, ffs, lrs.Df, fundFreqs, minFreq, maxFreq, false);
 			thdLeft = QaLibrary.ConvertVoltage(thdLeft, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 			ffs = lrs.Right;
-			var thdRight = ComputeImdSnrRatio(windowing, ffs, lrs.Df, fundFreq, fund2Freq, false);
+			var thdRight = ComputeImdSnrRatio(windowing, ffs, lrs.Df, fundFreqs, minFreq, maxFreq, false);
 			thdRight = QaLibrary.ConvertVoltage(thdRight, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
 			return new(thdLeft, thdRight);
@@ -69,10 +70,10 @@ namespace QA40xPlot.BareMetal
 				return new();
 
 			var ffs = lrs.Left;
-			var thdLeft = ComputeSnrRatio(windowing, ffs, lrs.Df, fundFreq, false);
+			var thdLeft = ComputeSnrRatio(windowing, ffs, lrs.Df, fundFreq, minFreq, maxFreq, false);
 			thdLeft = QaLibrary.ConvertVoltage(thdLeft, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 			ffs = lrs.Right;
-			var thdRight = ComputeSnrRatio(windowing, ffs, lrs.Df, fundFreq, false);
+			var thdRight = ComputeSnrRatio(windowing, ffs, lrs.Df, fundFreq, minFreq, maxFreq, false);
 			thdRight = QaLibrary.ConvertVoltage(thdRight, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
 			return new(thdLeft, thdRight);
@@ -86,13 +87,47 @@ namespace QA40xPlot.BareMetal
 				return new();
 
 			var ffs = lrs.Left;
-			var thdLeft = ComputeThdLinear(windowing, ffs, lrs.Df, fundFreq, 5, false);
+			var thdLeft = ComputeThdLinear(windowing, ffs, lrs.Df, fundFreq, 7, false);
 			thdLeft = QaLibrary.ConvertVoltage(thdLeft, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 			ffs = lrs.Right;
-			var thdRight = ComputeThdLinear(windowing, ffs, lrs.Df, fundFreq, 5, false);
+			var thdRight = ComputeThdLinear(windowing, ffs, lrs.Df, fundFreq, 7, false);
 			thdRight = QaLibrary.ConvertVoltage(thdRight, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
 			return new(thdLeft, thdRight);
+		}
+
+		internal static LeftRightPair GetImdDb(string windowing, LeftRightFrequencySeries lrs, double[] fundFreqs, double minFreq, double maxFreq)
+		{
+			// double[] signalFreqLin, double[] frequencies, double fundamental,
+			// int numHarmonics = 5, bool debug = false
+			if (lrs == null)
+				return new();
+
+			var ffs = lrs.Left;
+			var imdLeft = ComputeImdLinear(windowing, ffs, lrs.Df, fundFreqs, 3, false);
+			imdLeft = QaLibrary.ConvertVoltage(imdLeft, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+			ffs = lrs.Right;
+			var imdRight = ComputeImdLinear(windowing, ffs, lrs.Df, fundFreqs, 3, false);
+			imdRight = QaLibrary.ConvertVoltage(imdRight, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+
+			return new(imdLeft, imdRight);
+		}
+
+		internal static LeftRightPair GetImdnDb(string windowing, LeftRightFrequencySeries lrs, double[] fundFreqs, double minFreq, double maxFreq)
+		{
+			// double[] signalFreqLin, double[] frequencies, double fundamental,
+			// int numHarmonics = 5, bool debug = false
+			if (lrs == null)
+				return new();
+
+			var ffs = lrs.Left;
+			var imdLeft = ComputeImdnLinear(windowing, ffs, lrs.Df, fundFreqs, 3, minFreq, maxFreq, false);
+			imdLeft = QaLibrary.ConvertVoltage(imdLeft, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+			ffs = lrs.Right;
+			var imdRight = ComputeImdnLinear(windowing, ffs, lrs.Df, fundFreqs, 3, minFreq, maxFreq, false);
+			imdRight = QaLibrary.ConvertVoltage(imdRight, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+
+			return new(imdLeft, imdRight);
 		}
 
 		internal static LeftRightPair GetThdnDb(string windowing, LeftRightFrequencySeries lrs, double fundFreq, double minFreq, double maxFreq)
@@ -103,16 +138,17 @@ namespace QA40xPlot.BareMetal
 				return new();
 
 			var ffs = lrs.Left;
-			var thdLeft = ComputeThdnLinear(windowing, ffs, lrs.Df, fundFreq);
+			var notchOct = 0.5;
+			var thdLeft = ComputeThdnLinear(windowing, ffs, lrs.Df, fundFreq, notchOct, minFreq, maxFreq);
 			thdLeft = QaLibrary.ConvertVoltage(thdLeft, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 			ffs = lrs.Right;
-			var thdRight = ComputeThdnLinear(windowing, ffs, lrs.Df, fundFreq);
+			var thdRight = ComputeThdnLinear(windowing, ffs, lrs.Df, fundFreq, notchOct, minFreq, maxFreq);
 			thdRight = QaLibrary.ConvertVoltage(thdRight, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
 			return new(thdLeft, thdRight);
 		}
 
-		internal static double ComputeSnrRatio(string windowing, double[] signalFreqLin, double df, double fundamental, bool debug = false)
+		internal static double ComputeSnrRatio(string windowing, double[] signalFreqLin, double df, double fundamental, double minFreq, double maxFreq, bool debug = false)
 		{
 			// Calculate notch filter bounds in Hz
 			//var notchOctaves = 0.5; // aes-17 2015 standard notch
@@ -126,16 +162,15 @@ namespace QA40xPlot.BareMetal
 			}
 
 			// Calculate RMS of the fundamental within the notch
-			double fundamentalRms = ComputeRmsF(signalFreqLin, df, notchLowerBound, notchUpperBound, windowing);
-
+			double fundamentalRms = QaMath.MagAtFreq(signalFreqLin, df, fundamental);
 			if (debug)
 			{
 				Debug.WriteLine($"Fundamental RMS: {fundamentalRms:F6}");
 			}
 
 			// Calculate RMS of the signal outside the notch
-			double rmsBelowNotch = ComputeRmsF(signalFreqLin, df, 20, notchLowerBound, windowing);
-			double rmsAboveNotch = ComputeRmsF(signalFreqLin, df, notchUpperBound, 20000, windowing);
+			double rmsBelowNotch = ComputeRmsF(signalFreqLin, df, minFreq, notchLowerBound, windowing);
+			double rmsAboveNotch = ComputeRmsF(signalFreqLin, df, notchUpperBound, maxFreq, windowing);
 			double noiseRms = Math.Sqrt(Math.Pow(rmsBelowNotch, 2) + Math.Pow(rmsAboveNotch, 2));
 
 			if (debug)
@@ -148,40 +183,71 @@ namespace QA40xPlot.BareMetal
 			return fundamentalRms / noiseRms;
 		}
 
-		internal static double ComputeImdSnrRatio(string windowing, double[] signalFreqLin, double df, double fundamental, double fundamental2, bool debug = false)
+		internal static double ComputeImdSnrRatio(string windowing, double[] signalFreqLin, double df, double[] fundamentals, double minFreq, double maxFreq, bool debug = false)
 		{
-			// Calculate notch filter bounds in Hz
-			//var notchOctaves = 0.5; // aes-17 2015 standard notch
-			var notchOctaves = 0.05; // my preferred notch much tighter and more realistic nowadays
-			double notchLowerBound = fundamental / Math.Pow(2, notchOctaves);
-			double notchUpperBound = fundamental * Math.Pow(2, notchOctaves);
-
-			if (debug)
+			var notchOctaves = 0.05; // tight notch for intermods
+			var notches = new List<double>();
+			// fundamentals must be monotone
+			double lastFreq = fundamentals[0] - 1;
+			foreach (var freq in fundamentals)
 			{
-				Debug.WriteLine($"Notch Filter Bounds: {notchLowerBound:F2} Hz to {notchUpperBound:F2} Hz");
+				// Calculate notch filter bounds in Hz
+				double notchLowerBound = freq / Math.Pow(2, notchOctaves);
+				double notchUpperBound = freq * Math.Pow(2, notchOctaves);
+				notches.Add(notchLowerBound);
+				notches.Add(notchUpperBound);
+				if (debug)
+				{
+					Debug.WriteLine($"Notch Filter Bounds: {notchLowerBound:F2} Hz to {notchUpperBound:F2} Hz");
+					Debug.Assert(freq > lastFreq, "Fundamentals list must be monotone");
+				}
+				lastFreq = freq;
 			}
 
-			// Calculate RMS of the fundamental within the notch
-			double fundamentalRms = ComputeRmsF(signalFreqLin, df, notchLowerBound, notchUpperBound, windowing);
-			// Calculate RMS of the signal outside the notch
-			double rmsBelowNotch = ComputeRmsF(signalFreqLin, df, 20, notchLowerBound, windowing);
-			double rmsAboveNotch = ComputeRmsF(signalFreqLin, df, notchUpperBound, Math.Max(20000, notchUpperBound*1.5), windowing);
-
-			if (fundamental2 > 0.0)
+			// signal without noise boundaries
+			double fundamentalRmsSq = 0;
+			foreach (var freq in fundamentals)
 			{
-				notchLowerBound = fundamental2 / Math.Pow(2, notchOctaves);
-				notchUpperBound = fundamental2 * Math.Pow(2, notchOctaves);
-				var fundamental2Rms = ComputeRmsF(signalFreqLin, df, notchLowerBound, notchUpperBound, windowing);
-				rmsAboveNotch = Math.Sqrt(Math.Pow(rmsAboveNotch, 2) - Math.Pow(fundamental2Rms, 2));
-				fundamentalRms = Math.Sqrt(Math.Pow(fundamentalRms, 2) + Math.Pow(fundamental2Rms, 2));
+				var rmsv = QaMath.MagAtFreq(signalFreqLin, df, freq);
+				fundamentalRmsSq += rmsv * rmsv;
 			}
-			double noiseRms = Math.Sqrt(Math.Pow(rmsBelowNotch, 2) + Math.Pow(rmsAboveNotch, 2));
+
+			double fundamentalRms = Math.Sqrt(fundamentalRmsSq);
+
+			for(int i=0; i<notches.Count; i += 2)
+			{
+				double rmsNotch = ComputeRmsF(signalFreqLin, df, notches[i], notches[i+1], windowing);
+			}
+
+			// now get total noise+distortion outside of the notch areas
+			double totalNoiseSq = 0.0;
+			double startFreq = minFreq;
+			double stopFreq = maxFreq;
+			if (startFreq < notches[0])
+			{
+				double rmsNotch = ComputeRmsF(signalFreqLin, df, startFreq, notches[0], windowing);
+				totalNoiseSq += rmsNotch * rmsNotch;    // squared
+			}
+			for (int i = 1; i < fundamentals.Length; i++)
+			{
+				// get the voltage outside the notch
+				double rmsNotch = ComputeRmsF(signalFreqLin, df, notches[2 * i - 1], notches[2 * i], windowing);
+				totalNoiseSq += rmsNotch * rmsNotch;    // squared
+				if (debug)
+					Debug.WriteLine($"{rmsNotch} noise inside notch #{i}");
+			}
+			if (notches[notches.Count - 1] < stopFreq)
+			{
+				double rmsNotch = ComputeRmsF(signalFreqLin, df, notches[notches.Count - 1], stopFreq, windowing);
+				totalNoiseSq += rmsNotch * rmsNotch;    // squared
+			}
+
+			var noiseRms = Math.Sqrt(totalNoiseSq);
+
 
 			if (debug)
 			{
 				Debug.WriteLine($"Fundamental RMS: {fundamentalRms:F6}");
-				Debug.WriteLine($"RMS Below Notch: {rmsBelowNotch:F6}");
-				Debug.WriteLine($"RMS Above Notch: {rmsAboveNotch:F6}");
 				Debug.WriteLine($"Noise RMS: {noiseRms:F6}");
 			}
 
@@ -244,6 +310,73 @@ namespace QA40xPlot.BareMetal
 		}
 
 		/// <summary>
+		/// Compute the Total Harmonic Distortion (THD) from double[] result
+		/// </summary>
+		/// <param name="signalFreqLin"></param>
+		/// <param name="frequencies"></param>
+		/// <param name="fundamental"></param>
+		/// <param name="numHarmonics"></param>
+		/// <param name="debug"></param>
+		/// <returns></returns>
+		/// <exception cref="ArgumentException"></exception>
+		internal static double ComputeImdLinear(string windowing, double[] signalFreqLin, double df, double[] fundamentals, int numHarmonics = 5, bool debug = false)
+		{
+			var maxFreq = df * signalFreqLin.Length;
+
+			double fundamentalRmsSq = 0;
+			foreach (var freq in fundamentals)
+			{
+				var rmsv = QaMath.MagAtFreq(signalFreqLin, df, freq);
+				fundamentalRmsSq += rmsv * rmsv;
+			}
+
+			double fundamentalAmplitude = Math.Sqrt(fundamentalRmsSq);
+
+			// Debugging: Show the peak amplitude in dB
+			if (debug)
+			{
+				double fundamentalAmplitudeDb = 20 * Math.Log10(fundamentalAmplitude);
+				Debug.WriteLine($"Fundamental Amplitude: {fundamentalAmplitude:F6} (Linear), {fundamentalAmplitudeDb:F2} dB");
+			}
+
+			// Calculate the sum of squares of the harmonic amplitudes
+			double harmonicAmplitudesSqSum = 0.0;
+			var harmRange = Enumerable.Range(1, numHarmonics).ToList();
+			harmRange.AddRange(Enumerable.Range(-numHarmonics, numHarmonics));
+			// now harmRange = -2, -1, 1, 2 when numHarmonics==2
+			foreach(int m in harmRange)
+			{
+				foreach (int n in harmRange)
+				{
+					double harmonicFreq = n * fundamentals[0] + m * fundamentals[1];
+					if (harmonicFreq < maxFreq && harmonicFreq > 10)
+					{
+						double harmonicAmplitude = QaMath.MagAtFreq(signalFreqLin, df, harmonicFreq);
+						harmonicAmplitudesSqSum += Math.Pow(harmonicAmplitude, 2);
+
+						// Debugging: Show the harmonic amplitude in dB and the bins being examined
+						if (debug)
+						{
+							double harmonicAmplitudeDb = 20 * Math.Log10(harmonicAmplitude);
+							Debug.WriteLine($"{n}x{m} Intermod Amplitude: {harmonicAmplitude:F6} (Linear), {harmonicAmplitudeDb:F2} dB");
+						}
+					}
+				}
+			}
+			// Compute THD
+			double imd = Math.Sqrt(harmonicAmplitudesSqSum) / fundamentalAmplitude;
+
+			// Debugging: Show THD computation details
+			if (debug)
+			{
+				Debug.WriteLine($"Sum of Squares of Harmonic Amplitudes: {harmonicAmplitudesSqSum:F6}");
+				Debug.WriteLine($"IMD: {imd:F6} (Linear)");
+			}
+
+			return imd;
+		}
+
+		/// <summary>
 		/// Computer the Total Harmonic Distortion + Noise (THDN) from double[] result
 		/// </summary>
 		/// <param name="signalFreqLin"></param>
@@ -266,7 +399,7 @@ namespace QA40xPlot.BareMetal
 			}
 
 			// Calculate RMS of the fundamental within the notch
-			double fundamentalRms = ComputeRmsF(signalFreqLin, df, notchLowerBound, notchUpperBound, windowing);
+			double fundamentalRms = QaMath.MagAtFreq(signalFreqLin, df, fundamental);
 
 			if (debug)
 			{
@@ -291,6 +424,81 @@ namespace QA40xPlot.BareMetal
 			if (debug)
 			{
 				Debug.WriteLine($"THDN: {thdn:F6} (Linear)");
+			}
+
+			return thdn;
+		}
+
+		/// <summary>
+		/// Computer the Total Harmonic Distortion + Noise (THDN) from double[] result
+		/// </summary>
+		/// <param name="signalFreqLin"></param>
+		/// <param name="frequencies"></param>
+		/// <param name="fundamental"></param>
+		/// <param name="notchOctaves"></param>
+		/// <param name="startFreq"></param>
+		/// <param name="stopFreq"></param>
+		/// <param name="debug"></param>
+		/// <returns></returns>
+		internal static double ComputeImdnLinear(string windowing, double[] signalFreqLin, double df, double[] fundamentals, double notchOctaves = 0.5, double startFreq = 20.0, double stopFreq = 20000.0, bool debug = false)
+		{
+			var notches = new List<double>();
+			// fundamentals must be monotone
+			double lastFreq = fundamentals[0] - 1;
+			double fundamentalRmsSq = 0;
+			foreach(var freq in fundamentals)
+			{
+				// Calculate notch filter bounds in Hz
+				double notchLowerBound = freq / Math.Pow(2, notchOctaves);
+				double notchUpperBound = freq * Math.Pow(2, notchOctaves);
+				notches.Add(notchLowerBound);
+				notches.Add(notchUpperBound);
+				if (debug)
+				{
+					Debug.WriteLine($"Notch Filter Bounds: {notchLowerBound:F2} Hz to {notchUpperBound:F2} Hz");
+					Debug.Assert(freq > lastFreq, "Fundamentals list must be monotone");
+				}
+				lastFreq = freq;
+				var vfund = QaMath.MagAtFreq(signalFreqLin, df, freq);
+				fundamentalRmsSq += vfund * vfund;
+			}
+
+			// Calculate RMS of the total fundamentals
+			double fundamentalRms = Math.Sqrt(fundamentalRmsSq);
+
+			if (debug)
+			{
+				Debug.WriteLine($"Fundamental RMS: {fundamentalRms:F6}");
+			}
+
+			// now get total noise+distortion outside of the notch areas
+			double totalNoiseSq = 0.0;
+			if(startFreq < notches[0])
+			{
+				double rmsNotch = ComputeRmsF(signalFreqLin, df, startFreq, notches[0], windowing);
+				totalNoiseSq += rmsNotch * rmsNotch;	// squared
+			}
+			for (int i=1; i<fundamentals.Length; i++)
+			{
+				// get the voltage outside the notch
+				double rmsNotch = ComputeRmsF(signalFreqLin, df, notches[2*i-1], notches[2*i], windowing);
+				totalNoiseSq += rmsNotch * rmsNotch;    // squared
+				if (debug)
+					Debug.WriteLine($"{rmsNotch} noise inside notch #{i}");
+			}
+			if (notches[notches.Count-1] < stopFreq)
+			{
+				double rmsNotch = ComputeRmsF(signalFreqLin, df, notches[notches.Count - 1], stopFreq, windowing);
+				totalNoiseSq += rmsNotch * rmsNotch;    // squared
+			}
+
+			var noiseRms = Math.Sqrt(totalNoiseSq);
+			// Calculate THDN
+			double thdn = noiseRms / fundamentalRms;
+
+			if (debug)
+			{
+				Debug.WriteLine($"THDN: {thdn:F6} Noise: {noiseRms:F6} and Fundamental: {fundamentalRms} (Linear)");
 			}
 
 			return thdn;
