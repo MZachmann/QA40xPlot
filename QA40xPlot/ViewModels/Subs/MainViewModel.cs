@@ -204,6 +204,9 @@ namespace QA40xPlot.ViewModels
 					ViewSettings.Singleton.GetSettingsFrom(jsonObject);
 				var winRect = ViewSettings.Singleton.Main.CurrentWindowRect;
 				SetWindowSize(winRect);
+				// paint the windows
+				if (ViewSettings.Singleton.Main.CurrentView != null)
+					ViewSettings.Singleton.Main.CurrentView.RaisePropertyChanged("DsRepaint");
 			}
 			catch (Exception ex)
 			{

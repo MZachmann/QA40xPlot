@@ -12,10 +12,17 @@ namespace QA40xPlot.Views
 
 		private void DoColor_Click(object sender, RoutedEventArgs e)
 		{
-			var colorPickerDialog = new ColorPicker(Color);
-			if (colorPickerDialog.ShowDialog() == true)
+			var wasapplied = true;
+			while (wasapplied)
 			{
-				Color = colorPickerDialog.NowColor;
+				var colorPickerDialog = new ColorPicker(Color);
+				if (colorPickerDialog.ShowDialog() == true)
+				{
+					Color = colorPickerDialog.NowColor;
+					wasapplied = colorPickerDialog.WasApplied;
+				}
+				else
+					wasapplied = false;
 			}
 		}
 

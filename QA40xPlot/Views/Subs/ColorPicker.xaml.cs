@@ -2,6 +2,7 @@
 using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.AxisLimitManagers;
+using System.Diagnostics;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,7 +12,9 @@ namespace QA40xPlot.Views
 	public partial class ColorPicker : Window
 	{
 		public static List<String> PlotColors { get => SettingsViewModel.PlotColors; } // the background colors
+		public static Rect ViewWindow { get; set; } = Rect.Empty;
 		public double ClrOpacity { get; set; }
+		public bool WasApplied { get; set; }
 
 		/// <summary>
 		/// convert plot color to an opacity value for the slider
@@ -38,6 +41,14 @@ namespace QA40xPlot.Views
 			PopulateColors();
 			ClrOpacity = TxtToOpaque(currentColor);             // normalize to 0-100
 			DoShowOpaque(ClrOpacity); // Show the opacity percentage
+			WasApplied = false;
+			if(ViewWindow.Width > 100 && ViewWindow.Height > 100)
+			{
+				Width = ViewWindow.Width;
+				Height = ViewWindow.Height;
+				Left = ViewWindow.Left;
+				Top = ViewWindow.Top;
+			}
 		}
 
 		private void PopulateColors()
@@ -135,9 +146,43 @@ namespace QA40xPlot.Views
 			}
 		}
 
+		private Rect GetWindowSize()
+		{
+			Rect r = Rect.Empty;
+			try
+			{
+				// Get the width and height of the main window
+				if (WindowState == WindowState.Normal)
+				{
+					double windowWidth = Width;
+					double windowHeight = Height;
+					double Xoffset = Left;
+					double Yoffset = Top;
+					r = new Rect(Xoffset, Yoffset, windowWidth, windowHeight);
+				}
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine($"Error: {ex.Message}");
+			}
+			return r;
+		}
+
+
 		private void DoOk(object sender, RoutedEventArgs e)
 		{
+			WasApplied = false;
 			DialogResult = true;
+			// Ensure the current window size is captured
+			ViewWindow = GetWindowSize();
+			Close();
+		}
+
+		private void DoApply(object sender, RoutedEventArgs e)
+		{
+			WasApplied = true;
+			DialogResult = true;
+			ViewWindow = GetWindowSize();
 			Close();
 		}
 

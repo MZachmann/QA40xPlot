@@ -2,6 +2,9 @@
 --------------------------------------------
 This changelog shows the changes made for each version
 --------------------------------------------
+v 1.1.22
+- add an Apply button to the color picker, remember window
+- add two configurations (LightView and DarkView) as examples
 v 1.1.21
 - add a couple of fields to Settings display
 - improve localization of values shown in data summary box and entries

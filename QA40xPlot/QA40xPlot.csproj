@@ -76,6 +76,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Configs\DarkView.cfg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Configs\LightView.cfg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Help\ChangeLog.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

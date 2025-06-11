@@ -27,6 +27,7 @@
                         HorizontalAlignment="Stretch"
                         Margin="5,0,0,0" Width="40" />
                 <Label Content="    " />
+                <Button Content="Apply" Click="DoApply" />
                 <Button Content="Cancel" Click="DoCancel" IsCancel="True"/>
             </StackPanel>
             <WrapPanel Name="ColorWrapPanel" Margin="10" />
