@@ -157,7 +157,11 @@
                     <Button Content="" Command="{Binding DoViewToFit}" CommandParameter="XM"
                             FontFamily="Segoe Fluent Icons"
                             Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  
-                        HorizontalAlignment="Right" VerticalAlignment="Center"  />
+                        HorizontalAlignment="Right" VerticalAlignment="Center"  >
+                        <Button.ToolTip >
+                            <ToolTip FontFamily="Arial" Content="{Binding PinGraphTip}" />
+                        </Button.ToolTip>
+                    </Button>
                     <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="XM"
                             Margin="0,4,0,0" Grid.Row="2" Grid.Column="1"  HorizontalAlignment="Right" VerticalAlignment="Center"   />
                 </Grid>

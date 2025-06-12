@@ -81,40 +81,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _Gen1Voltage, value);
 		}
 
-		private string _rangeTop = string.Empty;
-		public string RangeTop
-		{
-			get { return _rangeTop; }
-			set => SetProperty(ref _rangeTop, value);
-		}
-
-		private string _rangeBottom = string.Empty;
-		public string RangeBottom
-		{
-			get { return _rangeBottom; }
-			set => SetProperty(ref _rangeBottom, value);
-		}
-		private string _rangeTopdB = string.Empty;
-		public string RangeTopdB
-		{
-			get { return _rangeTopdB; }
-			set => SetProperty(ref _rangeTopdB, value);
-		}
-
-		private string _rangeBottomdB = string.Empty;
-		public string RangeBottomdB
-		{
-			get { return _rangeBottomdB; }
-			set => SetProperty(ref _rangeBottomdB, value);
-		}
-
-		private bool _ShowThickLines;
-		public bool ShowThickLines
-		{
-			get => _ShowThickLines;
-			set => SetProperty(ref _ShowThickLines, value);
-		}
-
 		private bool _ShowMarkers = false;
 		public bool ShowMarkers
 		{

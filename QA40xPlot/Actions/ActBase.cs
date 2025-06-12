@@ -48,10 +48,28 @@ namespace QA40xPlot.Actions
 			switch (who)
 			{
 				case "XF":
-					var u = myPlot.Axes.Bottom.Min;
-					var w = myPlot.Axes.Bottom.Max;
-					bvm.GraphStartX = Math.Pow(10, u).ToString("0");
-					bvm.GraphEndX = Math.Pow(10, w).ToString("0");
+					{
+						var u = myPlot.Axes.Bottom.Min;
+						var w = myPlot.Axes.Bottom.Max;
+						bvm.GraphStartX = Math.Pow(10, u).ToString("0");
+						bvm.GraphEndX = Math.Pow(10, w).ToString("0");
+					}
+					break;
+				case "YP":  // Y percents
+					{
+						var u = Math.Pow(10, Math.Round(myPlot.Axes.Left.Min, 1));
+						var w = Math.Pow(10, Math.Round(myPlot.Axes.Left.Max, 1));
+						bvm.RangeTop = (w > 10) ? w.ToString("0") : w.ToString("G2");
+						bvm.RangeBottom = (u > 10) ? u.ToString("0") : u.ToString("G2");
+					}
+					break;
+				case "YM":  // Y magnitude
+					{
+						var u = myPlot.Axes.Left.Min;
+						var w = myPlot.Axes.Left.Max;
+						bvm.RangeTopdB = w.ToString("0");
+						bvm.RangeBottomdB = u.ToString("0");
+					}
 					break;
 			}
 		}

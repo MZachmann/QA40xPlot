@@ -92,6 +92,14 @@ namespace QA40xPlot.Actions
 				vm.GraphEndX = myPlot.Axes.Bottom.Max.ToString("0.##");
 				vm.GraphStartX = minx;
 			}
+			else if(who == "YM")
+			{
+				myPlot = timePlot.ThePlot;
+				// setting start seems to reset max...
+				var minx = myPlot.Axes.Left.Min.ToString("0.##");
+				vm.RangeTop = myPlot.Axes.Left.Max.ToString("0.##");
+				vm.RangeBottom = minx;
+			}
 			else
 			{
 				PinGraphRanges(myPlot, vm, who);

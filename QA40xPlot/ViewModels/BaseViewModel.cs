@@ -40,6 +40,7 @@ namespace QA40xPlot.ViewModels
 		public static string TabInfoTip { get => "Click to set line colors and edit plot headings"; }
 		public static string SummaryDataTip { get => "Click to see a box with summary test statistics"; }
 		public static string MiniPlotsTip { get => "Click to show the mini plots persistently"; }
+		public static string PinGraphTip { get => "Click to pin the current graph range"; }
 		public static List<string> ChannelList { get => new List<string> { "Left", "Right" }; }
 		public static List<string> PowerFreqList { get => new List<string> { "50", "60" }; }
 		public static List<string> TrueFalseList { get => new List<string> { "True", "False" }; }
@@ -240,6 +241,41 @@ namespace QA40xPlot.ViewModels
 		#endregion
 
 		#region Setters and Getters
+
+		private bool _ShowThickLines;
+		public bool ShowThickLines
+		{
+			get => _ShowThickLines;
+			set => SetProperty(ref _ShowThickLines, value);
+		}
+
+		private string _rangeTop = string.Empty;
+		public string RangeTop
+		{
+			get { return _rangeTop; }
+			set => SetProperty(ref _rangeTop, value);
+		}
+
+		private string _rangeBottom = string.Empty;
+		public string RangeBottom
+		{
+			get { return _rangeBottom; }
+			set => SetProperty(ref _rangeBottom, value);
+		}
+		private string _rangeTopdB = string.Empty;
+		public string RangeTopdB
+		{
+			get { return _rangeTopdB; }
+			set => SetProperty(ref _rangeTopdB, value);
+		}
+
+		private string _rangeBottomdB = string.Empty;
+		public string RangeBottomdB
+		{
+			get { return _rangeBottomdB; }
+			set => SetProperty(ref _rangeBottomdB, value);
+		}
+
 
 		private string _GraphStartX = string.Empty;         // type of alert
 		public string GraphStartX
