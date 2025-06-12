@@ -79,6 +79,13 @@ namespace QA40xPlot.Actions
 			return db;
 		}
 
+		public void PinGraphRange(string who)
+		{
+			ScottPlot.Plot myPlot = fftPlot.ThePlot;
+			var vm = MyVModel;
+			PinGraphRanges(myPlot, vm, who);
+		}
+
 		public bool SaveToFile(string fileName)
 		{
 			return Util.SaveToFile<ImdViewModel>(PageData, fileName);
@@ -881,8 +888,8 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
-			myPlot.Axes.SetLimitsX(Math.Log10(ToD(imdVm.GraphStartFreq, 20)),
-				Math.Log10(ToD(imdVm.GraphEndFreq, 20000)), myPlot.Axes.Bottom);
+			myPlot.Axes.SetLimitsX(Math.Log10(ToD(imdVm.GraphStartX, 20)),
+				Math.Log10(ToD(imdVm.GraphEndX, 20000)), myPlot.Axes.Bottom);
 
 			myPlot.Axes.SetLimitsY(ToD(imdVm.RangeBottomdB, -100), ToD(imdVm.RangeTopdB, 0), myPlot.Axes.Left);
 
@@ -902,7 +909,7 @@ namespace QA40xPlot.Actions
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
 			ImdViewModel imdVm = MyVModel;
-			myPlot.Axes.SetLimits(Math.Log10(ToD(imdVm.GraphStartFreq, 20)), Math.Log10(ToD(imdVm.GraphEndFreq, 20000)),
+			myPlot.Axes.SetLimits(Math.Log10(ToD(imdVm.GraphStartX, 20)), Math.Log10(ToD(imdVm.GraphEndX, 20000)),
 				Math.Log10(ToD(imdVm.RangeBottom, 1e-6)) - 0.00000001, Math.Log10(ToD(imdVm.RangeTop, 1)));  // - 0.000001 to force showing label
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));

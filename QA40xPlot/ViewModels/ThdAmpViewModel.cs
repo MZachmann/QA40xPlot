@@ -27,6 +27,8 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public RelayCommand DoStop { get => new RelayCommand(StopIt); }
 		[JsonIgnore]
+		public RelayCommand<object> DoViewToFit { get => new RelayCommand<object>(OnViewToFit); }
+		[JsonIgnore]
 		public RelayCommand<object> DoFitToData { get => new RelayCommand<object>(OnFitToData); }
 		[JsonIgnore]
 		public AsyncRelayCommand DoLoadTab { get => new AsyncRelayCommand(LoadItTab); }
@@ -65,21 +67,6 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _TestFreq;
 			set => SetProperty(ref _TestFreq, value);
-		}
-
-		private string _GraphStartVolts = string.Empty;         // type of alert
-		public string GraphStartVolts
-		{
-			get => _GraphStartVolts;
-			set => SetProperty(ref _GraphStartVolts, value);
-		}
-
-		private string _GraphEndVolts = string.Empty;         // type of alert
-		public string GraphEndVolts
-		{
-			get => _GraphEndVolts;
-			set =>
-				SetProperty(ref _GraphEndVolts, value);
 		}
 
 		private uint _StepsOctave;         // type of alert
@@ -212,8 +199,8 @@ namespace QA40xPlot.ViewModels
 					MyAction?.UpdateGraph(true);
 					break;
 				case "XAxisType":
-				case "GraphStartVolts":
-				case "GraphEndVolts":
+				case "GraphStartX":
+				case "GraphEndX":
 				case "RangeBottomdB":
 				case "RangeBottom":
 				case "RangeTopdB":
@@ -348,6 +335,14 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
+		private void OnViewToFit(object? parameter)
+		{
+			var pram = parameter as string;
+			if (pram == null)
+				return;
+			MyAction.PinGraphRange(pram);
+		}
+
 		private void OnFitToData(object? parameter)
 		{
 			var bounds = MyAction.GetDataBounds();
@@ -355,8 +350,8 @@ namespace QA40xPlot.ViewModels
 			{
 				case "XM":  // X magnitude
 					// calculate the bounds here. X is provided in input or output volts/power
-					this.GraphStartVolts = bounds.Left.ToString("G2");
-					this.GraphEndVolts = (bounds.Left + bounds.Right).ToString("G2");
+					this.GraphStartX = bounds.Left.ToString("G2");
+					this.GraphEndX = (bounds.Left + bounds.Right).ToString("G2");
 					break;
 				case "YP":  // Y percents
 					{
@@ -472,8 +467,8 @@ namespace QA40xPlot.ViewModels
 			actThd = default!;
 
 			TestFreq = "1000";
-			GraphStartVolts = "0.002";
-			GraphEndVolts = "10";
+			GraphStartX = "0.002";
+			GraphEndX = "10";
 			StepsOctave = 1;
 
 			RangeTop = "1";             // when graphing percents distortion this is logarithmic 0.01....

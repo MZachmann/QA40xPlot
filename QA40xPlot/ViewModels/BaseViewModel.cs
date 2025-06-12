@@ -240,6 +240,22 @@ namespace QA40xPlot.ViewModels
 		#endregion
 
 		#region Setters and Getters
+
+		private string _GraphStartX = string.Empty;         // type of alert
+		public string GraphStartX
+		{
+			get => _GraphStartX;
+			set => SetProperty(ref _GraphStartX, value);
+		}
+
+		private string _GraphEndX = string.Empty;         // type of alert
+		public string GraphEndX
+		{
+			get => _GraphEndX;
+			set =>
+				SetProperty(ref _GraphEndX, value);
+		}
+
 		private bool _KeepMiniPlots = false;
 		public bool KeepMiniPlots
 		{

@@ -275,6 +275,23 @@ namespace QA40xPlot.Actions
 			return myset.ToArray();
 		}
 
+		public void PinGraphRange(string who)
+		{
+			ScottPlot.Plot myPlot = thdPlot.ThePlot;
+			var vm = MyVModel;
+			if (who == "XM")
+			{
+				// setting start seems to reset max... this is strange...
+				var minx = Math.Pow(10, myPlot.Axes.Bottom.Min).ToString("0.##");
+				vm.GraphEndX = Math.Pow(10, myPlot.Axes.Bottom.Max).ToString("0.##");
+				vm.GraphStartX = minx;
+			}
+			else
+			{
+				PinGraphRanges(myPlot, vm, who);
+			}
+		}
+
 		public bool SaveToFile(string fileName)
 		{
 			return Util.SaveToFile<ThdAmpViewModel>(PageData, fileName);
@@ -662,7 +679,7 @@ namespace QA40xPlot.Actions
 			var thdFreq = MyVModel;
 			try
 			{
-				myPlot.Axes.SetLimits(Math.Log10(ToD(thdFreq.GraphStartVolts, .001)), Math.Log10(ToD(thdFreq.GraphEndVolts, .001)),
+				myPlot.Axes.SetLimits(Math.Log10(ToD(thdFreq.GraphStartX, .001)), Math.Log10(ToD(thdFreq.GraphEndX, .001)),
 					Math.Log10(ToD(thdFreq.RangeBottom)), Math.Log10(ToD(thdFreq.RangeTop)));
 			}
 			catch 
@@ -682,7 +699,7 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;
 			PlotUtil.InitializeMagAmpPlot(myPlot, plotFormat);
 
-			myPlot.Axes.SetLimits(Math.Log10(ToD(thdFreq.GraphStartVolts, .001)), Math.Log10(ToD(thdFreq.GraphEndVolts, .001)),
+			myPlot.Axes.SetLimits(Math.Log10(ToD(thdFreq.GraphStartX, .001)), Math.Log10(ToD(thdFreq.GraphEndX, .001)),
 				ToD(thdFreq.RangeBottomdB), ToD(thdFreq.RangeTopdB));
 			UpdatePlotTitle();
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));

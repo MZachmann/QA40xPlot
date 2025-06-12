@@ -36,6 +36,8 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public RelayCommand ToggleGenerator { get => new RelayCommand(StopIt); }
 		[JsonIgnore]
+		public RelayCommand<object> DoViewToFit { get => new RelayCommand<object>(OnViewToFit); }
+		[JsonIgnore]
 		public RelayCommand<object> DoFitToData { get => new RelayCommand<object>(OnFitToData); }
 		[JsonIgnore]
 		public AsyncRelayCommand DoLoadTab { get => new AsyncRelayCommand(LoadItTab); }
@@ -105,19 +107,6 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _Gen2Voltage;
 			set => SetProperty(ref _Gen2Voltage, value);
-		}
-		private string _GraphStartTime = string.Empty;
-		public string GraphStartTime
-		{
-			get => _GraphStartTime;
-			set => SetProperty(ref _GraphStartTime, value);
-		}
-
-		private string _GraphEndTime = string.Empty;
-		public string GraphEndTime
-		{
-			get => _GraphEndTime;
-			set => SetProperty(ref _GraphEndTime, value);
 		}
 
 		private string _rangeTop = string.Empty;
@@ -199,8 +188,8 @@ namespace QA40xPlot.ViewModels
 					RaisePropertyChanged("GraphUnit");
 					MyAction?.UpdateGraph(true);
 					break;
-				case "GraphStartTime":
-				case "GraphEndTime":
+				case "GraphStartX":
+				case "GraphEndX":
 				case "RangeBottom":
 				case "RangeTop":
 					MyAction?.UpdateGraph(true);
@@ -349,14 +338,22 @@ namespace QA40xPlot.ViewModels
 				actAbout.Visibility = ShowTabInfo ? Visibility.Visible : Visibility.Hidden;
 		}
 
+		private void OnViewToFit(object? parameter)
+		{
+			var pram = parameter as string;
+			if (pram == null)
+				return;
+			MyAction.PinGraphRange(pram);
+		}
+
 		private void OnFitToData(object? parameter)
 		{
 			var bounds = MyAction.GetDataBounds();
 			switch (parameter)
 			{
 				case "XF":  // X time
-					this.GraphStartTime = bounds.Left.ToString("0.###");
-					this.GraphEndTime = bounds.Right.ToString("0.###");
+					this.GraphStartX = bounds.Left.ToString("0.###");
+					this.GraphEndX = bounds.Right.ToString("0.###");
 					break;
 				case "YM":  // Y magnitude
 					this.RangeBottom = (bounds.Y).ToString("0.###");
@@ -426,8 +423,8 @@ namespace QA40xPlot.ViewModels
 			LeftWidth = 80;  // reset the width of the left column
 			RightWidth = 50; // reset the width of the right column
 
-			GraphStartTime = "0";
-			GraphEndTime = "10";
+			GraphStartX = "0";
+			GraphEndX = "10";
 			RangeTop = "1";             // when graphing percents distortion this is logarithmic 0.01....
 			RangeBottom = "-1";
 

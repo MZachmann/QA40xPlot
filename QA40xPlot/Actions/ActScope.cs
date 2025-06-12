@@ -80,6 +80,24 @@ namespace QA40xPlot.Actions
 			return db;
 		}
 
+		public void PinGraphRange(string who)
+		{
+			ScottPlot.Plot myPlot = timePlot.ThePlot;
+			var vm = MyVModel;
+			if(who == "XT")
+			{
+				myPlot = timePlot.ThePlot;
+				// setting start seems to reset max...
+				var minx = myPlot.Axes.Bottom.Min.ToString("0.##");
+				vm.GraphEndX = myPlot.Axes.Bottom.Max.ToString("0.##");
+				vm.GraphStartX = minx;
+			}
+			else
+			{
+				PinGraphRanges(myPlot, vm, who);
+			}
+		}
+
 		public bool SaveToFile(string fileName)
 		{
 			return Util.SaveToFile<ScopeViewModel>(PageData, fileName);
@@ -447,7 +465,7 @@ namespace QA40xPlot.Actions
 
 			var thdFreq = MyVModel;
 
-			myPlot.Axes.SetLimits(ToD(thdFreq.GraphStartTime), ToD(thdFreq.GraphEndTime), 
+			myPlot.Axes.SetLimits(ToD(thdFreq.GraphStartX), ToD(thdFreq.GraphEndX), 
 				ToD(thdFreq.RangeBottom), ToD(thdFreq.RangeTop));
 
 			UpdatePlotTitle();

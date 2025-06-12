@@ -73,6 +73,13 @@ namespace QA40xPlot.Actions
 				myPlot.Title(title);
 		}
 
+		public void PinGraphRange(string who)
+		{
+			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
+			var vm = MyVModel;
+			PinGraphRanges(myPlot, vm, who);
+		}
+
 		public bool SaveToFile(string fileName)
 		{
 			return Util.SaveToFile<FreqRespViewModel>(PageData, fileName);
@@ -751,7 +758,7 @@ namespace QA40xPlot.Actions
 			PlotUtil.SetOhmFreqRule(myPlot);
 			PlotUtil.AddPhaseFreqRule(myPlot);
 
-            myPlot.Axes.SetLimitsX(Math.Log10(MathUtil.ToDouble(frqrsVm.GraphStartFreq, 20.0)), Math.Log10(MathUtil.ToDouble(frqrsVm.GraphEndFreq, 20000)), myPlot.Axes.Bottom);
+            myPlot.Axes.SetLimitsX(Math.Log10(MathUtil.ToDouble(frqrsVm.GraphStartX, 20.0)), Math.Log10(MathUtil.ToDouble(frqrsVm.GraphEndX, 20000)), myPlot.Axes.Bottom);
 			myPlot.Axes.SetLimitsY(MathUtil.ToDouble(frqrsVm.RangeBottomdB, -20), MathUtil.ToDouble(frqrsVm.RangeTopdB, 180), myPlot.Axes.Left);
             myPlot.Axes.SetLimitsY(-360, 360, myPlot.Axes.Right);
 

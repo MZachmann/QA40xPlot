@@ -43,6 +43,19 @@ namespace QA40xPlot.Actions
 			return MathUtil.ToDouble(sval, defval);
 		}
 
+		public void PinGraphRanges(ScottPlot.Plot myPlot, BaseViewModel bvm, string who)
+		{
+			switch (who)
+			{
+				case "XF":
+					var u = myPlot.Axes.Bottom.Min;
+					var w = myPlot.Axes.Bottom.Max;
+					bvm.GraphStartX = Math.Pow(10, u).ToString("0");
+					bvm.GraphEndX = Math.Pow(10, w).ToString("0");
+					break;
+			}
+		}
+
 		protected LeftRightFrequencySeries CalculateAverages(LeftRightFrequencySeries fseries, uint averages)
 		{
 			LeftRightFrequencySeries fresult = new();

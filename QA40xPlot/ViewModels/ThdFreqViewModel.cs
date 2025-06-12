@@ -24,6 +24,8 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public RelayCommand DoStop { get => new RelayCommand(StopIt); }
 		[JsonIgnore]
+		public RelayCommand<object> DoViewToFit { get => new RelayCommand<object>(OnViewToFit); }
+		[JsonIgnore]
 		public RelayCommand<object> DoFitToData { get => new RelayCommand<object>(OnFitToData); }
 		[JsonIgnore]
 		public AsyncRelayCommand DoLoadTab { get => new AsyncRelayCommand(LoadItTab); }
@@ -53,20 +55,6 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _EndFreq;
 			set => SetProperty(ref _EndFreq, value);
-		}
-
-		private string _GraphStartFreq = string.Empty;
-		public string GraphStartFreq
-		{
-			get => _GraphStartFreq;
-			set => SetProperty(ref _GraphStartFreq, value);
-		}
-
-		private string _GraphEndFreq = string.Empty;
-		public string GraphEndFreq
-		{
-			get => _GraphEndFreq;
-			set => SetProperty(ref _GraphEndFreq, value);
 		}
 
 		private uint _StepsOctave;
@@ -220,8 +208,8 @@ namespace QA40xPlot.ViewModels
 					RaisePropertyChanged("GraphUnit");
 					MyAction?.UpdateGraph(true);
 					break;
-				case "GraphStartFreq":
-				case "GraphEndFreq":
+				case "GraphStartX":
+				case "GraphEndX":
 				case "RangeBottomdB":
 				case "RangeBottom":
 				case "RangeTopdB":
@@ -373,14 +361,22 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
+		private void OnViewToFit(object? parameter)
+		{
+			var pram = parameter as string;
+			if (pram == null)
+				return;
+			MyAction.PinGraphRange(pram);
+		}
+
 		private void OnFitToData(object? parameter)
 		{
 			var bounds = MyAction.GetDataBounds();
 			switch (parameter)
 			{
 				case "XF":  // X frequency
-					this.GraphStartFreq = bounds.Left.ToString("0");
-					this.GraphEndFreq = bounds.Right.ToString("0");
+					this.GraphStartX = bounds.Left.ToString("0");
+					this.GraphEndX = bounds.Right.ToString("0");
 					break;
 				case "YP":  // Y percents
 					{
@@ -464,8 +460,8 @@ namespace QA40xPlot.ViewModels
 
 			StartFreq = "20";
 			EndFreq = "20000";
-			GraphStartFreq = "20";
-			GraphEndFreq = "20000";
+			GraphStartX = "20";
+			GraphEndX = "20000";
 			StepsOctave = 1;
 			LeftChannel = true;
 			RightChannel = false;

@@ -30,6 +30,8 @@ public class FreqRespViewModel : BaseViewModel
 	[JsonIgnore]
 	public RelayCommand<object> DoFitToData { get => new RelayCommand<object>(OnFitToData); }
 	[JsonIgnore]
+	public RelayCommand<object> DoViewToFit { get => new RelayCommand<object>(OnViewToFit); }
+	[JsonIgnore]
 	public AsyncRelayCommand DoLoadTab { get => new AsyncRelayCommand(LoadItTab); }
 	[JsonIgnore]
 	public AsyncRelayCommand DoGetTab { get => new AsyncRelayCommand(GetItTab); }
@@ -102,21 +104,6 @@ public class FreqRespViewModel : BaseViewModel
 	{
 		get => _Gen1Voltage;
 		set => SetProperty(ref _Gen1Voltage, value);
-	}
-
-	private string _GraphStartFreq = string.Empty;         // type of alert
-	public string GraphStartFreq
-	{
-		get => _GraphStartFreq;
-		set => SetProperty(ref _GraphStartFreq, value);
-	}
-
-	private string _GraphEndFreq = string.Empty;         // type of alert
-	public string GraphEndFreq
-	{
-		get => _GraphEndFreq;
-		set =>
-			SetProperty(ref _GraphEndFreq, value);
 	}
 
 	private bool _RightChannel;         // type of alert
@@ -244,8 +231,8 @@ public class FreqRespViewModel : BaseViewModel
 				}
 				MyAction?.UpdateGraph(true);
 				break;
-			case "GraphStartFreq":
-			case "GraphEndFreq":
+			case "GraphStartX":
+			case "GraphEndX":
 			case "RangeBottomdB":
 			case "RangeBottom":
 			case "RangeTopdB":
@@ -400,14 +387,22 @@ public class FreqRespViewModel : BaseViewModel
 		}
 	}
 
+	private void OnViewToFit(object? parameter)
+	{
+		var pram = parameter as string;
+		if (pram == null) 
+			return;
+		MyAction.PinGraphRange(pram);
+	}
+
 	private void OnFitToData(object? parameter)
 	{
 		var bounds = MyAction.GetDataBounds();
 		switch (parameter)
 		{
 			case "XF":  // X frequency
-				this.GraphStartFreq = bounds.Left.ToString("0");
-				this.GraphEndFreq = bounds.Right.ToString("0");
+				this.GraphStartX = bounds.Left.ToString("0");
+				this.GraphEndX = bounds.Right.ToString("0");
 				break;
 			case "YP":  // Y percent
 				var xp = bounds.Y + bounds.Height;  // max Y value
@@ -506,8 +501,8 @@ public class FreqRespViewModel : BaseViewModel
 		LeftWidth = 95;
 		RightWidth = 50;
 
-		GraphStartFreq = "20";
-		GraphEndFreq = "20000";
+		GraphStartX = "20";
+		GraphEndX = "20000";
 		StepsOctave = 1;
 		LeftChannel = true;
 		RightChannel = false;

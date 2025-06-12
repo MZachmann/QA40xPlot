@@ -37,6 +37,8 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public RelayCommand<object> DoFitToData { get => new RelayCommand<object>(OnFitToData); }
 		[JsonIgnore]
+		public RelayCommand<object> DoViewToFit { get => new RelayCommand<object>(OnViewToFit); }
+		[JsonIgnore]
 		public AsyncRelayCommand DoLoadTab { get => new AsyncRelayCommand(LoadIt); }
 		[JsonIgnore]
 		public AsyncRelayCommand DoGetTab { get => new AsyncRelayCommand(GetIt); }
@@ -77,20 +79,6 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _Gen1Voltage;
 			set => SetProperty(ref _Gen1Voltage, value);
-		}
-		private string _GraphStartFreq = string.Empty;
-		public string GraphStartFreq
-		{
-			get => _GraphStartFreq;
-			set => SetProperty(ref _GraphStartFreq, value);
-		}
-
-		private string _GraphEndFreq = string.Empty;
-		public string GraphEndFreq
-		{
-			get => _GraphEndFreq;
-			set => 
-				SetProperty(ref _GraphEndFreq, value);
 		}
 
 		private string _rangeTop = string.Empty;
@@ -213,8 +201,8 @@ namespace QA40xPlot.ViewModels
 					ShowInfos();
 					MyAction?.UpdateGraph(false);
 					break;
-				case "GraphStartFreq":
-				case "GraphEndFreq":
+				case "GraphStartX":
+				case "GraphEndX":
 				case "RangeBottomdB":
 				case "RangeBottom":
 				case "RangeTopdB":
@@ -347,14 +335,22 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
+		private void OnViewToFit(object? parameter)
+		{
+			var pram = parameter as string;
+			if (pram == null)
+				return;
+			MyAction.PinGraphRange(pram);
+		}
+
 		private void OnFitToData(object? parameter)
 		{
 			var bounds = MyAction.GetDataBounds();
 			switch (parameter)
 			{
 				case "XF":  // X frequency
-					this.GraphStartFreq = bounds.Left.ToString("0");
-					this.GraphEndFreq = bounds.Right.ToString("0");
+					this.GraphStartX = bounds.Left.ToString("0");
+					this.GraphEndX = bounds.Right.ToString("0");
 					break;
 				case "YP":  // Y percents
 					{
@@ -448,8 +444,8 @@ namespace QA40xPlot.ViewModels
 			LeftWidth = 80;  // reset the width of the left column
 			RightWidth = 50; // reset the width of the right column
 
-			GraphStartFreq = "20";
-			GraphEndFreq = "20000";
+			GraphStartX = "20";
+			GraphEndX = "20000";
 			RangeTop = "1";             // when graphing percents distortion this is logarithmic 0.01....
 			RangeBottom = "0.001";
 
