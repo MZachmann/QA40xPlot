@@ -3,11 +3,11 @@
 This changelog shows the changes made for each version
 --------------------------------------------
 v 1.1.22
-- add an Apply button to the color picker, remember window
+- huge upgrade to the color picker to change dynamically
+- seriously improve color selection
 - add two configurations (LightView and DarkView) as examples
 - add pin graph range option to graph settings
 - fix mic compensation low-end bug
-- improve color selection
 v 1.1.21
 - add a couple of fields to Settings display
 - improve localization of values shown in data summary box and entries
