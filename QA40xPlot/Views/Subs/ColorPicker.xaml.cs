@@ -2,19 +2,20 @@
 using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.AxisLimitManagers;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
+using Windows.Graphics.Display;
 
 namespace QA40xPlot.Views
 {
 	public partial class ColorPicker : Window
 	{
 		public static List<String> PlotColors { get => SettingsViewModel.PlotColors; } // the background colors
-		public static Rect ViewWindow { get; set; } = Rect.Empty;
 		public double ClrOpacity { get; set; }
-		public bool WasApplied { get; set; }
+		public Func<ColorPicker, bool>? CallMe { get; set; }
 
 		/// <summary>
 		/// convert plot color to an opacity value for the slider
@@ -41,59 +42,73 @@ namespace QA40xPlot.Views
 			PopulateColors();
 			ClrOpacity = TxtToOpaque(currentColor);             // normalize to 0-100
 			DoShowOpaque(ClrOpacity); // Show the opacity percentage
-			WasApplied = false;
-			if(ViewWindow.Width > 100 && ViewWindow.Height > 100)
+			var viewWind = ViewSettings.Singleton.Main.CurrentColorRect;
+			if(viewWind.Length > 0)
 			{
-				Width = ViewWindow.Width;
-				Height = ViewWindow.Height;
-				Left = ViewWindow.Left;
-				Top = ViewWindow.Top;
+				MainViewModel.SetWindowSize(this, viewWind);
 			}
+		}
+
+		private static double ToBrightness(System.Windows.Media.Color clr)
+		{
+			// BT.601 Y = 0.299 R + 0.587 G + 0.114 B
+			return clr.R * 0.299 + clr.G * 0.587 + clr.B * 0.114;
 		}
 
 		private void PopulateColors()
 		{
-			List<ScottPlot.Color> allcolors = new();
-			List<IPalette> palettes = new List<IPalette>();
-			palettes.Add(new ScottPlot.Palettes.Tsitsulin());
-			palettes.Add(new ScottPlot.Palettes.Category10());
-			palettes.Add(new ScottPlot.Palettes.Category20());
-			palettes.Add(new ScottPlot.Palettes.Amber());
-			palettes.Add(new ScottPlot.Palettes.Aurora());
-			palettes.Add(new ScottPlot.Palettes.Building());
-			palettes.Add(new ScottPlot.Palettes.ColorblindFriendly());
-			palettes.Add(new ScottPlot.Palettes.Dark());
-			palettes.Add(new ScottPlot.Palettes.LightSpectrum());
-			palettes.Add(new ScottPlot.Palettes.Nord());
-			palettes.Add(new ScottPlot.Palettes.Normal());
-			palettes.Add(new ScottPlot.Palettes.OneHalf());
-			palettes.Add(new ScottPlot.Palettes.OneHalfDark());
-			palettes.Add(new ScottPlot.Palettes.LightOcean()); // Add more palettes as needed
-			palettes.Add(new ScottPlot.Palettes.Penumbra());
-			palettes.Add(new ScottPlot.Palettes.PolarNight());
-			palettes.Add(new ScottPlot.Palettes.DarkPastel());
-			palettes.Add(new ScottPlot.Palettes.Redness());
-			// get unique colors from all palettes
-			foreach (var palet in palettes)
-				foreach (var c in palet.Colors)
-					if (!allcolors.Contains(c)) // Avoid duplicates
-						allcolors.Add(c);
-
 			var currentColor = PlotUtil.StrToColor(NowColor);
+			List<System.Windows.Media.Color> allcolors = new();
+			var mycolor = PlotUtil.ScottToMedia(currentColor);
+			int[] bytelist = [ 0, 45, 128, 185, 225, 255 ];
+			int[] greenbytes = [0, 45, 90, 128, 150, 185, 225, 255];
+			foreach(var r in bytelist)
+			{
+				foreach (var g in greenbytes)
+				{
+					foreach (var b in bytelist)
+					{
+						allcolors.Add(System.Windows.Media.Color.FromRgb((byte)r, (byte)g, (byte)b));
+						//Debug.WriteLine($"{r}:{g}:{b}");
+					}
+				}
+			}
+			// organize the colors
+			var redDom = allcolors.Where(x => x.R > x.G && x.R > x.B).ToList();
+			var greenDom = allcolors.Where(x => x.G > x.R && x.G > x.B).ToList();
+			var blueDom = allcolors.Where(x => x.B > x.R && x.B > x.G).ToList();
+			var grayDom = allcolors.Where(x => x.R == x.G && x.R == x.B).ToList();
+			// enhance the gray set
+			grayDom = Enumerable.Range(0, 16).Select(x => (byte)(17*x)).Select(x =>
+				System.Windows.Media.Color.FromRgb(x, x, x)).ToList();
+			var otherDom = allcolors.Where(x => !redDom.Contains(x) && !greenDom.Contains(x) && !blueDom.Contains(x) && !grayDom.Contains(x)).ToList();
+
+			redDom.Sort((x, y) => ToBrightness(y).CompareTo(ToBrightness(x)));
+			blueDom.Sort((x, y) => ToBrightness(y).CompareTo(ToBrightness(x)));
+			greenDom.Sort((x, y) => ToBrightness(y).CompareTo(ToBrightness(x)));
+			grayDom.Sort((x, y) => ToBrightness(y).CompareTo(ToBrightness(x)));
+			otherDom.Sort((x, y) => ToBrightness(y).CompareTo(ToBrightness(x)));
+
+			allcolors.Clear();
+			allcolors.AddRange(grayDom);
+			allcolors.AddRange(redDom);
+			allcolors.AddRange(greenDom);
+			allcolors.AddRange(blueDom);
+			allcolors.AddRange(otherDom);
+
 			// Add more palettes as needed
 			// Use a specific palette, e.g., Tsitsulin
 			foreach (var color in allcolors)
 			{
 				// Convert ScottPlot Color to System.Windows.Media.Color
-				System.Windows.Media.Color myclr = PlotUtil.ScottToMedia(color);
 				var colorButton = new Button
 				{
-					Background = new System.Windows.Media.SolidColorBrush(myclr),
+					Background = new System.Windows.Media.SolidColorBrush(color),
 					Width = 30,
 					Height = 30,
 					Margin = new Thickness(5)
 				};
-				if (currentColor == color)
+				if (mycolor == color)
 				{
 					colorButton.Height = 32;
 					colorButton.Width = 32;
@@ -118,9 +133,9 @@ namespace QA40xPlot.Views
 				var color = brush.Color.ToString();  // update that
 				var aColor = PlotUtil.StrToColor(color).WithAlpha(alphaVal / 100.0);
 				NowColor = PlotUtil.ColorToStr(aColor); // Update the NowColor property
-														//MySlider.Value = alphaVal; // set the slider to the current opacity
-														//DialogResult = true;
-														//Close();
+				if (CallMe != null)
+					CallMe(this);
+
 			}
 		}
 
@@ -146,44 +161,19 @@ namespace QA40xPlot.Views
 			}
 		}
 
-		private Rect GetWindowSize()
-		{
-			Rect r = Rect.Empty;
-			try
-			{
-				// Get the width and height of the main window
-				if (WindowState == WindowState.Normal)
-				{
-					double windowWidth = Width;
-					double windowHeight = Height;
-					double Xoffset = Left;
-					double Yoffset = Top;
-					r = new Rect(Xoffset, Yoffset, windowWidth, windowHeight);
-				}
-			}
-			catch (Exception ex)
-			{
-				Debug.WriteLine($"Error: {ex.Message}");
-			}
-			return r;
-		}
-
-
 		private void DoOk(object sender, RoutedEventArgs e)
 		{
-			WasApplied = false;
 			DialogResult = true;
 			// Ensure the current window size is captured
-			ViewWindow = GetWindowSize();
+			ViewSettings.Singleton.Main.CurrentColorRect = MainViewModel.GetWindowSize(this);
 			Close();
 		}
 
 		private void DoApply(object sender, RoutedEventArgs e)
 		{
-			WasApplied = true;
-			DialogResult = true;
-			ViewWindow = GetWindowSize();
-			Close();
+			ViewSettings.Singleton.Main.CurrentColorRect = MainViewModel.GetWindowSize(this);
+			if(CallMe != null)
+				CallMe(this);
 		}
 
 		private void OnSliderChange(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -198,6 +188,8 @@ namespace QA40xPlot.Views
 					NowColor = PlotUtil.ColorToStr(currentColor); // Update the NowColor property
 				}
 				ShowOpaque.Content = $"{alphaVal:0.#}%"; // Show the opacity percentage
+				if (CallMe != null)
+					CallMe(this);
 			}
 		}
 
@@ -223,6 +215,8 @@ namespace QA40xPlot.Views
 				var aColor = PlotUtil.StrToColor(color);
 				var alpha = 100.0 * aColor.A / 255.0; // get the alpha value
 				dx.DoShowOpaque(alpha); // Show the opacity percentage
+				if (dx.CallMe != null)
+					dx.CallMe(dx);
 			}
 		}
 	}

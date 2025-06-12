@@ -95,6 +95,12 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _CurrentWindowRect, value);
 		}
 
+		private string _CurrentColorRect = string.Empty;
+		public string CurrentColorRect
+		{
+			get => _CurrentColorRect;
+			set => SetProperty(ref _CurrentColorRect, value);
+		}
 		#endregion
 
 		private static void StopIt()
@@ -121,18 +127,18 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		private static string GetWindowSize()
+		public static string GetWindowSize(Window wndw)
 		{
 			string rs = string.Empty;
 			try
 			{
 				// Get the width and height of the main window
-				if (Application.Current.MainWindow?.WindowState == WindowState.Normal)
+				if (wndw?.WindowState == WindowState.Normal)
 				{
-					double windowWidth = Application.Current.MainWindow.Width;
-					double windowHeight = Application.Current.MainWindow.Height;
-					double Xoffset = Application.Current.MainWindow.Left;
-					double Yoffset = Application.Current.MainWindow.Top;
+					double windowWidth = wndw.Width;
+					double windowHeight = wndw.Height;
+					double Xoffset = wndw.Left;
+					double Yoffset = wndw.Top;
 					var r = new Rect(Xoffset, Yoffset, windowWidth, windowHeight);
 					rs = r.ToString();
 				}
@@ -146,7 +152,7 @@ namespace QA40xPlot.ViewModels
 
 		// when we load a configuration, we get a string rect for the app window size
 		// parse it and set the window size
-		public static void SetWindowSize(string sr)
+		public static void SetWindowSize(Window wndw, string sr)
 		{
 			if(sr.Length == 0)
 				return;
@@ -157,16 +163,16 @@ namespace QA40xPlot.ViewModels
 				if (u.Length < 4)
 					return;
 
-				if (Application.Current.MainWindow != null && u[2] > 0 && u[3] > 0)
+				if (wndw != null && u[2] > 0 && u[3] > 0)
 				{
 					double screenWidth = SystemParameters.PrimaryScreenWidth;
 					double screenHeight = SystemParameters.PrimaryScreenHeight;
 					if ((u[0] + u[2]) <= screenWidth && (u[1] + u[3]) <= screenHeight)
 					{
-						Application.Current.MainWindow.Left = u[0];
-						Application.Current.MainWindow.Top = u[1];
-						Application.Current.MainWindow.Width = u[2];
-						Application.Current.MainWindow.Height = u[3];
+						wndw.Left = u[0];
+						wndw.Top = u[1];
+						wndw.Width = u[2];
+						wndw.Height = u[3];
 					}
 				}
 			}
@@ -180,7 +186,7 @@ namespace QA40xPlot.ViewModels
 		{
 			var cfgData = ViewSettings.Singleton;
 			// Ensure the current window size is captured
-			var windsize = GetWindowSize();
+			var windsize = GetWindowSize(Application.Current.MainWindow);
 			if(windsize.Length > 0)
 				ViewSettings.Singleton.Main.CurrentWindowRect = windsize;
 
@@ -203,7 +209,7 @@ namespace QA40xPlot.ViewModels
 				if( jsonObject != null)
 					ViewSettings.Singleton.GetSettingsFrom(jsonObject);
 				var winRect = ViewSettings.Singleton.Main.CurrentWindowRect;
-				SetWindowSize(winRect);
+				SetWindowSize( Application.Current.MainWindow, winRect);
 				// paint the windows
 				if (ViewSettings.Singleton.Main.CurrentView != null)
 					ViewSettings.Singleton.Main.CurrentView.RaisePropertyChanged("DsRepaint");

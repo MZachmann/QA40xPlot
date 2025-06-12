@@ -121,7 +121,7 @@ namespace QA40xPlot
 			var vm = ViewSettings.Singleton?.Main;
 			if(vm != null)
 			{
-				MainViewModel.SetWindowSize(vm.CurrentWindowRect);
+				MainViewModel.SetWindowSize(Application.Current.MainWindow,	vm.CurrentWindowRect);
 			}
 			this.InvalidateVisual();
 		}

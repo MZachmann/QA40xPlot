@@ -21,17 +21,17 @@ namespace QA40xPlot.Libraries
 			if (fIn.Length != valIn.Length)
 				return [];
 			double[] result = new double[fOut.Length];
-			int idx = -1;
-			int maxl = fIn.Length - 1;
+			int idx = 0;
+			int maxl = fIn.Length;
 			for (int i = 0; i < fOut.Length; i++)
 			{
 				var f = fOut[i];
-				while (idx < maxl && fIn[idx+1] < f)
+				while (idx < maxl && fIn[idx] < f)
 					idx++;
-				if (idx == -1)
+				if (idx == 0)
 					result[i] = valIn[0];
 				else if(idx == maxl)
-					result[i] = valIn[maxl];
+					result[i] = valIn[maxl-1];
 				else
 				{
 					var x1 = fIn[idx - 1];
@@ -40,6 +40,7 @@ namespace QA40xPlot.Libraries
 					var y2 = valIn[idx];
 					result[i] = y1 + (y2 - y1) * (f - x1) / (x2 - x1);
 				}
+				//Debug.WriteLine($"for {i} using {idx} and result={result[i]}");
 			}
 			return result;
 		}

@@ -10,19 +10,24 @@ namespace QA40xPlot.Views
 			InitializeComponent();
 		}
 
+		private bool OnColorChange(ColorPicker dlg)
+		{
+			Color = dlg.NowColor;
+			return true;
+		}
+
 		private void DoColor_Click(object sender, RoutedEventArgs e)
 		{
-			var wasapplied = true;
-			while (wasapplied)
+			var colorPickerDialog = new ColorPicker(Color);
+			var originalColor = Color;
+			colorPickerDialog.CallMe = OnColorChange;
+			if (colorPickerDialog.ShowDialog() == true)
 			{
-				var colorPickerDialog = new ColorPicker(Color);
-				if (colorPickerDialog.ShowDialog() == true)
-				{
-					Color = colorPickerDialog.NowColor;
-					wasapplied = colorPickerDialog.WasApplied;
-				}
-				else
-					wasapplied = false;
+				Color = colorPickerDialog.NowColor;
+			}
+			else
+			{
+				Color = originalColor;
 			}
 		}
 

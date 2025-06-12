@@ -5,11 +5,14 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:QA40xPlot.Views"
              mc:Ignorable="d" 
-             Height="500" Width="600"
+             Height="500" Width="600" Background="#FFEEEEEE"
              d:DesignHeight="450" d:DesignWidth="800">
-    <ScrollViewer>
-        <StackPanel Orientation="Vertical">
-            <StackPanel Orientation="Horizontal">
+        <Grid >
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+            <StackPanel Orientation="Horizontal" Grid.Row="0">
                 <Label Content="Color" />
                 <ComboBox IsEditable="True" MinWidth="80" 
                   Text="{Binding NowColor, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=local:ColorPicker}}" 
@@ -20,17 +23,20 @@
                         ValueChanged="OnSliderChange" Minimum="0" Maximum="100" Width="120" />
                 <Label Content="Solid  "  VerticalContentAlignment="Center" />
                 <Label x:Name="ShowOpaque" VerticalContentAlignment="Center" />
-                <Label Content="         " />
-                <Button Content="OK" Click="DoOk" ToolTip="OK" IsDefault="True"  
-                        Background="{Binding NowColor, RelativeSource={RelativeSource AncestorType=local:ColorPicker}}" 
-                        HorizontalContentAlignment="Center"
-                        HorizontalAlignment="Stretch"
-                        Margin="5,0,0,0" Width="40" />
-                <Label Content="    " />
-                <Button Content="Apply" Click="DoApply" />
-                <Button Content="Cancel" Click="DoCancel" IsCancel="True"/>
+                <StackPanel Orientation="Horizontal" 
+                        Background="{Binding NowColor, RelativeSource={RelativeSource AncestorType=local:ColorPicker}}">
+                    <Label Content="         " />
+                    <Button Content="OK" Click="DoOk" ToolTip="OK" IsDefault="True"  
+                                HorizontalContentAlignment="Center"
+                                HorizontalAlignment="Stretch"
+                                Width="40" />
+                    <Label Content="    " />
+                    <Button Content="Cancel" Click="DoCancel" IsCancel="True"/>
+                    <Label Content="    " />
+                </StackPanel>
             </StackPanel>
-            <WrapPanel Name="ColorWrapPanel" Margin="10" />
-        </StackPanel>
-    </ScrollViewer>
+            <ScrollViewer  Grid.Row="1">
+                <WrapPanel Name="ColorWrapPanel" Margin="10" />
+            </ScrollViewer>
+        </Grid>
 </Window>
