@@ -224,7 +224,12 @@ namespace QA40xPlot.ViewModels
 		private void ShowInfos()
 		{
 			if (actAbout != null)
+			{
 				actAbout.Visibility = ShowTabInfo ? Visibility.Visible : Visibility.Hidden;
+				var fvm = actAbout.DataContext as FloorViewModel;
+				if (fvm != null)
+					fvm.ThemeBkgd = ViewSettings.Singleton.Main.ThemeBkgd; ;
+			}
 		}
 
 		public void SetAction(PlotControl plot, PlotControl plot1, PlotControl plot2, TabAbout tAbout)

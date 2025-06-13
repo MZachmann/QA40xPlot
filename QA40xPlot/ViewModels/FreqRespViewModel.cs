@@ -182,7 +182,12 @@ public class FreqRespViewModel : BaseViewModel
 				break;
 			case "ShowTabInfo":
 				if (actAbout != null)
+				{
 					actAbout.Visibility = ShowTabInfo ? Visibility.Visible : Visibility.Hidden;
+					var fvm = actAbout.DataContext as FloorViewModel;
+					if( fvm != null)
+						fvm.ThemeBkgd = ViewSettings.Singleton.Main.ThemeBkgd; ;
+				}
 				break;
 			case "Voltage":
 			case "AmpLoad":

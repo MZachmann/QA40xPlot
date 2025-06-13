@@ -232,7 +232,12 @@ namespace QA40xPlot.ViewModels
 		private void ShowInfos()
 		{
 			if (actAbout != null)
+			{
 				actAbout.Visibility = ShowTabInfo ? Visibility.Visible : Visibility.Hidden;
+				var fvm = actAbout.DataContext as FloorViewModel;
+				if (fvm != null)
+					fvm.ThemeBkgd = ViewSettings.Singleton.Main.ThemeBkgd; ;
+			}
 		}
 
 		// this always uses the 'global' format so others work too

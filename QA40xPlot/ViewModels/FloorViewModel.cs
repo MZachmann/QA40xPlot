@@ -31,6 +31,7 @@ namespace QA40xPlot.ViewModels
 			set { SetProperty(ref _ThemeBkgd, value); RaisePropertyChanged("ThemeBackground"); }
 		}
 
+		[JsonIgnore]
 		public System.Windows.Media.Brush ThemeBackground
 		{
 			get {

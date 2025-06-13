@@ -707,6 +707,8 @@ namespace QA40xPlot.Actions
 			}
 
 			ReformatChannels(); // ensure the channels are formatted correctly
+			ViewSettings.Singleton.ImdChannelLeft.ThemeBkgd = ViewSettings.Singleton.Main.ThemeBkgd;
+			ViewSettings.Singleton.ImdChannelRight.ThemeBkgd = ViewSettings.Singleton.Main.ThemeBkgd;
 			ShowPageInfo(PageData);
 
 			PlotValues(PageData, resultNr++, true);

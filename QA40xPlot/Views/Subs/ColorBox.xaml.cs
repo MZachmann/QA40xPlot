@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using QA40xPlot.ViewModels;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace QA40xPlot.Views
@@ -21,6 +22,7 @@ namespace QA40xPlot.Views
 			var colorPickerDialog = new ColorPicker(Color);
 			var originalColor = Color;
 			colorPickerDialog.CallMe = OnColorChange;
+			colorPickerDialog.DataContext = this.DataContext;	// so background color is right
 			if (colorPickerDialog.ShowDialog() == true)
 			{
 				Color = colorPickerDialog.NowColor;

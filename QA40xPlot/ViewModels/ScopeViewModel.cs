@@ -314,7 +314,12 @@ namespace QA40xPlot.ViewModels
 			if (actInfoRight != null)
 				actInfoRight.Visibility = (ShowSummary && frames > 1) ? Visibility.Visible : Visibility.Hidden;
 			if (actAbout != null)
+			{
 				actAbout.Visibility = ShowTabInfo ? Visibility.Visible : Visibility.Hidden;
+				var fvm = actAbout.DataContext as FloorViewModel;
+				if (fvm != null)
+					fvm.ThemeBkgd = ViewSettings.Singleton.Main.ThemeBkgd; ;
+			}
 		}
 
 		private void OnViewToFit(object? parameter)

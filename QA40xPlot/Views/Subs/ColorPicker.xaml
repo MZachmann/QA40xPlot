@@ -5,15 +5,15 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:QA40xPlot.Views"
              mc:Ignorable="d" 
-             Height="500" Width="600" Background="#FFEEEEEE"
+             Height="500" Width="600" 
              d:DesignHeight="450" d:DesignWidth="800">
-        <Grid >
+    <Grid Background="{Binding ThemeBackground}" x:Name="Main">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
             <StackPanel Orientation="Horizontal" Grid.Row="0">
-                <Label Content="Color" />
+                <Label Content="Color" VerticalAlignment="Center" />
                 <ComboBox IsEditable="True" MinWidth="80" 
                   Text="{Binding NowColor, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=local:ColorPicker}}" 
                   ItemsSource="{Binding PlotColors, RelativeSource={RelativeSource AncestorType=local:ColorPicker}}"

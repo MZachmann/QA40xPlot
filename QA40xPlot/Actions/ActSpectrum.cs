@@ -881,6 +881,8 @@ namespace QA40xPlot.Actions
 				}
 			}
 			ReformatChannels(); // ensure the channels are formatted correctly
+			ViewSettings.Singleton.ChannelLeft.ThemeBkgd = ViewSettings.Singleton.Main.ThemeBkgd;
+			ViewSettings.Singleton.ChannelRight.ThemeBkgd = ViewSettings.Singleton.Main.ThemeBkgd;
 
 			ShowPageInfo(PageData); // show the page info in the display
 			PlotValues(PageData, resultNr++, true);
