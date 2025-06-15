@@ -438,6 +438,7 @@ namespace QA40xPlot.Actions
 			var lrfs = msr.FreqRslt;    // frequency response
 
 			var maxf = 20000; // the app seems to use 20,000 so not sampleRate/ 2.0;
+			LeftRightPair sinaddb = QaCompute.GetSinadDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf);
 			LeftRightPair snrdb = QaCompute.GetSnrDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf);
 			LeftRightPair thds = QaCompute.GetThdDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf);
 			LeftRightPair thdN = QaCompute.GetThdnDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf);
@@ -453,6 +454,7 @@ namespace QA40xPlot.Actions
 				step.GeneratorVolts = msr.Definition.GeneratorVoltage;
 				step.FundamentalVolts = QaMath.MagAtFreq(frq, msr.FreqRslt.Df, freq);
 				step.SNRatio = isleft ? snrdb.Left : snrdb.Right;
+				step.SinaddB = isleft ? sinaddb.Left : sinaddb.Right;
 				step.ENOB = (step.SNRatio - 1.76) / 6.02;
 				step.ThdNInV = step.FundamentalVolts * QaLibrary.ConvertVoltage(isleft ? thdN.Left : thdN.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
 				step.NoiseFloorV = (isleft ? msr.NoiseFloor.Left : msr.NoiseFloor.Right);

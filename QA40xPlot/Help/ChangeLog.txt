@@ -4,6 +4,8 @@ This changelog shows the changes made for each version
 --------------------------------------------
 v 1.1.23
 - improve dark and light dialog renditions on switch
+- repair right channel individual harmonics/imds displayed values
+- add early sinad math
 v 1.1.22
 - huge upgrade to the color picker to change dynamically
 - seriously improve color selection
