@@ -59,6 +59,13 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _SNRatio, value);
 		}
 
+		private double _SinaddB = 0;         // type of alert
+		public double SinaddB
+		{
+			get => _SinaddB;
+			set => SetProperty(ref _SinaddB, value);
+		}
+
 		private double _ENOB = 0;         // type of alert
 		public double ENOB
 		{

@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System.ComponentModel;
+using System.Drawing;
 using System.Runtime.CompilerServices;
 
 namespace QA40xPlot.ViewModels
@@ -38,8 +39,13 @@ namespace QA40xPlot.ViewModels
 				try
 				{
 					var x = ViewSettings.Singleton.SettingsVm.ThemeSet;
-					var y = ViewSettings.Singleton.SettingsVm.GraphBackClr;
-					var color = (x == "Dark") ? System.Windows.Media.Colors.Black : System.Windows.Media.Colors.White;
+					var y = ViewSettings.Singleton.SettingsVm.BackgroundClr;
+					var color = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(y);
+					//var color = (x == "Dark") ? System.Windows.Media.Colors.Black : System.Windows.Media.Colors.White;
+					if (y == "Transparent")
+					{
+						color = (x == "Dark") ? System.Windows.Media.Colors.Black : System.Windows.Media.Colors.White;
+					}
 					var bclr = System.Windows.Media.Color.FromArgb(150, color.R, color.G, color.B);
 					return new System.Windows.Media.SolidColorBrush(bclr);
 				}

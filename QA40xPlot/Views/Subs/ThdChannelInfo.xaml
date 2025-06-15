@@ -88,49 +88,52 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Label Padding="2,2" Grid.Row="0" Grid.Column="0" Content="SNR:" HorizontalAlignment="Right"/>
                 <Label Padding="2,2" Grid.Row="0" Grid.Column="1" ToolTip="Signal to noise ratio 20-20KHz unweighted"
                     Content="{Binding SNRatio, Converter={StaticResource DoubleIntlConverter}, ConverterParameter=-2}" ContentStringFormat="{}{0} dB"/>
-                <Label Padding="2,2" Grid.Row="0" Grid.Column="2" Content="ENOB:" HorizontalAlignment="Right"/>
-                <Label Padding="2,2" Grid.Row="0" Grid.Column="3" ToolTip="Equivalent number of bits"
+                <Label Padding="2,2" Grid.Row="0" Grid.Column="2" Content="SINAD:" HorizontalAlignment="Right"/>
+                <Label Padding="2,2" Grid.Row="0" Grid.Column="3" ToolTip="Signal+noise to noise ratio 20-20KHz unweighted"
+                    Content="{Binding SinaddB, Converter={StaticResource DoubleIntlConverter}, ConverterParameter=-2}" ContentStringFormat="{}{0} dB"/>
+                <Label Padding="2,2" Grid.Row="1" Grid.Column="0" Content="ENOB:" HorizontalAlignment="Right"/>
+                <Label Padding="2,2" Grid.Row="1" Grid.Column="1" ToolTip="Equivalent number of bits"
                        Content="{Binding ENOB, Converter={StaticResource DoubleIntlConverter}, ConverterParameter=-1}" ContentStringFormat="{}{0} bits"/>
 
-                <Label Padding="2,2" Grid.Row="1" Grid.Column="0" Content="2nd:" HorizontalAlignment="Right"/>
-                <Label Padding="2,2" Grid.Row="1" Grid.Column="2" Content="3rd:" HorizontalAlignment="Right"/>
-                <Label Padding="2,2" Grid.Row="2" Grid.Column="0" Content="4th:" HorizontalAlignment="Right"/>
-                <Label Padding="2,2" Grid.Row="2" Grid.Column="2" Content="5th:" HorizontalAlignment="Right"/>
-                <Label Padding="2,2" Grid.Row="3" Grid.Column="0" Content="6th:" HorizontalAlignment="Right"/>
-
-                <Label Padding="2,2" Grid.Row="1" Grid.Column="1" ToolTip="2nd harmonic distortion" >
+                <Label Padding="2,2" Grid.Row="2" Grid.Column="0" Content="2nd:" HorizontalAlignment="Right"/>
+                <Label Padding="2,2" Grid.Row="2" Grid.Column="2" Content="3rd:" HorizontalAlignment="Right"/>
+                <Label Padding="2,2" Grid.Row="2" Grid.Column="1" ToolTip="2nd harmonic distortion" >
                     <MultiBinding Converter="{StaticResource VToPctConverter}">
                         <Binding Path="Harmonics[0].Thd_Percent"/>
                         <Binding Path="Harmonics[0].Amplitude_V"/>
                         <Binding Path="ShowDataPercents"/>
                     </MultiBinding>
                 </Label>
-                <Label Padding="2,2" Grid.Row="1" Grid.Column="3"  >
+                <Label Padding="2,2" Grid.Row="2" Grid.Column="3"  >
                     <MultiBinding Converter="{StaticResource VToPctConverter}">
                         <Binding Path="Harmonics[1].Thd_Percent"/>
                         <Binding Path="Harmonics[1].Amplitude_V"/>
                         <Binding Path="ShowDataPercents"/>
                     </MultiBinding>
                 </Label>
-                <Label Padding="2,2" Grid.Row="2" Grid.Column="1" >
+                <Label Padding="2,2" Grid.Row="3" Grid.Column="0" Content="4th:" HorizontalAlignment="Right"/>
+                <Label Padding="2,2" Grid.Row="3" Grid.Column="2" Content="5th:" HorizontalAlignment="Right"/>
+                <Label Padding="2,2" Grid.Row="3" Grid.Column="1" >
                     <MultiBinding Converter="{StaticResource VToPctConverter}">
                         <Binding Path="Harmonics[2].Thd_Percent"/>
                         <Binding Path="Harmonics[2].Amplitude_V"/>
                         <Binding Path="ShowDataPercents"/>
                     </MultiBinding>
                 </Label>
-                <Label Padding="2,2" Grid.Row="2" Grid.Column="3" >
+                <Label Padding="2,2" Grid.Row="3" Grid.Column="3" >
                     <MultiBinding Converter="{StaticResource VToPctConverter}">
                         <Binding Path="Harmonics[3].Thd_Percent"/>
                         <Binding Path="Harmonics[3].Amplitude_V"/>
                         <Binding Path="ShowDataPercents"/>
                     </MultiBinding>
                 </Label>
-                <Label Padding="2,2" Grid.Row="3" Grid.Column="1" >
+                <Label Padding="2,2" Grid.Row="4" Grid.Column="0" Content="6th:" HorizontalAlignment="Right"/>
+                <Label Padding="2,2" Grid.Row="4" Grid.Column="1" >
                     <MultiBinding Converter="{StaticResource VToPctConverter}">
                         <Binding Path="Harmonics[4].Thd_Percent"/>
                         <Binding Path="Harmonics[4].Amplitude_V"/>

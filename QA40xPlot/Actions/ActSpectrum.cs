@@ -529,7 +529,7 @@ namespace QA40xPlot.Actions
 					var ffts = step.IsLeft ? page.FreqRslt.Left : page.FreqRslt.Right;
 					double amplitude_V = QaMath.MagAtFreq(ffts, binSize, harmonicFrequency);
 					double amplitude_dBV = 20 * Math.Log10(amplitude_V);
-					double thdPercent = (amplitude_V / left.FundamentalVolts) * 100;
+					double thdPercent = (amplitude_V / step.FundamentalVolts) * 100;
 
 					HarmonicData harmonic = new()
 					{

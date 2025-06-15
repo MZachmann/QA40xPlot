@@ -6,6 +6,7 @@
              xmlns:local="clr-namespace:QA40xPlot.Views"
              mc:Ignorable="d" 
              Height="500" Width="600" 
+            Title="Color Chooser"
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid Background="{Binding ThemeBackground}" x:Name="Main">
         <Grid.RowDefinitions>

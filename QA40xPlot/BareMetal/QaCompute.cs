@@ -79,6 +79,21 @@ namespace QA40xPlot.BareMetal
 			return new(thdLeft, thdRight);
 		}
 
+		internal static LeftRightPair GetSinadDb(string windowing, LeftRightFrequencySeries lrs, double fundFreq, double minFreq, double maxFreq)
+		{
+			if (lrs == null)
+				return new();
+
+			var ffs = lrs.Left;
+			var thdLeft = ComputeSinadRatio(windowing, ffs, lrs.Df, fundFreq, minFreq, maxFreq, false);
+			thdLeft = QaLibrary.ConvertVoltage(thdLeft, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+			ffs = lrs.Right;
+			var thdRight = ComputeSinadRatio(windowing, ffs, lrs.Df, fundFreq, minFreq, maxFreq, false);
+			thdRight = QaLibrary.ConvertVoltage(thdRight, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+
+			return new(thdLeft, thdRight);
+		}
+
 		internal static LeftRightPair GetThdDb(string windowing, LeftRightFrequencySeries lrs, double fundFreq, double minFreq, double maxFreq)
 		{
 			// double[] signalFreqLin, double[] frequencies, double fundamental,
@@ -138,7 +153,7 @@ namespace QA40xPlot.BareMetal
 				return new();
 
 			var ffs = lrs.Left;
-			var notchOct = 0.5;
+			var notchOct = 0.15;
 			var thdLeft = ComputeThdnLinear(windowing, ffs, lrs.Df, fundFreq, notchOct, minFreq, maxFreq);
 			thdLeft = QaLibrary.ConvertVoltage(thdLeft, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 			ffs = lrs.Right;
@@ -152,7 +167,7 @@ namespace QA40xPlot.BareMetal
 		{
 			// Calculate notch filter bounds in Hz
 			//var notchOctaves = 0.5; // aes-17 2015 standard notch
-			var notchOctaves = 0.1; // my preferred notch much tighter and more realistic nowadays
+			var notchOctaves = 0.15; // my preferred notch much tighter and more realistic nowadays
 			double notchLowerBound = fundamental / Math.Pow(2, notchOctaves);
 			double notchUpperBound = fundamental * Math.Pow(2, notchOctaves);
 
@@ -183,9 +198,43 @@ namespace QA40xPlot.BareMetal
 			return fundamentalRms / noiseRms;
 		}
 
+		internal static double ComputeSinadRatio(string windowing, double[] signalFreqLin, double df, double fundamental, double minFreq, double maxFreq, bool debug = false)
+		{
+			// Calculate notch filter bounds in Hz
+			//var notchOctaves = 0.5; // aes-17 2015 standard notch
+			var notchOctaves = 0.15; // my preferred notch much tighter and more realistic nowadays
+			double notchLowerBound = fundamental / Math.Pow(2, notchOctaves);
+			double notchUpperBound = fundamental * Math.Pow(2, notchOctaves);
+
+			if (debug)
+			{
+				Debug.WriteLine($"Notch Filter Bounds: {notchLowerBound:F2} Hz to {notchUpperBound:F2} Hz");
+			}
+
+			// Calculate RMS of the fundamental within the notch
+			double fundamentalRms = QaMath.MagAtFreq(signalFreqLin, df, fundamental);
+			if (debug)
+			{
+				Debug.WriteLine($"Fundamental RMS: {fundamentalRms:F6}");
+			}
+
+			// Calculate RMS of the signal outside the notch
+			double rmsBelowNotch = ComputeRmsF(signalFreqLin, df, minFreq, notchLowerBound, windowing);
+			double rmsAboveNotch = ComputeRmsF(signalFreqLin, df, notchUpperBound, maxFreq, windowing);
+			double rmsTotal = ComputeRmsF(signalFreqLin, df, minFreq, maxFreq, windowing);
+
+			if (debug)
+			{
+				Debug.WriteLine($"RMS Below Notch: {rmsBelowNotch:F6}");
+				Debug.WriteLine($"RMS Above Notch: {rmsAboveNotch:F6}");
+			}
+
+			return rmsTotal / Math.Sqrt(rmsAboveNotch * rmsAboveNotch + rmsBelowNotch * rmsBelowNotch);
+		}
+
 		internal static double ComputeImdSnrRatio(string windowing, double[] signalFreqLin, double df, double[] fundamentals, double minFreq, double maxFreq, bool debug = false)
 		{
-			var notchOctaves = 0.05; // tight notch for intermods
+			var notchOctaves = 0.15; // tight notch for intermods
 			var notches = new List<double>();
 			// fundamentals must be monotone
 			double lastFreq = fundamentals[0] - 1;
