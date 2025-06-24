@@ -215,6 +215,7 @@ public class FreqRespViewModel : BaseViewModel
 			case "ShowLeft":
 			case "ShowThickLines":
 			case "StepsOctave":
+			case "ShowPoints":
 				MyAction?.UpdateGraph(false);
 				break;
 			case "SampleRate":

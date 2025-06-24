@@ -6,6 +6,7 @@ using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -591,9 +592,9 @@ namespace QA40x.BareMetal
 					{
 						// empirically we get -7e-5 until signal shows up
 						// i assume that's dc offset...
-						var inx = r.Left[i] ;
+						var inx = r.Left[i];
 						var iny = r.Right[i];
-						if ( Math.Abs(inx - dcoffsetL) > 1e-3 || Math.Abs(iny- dcoffsetR) > 1e-3)
+						if ( Math.Abs(inx - dcoffsetL)*adcCal.Left* adcCorrection > 1e-3 || Math.Abs(iny- dcoffsetR) * adcCal.Right * adcCorrection > 1e-3)
 						{
 							loff = i;
 							break;
@@ -603,17 +604,18 @@ namespace QA40x.BareMetal
 					// allow 2ms after the end of the prebuffer
 					if (loff > (preBuf + samplerate / 2000))
 						loff = (int)(preBuf + samplerate / 2000);
-					loff = Math.Max(0, loff - preBuf);
+					// keep an extra 5 or .05ms at 96KHz
+					loff = Math.Max(0, loff - preBuf - 5);
 					Debug.WriteLine($"Delay offset: {loff:G3}   DC offset: {dcoffsetL:G3},{dcoffsetR:G3}");
 					_DelayOffset = loff;
 				}
 
 				var rlf = r.Left.Skip(preBuf + loff).Take(tused);
-				var roff = rlf.Sum() / rlf.Count();  // dc offset
+				var roff = rlf.Average();  // dc offset
 				r.Left = rlf.Select(x => (x - roff) * adcCal.Left * adcCorrection).ToArray();
 
 				var rrf = r.Right.Skip(prebuf.Length + loff).Take(tused);
-				roff = rrf.Sum() / rlf.Count();  // dc offset
+				roff = rrf.Average();  // dc offset
 				r.Right = rrf.Select(x => (x - roff) * adcCal.Right * adcCorrection).ToArray();
 
 				//Debug.WriteLine($"Attenuation: {maxInput}  Output Level: {maxOutput}");
