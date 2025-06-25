@@ -358,24 +358,28 @@ namespace QA40xPlot.BareMetal
 			return thd;
 		}
 
+
 		/// <summary>
-		/// Compute the Total Harmonic Distortion (THD) from double[] result
+		/// Compute the total intermodulation distrtion
 		/// </summary>
-		/// <param name="signalFreqLin"></param>
-		/// <param name="frequencies"></param>
-		/// <param name="fundamental"></param>
-		/// <param name="numHarmonics"></param>
+		/// <param name="windowing">windowing to use</param>
+		/// <param name="signalFreqLin">the signal frequencies as an array</param>
+		/// <param name="df">the delta freqeuncy</param>
+		/// <param name="fundamentals">the array of fundamental frequencies</param>
+		/// <param name="numHarmonics">number of harmonics to keep</param>
 		/// <param name="debug"></param>
 		/// <returns></returns>
-		/// <exception cref="ArgumentException"></exception>
 		internal static double ComputeImdLinear(string windowing, double[] signalFreqLin, double df, double[] fundamentals, int numHarmonics = 5, bool debug = false)
 		{
 			var maxFreq = df * signalFreqLin.Length;
 
+			// intermod generally works off the highest frequency we are testing
+
 			double fundamentalRmsSq = 0;
-			foreach (var freq in fundamentals)
+			var maxf = fundamentals.Max();
+			// single fundamental
 			{
-				var rmsv = QaMath.MagAtFreq(signalFreqLin, df, freq);
+				var rmsv = QaMath.MagAtFreq(signalFreqLin, df, maxf);
 				fundamentalRmsSq += rmsv * rmsv;
 			}
 
@@ -390,26 +394,29 @@ namespace QA40xPlot.BareMetal
 
 			// Calculate the sum of squares of the harmonic amplitudes
 			double harmonicAmplitudesSqSum = 0.0;
-			var harmRange = Enumerable.Range(1, numHarmonics).ToList();
-			harmRange.AddRange(Enumerable.Range(-numHarmonics, numHarmonics));
-			// now harmRange = -2, -1, 1, 2 when numHarmonics==2
-			foreach(int m in harmRange)
+			// sqrt( (vfh-fl + vfh+fl)^2 + (vfh-2fl+vfh+2fl)^2)
+			int[] harmHRange = [1];
+			int[] harmLRange = [1, 2];
+			foreach (int m in harmHRange)
 			{
-				foreach (int n in harmRange)
+				foreach (int n in harmLRange)
 				{
-					double harmonicFreq = n * fundamentals[0] + m * fundamentals[1];
-					if (harmonicFreq < maxFreq && harmonicFreq > 10)
-					{
-						double harmonicAmplitude = QaMath.MagAtFreq(signalFreqLin, df, harmonicFreq);
-						harmonicAmplitudesSqSum += Math.Pow(harmonicAmplitude, 2);
-
-						// Debugging: Show the harmonic amplitude in dB and the bins being examined
-						if (debug)
+					double harmonicAmplitude = 0;
+					// linearly add the sideband
+					double[] harmonics = [n * fundamentals[0] + m * fundamentals[1], 
+										(-n * fundamentals[0]) + m * fundamentals[1]];
+					foreach(var hFreq in harmonics)
+						if (hFreq < maxFreq && hFreq > 10)
 						{
-							double harmonicAmplitudeDb = 20 * Math.Log10(harmonicAmplitude);
-							Debug.WriteLine($"{n}x{m} Intermod Amplitude: {harmonicAmplitude:F6} (Linear), {harmonicAmplitudeDb:F2} dB");
+							harmonicAmplitude += QaMath.MagAtFreq(signalFreqLin, df, hFreq);
+							// Debugging: Show the harmonic amplitude in dB and the bins being examined
+							if (debug)
+							{
+								double harmonicAmplitudeDb = 20 * Math.Log10(harmonicAmplitude);
+								Debug.WriteLine($"{n}x{m} Intermod Amplitude: {harmonicAmplitude:F6} (Linear), {harmonicAmplitudeDb:F2} dB");
+							}
 						}
-					}
+					harmonicAmplitudesSqSum += harmonicAmplitude * harmonicAmplitude;
 				}
 			}
 			// Compute THD
@@ -509,7 +516,8 @@ namespace QA40xPlot.BareMetal
 				}
 				lastFreq = freq;
 				var vfund = QaMath.MagAtFreq(signalFreqLin, df, freq);
-				fundamentalRmsSq += vfund * vfund;
+				// only use last fundamental
+				fundamentalRmsSq = vfund * vfund;
 			}
 
 			// Calculate RMS of the total fundamentals

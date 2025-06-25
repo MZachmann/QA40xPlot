@@ -381,11 +381,14 @@ namespace QA40xPlot.Actions
 
 			var freq = vm.NearestBinFreq(vm.Gen1Frequency);
 			var freq2 = vm.NearestBinFreq(vm.Gen2Frequency);
+			var u = freq;
+			freq = Math.Min(freq, freq2);
+			freq2 = Math.Max(u, freq2);	// freq2 is always the largest
 			var lrfs = msr.FreqRslt;    // frequency response
 
 			var maxf = 20000; // the app seems to use 20,000 so not sampleRate/ 2.0;
 			var wdw = vm.WindowingMethod; // windowing method
-			LeftRightPair thds = QaCompute.GetImdDb(wdw, lrfs, [freq,freq2], 20.0, maxf);
+			LeftRightPair thds = QaCompute.GetImdDb(wdw, lrfs, [freq, freq2], 20.0, maxf);
 			LeftRightPair thdN = QaCompute.GetImdnDb(wdw, lrfs, [freq, freq2], 20.0, maxf);
 			LeftRightPair snrimdb = QaCompute.GetSnrImdDb(wdw, lrfs, [freq, freq2], 20.0, maxf);
 
@@ -406,14 +409,17 @@ namespace QA40xPlot.Actions
 				double FundamentalVolts = Math.Sqrt(x * x + y * y);
 				step.SNRatio = isleft ? snrimdb.Left : snrimdb.Right;
 				step.ENOB = (step.SNRatio - 1.76) / 6.02;
-				step.ThdNInV = FundamentalVolts * QaLibrary.ConvertVoltage(isleft ? thdN.Left : thdN.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
+				// noise
 				step.NoiseFloorV = (isleft ? msr.NoiseFloor.Left : msr.NoiseFloor.Right);
-				step.NoiseFloorPct = 100 * step.NoiseFloorV / step.Fundamental1Volts;
-				step.ThdInV = FundamentalVolts * QaLibrary.ConvertVoltage(isleft ? thds.Left : thds.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
-				step.ThdInPercent = 100 * step.ThdInV / step.Fundamental1Volts;
-				step.ThdNInPercent = 100 * step.ThdNInV / step.Fundamental1Volts;
+				step.NoiseFloorPct = 100 * step.NoiseFloorV / step.Fundamental2Volts; // ?
+				// note that all imd calculations use the fundamental2 value as base
+				step.ThdNInV = step.Fundamental2Volts * QaLibrary.ConvertVoltage(isleft ? thdN.Left : thdN.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
+				step.ThdInV = step.Fundamental2Volts * QaLibrary.ConvertVoltage(isleft ? thds.Left : thds.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
+				step.ThdInPercent = 100 * step.ThdInV / step.Fundamental2Volts;
+				step.ThdNInPercent = 100 * step.ThdNInV / step.Fundamental2Volts;
 				step.ThdNIndB = isleft ? thdN.Left : thdN.Right;
 				step.ThdIndB = isleft ? thds.Left : thds.Right;
+				// gain
 				step.Gain1dB = 20 * Math.Log10(step.Fundamental1Volts / Math.Max(1e-10, step.Generator1Volts));
 				step.Gain2dB = 20 * Math.Log10(step.Fundamental2Volts / Math.Max(1e-10, step.Generator2Volts));
 				var rmsV = QaCompute.ComputeRmsF(frq, msr.FreqRslt.Df, 20, 20000, vm.WindowingMethod);
@@ -554,25 +560,30 @@ namespace QA40xPlot.Actions
 				frqs.Add(dval);
 		}
 
-		private double[] MakeHarmonics(double f1, double f2)
+		private double[] MakeHarmonics(double f1, double f2, double maxF)
 		{
-			List<double> harmFreqs = new List<double>();
 			if( f1 > f2)
 			{
 				var a = f2;
 				f2 = f1;
 				f1 = f2;
 			}
-			var hf = harmFreqs.Append( f2 - f1);	// dfd2
-			hf = hf.Append( f2 + f1);				// dfd3
-			hf = hf.Append( 2*f1 - f2);				// d2hl
-			hf = hf.Append( 2*f2 - f1);
-			hf = hf.Append( 3*f1 - 2*f2);
-			hf = hf.Append( 3*f2 - 2*f1);
-			hf = hf.Append( 4 * f1 - 3 * f2);
-			hf = hf.Append( 4 * f2 - 3 * f1);
-			hf = hf.Append( 3 * f2 - f1);
-			hf = hf.Append( 3 * f1 - f2);
+			List<double> harmFreqs = new List<double>();
+			//2nd order
+			var hf = harmFreqs.Append(f2 - f1);	// dfd2
+			hf = hf.Append(f2 + f1);            // dfd3
+			//3rd order
+			hf = hf.Append(f2 + 2*f1);          // dfd3
+			hf = hf.Append(f2 - 2*f1);          // dfd3
+			hf = hf.Append(f1 + 2*f2);          // dfd3
+			hf = hf.Append(f1 - 2*f2);          // dfd3
+			//4th order for f2 only
+			hf = hf.Append(f2 + 3*f1);			// d2hl
+			hf = hf.Append(f2 - 3*f1);
+			//5th order for f2 only
+			hf = hf.Append(f2 + 4 * f1);            // d2hl
+			hf = hf.Append(f2 - 4 * f1);
+			hf = hf.Select(x => Math.Abs(x)).Where(x => x < maxF);
 			return hf.ToArray();
 		}
 
@@ -931,7 +942,7 @@ namespace QA40xPlot.Actions
 			var freq2 = vm.NearestBinFreq(vm.Gen2Frequency);
 			var maxfreq = vm.SampleRateVal / 2.0;
 
-			var freqList = MakeHarmonics(freq, freq2);
+			var freqList = MakeHarmonics(freq, freq2, maxfreq);
 			ImdChannelViewModel[] steps = [left, right];
 
 			foreach(var step in steps)
