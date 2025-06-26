@@ -2,6 +2,9 @@
 --------------------------------------------
 This changelog shows the changes made for each version
 --------------------------------------------
+v 1.1.24
+- fix the showpoints not showing in freqresp
+- use standard IMD definition for smpte/din and others
 v 1.1.23
 - improve dark and light dialog renditions on switch
 - repair right channel individual harmonics/imds displayed values
