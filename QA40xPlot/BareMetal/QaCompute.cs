@@ -14,6 +14,40 @@ namespace QA40xPlot.BareMetal
 {
 	public static class QaCompute
 	{
+		internal enum E_ImdMethod
+		{
+			CCIF, // CCIF method for intermodulation distortion
+			Power, // Power method for intermodulation distortion
+			DIN // DIN method for intermodulation distortion
+		}
+
+		internal static E_ImdMethod GetImdMethod(double[] fundFreqs)
+		{
+			Debug.Assert(fundFreqs.Length == 2, "fundFreqs should have exactly two frequencies for IMD calculation.");
+			var ratio = fundFreqs[1] / fundFreqs[0];
+			if (ratio < 2)
+				return E_ImdMethod.CCIF;
+			else if (ratio < 7)
+				return E_ImdMethod.Power;
+			else
+				return E_ImdMethod.DIN;
+		}
+
+		internal static double GetImdDenom(E_ImdMethod method, double vf1, double vf2)
+		{
+			switch (method)
+			{
+				case E_ImdMethod.CCIF:
+					return vf1 + vf2; // CCIF method uses F2+F1 as the denominator
+				case E_ImdMethod.Power:
+					return Math.Sqrt(vf1 * vf1 + vf2 * vf2); // Power method uses sqrt(F2^2+F1^2) as the denominator
+				case E_ImdMethod.DIN:
+					return vf2; // DIN method uses F2 as the denominator
+				default:
+					throw new ArgumentException("Invalid IMD method specified.");
+			}
+		}
+
 		internal struct EnbwMath
 		{
 			public double Enbw;
@@ -111,6 +145,13 @@ namespace QA40xPlot.BareMetal
 			return new(thdLeft, thdRight);
 		}
 
+		// there are essentially three ways to compute IMD based on f2/f1 ratio
+		// 1. if f2/f1 < 2 use the CCIF method. DFD2,DFD3 plus IMD using the power method
+		//      reference level is F2+F1
+		// 2. if 2 < f2/f1 < 7 use the power method and report IMD
+		//      reference level is sqrt(F2^2+F1^2)
+		// 3. if f2/f1 > 7 use the DIN method and report MD2,MD3 and IMDdin
+		//      reference level is F2
 		internal static LeftRightPair GetImdDb(string windowing, LeftRightFrequencySeries lrs, double[] fundFreqs, double minFreq, double maxFreq)
 		{
 			// double[] signalFreqLin, double[] frequencies, double fundamental,
@@ -118,11 +159,15 @@ namespace QA40xPlot.BareMetal
 			if (lrs == null)
 				return new();
 
+			Debug.Assert(fundFreqs.Length == 2, "fundFreqs should have exactly two frequencies for IMD calculation.");
+
+			var imdType = GetImdMethod(fundFreqs);  // such as E_ImdMethod.CCIF, E_ImdMethod.Power, or E_ImdMethod.DIN
+
 			var ffs = lrs.Left;
-			var imdLeft = ComputeImdLinear(windowing, ffs, lrs.Df, fundFreqs, 3, false);
+			var imdLeft = ComputeImdLinear(windowing, ffs, lrs.Df, fundFreqs, imdType, false);
 			imdLeft = QaLibrary.ConvertVoltage(imdLeft, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 			ffs = lrs.Right;
-			var imdRight = ComputeImdLinear(windowing, ffs, lrs.Df, fundFreqs, 3, false);
+			var imdRight = ComputeImdLinear(windowing, ffs, lrs.Df, fundFreqs, imdType, false);
 			imdRight = QaLibrary.ConvertVoltage(imdRight, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
 			return new(imdLeft, imdRight);
@@ -369,66 +414,61 @@ namespace QA40xPlot.BareMetal
 		/// <param name="numHarmonics">number of harmonics to keep</param>
 		/// <param name="debug"></param>
 		/// <returns></returns>
-		internal static double ComputeImdLinear(string windowing, double[] signalFreqLin, double df, double[] fundamentals, int numHarmonics = 5, bool debug = false)
+		internal static double ComputeImdLinear(string windowing, double[] signalFreqLin, double df, double[] fundamentals, E_ImdMethod method, bool debug = false)
 		{
 			var maxFreq = df * signalFreqLin.Length;
+			double[] fundVolts = new double[fundamentals.Length];
+			fundVolts[0] = QaMath.MagAtFreq(signalFreqLin, df, fundamentals[0]);
+			fundVolts[1] = QaMath.MagAtFreq(signalFreqLin, df, fundamentals[1]);
 
-			// intermod generally works off the highest frequency we are testing
-
-			double fundamentalRmsSq = 0;
-			var maxf = fundamentals.Max();
-			// single fundamental
-			{
-				var rmsv = QaMath.MagAtFreq(signalFreqLin, df, maxf);
-				fundamentalRmsSq += rmsv * rmsv;
-			}
-
-			double fundamentalAmplitude = Math.Sqrt(fundamentalRmsSq);
-
-			// Debugging: Show the peak amplitude in dB
-			if (debug)
-			{
-				double fundamentalAmplitudeDb = 20 * Math.Log10(fundamentalAmplitude);
-				Debug.WriteLine($"Fundamental Amplitude: {fundamentalAmplitude:F6} (Linear), {fundamentalAmplitudeDb:F2} dB");
+			// the denominator depends on the method of calculation
+			double fundamentalAmplitude = GetImdDenom(method, fundVolts[0], fundVolts[1]);
+			List<List<double>> sidebands = new();
+			var fh = fundamentals[1]; // F2
+			var fl = fundamentals[0]; // F1
+			switch (method)
+			{ 	
+				case E_ImdMethod.CCIF:
+					// CCIF method uses F2+F1 as the denominator
+					sidebands.Add(new List<double> { 2*fl - fh, 2 * fh - fl });
+					sidebands.Add(new List<double> { fh - fl });
+					break;
+				case E_ImdMethod.Power:
+					// Power method uses sqrt(F2^2+F1^2) as the denominator
+					sidebands.Add(new List<double> { fh - fl });
+					sidebands.Add(new List<double> { fh + fl });
+					sidebands.Add(new List<double> { fl - 2*fh });
+					sidebands.Add(new List<double> { fl + 2*fh });
+					sidebands.Add(new List<double> { fh + 2*fl });
+					sidebands.Add(new List<double> { fh - 2*fl });
+					break;
+				case E_ImdMethod.DIN:
+					// DIN method uses F2 as the denominator
+					sidebands.Add(new List<double> { fh - fl, fh + fl });
+					sidebands.Add(new List<double> { fh - 2*fl, fh + 2*fl });
+					break;
+				default:
+					throw new ArgumentException("Invalid IMD method specified.");
 			}
 
 			// Calculate the sum of squares of the harmonic amplitudes
 			double harmonicAmplitudesSqSum = 0.0;
-			// sqrt( (vfh-fl + vfh+fl)^2 + (vfh-2fl+vfh+2fl)^2)
-			int[] harmHRange = [1];
-			int[] harmLRange = [1, 2];
-			foreach (int m in harmHRange)
+			foreach (var band in sidebands)
 			{
-				foreach (int n in harmLRange)
+				double harmonicAmplitude = 0;
+				foreach (double fv in band)
 				{
-					double harmonicAmplitude = 0;
-					// linearly add the sideband
-					double[] harmonics = [n * fundamentals[0] + m * fundamentals[1], 
-										(-n * fundamentals[0]) + m * fundamentals[1]];
-					foreach(var hFreq in harmonics)
-						if (hFreq < maxFreq && hFreq > 10)
+						if (fv < maxFreq && fv > 10)
 						{
-							harmonicAmplitude += QaMath.MagAtFreq(signalFreqLin, df, hFreq);
+							harmonicAmplitude += QaMath.MagAtFreq(signalFreqLin, df, fv);
 							// Debugging: Show the harmonic amplitude in dB and the bins being examined
-							if (debug)
-							{
-								double harmonicAmplitudeDb = 20 * Math.Log10(harmonicAmplitude);
-								Debug.WriteLine($"{n}x{m} Intermod Amplitude: {harmonicAmplitude:F6} (Linear), {harmonicAmplitudeDb:F2} dB");
-							}
+							Debug.WriteLine($"{fv:0} Intermod Amplitude: {MathUtil.FormatVoltage(harmonicAmplitude)} ");
 						}
-					harmonicAmplitudesSqSum += harmonicAmplitude * harmonicAmplitude;
 				}
+				harmonicAmplitudesSqSum += harmonicAmplitude * harmonicAmplitude;
 			}
 			// Compute THD
 			double imd = Math.Sqrt(harmonicAmplitudesSqSum) / fundamentalAmplitude;
-
-			// Debugging: Show THD computation details
-			if (debug)
-			{
-				Debug.WriteLine($"Sum of Squares of Harmonic Amplitudes: {harmonicAmplitudesSqSum:F6}");
-				Debug.WriteLine($"IMD: {imd:F6} (Linear)");
-			}
-
 			return imd;
 		}
 

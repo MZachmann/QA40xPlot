@@ -675,22 +675,27 @@ namespace QA40xPlot.ViewModels
 				return vtest;
 			}
 			var maxGain = lrGains.Max();
-			if( lrGains.Length > 1)
+			if( lrGains.Length > 2)
 			{
 				// figure out which bins we want
-				int binmin = Math.Min(lrGains.Length-1, 20);
-				int binmax = Math.Max(1, lrGains.Length * 9 / 10);
-				if(binNumber.Length > 0 && binNumber[0] != 0)
+				int binmin = Math.Min(lrGains.Length-2, 2);
+				int binmax = Math.Max(1, lrGains.Length - 2);
+				if(binNumber.Length == 0)
 				{
-					int abin = binNumber[0];				// approximate bin
-					binmin = Math.Max(binmin, abin - 5);         // random....
+					binmin = Math.Min(lrGains.Length - 5, 3);
+					binmax = Math.Max(lrGains.Length - 5, 3);
+				}
+				else if (binNumber[0] != 0)
+				{
+					int abin = binNumber[0]-1;				// approximate bin
+					binmin = Math.Max(binmin, abin);        // random....
 					if (binNumber.Length == 2)
-						abin = binNumber[1] + 5;
+						abin = binNumber[1];
 					else
-						abin = abin + 6;						// random....
+						abin = binNumber[0] + 6;						// random....
 					binmax = Math.Min(abin, binmax);  // limit this
 				}
-				maxGain = lrGains.Skip(binmin).Take(binmax - binmin).Max();
+				maxGain = lrGains.Skip(binmin).Take(Math.Max(1,binmax - binmin)).Max();
 			}
 			
 			if (maxGain <= 0.0)

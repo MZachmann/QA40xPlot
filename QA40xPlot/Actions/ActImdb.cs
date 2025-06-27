@@ -388,9 +388,11 @@ namespace QA40xPlot.Actions
 
 			var maxf = 20000; // the app seems to use 20,000 so not sampleRate/ 2.0;
 			var wdw = vm.WindowingMethod; // windowing method
-			LeftRightPair thds = QaCompute.GetImdDb(wdw, lrfs, [freq, freq2], 20.0, maxf);
-			LeftRightPair thdN = QaCompute.GetImdnDb(wdw, lrfs, [freq, freq2], 20.0, maxf);
-			LeftRightPair snrimdb = QaCompute.GetSnrImdDb(wdw, lrfs, [freq, freq2], 20.0, maxf);
+			double[] funds = [freq, freq2];
+			LeftRightPair thds = QaCompute.GetImdDb(wdw, lrfs, funds, 20.0, maxf);
+			LeftRightPair thdN = QaCompute.GetImdnDb(wdw, lrfs, funds, 20.0, maxf);
+			LeftRightPair snrimdb = QaCompute.GetSnrImdDb(wdw, lrfs, funds, 20.0, maxf);
+			var method = QaCompute.GetImdMethod(funds);
 
 			ImdChannelViewModel[] steps = [left, right];
 			foreach (var step in steps)
@@ -409,28 +411,31 @@ namespace QA40xPlot.Actions
 				double FundamentalVolts = Math.Sqrt(x * x + y * y);
 				step.SNRatio = isleft ? snrimdb.Left : snrimdb.Right;
 				step.ENOB = (step.SNRatio - 1.76) / 6.02;
+				//
+				double denom = QaCompute.GetImdDenom(method, x, y);     // calculate the imd denominator
 				// noise
 				step.NoiseFloorV = (isleft ? msr.NoiseFloor.Left : msr.NoiseFloor.Right);
-				step.NoiseFloorPct = 100 * step.NoiseFloorV / step.Fundamental2Volts; // ?
+				step.NoiseFloorPct = 100 * step.NoiseFloorV / denom; // ?
 				// note that all imd calculations use the fundamental2 value as base
-				step.ThdNInV = step.Fundamental2Volts * QaLibrary.ConvertVoltage(isleft ? thdN.Left : thdN.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
-				step.ThdInV = step.Fundamental2Volts * QaLibrary.ConvertVoltage(isleft ? thds.Left : thds.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
-				step.ThdInPercent = 100 * step.ThdInV / step.Fundamental2Volts;
-				step.ThdNInPercent = 100 * step.ThdNInV / step.Fundamental2Volts;
+				step.ThdNInV = denom * QaLibrary.ConvertVoltage(isleft ? thdN.Left : thdN.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
+				step.ThdInV = denom * QaLibrary.ConvertVoltage(isleft ? thds.Left : thds.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
+				step.ThdInPercent = 100 * step.ThdInV / denom;
+				step.ThdNInPercent = 100 * step.ThdNInV / denom;
 				step.ThdNIndB = isleft ? thdN.Left : thdN.Right;
 				step.ThdIndB = isleft ? thds.Left : thds.Right;
 				// gain
 				step.Gain1dB = 20 * Math.Log10(step.Fundamental1Volts / Math.Max(1e-10, step.Generator1Volts));
 				step.Gain2dB = 20 * Math.Log10(step.Fundamental2Volts / Math.Max(1e-10, step.Generator2Volts));
 				var rmsV = QaCompute.ComputeRmsF(frq, msr.FreqRslt.Df, 20, 20000, vm.WindowingMethod);
+				var rmsVT = QaCompute.ComputeRmsTime(isleft ? msr.TimeRslt.Left : msr.TimeRslt.Right);
 				//var rmsV = Math.Sqrt(step.Fundamental1Volts * step.Fundamental1Volts + step.Fundamental2Volts * step.Fundamental2Volts);
-				step.TotalV = rmsV;
-				step.TotalW = rmsV * rmsV / ViewSettings.AmplifierLoad;
+				step.TotalV = rmsVT;
+				step.TotalW = rmsVT * rmsVT / ViewSettings.AmplifierLoad;
 				step.ShowDataPercents = vm.ShowDataPercent;
-				step.NoiseFloorView = GraphUtil.DoValueFormat(vm.PlotFormat, step.NoiseFloorV, step.Fundamental1Volts);
+				step.NoiseFloorView = GraphUtil.DoValueFormat(vm.PlotFormat, step.NoiseFloorV, denom);
 				step.Amplitude1View = GraphUtil.DoValueFormat(vm.PlotFormat, step.Fundamental1Volts, step.Fundamental1Volts);
 				step.Amplitude2View = GraphUtil.DoValueFormat(vm.PlotFormat, step.Fundamental2Volts, step.Fundamental1Volts);
-				step.AmplitudesView = GraphUtil.DoValueFormat(vm.PlotFormat, rmsV, rmsV);
+				step.AmplitudesView = GraphUtil.DoValueFormat(vm.PlotFormat, rmsVT, rmsVT);
 			}
 
 			CalculateHarmonics(msr, left, right);
@@ -570,16 +575,16 @@ namespace QA40xPlot.Actions
 			}
 			List<double> harmFreqs = new List<double>();
 			//2nd order
-			var hf = harmFreqs.Append(f2 - f1);	// dfd2
-			hf = hf.Append(f2 + f1);            // dfd3
+			var hf = harmFreqs.Append(f2 - f1);	// d2L
+			hf = hf.Append(f2 + f1);            // d2H
 			//3rd order
-			hf = hf.Append(f2 + 2*f1);          // dfd3
-			hf = hf.Append(f2 - 2*f1);          // dfd3
-			hf = hf.Append(f1 + 2*f2);          // dfd3
-			hf = hf.Append(f1 - 2*f2);          // dfd3
+			hf = hf.Append(f2 + 2*f1);          // d3H
+			hf = hf.Append(f2 - 2*f1);          // d3L
+			hf = hf.Append(f1 + 2*f2);          // d3Ha
+			hf = hf.Append(f1 - 2*f2);          // d3La
 			//4th order for f2 only
-			hf = hf.Append(f2 + 3*f1);			// d2hl
-			hf = hf.Append(f2 - 3*f1);
+			hf = hf.Append(f2 + 3*f1);			// d4H
+			hf = hf.Append(f2 - 3*f1);			// d4L
 			//5th order for f2 only
 			hf = hf.Append(f2 + 4 * f1);            // d2hl
 			hf = hf.Append(f2 - 4 * f1);
@@ -965,7 +970,7 @@ namespace QA40xPlot.Actions
 						Amplitude_V = good ? amplitudeV : 0,
 						Amplitude_dBV = amplitudedBV,
 						Thd_Percent = good ? thdPercent : 0,
-						Thd_dB = 20 * Math.Log10(thdPercent / 100.0),
+						Thd_dB = good ? (20 * Math.Log10(thdPercent / 100.0)) : -200,
 					};
 					harmonics.Add(harmonic);
 				}
