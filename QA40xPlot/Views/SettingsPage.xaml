@@ -156,5 +156,15 @@
                    Text="If you have issues with USB support try the REST interface." 
                    HorizontalAlignment="Left" VerticalAlignment="Center"
                    Grid.Row="24" Grid.Column="4" />
+        <local:GroupHeader Grid.Row="25" Grid.Column="0" Grid.ColumnSpan="5"  />
+        <Label VerticalAlignment="Center" Content="Debug Distortion: " Grid.Row="26" Grid.Column="0" />
+        <ComboBox IsEditable="True" Grid.Row="26" Grid.Column="1" MinWidth="80" 
+                  Text="{Binding AddDistortion}" 
+                  ItemsSource="{Binding Impedances}" />
+        <Label VerticalAlignment="Center" Content="%" Grid.Row="26" Grid.Column="2" HorizontalAlignment="Left" />
+        <TextBlock TextWrapping="Wrap" MaxWidth="600" 
+                   Text="Add distortion to the signal for testing. For spectrum and IMD. Blank or 0==none" 
+                   HorizontalAlignment="Left" VerticalAlignment="Center"
+                   Grid.Row="26" Grid.Column="4" />
     </Grid>
 </UserControl>

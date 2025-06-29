@@ -157,9 +157,27 @@ namespace QA40xPlot.Actions
 			var vm = page.ViewModel;
 			var freq = vm.NearestBinFreq(vm.Gen1Frequency);
 			WaveGenerator.SetEnabled(true);          // enable the generator
-			WaveGenerator.SetGen1(freq, volts, force ? true : vm.UseGenerator, vm.Gen1Waveform);          // send a sine wave
+			bool buse = force ? true : vm.UseGenerator;
+			double[] distout = [];
+			// do distortion addon first so wavegenerator is set up on exit (?)
+			if(buse && ViewSettings.AddonDistortion > 0 && vm.Gen1Waveform == "Sine")
+			{
+				WaveGenerator.SetGen1(2*freq, volts * ViewSettings.AddonDistortion/100, buse, "Sine");          // send a sine wave
+				WaveGenerator.SetGen2(0, 0, false);          // just a sine wave
+				distout = WaveGenerator.Generate((uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
+			}
+			WaveGenerator.SetGen1(freq, volts, buse, vm.Gen1Waveform);          // send a sine wave
 			WaveGenerator.SetGen2(0,0,false);          // just a sine wave
-			return WaveGenerator.Generate((uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
+			var dout = WaveGenerator.Generate((uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
+			if(distout.Length > 0)
+			{
+				// add the distortion to the sine wave
+				for (int i = 0; i < dout.Length; i++)
+				{
+					dout[i] += distout[i];
+				}
+			}
+			return dout; // return the generated waveform
 		}
 
 		private void ShowPageInfo(MyDataTab page)

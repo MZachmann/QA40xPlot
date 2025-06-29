@@ -150,6 +150,18 @@ namespace QA40xPlot.Actions
 			var freq2 = vm.NearestBinFreq(vm.Gen2Frequency);
 			var v2 = volts / vm.GenDivisor;
 			var v1 = volts;
+			WaveGenerator.SetEnabled(true); // turn on the generator
+
+			// do distortion addon first so wavegenerator is set up on exit (?)
+			double[] distout = []; // empty array
+			if (vm.UseGenerator && vm.UseGenerator2 && ViewSettings.AddonDistortion > 0)
+			{
+				WaveGenerator.SetGen1(freq2 - freq, v1 * ViewSettings.AddonDistortion / 100, true);          // send a sine wave
+				WaveGenerator.SetGen2(freq2 + freq, v1 * ViewSettings.AddonDistortion / 100, true);          // just a sine wave
+				distout = WaveGenerator.Generate((uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
+			}
+
+			// now regular stuff
 			WaveGenerator.SetGen1(freq, v1, vm.UseGenerator);          // send a sine wave
 			WaveGenerator.SetGen2(freq2, v2, vm.UseGenerator2);          // send a sine wave
 			var vsee1 = MathUtil.FormatVoltage(v1);
@@ -173,8 +185,16 @@ namespace QA40xPlot.Actions
 			}
 			MyVModel.GeneratorVoltage = vout; // set the generator voltage in the viewmodel
 
-			WaveGenerator.SetEnabled(true); // turn on the generator
-			return WaveGenerator.Generate((uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
+			var dout = WaveGenerator.Generate((uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
+			if (distout.Length > 0)
+			{
+				// add the distortion to the sine wave
+				for (int i = 0; i < dout.Length; i++)
+				{
+					dout[i] += distout[i];
+				}
+			}
+			return dout; // return the waveform
 		}
 
 		void BuildFrequencies(MyDataTab page)
@@ -578,17 +598,18 @@ namespace QA40xPlot.Actions
 			var hf = harmFreqs.Append(f2 - f1);	// d2L
 			hf = hf.Append(f2 + f1);            // d2H
 			//3rd order
+			hf = hf.Append(f2 - 2 * f1);        // d3L
 			hf = hf.Append(f2 + 2*f1);          // d3H
-			hf = hf.Append(f2 - 2*f1);          // d3L
+			hf = hf.Append(f1 - 2 * f2);        // d3La
 			hf = hf.Append(f1 + 2*f2);          // d3Ha
-			hf = hf.Append(f1 - 2*f2);          // d3La
 			//4th order for f2 only
+			hf = hf.Append(f2 - 3 * f1);        // d4L
 			hf = hf.Append(f2 + 3*f1);			// d4H
-			hf = hf.Append(f2 - 3*f1);			// d4L
 			//5th order for f2 only
-			hf = hf.Append(f2 + 4 * f1);            // d2hl
+			hf = hf.Append(f2 + 4 * f1);        // d2hl
 			hf = hf.Append(f2 - 4 * f1);
-			hf = hf.Select(x => Math.Abs(x)).Where(x => x < maxF);
+			// the displayer shows zeros for out of range, so keep all freqs here
+			//hf = hf.Select(x => Math.Abs(x)).Where(x => x < maxF);
 			return hf.ToArray();
 		}
 
@@ -950,6 +971,8 @@ namespace QA40xPlot.Actions
 			var freqList = MakeHarmonics(freq, freq2, maxfreq);
 			ImdChannelViewModel[] steps = [left, right];
 
+			// if a frequency is out of range show it as zero values rather than removing it
+			// so we can keep fixed format of the summary table
 			foreach(var step in steps)
 			{
 				List<HarmonicData> harmonics = new List<HarmonicData>();

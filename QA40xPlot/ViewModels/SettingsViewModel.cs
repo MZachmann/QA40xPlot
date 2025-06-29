@@ -34,6 +34,17 @@ namespace QA40xPlot.ViewModels
 
 		#region temporary setters
 
+		// always start this at blank (none)
+		private string _AddDistortion = string.Empty;
+		[JsonIgnore]
+		public string AddDistortion
+		{
+			get { return _AddDistortion; }
+			set
+			{
+				SetProperty(ref _AddDistortion, value);
+			}
+		}
 		#endregion
 
 
@@ -156,6 +167,7 @@ namespace QA40xPlot.ViewModels
 				SetProperty(ref _TestChannel, value);
 			}
 		}
+
 		private string _AmplifierLoad = string.Empty;
 		public string AmplifierLoad
 		{

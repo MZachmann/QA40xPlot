@@ -46,6 +46,8 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public static double AmplifierLoad { get => MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.AmplifierLoad, 8); }
 		[JsonIgnore]
+		public static double AddonDistortion { get => MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.AddDistortion, 0); }
+		[JsonIgnore]
 		public static string ExternalGain { get => ViewSettings.Singleton.SettingsVm.ExternalGain; }
 
 		/// <summary>
