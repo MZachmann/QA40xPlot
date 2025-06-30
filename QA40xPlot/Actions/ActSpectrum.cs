@@ -4,7 +4,6 @@ using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
-using System;
 using System.Data;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
@@ -842,6 +841,7 @@ namespace QA40xPlot.Actions
 			if (fftData == null)
 				return;
 
+			// log of the frequencies for providing X axis values
 			double[] freqLogX = Enumerable.Range(1, fftData.Left.Length-1).
 								Select(x => Math.Log10(x * fftData.Df)).ToArray();
 			//
@@ -851,15 +851,23 @@ namespace QA40xPlot.Actions
 
 			// add a scatter plot to the plot
 			var lineWidth = MyVModel.ShowThickLines ? _Thickness : 1;   // so it dynamically updates
-			//IPalette palette = new ScottPlot.Palettes.Category20();
+																		//IPalette palette = new ScottPlot.Palettes.Category20();
+			int trimOff = 1;
+			int keepCnt = fftData.Left.Length - 1; // skip the DC value
+			var minPlotX = Math.Pow(10,myPlot.Axes.Bottom.Min);
+			var maxPlotX = Math.Pow(10, myPlot.Axes.Bottom.Max);    // back into linear frequency values
+			trimOff = Math.Max(trimOff, (int)(minPlotX / fftData.Df)); // trim off the low frequencies
+			keepCnt = Math.Min(keepCnt, (int)((maxPlotX - minPlotX) / fftData.Df) + 1); // keep the high frequencies
+			var keepFreqs = freqLogX.Skip(trimOff).Take(keepCnt).ToArray();
 			if (useLeft)
 			{
-				double maxleft = Math.Max(1e-20, fftData.Left.Max());
-				// the usual dbv display
+				var vf = fftData.Left.Skip(trimOff).Take(keepCnt);
+				double maxleft = Math.Max(1e-20, fftData.Left.Skip(1).Max());
+				// format the data into current format
 				var fvi = GraphUtil.GetLogFormatter(plotForm, maxleft);
-				leftdBV = fftData.Left.Skip(1).Select(fvi).ToArray();
+				leftdBV = vf.Select(fvi).ToArray();
 
-				Scatter plotLeft = myPlot.Add.Scatter(freqLogX, leftdBV);
+				Scatter plotLeft = myPlot.Add.Scatter(keepFreqs, leftdBV);
 				plotLeft.LineWidth = lineWidth;
 				plotLeft.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, 2 * measurementNr); // zero is bad
 				plotLeft.MarkerSize = 1;
@@ -867,13 +875,14 @@ namespace QA40xPlot.Actions
 
 			if (useRight)
 			{
+				var vf = fftData.Right.Skip(trimOff).Take(keepCnt);
 				// find the max value of the left and right channels
-				double maxright = Math.Max(1e-20, fftData.Right.Max());
+				double maxright = Math.Max(1e-20, fftData.Right.Skip(1).Max());
 				// now use that to calculate percents. Since Y axis is logarithmic use log of percent
 				var fvi = GraphUtil.GetLogFormatter(plotForm, maxright);
-				rightdBV = fftData.Right.Skip(1).Select(fvi).ToArray();
+				rightdBV = vf.Select(fvi).ToArray();
 
-				Scatter plotRight = myPlot.Add.Scatter(freqLogX, rightdBV);
+				Scatter plotRight = myPlot.Add.Scatter(keepFreqs, rightdBV);
 				plotRight.LineWidth = lineWidth;
 				plotRight.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, 2 * measurementNr + 1); // color 0 is bad
 				plotRight.MarkerSize = 1;
