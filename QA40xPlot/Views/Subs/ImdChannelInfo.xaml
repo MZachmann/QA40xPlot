@@ -6,6 +6,7 @@
              xmlns:local="clr-namespace:QA40xPlot"
              xmlns:views ="clr-namespace:QA40xPlot.Views"
              mc:Ignorable="d" 
+             MouseDown="OnWindMouseDown" MouseUp="OnWindMouseUp" MouseMove="OnWindMouseMove"
              Background="{Binding ThemeBackground}"
              d:DesignHeight="300" d:DesignWidth="200" >
     <Border BorderBrush="{Binding BorderColor}" BorderThickness="1">

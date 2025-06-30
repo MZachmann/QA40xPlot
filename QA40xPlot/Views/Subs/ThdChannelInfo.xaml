@@ -7,6 +7,7 @@
              xmlns:views ="clr-namespace:QA40xPlot.Views"
              mc:Ignorable="d" 
              Background="{Binding ThemeBackground}"
+              MouseDown="OnWindMouseDown" MouseUp="OnWindMouseUp" MouseMove="OnWindMouseMove"
              d:DesignHeight="300" d:DesignWidth="200" >
     <Border BorderBrush="{Binding BorderColor}" BorderThickness="1">
         <StackPanel Orientation="Vertical">
