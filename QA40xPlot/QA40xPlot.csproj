@@ -15,8 +15,8 @@
     <AssemblyOriginatorKeyFile>Keys\sgKey.snk</AssemblyOriginatorKeyFile>
     <ApplicationIcon>Images\favicon.ico</ApplicationIcon>
     <UseWindowsForms>False</UseWindowsForms>
-    <AssemblyVersion>1.1.25</AssemblyVersion>
-    <FileVersion>1.1.25</FileVersion>
+    <AssemblyVersion>1.1.26</AssemblyVersion>
+    <FileVersion>1.1.26</FileVersion>
 	</PropertyGroup>
 
   <ItemGroup>
@@ -80,6 +80,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Configs\LightView.cfg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Help\AudioMath.pdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Help\ChangeLog.txt">

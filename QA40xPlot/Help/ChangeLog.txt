@@ -2,6 +2,12 @@
 --------------------------------------------
 This changelog shows the changes made for each version
 --------------------------------------------
+v 1.1.26
+- add a debugging option to test distortion values (see system settings)
+- fix/swap IMD table labels
+- allow data summary boxes to be dragged around
+- start speed-up of spectrum/imd plotting
+- add AudioMath.pdf to explain calculations
 v 1.1.25
 - use the 3 standard IMD definitions for all IMD tests
   this implements, DIN (modulated high F), CCIF (two nearby fundamentals), and general 2-tone IMD
