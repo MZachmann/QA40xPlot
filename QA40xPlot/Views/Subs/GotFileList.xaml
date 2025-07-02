@@ -7,8 +7,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <Grid>
-            <ListBox ItemsSource="{Binding OtherSetList}">
+            <ListBox ItemsSource="{Binding OtherSetList}" >
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Vertical" >
@@ -31,6 +30,5 @@
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
-        </Grid>
     </ScrollViewer>
 </UserControl>

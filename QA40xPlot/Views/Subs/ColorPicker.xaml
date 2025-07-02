@@ -24,9 +24,11 @@
                         ValueChanged="OnSliderChange" Minimum="0" Maximum="100" Width="120" />
                 <Label Content="Solid  "  VerticalContentAlignment="Center" />
                 <Label x:Name="ShowOpaque" VerticalContentAlignment="Center" />
-                <StackPanel Orientation="Horizontal" 
-                        Background="{Binding NowColor, RelativeSource={RelativeSource AncestorType=local:ColorPicker}}">
-                    <Label Content="         " />
+            <StackPanel Orientation="Horizontal" >
+                <Border Background="{Binding NowColor, RelativeSource={RelativeSource AncestorType=local:ColorPicker}}"
+                        VerticalAlignment="Stretch" Width="80"
+                        />
+                <Label Content="         " />
                     <Button Content="OK" Click="DoOk" ToolTip="OK" IsDefault="True"  
                                 HorizontalContentAlignment="Center"
                                 HorizontalAlignment="Stretch"
@@ -37,7 +39,7 @@
                 </StackPanel>
             </StackPanel>
             <ScrollViewer  Grid.Row="1">
-                <WrapPanel Name="ColorWrapPanel" Margin="10" />
+                <WrapPanel x:Name="ColorWrapPanel" Margin="10" />
             </ScrollViewer>
         </Grid>
 </Window>

@@ -15,11 +15,6 @@ namespace QA40xPlot.Views
 			InitializeComponent();
 		}
 
-		public void SetDataContext(List<DataDescript> dataDef)
-		{
-			this.DataContext = dataDef;
-		}
-
 		private void OnClick(object sender, RoutedEventArgs e)
 		{
 			var btu = sender as Button;

@@ -189,7 +189,10 @@ namespace QA40xPlot.Actions
 				if (mdl != null)
 				{
 					channels.Add(mdl);
-					mdl.BorderColor = System.Windows.Media.Brushes.Blue;
+					var clr = GraphUtil.PlotPalette.GetColorName(0);
+					var brs = new System.Windows.Media.BrushConverter().ConvertFromString(clr);
+					if (brs != null)
+						mdl.BorderColor = (System.Windows.Media.Brush)brs;
 				}
 			}
 			if (specVm.ShowRight)
@@ -198,7 +201,10 @@ namespace QA40xPlot.Actions
 				if (mdl != null)
 				{
 					channels.Add(mdl);
-					mdl.BorderColor = System.Windows.Media.Brushes.Red;
+					var clr = GraphUtil.PlotPalette.GetColorName(1);
+					var brs = new System.Windows.Media.BrushConverter().ConvertFromString(clr);
+					if (brs != null)
+						mdl.BorderColor = (System.Windows.Media.Brush)brs;
 				}
 			}
 			if(channels.Count < 2 && OtherTabs.Count > 0)

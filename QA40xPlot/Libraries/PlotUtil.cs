@@ -346,6 +346,21 @@ namespace QA40xPlot.Libraries
 			return hex;
 		}
 
+		public static System.Windows.Media.Color StrToMediaColor(string fromSetting)
+		{
+			var color = System.Windows.Media.Colors.Black; // default color in case of error
+			try
+			{
+				color = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(fromSetting);
+			}
+			catch (Exception ex)
+			{
+				// Handle other exceptions if necessary
+				System.Diagnostics.Debug.WriteLine($"Error converting string to color: {ex.Message}");
+			}
+			return color;
+		}
+
 		public static ScottPlot.Color StrToColor(string fromSetting)
 		{
 			try

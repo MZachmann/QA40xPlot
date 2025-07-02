@@ -2,6 +2,7 @@
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using QA40xPlot.BareMetal;
+using QA40xPlot.Views;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
@@ -29,6 +30,8 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public RelayCommand DoMicCompensate { get => new RelayCommand(FindMicCompensate); }
 		[JsonIgnore]
+		public RelayCommand DoEditPlotColors { get => new RelayCommand(EditPlotColors); }
+		[JsonIgnore]
 		public RelayCommand ClearMicCompensate { get => new RelayCommand(DelMicCompensate); }
 
 
@@ -47,8 +50,17 @@ namespace QA40xPlot.ViewModels
 		}
 		#endregion
 
-
 		#region setters and getters
+		private string _PaletteColors = " blue, red, orange, green, violet," +
+			"yellow, pink, teal, cyan, #00c6f8," +
+			"#878500, #00a76c, #f6da9c, #ff5caa, #8accff, #4bff4b, #6efff4, #edc1f5";
+
+		public string PaletteColors 
+		{
+			get => _PaletteColors; 
+			set => SetProperty(ref _PaletteColors, value);
+		}
+
 		private bool _UseREST;
 		public bool UseREST
 		{
@@ -236,6 +248,20 @@ namespace QA40xPlot.ViewModels
 			_UsbBufferSize = "16384";
 			_SaveOnExit = "False";
 			_PowerFrequency = "60";
+		}
+
+		public void EditPlotColors()
+		{
+			//var vm = ViewSettings.Singleton.SettingsVm;
+			var colorPickerDialog = new PaletteSet();
+			if (colorPickerDialog.ShowDialog() == true)
+			{
+				//Color = colorPickerDialog.NowColor;
+			}
+			else
+			{
+				//Color = originalColor;
+			}
 		}
 
 		public void FindMicCompensate()

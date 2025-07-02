@@ -88,6 +88,14 @@ namespace QA40xPlot.ViewModels
 				}
 		}
 
+		private string _CurrentPaletteRect = string.Empty;
+		[JsonIgnore]
+		public string CurrentPaletteRect
+		{
+			get => _CurrentPaletteRect;
+			set => SetProperty(ref _CurrentPaletteRect, value);
+		}
+
 		private string _CurrentWindowRect = string.Empty;
 		public string CurrentWindowRect
 		{

@@ -1,0 +1,25 @@
+﻿<Window  x:Class="QA40xPlot.Views.PaletteSet"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:QA40xPlot.Views"
+             Title="Edit Plot Palette"
+             mc:Ignorable="d" 
+         Width="272" Height="150"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Orientation="Vertical">
+            <StackPanel Orientation="Horizontal" Width="Auto" HorizontalAlignment="Center" >
+                <Button Content="OK" Click="DoOk" ToolTip="OK" IsDefault="True"  
+                                HorizontalContentAlignment="Center"
+                                HorizontalAlignment="Stretch"
+                                Width="40" />
+                <Label Content="    " />
+                <Button Content="Cancel" Click="DoCancel" IsCancel="True"/>
+            </StackPanel>
+
+            <WrapPanel x:Name="PaletteSpot" HorizontalAlignment="Stretch" VerticalAlignment="Top"/>
+        </StackPanel>
+    </ScrollViewer>
+</Window>

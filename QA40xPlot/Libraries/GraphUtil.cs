@@ -1,4 +1,5 @@
 ﻿using QA40xPlot.ViewModels;
+using QA40xPlot.ViewModels.Subs;
 using ScottPlot;
 using System.IO;
 using System.Windows;
@@ -18,9 +19,10 @@ namespace QA40xPlot.Libraries
 
 	public static class GraphUtil
 	{
-		private static IPalette _PlotPalette = new ScottPlot.Palettes.Tsitsulin();
+		private static ThePalette _PlotPalette = new ThePalette();
+			//new ScottPlot.Palettes.Tsitsulin();
 
-		private static IPalette PlotPalette { get => _PlotPalette; }
+		public static ThePalette PlotPalette { get => _PlotPalette; }
 
 		public static int PtToPixels(PixelSizes fontsize)
 		{
@@ -39,16 +41,8 @@ namespace QA40xPlot.Libraries
 			{
 				return PlotUtil.StrToColor(colorName);
 			}
-			if (iIndex == 0)
-				return ScottPlot.Colors.Blue;
-			else if (iIndex == 1)
-				return ScottPlot.Colors.Red;
-			else
-			{
-				var c = PlotPalette.GetColor(iIndex);
-				var u = c.WithOpacity(0.8);	// make it slightly transparent
-				return u;
-			}
+			var c = PlotPalette.GetColor(iIndex);	// these may be translucent
+			return c;
 		}
 
 		/// <summary>

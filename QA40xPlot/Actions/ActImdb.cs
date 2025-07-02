@@ -6,6 +6,7 @@ using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
 using System.Windows;
+using System.Windows.Media;
 using static QA40xPlot.ViewModels.BaseViewModel;
 
 // this is the top level class for the Intermodulation test
@@ -419,8 +420,11 @@ namespace QA40xPlot.Actions
 			{
 				bool isleft = step.IsLeft;
 				var frq = isleft ? msr.FreqRslt.Left : msr.FreqRslt.Right;
-
-				step.BorderColor = isleft ? System.Windows.Media.Brushes.Blue : System.Windows.Media.Brushes.Red;
+				var clr = GraphUtil.PlotPalette.GetColorName(isleft ? 0 : 1);
+				var brs = new System.Windows.Media.BrushConverter().ConvertFromString(clr);
+				if (brs != null)
+					step.BorderColor = (Brush)brs;
+				//step.BorderColor = isleft ? System.Windows.Media.Brushes.Blue : System.Windows.Media.Brushes.Red;
 				step.Fundamental1Frequency = freq;
 				step.Fundamental2Frequency = freq2;
 				step.Generator1Volts = msr.Definition.GeneratorVoltage;
@@ -499,11 +503,11 @@ namespace QA40xPlot.Actions
 			ScottPlot.Color markerCol = new ScottPlot.Color();
 			if (!vm.ShowLeft)
 			{
-				markerCol = isred ? Colors.Green : Colors.DarkGreen;
+				markerCol = isred ? ScottPlot.Colors.Green : ScottPlot.Colors.DarkGreen;
 			}
 			else
 			{
-				markerCol = isred ? Colors.Red : Colors.DarkOrange;
+				markerCol = isred ? ScottPlot.Colors.Red : ScottPlot.Colors.DarkOrange;
 			}
 			var mymark = myPlot.Add.Marker(Math.Log10(frequency), markView,
 				MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), markerCol);
@@ -787,7 +791,10 @@ namespace QA40xPlot.Actions
 				if (mdl != null)
 				{
 					channels.Add(mdl);
-					mdl.BorderColor = System.Windows.Media.Brushes.Blue;
+					var clr = GraphUtil.PlotPalette.GetColorName(0);
+					var brs = new System.Windows.Media.BrushConverter().ConvertFromString(clr);
+					if(brs != null)
+						mdl.BorderColor = (Brush)brs;
 				}
 			}
 			if (specVm.ShowRight)
@@ -796,7 +803,10 @@ namespace QA40xPlot.Actions
 				if (mdl != null)
 				{
 					channels.Add(mdl);
-					mdl.BorderColor = System.Windows.Media.Brushes.Red;
+					var clr = GraphUtil.PlotPalette.GetColorName(1);
+					var brs = new System.Windows.Media.BrushConverter().ConvertFromString(clr);
+					if (brs != null)
+						mdl.BorderColor = (Brush)brs;
 				}
 			}
 			if (channels.Count < 2 && OtherTabs.Count > 0)

@@ -133,7 +133,7 @@
             </Expander>
             <views:SeeGlobals HorizontalAlignment="Stretch" Margin="0,5,0,0" />
             <views:StorageUi />
-            <views:GotFileList HorizontalAlignment="Stretch" MaxHeight="100" Margin="0,5,0,0"/>
+            <views:GotFileList HorizontalAlignment="Stretch" MaxHeight="150" Margin="0,5,0,0"/>
         </StackPanel>
         <Grid Grid.Column="1">
             <Label Content="{Binding DsHeading}" HorizontalAlignment="Center" VerticalAlignment="Top" />
