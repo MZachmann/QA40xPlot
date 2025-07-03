@@ -89,7 +89,7 @@ namespace QA40xPlot.Actions
 
 		public bool SaveToFile(string fileName)
 		{
-			return Util.SaveToFile<ImdViewModel>(PageData, fileName);
+			return Util.SaveToFile<ImdViewModel>(PageData, fileName, PageData.ViewModel.Averages > 1);
 		}
 
 		public async Task LoadFromFile(string fileName, bool isMain)
@@ -119,7 +119,10 @@ namespace QA40xPlot.Actions
 			ClipName(page.Definition, fileName);
 
 			// now recalculate everything
-			BuildFrequencies(page);
+			if (page.FreqRslt == null)
+			{
+				BuildFrequencies(page);
+			}
 			await PostProcess(page, ct.Token);
 
 			if( isMain)

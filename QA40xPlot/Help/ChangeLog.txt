@@ -2,6 +2,10 @@
 --------------------------------------------
 This changelog shows the changes made for each version
 --------------------------------------------
+V 1.1.28
+- save the fft average when averaging is enabled (spectrum and IMD)
+- save series data in base64 rather than ascii for space savings
+- minor palette editor improvements
 V 1.1.27
 - add a plot line editor in Settings
 - fixup display of selected color in color picker

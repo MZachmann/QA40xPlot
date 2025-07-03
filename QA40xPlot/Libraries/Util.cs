@@ -6,6 +6,7 @@ using System.Text;
 using Newtonsoft.Json;
 using QA40xPlot.Data;
 using QA40xPlot.ViewModels;
+using Newtonsoft.Json.Linq;
 
 namespace QA40xPlot.Libraries
 {
@@ -101,6 +102,7 @@ namespace QA40xPlot.Libraries
 				// check which viewmodel this was built for
 				bool isValid = false;
 				string x = string.Empty;
+				Dictionary<string, object>? oldTime = null;
 				// generic deserialize first....
 				{
 					var u = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(jsonContent); // untyped seriale
@@ -109,6 +111,8 @@ namespace QA40xPlot.Libraries
 					x = u["ViewModel"]["Name"].ToString() ?? string.Empty;
 					var z = model.ViewModel as BaseViewModel;
 					isValid = z?.IsValidLoadModel(x ?? "") ?? false;
+					if(u.ContainsKey("TimeRslt"))
+						oldTime = u["TimeRslt"];
 				}
 				if (!isValid)
 				{
@@ -120,6 +124,26 @@ namespace QA40xPlot.Libraries
 				var jsonObject = JsonConvert.DeserializeObject<DataTab<Model>>(jsonContent);
 				if (jsonObject != null)
 				{
+					if( jsonObject.TimeSaver != null && jsonObject.TimeSaver.Left.Length > 0)
+					{
+						// we have a time saver, convert it to a time series
+						jsonObject.TimeRslt = jsonObject.TimeSaver.ToSeries(); // convert the time saver to a time series
+						jsonObject.TimeSaver = null; // clear the time saver since it's just for load/save
+					}
+					else if (oldTime != null && jsonObject.TimeRslt == null)
+					{
+						// this handles prior version where TimeRslt was serialized
+						jsonObject.TimeRslt = new LeftRightTimeSeries(); // create a new time series
+						jsonObject.TimeRslt.dt = (double)oldTime["dt"];
+						jsonObject.TimeRslt.Left = (oldTime["Left"] as JArray)?.Select(x => (double)x)?.ToArray() ?? [];
+						jsonObject.TimeRslt.Right = (oldTime["Right"] as JArray)?.Select(x => (double)x)?.ToArray() ?? [];
+					}
+					if (jsonObject.FreqSaver != null && jsonObject.FreqSaver.Left.Length > 0)
+					{
+						// we have a time saver, convert it to a time series
+						jsonObject.FreqRslt = jsonObject.FreqSaver.ToSeries(); // convert the time saver to a time series
+						jsonObject.FreqSaver = null; // clear the time saver since it's just for load/save
+					}
 					// fill pagedata with new stuff
 					var id = page.Definition.Id;
 					page.NoiseFloor = jsonObject.NoiseFloor;
@@ -130,6 +154,8 @@ namespace QA40xPlot.Libraries
 						jsonObject.ViewModel.CopyPropertiesTo(page.ViewModel);
 					page.Definition.Id = id; // keep the same id
 					page.Definition.FileName = fileName; // re-set the filename
+					if(jsonObject.FreqRslt != null)
+						page.FreqRslt = jsonObject.FreqRslt; // set the frequency result
 				}
 			}
 			catch (Exception ex)
@@ -140,16 +166,28 @@ namespace QA40xPlot.Libraries
 			return page;
 		}
 
-		public static bool SaveToFile<Model>(DataTab<Model> page, string fileName)
+		public static bool SaveToFile<Model>(DataTab<Model> page, string fileName, bool saveFreq = false)
 		{
 			if (page == null)
 				return false;
 			try
 			{
-				var container = new Dictionary<string, object>();
-				container["PageData"] = page;
+				// convert time data to longer stuff
+				if(page.TimeRslt != null && page.TimeRslt.Left.Length > 0)
+				{
+					page.TimeSaver = new LeftRightTimeSaver();
+					page.TimeSaver.FromSeries(page.TimeRslt);
+				}
+
+				if(saveFreq && page.FreqRslt != null && page.FreqRslt.Left.Length > 0)
+				{
+					page.FreqSaver = new LeftRightFreqSaver();
+					page.FreqSaver.FromSeries(page.FreqRslt);
+				}
 				// Serialize the object to a JSON string
 				string jsonString = JsonConvert.SerializeObject(page, Formatting.Indented);
+				page.TimeSaver = null; // clear the time saver, we don't need it anymore
+				page.FreqSaver = null; // clear the frequency saver, we don't need it anymore
 
 				// Write the JSON string to a file
 				// File.WriteAllText(fileName, jsonString);

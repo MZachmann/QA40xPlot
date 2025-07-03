@@ -91,7 +91,7 @@ namespace QA40xPlot.Actions
 
 		public bool SaveToFile(string fileName)
 		{
-			return Util.SaveToFile<SpectrumViewModel>(PageData, fileName);
+			return Util.SaveToFile<SpectrumViewModel>(PageData, fileName, PageData.ViewModel.Averages > 1);
 		}
 
 		public async Task LoadFromFile(string fileName, bool doLoad)
@@ -119,7 +119,10 @@ namespace QA40xPlot.Actions
 		public async Task FinishLoad(MyDataTab page, string fileName, bool doLoad)
 		{
 			// now recalculate everything
-			BuildFrequencies(page);
+			if(page.FreqRslt == null)
+			{
+				BuildFrequencies(page);
+			}
 			ClipName(page.Definition, fileName);
 
 			await PostProcess(page, ct.Token);

@@ -51,7 +51,7 @@ public class FreqRespViewModel : BaseViewModel
 		set { SetProperty(ref _UseMUseMicCorrection, value); }
 	}
 
-	private bool _IsChirp;
+	private bool _IsChirp = true;
 	public bool IsChirp
 	{
 		get { return _IsChirp; }
