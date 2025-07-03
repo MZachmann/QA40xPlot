@@ -86,7 +86,9 @@ namespace QA40xPlot.Views
 				{
 					Color = color.ColorName,
 					Background = System.Windows.Media.Brushes.Transparent,
-					BorderBrush = System.Windows.Media.Brushes.Transparent
+					BorderBrush = System.Windows.Media.Brushes.Transparent,
+					Width = 50,
+					Height = 50,
 				};
 
 				wrap.Children.Add(button);

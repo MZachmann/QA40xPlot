@@ -253,8 +253,8 @@ namespace QA40xPlot.ViewModels
 		public void EditPlotColors()
 		{
 			//var vm = ViewSettings.Singleton.SettingsVm;
-			var colorPickerDialog = new PaletteSet();
-			if (colorPickerDialog.ShowDialog() == true)
+			var paletteDialog = new PaletteSet();
+			if (paletteDialog.ShowDialog() == true)
 			{
 				//Color = colorPickerDialog.NowColor;
 			}
