@@ -43,21 +43,13 @@ namespace QA40xPlot.Views
 	{
 		private PaletteView _PaletteShow = new PaletteView();
 		private List<ColorBox> _Buttons = new List<ColorBox>();
+		string OriginalColors = string.Empty;
 
 		private void DoOk(object sender, RoutedEventArgs e)
 		{
 			DialogResult = true;
-			try
-			{
-				var colors = _Buttons.Select(box => box.Color).ToList(); // get the color names from the boxes
-				var result = String.Join(", ", colors); // join them into a single string
-				ViewSettings.Singleton.SettingsVm.PaletteColors = result; // save the colors to the settings
-				ViewSettings.Singleton.Main.CurrentPaletteRect = MainViewModel.GetWindowSize(this);
-			}
-			catch
-			{
-
-			}
+			DoApply(sender, e); // apply the changes
+			ViewSettings.Singleton.Main.CurrentView?.UpdatePlotColors(); // force a redraw of the graph
 			Close();
 		}
 
@@ -65,12 +57,36 @@ namespace QA40xPlot.Views
 		{
 			DialogResult = false;
 			ViewSettings.Singleton.Main.CurrentPaletteRect = MainViewModel.GetWindowSize(this);
+			ViewSettings.Singleton.SettingsVm.PaletteColors = OriginalColors; // restore original colors
+			ViewSettings.Singleton.Main.CurrentView?.UpdatePlotColors(); // force a redraw of the graph
 			Close();
+		}
+
+		private void ApplySet()
+		{
+			// nothing
+			try
+			{
+				var colors = _Buttons.Select(box => box.Color).ToList(); // get the color names from the boxes
+				var result = String.Join(", ", colors); // join them into a single string
+				ViewSettings.Singleton.SettingsVm.PaletteColors = result; // save the colors to the settings
+				ViewSettings.Singleton.Main.CurrentView?.UpdatePlotColors(); // force a redraw of the graph
+			}
+			catch
+			{
+
+			}
+		}
+
+		private void DoApply(object sender, RoutedEventArgs e)
+		{
+			ApplySet();
 		}
 
 		public PaletteSet()
 		{
 			SetDataContext(_PaletteShow);
+			OriginalColors = ViewSettings.Singleton.SettingsVm.PaletteColors;
 			InitializeComponent();
 			var viewWind = ViewSettings.Singleton.Main.CurrentPaletteRect;
 			if (viewWind.Length > 0)
@@ -89,6 +105,13 @@ namespace QA40xPlot.Views
 					BorderBrush = System.Windows.Media.Brushes.Transparent,
 					Width = 50,
 					Height = 50,
+				};
+
+				button.PropertyChanged += (sender,e) =>
+				{	if (e.PropertyName == nameof(ColorBox.Color))
+					{
+						ApplySet(); // apply the changes when the color changes
+					}
 				};
 
 				wrap.Children.Add(button);

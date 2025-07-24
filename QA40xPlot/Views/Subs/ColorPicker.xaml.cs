@@ -135,7 +135,6 @@ namespace QA40xPlot.Views
 				NowColor = PlotUtil.ColorToStr(aColor); // Update the NowColor property
 				if (CallMe != null)
 					CallMe(this);
-
 			}
 		}
 

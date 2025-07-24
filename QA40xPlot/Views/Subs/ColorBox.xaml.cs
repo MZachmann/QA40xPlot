@@ -1,16 +1,20 @@
 ﻿using QA40xPlot.ViewModels;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace QA40xPlot.Views
 {
-	public partial class ColorBox : UserControl
+	public partial class ColorBox : UserControl , INotifyPropertyChanged
 	{
 		public ColorBox()
 		{
 			InitializeComponent();
 		}
 
+		// called by the picker when a value changes
 		private bool OnColorChange(ColorPicker dlg)
 		{
 			Color = dlg.NowColor;
@@ -49,9 +53,37 @@ namespace QA40xPlot.Views
 			get => (string)GetValue(ColorProperty);
 			set
 			{
+				// this is called when it gets set by palette editor
+				var oldc = Color;
 				SetValue(ColorProperty, value);
+				if( oldc != Color)
+					RaisePropertyChanged("Color");
 			}
 		}
+
+		#region INotifyPropertyChanged
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		protected void OnPropertyChanged([CallerMemberName] string? propertyName = "")
+		{
+			var changed = PropertyChanged;
+			if (changed == null)
+				return;
+			changed.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		}
+
+		/// <summary>
+		/// RaisePropertyChanged
+		/// Tell the window a property has changed
+		/// </summary>
+		/// <param name="propertyName"></param>
+		public void RaisePropertyChanged(string? propertyName = null)
+		{
+			OnPropertyChanged(propertyName);
+		}
+		#endregion
+
+
 
 	}
 }

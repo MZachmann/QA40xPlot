@@ -53,6 +53,8 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public RelayCommand DoGetGenUnits { get => new RelayCommand(GetGenUnits); }
 		[JsonIgnore]
+		public RelayCommand EditPaletteCommand { get => new RelayCommand(EditPlotPalette); }
+		[JsonIgnore]
 		public RelayCommand<object> ShowMenuCommand { get => new RelayCommand<object>(ShowMenu); }
 		[JsonIgnore]
 		public RelayCommand<object> SetGenVolts { get => new RelayCommand<object>(DoGenVolts); }
@@ -516,6 +518,11 @@ namespace QA40xPlot.ViewModels
 			RaisePropertyChanged("EndVoltage");
 		}
 
+		public void UpdatePlotColors()
+		{
+			RaisePropertyChanged("DSPlotColors");
+		}
+
 		public static void DoGenVolts(object? parameter)
 		{
 			var mvm = ViewSettings.Singleton.Main.CurrentView; // the current viewmodel
@@ -523,6 +530,13 @@ namespace QA40xPlot.ViewModels
 			{
 				mvm.SetGeneratorVolts(parameter.ToString() ?? string.Empty);
 			}
+		}
+
+		public void EditPlotPalette()
+		{
+			//var vm = ViewSettings.Singleton.SettingsVm;
+			var paletteDialog = new PaletteSet();
+			paletteDialog.ShowDialog();
 		}
 
 		/// <summary>

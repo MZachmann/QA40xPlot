@@ -5,10 +5,12 @@ using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
+using System.Drawing.Drawing2D;
 using System.Runtime.Intrinsics.X86;
 using System.Windows;
 using System.Windows.Controls;
 using static QA40xPlot.ViewModels.BaseViewModel;
+using static SkiaSharp.HarfBuzz.SKShaper;
 
 // various things for the thd vs frequency activity
 
@@ -17,7 +19,7 @@ namespace QA40xPlot.Actions
 	using MyDataTab = DataTab<ScopeViewModel>;
 
 	public class ActScope : ActBase
-    {
+	{
 		public MyDataTab PageData { get; private set; } // Data used in this form instance
 		private List<MyDataTab> OtherTabs { get; set; } = new List<MyDataTab>(); // Other tabs in the document
 		private readonly Views.PlotControl timePlot;
@@ -31,7 +33,7 @@ namespace QA40xPlot.Actions
 		/// Constructor
 		/// </summary>
 		public ActScope(Views.PlotControl graphFft)
-        {
+		{
 			timePlot = graphFft;
 			ct = new CancellationTokenSource();
 			PageData = new(MyVModel, new LeftRightTimeSeries());
@@ -48,8 +50,8 @@ namespace QA40xPlot.Actions
 
 
 		public void DoCancel()
-        {
-            ct.Cancel();
+		{
+			ct.Cancel();
 		}
 
 		/// <summary>
@@ -76,7 +78,7 @@ namespace QA40xPlot.Actions
 			}
 			var frqs = Enumerable.Range(0, fftsize).ToList();
 			var frequencies = frqs.Select(x => x * ffs.dt).ToList(); // .Select(x => x * binSize);
-			db.FreqData = frequencies;	// time actually but w/e
+			db.FreqData = frequencies;  // time actually but w/e
 			return db;
 		}
 
@@ -84,7 +86,7 @@ namespace QA40xPlot.Actions
 		{
 			ScottPlot.Plot myPlot = timePlot.ThePlot;
 			var vm = MyVModel;
-			if(who == "XT")
+			if (who == "XT")
 			{
 				myPlot = timePlot.ThePlot;
 				// setting start seems to reset max...
@@ -92,7 +94,7 @@ namespace QA40xPlot.Actions
 				vm.GraphEndX = myPlot.Axes.Bottom.Max.ToString("0.##");
 				vm.GraphStartX = minx;
 			}
-			else if(who == "YM")
+			else if (who == "YM")
 			{
 				myPlot = timePlot.ThePlot;
 				// setting start seems to reset max...
@@ -151,7 +153,7 @@ namespace QA40xPlot.Actions
 			// now recalculate everything
 			BuildFrequencies(page);
 			await PostProcess(page, ct.Token);
-			if(isMain)
+			if (isMain)
 			{
 				// we can't overwrite the viewmodel since it links to the display proper
 				// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
@@ -167,7 +169,7 @@ namespace QA40xPlot.Actions
 			{
 				page.Show = 1; // show the left channel new
 				OtherTabs.Add(page); // add the new one
-				//var oss = new OtherSet(page.Definition.Name, page.Show, page.Id);
+									 //var oss = new OtherSet(page.Definition.Name, page.Show, page.Id);
 				MyVModel.OtherSetList.Add(page.Definition);
 			}
 			UpdateGraph(true);
@@ -181,7 +183,7 @@ namespace QA40xPlot.Actions
 			var v2 = ToD(vm.Gen2Voltage, 1e-5);
 			var v1 = ToD(vm.Gen1Voltage, 1e-5);
 			WaveGenerator.SetGen1(freq, volts, force ? true : vm.UseGenerator1, vm.Gen1Waveform);          // send a sine wave
-			WaveGenerator.SetGen2(freq2, volts * v2/v1, vm.UseGenerator2, vm.Gen2Waveform);          // send a sine wave
+			WaveGenerator.SetGen2(freq2, volts * v2 / v1, vm.UseGenerator2, vm.Gen2Waveform);          // send a sine wave
 			var vsee1 = MathUtil.FormatVoltage(volts);
 			var vsee2 = MathUtil.FormatVoltage(volts * v2 / v1);
 			string vout = "";
@@ -297,7 +299,7 @@ namespace QA40xPlot.Actions
 		/// <param name="ct">Cancellation token</param>
 		/// <returns>result. false if cancelled</returns>
 		async Task<bool> RunAcquisition(MyDataTab msr, CancellationToken ct)
-        {
+		{
 			// Setup
 			ScopeViewModel thd = msr.ViewModel;
 
@@ -305,8 +307,8 @@ namespace QA40xPlot.Actions
 			var freq2 = ToD(thd.Gen2Frequency, 1000);
 			var sampleRate = thd.SampleRateVal;
 			if (freq == 0 || sampleRate == 0 || !BaseViewModel.FftSizes.Contains(thd.FftSize))
-            {
-                MessageBox.Show("Invalid settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+			{
+				MessageBox.Show("Invalid settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 				return false;
 			}
 			var fftsize = thd.FftSizeVal;
@@ -321,25 +323,25 @@ namespace QA40xPlot.Actions
 
 			try
 			{
-                // Check if cancel button pressed
-                if (ct.IsCancellationRequested)
-                    return false;
+				// Check if cancel button pressed
+				if (ct.IsCancellationRequested)
+					return false;
 
 				// do the noise floor acquisition and math
 				// note measurenoise uses the existing init setup
 				// except InputRange (attenuation) which is push/pop-ed
 				// if (msr.NoiseFloor.Left == 0)
-					//            {
-					//	var noisy = await MeasureNoise(ct);
-					//	if (ct.IsCancellationRequested)
-					//		return false;
-					//	msr.NoiseFloor = new LeftRightPair();
-					//	msr.NoiseFloor.Left = QaCompute.CalculateNoise(noisy.FreqRslt, true);
-					//	msr.NoiseFloor.Right = QaCompute.CalculateNoise(noisy.FreqRslt, false);
-					//}
+				//            {
+				//	var noisy = await MeasureNoise(ct);
+				//	if (ct.IsCancellationRequested)
+				//		return false;
+				//	msr.NoiseFloor = new LeftRightPair();
+				//	msr.NoiseFloor.Left = QaCompute.CalculateNoise(noisy.FreqRslt, true);
+				//	msr.NoiseFloor.Right = QaCompute.CalculateNoise(noisy.FreqRslt, false);
+				//}
 
 				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
-				var genVolt = thd.ToGenVoltage(thd.Gen1Voltage, [], GEN_INPUT, gains) ;
+				var genVolt = thd.ToGenVoltage(thd.Gen1Voltage, [], GEN_INPUT, gains);
 				var genVolt2 = thd.ToGenVoltage(thd.Gen2Voltage, [], GEN_INPUT, gains);
 				if (genVolt > 5)
 				{
@@ -382,43 +384,43 @@ namespace QA40xPlot.Actions
 		{
 			var thd = msr.ViewModel;
 			try
-			{ 
+			{
 				UpdateGraph(false);
-				if(! thd.IsTracking)
+				if (!thd.IsTracking)
 				{
 					thd.RaiseMouseTracked("track");
 				}
 				MyVModel.HasExport = true;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
+			}
 
 			// Show message
 			var leftInfo = ViewSettings.Singleton.ScopeInfoLeft;
 			SetInfoChannels(msr);
 			await showMessage("Measurement finished");
-			await Task.Delay(1);	// let it be seen
+			await Task.Delay(1);    // let it be seen
 
-            return !ct.IsCancellationRequested;
-        }
+			return !ct.IsCancellationRequested;
+		}
 
-        /// <summary>
-        /// Clear the plot
-        /// </summary>
-        void ClearPlot()
-        {
-            timePlot.ThePlot.Clear();
-            timePlot.Refresh();
-        }
+		/// <summary>
+		/// Clear the plot
+		/// </summary>
+		void ClearPlot()
+		{
+			timePlot.ThePlot.Clear();
+			timePlot.Refresh();
+		}
 
-        /// <summary>
-        /// Plot the THD % graph
-        /// </summary>
-        /// <param name="data"></param>
-        void PlotValues(MyDataTab page, int measurementNr, bool isMain)
-        {
+		/// <summary>
+		/// Plot the THD % graph
+		/// </summary>
+		/// <param name="data"></param>
+		void PlotValues(MyDataTab page, int measurementNr, bool isMain)
+		{
 			ScottPlot.Plot myPlot = timePlot.ThePlot;
 			var scopeVm = MyVModel;
 			bool useLeft;   // dynamically update these
@@ -442,7 +444,7 @@ namespace QA40xPlot.Actions
 			double maxright = timeData.Right.Max();
 
 			var timeX = Enumerable.Range(0, timeData.Left.Length).Select(x => x * 1000 * timeData.dt).ToArray(); // in ms
-			var showThick = MyVModel.ShowThickLines;	// so it dynamically updates
+			var showThick = MyVModel.ShowThickLines;    // so it dynamically updates
 			var markerSize = scopeVm.ShowPoints ? (showThick ? _Thickness : 1) + 3 : 1;
 			if (useLeft)
 			{
@@ -467,27 +469,27 @@ namespace QA40xPlot.Actions
 		/// Initialize the magnitude plot
 		/// </summary>
 		void InitializeMagnitudePlot()
-        {
+		{
 			ScottPlot.Plot myPlot = timePlot.ThePlot;
-            PlotUtil.InitializeMagTimePlot(myPlot);
+			PlotUtil.InitializeMagTimePlot(myPlot);
 
 			var thdFreq = MyVModel;
 
-			myPlot.Axes.SetLimits(ToD(thdFreq.GraphStartX), ToD(thdFreq.GraphEndX), 
+			myPlot.Axes.SetLimits(ToD(thdFreq.GraphStartX), ToD(thdFreq.GraphEndX),
 				ToD(thdFreq.RangeBottom), ToD(thdFreq.RangeTop));
 
 			UpdatePlotTitle();
 			myPlot.XLabel("Time (mS)");
 			myPlot.YLabel("Voltage");
 
-            timePlot.Refresh();
-        }
+			timePlot.Refresh();
+		}
 
-        /// <summary>
-        ///  Start measurement button click
-        /// </summary>
-        public async Task DoMeasurement()
-        {
+		/// <summary>
+		///  Start measurement button click
+		/// </summary>
+		public async Task DoMeasurement()
+		{
 			var scopeVm = MyVModel;
 			if (!await StartAction(scopeVm))
 				return;
@@ -515,16 +517,16 @@ namespace QA40xPlot.Actions
 			{
 				var maxv = ToD(scopeVm.Gen1Voltage, .001);
 				var wave = BuildWave(NextPage, maxv, true);   // build a wave to evaluate the peak values
-				// get the peak voltages then fake an rms math div by 2*sqrt(2) = 2.828
-				// since I assume that's the hardware math
-				var waveVOut = (wave.Max() - wave.Min()) / 2.828; 
+															  // get the peak voltages then fake an rms math div by 2*sqrt(2) = 2.828
+															  // since I assume that's the hardware math
+				var waveVOut = (wave.Max() - wave.Min()) / 2.828;
 				var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
 				var vinL = scopeVm.ToGenVoltage(waveVOut.ToString(), [], GEN_INPUT, gains); // get gen1 input voltage
-				double voutL = ToGenOutVolts(vinL, [], LRGains.Left);	// what is that as output voltage?
-				double voutR = ToGenOutVolts(vinL, [], LRGains.Right);	// for both channels
-				var vdbv = QaLibrary.ConvertVoltage( Math.Max(voutL, voutR), E_VoltageUnit.Volt, E_VoltageUnit.dBV );
+				double voutL = ToGenOutVolts(vinL, [], LRGains.Left);   // what is that as output voltage?
+				double voutR = ToGenOutVolts(vinL, [], LRGains.Right);  // for both channels
+				var vdbv = QaLibrary.ConvertVoltage(Math.Max(voutL, voutR), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 				scopeVm.Attenuation = QaLibrary.DetermineAttenuation(vdbv);             // find attenuation for both
-				vm.Attenuation = scopeVm.Attenuation;	// update the scopeVm to update the gui, then this for the steps
+				vm.Attenuation = scopeVm.Attenuation;   // update the scopeVm to update the gui, then this for the steps
 			}
 
 			// do the actual measurements
@@ -570,7 +572,7 @@ namespace QA40xPlot.Actions
 
 		// show the latest step values in the table
 		public void SetInfoChannels(MyDataTab tab)
-        {
+		{
 			var timeData = tab.TimeRslt;
 			if (timeData == null || timeData.Left.Length == 0)
 				return;
@@ -581,17 +583,22 @@ namespace QA40xPlot.Actions
 		}
 
 		public void UpdateGraph(bool settingsChanged)
-        {
-			timePlot.ThePlot.Remove<Scatter>();             // Remove all current lines
+		{
 			timePlot.ThePlot.Remove<Marker>();             // Remove all current lines
 			int resultNr = 0;
 			var thd = MyVModel;
 
-            if (settingsChanged)
-            {
-                InitializeMagnitudePlot();
-            }
+			if (settingsChanged)
+			{
+				InitializeMagnitudePlot();
+			}
+			DrawPlotLines(resultNr); // draw the lines 
+		}
 
+		public int DrawPlotLines(int resultNr)
+		{
+
+			timePlot.ThePlot.Remove<Scatter>();             // Remove all current lines
 			PlotValues(PageData, resultNr++, true);
 			if (OtherTabs.Count > 0)
 			{
@@ -602,8 +609,9 @@ namespace QA40xPlot.Actions
 					resultNr++;
 				}
 			}
-
 			timePlot.Refresh();
+			return resultNr;
 		}
 	}
 }
+

@@ -901,8 +901,7 @@ namespace QA40xPlot.Actions
 		}
 
 		public void UpdateGraph(bool settingsChanged)
-        {
-			fftPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
+		{
 			fftPlot.ThePlot.Remove<Marker>();             // Remove all current lines
 			int resultNr = 0;
 			SpectrumViewModel thd = MyVModel;
@@ -923,6 +922,17 @@ namespace QA40xPlot.Actions
 			ViewSettings.Singleton.ChannelRight.ThemeBkgd = ViewSettings.Singleton.Main.ThemeBkgd;
 
 			ShowPageInfo(PageData); // show the page info in the display
+			if (PageData.FreqRslt != null)
+			{
+				ShowHarmonicMarkers(PageData);
+				ShowPowerMarkers(PageData);
+			}
+			DrawPlotLines(resultNr);
+		}
+
+		public int DrawPlotLines(int resultNr)
+		{
+			fftPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
 			PlotValues(PageData, resultNr++, true);
 			if (OtherTabs.Count > 0)
 			{
@@ -930,17 +940,11 @@ namespace QA40xPlot.Actions
 				{
 					if (other != null)
 						PlotValues(other, resultNr, false);
-					resultNr++;		// keep consistent coloring
+					resultNr++;     // keep consistent coloring
 				}
 			}
-
-            if( PageData.FreqRslt != null)
-            {
-				ShowHarmonicMarkers(PageData);
-				ShowPowerMarkers(PageData);
-			}
-
 			fftPlot.Refresh();
+			return resultNr;
 		}
 	}
 }

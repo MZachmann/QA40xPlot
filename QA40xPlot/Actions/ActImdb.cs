@@ -5,9 +5,11 @@ using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
+using System.Drawing.Drawing2D;
 using System.Windows;
 using System.Windows.Media;
 using static QA40xPlot.ViewModels.BaseViewModel;
+using static SkiaSharp.HarfBuzz.SKShaper;
 
 // this is the top level class for the Intermodulation test
 // the code that runs the test and analyzes the results
@@ -742,7 +744,6 @@ namespace QA40xPlot.Actions
 
 		public void UpdateGraph(bool settingsChanged)
 		{
-			fftPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
 			fftPlot.ThePlot.Remove<Marker>();             // Remove all current lines
 			int resultNr = 0;
 			ImdViewModel thd = MyVModel;
@@ -763,7 +764,17 @@ namespace QA40xPlot.Actions
 			ViewSettings.Singleton.ImdChannelLeft.ThemeBkgd = ViewSettings.Singleton.Main.ThemeBkgd;
 			ViewSettings.Singleton.ImdChannelRight.ThemeBkgd = ViewSettings.Singleton.Main.ThemeBkgd;
 			ShowPageInfo(PageData);
+			if (PageData.FreqRslt != null)
+			{
+				ShowHarmonicMarkers(PageData);
+				ShowPowerMarkers(PageData);
+			}
+			DrawPlotLines(resultNr);
+		}
 
+		public int DrawPlotLines(int resultNr)
+		{
+			fftPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
 			PlotValues(PageData, resultNr++, true);
 			if (OtherTabs.Count > 0)
 			{
@@ -771,17 +782,11 @@ namespace QA40xPlot.Actions
 				{
 					if (other != null)
 						PlotValues(other, resultNr, false);
-					resultNr++;	// consistency
+					resultNr++;     // keep consistent coloring
 				}
 			}
-
-			if (PageData.FreqRslt != null)
-			{
-				ShowHarmonicMarkers(PageData);
-				ShowPowerMarkers(PageData);
-			}
-
 			fftPlot.Refresh();
+			return resultNr;
 		}
 
 		private void ShowPageInfo(MyDataTab page)
