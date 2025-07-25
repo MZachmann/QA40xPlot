@@ -688,7 +688,7 @@ namespace QA40xPlot.Actions
 			var maxPlotX = Math.Pow(10, myPlot.Axes.Bottom.Max);    // back into linear frequency values
 			trimOff = Math.Max(trimOff, (int)(minPlotX / fftData.Df)); // trim off the low frequencies
 			keepCnt = Math.Min(keepCnt, (int)((maxPlotX - minPlotX) / fftData.Df) + 1); // keep the high frequencies
-			var keepFreqs = freqLogX.Skip(trimOff).Take(keepCnt).ToArray();
+			var keepFreqs = freqLogX.Skip(trimOff-1).Take(keepCnt).ToArray();
 			if (useLeft)
 			{
 				var vf = fftData.Left.Skip(trimOff).Take(keepCnt);
