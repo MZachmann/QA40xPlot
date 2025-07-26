@@ -16,7 +16,7 @@ public class FreqRespViewModel : BaseViewModel
 {
 	public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 	public static List<String> Smoothings { get => new List<string> { "None", "1/24", "1/6" }; }
-	public static List<String> TestTypes { get => new List<string> { "Response", "Impedance", "Gain" }; }
+	public static List<String> TestTypes { get => new List<string> { "Response", "Impedance", "Gain", "Crosstalk" }; }
 
 	private ActFrequencyResponse MyAction { get => actFreq; }
 	private PlotControl actPlot { get; set; }
@@ -425,6 +425,9 @@ public class FreqRespViewModel : BaseViewModel
 		FreqShow = zv.Item1.ToString("0.# Hz");
 		switch ( ttype)
 		{
+			case TestingType.Crosstalk:
+				ZValue = "Left: " + (20 * Math.Log10(zv.Item2)).ToString("0.## dB") + Environment.NewLine + "Right: " + (20 * Math.Log10(zv.Item3)).ToString("0.## dB");
+				break;
 			case TestingType.Response:
 				ZValue = "Left: " + (20 * Math.Log10(zv.Item2)).ToString("0.## dBV") + Environment.NewLine + "Right: " + (20 * Math.Log10(zv.Item3)).ToString("0.## dBV");
 				break;

@@ -268,8 +268,8 @@ namespace QA40xPlot.BareMetal
 				return new LeftRightSeries();
 			var ffts = GetFftSize();
 			var srate = GetSampleRate();
-			var datapt = WaveGenerator.Generate(srate, ffts);
-			var lrfs = await DoAcquireUser(averages, ct, datapt, datapt, getFreq);
+			var datapt = WaveGenerator.GeneratePair(srate, ffts);
+			var lrfs = await DoAcquireUser(averages, ct, datapt.Item1, datapt.Item2, getFreq);
 			return lrfs;
 		}
 

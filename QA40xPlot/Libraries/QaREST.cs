@@ -97,10 +97,10 @@ namespace QA40xPlot.Libraries
 			return lrfs;
 		}
 
-		static public async Task<LeftRightSeries> DoAcquireUser(CancellationToken ct, double[] datapt, bool getFreq)
+		static public async Task<LeftRightSeries> DoAcquireUser(CancellationToken ct, double[] dataLeft, double[] dataRight, bool getFreq)
 		{
 			LeftRightSeries lrfs = new LeftRightSeries();
-			await Qa40x.DoUserAcquisition(datapt, datapt);
+			await Qa40x.DoUserAcquisition(dataLeft, dataRight);
 
 			if (ct.IsCancellationRequested )
 				return lrfs;

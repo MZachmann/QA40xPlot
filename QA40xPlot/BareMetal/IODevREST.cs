@@ -91,17 +91,16 @@ namespace QA40xPlot.BareMetal
 
 		public async ValueTask<LeftRightSeries> DoAcquireUser(uint averages, CancellationToken ct, double[] dataLeft, double[] dataRight, bool getFreq)
 		{
-			return await QaREST.DoAcquireUser(ct, dataLeft, getFreq);
+			return await QaREST.DoAcquireUser(ct, dataLeft, dataRight, getFreq);
 		}
 
 		public async ValueTask<LeftRightSeries> DoAcquisitions(uint averages, CancellationToken ct, bool getFreq)
 		{
 			var ffts = GetFftSize();
-			var datapt = new double[ffts];
 			var osource = GetOutputSource();
 			var srate = GetSampleRate();
-			datapt = WaveGenerator.Generate(srate, ffts);
-			return await QaREST.DoAcquireUser(ct, datapt, getFreq);
+			var datapts = WaveGenerator.GeneratePair(srate, ffts);
+			return await QaREST.DoAcquireUser(ct, datapts.Item1, datapts.Item2, getFreq);
 		}
 
 		public async ValueTask<bool> InitializeDevice(uint sampleRate, uint fftsize, string Windowing, int attenuation)

@@ -1,6 +1,8 @@
 ﻿using QA40xPlot.Data;
 using QA40xPlot.Libraries;
+using QA40xPlot.ViewModels;
 using System.Diagnostics;
+using System.Threading.Channels;
 
 namespace QA40xPlot.BareMetal
 {
@@ -9,6 +11,9 @@ namespace QA40xPlot.BareMetal
 		public GenWaveform GenParams { get; private set; }
 		public GenWaveform Gen2Params { get; private set; }
 		public bool IsEnabled { get; set; }
+		public WaveChannels Channels { get => GenParams.Channels;
+										set => GenParams.Channels = value;
+										}
 
 		public static WaveGenerator Singleton = new WaveGenerator();
 
@@ -20,7 +25,7 @@ namespace QA40xPlot.BareMetal
 				Frequency = 1000,
 				FreqEnd = 20000,
 				Voltage = 0.5,
-				Enabled = false
+				Enabled = false,
 			};
 			Gen2Params = new GenWaveform()
 			{
@@ -39,12 +44,13 @@ namespace QA40xPlot.BareMetal
 		/// <param name="freq"></param>
 		/// <param name="volts"></param>
 		/// <param name="ison"></param>
-		private static void SetParams(GenWaveform gwf, double freq, double volts, bool ison)
+		private static void SetParams(GenWaveform gwf, double freq, double volts, bool ison, WaveChannels channels = WaveChannels.Both)
 		{
 			gwf.Name = "Sine";
 			gwf.Voltage = volts;
 			gwf.Frequency = freq;
 			gwf.Enabled = ison;
+			gwf.Channels = channels;
 		}
 
 		public static void SetGen2(double freq, double volts, bool ison, string name=  "Sine")
@@ -59,6 +65,11 @@ namespace QA40xPlot.BareMetal
 			WaveGenerator.Singleton.GenParams.Name = name;
 		}
 
+		public static void SetChannels(WaveChannels channels)
+		{
+			WaveGenerator.Singleton.Channels = channels;
+		}
+
 		public static void SetEnabled(bool ison)
 		{
 			WaveGenerator.Singleton.IsEnabled = ison;
@@ -70,6 +81,33 @@ namespace QA40xPlot.BareMetal
 			vw.IsEnabled = false;
 			vw.GenParams.Enabled = false;
 			vw.Gen2Params.Enabled = false;
+		}
+
+		public static (double[], double[]) GeneratePair(uint sampleRate, uint sampleSize)
+		{
+			var dx = Generate(sampleRate, sampleSize);
+			var how = WaveGenerator.Singleton.Channels;
+			double[] blank = [];
+			if(how != WaveChannels.Both)
+			{
+				// if debug distortion is enabled, set the crosstalk channel to Addon%
+				blank = new double[sampleSize];
+				if(ViewSettings.AddonDistortion > 0)
+				{
+					blank = dx.Select(x => x * ViewSettings.AddonDistortion/100).ToArray();
+				}
+			}
+			switch(how)
+			{
+				case WaveChannels.Left:
+					return (dx, blank);
+				case WaveChannels.Right:
+					return (blank, dx);
+				case WaveChannels.Both:
+					return (dx, dx);
+				default: // WaveChannels.Neither
+					return (blank, blank);
+			}
 		}
 
 		public static double[] Generate(uint sampleRate, uint sampleSize)

@@ -4,6 +4,7 @@
 	{
 		Response,
 		Impedance,
-		Gain
+		Gain,
+		Crosstalk
 	}
 }

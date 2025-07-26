@@ -9,6 +9,7 @@ using ScottPlot.Plottables;
 using System.Data;
 using System.Numerics;
 using System.Windows;
+using System.Windows.Controls;
 using static QA40xPlot.ViewModels.BaseViewModel;
 
 
@@ -286,8 +287,6 @@ namespace QA40xPlot.Actions
 					.Select(y => y.First())
 					.ToArray();
 
-				var ttype = vmFreq.GetTestingType(msr.TestType);
-
 				if (ct.IsCancellationRequested)
 					return;
 				if (msr.IsChirp)
@@ -307,7 +306,9 @@ namespace QA40xPlot.Actions
 					if (ct.IsCancellationRequested)
 						break;
 					if (msr.IsChirp)
+					{
 						await RunChirpTest(PageData, voltagedBV);
+					}
 					else
 						await RunFreqTest(PageData, stepBinFrequencies, voltagedBV);
 					AddMicCorrection(NextPage); // add mic correction if any
@@ -345,7 +346,8 @@ namespace QA40xPlot.Actions
             var ttype = frsqVm.GetTestingType(frsqVm.TestType);
             switch( ttype)
             {
-                case TestingType.Response:
+				case TestingType.Crosstalk:
+				case TestingType.Response:
 					if (frsqVm.ShowRight && !frsqVm.ShowLeft)
 					{
 						db.LeftData = PageData.GainData.Select(x => x.Imaginary).ToList();
@@ -414,7 +416,7 @@ namespace QA40xPlot.Actions
             rrc.X = vmr.Min();
             rrc.Width = vmr.Max() - rrc.X;
 			var ttype = vm.GetTestingType(vm.TestType);
-			if (ttype == TestingType.Response)
+			if (ttype == TestingType.Response || ttype == TestingType.Crosstalk)
 			{
                 if (vm.ShowLeft)
                 {
@@ -474,7 +476,11 @@ namespace QA40xPlot.Actions
                 var ttype = frsqVm.GetTestingType(frsqVm.TestType);
                 switch(ttype)
                 {
-                    case TestingType.Response:
+					case TestingType.Crosstalk:
+						// send freq, gain, gain2
+						tup = ValueTuple.Create(freqs[bin], values[bin].Real, values[bin].Imaginary);
+						break;
+					case TestingType.Response:
 						// send freq, gain, gain2
 						tup = ValueTuple.Create(freqs[bin], values[bin].Real, values[bin].Imaginary);
                         break;
@@ -487,12 +493,39 @@ namespace QA40xPlot.Actions
 						}
 						break;
                     case TestingType.Gain:
-						    // send freq, gain, phasedeg
-							tup = ValueTuple.Create(freqs[bin], values[bin].Magnitude, 180 * values[bin].Phase / Math.PI);
+						// send freq, gain, phasedeg
+						tup = ValueTuple.Create(freqs[bin], values[bin].Magnitude, 180 * values[bin].Phase / Math.PI);
 						break;
                 }
 			}
 			return tup;
+		}
+
+		private async Task RunStep(MyDataTab page, TestingType ttype, double dfreq, double genVolt)
+		{
+			var vm = page.ViewModel;
+			if (vm.Averages > 0)
+			{
+				List<Complex> readings = new();
+				for (int j = 0; j < vm.Averages; j++)
+				{
+					await showMessage(string.Format($"Checking + {dfreq:0} Hz at {genVolt:0.###}V"));   // need a delay to actually see it
+					var ga = await GetGain(dfreq, vm, ttype);
+					readings.Add(ga);
+				}
+				var total = Complex.Zero;
+				foreach (var f in readings)
+				{
+					total += f;
+				}
+				page.GainData = page.GainData.Append(total / vm.Averages).ToArray();
+			}
+			else
+			{
+				await showMessage(string.Format("Checking + {0:0}", dfreq));   // need a delay to actually see it
+				var ga = await GetGain(dfreq, vm, ttype);
+				page.GainData = page.GainData.Append(ga).ToArray();
+			}
 		}
 
 		/// <summary>
@@ -529,30 +562,33 @@ namespace QA40xPlot.Actions
                         WaveGenerator.SetGen1(dfreq, genVolt, true);
                     else
                         WaveGenerator.SetGen1(1000, genVolt, false);
+					if(ttype == TestingType.Crosstalk)
+					{
+						// each one adds a step so carefully....
+						var exData = page.GainData; // save the data
+						var exFreq = page.GainFrequencies; // save the frequencies
+						WaveGenerator.SetChannels(WaveChannels.Left); // crosstalk is both channels
+						await RunStep(page, TestingType.Response, dfreq, genVolt);      // get gain of both channels
+						var mygainL = page.GainData[page.GainData.Length - 1]; // last gain value
 
-                    if (vm.Averages > 0)
-                    {
-                        List<Complex> readings = new();
-                        for (int j = 0; j < vm.Averages; j++)
-                        {
-							await showMessage(string.Format($"Checking + {dfreq:0} Hz at {genVolt:0.###}V"));   // need a delay to actually see it
-                            var ga = await GetGain(dfreq, vm, ttype);
-                            readings.Add(ga);
-                        }
-                        var total = Complex.Zero;
-                        foreach (var f in readings)
-                        {
-                            total += f;
-                        }
-						page.GainData = page.GainData.Append(total / vm.Averages).ToArray();
+						page.GainData = exData; // new list of complex data
+						page.GainFrequencies = exFreq; // new list of frequencies
+						WaveGenerator.SetChannels(WaveChannels.Right); // crosstalk is both channels
+						await RunStep(page, TestingType.Response, dfreq, genVolt);      // get gain of both channels
+						WaveGenerator.SetChannels(WaveChannels.Both); // crosstalk is both channels
+																	  // merge the data
+						var allgain = page.GainData.ToArray();		// parse it and clone it
+						var mygainR = allgain[allgain.Length - 1]; // last gain value
+						var gainRight = mygainR.Real / Math.Max(1e-10, mygainR.Imaginary);
+						var gainLeft = mygainL.Imaginary / Math.Max(1e-10, mygainL.Real);
+						allgain[allgain.Length - 1] = new Complex(gainLeft, gainRight); // replace the last value with the crosstalk gain
+						page.GainData = allgain; // set the gain data to the new crosstalk gain
 					}
-                    else
-                    {
-                        await showMessage(string.Format("Checking + {0:0}", dfreq));   // need a delay to actually see it
-                        var ga = await GetGain(dfreq, vm, ttype);
-						page.GainData = page.GainData.Append(ga).ToArray();
-                    }
-                    if (PageData.FreqRslt != null)
+					else
+					{
+						await RunStep(page, ttype, dfreq, genVolt);
+					}
+					if (PageData.FreqRslt != null)
                     {
                         QaLibrary.PlotMiniFftGraph(fftPlot, PageData.FreqRslt, true, false);
                         QaLibrary.PlotMiniTimeGraph(timePlot, PageData.TimeRslt, dfreq, true, false);
@@ -581,8 +617,8 @@ namespace QA40xPlot.Actions
 			var endf = MathUtil.ToDouble(vm.EndFreq) * 3;
 			endf = Math.Min(endf, vm.SampleRateVal / 2);
 			var genv = QaLibrary.ConvertVoltage(voltagedBV, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
-			var chirpy = Chirps.ChirpVp((int)vm.FftSizeVal, vm.SampleRateVal, genv, startf, endf, 0.8);
-			LeftRightSeries lfrs = await QaComm.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
+			var chirpy = Chirps.ChirpVpPair((int)vm.FftSizeVal, vm.SampleRateVal, genv, startf, endf, 0.8, WaveGenerator.Singleton.Channels);
+			LeftRightSeries lfrs = await QaComm.DoAcquireUser(1, ct.Token, chirpy.Item1, chirpy.Item2, false);
 			if (lfrs?.TimeRslt == null)
 				return (null,[],[]);
 			page.TimeRslt = lfrs.TimeRslt;
@@ -594,9 +630,11 @@ namespace QA40xPlot.Actions
 			var flength = lfrs.TimeRslt.Left.Length / 2;        // we want half this since freq is symmetric
 
 			var ttype = vm.GetTestingType(vm.TestType);
+			var chans = WaveGenerator.Singleton.Channels;
+			var useChirp = (chans == WaveChannels.Left || chans == WaveChannels.Both) ? chirpy.Item1 : chirpy.Item2; // use the left or right channel chirp
 			if (ttype == TestingType.Response)
 			{
-				var lft = Chirps.NormalizeChirpCplx(vm.WindowingMethod, chirpy, genv, (lfrs.TimeRslt.Left, lfrs.TimeRslt.Right));
+				var lft = Chirps.NormalizeChirpCplx(vm.WindowingMethod, useChirp, genv, (lfrs.TimeRslt.Left, lfrs.TimeRslt.Right));
 				leftFft = lft.Item1;
 				rightFft = lft.Item2;
 			}
@@ -622,20 +660,9 @@ namespace QA40xPlot.Actions
 			return (lfrs, leftFft, rightFft);
 		}
 
-		/// <summary>
-		/// Determine the gain curve based on measurement start,end frequency
-		/// </summary>
-		/// <param name="voltagedBV">the sine generator voltage</param>
-		/// <returns></returns>
-		private async Task<bool> RunChirpTest(MyDataTab page, double voltagedBV)
+		public async Task<bool> DoChirpTest(MyDataTab page, double voltagedBV, TestingType ttype)
 		{
 			var vm = page.ViewModel;
-			// Check if cancel button pressed
-			if (ct.IsCancellationRequested)
-				return false;
-
-			var ttype = vm.GetTestingType(vm.TestType);
-
 			try
 			{
 				// manually average the complex data here
@@ -643,14 +670,14 @@ namespace QA40xPlot.Actions
 				LeftRightSeries lfrs = rca.Item1 ?? new();
 				var leftFft = rca.Item2;
 				var rightFft = rca.Item3;
-				if(vm.Averages > 1 && lfrs.FreqRslt != null)
+				if (vm.Averages > 1 && lfrs.FreqRslt != null)
 				{
 					lfrs.FreqRslt.Left = lfrs.FreqRslt.Left.Select(x => x * x).ToArray();
-					lfrs.FreqRslt.Right = lfrs.FreqRslt.Right.Select(x => x * x).ToArray();	// sum of squares
-					for (int i=1; i<vm.Averages; i++)
+					lfrs.FreqRslt.Right = lfrs.FreqRslt.Right.Select(x => x * x).ToArray(); // sum of squares
+					for (int i = 1; i < vm.Averages; i++)
 					{
 						rca = await RunChirpAcquire(page, voltagedBV);
-						if(rca.Item1 != null && rca.Item1.FreqRslt != null)
+						if (rca.Item1 != null && rca.Item1.FreqRslt != null)
 						{
 							lfrs.FreqRslt.Left = lfrs.FreqRslt.Left.Zip(rca.Item1.FreqRslt.Left, (x, y) => x + y * y).ToArray();
 							lfrs.FreqRslt.Right = lfrs.FreqRslt.Left.Zip(rca.Item1.FreqRslt.Right, (x, y) => x + y * y).ToArray();
@@ -672,22 +699,26 @@ namespace QA40xPlot.Actions
 				var nca2 = (int)(0.01 + 1 / lfrs.TimeRslt.dt);      // total time in tics = sample rate
 				var df = nca2 / (double)flength / 2;                // ???
 
-                // trim the three vectors to the frequency range of interest
+				// trim the three vectors to the frequency range of interest
 				page.GainFrequencies = Enumerable.Range(0, leftFft.Length).Select(x => x * df).ToArray();
-                var gfr = page.GainFrequencies;
+				var gfr = page.GainFrequencies;
 				// restrict the data to only the frequency spectrum
 				var startf = MathUtil.ToDouble(vm.StartFreq) / 3;
 				var endf = MathUtil.ToDouble(vm.EndFreq) * 3;
 				var trimf = gfr.Count(x => x < startf);
-                var trimEnd = gfr.Count(x => x <= endf) - trimf;
+				var trimEnd = gfr.Count(x => x <= endf) - trimf;
 				// trim them all
-                gfr = gfr.Skip(trimf).Take(trimEnd).ToArray();
-                var mlft = leftFft.Skip(trimf).Take(trimEnd).ToArray();
-                var mref = rightFft.Skip(trimf).Take(trimEnd).ToArray();
-                // format the gain vectors as desired
-                page.GainFrequencies = gfr;
+				gfr = gfr.Skip(trimf).Take(trimEnd).ToArray();
+				var mlft = leftFft.Skip(trimf).Take(trimEnd).ToArray();
+				var mref = rightFft.Skip(trimf).Take(trimEnd).ToArray();
+				// format the gain vectors as desired
+				page.GainFrequencies = gfr;
 				switch (ttype)
-                {
+				{
+					case TestingType.Crosstalk:
+						// here complex value is the fft data left / right
+						page.GainData = mlft.Zip(mref, (l, r) => { return new Complex(l.Magnitude, r.Magnitude); }).ToArray();
+						break;
 					case TestingType.Response:
 						// left, right are magnitude. left uses right as reference
 						page.GainData = mlft.Zip(mref,
@@ -696,22 +727,73 @@ namespace QA40xPlot.Actions
 					case TestingType.Gain:
 						// here complex value is the fft data left / right
 						page.GainData = mlft.Zip(mref, (l, r) => { return l / r; }).ToArray();
-                        break;
+						break;
 					case TestingType.Impedance:
 						// here complex value is the fft data left / right
 						page.GainData = mlft.Zip(mref, (l, r) => { return l / r; }).ToArray();
 						break;
 				}
-
-				UpdateGraph(false);
-				if (!vm.IsTracking)
-				{
-					vm.RaiseMouseTracked("track");
-				}
 			}
 			catch (Exception ex)
 			{
 				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
+				return false;
+			}
+			return true;
+		}
+
+		/// <summary>
+		/// Determine the gain curve based on measurement start,end frequency
+		/// </summary>
+		/// <param name="voltagedBV">the sine generator voltage</param>
+		/// <returns></returns>
+		private async Task<bool> RunChirpTest(MyDataTab page, double voltagedBV)
+		{
+			var vm = page.ViewModel;
+			// Check if cancel button pressed
+			if (ct.IsCancellationRequested)
+				return false;
+
+			var didRun = false;
+
+			var ttype = vm.GetTestingType(vm.TestType);
+			if(ttype != TestingType.Crosstalk)
+			{
+				didRun = await DoChirpTest(page, voltagedBV, ttype);
+			}
+			else
+			{
+				page.GainData = []; // new list of complex data
+				page.GainFrequencies = []; // new list of frequencies
+				WaveGenerator.SetChannels(WaveChannels.Left); // left channel on
+				didRun = await DoChirpTest(page, voltagedBV, TestingType.Response);
+				var exData = page.GainData; // save the data
+				var exFreq = page.GainFrequencies; // save the frequencies
+				page.GainData = []; // new list of complex data
+				page.GainFrequencies = []; // new list of frequencies
+				WaveGenerator.SetChannels(WaveChannels.Right); // right channel on
+				didRun = await DoChirpTest(page, voltagedBV, TestingType.Response);
+				WaveGenerator.SetChannels(WaveChannels.Both); // back to default both
+				// merge
+				var gainRight = page.GainData.Select(x => x.Real / Math.Max(1e-10, x.Imaginary)).ToArray();
+				var gainLeft = exData.Select(x => x.Imaginary / Math.Max(1e-10, x.Real)).ToArray();
+				var gainall = gainLeft.Zip(gainRight, (x, y) => new Complex(x, y)).ToArray();
+				// average 5?
+				for (int i=0; i<(gainall.Length-20); i++)
+				{
+					var u = gainall[i];
+					var cnt = Math.Max(5, Math.Min(20, i / 50));
+					for (int j = 1; j < cnt; j++)
+						u += gainall[i+j];
+					gainall[i] = u / cnt; // average the gain
+				}
+				page.GainData = gainall;
+			}
+
+			UpdateGraph(false);
+			if (!vm.IsTracking)
+			{
+				vm.RaiseMouseTracked("track");
 			}
 			return true;
 		}
@@ -741,6 +823,9 @@ namespace QA40xPlot.Actions
 					break;
 				case TestingType.Impedance:
 					title = "Impedance";
+					break;
+				case TestingType.Crosstalk:
+					title = "Crosstalk";
 					break;
 			}
 			return title;
@@ -778,6 +863,10 @@ namespace QA40xPlot.Actions
 					PlotUtil.AddPhasePlot(myPlot);
 					myPlot.YLabel("|Z| Ohms");
 					myPlot.Axes.Right.Label.Text = "Phase (Deg)";
+					break;
+				case TestingType.Crosstalk:
+					myPlot.YLabel("dB");
+					myPlot.Axes.Right.Label.Text = string.Empty;
 					break;
 			}
 			UpdatePlotTitle();
@@ -841,7 +930,12 @@ namespace QA40xPlot.Actions
 			string legendname = string.Empty;
             switch(ttype)
             {
-                case TestingType.Gain:
+				case TestingType.Crosstalk:
+					YValues = gainY.Select(x => 20 * Math.Log10(x.Real)).ToArray(); // real is the left gain
+					phaseValues = gainY.Select(x => 20 * Math.Log10(x.Imaginary)).ToArray();
+					legendname = "dB";
+					break;
+				case TestingType.Gain:
 					YValues = gainY.Select(x => 20 * Math.Log10(x.Magnitude)).ToArray();
 					phaseValues = gainY.Select(x => 180 * x.Phase / Math.PI).ToArray();
                     legendname = "Gain";
@@ -890,7 +984,7 @@ namespace QA40xPlot.Actions
 			plot.MarkerSize = markerSize;
             plot.LegendText = legendname;
 			plot.LinePattern = LinePattern.Solid;
-            if( ttype != TestingType.Response || frqrsVm.ShowRight)
+            if((ttype == TestingType.Gain || ttype == TestingType.Impedance) || frqrsVm.ShowRight)
             {
                 var phases = phaseValues;
                 if(ttype == TestingType.Gain || ttype == TestingType.Impedance)
@@ -900,10 +994,15 @@ namespace QA40xPlot.Actions
 					plot.Axes.YAxis = myPlot.Axes.Right;
 					plot.LegendText = "Phase (Deg)";
 				}
-                else
-                {
+				else if (ttype == TestingType.Response)
+				{
 					plot = myPlot.Add.Scatter(logFreqX, phases);
 					plot.LegendText = "Right dBV";
+				}
+				else
+				{
+					plot = myPlot.Add.Scatter(logFreqX, phases);
+					plot.LegendText = "Right dB";
 				}
 				plot.LineWidth = lineWidth;
 				plot.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, measurementNr * 2 + 1);
@@ -933,9 +1032,12 @@ namespace QA40xPlot.Actions
 				case TestingType.Gain:
 					frqsrVm.PlotFormat = "SPL";
 					break;
+				case TestingType.Crosstalk:
+					frqsrVm.PlotFormat = "dB";
+					break;
 			}
 
-            if (settingsChanged)
+			if (settingsChanged)
             {
                 InitializePlot();
             }

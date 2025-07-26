@@ -1,5 +1,7 @@
 using FftSharp;
+using QA40xPlot.Data;
 using QA40xPlot.Libraries;
+using QA40xPlot.ViewModels;
 using System.Numerics;
 
 // Written by MZachmann 4-24-2025
@@ -58,6 +60,33 @@ namespace QA40xPlot.BareMetal
 			double[] inverseFilter = paddedChirp.Reverse().Select((value, index) => value / k[index]).ToArray();
 
 			return inverseFilter;
+		}
+
+		public static (double[], double[]) ChirpVpPair(int totalBufferLength, double fs, double amplitudeVrms, double f1 = 20, double f2 = 20000, double pct = 0.6, WaveChannels channels = WaveChannels.Both)
+		{
+			var chirps = ChirpVp(totalBufferLength, fs, amplitudeVrms, f1, f2, pct);
+			double[] blank = [];
+			if (channels != WaveChannels.Both)
+			{
+				blank = new double[chirps.Length];
+				if (ViewSettings.AddonDistortion > 0)
+				{
+					// add crosstalk distortion to the chirp
+					blank = chirps.Select(x => x * ViewSettings.AddonDistortion / 100).ToArray();
+				}
+			}
+			switch (channels)
+			{
+				case WaveChannels.Both:
+					return (chirps, chirps);
+				case WaveChannels.Left:
+					return (chirps, blank);
+				case WaveChannels.Right:
+					return (blank, chirps);
+				default:
+					break;
+			}
+			return (blank, blank);
 		}
 
 		/// <summary>
