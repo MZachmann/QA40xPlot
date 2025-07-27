@@ -103,6 +103,13 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _CurrentWindowRect, value);
 		}
 
+		private string _CurrentWindowState = string.Empty;
+		public string CurrentWindowState
+		{
+			get => _CurrentWindowState;
+			set => SetProperty(ref _CurrentWindowState, value);
+		}
+
 		private string _CurrentColorRect = string.Empty;
 		public string CurrentColorRect
 		{
@@ -197,6 +204,7 @@ namespace QA40xPlot.ViewModels
 			var windsize = GetWindowSize(Application.Current.MainWindow);
 			if(windsize.Length > 0)
 				ViewSettings.Singleton.Main.CurrentWindowRect = windsize;
+			ViewSettings.Singleton.Main.CurrentWindowState = Application.Current.MainWindow.WindowState.ToString();
 
 			// Serialize the object to a JSON string
 			string jsonString = JsonConvert.SerializeObject(cfgData, Formatting.Indented);
@@ -217,7 +225,15 @@ namespace QA40xPlot.ViewModels
 				if( jsonObject != null)
 					ViewSettings.Singleton.GetSettingsFrom(jsonObject);
 				var winRect = ViewSettings.Singleton.Main.CurrentWindowRect;
-				SetWindowSize( Application.Current.MainWindow, winRect);
+				if(winRect.Length > 0)
+				{
+					SetWindowSize(Application.Current.MainWindow, winRect);
+				}
+				var winState = ViewSettings.Singleton.Main.CurrentWindowState;
+				if(winState == "Maximized")
+				{
+					this.CurrentWindowState = "Maximized";
+				}
 				// paint the windows
 				if (ViewSettings.Singleton.Main.CurrentView != null)
 					ViewSettings.Singleton.Main.CurrentView.RaisePropertyChanged("DsRepaint");

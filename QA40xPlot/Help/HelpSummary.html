@@ -3,7 +3,7 @@
         font-family: 'Arial', sans-serif;
     }
 </style>
-<h3>The QA40xPlot application consists of 8 different audio tests that use a QA402 or QA403 audio analyzer from QuantAsylum.<br /><br /></h3>
+<h3>The QA40xPlot application consists of 9 different audio tests that use a QA402 or QA403 audio analyzer from QuantAsylum.<br /><br /></h3>
 <p> The Changelog <a href="File:../Help/ChangeLog.txt">Click here for the Changelog</a></p>
 <p> The Mathematics <a href="File:../Help/AudioMath.pdf">Click here for (early) math summary.</a></p>
 <p> The Video Tutorial <a href="https://youtu.be/veuTcE5_wk8">Click here for the Tutorial</a></p>
@@ -46,6 +46,10 @@
         <tr>
             <td><strong>Gain</strong></td>
             <td>Plot the gain and phase of the DUT at multiple swept frequencies.</td>
+        </tr>
+        <tr>
+            <td><strong>Crosstalk</strong></td>
+            <td>Measure and plot the interchannel crosstalk by turning left/right signal on/off during the test.</td>
         </tr>
     </tbody>
 </table>
@@ -533,5 +537,22 @@ Along the top right of the screen are a few command buttons. If this becomes too
     <li> the QA40x right channel input to the DUT input port and generator output.</li>
     <li> the QA40x left channel input to the DUT output port.</li>
 </ul>
+<h1 style="color:green">Crosstalk Test</h1>
+<p>This does a traditional crosstalk analysis of the two input channels vs frequency. Here retain the left and right channels through. QA40xPlot turns the left and
+    right channels on/off during the test.</p>
+<h2>Options</h2>
+<ul>
+    <li>
+        Use Chirp - this will do the crosstalk via chirp. Chirp accuracy at low levels of crosstalk (below 80dB) is iffy.
+    </li>
+</ul>
+<h3>Connections are:</h3>
+<ul>
+    <li> the QA40x right channel output to the DUT right input.</li>
+    <li> the QA40x left channel output to the DUT left input.</li>
+    <li> the QA40x right channel input to the DUT right output.</li>
+    <li> the QA40x left channel input to the DUT left output.</li>
+</ul>
+<br />
 <br />
 <br />

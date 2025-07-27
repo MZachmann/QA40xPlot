@@ -2,6 +2,9 @@
 --------------------------------------------
 This changelog shows the changes made for each version
 --------------------------------------------
+v 1.1.30
+- check for/save-load maximized window state
+
 V 1.1.29
 - add edit palette buttons to spectrum, IMD, and scope tests
 - propagate palette changes on clicks

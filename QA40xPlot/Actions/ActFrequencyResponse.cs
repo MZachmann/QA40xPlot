@@ -689,6 +689,8 @@ namespace QA40xPlot.Actions
 					lfrs.FreqRslt.Right = lfrs.FreqRslt.Right.Select(x => Math.Sqrt(x / vm.Averages)).ToArray();
 					leftFft = leftFft.Select(x => x / vm.Averages).ToArray();
 					rightFft = rightFft.Select(x => x / vm.Averages).ToArray();
+					if (ct.IsCancellationRequested)
+						return false;
 				}
 
 				if (lfrs.FreqRslt == null || lfrs.TimeRslt == null || leftFft.Length == 0)
@@ -767,12 +769,16 @@ namespace QA40xPlot.Actions
 				page.GainFrequencies = []; // new list of frequencies
 				WaveGenerator.SetChannels(WaveChannels.Left); // left channel on
 				didRun = await DoChirpTest(page, voltagedBV, TestingType.Response);
+				if (ct.IsCancellationRequested)
+					return false; 
 				var exData = page.GainData; // save the data
 				var exFreq = page.GainFrequencies; // save the frequencies
 				page.GainData = []; // new list of complex data
 				page.GainFrequencies = []; // new list of frequencies
 				WaveGenerator.SetChannels(WaveChannels.Right); // right channel on
 				didRun = await DoChirpTest(page, voltagedBV, TestingType.Response);
+				if (ct.IsCancellationRequested)
+					return false; 
 				WaveGenerator.SetChannels(WaveChannels.Both); // back to default both
 				// merge
 				var gainRight = page.GainData.Select(x => x.Real / Math.Max(1e-10, x.Imaginary)).ToArray();

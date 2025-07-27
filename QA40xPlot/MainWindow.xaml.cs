@@ -119,9 +119,13 @@ namespace QA40xPlot
 		private void DoContentRendered(object? sender, EventArgs e)
 		{
 			var vm = ViewSettings.Singleton?.Main;
-			if(vm != null)
+			if(vm != null && vm.CurrentWindowRect.Length > 0)
 			{
 				MainViewModel.SetWindowSize(Application.Current.MainWindow,	vm.CurrentWindowRect);
+			}
+			if (vm != null && vm.CurrentWindowState == "Maximized")
+			{
+				Application.Current.MainWindow.WindowState = WindowState.Maximized;
 			}
 			this.InvalidateVisual();
 		}

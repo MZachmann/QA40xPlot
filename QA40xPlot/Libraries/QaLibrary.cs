@@ -59,7 +59,7 @@ namespace QA40xPlot.Libraries
         static public uint GetBinOfFrequency(double frequency, uint sampleRate, uint fftSize)
         {
             double binSize = CalcBinSize(sampleRate, fftSize);
-            uint binNumber = (uint)Math.Round(frequency / binSize);
+            uint binNumber = (uint)Math.Floor(frequency / binSize);
             if (binNumber > fftSize)
                 throw new ArgumentOutOfRangeException();                    // Frequency does not exist in the fft
             return binNumber;
