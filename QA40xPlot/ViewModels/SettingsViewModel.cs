@@ -13,6 +13,7 @@ namespace QA40xPlot.ViewModels
 	{
 		public static List<String> UsbBufferSizes { get => new List<string>() { "2048", "4096", "8192", "16384", "32768", "65536"}; }
 		public static List<String> RelayUsageList { get => new List<string>() { "Never", "OnFinish", "OnExit" }; }
+		public static List<String> NoiseWeightList { get => new List<string>() { "Z", "A", "C" }; }
 		public static List<String> BackColors { get => new List<string>() { "Transparent", "#dce4e4", "#60ffffff",
 			"#f8f8f8", "White",
 			"MintCream", "LightGray", 
@@ -198,7 +199,14 @@ namespace QA40xPlot.ViewModels
 			get { return _ExternalGain; }
 			set { SetProperty(ref _ExternalGain, value); }	// copy to the globally visible value
 		}
-												  // how to use the relay... OnExit / OnFinish / Never
+		// weighting method for noise analysis
+		private string _NoiseWeight = "Z"; // "Z","A", "C"
+		public string NoiseWeight
+		{
+			get { return _NoiseWeight; }
+			set { SetProperty(ref _NoiseWeight, value); }  // copy to the globally visible value
+		}
+		// how to use the relay... OnExit / OnFinish / Never
 		private string _RelayUsage = "OnExit";
 		public string RelayUsage
 		{

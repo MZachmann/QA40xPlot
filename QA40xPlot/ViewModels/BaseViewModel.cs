@@ -229,14 +229,37 @@ namespace QA40xPlot.ViewModels
 		/// <summary>
 		/// for use by the global display section
 		/// </summary>
-		private string _GeneratorVoltage = "V";
+		private string _GeneratorVoltage = "0";
 		[JsonIgnore]
 		public string GeneratorVoltage
 		{
 			get { return _GeneratorVoltage; }
 			set
 			{
-				SetProperty(ref _GeneratorVoltage, value);
+				int i = 0;
+				// split units out here since this is just for display purposes
+				while (i < value.Length && (char.IsDigit(value[i]) || value[i] == '-' || value[i] == '.'))
+				{
+					i++;
+				}
+				if (i == 0)
+					i = value.Length;	// just a word, make that the value
+				SetProperty(ref _GeneratorVoltage, value.Substring(0,i));
+				GeneratorVoltageUnits = value.Substring(i).Trim(); // the rest is the units
+			}
+		}
+
+		/// <summary>
+		/// for use by the global display section
+		/// </summary>
+		private string _GeneratorVoltageUnits = "V";
+		[JsonIgnore]
+		public string GeneratorVoltageUnits
+		{
+			get { return _GeneratorVoltageUnits; }
+			set
+			{
+				SetProperty(ref _GeneratorVoltageUnits, value);
 			}
 		}
 

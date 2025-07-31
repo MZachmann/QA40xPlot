@@ -2,6 +2,7 @@
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using System.Diagnostics;
+using System.Numerics;
 using System.Windows.Interop;
 
 // Written by MZachmann 4-24-2025
@@ -602,13 +603,13 @@ namespace QA40xPlot.BareMetal
 		}
 
 		// calculate the noise from 20..20000Hz
-		internal static LeftRightPair CalculateNoise(string windowing, LeftRightFrequencySeries? lrfs)
+		internal static LeftRightPair CalculateNoise(string windowing, LeftRightFrequencySeries? lrfs, string Weighting)
 		{
 			if (lrfs == null)
 				return new LeftRightPair(1e-20, 1e-20);
 
-			var noiseLeft = QaCompute.ComputeRmsF(lrfs.Left, lrfs.Df, 20, 20000, windowing);
-			var noiseRight = QaCompute.ComputeRmsF(lrfs.Right, lrfs.Df, 20, 20000, windowing);
+			var noiseLeft = QaCompute.ComputeRmsF(lrfs.Left, lrfs.Df, 20, 20000, windowing, Weighting);
+			var noiseRight = QaCompute.ComputeRmsF(lrfs.Right, lrfs.Df, 20, 20000, windowing, Weighting);
 			// calculate the noise floor
 			return new LeftRightPair(noiseLeft, noiseRight);
 		}
@@ -654,6 +655,57 @@ namespace QA40xPlot.BareMetal
 			return Math.Sqrt(signalTime.Sum(x => x * x) / signalTime.Length); // rms voltage
 		}
 
+		public static double CwCalc(double f)
+		{
+			const double rt1 = 20.598997; // C-weighting constants
+			const double rt2 = 12194.217;
+			var f1 = f*f + rt1 * rt1;     //fron ansi standard
+			var f2 = f*f + rt2 * rt2;
+			var ux = (rt2 * rt2 * f * f) / (f1 * f2);     // C-weighting formula
+			return ux;
+		}
+
+		public static double AwCalc(double f)
+		{
+			const double rt1 = 107.65265; // C-weighting constants
+			const double rt2 = 737.86223;
+			var f1 = f * f + rt1 * rt1;     //fron ansi standard
+			var f2 = f * f + rt2 * rt2;
+			var ux = (f * f) / Math.Sqrt(f1 * f2);     // C-weighting formula
+			return ux;
+		}
+
+		public static double[] CWeightCalc(int start, int length, double df)
+		{
+			var rtrn = new double[length];
+			var rt1000 = CwCalc(1000.0); // C-weighting at 1000Hz
+			for (int i = 0; i < length; i++)
+			{
+				var ux = CwCalc((start+i)*df);     // C-weighting formula
+				rtrn[i] = ux / rt1000;
+			}
+			return rtrn;
+		}
+
+		public static double[] AWeight(int start, int length, double df)
+		{
+			var rtrn = new double[length];
+			var rt1000 = AwCalc(1000.0);		// A-weighting offset at 1000Hz
+			var cw = CWeightCalc(start, length, df);   // get the C-weighting values
+			for (int i = 0; i < length; i++)
+			{
+				var ux = cw[i] * AwCalc((start + i) * df);     // C-weighting formula
+				rtrn[i] = ux / rt1000;
+			}
+			return rtrn;
+		}
+
+		public static double[] CWeight(int start, int length, double df)
+		{
+			var rtrn = CWeightCalc(start, length, df);   // get the C-weighting values
+			return rtrn;
+		}
+
 		/// <summary>
 		/// calculate the total power of a frequency signal in usual linear frequency format
 		/// </summary>
@@ -662,16 +714,42 @@ namespace QA40xPlot.BareMetal
 		/// <param name="lowerBound">lower frequency</param>
 		/// <param name="upperBound">upper frequency</param>
 		/// <returns>the equivalent rms voltage in this fft chunk via the total power</returns>
-		internal static double ComputeRmsF(double[] signalFreqLin, double df, double lowerBound, double upperBound, string windowing)
+		internal static double ComputeRmsF(double[] signalFreqLin, double df, double lowerBound, double upperBound, string windowing, string Weighting = "")
 		{
 			double sum = 0;
+
 			try
 			{
 				var lb = Math.Max(1,(int)(lowerBound / df));
 				var ub = Math.Min(signalFreqLin.Length-1, (int)(upperBound / df));
-				for (int i = lb; i < ub; i++)
+				if( Weighting.Length == 0)
 				{
-					sum += signalFreqLin[i] * signalFreqLin[i];
+					for (int i = lb; i < ub; i++)
+					{
+						sum += signalFreqLin[i] * signalFreqLin[i];
+					}
+				}
+				else
+				{
+					double[] wgt = [];
+					switch(Weighting)
+					{
+						default:
+						case "Z":
+						case "":
+							wgt = Enumerable.Range(0, ub - lb).Select(x => 1.0).ToArray(); // no weighting
+							break;
+						case "A":
+							wgt = AWeight(lb, ub-lb, df); // no weighting
+							break;
+						case "C":
+							wgt = CWeight(lb, ub - lb, df); // no weighting
+							break;
+					}
+					for (int i = lb; i < ub; i++)
+					{
+						sum += signalFreqLin[i] * signalFreqLin[i] * wgt[i-lb] * wgt[i - lb];
+					}
 				}
 			}
 			catch (Exception ex)

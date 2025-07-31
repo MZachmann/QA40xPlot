@@ -126,8 +126,10 @@ namespace QA40xPlot.Data
 												// we only serialize these things
 		public DataDescript Definition { get; set; } = new DataDescript();
 		public T ViewModel { get; private set; }
-		public LeftRightPair NoiseFloor { get; set; } = new();		// if we have the noise floor measurement we just need to retain the scalars
-		// for sweeps
+		public LeftRightPair NoiseFloor { get; set; } = new();      // if we have the noise floor measurement we just need to retain the scalars
+		public LeftRightPair NoiseFloorA { get; set; } = new();      // if we have the noise floor measurement we just need to retain the scalars
+		public LeftRightPair NoiseFloorC { get; set; } = new();      // if we have the noise floor measurement we just need to retain the scalars
+																	 // for sweeps
 		public SweepData Sweep { get; set; } = new();           // X values, freq or time or amplitude...
 		// this is just a load/save object that converts TimeRslt doubles into longs for saving exactly
 		public LeftRightTimeSaver? TimeSaver { get; set; } = null; // the time series, if any

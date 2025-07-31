@@ -343,11 +343,10 @@ namespace QA40xPlot.Actions
 				// except InputRange (attenuation) which is push/pop-ed
 				if (msr.NoiseFloor.Left == 0)
 				{
-					var noisy = await MeasureNoise(ct);
-					if (ct.IsCancellationRequested)
-						return false;
-					MyVModel.GeneratorVoltage = "off"; // no generator voltage during noise measurement
-					msr.NoiseFloor = QaCompute.CalculateNoise(vm.WindowingMethod, noisy.FreqRslt);
+					var noisy = await MeasureNoise(MyVModel, ct);
+					msr.NoiseFloor = noisy.Item1;
+					msr.NoiseFloorA = noisy.Item2;
+					msr.NoiseFloorC = noisy.Item3;
 				}
 
 				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
@@ -442,8 +441,20 @@ namespace QA40xPlot.Actions
 				step.ENOB = (step.SNRatio - 1.76) / 6.02;
 				//
 				double denom = QaCompute.GetImdDenom(method, x, y);     // calculate the imd denominator
-				// noise
-				step.NoiseFloorV = (isleft ? msr.NoiseFloor.Left : msr.NoiseFloor.Right);
+																		// noise
+				var floor = msr.NoiseFloor;
+				switch (ViewSettings.NoiseWeight)
+				{
+					case "A":
+						floor = msr.NoiseFloorA;
+						break;
+					case "C":
+						floor = msr.NoiseFloorC;
+						break;
+					default:
+						break;
+				}
+				step.NoiseFloorV = (isleft ? floor.Left : floor.Right);
 				step.NoiseFloorPct = 100 * step.NoiseFloorV / denom; // ?
 				// note that all imd calculations use the fundamental2 value as base
 				step.ThdNInV = denom * QaLibrary.ConvertVoltage(isleft ? thdN.Left : thdN.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);

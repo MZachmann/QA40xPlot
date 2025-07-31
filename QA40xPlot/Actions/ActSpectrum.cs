@@ -384,11 +384,12 @@ namespace QA40xPlot.Actions
 				// except InputRange (attenuation) which is push/pop-ed
 				if (msr.NoiseFloor.Left == 0)
 				{
-					var noisy = await MeasureNoise(ct);
+					var noisy = await MeasureNoise(MyVModel, ct);
+					msr.NoiseFloor = noisy.Item1;
+					msr.NoiseFloorA = noisy.Item2;
+					msr.NoiseFloorC = noisy.Item3;
 					if (ct.IsCancellationRequested)
 						return false;
-					MyVModel.GeneratorVoltage = "off"; // no generator voltage during noise measurement
-					msr.NoiseFloor = QaCompute.CalculateNoise(vm.WindowingMethod, noisy.FreqRslt);
 				}
 				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
 				var genVolt = vm.ToGenVoltage(vm.Gen1Voltage, [], GEN_INPUT, gains);
@@ -483,8 +484,6 @@ namespace QA40xPlot.Actions
 				step.SinaddB = isleft ? sinaddb.Left : sinaddb.Right;
 				step.ENOB = (step.SNRatio - 1.76) / 6.02;
 				step.ThdNInV = step.FundamentalVolts * QaLibrary.ConvertVoltage(isleft ? thdN.Left : thdN.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
-				step.NoiseFloorV = (isleft ? msr.NoiseFloor.Left : msr.NoiseFloor.Right);
-				step.NoiseFloorPct = 100 * step.NoiseFloorV / step.FundamentalVolts;
 				step.ThdInV = step.FundamentalVolts * QaLibrary.ConvertVoltage(isleft ? thds.Left : thds.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
 				step.ThdInPercent = 100 * step.ThdInV / step.FundamentalVolts;
 				step.ThdNInPercent = 100 * step.ThdNInV / step.FundamentalVolts;
@@ -495,6 +494,21 @@ namespace QA40xPlot.Actions
 				step.TotalV = rmsV;
 				step.TotalW = rmsV * rmsV / ViewSettings.AmplifierLoad;
 				step.ShowDataPercents = vm.ShowDataPercent;
+				var floor = msr.NoiseFloor;
+				switch (ViewSettings.NoiseWeight)
+				{
+					case "A":
+						floor = msr.NoiseFloorA;
+						break;
+					case "C":
+						floor = msr.NoiseFloorC;
+						break;
+					default:
+						break;
+				}
+
+				step.NoiseFloorV = (isleft ? floor.Left : floor.Right);
+				step.NoiseFloorPct = 100 * step.NoiseFloorV / step.FundamentalVolts;
 				step.NoiseFloorView = GraphUtil.DoValueFormat(vm.PlotFormat, step.NoiseFloorV, step.FundamentalVolts);
 				step.AmplitudeView = GraphUtil.DoValueFormat(vm.PlotFormat, step.FundamentalVolts, step.FundamentalVolts);
 			}

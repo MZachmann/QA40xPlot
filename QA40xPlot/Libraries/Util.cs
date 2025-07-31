@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using QA40xPlot.Data;
 using QA40xPlot.ViewModels;
 using Newtonsoft.Json.Linq;
+using System.Diagnostics;
 
 namespace QA40xPlot.Libraries
 {
@@ -147,6 +148,8 @@ namespace QA40xPlot.Libraries
 					// fill pagedata with new stuff
 					var id = page.Definition.Id;
 					page.NoiseFloor = jsonObject.NoiseFloor;
+					page.NoiseFloorA = jsonObject.NoiseFloorA;
+					page.NoiseFloorC = jsonObject.NoiseFloorC;
 					page.Definition = jsonObject.Definition;
 					page.TimeRslt = jsonObject.TimeRslt;
 					page.Sweep = jsonObject.Sweep;

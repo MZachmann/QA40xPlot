@@ -31,6 +31,8 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -122,58 +124,66 @@
             <Label Content="{Binding MicCompFile}"/>
         </StackPanel>
         <local:GroupHeader Grid.Row="15" Grid.Column="0" Grid.ColumnSpan="5"  />
-        <Label VerticalAlignment="Center" Content="Powerline Frequency: " Grid.Row="16" Grid.Column="0" />
-        <ComboBox  Grid.Row="16" Grid.Column="1" MinWidth="80" SelectedValue="{Binding PowerFrequency}" 
+        <Label VerticalAlignment="Center" Content="Noise Weighting: " Grid.Row="16" Grid.Column="0" />
+        <ComboBox  Grid.Row="16" Grid.Column="1" MinWidth="80" SelectedValue="{Binding NoiseWeight}" 
+                  ItemsSource="{Binding NoiseWeightList}" />
+        <TextBlock TextWrapping="Wrap" MaxWidth="600" Grid.Row="16" Grid.Column="4"
+                   Text="Noise floor weighting method. Z = none." 
+                   HorizontalAlignment="Left" VerticalAlignment="Center"
+                   />
+        <local:GroupHeader Grid.Row="17" Grid.Column="0" Grid.ColumnSpan="5"  />
+        <Label VerticalAlignment="Center" Content="Powerline Frequency: " Grid.Row="18" Grid.Column="0" />
+        <ComboBox  Grid.Row="18" Grid.Column="1" MinWidth="80" SelectedValue="{Binding PowerFrequency}" 
                   ItemsSource="{Binding PowerFreqList}" />
-        <Label VerticalAlignment="Center" Content="Hz" Grid.Row="16" Grid.Column="2" HorizontalAlignment="Left" />
+        <Label VerticalAlignment="Center" Content="Hz" Grid.Row="18" Grid.Column="2" HorizontalAlignment="Left" />
         <TextBlock TextWrapping="Wrap" MaxWidth="600" 
                    Text="When showing power markers, this is the fundamental frequency used." 
                    HorizontalAlignment="Left" VerticalAlignment="Center"
-                   Grid.Row="16" Grid.Column="4" />
-        <local:GroupHeader Grid.Row="17" Grid.Column="0" Grid.ColumnSpan="5"  />
-        <Label VerticalAlignment="Center" Content="Save on Exit: " Grid.Row="18" Grid.Column="0" />
-        <ComboBox  Grid.Row="18" Grid.Column="1" MinWidth="80" SelectedValue="{Binding SaveOnExit}" ItemsSource="{Binding TrueFalseList}" />
+                   Grid.Row="18" Grid.Column="4" />
+        <local:GroupHeader Grid.Row="19" Grid.Column="0" Grid.ColumnSpan="5"  />
+        <Label VerticalAlignment="Center" Content="Save on Exit: " Grid.Row="20" Grid.Column="0" />
+        <ComboBox  Grid.Row="20" Grid.Column="1" MinWidth="80" SelectedValue="{Binding SaveOnExit}" ItemsSource="{Binding TrueFalseList}" />
         <TextBlock TextWrapping="Wrap" MaxWidth="600" 
                    Text="Automatically save the current settings as default on exit." 
                    HorizontalAlignment="Left" VerticalAlignment="Center"
-                   Grid.Row="18" Grid.Column="4" />
-        <local:GroupHeader Grid.Row="19" Grid.Column="0" Grid.ColumnSpan="5"  />
-        <Label VerticalAlignment="Center" Content="Set Attenuate: " Grid.Row="20" Grid.Column="0" />
-        <ComboBox  Grid.Row="20" Grid.Column="1" MinWidth="80" SelectedValue="{Binding RelayUsage}" 
+                   Grid.Row="20" Grid.Column="4" />
+        <local:GroupHeader Grid.Row="21" Grid.Column="0" Grid.ColumnSpan="5"  />
+        <Label VerticalAlignment="Center" Content="Set Attenuate: " Grid.Row="22" Grid.Column="0" />
+        <ComboBox  Grid.Row="22" Grid.Column="1" MinWidth="80" SelectedValue="{Binding RelayUsage}" 
                   ItemsSource="{Binding RelayUsageList}" />
         <TextBlock TextWrapping="Wrap" MaxWidth="600" 
                    Text="When to reset the attenuation to full (42). Allows Never, On Exit, and When test Finishes." 
                    HorizontalAlignment="Left" VerticalAlignment="Center"
-                   Grid.Row="20" Grid.Column="4" />
-        <local:GroupHeader Grid.Row="21" Grid.Column="0" Grid.ColumnSpan="5"  />
-        <Label VerticalAlignment="Center" Content="Test Channel: " Grid.Row="22" Grid.Column="0" />
-        <ComboBox  Grid.Row="22" Grid.Column="1" MinWidth="80" SelectedValue="{Binding TestChannel}" ItemsSource="{Binding ChannelList}" />
+                   Grid.Row="22" Grid.Column="4" />
+        <local:GroupHeader Grid.Row="23" Grid.Column="0" Grid.ColumnSpan="5"  />
+        <Label VerticalAlignment="Center" Content="Test Channel: " Grid.Row="24" Grid.Column="0" />
+        <ComboBox  Grid.Row="24" Grid.Column="1" MinWidth="80" SelectedValue="{Binding TestChannel}" ItemsSource="{Binding ChannelList}" />
         <TextBlock TextWrapping="Wrap" MaxWidth="600" 
                    Text="All tests except impedance and gain use this channel as the reference for i/o voltage and power conversions." 
                    HorizontalAlignment="Left" VerticalAlignment="Center"
-                   Grid.Row="22" Grid.Column="4" />
-        <local:GroupHeader Grid.Row="23" Grid.Column="0" Grid.ColumnSpan="5"  />
-        <Label VerticalAlignment="Center" Content="Usb Buffer Size: " Grid.Row="24" Grid.Column="0" />
-        <ComboBox  Grid.Row="24" Grid.Column="1" MinWidth="80" SelectedValue="{Binding UsbBufferSize}" ItemsSource="{Binding UsbBufferSizes}" />
+                   Grid.Row="24" Grid.Column="4" />
+        <local:GroupHeader Grid.Row="25" Grid.Column="0" Grid.ColumnSpan="5"  />
+        <Label VerticalAlignment="Center" Content="Usb Buffer Size: " Grid.Row="26" Grid.Column="0" />
+        <ComboBox  Grid.Row="26" Grid.Column="1" MinWidth="80" SelectedValue="{Binding UsbBufferSize}" ItemsSource="{Binding UsbBufferSizes}" />
         <TextBlock TextWrapping="Wrap" MaxWidth="600" 
                    Text="Set the size of the usb block. Careful!." 
                    HorizontalAlignment="Left" VerticalAlignment="Center"
-                   Grid.Row="24" Grid.Column="4" />
-        <local:GroupHeader Grid.Row="25" Grid.Column="0" Grid.ColumnSpan="5"  />
-        <CheckBox  Grid.Row="26" Grid.Column="0" Grid.ColumnSpan="2" IsChecked="{Binding UseREST}" Content="Use REST interface instead of USB" />
+                   Grid.Row="26" Grid.Column="4" />
+        <local:GroupHeader Grid.Row="27" Grid.Column="0" Grid.ColumnSpan="5"  />
+        <CheckBox  Grid.Row="28" Grid.Column="0" Grid.ColumnSpan="2" IsChecked="{Binding UseREST}" Content="Use REST interface instead of USB" />
         <TextBlock TextWrapping="Wrap" MaxWidth="600" 
                    Text="If you have issues with USB support try the REST interface." 
                    HorizontalAlignment="Left" VerticalAlignment="Center"
-                   Grid.Row="26" Grid.Column="4" />
-        <local:GroupHeader Grid.Row="27" Grid.Column="0" Grid.ColumnSpan="5"  />
-        <Label VerticalAlignment="Center" Content="Debug Distortion: " Grid.Row="28" Grid.Column="0" />
-        <ComboBox IsEditable="True" Grid.Row="28" Grid.Column="1" MinWidth="80" 
+                   Grid.Row="28" Grid.Column="4" />
+        <local:GroupHeader Grid.Row="29" Grid.Column="0" Grid.ColumnSpan="5"  />
+        <Label VerticalAlignment="Center" Content="Debug Distortion: " Grid.Row="30" Grid.Column="0" />
+        <ComboBox IsEditable="True" Grid.Row="30" Grid.Column="1" MinWidth="80" 
                   Text="{Binding AddDistortion}" 
                   ItemsSource="{Binding Impedances}" />
-        <Label VerticalAlignment="Center" Content="%" Grid.Row="28" Grid.Column="2" HorizontalAlignment="Left" />
+        <Label VerticalAlignment="Center" Content="%" Grid.Row="30" Grid.Column="2" HorizontalAlignment="Left" />
         <TextBlock TextWrapping="Wrap" MaxWidth="600" 
                    Text="Add distortion to the signal for testing. For spectrum and IMD. Blank or 0==none" 
                    HorizontalAlignment="Left" VerticalAlignment="Center"
-                   Grid.Row="28" Grid.Column="4" />
+                   Grid.Row="30" Grid.Column="4" />
     </Grid>
 </UserControl>

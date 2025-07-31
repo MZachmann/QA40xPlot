@@ -430,11 +430,12 @@ namespace QA40xPlot.Actions
 				// ********************************************************************
 				// Do noise floor measurement
 				// ********************************************************************
-				var noisy = await MeasureNoise(ct.Token);
+				var noisy = await MeasureNoise(MyVModel, ct.Token);
+				page.NoiseFloor = noisy.Item1;
+				page.NoiseFloorA = noisy.Item2;
+				page.NoiseFloorC = noisy.Item3;
 				if (ct.IsCancellationRequested)
 					return false;
-				MyVModel.GeneratorVoltage = "off"; // no generator voltage during noise measurement
-				page.NoiseFloor = QaCompute.CalculateNoise(vm.WindowingMethod, noisy.FreqRslt);
 
 				WaveGenerator.SetEnabled(true); // enable generator
 												// ********************************************************************
@@ -552,8 +553,20 @@ namespace QA40xPlot.Actions
 			}
 			left.THD = left.Mag * Math.Pow(10,thds.Left/20);	// in volts from dB relative to mag
 			right.THD = right.Mag * Math.Pow(10, thds.Right / 20); ;
-			left.Noise = Math.Max(1e-10, msr.NoiseFloor.Left);
-			right.Noise = Math.Max(1e-10, msr.NoiseFloor.Right);
+			var floor = msr.NoiseFloor;
+			switch (ViewSettings.NoiseWeight)
+			{
+				case "A":
+					floor = msr.NoiseFloorA;
+					break;
+				case "C":
+					floor = msr.NoiseFloorC;
+					break;
+				default:
+					break;
+			}
+			left.Noise = Math.Max(1e-10, floor.Left);
+			right.Noise = Math.Max(1e-10, floor.Right);
 
 			return (left, right);
 		}

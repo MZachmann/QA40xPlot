@@ -180,8 +180,16 @@ namespace QA40xPlot.Actions
 			return (int)Math.Floor(dFreq / (lrGain?.Df ?? 1));
 		}
 
-		protected async Task<LeftRightSeries> MeasureNoise(CancellationToken ct, bool setRange = false)
+		/// <summary>
+		/// calculate noise summaries
+		/// </summary>
+		/// <param name="bvm">the view model</param>
+		/// <param name="ct">token</param>
+		/// <param name="setRange">set range to 0 then back</param>
+		/// <returns>Noise unweighted, A weighted, and C weighted</returns>
+		protected async Task<(LeftRightPair,LeftRightPair,LeftRightPair)> MeasureNoise(BaseViewModel bvm, CancellationToken ct, bool setRange = false)
 		{
+			bvm.GeneratorVoltage = "off"; // no generator voltage during noise measurement
 			var range = 0;
 			if(setRange)
 				range = QaComm.GetInputRange();
@@ -192,14 +200,18 @@ namespace QA40xPlot.Actions
 			System.Diagnostics.Debug.WriteLine("***-------------Measuring noise-------------.");
 			WaveGenerator.SetEnabled(false);
 			if( setRange)
-				await QaComm.SetInputRange(6); // and a small range for better noise...
+				await QaComm.SetInputRange(0); // and a small range for better noise...
 			//Thread.Sleep(1000);
 			//await QaComm.DoAcquisitions(1, ct);			// this one returns a high value until settled
 			var lrs = await QaComm.DoAcquisitions(1, ct); // now that it's settled...
 			if (setRange)
 				await QaComm.SetInputRange(range); // restore the range
 
-			return lrs;
+			LeftRightPair nfgr = QaCompute.CalculateNoise(bvm.WindowingMethod, lrs.FreqRslt,"");
+			LeftRightPair nfgrA = QaCompute.CalculateNoise(bvm.WindowingMethod, lrs.FreqRslt, "A");
+			LeftRightPair nfgrC = QaCompute.CalculateNoise(bvm.WindowingMethod, lrs.FreqRslt, "C");
+			var ux = (nfgr, nfgrA, nfgrC);
+			return ux;
 		}
 
 		/// <summary>

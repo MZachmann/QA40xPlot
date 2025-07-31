@@ -49,6 +49,8 @@ namespace QA40xPlot.ViewModels
 		public static double AddonDistortion { get => MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.AddDistortion, 0); }
 		[JsonIgnore]
 		public static string ExternalGain { get => ViewSettings.Singleton.SettingsVm.ExternalGain; }
+		[JsonIgnore]
+		public static string NoiseWeight { get => ViewSettings.Singleton.SettingsVm.NoiseWeight; }
 
 		/// <summary>
 		/// returns if left channel is our voltage output math

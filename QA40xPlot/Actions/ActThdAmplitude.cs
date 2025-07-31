@@ -437,17 +437,15 @@ namespace QA40xPlot.Actions
 			// ********************************************************************
 			// Do noise floor measurement
 			// ********************************************************************
-			var noisy = await MeasureNoise(ct.Token);
-			if (ct.IsCancellationRequested)
-				return;
-			MyVModel.GeneratorVoltage = "off"; // no generator voltage during noise measurement
-			page.NoiseFloor = QaCompute.CalculateNoise(vm.WindowingMethod, noisy.FreqRslt);
-
+			var noisy = await MeasureNoise(MyVModel, ct.Token);
+			page.NoiseFloor = noisy.Item1;
+			page.NoiseFloorA = noisy.Item2;
+			page.NoiseFloorC = noisy.Item3;
 			if (ct.IsCancellationRequested)
 				return;
 
-			QaLibrary.PlotMiniFftGraph(fftPlot, noisy.FreqRslt, vm.ShowLeft, vm.ShowRight);
-			QaLibrary.PlotMiniTimeGraph(timePlot, noisy.TimeRslt, testFrequency, vm.ShowLeft, vm.ShowRight);
+			//QaLibrary.PlotMiniFftGraph(fftPlot, noisy.FreqRslt, vm.ShowLeft, vm.ShowRight);
+			//QaLibrary.PlotMiniTimeGraph(timePlot, noisy.TimeRslt, testFrequency, vm.ShowLeft, vm.ShowRight);
 
 			WaveGenerator.SetEnabled(true);	 // turn on the generator
 			// ********************************************************************
@@ -661,9 +659,22 @@ namespace QA40xPlot.Actions
 				frq = msr.FreqRslt.Right;   // now right
 			}
 			left.THD = left.Mag * Math.Pow(10, thds.Left / 20); // in volts from dB relative to mag
-			right.THD = right.Mag * Math.Pow(10, thds.Right / 20); ;
-			left.Noise = Math.Max(1e-10, msr.NoiseFloor.Left);
-			right.Noise = Math.Max(1e-10, msr.NoiseFloor.Right);
+			right.THD = right.Mag * Math.Pow(10, thds.Right / 20);
+
+			var floor = msr.NoiseFloor;
+			switch (ViewSettings.NoiseWeight)
+			{
+				case "A":
+					floor = msr.NoiseFloorA;
+					break;
+				case "C":
+					floor = msr.NoiseFloorC;
+					break;
+				default:
+					break;
+			}
+			left.Noise = Math.Max(1e-10, floor.Left);
+			right.Noise = Math.Max(1e-10, floor.Right);
 
 			return (left, right);
 		}

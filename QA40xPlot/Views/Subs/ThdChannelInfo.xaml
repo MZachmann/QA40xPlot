@@ -33,48 +33,48 @@
             </Grid>
             <Rectangle HorizontalAlignment="Stretch" Height="3" Fill="DarkGreen" />
             <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <Label Padding="2,2" Grid.Row="0" Grid.Column="0" Content="N:" HorizontalAlignment="Right"/>
-                <Label Padding="2,2" ToolTip="The measured noise floor with no signal" 
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Label Padding="2,2" Grid.Row="0" Grid.Column="0" Content="N:" HorizontalAlignment="Right"/>
+                <Label Padding="2,2" ToolTip="The measured weighted noise floor" 
                        Grid.Row="0" Grid.Column="1" Content="{Binding NoiseFloorView}" />
-                    <Label Padding="2,2" Grid.Row="0" Grid.Column="2" >
-                        <MultiBinding Converter="{StaticResource VToPctConverter}">
-                            <Binding Path="NoiseFloorPct"/>
-                            <Binding Path="NoiseFloorV"/>
-                            <Binding Path="ShowDataPercents"/>
-                        </MultiBinding>
-                    </Label>
-                
-                    <Label Padding="2,2" Grid.Row="1" Grid.Column="0" Content="THD:" HorizontalAlignment="Right"/>
-                    <Label Padding="2,2" Grid.Row="1" Grid.Column="1" ToolTip="Total harmonic distortion"
+                <Label Padding="2,2" Grid.Row="0" Grid.Column="2" >
+                    <MultiBinding Converter="{StaticResource VToPctConverter}">
+                        <Binding Path="NoiseFloorPct"/>
+                        <Binding Path="NoiseFloorV"/>
+                        <Binding Path="ShowDataPercents"/>
+                    </MultiBinding>
+                </Label>
+
+                <Label Padding="2,2" Grid.Row="1" Grid.Column="0" Content="THD:" HorizontalAlignment="Right"/>
+                <Label Padding="2,2" Grid.Row="1" Grid.Column="1" ToolTip="Total harmonic distortion"
                            Content="{Binding ThdIndB, Converter={StaticResource DoubleIntlConverter}, ConverterParameter=-2}" ContentStringFormat="{}{0} dB"/>
-                    <Label Padding="2,2" Grid.Row="1" Grid.Column="2" >
-                        <MultiBinding Converter="{StaticResource VToPctConverter}">
-                            <Binding Path="ThdInPercent"/>
-                            <Binding Path="ThdInV"/>
-                            <Binding Path="ShowDataPercents"/>
-                        </MultiBinding>
-                    </Label>
-                
-                    <Label Padding="2,2" Grid.Row="2" Grid.Column="0" Content="THD+N:" HorizontalAlignment="Right"/>
-                    <Label Padding="2,2" Grid.Row="2" Grid.Column="1" ToolTip="Total harmonic distortion + Noise"
+                <Label Padding="2,2" Grid.Row="1" Grid.Column="2" >
+                    <MultiBinding Converter="{StaticResource VToPctConverter}">
+                        <Binding Path="ThdInPercent"/>
+                        <Binding Path="ThdInV"/>
+                        <Binding Path="ShowDataPercents"/>
+                    </MultiBinding>
+                </Label>
+
+                <Label Padding="2,2" Grid.Row="2" Grid.Column="0" Content="THD+N:" HorizontalAlignment="Right"/>
+                <Label Padding="2,2" Grid.Row="2" Grid.Column="1" ToolTip="Total harmonic distortion + Noise"
                            Content="{Binding ThdNIndB, Converter={StaticResource DoubleIntlConverter}, ConverterParameter=-2}" ContentStringFormat="{}{0} dB"/>
-                    <Label Padding="2,2" Grid.Row="2" Grid.Column="2" >
-                        <MultiBinding Converter="{StaticResource VToPctConverter}">
-                            <Binding Path="ThdNInPercent"/>
-                            <Binding Path="ThdNInV"/>
-                            <Binding Path="ShowDataPercents"/>
-                        </MultiBinding>
-                    </Label>
+                <Label Padding="2,2" Grid.Row="2" Grid.Column="2" >
+                    <MultiBinding Converter="{StaticResource VToPctConverter}">
+                        <Binding Path="ThdNInPercent"/>
+                        <Binding Path="ThdNInV"/>
+                        <Binding Path="ShowDataPercents"/>
+                    </MultiBinding>
+                </Label>
             </Grid>
             <Rectangle HorizontalAlignment="Stretch" Height="3" Fill="DarkGreen" />
             <Grid>
@@ -142,6 +142,6 @@
                     </MultiBinding>
                 </Label>
             </Grid>
-    </StackPanel>
+        </StackPanel>
     </Border>
 </UserControl>

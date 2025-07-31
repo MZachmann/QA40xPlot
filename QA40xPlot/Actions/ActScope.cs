@@ -332,7 +332,7 @@ namespace QA40xPlot.Actions
 				// except InputRange (attenuation) which is push/pop-ed
 				// if (msr.NoiseFloor.Left == 0)
 				//            {
-				//	var noisy = await MeasureNoise(ct);
+				//	var noisy = await MeasureNoise(MyVModel, ct);
 				//	if (ct.IsCancellationRequested)
 				//		return false;
 				//	msr.NoiseFloor = new LeftRightPair();

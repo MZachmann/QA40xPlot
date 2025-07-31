@@ -762,6 +762,9 @@ namespace QA40xPlot.Actions
 			if(ttype != TestingType.Crosstalk)
 			{
 				didRun = await DoChirpTest(page, voltagedBV, ttype);
+				//var df = page.GainFrequencies[2] - page.GainFrequencies[1];
+				//var gainall = QaCompute.AWeight((int)(page.GainFrequencies[0] / df), page.GainFrequencies.Length, df);
+				//page.GainData = gainall.Select(x => new Complex(x, 0)).ToArray();
 			}
 			else
 			{
