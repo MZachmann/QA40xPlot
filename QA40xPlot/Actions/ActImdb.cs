@@ -415,8 +415,8 @@ namespace QA40xPlot.Actions
 			var wdw = vm.WindowingMethod; // windowing method
 			double[] funds = [freq, freq2];
 			LeftRightPair thds = QaCompute.GetImdDb(wdw, lrfs, funds, 20.0, maxf);
-			LeftRightPair thdN = QaCompute.GetImdnDb(wdw, lrfs, funds, 20.0, maxf);
-			LeftRightPair snrimdb = QaCompute.GetSnrImdDb(wdw, lrfs, funds, 20.0, maxf);
+			LeftRightPair thdN = QaCompute.GetImdnDb(wdw, lrfs, funds, 20.0, maxf, ViewSettings.NoiseWeight);
+			LeftRightPair snrimdb = QaCompute.GetSnrImdDb(wdw, lrfs, funds, 20.0, maxf, ViewSettings.NoiseWeight);
 			var method = QaCompute.GetImdMethod(funds);
 
 			ImdChannelViewModel[] steps = [left, right];

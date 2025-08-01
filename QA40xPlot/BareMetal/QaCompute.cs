@@ -84,46 +84,46 @@ namespace QA40xPlot.BareMetal
 			return maxi;
 		}
 
-		internal static LeftRightPair GetSnrImdDb(string windowing, LeftRightFrequencySeries lrs, double[] fundFreqs, double minFreq, double maxFreq)
+		internal static LeftRightPair GetSnrImdDb(string windowing, LeftRightFrequencySeries lrs, double[] fundFreqs, double minFreq, double maxFreq, string weighting)
 		{
 			if (lrs == null)
 				return new();
 
 			var ffs = lrs.Left;
-			var thdLeft = ComputeImdSnrRatio(windowing, ffs, lrs.Df, fundFreqs, minFreq, maxFreq, false);
+			var thdLeft = ComputeImdSnrRatio(windowing, ffs, lrs.Df, fundFreqs, minFreq, maxFreq, weighting, false);
 			thdLeft = QaLibrary.ConvertVoltage(thdLeft, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 			ffs = lrs.Right;
-			var thdRight = ComputeImdSnrRatio(windowing, ffs, lrs.Df, fundFreqs, minFreq, maxFreq, false);
+			var thdRight = ComputeImdSnrRatio(windowing, ffs, lrs.Df, fundFreqs, minFreq, maxFreq, weighting, false);
 			thdRight = QaLibrary.ConvertVoltage(thdRight, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
 			return new(thdLeft, thdRight);
 		}
 
-		internal static LeftRightPair GetSnrDb(string windowing, LeftRightFrequencySeries lrs, double fundFreq, double minFreq, double maxFreq)
+		internal static LeftRightPair GetSnrDb(string windowing, LeftRightFrequencySeries lrs, double fundFreq, double minFreq, double maxFreq, string weighting)
 		{
 			if (lrs == null)
 				return new();
 
 			var ffs = lrs.Left;
-			var thdLeft = ComputeSnrRatio(windowing, ffs, lrs.Df, fundFreq, minFreq, maxFreq, false);
+			var thdLeft = ComputeSnrRatio(windowing, ffs, lrs.Df, fundFreq, minFreq, maxFreq, weighting, false);
 			thdLeft = QaLibrary.ConvertVoltage(thdLeft, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 			ffs = lrs.Right;
-			var thdRight = ComputeSnrRatio(windowing, ffs, lrs.Df, fundFreq, minFreq, maxFreq, false);
+			var thdRight = ComputeSnrRatio(windowing, ffs, lrs.Df, fundFreq, minFreq, maxFreq, weighting, false);
 			thdRight = QaLibrary.ConvertVoltage(thdRight, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
 			return new(thdLeft, thdRight);
 		}
 
-		internal static LeftRightPair GetSinadDb(string windowing, LeftRightFrequencySeries lrs, double fundFreq, double minFreq, double maxFreq)
+		internal static LeftRightPair GetSinadDb(string windowing, LeftRightFrequencySeries lrs, double fundFreq, double minFreq, double maxFreq, string weighting)
 		{
 			if (lrs == null)
 				return new();
 
 			var ffs = lrs.Left;
-			var thdLeft = ComputeSinadRatio(windowing, ffs, lrs.Df, fundFreq, minFreq, maxFreq, false);
+			var thdLeft = ComputeSinadRatio(windowing, ffs, lrs.Df, fundFreq, minFreq, maxFreq, weighting, false);
 			thdLeft = QaLibrary.ConvertVoltage(thdLeft, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 			ffs = lrs.Right;
-			var thdRight = ComputeSinadRatio(windowing, ffs, lrs.Df, fundFreq, minFreq, maxFreq, false);
+			var thdRight = ComputeSinadRatio(windowing, ffs, lrs.Df, fundFreq, minFreq, maxFreq, weighting, false);
 			thdRight = QaLibrary.ConvertVoltage(thdRight, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
 			return new(thdLeft, thdRight);
@@ -174,7 +174,7 @@ namespace QA40xPlot.BareMetal
 			return new(imdLeft, imdRight);
 		}
 
-		internal static LeftRightPair GetImdnDb(string windowing, LeftRightFrequencySeries lrs, double[] fundFreqs, double minFreq, double maxFreq)
+		internal static LeftRightPair GetImdnDb(string windowing, LeftRightFrequencySeries lrs, double[] fundFreqs, double minFreq, double maxFreq, string weighting)
 		{
 			// double[] signalFreqLin, double[] frequencies, double fundamental,
 			// int numHarmonics = 5, bool debug = false
@@ -182,16 +182,16 @@ namespace QA40xPlot.BareMetal
 				return new();
 
 			var ffs = lrs.Left;
-			var imdLeft = ComputeImdnLinear(windowing, ffs, lrs.Df, fundFreqs, 3, minFreq, maxFreq, false);
+			var imdLeft = ComputeImdnLinear(windowing, ffs, lrs.Df, fundFreqs, 3, minFreq, maxFreq, weighting, false);
 			imdLeft = QaLibrary.ConvertVoltage(imdLeft, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 			ffs = lrs.Right;
-			var imdRight = ComputeImdnLinear(windowing, ffs, lrs.Df, fundFreqs, 3, minFreq, maxFreq, false);
+			var imdRight = ComputeImdnLinear(windowing, ffs, lrs.Df, fundFreqs, 3, minFreq, maxFreq, weighting, false);
 			imdRight = QaLibrary.ConvertVoltage(imdRight, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
 			return new(imdLeft, imdRight);
 		}
 
-		internal static LeftRightPair GetThdnDb(string windowing, LeftRightFrequencySeries lrs, double fundFreq, double minFreq, double maxFreq)
+		internal static LeftRightPair GetThdnDb(string windowing, LeftRightFrequencySeries lrs, double fundFreq, double minFreq, double maxFreq, string weighting)
 		{
 			// double[] signalFreqLin, double[] frequencies, double fundamental, double notchOctaves = 0.5,
 			// double startFreq = 20.0, double stopFreq = 20000.0, bool debug = false
@@ -200,22 +200,24 @@ namespace QA40xPlot.BareMetal
 
 			var ffs = lrs.Left;
 			var notchOct = 0.15;
-			var thdLeft = ComputeThdnLinear(windowing, ffs, lrs.Df, fundFreq, notchOct, minFreq, maxFreq);
+			var thdLeft = ComputeThdnLinear(windowing, ffs, lrs.Df, fundFreq, notchOct, minFreq, maxFreq, weighting);
 			thdLeft = QaLibrary.ConvertVoltage(thdLeft, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 			ffs = lrs.Right;
-			var thdRight = ComputeThdnLinear(windowing, ffs, lrs.Df, fundFreq, notchOct, minFreq, maxFreq);
+			var thdRight = ComputeThdnLinear(windowing, ffs, lrs.Df, fundFreq, notchOct, minFreq, maxFreq, weighting);
 			thdRight = QaLibrary.ConvertVoltage(thdRight, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
 			return new(thdLeft, thdRight);
 		}
 
-		internal static double ComputeSnrRatio(string windowing, double[] signalFreqLin, double df, double fundamental, double minFreq, double maxFreq, bool debug = false)
+		internal static double ComputeSnrRatio(string windowing, double[] signalFreqLin, double df, double fundamental, double minFreq, double maxFreq, string weighting, bool debug = false)
 		{
 			// Calculate notch filter bounds in Hz
 			//var notchOctaves = 0.5; // aes-17 2015 standard notch
 			var notchOctaves = 0.15; // my preferred notch much tighter and more realistic nowadays
 			double notchLowerBound = fundamental / Math.Pow(2, notchOctaves);
 			double notchUpperBound = fundamental * Math.Pow(2, notchOctaves);
+			double[] weights = GetWeights(0, signalFreqLin.Length, df, weighting);
+			double[] weighted = signalFreqLin.Select((x, i) => x * weights[i]).ToArray();
 
 			if (debug)
 			{
@@ -230,8 +232,8 @@ namespace QA40xPlot.BareMetal
 			}
 
 			// Calculate RMS of the signal outside the notch
-			double rmsBelowNotch = ComputeRmsF(signalFreqLin, df, minFreq, notchLowerBound, windowing);
-			double rmsAboveNotch = ComputeRmsF(signalFreqLin, df, notchUpperBound, maxFreq, windowing);
+			double rmsBelowNotch = ComputeRmsF(weighted, df, minFreq, notchLowerBound, windowing);
+			double rmsAboveNotch = ComputeRmsF(weighted, df, notchUpperBound, maxFreq, windowing);
 			double noiseRms = Math.Sqrt(Math.Pow(rmsBelowNotch, 2) + Math.Pow(rmsAboveNotch, 2));
 
 			if (debug)
@@ -244,13 +246,15 @@ namespace QA40xPlot.BareMetal
 			return fundamentalRms / noiseRms;
 		}
 
-		internal static double ComputeSinadRatio(string windowing, double[] signalFreqLin, double df, double fundamental, double minFreq, double maxFreq, bool debug = false)
+		internal static double ComputeSinadRatio(string windowing, double[] signalFreqLin, double df, double fundamental, double minFreq, double maxFreq, string weighting, bool debug = false)
 		{
 			// Calculate notch filter bounds in Hz
 			//var notchOctaves = 0.5; // aes-17 2015 standard notch
 			var notchOctaves = 0.15; // my preferred notch much tighter and more realistic nowadays
 			double notchLowerBound = fundamental / Math.Pow(2, notchOctaves);
 			double notchUpperBound = fundamental * Math.Pow(2, notchOctaves);
+			double[] weights = GetWeights(0, signalFreqLin.Length, df, weighting);
+			double[] weighted = signalFreqLin.Select((x, i) => x * weights[i]).ToArray();
 
 			if (debug)
 			{
@@ -258,16 +262,16 @@ namespace QA40xPlot.BareMetal
 			}
 
 			// Calculate RMS of the fundamental within the notch
-			double fundamentalRms = QaMath.MagAtFreq(signalFreqLin, df, fundamental);
+			double fundamentalRms = QaMath.MagAtFreq(weighted, df, fundamental);
 			if (debug)
 			{
 				Debug.WriteLine($"Fundamental RMS: {fundamentalRms:F6}");
 			}
 
 			// Calculate RMS of the signal outside the notch
-			double rmsBelowNotch = ComputeRmsF(signalFreqLin, df, minFreq, notchLowerBound, windowing);
-			double rmsAboveNotch = ComputeRmsF(signalFreqLin, df, notchUpperBound, maxFreq, windowing);
-			double rmsTotal = ComputeRmsF(signalFreqLin, df, minFreq, maxFreq, windowing);
+			double rmsBelowNotch = ComputeRmsF(weighted, df, minFreq, notchLowerBound, windowing);
+			double rmsAboveNotch = ComputeRmsF(weighted, df, notchUpperBound, maxFreq, windowing);
+			double rmsTotal = ComputeRmsF(weighted, df, minFreq, maxFreq, windowing);
 
 			if (debug)
 			{
@@ -278,10 +282,12 @@ namespace QA40xPlot.BareMetal
 			return rmsTotal / Math.Sqrt(rmsAboveNotch * rmsAboveNotch + rmsBelowNotch * rmsBelowNotch);
 		}
 
-		internal static double ComputeImdSnrRatio(string windowing, double[] signalFreqLin, double df, double[] fundamentals, double minFreq, double maxFreq, bool debug = false)
+		internal static double ComputeImdSnrRatio(string windowing, double[] signalFreqLin, double df, double[] fundamentals, double minFreq, double maxFreq, string weighting, bool debug = false)
 		{
 			var notchOctaves = 0.15; // tight notch for intermods
 			var notches = new List<double>();
+			double[] weights = GetWeights(0, signalFreqLin.Length, df, weighting);
+			double[] weighted = signalFreqLin.Select((x, i) => x * weights[i]).ToArray();
 			// fundamentals must be monotone
 			double lastFreq = fundamentals[0] - 1;
 			foreach (var freq in fundamentals)
@@ -303,7 +309,7 @@ namespace QA40xPlot.BareMetal
 			double fundamentalRmsSq = 0;
 			foreach (var freq in fundamentals)
 			{
-				var rmsv = QaMath.MagAtFreq(signalFreqLin, df, freq);
+				var rmsv = QaMath.MagAtFreq(weighted, df, freq);
 				fundamentalRmsSq += rmsv * rmsv;
 			}
 
@@ -311,7 +317,7 @@ namespace QA40xPlot.BareMetal
 
 			for(int i=0; i<notches.Count; i += 2)
 			{
-				double rmsNotch = ComputeRmsF(signalFreqLin, df, notches[i], notches[i+1], windowing);
+				double rmsNotch = ComputeRmsF(weighted, df, notches[i], notches[i+1], windowing);
 			}
 
 			// now get total noise+distortion outside of the notch areas
@@ -320,20 +326,20 @@ namespace QA40xPlot.BareMetal
 			double stopFreq = maxFreq;
 			if (startFreq < notches[0])
 			{
-				double rmsNotch = ComputeRmsF(signalFreqLin, df, startFreq, notches[0], windowing);
+				double rmsNotch = ComputeRmsF(weighted, df, startFreq, notches[0], windowing);
 				totalNoiseSq += rmsNotch * rmsNotch;    // squared
 			}
 			for (int i = 1; i < fundamentals.Length; i++)
 			{
 				// get the voltage outside the notch
-				double rmsNotch = ComputeRmsF(signalFreqLin, df, notches[2 * i - 1], notches[2 * i], windowing);
+				double rmsNotch = ComputeRmsF(weighted, df, notches[2 * i - 1], notches[2 * i], windowing);
 				totalNoiseSq += rmsNotch * rmsNotch;    // squared
 				if (debug)
 					Debug.WriteLine($"{rmsNotch} noise inside notch #{i}");
 			}
 			if (notches[notches.Count - 1] < stopFreq)
 			{
-				double rmsNotch = ComputeRmsF(signalFreqLin, df, notches[notches.Count - 1], stopFreq, windowing);
+				double rmsNotch = ComputeRmsF(weighted, df, notches[notches.Count - 1], stopFreq, windowing);
 				totalNoiseSq += rmsNotch * rmsNotch;    // squared
 			}
 
@@ -484,11 +490,13 @@ namespace QA40xPlot.BareMetal
 		/// <param name="stopFreq"></param>
 		/// <param name="debug"></param>
 		/// <returns></returns>
-		internal static double ComputeThdnLinear(string windowing, double[] signalFreqLin, double df, double fundamental, double notchOctaves = 0.5, double startFreq = 20.0, double stopFreq = 20000.0, bool debug = false)
+		internal static double ComputeThdnLinear(string windowing, double[] signalFreqLin, double df, double fundamental, double notchOctaves = 0.5, double startFreq = 20.0, double stopFreq = 20000.0, string weighting = "Z", bool debug = false)
 		{
 			// Calculate notch filter bounds in Hz
 			double notchLowerBound = fundamental / Math.Pow(2, notchOctaves);
 			double notchUpperBound = fundamental * Math.Pow(2, notchOctaves);
+			double[] weights = GetWeights(0, signalFreqLin.Length, df, weighting);
+			double[] weighted = signalFreqLin.Select((x, i) => x * weights[i]).ToArray();
 
 			if (debug)
 			{
@@ -504,8 +512,8 @@ namespace QA40xPlot.BareMetal
 			}
 
 			// Calculate RMS of the signal outside the notch
-			double rmsBelowNotch = ComputeRmsF(signalFreqLin, df, startFreq, notchLowerBound, windowing);
-			double rmsAboveNotch = ComputeRmsF(signalFreqLin, df, notchUpperBound, stopFreq, windowing);
+			double rmsBelowNotch = ComputeRmsF(weighted, df, startFreq, notchLowerBound, windowing);
+			double rmsAboveNotch = ComputeRmsF(weighted, df, notchUpperBound, stopFreq, windowing);
 			double noiseRms = Math.Sqrt(Math.Pow(rmsBelowNotch, 2) + Math.Pow(rmsAboveNotch, 2));
 
 			if (debug)
@@ -537,12 +545,14 @@ namespace QA40xPlot.BareMetal
 		/// <param name="stopFreq"></param>
 		/// <param name="debug"></param>
 		/// <returns></returns>
-		internal static double ComputeImdnLinear(string windowing, double[] signalFreqLin, double df, double[] fundamentals, double notchOctaves = 0.5, double startFreq = 20.0, double stopFreq = 20000.0, bool debug = false)
+		internal static double ComputeImdnLinear(string windowing, double[] signalFreqLin, double df, double[] fundamentals, double notchOctaves = 0.5, double startFreq = 20.0, double stopFreq = 20000.0, string weighting="Z", bool debug = false)
 		{
 			var notches = new List<double>();
 			// fundamentals must be monotone
 			double lastFreq = fundamentals[0] - 1;
 			double fundamentalRmsSq = 0;
+			double[] weights = GetWeights(0, signalFreqLin.Length, df, weighting);
+			double[] weighted = signalFreqLin.Select((x, i) => x * weights[i]).ToArray();
 			foreach(var freq in fundamentals)
 			{
 				// Calculate notch filter bounds in Hz
@@ -556,10 +566,11 @@ namespace QA40xPlot.BareMetal
 					Debug.Assert(freq > lastFreq, "Fundamentals list must be monotone");
 				}
 				lastFreq = freq;
-				var vfund = QaMath.MagAtFreq(signalFreqLin, df, freq);
+				var vfund = QaMath.MagAtFreq(weighted, df, freq);
 				// only use last fundamental
 				fundamentalRmsSq = vfund * vfund;
 			}
+			notches.Sort();
 
 			// Calculate RMS of the total fundamentals
 			double fundamentalRms = Math.Sqrt(fundamentalRmsSq);
@@ -573,20 +584,20 @@ namespace QA40xPlot.BareMetal
 			double totalNoiseSq = 0.0;
 			if(startFreq < notches[0])
 			{
-				double rmsNotch = ComputeRmsF(signalFreqLin, df, startFreq, notches[0], windowing);
+				double rmsNotch = ComputeRmsF(weighted, df, startFreq, notches[0], windowing);
 				totalNoiseSq += rmsNotch * rmsNotch;	// squared
 			}
 			for (int i=1; i<fundamentals.Length; i++)
 			{
 				// get the voltage outside the notch
-				double rmsNotch = ComputeRmsF(signalFreqLin, df, notches[2*i-1], notches[2*i], windowing);
+				double rmsNotch = ComputeRmsF(weighted, df, notches[2*i-1], notches[2*i], windowing);
 				totalNoiseSq += rmsNotch * rmsNotch;    // squared
 				if (debug)
 					Debug.WriteLine($"{rmsNotch} noise inside notch #{i}");
 			}
 			if (notches[notches.Count-1] < stopFreq)
 			{
-				double rmsNotch = ComputeRmsF(signalFreqLin, df, notches[notches.Count - 1], stopFreq, windowing);
+				double rmsNotch = ComputeRmsF(weighted, df, notches[notches.Count - 1], stopFreq, windowing);
 				totalNoiseSq += rmsNotch * rmsNotch;    // squared
 			}
 
@@ -603,13 +614,13 @@ namespace QA40xPlot.BareMetal
 		}
 
 		// calculate the noise from 20..20000Hz
-		internal static LeftRightPair CalculateNoise(string windowing, LeftRightFrequencySeries? lrfs, string Weighting)
+		internal static LeftRightPair CalculateNoise(string windowing, LeftRightFrequencySeries? lrfs, string weighting)
 		{
 			if (lrfs == null)
 				return new LeftRightPair(1e-20, 1e-20);
 
-			var noiseLeft = QaCompute.ComputeRmsF(lrfs.Left, lrfs.Df, 20, 20000, windowing, Weighting);
-			var noiseRight = QaCompute.ComputeRmsF(lrfs.Right, lrfs.Df, 20, 20000, windowing, Weighting);
+			var noiseLeft = QaCompute.ComputeRmsF(lrfs.Left, lrfs.Df, 20, 20000, windowing, weighting);
+			var noiseRight = QaCompute.ComputeRmsF(lrfs.Right, lrfs.Df, 20, 20000, windowing, weighting);
 			// calculate the noise floor
 			return new LeftRightPair(noiseLeft, noiseRight);
 		}
@@ -706,6 +717,19 @@ namespace QA40xPlot.BareMetal
 			return rtrn;
 		}
 
+		public static double[] GetWeights(int start, int length, double df, string weighting)
+		{
+			switch (weighting)
+			{
+				case "A":
+					return AWeight(start, length, df);
+				case "C":
+					return CWeight(start, length, df);
+				default:
+					return Enumerable.Range(0, length).Select(x => 1.0).ToArray(); // no weighting
+			}
+		}
+
 		/// <summary>
 		/// calculate the total power of a frequency signal in usual linear frequency format
 		/// </summary>
@@ -717,12 +741,15 @@ namespace QA40xPlot.BareMetal
 		internal static double ComputeRmsF(double[] signalFreqLin, double df, double lowerBound, double upperBound, string windowing, string Weighting = "")
 		{
 			double sum = 0;
+			var mx = Math.Max(lowerBound, upperBound);
+			lowerBound = Math.Min(lowerBound, upperBound);
+			upperBound = mx; // make sure lowerBound is always less than upperBound
 
 			try
 			{
 				var lb = Math.Max(1,(int)(lowerBound / df));
 				var ub = Math.Min(signalFreqLin.Length-1, (int)(upperBound / df));
-				if( Weighting.Length == 0)
+				if( Weighting.Length == 0 || Weighting == "Z")
 				{
 					for (int i = lb; i < ub; i++)
 					{
@@ -731,21 +758,7 @@ namespace QA40xPlot.BareMetal
 				}
 				else
 				{
-					double[] wgt = [];
-					switch(Weighting)
-					{
-						default:
-						case "Z":
-						case "":
-							wgt = Enumerable.Range(0, ub - lb).Select(x => 1.0).ToArray(); // no weighting
-							break;
-						case "A":
-							wgt = AWeight(lb, ub-lb, df); // no weighting
-							break;
-						case "C":
-							wgt = CWeight(lb, ub - lb, df); // no weighting
-							break;
-					}
+					double[] wgt = GetWeights(lb, ub - lb, df, Weighting);
 					for (int i = lb; i < ub; i++)
 					{
 						sum += signalFreqLin[i] * signalFreqLin[i] * wgt[i-lb] * wgt[i - lb];

@@ -89,7 +89,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Label Padding="2,2" Grid.Row="0" Grid.Column="0" Content="SNR:" HorizontalAlignment="Right"/>
-                <Label Padding="2,2" Grid.Row="0" Grid.Column="1" ToolTip="Signal to noise ratio 20-20KHz unweighted"
+                <Label Padding="2,2" Grid.Row="0" Grid.Column="1" ToolTip="Signal to noise ratio 20-20KHz - weighted"
                        Content="{Binding SNRatio, Converter={StaticResource DoubleIntlConverter}, ConverterParameter=-2}" ContentStringFormat="{}{0} dB"/>
                 <Label Padding="2,2" Grid.Row="0" Grid.Column="2" Content="ENOB:" HorizontalAlignment="Right"/>
                 <Label Padding="2,2" Grid.Row="0" Grid.Column="3" ToolTip="Equivalent number of bits"

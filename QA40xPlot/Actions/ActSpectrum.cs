@@ -465,10 +465,10 @@ namespace QA40xPlot.Actions
 			var lrfs = msr.FreqRslt;    // frequency response
 
 			var maxf = 20000; // the app seems to use 20,000 so not sampleRate/ 2.0;
-			LeftRightPair sinaddb = QaCompute.GetSinadDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf);
-			LeftRightPair snrdb = QaCompute.GetSnrDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf);
+			LeftRightPair sinaddb = QaCompute.GetSinadDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf, ViewSettings.NoiseWeight);
+			LeftRightPair snrdb = QaCompute.GetSnrDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf, ViewSettings.NoiseWeight);
 			LeftRightPair thds = QaCompute.GetThdDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf);
-			LeftRightPair thdN = QaCompute.GetThdnDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf);
+			LeftRightPair thdN = QaCompute.GetThdnDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf, ViewSettings.NoiseWeight);
 
 			ThdChannelViewModel[] steps = [left, right];
 			foreach (var step in steps)
