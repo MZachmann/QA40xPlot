@@ -159,6 +159,9 @@ namespace QA40xPlot.Libraries
 					page.Definition.FileName = fileName; // re-set the filename
 					if(jsonObject.FreqRslt != null)
 						page.FreqRslt = jsonObject.FreqRslt; // set the frequency result
+					page.Definition.IsOnL = true;
+					page.Definition.IsOnR = false;
+
 				}
 			}
 			catch (Exception ex)
