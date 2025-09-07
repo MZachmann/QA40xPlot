@@ -1,4 +1,5 @@
-﻿using QA40xPlot.BareMetal;
+﻿using NAudio.Wave;
+using QA40xPlot.BareMetal;
 using QA40xPlot.ViewModels;
 using System.Net.Sockets;
 using System.Windows;
@@ -100,7 +101,23 @@ namespace QA40xPlot.Libraries
 		static public async Task<LeftRightSeries> DoAcquireUser(CancellationToken ct, double[] dataLeft, double[] dataRight, bool getFreq)
 		{
 			LeftRightSeries lrfs = new LeftRightSeries();
-			await Qa40x.DoUserAcquisition(dataLeft, dataRight);
+			WaveOut? waves = null;
+			double[] dtL = dataLeft;
+			double[] dtR = dataRight;
+			double[] zeroes = new double[dataLeft.Length];
+			if( ViewSettings.WaveEchoes == SoundUtil.EchoQuiet)
+			{
+				// we play the sound but don't use it, so zero the data
+				dtL = zeroes;
+				dtR = zeroes;
+			}
+			if( ViewSettings.WaveEchoes != SoundUtil.EchoNone)
+			{
+				waves = SoundUtil.PlaySound(dataLeft, dataRight, (int)QaComm.GetSampleRate());
+			}
+
+			await Qa40x.DoUserAcquisition(dtL, dtR);
+			waves?.Stop();
 
 			if (ct.IsCancellationRequested )
 				return lrfs;

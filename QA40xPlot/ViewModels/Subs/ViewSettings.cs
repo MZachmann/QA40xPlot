@@ -51,6 +51,8 @@ namespace QA40xPlot.ViewModels
 		public static string ExternalGain { get => ViewSettings.Singleton.SettingsVm.ExternalGain; }
 		[JsonIgnore]
 		public static string NoiseWeight { get => ViewSettings.Singleton.SettingsVm.NoiseWeight; }
+		[JsonIgnore]
+		public static int WaveEchoes { get => ViewSettings.Singleton.SettingsVm.EchoWaves; }
 
 		/// <summary>
 		/// returns if left channel is our voltage output math

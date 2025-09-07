@@ -1,6 +1,7 @@
 ﻿using FftSharp;
 using LibUsbDotNet;
 using LibUsbDotNet.Main;
+using NAudio.Wave;
 using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
@@ -356,14 +357,6 @@ namespace QA40x.BareMetal
 					{
 						await showMessage("Waiting for relays to settle...", _RelayMilliseconds);
 						await showMessage("Acquiring data", 10);
-						//// do at least 1.5 seconds of streaming
-						//var ss = QaComm.GetSampleRate();
-						//ss = ss + ss / 2;
-						//var cnt = 32768;
-						//while (cnt < ss)
-						//	cnt *= 2;
-						//double[] empty = new double[cnt];			// large empty buffer...
-						//await SubStreamingAsync(ct, empty, empty);	// waste some time
 					}
 					_LastInputRange = s;
 					_LastOutputRange = u;
@@ -464,8 +457,19 @@ namespace QA40x.BareMetal
 			// The scale factor converts the volts to dBFS. The max output is 8Vrms = 11.28Vp = 0 dBFS. 
 			// The above calcs assume DAC relays set to 18 dBV = 8Vrms full scale
 			var dbfsAdjustment = Math.Pow(10, -((maxOutput + 3.0) / 20));
-			List<double> lout = leftOut.Select(x => x * dbfsAdjustment * dacCal.Left).ToList();
-			List<double> rout = rightOut.Select(x => x * dbfsAdjustment * dacCal.Right).ToList();
+			List<double> lout;
+			List<double> rout;
+			if(SoundUtil.EchoQuiet != ViewSettings.WaveEchoes)
+			{
+				lout = leftOut.Select(x => x * dbfsAdjustment * dacCal.Left).ToList();
+				rout = rightOut.Select(x => x * dbfsAdjustment * dacCal.Right).ToList();
+			}
+			else
+			{
+				// view settings tell us to mute output since we're echoing
+				lout = leftOut.Select(x => 0.0).ToList();
+				rout = rightOut.Select(x => 0.0).ToList();
+			}
 
 			// now pad front and back of the values via prebuf and postbuf 
 			preBuf = Math.Max(preBuf, usbBufSize / 8);
@@ -492,6 +496,11 @@ namespace QA40x.BareMetal
 				// 16K right doubles. This is 16K * 8 = 128K. The USB buffer size (bytes sent over the wire) can be 32K, 16K, 8K, etc.
 				throw new Exception("bufSize * 8 must be >= to usbBufSize, and bufSize * 8 must be an integer multiple of usbBufSize");
 			}
+
+			WaveOut? waves = null;
+
+			if(SoundUtil.EchoNone != ViewSettings.WaveEchoes)
+				waves = SoundUtil.PlaySound(leftOut, rightOut, (int)QaComm.GetSampleRate());
 
 			InitOverlapped();
 
@@ -561,6 +570,7 @@ namespace QA40x.BareMetal
 
 			// Stop streaming. This also extinguishes the RUN led
 			WriteRegister(8, 0);
+			waves?.Stop();
 
 			// we now have a list of all the rx buffers to convert to an array
 			// use fixed size so that frombytestream and others work ok

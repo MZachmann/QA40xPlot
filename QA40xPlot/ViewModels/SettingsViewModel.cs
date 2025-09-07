@@ -14,6 +14,7 @@ namespace QA40xPlot.ViewModels
 		public static List<String> UsbBufferSizes { get => new List<string>() { "2048", "4096", "8192", "16384", "32768", "65536"}; }
 		public static List<String> RelayUsageList { get => new List<string>() { "Never", "OnFinish", "OnExit" }; }
 		public static List<String> NoiseWeightList { get => new List<string>() { "Z", "A", "C" }; }
+		public static List<String> EchoTypes { get => new List<string>() { "QA40x", "WinDevice", "Both" }; }
 		public static List<String> BackColors { get => new List<string>() { "Transparent", "#dce4e4", "#60ffffff",
 			"#f8f8f8", "White",
 			"MintCream", "LightGray", 
@@ -26,7 +27,7 @@ namespace QA40xPlot.ViewModels
 			"DarkRed", "DarkOrange", "DarkGreen", "DarkBlue", "DarkViolet"
 			};
 		}
-		public static List<string> ThemeList { get => new List<string> { "None", "Light", "Dark" }; }
+		public static List<string> ThemeList { get => new List<string> { "None", "Light", "Dark", "System" }; }
 
 		[JsonIgnore]
 		public RelayCommand DoMicCompensate { get => new RelayCommand(FindMicCompensate); }
@@ -71,6 +72,16 @@ namespace QA40xPlot.ViewModels
 				SetProperty(ref _UseREST, value);
 				// change the entire interface around
 				QaComm.SetIODevice(value ? "REST" : "USB");
+			}
+		}
+
+		private int _EchoWaves = (int)SoundUtil.EchoNone;
+		public int EchoWaves
+		{
+			get { return _EchoWaves; }
+			set
+			{
+				SetProperty(ref _EchoWaves, value);
 			}
 		}
 
