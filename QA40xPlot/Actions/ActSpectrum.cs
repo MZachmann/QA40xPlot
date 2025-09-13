@@ -301,7 +301,7 @@ namespace QA40xPlot.Actions
 					PageData = NextPage;        // finally update the pagedata for display and processing
 				UpdateGraph(true);
 			}
-			MyVModel.LinkAbout(PageData.Definition);	// ensure we're linked right during replays
+			MyVModel.LinkAbout(PageData.Definition);    // ensure we're linked right during replays
 
 			while (rslt && !ct.IsCancellationRequested)
 			{
@@ -932,8 +932,8 @@ namespace QA40xPlot.Actions
 				}
 			}
 			ReformatChannels(); // ensure the channels are formatted correctly
-			ViewSettings.Singleton.ChannelLeft.ThemeBkgd = ViewSettings.Singleton.Main.ThemeBkgd;
-			ViewSettings.Singleton.ChannelRight.ThemeBkgd = ViewSettings.Singleton.Main.ThemeBkgd;
+			ViewSettings.Singleton.ChannelLeft.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd;
+			ViewSettings.Singleton.ChannelRight.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd;
 
 			ShowPageInfo(PageData); // show the page info in the display
 			if (PageData.FreqRslt != null)

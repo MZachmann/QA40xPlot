@@ -42,7 +42,7 @@ namespace QA40xPlot.Converters
 			{
 				return boolValue ? Visibility.Visible : Visibility.Collapsed;
 			}
-			return Visibility.Hidden;
+			return Visibility.Collapsed;
 		}
 		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
 		{
@@ -50,9 +50,22 @@ namespace QA40xPlot.Converters
 		}
 	}
 
-
-
-
+	// collapse if the string matches the parameter
+	public class StringToVisibilityConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			if (value is string stringValue)
+			{
+				return (stringValue == parameter.ToString()) ? Visibility.Collapsed : Visibility.Visible;
+			}
+			return Visibility.Collapsed;
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			return Binding.DoNothing;
+		}
+	}
 
 	/// <summary>
 	/// internationalize max # of decimal points in a double value as in 0.###
@@ -310,7 +323,7 @@ namespace QA40xPlot.Converters
 					return string.Empty;
 				// get the input variables here
 				var ampvalue = MathUtil.ToDouble((string)value, 0);     // actual voltage or power
-				var ampUnit = ViewSettings.Singleton.Main.CurrentView?.GenVoltageUnits;            // unit of measure as string
+				var ampUnit = ViewSettings.Singleton.MainVm.CurrentView?.GenVoltageUnits;            // unit of measure as string
 				if(ampUnit != null)
 				{
 					var ampD = PreformatValue(ampvalue, ampUnit); // convert to volts or watts
@@ -334,7 +347,7 @@ namespace QA40xPlot.Converters
 			{
 				// just return the input value, we leave it alone otherwise
 				var ampvalue = MathUtil.ToDouble((string)value, 0);     // actual voltage or power
-				var ampUnit = ViewSettings.Singleton.Main.CurrentView?.GenVoltageUnits;            // unit of measure as string
+				var ampUnit = ViewSettings.Singleton.MainVm.CurrentView?.GenVoltageUnits;            // unit of measure as string
 				if (ampUnit != null)
 				{
 					var ampD = UnformatValue(ampvalue, ampUnit); // convert to volts or watts

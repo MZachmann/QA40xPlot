@@ -1,10 +1,9 @@
 ﻿using QA40xPlot.Data;
-using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using System.Diagnostics;
 using System.Threading.Channels;
 
-namespace QA40xPlot.BareMetal
+namespace QA40xPlot.Libraries
 {
 	public class WaveGenerator
 	{
@@ -55,29 +54,29 @@ namespace QA40xPlot.BareMetal
 
 		public static void SetGen2(double freq, double volts, bool ison, string name=  "Sine")
 		{
-			SetParams(WaveGenerator.Singleton.Gen2Params, freq, volts, ison);
-			WaveGenerator.Singleton.Gen2Params.Name = name;
+			SetParams(Singleton.Gen2Params, freq, volts, ison);
+			Singleton.Gen2Params.Name = name;
 		}
 
 		public static void SetGen1(double freq, double volts, bool ison, string name = "Sine")
 		{
-			SetParams(WaveGenerator.Singleton.GenParams, freq, volts, ison);
-			WaveGenerator.Singleton.GenParams.Name = name;
+			SetParams(Singleton.GenParams, freq, volts, ison);
+			Singleton.GenParams.Name = name;
 		}
 
 		public static void SetChannels(WaveChannels channels)
 		{
-			WaveGenerator.Singleton.Channels = channels;
+			Singleton.Channels = channels;
 		}
 
 		public static void SetEnabled(bool ison)
 		{
-			WaveGenerator.Singleton.IsEnabled = ison;
+			Singleton.IsEnabled = ison;
 		}
 
 		public static void Clear()
 		{
-			var vw = WaveGenerator.Singleton;
+			var vw = Singleton;
 			vw.IsEnabled = false;
 			vw.GenParams.Enabled = false;
 			vw.Gen2Params.Enabled = false;
@@ -86,7 +85,7 @@ namespace QA40xPlot.BareMetal
 		public static (double[], double[]) GeneratePair(uint sampleRate, uint sampleSize)
 		{
 			var dx = Generate(sampleRate, sampleSize);
-			var how = WaveGenerator.Singleton.Channels;
+			var how = Singleton.Channels;
 			double[] blank = [];
 			if(how != WaveChannels.Both)
 			{
@@ -112,7 +111,7 @@ namespace QA40xPlot.BareMetal
 
 		public static double[] Generate(uint sampleRate, uint sampleSize)
 		{
-			var vw = WaveGenerator.Singleton;
+			var vw = Singleton;
 			var waveSample = new GenWaveSample()
 			{
 				SampleRate = (int)sampleRate,

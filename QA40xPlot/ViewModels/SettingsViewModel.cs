@@ -15,9 +15,16 @@ namespace QA40xPlot.ViewModels
 		public static List<String> RelayUsageList { get => new List<string>() { "Never", "OnFinish", "OnExit" }; }
 		public static List<String> NoiseWeightList { get => new List<string>() { "Z", "A", "C" }; }
 		public static List<String> EchoTypes { get => new List<string>() { "QA40x", "WinDevice", "Both" }; }
+		public static List<String> EchoChannels { get => new List<string>() { "None", "Left", "Right", "L+R" }; }
+		public const int EchoChannelLeft = 1;	// in list order
+		public const int EchoChannelRight = 2;
+		[JsonIgnore]
+		public List<string> EchoNames { get { var x = SoundUtil.EnumerateDevices().ToList(); return x; } }
+
 		public static List<String> BackColors { get => new List<string>() { "Transparent", "#dce4e4", "#60ffffff",
 			"#f8f8f8", "White",
 			"MintCream", "LightGray", 
+
 			"DarkGray", "LightGreen", "Lavender" }; }
 		public static List<String> PlotColors
 		{
@@ -75,13 +82,63 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		private int _EchoWaves = (int)SoundUtil.EchoNone;
-		public int EchoWaves
+		[JsonIgnore]
+		public bool UseExternalEcho
 		{
-			get { return _EchoWaves; }
+			get
+			{
+				var bres = (SoundUtil.EchoNone != ViewSettings.WaveEchoes) &&
+							(ViewSettings.Singleton.SettingsVm.EchoName.Length > 0) &&
+							(0 != SoundUtil.GetChannels());
+				return bres;
+			}
+		}
+
+		// mode of sound device echo
+		private int _EchoDevice = (int)SoundUtil.EchoNone;
+		public int EchoDevices
+		{
+			get { return _EchoDevice; }
 			set
 			{
-				SetProperty(ref _EchoWaves, value);
+				SetProperty(ref _EchoDevice, value);
+				RaisePropertyChanged("UseExternalEcho");
+			}
+		}
+
+		// name of the sound device to echo to
+		private string _EchoName = "";
+		public string EchoName
+		{
+			get { return _EchoName; }
+			set
+			{
+				// when we change the echonames list this can get set to null, fix that
+				SetProperty(ref _EchoName, value ?? EchoName);
+				RaisePropertyChanged("UseExternalEcho");
+			}
+		}
+
+		// name of the sound device to echo to
+		private int _EchoDelay = -80;
+		public int EchoDelay
+		{
+			get { return _EchoDelay; }
+			set
+			{
+				SetProperty(ref _EchoDelay, value);
+			}
+		}
+
+		// name of the sound device to echo to
+		private string _EchoChannel = "L+R";
+		public string EchoChannel
+		{
+			get { return _EchoChannel; }
+			set
+			{
+				SetProperty(ref _EchoChannel, value);
+				RaisePropertyChanged("UseExternalEcho");
 			}
 		}
 
@@ -103,7 +160,7 @@ namespace QA40xPlot.ViewModels
 					// set the background color of the main window
 					var clr = (SolidColorBrush?)new BrushConverter().ConvertFrom(value);
 					if (clr != null) 
-						ViewSettings.Singleton.Main.Background = clr;
+						ViewSettings.Singleton.MainVm.Background = clr;
 				}
 				catch (Exception ex)
 				{
@@ -157,7 +214,7 @@ namespace QA40xPlot.ViewModels
 							break;
 					}
 #pragma warning restore WPF0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-					ViewSettings.Singleton.Main.ThemeBkgd = BackgroundClr;
+					ViewSettings.Singleton.MainVm.ThemeBkgd = BackgroundClr;
 				}
 			}
 		}
@@ -173,7 +230,7 @@ namespace QA40xPlot.ViewModels
 				{
 					var clr = (SolidColorBrush?)new BrushConverter().ConvertFrom(value);
 					if (clr != null) 
-						ViewSettings.Singleton.Main.GraphBackground = clr;
+						ViewSettings.Singleton.MainVm.GraphBackground = clr;
 				}
 				catch (Exception ex)
 				{

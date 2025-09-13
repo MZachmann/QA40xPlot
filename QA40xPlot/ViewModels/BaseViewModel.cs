@@ -548,7 +548,7 @@ namespace QA40xPlot.ViewModels
 
 		public static void DoGenVolts(object? parameter)
 		{
-			var mvm = ViewSettings.Singleton.Main.CurrentView; // the current viewmodel
+			var mvm = ViewSettings.Singleton.MainVm.CurrentView; // the current viewmodel
 			if (parameter != null && mvm != null)
 			{
 				mvm.SetGeneratorVolts(parameter.ToString() ?? string.Empty);
@@ -580,7 +580,7 @@ namespace QA40xPlot.ViewModels
 
 		public static void ShowMenu(object? parameter)
 		{
-			var mvm = ViewSettings.Singleton.Main.CurrentView; // the current viewmodel
+			var mvm = ViewSettings.Singleton.MainVm.CurrentView; // the current viewmodel
 			if (parameter is Button button && mvm != null)
 			{
 				button.ContextMenu = new ContextMenu(); // Clear any previous context menu

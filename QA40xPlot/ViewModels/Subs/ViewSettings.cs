@@ -23,7 +23,7 @@ namespace QA40xPlot.ViewModels
 		public ThdAmpViewModel ThdAmp { get; private set; }
 		public FreqRespViewModel FreqRespVm { get; private set; }
 		public ScopeViewModel ScopeVm { get; private set; }
-		public MainViewModel Main { get; private set; }
+		public MainViewModel MainVm { get; private set; }
 		public SettingsViewModel SettingsVm { get; private set; }
 		// these are output only and don't need serializing
 		[JsonIgnore]
@@ -52,7 +52,7 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public static string NoiseWeight { get => ViewSettings.Singleton.SettingsVm.NoiseWeight; }
 		[JsonIgnore]
-		public static int WaveEchoes { get => ViewSettings.Singleton.SettingsVm.EchoWaves; }
+		public static int WaveEchoes { get => ViewSettings.Singleton.SettingsVm.EchoDevices; }
 
 		/// <summary>
 		/// returns if left channel is our voltage output math
@@ -73,14 +73,14 @@ namespace QA40xPlot.ViewModels
 			Util.GetPropertiesFrom(vws,"ThdFreq",ThdFreq);
 			Util.GetPropertiesFrom(vws,"FreqRespVm",FreqRespVm);
 			Util.GetPropertiesFrom(vws,"ScopeVm", ScopeVm);
-			Util.GetPropertiesFrom(vws, "Main", Main);
+			Util.GetPropertiesFrom(vws, "Main", MainVm);
 			Util.GetPropertiesFrom(vws, "SettingsVm", SettingsVm);	// this will update global settings last which makes sense
 		}
 
 		public ViewSettings() 
 		{
 			SettingsVm = new SettingsViewModel();
-			Main = new MainViewModel();
+			MainVm = new MainViewModel();
 			ChannelLeft = new ThdChannelViewModel();
 			ChannelRight = new ThdChannelViewModel();
 			ScopeInfoLeft = new ScopeInfoViewModel();

@@ -5,6 +5,7 @@
         <convert:VtoPctConverter x:Key="VToPctConverter"/>
         <convert:VoltFormatter x:Key="VoltFormatter"/>
         <convert:BoolToVisibilityConverter x:Key="BoolVisConverter"/>
+        <convert:StringToVisibilityConverter x:Key="StringVisConverter"/>
         <convert:VoltUnitConverter x:Key="VoltUnitConverter" />
         <convert:VoltDbvFormatter x:Key="VoltDbvFormatter" />
         <convert:InverseBooleanConverter x:Key="InvBoolConverter" />

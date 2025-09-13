@@ -64,10 +64,10 @@ namespace QA40xPlot
 			fpath += @"\QADefault.cfg";
 			if (File.Exists(fpath))
 			{
-				ViewSettings.Singleton.Main.LoadFromSettings(fpath);
+				ViewSettings.Singleton.MainVm.LoadFromSettings(fpath);
 			}
 			InitializeComponent();
-			var vm = ViewModels.ViewSettings.Singleton.Main;
+			var vm = ViewModels.ViewSettings.Singleton.MainVm;
 			this.DataContext = vm;
 			vm.ProgressMessage = "Welcome to QA40xPlot v" + GetVersionInfo();
 			vm.ScreenDpi = TestGetDpi();
@@ -90,7 +90,7 @@ namespace QA40xPlot
 
 		private void OnNewTab(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
 		{
-			var vm = ViewSettings.Singleton.Main;
+			var vm = ViewSettings.Singleton.MainVm;
 			if (e.AddedItems.Count > 0)
 			{
 				var x = e.AddedItems[0];
@@ -118,7 +118,7 @@ namespace QA40xPlot
 		//private static bool _bDone = false;
 		private void DoContentRendered(object? sender, EventArgs e)
 		{
-			var vm = ViewSettings.Singleton?.Main;
+			var vm = ViewSettings.Singleton?.MainVm;
 			if(vm != null && vm.CurrentWindowRect.Length > 0)
 			{
 				MainViewModel.SetWindowSize(Application.Current.MainWindow,	vm.CurrentWindowRect);
@@ -171,7 +171,7 @@ namespace QA40xPlot
 					// look for a default config file
 					var fpath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 					fpath += @"\QADefault.cfg";
-					ViewSettings.Singleton.Main.SaveToSettings(fpath);
+					ViewSettings.Singleton.MainVm.SaveToSettings(fpath);
 				}
 				catch (Exception ex)
 				{

@@ -42,7 +42,7 @@ namespace QA40xPlot.Views
 			PopulateColors();
 			ClrOpacity = TxtToOpaque(currentColor);             // normalize to 0-100
 			DoShowOpaque(ClrOpacity); // Show the opacity percentage
-			var viewWind = ViewSettings.Singleton.Main.CurrentColorRect;
+			var viewWind = ViewSettings.Singleton.MainVm.CurrentColorRect;
 			if(viewWind.Length > 0)
 			{
 				MainViewModel.SetWindowSize(this, viewWind);
@@ -164,13 +164,13 @@ namespace QA40xPlot.Views
 		{
 			DialogResult = true;
 			// Ensure the current window size is captured
-			ViewSettings.Singleton.Main.CurrentColorRect = MainViewModel.GetWindowSize(this);
+			ViewSettings.Singleton.MainVm.CurrentColorRect = MainViewModel.GetWindowSize(this);
 			Close();
 		}
 
 		private void DoApply(object sender, RoutedEventArgs e)
 		{
-			ViewSettings.Singleton.Main.CurrentColorRect = MainViewModel.GetWindowSize(this);
+			ViewSettings.Singleton.MainVm.CurrentColorRect = MainViewModel.GetWindowSize(this);
 			if(CallMe != null)
 				CallMe(this);
 		}

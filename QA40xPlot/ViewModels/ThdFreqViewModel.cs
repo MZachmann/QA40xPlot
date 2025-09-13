@@ -236,7 +236,7 @@ namespace QA40xPlot.ViewModels
 				actAbout.Visibility = ShowTabInfo ? Visibility.Visible : Visibility.Hidden;
 				var fvm = actAbout.DataContext as FloorViewModel;
 				if (fvm != null)
-					fvm.ThemeBkgd = ViewSettings.Singleton.Main.ThemeBkgd; ;
+					fvm.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd; ;
 			}
 		}
 

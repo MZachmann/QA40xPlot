@@ -3,13 +3,11 @@ using LibUsbDotNet;
 using LibUsbDotNet.Main;
 using NAudio.Wave;
 using QA40xPlot.BareMetal;
-using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
+using System.Data;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows;
+
 
 // Written by MZachmann 4-24-2025
 // much of the bare metal code comes originally from the PyQa40x library and from the Qa40x_BareMetal library on github
@@ -325,7 +323,7 @@ namespace QA40x.BareMetal
 
 		protected async Task showMessage(String msg, int delay = 0)
 		{
-			var vm = ViewSettings.Singleton.Main;
+			var vm = ViewSettings.Singleton.MainVm;
 			await vm.SetProgressMessage(msg, delay);
 		}
 
@@ -394,7 +392,7 @@ namespace QA40x.BareMetal
 				{
 					try
 					{
-						r = DoStreaming(ct, leftOut, rightOut);
+						r = DoStreaming(leftOut, rightOut, ct);
 					}
 					catch (OperationCanceledException)
 					{
@@ -409,7 +407,7 @@ namespace QA40x.BareMetal
 					}
 					finally
 					{
-						// Indicate an acq is not longer in progress
+						// Indicate an acq is no longer in progress
 						AcqSemaphore.Release();
 					}
 				});
@@ -429,11 +427,32 @@ namespace QA40x.BareMetal
 			return r;
 		}
 
-		private static int _DelayOffset = 0;
-		public AcqResult DoStreaming(CancellationToken ct, double[] leftOut, double[] rightOut)
+		private static bool HasAChannel(bool isLeft)
+		{
+			var useExternal = ViewSettings.Singleton.SettingsVm.UseExternalEcho;
+			if (!useExternal)
+				return false;
+			return SoundUtil.HasChannel(isLeft);
+		}
+
+		// here we detect start of data
+		// by comparing data to ~0. Empirically the QA40x has a latency of less than a ms.
+		// it looks like a fixed # of samples delay approximately 48-50 samples
+		private const int _Qa40xDelay = 55;     // max samples past prebuf to check
+		/// <summary>
+		/// Send data and receive data via USB low level code.
+		/// </summary>
+		/// <param name="leftOut">left data</param>
+		/// <param name="rightOut">right data</param>
+		/// <param name="ct"></param>
+		/// <returns>[failure status, left data, right data] in AcqResult</returns>
+		/// <exception cref="Exception"></exception>
+		public AcqResult DoStreaming(double[] leftOut, double[] rightOut, CancellationToken ct)
 		{
 			AcqResult r = new AcqResult();
 			r.Valid = true;
+
+			var useExternal = ViewSettings.Singleton.SettingsVm.UseExternalEcho && SoundUtil.ExternalPresent();
 
 			Debug.Assert(leftOut.Length == rightOut.Length, "Out buffers must be the same length");
 			var maxOutput = QaComm.GetOutputRange();
@@ -457,23 +476,30 @@ namespace QA40x.BareMetal
 			// The scale factor converts the volts to dBFS. The max output is 8Vrms = 11.28Vp = 0 dBFS. 
 			// The above calcs assume DAC relays set to 18 dBV = 8Vrms full scale
 			var dbfsAdjustment = Math.Pow(10, -((maxOutput + 3.0) / 20));
-			List<double> lout;
-			List<double> rout;
-			if(SoundUtil.EchoQuiet != ViewSettings.WaveEchoes)
+			List<double> lout = leftOut.Select(x => x * dbfsAdjustment * dacCal.Left).ToList();
+			List<double> rout = rightOut.Select(x => x * dbfsAdjustment * dacCal.Right).ToList();
+
+			// we have an external sound source and are muting the QA40x output
+			if (useExternal && (SoundUtil.EchoQuiet == ViewSettings.WaveEchoes))
 			{
-				lout = leftOut.Select(x => x * dbfsAdjustment * dacCal.Left).ToList();
-				rout = rightOut.Select(x => x * dbfsAdjustment * dacCal.Right).ToList();
+				lout = lout.Select(x => 0.0).ToList();
+				rout = rout.Select(x => 0.0).ToList();
 			}
-			else
-			{
-				// view settings tell us to mute output since we're echoing
-				lout = leftOut.Select(x => 0.0).ToList();
-				rout = rightOut.Select(x => 0.0).ToList();
-			}
+
+			var sampleRate = QaComm.GetSampleRate();
 
 			// now pad front and back of the values via prebuf and postbuf 
 			preBuf = Math.Max(preBuf, usbBufSize / 8);
 			postBuf = Math.Max(postBuf, usbBufSize / 8);
+			// more postbuf for longer latency external testing
+			// use 2*echodelay
+			if (useExternal)
+			{
+				var ad = Math.Abs(ViewSettings.Singleton.SettingsVm.EchoDelay);
+				var moreInfo = (int)Math.Ceiling((sampleRate * ad / 500.0) / usbBufSize);
+				postBuf += moreInfo * usbBufSize;
+			}
+
 			double[] prebuf = new double[preBuf];
 			double[] postbuf = new double[postBuf];
 			lout.InsertRange(0, prebuf);
@@ -497,12 +523,26 @@ namespace QA40x.BareMetal
 				throw new Exception("bufSize * 8 must be >= to usbBufSize, and bufSize * 8 must be an integer multiple of usbBufSize");
 			}
 
-			WaveOut? waves = null;
+			SoundUtil? soundObj = null;
 
-			if(SoundUtil.EchoNone != ViewSettings.WaveEchoes)
-				waves = SoundUtil.PlaySound(leftOut, rightOut, (int)QaComm.GetSampleRate());
-
+			if(useExternal)
+			{
+				var lexout = leftOut.ToList();
+				var rexout = rightOut.ToList();
+				//
+				lexout.InsertRange(0, prebuf);
+				lexout.AddRange(postbuf);
+				rexout.InsertRange(0, prebuf);
+				rexout.AddRange(postbuf);
+				soundObj = SoundUtil.CreateUtil(ViewSettings.Singleton.SettingsVm.EchoName, lexout.ToArray(), rexout.ToArray(), (int)sampleRate);
+				if (soundObj != null && soundObj.IsNew)
+				{
+					soundObj.WasteOne(lexout.Count, sampleRate);  // play once to start up the DAC
+					soundObj.IsNew = false;
+				}
+			}
 			InitOverlapped();
+			soundObj?.Play();
 
 			// Start streaming DAC, with ADC autostreamed after DAC is seeing live data
 			// Important! Enabled streaming AND THEN send data. This will also illuminate the 
@@ -570,7 +610,7 @@ namespace QA40x.BareMetal
 
 			// Stop streaming. This also extinguishes the RUN led
 			WriteRegister(8, 0);
-			waves?.Stop();
+			soundObj?.Stop();
 
 			// we now have a list of all the rx buffers to convert to an array
 			// use fixed size so that frombytestream and others work ok
@@ -584,53 +624,138 @@ namespace QA40x.BareMetal
 			usbRxBuffers.Clear();   // empty the ram here
 
 			// Note that left and right data is swapped on QA402, QA403, QA404. We do that via arg ordering below.
+			// now we convert the stream to two data arrays
+			// and scan the data to see where to clip the latency
 			FromByteStream(rxData, out r.Right, out r.Left);
-			if (r.Valid == true && r.Left.Length > preBuf)
+			if (r.Valid == true && r.Left.Length > preBuf && !ct.IsCancellationRequested)
 			{
 				// Convert from dBFS to dBV. Note the 6 dB factor--the ADC is differential
+				// Apply scaling factor to map from dBFS to Volts. 
 				var adcCorrection = Math.Pow(10, (maxInput - 6.0) / 20);
 				int tused = (int)FftSize;    // should be fftsize
 
-				// Apply scaling factor to map from dBFS to Volts. 
 				var loff = 0;
-				// check delay offset
-				if(leftOut.Max() > 1e-10 || rightOut.Max() > 1e-10)
+				var roff = 0;
+
+				// check delay offset and calculate latency
+				if(leftOut.Max() > 1e-7 || rightOut.Max() > 1e-7)
 				{
-					var dcoffsetL = r.Left.Skip(preBuf).Take(tused).Average();
-					var dcoffsetR = r.Right.Skip(preBuf).Take(tused).Average();
-					for(int i= preBuf; i<r.Left.Length; i++)
+					// amount of signal to check for latency
+					var samplerate = QaComm.GetSampleRate();
+					var adelay = _Qa40xDelay;// latency for internal generator empirically set to max # samples seen
+					if (useExternal)
+						adelay += (int)(samplerate / 100); // add 10 ms to internal checking to be safe from interrupt issues
+					var edelay = (int)(ViewSettings.Singleton.SettingsVm.EchoDelay * sampleRate / 1000); // echodelay ms- latency for windows sound generator
+					edelay = Math.Abs(edelay);
+
+					// rough calculate the DC offset
+					const int tossdc = 30;	// skip leading gunk
+					var dcoffsetL = r.Left.Skip(tossdc).Take(preBuf-tossdc).Average();
+					var dcoffsetR = r.Right.Skip(tossdc).Take(preBuf-tossdc).Average();
+					// correct the ADC data along the way
+					double ldmax = (HasAChannel(true) ? 0.01 : 1e-3) / (adcCal.Left * adcCorrection);
+					double rdmax = (HasAChannel(false) ? 0.01 : 1e-3) / (adcCal.Right * adcCorrection);
+					//double dmax = 1e-3;      // look for dMax deviation from dc offset
+					// this scans through the input data looking for the first sample that exceeds a small threshold
+					// locations are found per channel in case they come from different devices
+					var checkamount = preBuf + adelay;
+					if( useExternal )
+						checkamount = preBuf + Math.Max(adelay, edelay);
+					for (int i=preBuf; i<checkamount; i++)
 					{
 						// empirically we get -7e-5 until signal shows up
 						// i assume that's dc offset...
 						var inx = r.Left[i];
 						var iny = r.Right[i];
-						if ( Math.Abs(inx - dcoffsetL)*adcCal.Left* adcCorrection > 1e-3 || Math.Abs(iny- dcoffsetR) * adcCal.Right * adcCorrection > 1e-3)
+						if (loff == 0 && Math.Abs(inx - dcoffsetL) > ldmax)
 						{
+							Debug.WriteLine($"Detect left {inx} at {i}");
 							loff = i;
-							break;
+							if(roff != 0)
+								break;
+						}
+						if(roff == 0 && Math.Abs(iny - dcoffsetR) > rdmax)
+						{
+							Debug.WriteLine($"Detect right {iny} at {i}");
+							roff = i;
+							if(loff != 0)
+								break;
 						}
 					}
-					var samplerate = QaComm.GetSampleRate();
-					// allow 2ms after the end of the prebuffer
-					if (loff > (preBuf + samplerate / 2000))
-						loff = (int)(preBuf + samplerate / 2000);
-					// keep an extra 5 or .05ms at 96KHz
-					loff = Math.Max(0, loff - preBuf - 5);
-					Debug.WriteLine($"Delay offset: {loff:G3}   DC offset: {dcoffsetL:G3},{dcoffsetR:G3}");
-					_DelayOffset = loff;
+
+					if (loff == 0)
+						loff = preBuf + (HasAChannel(true) ? adelay : edelay);
+					if (roff == 0)
+						roff = preBuf + (HasAChannel(false) ? adelay : edelay);
+					if (!useExternal || !SoundUtil.HasChannel(true))
+					{
+						if(loff > (preBuf + adelay))
+							loff = preBuf + adelay;
+						if (loff < preBuf)
+							loff = preBuf;
+					}
+					else
+					{	// external audio going to left channel
+						if (ViewSettings.Singleton.SettingsVm.EchoDelay < 0)
+						{
+							loff = Math.Min(preBuf + edelay, loff);  // calculated
+							loff = Math.Min(r.Left.Length - tused, loff);
+						}
+						else
+						{
+							loff = preBuf + edelay; // fixed
+						}
+					}
+					if (!useExternal || !SoundUtil.HasChannel(false))
+					{
+						if (roff > (preBuf + adelay))
+							roff = preBuf + adelay;
+						if (roff < preBuf)
+							roff = preBuf;
+					}
+					else
+					{   // external audio going to right channel
+						if (ViewSettings.Singleton.SettingsVm.EchoDelay < 0)
+						{
+							roff = Math.Min(preBuf + edelay, roff); // calculated
+							roff = Math.Min(r.Right.Length - tused, roff);
+						}
+						else
+						{
+							roff = preBuf + edelay; // fixed
+						}
+					}
+
+					// programming bug from earlier, so guard
+					if(loff < 0 || roff < 0)
+					{
+						roff = Math.Abs(roff);
+						loff = Math.Abs(loff);
+					}
+
+					// both internal or both external, use min latency
+					// this keeps the two channels in phase with each other when using a single output device (QA40x or Windows)
+					if (!useExternal || 3 == SoundUtil.GetChannels())
+					{
+						loff = Math.Min(loff, roff);
+						roff = loff;
+					}
+
+					Debug.WriteLine($"Prebuf={preBuf} Delay offset: {loff}, {roff}  DC offset: {dcoffsetL:G3},{dcoffsetR:G3}");
+					//loff = preBuf;
+					//roff = preBuf;
 				}
 
-				var rlf = r.Left.Skip(preBuf + loff).Take(tused);
-				var roff = rlf.Average();  // dc offset
-				r.Left = rlf.Select(x => (x - roff) * adcCal.Left * adcCorrection).ToArray();
+				var rlf = r.Left.Skip(loff).Take(tused);
+				var troff = rlf.Average();  // dc offset
+				r.Left = rlf.Select(x => (x - troff) * adcCal.Left * adcCorrection).ToArray();
 
-				var rrf = r.Right.Skip(prebuf.Length + loff).Take(tused);
-				roff = rrf.Average();  // dc offset
-				r.Right = rrf.Select(x => (x - roff) * adcCal.Right * adcCorrection).ToArray();
-
-				//Debug.WriteLine($"Attenuation: {maxInput}  Output Level: {maxOutput}");
-				//Debug.WriteLine($"Peak Left: {r.Left.Max():0.000}   Peak right: {r.Right.Max():0.000}");
-				//Debug.WriteLine($"Total Left: {Math.Sqrt(r.Left.Sum(x => x * x)):0.000}   Total right: {Math.Sqrt(r.Right.Sum(x => x * x)):0.000}");
+				var rrf = r.Right.Skip(roff).Take(tused);
+				if (rrf.Count() > 0)
+				{
+					troff = rrf.Average();  // dc offset
+					r.Right = rrf.Select(x => (x - troff) * adcCal.Right * adcCorrection).ToArray();
+				}
 			}
 			else
 			{

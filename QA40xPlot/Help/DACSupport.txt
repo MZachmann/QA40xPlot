@@ -1,0 +1,13 @@
+﻿* SMSL DO100 - works fine. Supports 32 bits-per-sample and all sample rates in exclusive mode. 
+ Latency about 20ms. Volume~80 matches QA40x.
+
+* Atom DAC+ - works fine. Supports 32 bits-per-sample and all sample rates in exclusive mode. 
+  Latency about 20ms.
+
+* Motu M4 - works OK but the WASAPI driver only supports shared mode and seemingly only at your Windows audio settings 
+so in Windows Sound Output settings set the M4 sample rate to what you run your tests at for best results.
+
+* PreSonus Studio 26c - was unable to get this to connect compatibly. It does not report any PCM or Ieee formats.
+
+
+

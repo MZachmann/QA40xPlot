@@ -2,6 +2,11 @@
 --------------------------------------------
 This changelog shows the changes made for each version
 --------------------------------------------
+v 1.1.31
+- implement external audio support at least for usb devices
+- autocheck the left channel on new "Get" file requests
+- hide settings that are unused (noise weighting, external audio)
+- add documentation for external audio use
 v 1.1.30
 - check for/save-load maximized window state
 - add noise weighting A,C, and Z=none methods

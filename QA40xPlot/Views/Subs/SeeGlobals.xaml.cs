@@ -13,7 +13,13 @@ namespace QA40xPlot.Views
 			InitializeComponent();
 			this.EGain.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
 			this.AmpLoad.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
+			this.EGain.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
+			this.EGain2.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
+			this.EGain3.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
 			this.Noises.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
+			this.Noises2.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
+			this.SoundDevice.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
+			this.SoundDevice2.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
 		}
 	}
 }

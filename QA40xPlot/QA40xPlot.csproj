@@ -90,6 +90,12 @@
     <None Update="Help\ChangeLog.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Help\DACSupport.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Help\ExternalAudio.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Help\HelpSummary.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

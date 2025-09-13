@@ -5,6 +5,7 @@ using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -86,6 +87,15 @@ namespace QA40xPlot.ViewModels
 				SetProperty(ref _CurrentView, value);
 				RaisePropertyChanged("HasExport");	// always update this
 				}
+		}
+
+		// the sound object if we're using an external device also
+		private SoundUtil? _ExternalSound = null;
+		[JsonIgnore]
+		public SoundUtil? ExternalSound
+		{
+			get => _ExternalSound;
+			set => SetProperty(ref _ExternalSound, value);
 		}
 
 		private string _CurrentPaletteRect = string.Empty;
@@ -203,8 +213,8 @@ namespace QA40xPlot.ViewModels
 			// Ensure the current window size is captured
 			var windsize = GetWindowSize(Application.Current.MainWindow);
 			if(windsize.Length > 0)
-				ViewSettings.Singleton.Main.CurrentWindowRect = windsize;
-			ViewSettings.Singleton.Main.CurrentWindowState = Application.Current.MainWindow.WindowState.ToString();
+				ViewSettings.Singleton.MainVm.CurrentWindowRect = windsize;
+			ViewSettings.Singleton.MainVm.CurrentWindowState = Application.Current.MainWindow.WindowState.ToString();
 
 			// Serialize the object to a JSON string
 			string jsonString = JsonConvert.SerializeObject(cfgData, Formatting.Indented);
@@ -224,19 +234,19 @@ namespace QA40xPlot.ViewModels
 				var jsonObject = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(jsonContent);
 				if( jsonObject != null)
 					ViewSettings.Singleton.GetSettingsFrom(jsonObject);
-				var winRect = ViewSettings.Singleton.Main.CurrentWindowRect;
+				var winRect = ViewSettings.Singleton.MainVm.CurrentWindowRect;
 				if(winRect.Length > 0)
 				{
 					SetWindowSize(Application.Current.MainWindow, winRect);
 				}
-				var winState = ViewSettings.Singleton.Main.CurrentWindowState;
+				var winState = ViewSettings.Singleton.MainVm.CurrentWindowState;
 				if(winState == "Maximized")
 				{
 					this.CurrentWindowState = "Maximized";
 				}
 				// paint the windows
-				if (ViewSettings.Singleton.Main.CurrentView != null)
-					ViewSettings.Singleton.Main.CurrentView.RaisePropertyChanged("DsRepaint");
+				if (ViewSettings.Singleton.MainVm.CurrentView != null)
+					ViewSettings.Singleton.MainVm.CurrentView.RaisePropertyChanged("DsRepaint");
 			}
 			catch (Exception ex)
 			{
@@ -247,7 +257,7 @@ namespace QA40xPlot.ViewModels
 
 		public static void SaveToFrd(string filename)
 		{
-			var vma = ViewSettings.Singleton.Main.CurrentView;
+			var vma = ViewSettings.Singleton.MainVm.CurrentView;
 			bool isImpedance = false;
 			DataBlob? vmf = null;
 			if (vma is SpectrumViewModel)
@@ -288,7 +298,7 @@ namespace QA40xPlot.ViewModels
 			}
 			else
 			{
-				ViewSettings.Singleton.Main.CurrentView = vma;
+				ViewSettings.Singleton.MainVm.CurrentView = vma;
 			}
 		}
 
@@ -410,6 +420,7 @@ namespace QA40xPlot.ViewModels
 					break;
 				case "settings":
 					CurrentView = ViewSettings.Singleton.SettingsVm;
+					CurrentView.RaisePropertyChanged("EchoNames");	// on new window refresh the list
 					break;
 			}
 			if(CurrentView != null)

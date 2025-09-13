@@ -26,12 +26,12 @@ namespace QA40xPlot.Libraries
 
 		public static int PtToPixels(PixelSizes fontsize)
 		{
-			var vm = ViewModels.ViewSettings.Singleton.Main;
+			var vm = ViewModels.ViewSettings.Singleton.MainVm;
 			return (int)((int)fontsize * vm.ScreenDpi / 72);
 		}
 		public static int PtToPixels(int fontsize)
 		{
-			var vm = ViewModels.ViewSettings.Singleton.Main;
+			var vm = ViewModels.ViewSettings.Singleton.MainVm;
 			return (int)(fontsize * vm.ScreenDpi / 72);
 		}
 

@@ -168,7 +168,7 @@ namespace QA40xPlot.Libraries
 				// for the proper attenuation calculation
 				dBV += gain; // Add the external gain in dBV to get what we are reading at the inputs
 			}
-			double testdBV = dBV + 5; // Add 5 dBV extra for better thd measurement
+			double testdBV = dBV + 5; // Add 5 dBV extra for resistance to noise, bounce, nonlinear distortions, ...
             if (testdBV <= 0) return 0;
             if (testdBV <= 6) return 6;
             if (testdBV <= 12) return 12;

@@ -102,7 +102,7 @@ namespace QA40xPlot.Data
 		private void ChangeDefinition(object? sender, PropertyChangedEventArgs e)
 		{
 			List<string> used = new() { "Name", "Heading", "Repaint" };
-			var mainVm = ViewSettings.Singleton.Main.CurrentView;	// ????
+			var mainVm = ViewSettings.Singleton.MainVm.CurrentView;	// ????
 			if (mainVm != null && used.Contains(e.PropertyName ?? string.Empty))
 			{
 				mainVm.RaisePropertyChanged("Ds" + e.PropertyName);

@@ -49,16 +49,16 @@ namespace QA40xPlot.Views
 		{
 			DialogResult = true;
 			DoApply(sender, e); // apply the changes
-			ViewSettings.Singleton.Main.CurrentView?.UpdatePlotColors(); // force a redraw of the graph
+			ViewSettings.Singleton.MainVm.CurrentView?.UpdatePlotColors(); // force a redraw of the graph
 			Close();
 		}
 
 		private void DoCancel(object sender, RoutedEventArgs e)
 		{
 			DialogResult = false;
-			ViewSettings.Singleton.Main.CurrentPaletteRect = MainViewModel.GetWindowSize(this);
+			ViewSettings.Singleton.MainVm.CurrentPaletteRect = MainViewModel.GetWindowSize(this);
 			ViewSettings.Singleton.SettingsVm.PaletteColors = OriginalColors; // restore original colors
-			ViewSettings.Singleton.Main.CurrentView?.UpdatePlotColors(); // force a redraw of the graph
+			ViewSettings.Singleton.MainVm.CurrentView?.UpdatePlotColors(); // force a redraw of the graph
 			Close();
 		}
 
@@ -70,7 +70,7 @@ namespace QA40xPlot.Views
 				var colors = _Buttons.Select(box => box.Color).ToList(); // get the color names from the boxes
 				var result = String.Join(", ", colors); // join them into a single string
 				ViewSettings.Singleton.SettingsVm.PaletteColors = result; // save the colors to the settings
-				ViewSettings.Singleton.Main.CurrentView?.UpdatePlotColors(); // force a redraw of the graph
+				ViewSettings.Singleton.MainVm.CurrentView?.UpdatePlotColors(); // force a redraw of the graph
 			}
 			catch
 			{
@@ -88,7 +88,7 @@ namespace QA40xPlot.Views
 			SetDataContext(_PaletteShow);
 			OriginalColors = ViewSettings.Singleton.SettingsVm.PaletteColors;
 			InitializeComponent();
-			var viewWind = ViewSettings.Singleton.Main.CurrentPaletteRect;
+			var viewWind = ViewSettings.Singleton.MainVm.CurrentPaletteRect;
 			if (viewWind.Length > 0)
 			{
 				MainViewModel.SetWindowSize(this, viewWind);
@@ -130,7 +130,7 @@ namespace QA40xPlot.Views
 			if (btu != null)
 			{
 				var ids = btu.CommandParameter.ToString() ?? "";
-				var myVm = ViewSettings.Singleton.Main.CurrentView;
+				var myVm = ViewSettings.Singleton.MainVm.CurrentView;
 				myVm?.DoDeleteIt(ids);
 			}
 		}

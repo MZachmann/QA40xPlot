@@ -2,53 +2,98 @@
     body {
         font-family: 'Arial', sans-serif;
     }
+    .auto-style1 {
+        width: 345px;
+    }
+    .auto-style2 {
+        width: 189px;
+    }
+    .auto-style3 {
+        width: 189px;
+        height: 76px;
+    }
+    .auto-style4 {
+        height: 76px;
+    }
+    .auto-style5 {
+        width: 302px;
+    }
+    .auto-style6 {
+        width: 289px;
+    }
+    .auto-style7 {
+        width: 354px;
+    }
+    .auto-style8 {
+        width: 341px;
+    }
+    .auto-style9 {
+        width: 382px;
+    }
+    .auto-style10 {
+        width: 359px;
+    }
+    .auto-style11 {
+        width: 263px;
+    }
+    .auto-style12 {
+        width: 214px;
+    }
+    .auto-style13 {
+        width: 224px;
+    }
+    .auto-style14 {
+        width: 251px;
+    }
 </style>
-<h3>The QA40xPlot application consists of 9 different audio tests that use a QA402 or QA403 audio analyzer from QuantAsylum.<br /><br /></h3>
-<p> The Changelog <a href="File:../Help/ChangeLog.txt">Click here for the Changelog</a></p>
-<p> The Mathematics <a href="File:../Help/AudioMath.pdf">Click here for (early) math summary.</a></p>
-<p> The Video Tutorial <a href="https://youtu.be/veuTcE5_wk8">Click here for the Tutorial</a></p>
+<h3>The QA40xPlot application consists of 9 different audio tests that use a QA402 or QA403 audio analyzer from <a href="http://quantasylum.com">QuantAsylum</a>.<br /><br /></h3>
+<p> External Audio&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a href="File:../Help/ExternalAudio.html">How to use external signal generators and what to expect.</a></p>
+<p> The Mathematics&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a href="File:../Help/AudioMath.pdf">Click here for (early) math summary.</a></p>
+<p> The Video Tutorial&nbsp;&nbsp;&nbsp; <a href="https://youtu.be/veuTcE5_wk8">Click here for the Tutorial</a></p>
+<p> The Changelog&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a href="File:../Help/ChangeLog.txt">Click here for the Changelog</a></p>
+<p> &nbsp;</p>
 <table>
     <thead>
         <tr>
-            <th>Test</th>
+            <th class="auto-style1">Test</th>
             <th>Description</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td><strong>Spectrum</strong></td>
+            <td class="auto-style1"><strong>Spectrum</strong></td>
             <td>Capture the spectrum (V vs F) created by a sine wave. Analyze noise and harmonic distortion.</td>
         </tr>
         <tr>
-            <td><strong>Intermodulation</strong></td>
+            <td class="auto-style1"><strong>Intermodulation</strong></td>
             <td>Capture the spectrum (V vs F) created by two sine waves. Analyze noise and intermodulation distortion.</td>
         </tr>
         <tr>
-            <td><strong>Scope</strong></td>
+            <td class="auto-style1"><strong>Scope</strong></td>
             <td>Capture the time signal (V vs mS) created by one or two sine waves. Much like an oscilloscope without the triggering.</td>
         </tr>
         <tr>
-            <td><strong>THD vs Frequency</strong></td>
+            <td class="auto-style1"><strong>THD vs Frequency</strong></td>
             <td>Capture the spectrum created by a sine wave swept at multiple frequencies. Plot distortion vs frequency.</td>
         </tr>
         <tr>
-            <td><strong>THD vs Amplitude</strong></td>
+            <td class="auto-style1"><strong>THD vs Amplitude</strong></td>
             <td>Capture the spectrums created by a sine wave at the test frequency swept at multiple amplitudes. Plot distortion vs amplitude.</td>
         </tr>
         <tr>
-            <td><strong>Response</strong></td>
+            <td class="auto-style1"><strong>Response</strong></td>
             <td>Capture the spectrums created by a sine wave swept at multiple frequencies. Plot output vs frequency.</td>
         </tr>
         <tr>
-            <td><strong>Impedance</strong></td>
+            <td class="auto-style1"><strong>Impedance</strong></td>
             <td>Plot the impedance of the DUT at multiple swept frequencies. See below for more information on how to connect the dut.</td>
         </tr>
         <tr>
-            <td><strong>Gain</strong></td>
+            <td class="auto-style1"><strong>Gain</strong></td>
             <td>Plot the gain and phase of the DUT at multiple swept frequencies.</td>
         </tr>
         <tr>
-            <td><strong>Crosstalk</strong></td>
+            <td class="auto-style1"><strong>Crosstalk</strong></td>
             <td>Measure and plot the interchannel crosstalk by turning left/right signal on/off during the test.</td>
         </tr>
     </tbody>
@@ -59,32 +104,32 @@ Along the top right of the screen are a few command buttons. If this becomes too
 <table>
     <thead>
         <tr>
-            <th>Button</th>
+            <th class="auto-style2">Button</th>
             <th>Description</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td><strong>Help</strong></td>
-            <td>Pop up the this help text.</td>
+            <td class="auto-style2"><strong>Help</strong></td>
+            <td>Pop up this help page.</td>
         </tr>
         <tr>
-            <td><strong>Photo</strong></td>
-            <td>
+            <td class="auto-style3"><strong>Photo</strong></td>
+            <td class="auto-style4">
                 Save a screen capture of the entire application (so all options are visible) in a .PNG file. Stop data capture first to ensure the image title bar shows
                 the capture time and date.
             </td>
         </tr>
         <tr>
-            <td><strong>Export</strong></td>
+            <td class="auto-style2"><strong>Export</strong></td>
             <td>When data is available this allows export in FRD or ZMA (text) format. FRD is SPL data while ZMA is impedance data per convention.</td>
         </tr>
         <tr>
-            <td><strong>Save</strong></td>
-            <td>Save the current configuration (all options) to a .CFG file. This is in JSON format.</td>
+            <td class="auto-style2"><strong>Save</strong></td>
+            <td>Save the current configuration (all options) to a .CFG file. Save the configuration to QADefault.cfg in your computer&#39;s Documents folder to have that configuration loaded at startup. In Settings use &quot;Save on Exit&quot; = True to always save the session settings for the next run. This is in JSON format.</td>
         </tr>
         <tr>
-            <td><strong>Load</strong></td>
+            <td class="auto-style2"><strong>Load</strong></td>
             <td>Load all options from a JSON-format .CFG file. You may create your own subset CFG to only load a subset of properties.</td>
         </tr>
     </tbody>
@@ -117,21 +162,21 @@ Along the top right of the screen are a few command buttons. If this becomes too
 <table>
     <thead>
         <tr>
-            <th>Setting</th>
+            <th class="auto-style5">Setting</th>
             <th>Description</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td><strong>Input Voltage</strong></td>
+            <td class="auto-style5"><strong>Input Voltage</strong></td>
             <td>The desired DUT input voltage. This is the QA40x generator output voltage.</td>
         </tr>
         <tr>
-            <td><strong>Output Voltage</strong></td>
-            <td>Determine generator voltage to produce the desired DUT output. This does a low-voltage gain calculation first</td>
+            <td class="auto-style5"><strong>Output Voltage</strong></td>
+            <td>The desired DUT output voltage / QA40x input voltage. This does a low-voltage gain calculation (exactly the same as the autoranging math) first to determine the generator voltage.</td>
         </tr>
         <tr>
-            <td><strong>Output Power</strong></td>
+            <td class="auto-style5"><strong>Output Power</strong></td>
             <td>Use the amplifier load setting (see Settings) to determine output voltage from power and then use gain to calculate the input/generator voltage</td>
         </tr>
     </tbody>
@@ -142,6 +187,7 @@ Along the top right of the screen are a few command buttons. If this becomes too
 <p>The THD vs Frequency sweep calculates/uses one generator voltage that it then sweeps with. If you select an output amplitude that voltage ensures the maximum output of the sweep is that setting. The Input Voltage setting uses that voltage for the sweep.</p>
 <p>The THD vs Amplitude test calculates distortion at each swept amplitude and varies generator voltage accordingly. Attenuation may increase as output voltage increases.</p>
 <p>All 3 response tests (Response, Gain, Impedance) use a single generator voltage just like the THD vs Frequency test.</p>
+<p>For tests that are sinusoidal (spectrum, thd vs frequency/amplitude) the gain is calculated at the fundamental frequency. For tests over a frequency range the gain is calculated using two frequencies or a chirp range.</p>
 <h1>Cursor</h1>
 <p>All of the tests support a <strong>cursor</strong>. As you move your mouse in the plot a small box in the lower right shows the nearest data point. Some charts have a visual on-screen point, some don&#39;t.</p>
 <h1>Tab Get, Load, and Save</h1>
@@ -157,9 +203,9 @@ Along the top right of the screen are a few command buttons. If this becomes too
 </p>
 <p>
     When a saved tab is gotten (Get) the name will show up under the button with an L and R checkbox.
-    Click the L and R to have the two channels show up on top of the current data.
-    Click the color boxes below the L and R to change the plot line colors.
-    Add more saved tabs by clicking the Get button again.
+    By default L is usually clicked on when gotten. Click the L and R to show/hide each channel.
+    Click the color boxes next to the L and R to change the plot line colors.
+    Add more saved tests by clicking the Get button again.
     Click the garbage icon to remove a saved tab. This will not delete the file on-disk.
 </p>
 
@@ -177,33 +223,33 @@ Along the top right of the screen are a few command buttons. If this becomes too
 <table>
     <thead>
         <tr>
-            <th>option</th>
+            <th class="auto-style6">option</th>
             <th>description</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td>Use Generator</td>
+            <td class="auto-style6">Use Generator</td>
             <td>This lets you easily turn the sine wave on or off.</td>
         </tr>
         <tr>
-            <td>Attenuation</td>
+            <td class="auto-style6">Attenuation</td>
             <td>Manually select the attenuation value or autorange.</td>
         </tr>
         <tr>
-            <td></td>
+            <td class="auto-style6"></td>
             <td>When you click start, autorange will first test at 42 attenuation then adjust to the (almost) least possible</td>
         </tr>
         <tr>
-            <td>Generator 1</td>
+            <td class="auto-style6">Generator 1</td>
             <td>Select the frequency, signal voltage, and waveform.</td>
         </tr>
         <tr>
-            <td></td>
+            <td class="auto-style6"></td>
             <td>The Set DUT option lets you program an output value rather than just the generator setting</td>
         </tr>
         <tr>
-            <td>Sampling</td>
+            <td class="auto-style6">Sampling</td>
             <td>We recommend 48K or 96K Rate and 64K or 128K Size. 1 or 2 Averages.</td>
         </tr>
     </tbody>
@@ -212,40 +258,40 @@ Along the top right of the screen are a few command buttons. If this becomes too
 <table>
     <thead>
         <tr>
-            <th>option</th>
+            <th class="auto-style7">option</th>
             <th>description</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td>Axis Settings</td>
+            <td class="auto-style7">Axis Settings</td>
             <td>You may restrict the axis bounds but still can zoom the axis in/out with the mouse</td>
         </tr>
         <tr>
-            <td></td>
+            <td class="auto-style7"></td>
             <td>On selection or typing of a value the window will refit.</td>
         </tr>
         <tr>
-            <td>Summary Data</td>
+            <td class="auto-style7">Summary Data</td>
             <td>Select this to show the Summary box in the upper left.</td>
         </tr>
         <tr>
-            <td>Tab Info</td>
+            <td class="auto-style7">Tab Info</td>
             <td>
                 This hides/shows a box in the graph upper right with the test options, such as name and plot colors.
                 The name and heading both show up on the plot.
             </td>
         </tr>
         <tr>
-            <td>Harmonic Markers</td>
+            <td class="auto-style7">Harmonic Markers</td>
             <td>This will automatically mark the harmonics (and fundamental)</td>
         </tr>
         <tr>
-            <td>Power Markers</td>
+            <td class="auto-style7">Power Markers</td>
             <td>This will check 50Hz and 60Hz peaks, then mark the ones that seem like your power peaks.</td>
         </tr>
         <tr>
-            <td>% - Data Summary</td>
+            <td class="auto-style7">% - Data Summary</td>
             <td>Swap between percents and uV/dBV on the summary box(es)</td>
         </tr>
     </tbody>
@@ -256,33 +302,33 @@ Along the top right of the screen are a few command buttons. If this becomes too
 <table>
     <thead>
         <tr>
-            <th>option</th>
+            <th class="auto-style8">option</th>
             <th>description</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td>Use Generator 1/2</td>
+            <td class="auto-style8">Use Generator 1/2</td>
             <td>Lets you quickly turn each frequency on or off.</td>
         </tr>
         <tr>
-            <td>Attenuation</td>
+            <td class="auto-style8">Attenuation</td>
             <td>See the description under spectrum.</td>
         </tr>
         <tr>
-            <td>Intermod Test</td>
+            <td class="auto-style8">Intermod Test</td>
             <td>Pick a test and an amplitude (voltage or power).</td>
         </tr>
         <tr>
-            <td></td>
+            <td class="auto-style8"></td>
             <td>For custom, select the two frequencies and amplitudes manually.</td>
         </tr>
         <tr>
-            <td>Generator</td>
+            <td class="auto-style8">Generator</td>
             <td>When you have a stock test selected the only option available will be Voltage (or power).</td>
         </tr>
         <tr>
-            <td>Sampling</td>
+            <td class="auto-style8">Sampling</td>
             <td>See the description under spectrum</td>
         </tr>
     </tbody>
@@ -291,40 +337,40 @@ Along the top right of the screen are a few command buttons. If this becomes too
 <table>
     <thead>
         <tr>
-            <th>option</th>
+            <th class="auto-style9">option</th>
             <th>description</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td>Axis Settings</td>
+            <td class="auto-style9">Axis Settings</td>
             <td>You may restrict the axis bounds but still can zoom the axis in/out with the mouse</td>
         </tr>
         <tr>
-            <td></td>
+            <td class="auto-style9"></td>
             <td>On selection or typing of a value the window will refit.</td>
         </tr>
         <tr>
-            <td>Summary Data</td>
+            <td class="auto-style9">Summary Data</td>
             <td>Select this to show the Summary box in the upper left.</td>
         </tr>
         <tr>
-            <td>Tab Info</td>
+            <td class="auto-style9">Tab Info</td>
             <td>
                 This hides/shows a box in the graph upper right with the test options, such as name and plot colors.
                 The name and heading both show up on the plot.
             </td>
         </tr>
         <tr>
-            <td>Intermod Markers</td>
+            <td class="auto-style9">Intermod Markers</td>
             <td>This will mark the standard intermodulation peaks.</td>
         </tr>
         <tr>
-            <td>Power Markers</td>
+            <td class="auto-style9">Power Markers</td>
             <td>This will check 50Hz and 60Hz peaks, then mark the ones that seem like your power peaks.</td>
         </tr>
         <tr>
-            <td>% - Data Summary</td>
+            <td class="auto-style9">% - Data Summary</td>
             <td>Swap between percents and uV/dBV</td>
         </tr>
     </tbody>
@@ -335,25 +381,25 @@ Along the top right of the screen are a few command buttons. If this becomes too
 <table>
     <thead>
         <tr>
-            <th>option</th>
+            <th class="auto-style10">option</th>
             <th>description</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td>Use Generator 1/2</td>
+            <td class="auto-style10">Use Generator 1/2</td>
             <td>Lets you quickly turn each frequency on or off.</td>
         </tr>
         <tr>
-            <td>Attenuation</td>
+            <td class="auto-style10">Attenuation</td>
             <td>See the description under spectrum.</td>
         </tr>
         <tr>
-            <td>Generator</td>
+            <td class="auto-style10">Generator</td>
             <td>Select each generator frequency and voltage.</td>
         </tr>
         <tr>
-            <td>Sampling</td>
+            <td class="auto-style10">Sampling</td>
             <td>See the description under spectrum. Much of this sampling is only for the summary THD display.</td>
         </tr>
     </tbody>
@@ -362,25 +408,25 @@ Along the top right of the screen are a few command buttons. If this becomes too
 <table>
     <thead>
         <tr>
-            <th>option</th>
+            <th class="auto-style11">option</th>
             <th>description</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td>Axis Settings</td>
+            <td class="auto-style11">Axis Settings</td>
             <td>You may restrict the axis bounds but still can zoom the axis in/out with the mouse</td>
         </tr>
         <tr>
-            <td></td>
+            <td class="auto-style11"></td>
             <td>On selection or typing of a value the window will refit.</td>
         </tr>
         <tr>
-            <td>Summary Data</td>
+            <td class="auto-style11">Summary Data</td>
             <td>Select this to show the Summary box in the upper left.</td>
         </tr>
         <tr>
-            <td>Tab Info</td>
+            <td class="auto-style11">Tab Info</td>
             <td>
                 This hides/shows a box in the graph upper right with the test options, such as name and plot colors.
                 The name and heading both show up on the plot.
@@ -394,21 +440,21 @@ Along the top right of the screen are a few command buttons. If this becomes too
 <table>
     <thead>
         <tr>
-            <th>option</th>
+            <th class="auto-style12">option</th>
             <th>description</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td>Generator</td>
+            <td class="auto-style12">Generator</td>
             <td>See Spectrum</td>
         </tr>
         <tr>
-            <td>Sweep</td>
+            <td class="auto-style12">Sweep</td>
             <td>Define the frequencies to be swept. The end frequency should be less than SampleRate/2.</td>
         </tr>
         <tr>
-            <td>Sampling</td>
+            <td class="auto-style12">Sampling</td>
             <td>See Spectrum</td>
         </tr>
     </tbody>
@@ -417,25 +463,25 @@ Along the top right of the screen are a few command buttons. If this becomes too
 <table>
     <thead>
         <tr>
-            <th>option</th>
+            <th class="auto-style11">option</th>
             <th>description</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td>Axis Settings</td>
+            <td class="auto-style11">Axis Settings</td>
             <td>You may restrict the axis bounds but still can zoom the axis in/out with the mouse</td>
         </tr>
         <tr>
-            <td>Graph Data</td>
+            <td class="auto-style11">Graph Data</td>
             <td>Individually turn on/off any of the harmonics</td>
         </tr>
         <tr>
-            <td></td>
+            <td class="auto-style11"></td>
             <td>High order harmonics may be nonsense at high frequencies</td>
         </tr>
         <tr>
-            <td>Tab Info</td>
+            <td class="auto-style11">Tab Info</td>
             <td>
                 This hides/shows a box in the graph upper right with the test options, such as name and plot colors.
                 The name and heading both show up on the plot.
@@ -449,21 +495,21 @@ Along the top right of the screen are a few command buttons. If this becomes too
 <table>
     <thead>
         <tr>
-            <th>option</th>
+            <th class="auto-style13">option</th>
             <th>description</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td>Generator</td>
+            <td class="auto-style13">Generator</td>
             <td>See Spectrum</td>
         </tr>
         <tr>
-            <td>Sweep</td>
+            <td class="auto-style13">Sweep</td>
             <td>Define the amplitude range to be swept. At each test point (amplitude level) the attenuation is adjusted to as low as possible.</td>
         </tr>
         <tr>
-            <td>Sampling</td>
+            <td class="auto-style13">Sampling</td>
             <td>See Spectrum</td>
         </tr>
     </tbody>
@@ -472,25 +518,25 @@ Along the top right of the screen are a few command buttons. If this becomes too
 <table>
     <thead>
         <tr>
-            <th>option</th>
+            <th class="auto-style14">option</th>
             <th>description</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td>Axis Settings</td>
+            <td class="auto-style14">Axis Settings</td>
             <td>You may restrict the axis bounds but still can zoom the axis in/out with the mouse</td>
         </tr>
         <tr>
-            <td>Graph Data</td>
+            <td class="auto-style14">Graph Data</td>
             <td>Individually turn on/off any of the harmonics</td>
         </tr>
         <tr>
-            <td></td>
+            <td class="auto-style14"></td>
             <td>High order harmonics may be nonsense at high frequencies</td>
         </tr>
         <tr>
-            <td>Tab Info</td>
+            <td class="auto-style14">Tab Info</td>
             <td>
                 This hides/shows a box in the graph upper right with the test options, such as name and plot colors.
                 The name and heading both show up on the plot.
@@ -538,8 +584,10 @@ Along the top right of the screen are a few command buttons. If this becomes too
     <li> the QA40x left channel input to the DUT output port.</li>
 </ul>
 <h1 style="color:green">Crosstalk Test</h1>
-<p>This does a traditional crosstalk analysis of the two input channels vs frequency. Here retain the left and right channels through. QA40xPlot turns the left and
-    right channels on/off during the test.</p>
+<p>
+    This does a traditional crosstalk analysis of the two input channels vs frequency. Here retain the left and right channels through. QA40xPlot turns the left and
+    right channels on/off during the test.
+</p>
 <h2>Options</h2>
 <ul>
     <li>

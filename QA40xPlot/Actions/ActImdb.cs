@@ -5,11 +5,9 @@ using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
-using System.Drawing.Drawing2D;
 using System.Windows;
 using System.Windows.Media;
 using static QA40xPlot.ViewModels.BaseViewModel;
-using static SkiaSharp.HarfBuzz.SKShaper;
 
 // this is the top level class for the Intermodulation test
 // the code that runs the test and analyzes the results
@@ -772,8 +770,8 @@ namespace QA40xPlot.Actions
 			}
 
 			ReformatChannels(); // ensure the channels are formatted correctly
-			ViewSettings.Singleton.ImdChannelLeft.ThemeBkgd = ViewSettings.Singleton.Main.ThemeBkgd;
-			ViewSettings.Singleton.ImdChannelRight.ThemeBkgd = ViewSettings.Singleton.Main.ThemeBkgd;
+			ViewSettings.Singleton.ImdChannelLeft.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd;
+			ViewSettings.Singleton.ImdChannelRight.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd;
 			ShowPageInfo(PageData);
 			if (PageData.FreqRslt != null)
 			{
@@ -916,8 +914,7 @@ namespace QA40xPlot.Actions
 			}
 
 			// do the actual measurements
-			var rslt = true;
-			rslt = await RunAcquisition(NextPage, ct.Token);
+			var rslt = await RunAcquisition(NextPage, ct.Token);
 			if (rslt)
 				rslt = await PostProcess(NextPage, ct.Token);
 

@@ -160,13 +160,13 @@ namespace QA40xPlot.Actions
 
 		protected async Task showMessage(String msg, int delay = 0)
 		{
-			var vm = ViewSettings.Singleton.Main;
+			var vm = ViewSettings.Singleton.MainVm;
 			await vm.SetProgressMessage(msg, delay);
 		}
 
 		protected async Task showProgress(int progress, int delay = 0)
 		{
-			var vm = ViewSettings.Singleton.Main;
+			var vm = ViewSettings.Singleton.MainVm;
 			await vm.SetProgressBar(progress, delay);
 		}
 
@@ -201,8 +201,6 @@ namespace QA40xPlot.Actions
 			WaveGenerator.SetEnabled(false);
 			if( setRange)
 				await QaComm.SetInputRange(0); // and a small range for better noise...
-			//Thread.Sleep(1000);
-			//await QaComm.DoAcquisitions(1, ct);			// this one returns a high value until settled
 			var lrs = await QaComm.DoAcquisitions(1, ct); // now that it's settled...
 			if (setRange)
 				await QaComm.SetInputRange(range); // restore the range
@@ -306,10 +304,10 @@ namespace QA40xPlot.Actions
 		{
 			// show that we're autoing...
 			var atten = bvm.Attenuation;
-			bvm.Attenuation = QaLibrary.DEVICE_MAX_ATTENUATION;
+			bvm.Attenuation = QaLibrary.DEVICE_MAX_ATTENUATION;	// update the GUI button
 			await showMessage($"Calculating DUT gain at {dFreq}");
 			LRGains = await DetermineGainAtFreq(bvm, dFreq, averages);
-			bvm.Attenuation = atten;    // restore the original value
+			bvm.Attenuation = atten;    // restore the original value and button display
 		}
 
 		/// <summary>

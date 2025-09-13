@@ -186,7 +186,7 @@ public class FreqRespViewModel : BaseViewModel
 					actAbout.Visibility = ShowTabInfo ? Visibility.Visible : Visibility.Hidden;
 					var fvm = actAbout.DataContext as FloorViewModel;
 					if( fvm != null)
-						fvm.ThemeBkgd = ViewSettings.Singleton.Main.ThemeBkgd; ;
+						fvm.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd; ;
 				}
 				break;
 			case "Voltage":
@@ -197,9 +197,9 @@ public class FreqRespViewModel : BaseViewModel
 				break;
 			case "TestType":
 				// set the tab header as we change type
-				if( ViewSettings.Singleton != null && ViewSettings.Singleton.Main != null && ViewSettings.Singleton.Main.FreqRespHdr != null)
+				if( ViewSettings.Singleton != null && ViewSettings.Singleton.MainVm != null && ViewSettings.Singleton.MainVm.FreqRespHdr != null)
 				{
-					ViewSettings.Singleton.Main.FreqRespHdr = TestType;
+					ViewSettings.Singleton.MainVm.FreqRespHdr = TestType;
 				}
 				MyAction?.UpdateGraph(true);
 				break;
