@@ -452,6 +452,7 @@ namespace QA40xPlot.Actions
 				pLeft.LineWidth = showThick ? _Thickness : 1;
 				pLeft.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, measurementNr * 2);
 				pLeft.MarkerSize = markerSize;
+				pLeft.LegendText = isMain ? "Left" : ClipName(page.Definition.Name) + ".L";
 			}
 
 			if (useRight)
@@ -460,6 +461,7 @@ namespace QA40xPlot.Actions
 				pRight.LineWidth = showThick ? _Thickness : 1;
 				pRight.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, measurementNr * 2 + 1);
 				pRight.MarkerSize = markerSize;
+				pRight.LegendText = isMain ? "Right" : ClipName(page.Definition.Name) + ".R";
 			}
 
 			timePlot.Refresh();

@@ -116,6 +116,13 @@ namespace QA40xPlot.Actions
 			return fresult;
 		}
 
+		public string ClipName(string name, int maxs = 12)
+		{
+			var lt = name.Length;
+			var left = Math.Max(name.Length - maxs, 0);
+			return name.Substring(left);
+		}
+
 		/// <summary>
 		/// Start an action by checking for device connected
 		/// If all ok set IsRunning bool and return true

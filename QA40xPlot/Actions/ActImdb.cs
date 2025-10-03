@@ -710,6 +710,7 @@ namespace QA40xPlot.Actions
 				plotLeft.LineWidth = lineWidth;
 				plotLeft.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, measurementNr * 2);
 				plotLeft.MarkerSize = 1;
+				plotLeft.LegendText = isMain ? "Left" : ClipName(page.Definition.Name) + ".L";
 			}
 
 			if (useRight)
@@ -725,6 +726,7 @@ namespace QA40xPlot.Actions
 				plotRight.LineWidth = lineWidth;
 				plotRight.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, measurementNr * 2 + 1);
 				plotRight.MarkerSize = 1;
+				plotRight.LegendText = isMain ? "Right" : ClipName(page.Definition.Name) + ".R";
 			}
 
 			fftPlot.Refresh();
