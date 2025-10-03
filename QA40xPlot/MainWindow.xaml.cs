@@ -11,7 +11,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
 
-
 namespace QA40xPlot
 {
 	/// <summary>
@@ -60,16 +59,31 @@ namespace QA40xPlot
 		public MainWindow()
 		{
 			// look for a default config file before we paint the windows for theme setting...
-			var fpath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-			fpath += @"\QADefault.cfg";
+			var fdocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+			var ffile = ((App)Application.Current).DefaultCfg;
+			string fload = string.Empty;
+			string fpath;
+			if ( Path.IsPathRooted(ffile) )
+			{
+				fpath = ffile;
+			}
+			else
+			{
+				fpath = fdocs + @"\" + ffile;
+			}
 			if (File.Exists(fpath))
 			{
 				ViewSettings.Singleton.MainVm.LoadFromSettings(fpath);
+				fload = " - with " + Path.GetRelativePath(fdocs, fpath);
 			}
-			InitializeComponent();
+			else
+			{
+				fload = " - no default config";
+			}
+				InitializeComponent();
 			var vm = ViewModels.ViewSettings.Singleton.MainVm;
 			this.DataContext = vm;
-			vm.ProgressMessage = "Welcome to QA40xPlot v" + GetVersionInfo();
+			vm.ProgressMessage = "Welcome to QA40xPlot v" + GetVersionInfo() + fload;
 			vm.ScreenDpi = TestGetDpi();
 			this.ContentRendered += DoContentRendered;
 		}
@@ -170,7 +184,7 @@ namespace QA40xPlot
 				{
 					// look for a default config file
 					var fpath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-					fpath += @"\QADefault.cfg";
+					fpath += @"\" + ((App)Application.Current).StockDefaultCfg;
 					ViewSettings.Singleton.MainVm.SaveToSettings(fpath);
 				}
 				catch (Exception ex)

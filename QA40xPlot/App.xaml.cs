@@ -14,7 +14,28 @@ namespace QA40xPlot
     /// </summary>
     public partial class App : Application
     {
-
-    }
+		public string DefaultCfg { get; set; } = "";
+		public string StockDefaultCfg { get; set; } = "QADefault.cfg";
+		protected override void OnStartup(StartupEventArgs e)
+		{
+			base.OnStartup(e);
+			var callFile = e.Args.FirstOrDefault();
+			if (callFile != null && callFile.Length > 0)
+			{
+				if(!callFile.EndsWith(".cfg", StringComparison.OrdinalIgnoreCase))
+				{
+					DefaultCfg = callFile + ".cfg";
+				}
+				else
+				{
+					DefaultCfg = callFile;
+				}
+			}
+			else
+			{
+				DefaultCfg = StockDefaultCfg;
+			}
+		}
+	}
 
 }

@@ -148,6 +148,11 @@ namespace QA40x.BareMetal
 			try
 			{
 				Device = QaLowUsb.AttachDevice();
+				if(null == Device)
+				{
+					Debug.WriteLine("No QA402/QA403 analyzer found");
+					return false;
+				}
 				RegisterReader = Device.OpenEndpointReader(ReadEndpointID.Ep01);
 				RegisterWriter = Device.OpenEndpointWriter(WriteEndpointID.Ep01);
 				DataReader = Device.OpenEndpointReader(ReadEndpointID.Ep02);

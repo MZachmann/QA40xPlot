@@ -24,7 +24,7 @@ namespace QA40xPlot.BareMetal
 		/// <param name="idInterface">seems to be 0</param>
 		/// <returns></returns>
 		/// <exception cref="Exception"></exception>
-		public static UsbDevice AttachDevice(int idInterface = 0)
+		public static UsbDevice? AttachDevice(int idInterface = 0)
 		{
 			if (_AttachedDevice != null)
 				return _AttachedDevice;
@@ -45,18 +45,21 @@ namespace QA40xPlot.BareMetal
 			{
 				_ModelName = "QA402";
 			}
-			if (usbdev == null)
-			{
-				throw new Exception("No QA402/QA403 analyzer found");
-			}
+			//if (usbdev == null)
+			//{
+			//	throw new Exception("No QA402/QA403 analyzer found");
+			//}
 			// note that this is always null in my installation which seems to be WinUsb
-			var iusbdev = usbdev as IUsbDevice;
-			iusbdev?.ResetDevice();
-			// Select config #1
-			iusbdev?.SetConfiguration(1); 
-			iusbdev?.ClaimInterface((int)idInterface);
-			_IdInterface = idInterface;
-			// keep the found device around
+			if(usbdev != null)
+			{
+				var iusbdev = usbdev as IUsbDevice;
+				iusbdev?.ResetDevice();
+				// Select config #1
+				iusbdev?.SetConfiguration(1);
+				iusbdev?.ClaimInterface((int)idInterface);
+				_IdInterface = idInterface;
+				// keep the found device around
+			}
 			_AttachedDevice = usbdev;
 			return usbdev;
 		}
