@@ -2,6 +2,9 @@
 --------------------------------------------
 This changelog shows the changes made for each version
 --------------------------------------------
+v 1.1.32
+- add legend entries for the lines drawn
+- support passing a startup cfg file name on command line
 v 1.1.31
 - implement external audio support at least for usb devices
 - autocheck the left channel on new "Get" file requests

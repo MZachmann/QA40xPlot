@@ -1,5 +1,4 @@
-﻿using FftSharp;
-using LibUsbDotNet;
+﻿using LibUsbDotNet;
 using LibUsbDotNet.Main;
 using NAudio.Wave;
 using QA40xPlot.BareMetal;
@@ -97,39 +96,6 @@ namespace QA40x.BareMetal
         {
 
         }
-
-		/// <summary>
-		/// Do the startup of the QA40x, attaching USB if needed
-		/// </summary>
-		/// <param name="sampleRate"></param>
-		/// <param name="fftsize"></param>
-		/// <param name="Windowing"></param>
-		/// <param name="attenuation"></param>
-		/// <param name="setdefault">this may take a little time, so do it once?</param>
-		/// <returns>success true or false</returns>
-		public static async Task<bool> InitializeDevice(uint sampleRate, uint fftsize, string Windowing, int attenuation)
-		{
-			try
-			{
-                // ********************************************************************  
-                // Load a settings we want
-                // ********************************************************************  
-				await QaComm.SetSampleRate(sampleRate);
-                await QaComm.SetInputRange(attenuation);
-				await QaComm.SetFftSize(fftsize);
-				await QaComm.SetWindowing(Windowing);
-				//qan.SetInput(attenuation);
-				//qan.SetOutput(18); // this is set when we do an acquisition based on the voltage output data
-                WaveGenerator.Singleton.GenParams.Enabled = false;
-				WaveGenerator.Singleton.Gen2Params.Enabled = false;
-				return true;
-			}
-			catch (Exception ex)
-			{
-				Debug.WriteLine($"Error: {ex.Message}");
-			}
-			return false;
-		}
 
 		public bool IsOpen()
 		{

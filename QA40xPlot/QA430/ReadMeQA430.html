@@ -1,0 +1,71 @@
+﻿<style>
+    body {
+        font-family: 'Arial', sans-serif;
+    }
+</style>
+<h2>
+    Registers</h2>
+<p>
+The QA430 has 5 registers used for command/control
+. </p>
+<p>
+    These are:</p>
+<table>
+    <tr>
+        <th>Register</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>0</td>
+        <td>Read/write test register</td>
+    </tr>
+    <tr>
+        <td>5</td>
+        <td>Control bits for relays</td>
+    </tr>
+    <tr>
+        <td>8</td>
+        <td>Negative rail value</td>
+    </tr>
+    <tr>
+        <td>9</td>
+        <td>Positive rail value</td>
+    </tr>
+    <tr>
+        <td>10</td>
+        <td>Enable supply</td>
+    </tr>
+</table>
+<p>Where: we have
+    <ul>
+    <li>
+        Register 0 is a test register. Writing a value to it and reading it back should return the same value.
+    </li>
+        <li>
+            Register 5 are bit fields for each relay:<ul>
+                <li>0,1 = PosNeg connection: 49.9=b10, Short=b11, Open=b0x</li>
+                <li>2,3,4,5 = NegInputs: Analyzer+499=b1111, Gnd+4.99=b1110, Open=b110x, Analyzer+4.99K=b10xx, Gnd+499=b0xxx</li>
+                <li>6,7 = Pos Input: Analyzer=b00, Gnd = b01, Analyzer+100K=b1x</li>
+                <li>8 = feedback resistor: 4.99K | shorted</li>
+                <li>9,10,11 = load resistance: 0 = none, 9 = 2K, 10 = 604, 11 = 330</li>
+                <li>12 = current sense: split | no split</li>
+                <li>13 = use power from: fixed rails | adjustable rails</li>
+                <li>14 = PSRR LowRail: 0=gnd analyzer | 1=connected to analyzer</li>
+                <li>15 = PSRR HighRail: 0=gnd analyzer | 1=connected to analyzer</li>
+            </ul>
+    </li>
+        <li>Register 8 - negative rail using V = -(byte)(counts/256 * 2.44 * 6)</li>
+        <li>Register 9 - positive rail using V = (byte)(counts/256 * 2.44 * 6)</li>
+        <li>Register 10 - bit 0 enable supply: off | on</li>
+        </ul>
+</p><h2>Power and Rails</h2>
+<p>
+    You can manually set each rail voltage while using adjustable rails. </p>
+<p>
+    Fixed rails keeps the voltage at max(?). </p>
+<p>
+    Also rails can be driven by the analyzer. </p>
+<p>
+    <em>Default</em> is the rails are fixed and not driven by the analyzer.</p>
+<p>
+    &nbsp;</p>
