@@ -1,0 +1,64 @@
+﻿<Window x:Class="QA40xPlot.Views.QA430Info"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:QA40xPlot"
+             xmlns:views ="clr-namespace:QA40xPlot.Views"
+             mc:Ignorable="d" 
+        Topmost="True"
+             Title="QA430 Opamp Tester"
+             Height="500" Width="300" Background="{Binding ThemeBackground}">
+    <Border BorderBrush="{Binding BorderColor}" BorderThickness="1" Background="{Binding ThemeBackground}">
+            <Grid >
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+                <Label Grid.Row="0" Grid.Column="0" Content="Neg Input" ></Label>
+                <ComboBox Grid.Row="0" Grid.Column="1" 
+                  ItemsSource="{Binding NegInputs}" 
+                  SelectedIndex="{Binding OpampNegInput}"/>
+            <Label Grid.Row="1" Grid.Column="0" Content="Pos Input" ></Label>
+            <ComboBox Grid.Row="1" Grid.Column="1" 
+                  ItemsSource="{Binding PosInputs}" 
+                  SelectedIndex="{Binding OpampPosInput}"/>
+            <Label Grid.Row="2" Grid.Column="0" Content="Pos-Neg Connection" ></Label>
+            <ComboBox Grid.Row="2" Grid.Column="1" 
+                  ItemsSource="{Binding PosNegConnects}" 
+                  SelectedIndex="{Binding OpampPosNegConnect}"/>
+            <Label Grid.Row="3" Grid.Column="0" Content="Feedback" ></Label>
+            <ComboBox Grid.Row="3" Grid.Column="1" 
+                  ItemsSource="{Binding Feedbacks}" 
+                  SelectedIndex="{Binding OpampFeedback}"/>
+            <Label Grid.Row="4" Grid.Column="0" Content="Load" ></Label>
+            <ComboBox Grid.Row="4" Grid.Column="1" 
+                  ItemsSource="{Binding Loads}" 
+                  SelectedIndex="{Binding LoadOption}"/>
+            <CheckBox Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2"
+                  Content="Use Fixed Rails" IsChecked="{Binding UseFixedRails}" />
+            <Label Grid.Row="6" Grid.Column="0" Content="Pos Rail" ></Label>
+            <ComboBox Grid.Row="6" Grid.Column="1" IsEditable="True"
+                  ItemsSource="{Binding RailVoltages}" 
+                  Text="{Binding PosRailVoltage, UpdateSourceTrigger=LostFocus}"/>
+            <Label Grid.Row="7" Grid.Column="0" Content="Neg Rail" ></Label>
+            <ComboBox Grid.Row="7" Grid.Column="1" IsEditable="True"
+                  ItemsSource="{Binding NegRailVoltages, UpdateSourceTrigger=LostFocus}" 
+                  Text="{Binding NegRailVoltage}"/>
+            <CheckBox Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2"
+                  Content="Enable Power" IsChecked="{Binding EnableSupply}" />
+        </Grid>
+    </Border>
+</Window>

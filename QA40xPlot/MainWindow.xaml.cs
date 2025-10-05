@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using QA40xPlot.BareMetal;
 using QA40xPlot.Libraries;
+using QA40xPlot.QA430;
 using QA40xPlot.ViewModels;
 using System.Diagnostics;
 using System.IO;
@@ -80,7 +81,7 @@ namespace QA40xPlot
 			{
 				fload = " - no default config";
 			}
-				InitializeComponent();
+			InitializeComponent();
 			var vm = ViewModels.ViewSettings.Singleton.MainVm;
 			this.DataContext = vm;
 			vm.ProgressMessage = "Welcome to QA40xPlot v" + GetVersionInfo() + fload;
@@ -133,21 +134,24 @@ namespace QA40xPlot
 		private void DoContentRendered(object? sender, EventArgs e)
 		{
 			var vm = ViewSettings.Singleton?.MainVm;
-			if(vm != null && vm.CurrentWindowRect.Length > 0)
+			if (vm != null && vm.CurrentWindowRect.Length > 0)
 			{
-				MainViewModel.SetWindowSize(Application.Current.MainWindow,	vm.CurrentWindowRect);
+				MainViewModel.SetWindowSize(Application.Current.MainWindow, vm.CurrentWindowRect);
 			}
 			if (vm != null && vm.CurrentWindowState == "Maximized")
 			{
 				Application.Current.MainWindow.WindowState = WindowState.Maximized;
 			}
 			this.InvalidateVisual();
+			QA430Model.BeginQA430Op();
 		}
 
 		protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
 		{
 			try
 			{
+				QA430Model.EndQA430Op();
+
 				if (ViewSettings.Singleton.SettingsVm.RelayUsage != "Never")
 				{
 					if (!ViewSettings.IsUseREST )

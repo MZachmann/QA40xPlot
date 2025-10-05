@@ -47,7 +47,7 @@ The QA430 has 5 registers used for command/control
                 <li>2,3,4,5 = NegInputs: Analyzer+499=b1111, Gnd+4.99=b1110, Open=b110x, Analyzer+4.99K=b10xx, Gnd+499=b0xxx</li>
                 <li>6,7 = Pos Input: Analyzer=b00, Gnd = b01, Analyzer+100K=b1x</li>
                 <li>8 = feedback resistor: 4.99K | shorted</li>
-                <li>9,10,11 = load resistance: 0 = none, 9 = 2K, 10 = 604, 11 = 330</li>
+                <li>9,10,11 = load resistance: 0 = none, 9 = 2K, 10 = 604, 11 = 470 (note doc says 330 sometimes)</li>
                 <li>12 = current sense: split | no split</li>
                 <li>13 = use power from: fixed rails | adjustable rails</li>
                 <li>14 = PSRR LowRail: 0=gnd analyzer | 1=connected to analyzer</li>
@@ -57,12 +57,16 @@ The QA430 has 5 registers used for command/control
         <li>Register 8 - negative rail using V = -(byte)(counts/256 * 2.44 * 6)</li>
         <li>Register 9 - positive rail using V = (byte)(counts/256 * 2.44 * 6)</li>
         <li>Register 10 - bit 0 enable supply: off | on</li>
+        <li>Register 17 - high side(+) current sense uA</li>
+        <li>Register 18 - low side(-) current sense uA</li>
+        <li>Register 19 - offset voltage uV</li>
+        <li>Register 20 - USB voltage mV</li>
         </ul>
 </p><h2>Power and Rails</h2>
 <p>
     You can manually set each rail voltage while using adjustable rails. </p>
 <p>
-    Fixed rails keeps the voltage at max(?). </p>
+    Fixed rails keeps the voltage at +-15V with &gt;100mA. Adjustable rails can go from 1 to 14.5 volts at lower current (30-50mA) but supports current sensing.</p>
 <p>
     Also rails can be driven by the analyzer. </p>
 <p>

@@ -1,9 +1,7 @@
-﻿using QA40xPlot.ViewModels;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 
 namespace QA40xPlot.Views
 {

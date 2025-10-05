@@ -1,13 +1,7 @@
 ﻿using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
-using ScottPlot;
-using ScottPlot.AxisLimitManagers;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
-using Windows.Graphics.Display;
 
 namespace QA40xPlot.Views
 {

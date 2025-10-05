@@ -199,7 +199,7 @@ namespace QA40xPlot.QA430
 					throw;
                 }
             }
-            Debug.WriteLine($"Read register {reg} has {val:x}");
+            //Debug.WriteLine($"Read register {reg} has {val:x}");
             return val;
         }
 
@@ -210,7 +210,7 @@ namespace QA40xPlot.QA430
         /// <param name="val"></param>
         public void WriteRegister(byte reg, uint val)
         {
-            Debug.WriteLine($"Write register {reg} with {val:x}");
+            //Debug.WriteLine($"Write register {reg} with {val:x}");
             // Values greater than or equal to 0x80 signify a read. Not allowed here
             if (reg >= 0x80)
             {

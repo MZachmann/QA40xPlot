@@ -26,25 +26,6 @@ namespace QA40xPlot.QA430
     //the higher-level control portion
 	internal class Hw
     {
-		internal static UInt32 SetDefaults()
-        {
-            UInt32 writeVal = 0;
-            SetPositiveRailVoltage(1.0);
-            SetNegativeRailVoltage(1.0);
-            ResetAllRelays();
-
-            writeVal = SetPowerFromAdjustableRails(writeVal);
-
-            //Set gain of +1
-            writeVal = SetOpampConfig6a(writeVal);
-
-            // don't allow analyzer to drive rails
-            writeVal = SetPsrr(PsrrOptions.BothPsrrInputsGrounded, writeVal);
-            Qa430Usb.Singleton.WriteRegister(5, writeVal);
-
-            return writeVal;
-        }
-
         internal static void ResetAllRelays()
         {
             Qa430Usb.Singleton.WriteRegister(5, 0);
@@ -64,7 +45,6 @@ namespace QA40xPlot.QA430
             writeVal = writeVal.BitClear(0x1FF);
             return writeVal;
         }
-
 
         /// <summary>
         /// 60 dB gain for BW measurement
@@ -492,7 +472,8 @@ namespace QA40xPlot.QA430
 
         internal static void SetNegativeRailVoltage(double volts)
         {
-            byte counts = ComputeCountsFromVoltage(-volts);
+            // work with positive and negative
+            byte counts = ComputeCountsFromVoltage(Math.Abs(volts));
             //Debug.WriteLine($"Negative Rail Set: {volts:0.00}  counts: {counts}");
             Qa430Usb.Singleton.WriteRegister(8, counts);
         }
@@ -667,7 +648,7 @@ namespace QA40xPlot.QA430
                     writeVal = writeVal.BitSet(0x1 << 10);
                     break;
 
-                case LoadOptions.R330:
+                case LoadOptions.R470:
                     writeVal = writeVal.BitSet(0x1 << 11);
                     break;
             }
@@ -692,7 +673,7 @@ namespace QA40xPlot.QA430
                     return 2000;
                 case LoadOptions.R604:
                     return 604;
-                case LoadOptions.R330:
+                case LoadOptions.R470:
                     return 470;
                 default:
                     break;
