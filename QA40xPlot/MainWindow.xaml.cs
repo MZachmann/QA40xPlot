@@ -130,6 +130,26 @@ namespace QA40xPlot
 			}
 		}
 
+		private void OnQA430(object sender, RoutedEventArgs e)
+		{
+			try
+			{
+				var x = QA430.Qa430Usb.Singleton;
+				var wind = x?.QAModel.MyWindow;
+				if(wind != null)
+				{
+					if(wind.IsVisible)
+						wind.Hide();
+					else
+						wind.Show();
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
+			}
+		}
+
 		//private static bool _bDone = false;
 		private void DoContentRendered(object? sender, EventArgs e)
 		{
@@ -143,7 +163,7 @@ namespace QA40xPlot
 				Application.Current.MainWindow.WindowState = WindowState.Maximized;
 			}
 			this.InvalidateVisual();
-			QA430Model.BeginQA430Op();
+			QA430Model.BeginQA430Op().ContinueWith(x=>1);	// the continuewith gets rid of an async warning
 		}
 
 		protected override void OnClosing(System.ComponentModel.CancelEventArgs e)

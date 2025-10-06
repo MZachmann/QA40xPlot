@@ -45,6 +45,14 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _GraphBackground, value);
 		}
 
+		private bool _HasQA430 = false;
+		[JsonIgnore]
+		public bool HasQA430
+		{
+			get => _HasQA430;
+			set => SetProperty(ref _HasQA430, value);
+		}
+
 		private string _ProgressMessage = string.Empty;         // type of alert
 		[JsonIgnore]
 		public string ProgressMessage

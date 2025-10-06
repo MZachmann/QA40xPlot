@@ -15,8 +15,8 @@
     <AssemblyOriginatorKeyFile>Keys\sgKey.snk</AssemblyOriginatorKeyFile>
     <ApplicationIcon>Images\favicon.ico</ApplicationIcon>
     <UseWindowsForms>False</UseWindowsForms>
-    <AssemblyVersion>1.1.31</AssemblyVersion>
-    <FileVersion>1.1.31</FileVersion>
+    <AssemblyVersion>1.1.32</AssemblyVersion>
+    <FileVersion>1.1.32</FileVersion>
 	</PropertyGroup>
 
   <ItemGroup>
@@ -28,10 +28,73 @@
     <None Remove="Batches\newcert.cmd" />
     <None Remove="Batches\signit.cmd" />
     <None Remove="Images\favicon.ico" />
+    <None Remove="Images\QA430Configs\Config1.png" />
+    <None Remove="Images\QA430Configs\Config2.png" />
+    <None Remove="Images\QA430Configs\Config3a.png" />
+    <None Remove="Images\QA430Configs\Config3b.png" />
+    <None Remove="Images\QA430Configs\Config3c.png" />
+    <None Remove="Images\QA430Configs\Config4a.png" />
+    <None Remove="Images\QA430Configs\Config4b.png" />
+    <None Remove="Images\QA430Configs\Config5a.png" />
+    <None Remove="Images\QA430Configs\Config5b.png" />
+    <None Remove="Images\QA430Configs\Config6a.png" />
+    <None Remove="Images\QA430Configs\Config6b.png" />
+    <None Remove="Images\QA430Configs\Config7a.png" />
+    <None Remove="Images\QA430Configs\Config7b.png" />
+    <None Remove="Images\QA430Configs\Config8a.png" />
+    <None Remove="Images\QA430Configs\Config8b.png" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Images\favicon.ico" />
+    <Resource Include="Images\QA430Configs\Custom.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\QA430Configs\Config1.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\QA430Configs\Config2.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\QA430Configs\Config3a.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\QA430Configs\Config3b.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\QA430Configs\Config3c.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\QA430Configs\Config4a.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\QA430Configs\Config4b.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\QA430Configs\Config5a.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\QA430Configs\Config5b.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\QA430Configs\Config6a.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\QA430Configs\Config6b.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\QA430Configs\Config7a.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\QA430Configs\Config7b.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\QA430Configs\Config8a.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\QA430Configs\Config8b.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
   <ItemGroup>

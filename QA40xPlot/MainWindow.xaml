@@ -24,6 +24,11 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" Grid.Column="1" Grid.Row="0" >
+                <Button Content="QA430" Click="OnQA430" Margin="4,2,4,2" Visibility="{Binding HasQA430, Converter={StaticResource BoolVisConverter}}">
+                    <Button.ToolTip>
+                        <ToolTip Content="Show/hide the QA430 Configuration" />
+                    </Button.ToolTip>
+                </Button>
                 <Button Content="Help" Click="OnHelp" Margin="4,2,4,2">
                     <Button.ToolTip>
                         <ToolTip Content="Show help file" />

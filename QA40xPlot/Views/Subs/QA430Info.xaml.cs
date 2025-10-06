@@ -41,9 +41,16 @@ namespace QA40xPlot.Views
 			if (!AllowClose)//NOT a user close request? ... then hide
 			{
 				e.Cancel = true;
-				Console.Beep();
-				//this.Hide();
+				//Console.Beep();
+				this.Hide();
 			}
+		}
+
+		private void OnSelChanged(object sender, MouseEventArgs e)
+		{
+			// The event was raised by the user
+			QA430Model qam = (QA430Model)DataContext;
+			qam.OpampConfigOption = (short)QA430Model.OpampConfigOptions.Custom;
 		}
 	}
 }
