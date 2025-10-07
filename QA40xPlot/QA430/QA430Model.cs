@@ -1,5 +1,7 @@
 ﻿#define USEQA430
 
+using CommunityToolkit.Mvvm.Input;
+using Newtonsoft.Json;
 using QA40xPlot.ViewModels;
 using QA40xPlot.Views;
 using System.ComponentModel;
@@ -46,6 +48,32 @@ namespace QA40xPlot.QA430
 
 		#region Properties
 		internal QA430Info? MyWindow { get; set; } = null;
+		[JsonIgnore]
+		public RelayCommand ShowConfigurations { get => new RelayCommand(OnShowConfigs); }
+
+		private void OnShowConfigs()
+		{
+			var wd = new QA430ShowConfigs();
+			var rslt = wd.ShowDialog();
+			if(rslt ?? false)
+			{
+				var uname = wd.ConfigName;
+				OpampConfigOption = (short)ConfigOptions.IndexOf(uname);
+			}
+		}
+
+		//public ImageSource ConfigsImage
+		//{
+		//	get
+		//	{
+		//		var logo = new BitmapImage();
+		//		logo.BeginInit();
+		//		var src = @"/QA40xPlot;component/Images/QA430Configs/QA430Configurations.png";
+		//		logo.UriSource = new Uri(src, UriKind.Relative);
+		//		logo.EndInit();
+		//		return logo;
+		//	}
+		//}
 
 		public ImageSource ConfigImage { 
 			get { 
@@ -178,7 +206,7 @@ namespace QA40xPlot.QA430
 		internal static async Task<bool> BeginQA430Op()
 		{
 #if USEQA430
-			var x = QA430.Qa430Usb.Singleton;
+			var x = Qa430Usb.Singleton;
 			if (x.IsOpen())
 			{
 				// already open
@@ -265,6 +293,16 @@ namespace QA40xPlot.QA430
 			Debug.WriteLine(also + $":QA430 Registers: 5={r5:x} 8={r8:x} 9={r9:x} 10={r10:x}");
 		}
 
+		private void SetConfiguration(OpampNegInputs negin, OpampFeedbacks fdbk, OpampPosNegConnects opn, OpampPosInputs opinp)
+		{
+			// Select 4.99 ohm series
+			OpampNegInput = (short)negin;
+			OpampFeedback = (short)fdbk;
+			OpampPosNegConnect = (short)opn;
+			OpampPosInput = (short)opinp;
+			ShowRegisters("SetConfiguration"); // for debugging write register configuration
+		}
+
 		/// <summary>
 		/// 60 dB gain for BW measurement
 		/// </summary>
@@ -273,10 +311,10 @@ namespace QA40xPlot.QA430
 		internal void SetOpampConfig1()
 		{
 			// Select 4.99 ohm series
-			OpampNegInput = (short)OpampNegInputs.GndTo4p99;
-			OpampFeedback = (short)OpampFeedbacks.R4p99k;
-			OpampPosNegConnect = (short)OpampPosNegConnects.Open;
-			OpampPosInput = (short)OpampPosInputs.Analyzer;
+			SetConfiguration(OpampNegInputs.GndTo4p99,
+						OpampFeedbacks.R4p99k,
+						OpampPosNegConnects.Open,
+						OpampPosInputs.Analyzer);
 		}
 
 		/// <summary>
@@ -318,10 +356,10 @@ namespace QA40xPlot.QA430
 		/// <returns></returns>
 		internal void SetOpampConfig3a()
 		{
-			OpampNegInput = (short)OpampNegInputs.GndTo4p99;
-			OpampFeedback = (short)OpampFeedbacks.R4p99k;
-			OpampPosNegConnect = (short)OpampPosNegConnects.Open;
-			OpampPosInput = (short)OpampPosInputs.Gnd;
+			SetConfiguration( OpampNegInputs.GndTo4p99,
+						OpampFeedbacks.R4p99k,
+						OpampPosNegConnects.Open,
+						OpampPosInputs.Gnd);
 		}
 
 		/// <summary>
@@ -331,10 +369,10 @@ namespace QA40xPlot.QA430
 		/// <returns></returns>
 		internal void SetOpampConfig3b()
 		{
-			OpampNegInput = (short)OpampNegInputs.GndTo499;
-			OpampFeedback = (short)OpampFeedbacks.R4p99k;
-			OpampPosNegConnect = (short)OpampPosNegConnects.Open;
-			OpampPosInput = (short)OpampPosInputs.Gnd;
+			SetConfiguration( OpampNegInputs.GndTo499,
+						OpampFeedbacks.R4p99k,
+						OpampPosNegConnects.Open,
+						OpampPosInputs.Gnd);
 		}
 
 		/// <summary>
@@ -344,10 +382,10 @@ namespace QA40xPlot.QA430
 		/// <returns></returns>
 		internal void SetOpampConfig3c()
 		{
-			OpampNegInput = (short)OpampNegInputs.Open;
-			OpampFeedback = (short)OpampFeedbacks.Short;
-			OpampPosNegConnect = (short)OpampPosNegConnects.Open;
-			OpampPosInput = (short)OpampPosInputs.Gnd;
+			SetConfiguration(OpampNegInputs.Open,
+						OpampFeedbacks.Short,
+						OpampPosNegConnects.Open,
+						OpampPosInputs.Gnd);
 		}
 
 		/// <summary>
@@ -357,10 +395,10 @@ namespace QA40xPlot.QA430
 		/// <returns></returns>
 		internal void SetOpampConfig4a()
 		{
-			OpampNegInput = (short)OpampNegInputs.GndTo499;
-			OpampFeedback = (short)OpampFeedbacks.R4p99k;
-			OpampPosNegConnect = (short)OpampPosNegConnects.Open;
-			OpampPosInput = (short)OpampPosInputs.Analyzer;
+			SetConfiguration(OpampNegInputs.GndTo499,
+						OpampFeedbacks.R4p99k,
+						OpampPosNegConnects.Open,
+						OpampPosInputs.Analyzer);
 		}
 
 		/// <summary>
@@ -370,10 +408,10 @@ namespace QA40xPlot.QA430
 		/// <returns></returns>
 		internal void SetOpampConfig4b()
 		{
-			OpampNegInput = (short)OpampNegInputs.GndTo499;
-			OpampFeedback = (short)OpampFeedbacks.R4p99k;
-			OpampPosNegConnect = (short)OpampPosNegConnects.R49p9;
-			OpampPosInput = (short)OpampPosInputs.Analyzer;
+			SetConfiguration(OpampNegInputs.GndTo499,
+						OpampFeedbacks.R4p99k,
+						OpampPosNegConnects.R49p9,
+						OpampPosInputs.Analyzer);
 		}
 
 		/// <summary>
@@ -383,10 +421,10 @@ namespace QA40xPlot.QA430
 		/// <returns></returns>
 		internal void SetOpampConfig5a()
 		{
-			OpampNegInput = (short)OpampNegInputs.AnalyzerTo499;
-			OpampFeedback = (short)OpampFeedbacks.R4p99k;
-			OpampPosNegConnect = (short)OpampPosNegConnects.Open;
-			OpampPosInput = (short)OpampPosInputs.Gnd;
+			SetConfiguration(OpampNegInputs.AnalyzerTo499,
+						OpampFeedbacks.R4p99k,
+						OpampPosNegConnects.Open,
+						OpampPosInputs.Gnd);
 		}
 
 		/// <summary>
@@ -396,10 +434,10 @@ namespace QA40xPlot.QA430
 		/// <returns></returns>
 		internal void SetOpampConfig5b()
 		{
-			OpampNegInput = (short)OpampNegInputs.AnalyzerTo499;
-			OpampFeedback = (short)OpampFeedbacks.R4p99k;
-			OpampPosNegConnect = (short)OpampPosNegConnects.R49p9;
-			OpampPosInput = (short)OpampPosInputs.Gnd;
+			SetConfiguration(OpampNegInputs.AnalyzerTo499,
+						OpampFeedbacks.R4p99k,
+						OpampPosNegConnects.R49p9,
+						OpampPosInputs.Gnd);
 		}
 
 		/// <summary>
@@ -409,10 +447,10 @@ namespace QA40xPlot.QA430
 		/// <returns></returns>
 		internal void SetOpampConfig6a()
 		{
-			OpampNegInput = (short)OpampNegInputs.Open;
-			OpampFeedback = (short)OpampFeedbacks.R4p99k;
-			OpampPosNegConnect = (short)OpampPosNegConnects.Open;
-			OpampPosInput = (short)OpampPosInputs.Analyzer;
+			SetConfiguration(OpampNegInputs.Open,
+						OpampFeedbacks.R4p99k,
+						OpampPosNegConnects.Open,
+						OpampPosInputs.Analyzer);
 		}
 
 		/// <summary>
@@ -422,10 +460,10 @@ namespace QA40xPlot.QA430
 		/// <returns></returns>
 		internal void SetOpampConfig6b()
 		{
-			OpampNegInput = (short)OpampNegInputs.Open;
-			OpampFeedback = (short)OpampFeedbacks.R4p99k;
-			OpampPosNegConnect = (short)OpampPosNegConnects.R49p9;
-			OpampPosInput = (short)OpampPosInputs.Analyzer;
+			SetConfiguration(OpampNegInputs.Open,
+						OpampFeedbacks.R4p99k,
+						OpampPosNegConnects.R49p9,
+						OpampPosInputs.Analyzer);
 		}
 
 		/// <summary>
@@ -435,10 +473,10 @@ namespace QA40xPlot.QA430
 		/// <returns></returns>
 		internal void SetOpampConfig7a()
 		{
-			OpampNegInput = (short)OpampNegInputs.AnalyzerTo4p99k;
-			OpampFeedback = (short)OpampFeedbacks.R4p99k;
-			OpampPosNegConnect = (short)OpampPosNegConnects.Open;
-			OpampPosInput = (short)OpampPosInputs.Gnd;
+			SetConfiguration(OpampNegInputs.AnalyzerTo4p99k,
+						OpampFeedbacks.R4p99k,
+						OpampPosNegConnects.Open,
+						OpampPosInputs.Gnd);
 		}
 
 		/// <summary>
@@ -448,10 +486,10 @@ namespace QA40xPlot.QA430
 		/// <returns></returns>
 		internal void SetOpampConfig7b()
 		{
-			OpampNegInput = (short)OpampNegInputs.AnalyzerTo4p99k;
-			OpampFeedback = (short)OpampFeedbacks.R4p99k;
-			OpampPosNegConnect = (short)OpampPosNegConnects.R49p9;
-			OpampPosInput = (short)OpampPosInputs.Gnd;
+			SetConfiguration(OpampNegInputs.AnalyzerTo4p99k,
+						OpampFeedbacks.R4p99k,
+						OpampPosNegConnects.R49p9,
+						OpampPosInputs.Gnd);
 		}
 
 		/// <summary>
@@ -461,10 +499,10 @@ namespace QA40xPlot.QA430
 		/// <returns></returns>
 		internal void SetOpampConfig8a()
 		{
-			OpampNegInput = (short)OpampNegInputs.Open;
-			OpampFeedback = (short)OpampFeedbacks.Short;
-			OpampPosNegConnect = (short)OpampPosNegConnects.Open;
-			OpampPosInput = (short)OpampPosInputs.Analyzer;
+			SetConfiguration(OpampNegInputs.Open,
+						OpampFeedbacks.Short,
+						OpampPosNegConnects.Open,
+						OpampPosInputs.Analyzer);
 		}
 
 		/// <summary>
@@ -474,10 +512,10 @@ namespace QA40xPlot.QA430
 		/// <returns></returns>
 		internal void SetOpampConfig8b()
 		{
-			OpampNegInput = (short)OpampNegInputs.Open;
-			OpampFeedback = (short)OpampFeedbacks.Short;
-			OpampPosNegConnect = (short)OpampPosNegConnects.R49p9;
-			OpampPosInput = (short)OpampPosInputs.Analyzer;
+			SetConfiguration(OpampNegInputs.Open,
+						OpampFeedbacks.Short,
+						OpampPosNegConnects.R49p9,
+						OpampPosInputs.Analyzer);
 		}
 
 		internal void ExecConfiguration(short iId)
@@ -576,7 +614,11 @@ namespace QA40xPlot.QA430
 				case "OpampConfigOption":
 					ExecConfiguration(OpampConfigOption);
 					break;
+				case "ConfigImage":
+					// used internally
+					break;
 				default:
+					Debug.WriteLine($"Unknown property change {e.PropertyName}");
 					break;
 			}
 		}
