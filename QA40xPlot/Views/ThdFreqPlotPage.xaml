@@ -139,6 +139,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -146,16 +147,17 @@
                     </Grid.ColumnDefinitions>
                     <CheckBox Content="Magnitude" IsChecked="{Binding ShowMagnitude}" Grid.Row="0"  />
                     <CheckBox Content="THD" IsChecked="{Binding ShowTHD}" Grid.Row="1" Grid.Column="0"  />
-                    <CheckBox Content="D2" IsChecked="{Binding ShowD2}" Grid.Row="1" Grid.Column="1"  />
-                    <CheckBox Content="D3" IsChecked="{Binding ShowD3}" Grid.Row="2" Grid.Column="0"  />
-                    <CheckBox Content="D4" IsChecked="{Binding ShowD4}" Grid.Row="2"  Grid.Column="1" />
-                    <CheckBox Content="D5" IsChecked="{Binding ShowD5}" Grid.Row="3" Grid.Column="0" />
-                    <CheckBox Content="D6+" IsChecked="{Binding ShowD6}" Grid.Row="3" Grid.Column="1" />
-                    <CheckBox Content="Noise Floor" IsChecked="{Binding ShowNoiseFloor}" Grid.Row="4" Grid.Column="0"  />
+                    <CheckBox Content="THD+N" IsChecked="{Binding ShowTHDN}" Grid.Row="1" Grid.Column="1"  />
+                    <CheckBox Content="D2" IsChecked="{Binding ShowD2}" Grid.Row="2" Grid.Column="0"  />
+                    <CheckBox Content="D3" IsChecked="{Binding ShowD3}" Grid.Row="2" Grid.Column="1"  />
+                    <CheckBox Content="D4" IsChecked="{Binding ShowD4}" Grid.Row="3"  Grid.Column="0" />
+                    <CheckBox Content="D5" IsChecked="{Binding ShowD5}" Grid.Row="3" Grid.Column="1" />
+                    <CheckBox Content="D6+" IsChecked="{Binding ShowD6}" Grid.Row="4" Grid.Column="0" />
+                    <CheckBox Content="Noise Floor" IsChecked="{Binding ShowNoiseFloor}" Grid.Row="5" Grid.Column="0"  />
                     <CheckBox Content="Tab Info" ToolTip="{Binding TabInfoTip}"
-                              IsChecked="{Binding ShowTabInfo}" Grid.Row="5" Grid.Column="0"  />
+                              IsChecked="{Binding ShowTabInfo}" Grid.Row="6" Grid.Column="0"  />
                     <CheckBox Content="Mini-Plots" ToolTip="{Binding MiniPlotsTip}"
-                              IsChecked="{Binding KeepMiniPlots}" Grid.Row="6" Grid.Column="0"  />
+                              IsChecked="{Binding KeepMiniPlots}" Grid.Row="7" Grid.Column="0"  />
                 </Grid>
             </Expander>
 

@@ -77,7 +77,7 @@ namespace QA40xPlot.Actions
 
 		private double[] ColumnToArray(ThdColumn col)
 		{
-			return new double[] { col.Freq, col.Mag, col.THD, col.Noise, col.D2, col.D3, col.D4, col.D5, col.D6P, col.GenVolts };
+			return new double[] { col.Freq, col.Mag, col.THD, col.Noise, col.D2, col.D3, col.D4, col.D5, col.D6P, col.GenVolts, col.THDN };
 		}
 
 		private ThdColumn ArrayToColumn(double[] rawData, uint startIdx)
@@ -93,6 +93,7 @@ namespace QA40xPlot.Actions
 			col.D5 = rawData[startIdx + 7];
 			col.D6P = rawData[startIdx + 8];
 			col.GenVolts = rawData[startIdx + 9];
+			col.THDN = rawData[startIdx + 10];
 			return col;
 		}
 
@@ -101,7 +102,7 @@ namespace QA40xPlot.Actions
 			if (raw.Length == 0)
 				return [];
 			List<ThdColumn> left = new();
-			for (int i = 0; i < raw.Length; i += 10)
+			for (int i = 0; i < raw.Length; i += ThdColumn.ThdColumnCount)
 			{
 				var col = ArrayToColumn(raw, (uint)i);
 				left.Add(col);
@@ -632,7 +633,7 @@ namespace QA40xPlot.Actions
 			var maxf = msr.FreqRslt.Df * msr.FreqRslt.Left.Length;
 			//LeftRightPair snrdb = QaCompute.GetSnrDb(lrfs, dFreq, 20.0, maxf);
 			LeftRightPair thds = QaCompute.GetThdDb(vm.WindowingMethod, lrfs, dFreq, 20.0, Math.Min(20000, maxf));
-			//LeftRightPair thdN = QaCompute.GetThdnDb(lrfs, dFreq, 20.0, maxf);
+			LeftRightPair thdN = QaCompute.GetThdnDb(vm.WindowingMethod, lrfs, dFreq, 20.0, maxf, ViewSettings.NoiseWeight);
 
 			var frq = msr.FreqRslt.Left;    // start with left
 			foreach (var step in steps)
@@ -660,6 +661,8 @@ namespace QA40xPlot.Actions
 			}
 			left.THD = left.Mag * Math.Pow(10, thds.Left / 20); // in volts from dB relative to mag
 			right.THD = right.Mag * Math.Pow(10, thds.Right / 20);
+			left.THDN = left.Mag * Math.Pow(10, thdN.Left / 20); // in volts from dB relative to mag
+			right.THDN = right.Mag * Math.Pow(10, thdN.Right / 20);
 
 			var floor = msr.NoiseFloor;
 			switch (ViewSettings.NoiseWeight)
@@ -810,20 +813,22 @@ namespace QA40xPlot.Actions
 				amps = amps.Select(x => Math.Log10(x)).ToArray();
 				if (thdAmp.ShowMagnitude)
 					AddPlot(amps, col.Select(x => FormVal(x.Mag, x.Mag)).ToList(), 1, "Mag" + suffix, LinePattern.DenselyDashed);
+				if (thdAmp.ShowTHDN)
+					AddPlot(amps, col.Select(x => FormVal(x.THDN, x.Mag)).ToList(), 2, "THDN" + suffix, lp);
 				if (thdAmp.ShowTHD)
-					AddPlot(amps, col.Select(x => FormVal(x.THD, x.Mag)).ToList(), 2, "THD" + suffix, lp);
+					AddPlot(amps, col.Select(x => FormVal(x.THD, x.Mag)).ToList(), 3, "THD" + suffix, lp);
 				if (thdAmp.ShowD2)
-					AddPlot(amps, col.Select(x => FormVal(x.D2, x.Mag)).ToList(), 3, "D2" + suffix, lp);
+					AddPlot(amps, col.Select(x => FormVal(x.D2, x.Mag)).ToList(), 4, "D2" + suffix, lp);
 				if (thdAmp.ShowD3)
-					AddPlot(amps, col.Select(x => FormVal(x.D3, x.Mag)).ToList(), 4, "D3" + suffix, lp);
+					AddPlot(amps, col.Select(x => FormVal(x.D3, x.Mag)).ToList(), 5, "D3" + suffix, lp);
 				if (thdAmp.ShowD4)
-					AddPlot(amps, col.Select(x => FormVal(x.D4, x.Mag)).ToList(), 5, "D4" + suffix, lp);
+					AddPlot(amps, col.Select(x => FormVal(x.D4, x.Mag)).ToList(), 6, "D4" + suffix, lp);
 				if (thdAmp.ShowD5)
-					AddPlot(amps, col.Select(x => FormVal(x.D5, x.Mag)).ToList(), 6, "D5" + suffix, lp);
+					AddPlot(amps, col.Select(x => FormVal(x.D5, x.Mag)).ToList(), 7, "D5" + suffix, lp);
 				if (thdAmp.ShowD6)
-					AddPlot(amps, col.Select(x => FormVal(x.D6P, x.Mag)).ToList(), 7, "D6+" + suffix, lp);
+					AddPlot(amps, col.Select(x => FormVal(x.D6P, x.Mag)).ToList(), 8, "D6+" + suffix, lp);
 				if (thdAmp.ShowNoiseFloor)
-					AddPlot(amps, col.Select(x => FormVal(x.Noise, x.Mag)).ToList(), 8, "Noise" + suffix, LinePattern.Dotted);
+					AddPlot(amps, col.Select(x => FormVal(x.Noise, x.Mag)).ToList(), 9, "Noise" + suffix, LinePattern.Dotted);
 				suffix = "-R";          // second pass iff there are both channels
 				lp = isMain ? LinePattern.DenselyDashed : LinePattern.Dotted;
 			}

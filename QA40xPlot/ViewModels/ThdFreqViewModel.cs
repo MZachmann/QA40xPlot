@@ -95,6 +95,12 @@ namespace QA40xPlot.ViewModels
 			get => _ShowTHD;
 			set => SetProperty(ref _ShowTHD, value);
 		}
+		private bool _ShowTHDN;
+		public bool ShowTHDN
+		{
+			get => _ShowTHDN;
+			set => SetProperty(ref _ShowTHDN, value);
+		}
 		private bool _ShowMagnitude;
 		public bool ShowMagnitude
 		{
@@ -190,6 +196,7 @@ namespace QA40xPlot.ViewModels
 					MyAction?.UpdateGraph(false);
 					break;
 
+				case "ShowTHDN":
 				case "ShowTHD":
 				case "ShowMagnitude":
 				case "ShowD2":
@@ -252,6 +259,8 @@ namespace QA40xPlot.ViewModels
 		{
 			var vm = MyVModel;
 			string sout = "Mag: " + FormatValue(column.Mag, column.Mag) + Environment.NewLine;
+			if (vm.ShowTHDN)
+				sout += "THD+N: " + FormatValue(column.THDN, column.Mag) + Environment.NewLine;
 			if (vm.ShowTHD)
 				sout += "THD: " + FormatValue(column.THD, column.Mag) + Environment.NewLine;
 			if (vm.ShowNoiseFloor)
