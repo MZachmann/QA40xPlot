@@ -236,13 +236,13 @@ namespace QA40xPlot.QA430
 
 		internal static void EndQA430Op()
 		{
-			var x = QA430.Qa430Usb.Singleton;
-			x?.Close(true);
-			if (x?.QAModel.MyWindow != null)
+			var qausb = QA430.Qa430Usb.Singleton;
+			qausb?.Close(true);
+			if (qausb?.QAModel.MyWindow != null)
 			{
-				x.QAModel.MyWindow.AllowClose = true;
-				x.QAModel.MyWindow.Close();
-				x.QAModel.MyWindow = null;
+				qausb.QAModel.MyWindow.AllowClose = true;
+				qausb.QAModel.MyWindow.Close();
+				qausb.QAModel.MyWindow = null;
 			}
 		}
 
@@ -286,10 +286,11 @@ namespace QA40xPlot.QA430
 
 		public void ShowRegisters(string also = "")
 		{
-			var r5 = Qa430Usb.Singleton.ReadRegister(5);
-			var r8 = Qa430Usb.Singleton.ReadRegister(8);
-			var r9 = Qa430Usb.Singleton.ReadRegister(9);
-			var r10 = Qa430Usb.Singleton.ReadRegister(10);
+			var qausb = Qa430Usb.Singleton;
+			var r5 = qausb.ReadRegister(5);
+			var r8 = qausb.ReadRegister(8);
+			var r9 = qausb.ReadRegister(9);
+			var r10 = qausb.ReadRegister(10);
 			Debug.WriteLine(also + $":QA430 Registers: 5={r5:x} 8={r8:x} 9={r9:x} 10={r10:x}");
 		}
 

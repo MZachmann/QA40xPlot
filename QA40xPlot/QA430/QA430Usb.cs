@@ -82,13 +82,13 @@ namespace QA40xPlot.QA430
         {
 			Debug.Assert(Device == null, "Open called when device is already open");
 			bool brslt = false;
-			// Attempt to open QA402 or QA403 device
+			// Attempt to open QA430 device
 			try
 			{
 				Device = Qa430LowUsb.AttachDevice();
 				if(null == Device)
 				{
-					Debug.WriteLine("No QA402/QA403 analyzer found");
+					Debug.WriteLine("No QA430 opamp analyzer found");
 					return false;
 				}
 				RegisterReader = Device.OpenEndpointReader(ReadEndpointID.Ep01);
