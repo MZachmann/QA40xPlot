@@ -7,7 +7,7 @@
              xmlns:views ="clr-namespace:QA40xPlot.Views"
              mc:Ignorable="d" 
              Title="QA430 Opamp Tester"
-             Height="500" Width="300" Background="{Binding ThemeBackground}">
+             Height="530" Width="386" Background="{Binding ThemeBackground}">
     <Border BorderBrush="DarkBlue" BorderThickness="1" Background="{Binding ThemeBackground}">
         <StackPanel Orientation="Vertical" Margin="5,6,0,0" >
             <StackPanel Orientation="Vertical" Margin="15,0,0,0">
@@ -20,6 +20,9 @@
             </StackPanel>
             <Grid  >
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
@@ -35,6 +38,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
+                <!--Columns 1,2 = settings-->
                 <Label Grid.Row="0" Grid.Column="0" Content="Neg Input" ></Label>
                 <ComboBox Grid.Row="0" Grid.Column="1" 
                   ItemsSource="{Binding NegInputs}" PreviewMouseLeftButtonDown ="OnSelChanged" 
@@ -69,8 +73,19 @@
                   Text="{Binding NegRailVoltage}"/>
                 <CheckBox Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="2"
                   Content="Enable Power" IsChecked="{Binding EnableSupply}" />
+                <!--Spacer-->
+                <Label Grid.Row="0" Grid.Column="2" Content=" " ></Label>
+                <!--Columns 4,5 = output-->
+                <Label Grid.Row="0" Grid.Column="3" Content="Current +" ></Label>
+                <TextBlock Grid.Row="0" Grid.Column="4" VerticalAlignment="Center" Text="{Binding CurrentSenseHiValue}" />
+                <Label Grid.Row="1" Grid.Column="3" Content="Current -" ></Label>
+                <TextBlock Grid.Row="1" Grid.Column="4" VerticalAlignment="Center" Text="{Binding CurrentSenseLowValue}" />
+                <Label Grid.Row="2" Grid.Column="3" Content="Offset Voltage" ></Label>
+                <TextBlock Grid.Row="2" Grid.Column="4" VerticalAlignment="Center" Text="{Binding OffsetVoltage}" />
+                <Label Grid.Row="3" Grid.Column="3" Content="USB Voltage" ></Label>
+                <TextBlock Grid.Row="3" Grid.Column="4" VerticalAlignment="Center" Text="{Binding UsbVoltage}" />
             </Grid>
-            <Image  Height="200" Margin="0,10,0,0" Source="{Binding ConfigImage}">
+            <Image Height="200" Margin="0,10,0,0" Source="{Binding ConfigImage}">
             </Image>
         </StackPanel>
     </Border>

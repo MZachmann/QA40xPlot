@@ -152,6 +152,16 @@ namespace QA40xPlot.Libraries
 		}
 
 		/// <summary>
+		/// pretty format voltage only
+		/// <summary>
+		/// <param name="val">value to format</param>
+		/// <returns>string with best suffix</returns>
+		public static string FormatCurrent(double val)
+		{
+			return FormatUnits(val, "A");
+		}
+
+		/// <summary>
 		/// pretty format resistance only
 		/// <summary>
 		/// <param name="val">value to format</param>

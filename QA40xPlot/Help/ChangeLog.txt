@@ -2,6 +2,8 @@
 --------------------------------------------
 This changelog shows the changes made for each version
 --------------------------------------------
+v 1.1.34
+- add the 4 sense outputs to QA430 info
 v 1.1.33
 - add qa430 visual selector
 - add THD+N line to the two sweeps tests

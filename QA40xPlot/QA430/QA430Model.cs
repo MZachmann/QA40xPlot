@@ -2,13 +2,14 @@
 
 using CommunityToolkit.Mvvm.Input;
 using Newtonsoft.Json;
+using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using QA40xPlot.Views;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Threading;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using static QA40xPlot.QA430.QA430Model;
 
 namespace QA40xPlot.QA430
 {
@@ -16,6 +17,7 @@ namespace QA40xPlot.QA430
 	{
 		const int RelayRegister = 5;
 
+		// choice values for combo boxes
 		internal enum OpampNegInputs : ushort { AnalyzerTo499, GndTo4p99, Open, AnalyzerTo4p99k, GndTo499 }
 		internal enum OpampPosInputs : ushort { Analyzer, Gnd, AnalyzerTo100k }
 		internal enum OpampPosNegConnects : ushort { Open, R49p9, Short }
@@ -29,52 +31,28 @@ namespace QA40xPlot.QA430
 		// current sense enable
 		// supply enable
 
-		public static List<string> NegInputs { get; } = new() { "Signal|499", "Gnd|4.99", "Open", "Signal|4.99K", "Gnd|499" };
-		public static List<string> PosInputs { get; } = new() { "Signal", "Gnd", "Signal|100K" };
-		public static List<string> PosNegConnects { get; } = new() { "Open", "49.9", "Short" };
-		public static List<string> Feedbacks { get; } = new() { "Short", "4.99K" };
-		public static List<string> Loads { get; } = new() { "Open", "2000", "604", "470" };
+		// choice names for combo boxes
+		public static List<string> NegInputs { get; } = new() { "Signal + 499 Ω", "Gnd + 4.99 Ω", "Open", "Signal + 4.99K Ω", "Gnd + 499 Ω" };
+		public static List<string> PosInputs { get; } = new() { "Signal", "Gnd", "Signal + 100K Ω" };
+		public static List<string> PosNegConnects { get; } = new() { "Open", "49.9 Ω", "Short" };
+		public static List<string> Feedbacks { get; } = new() { "Short", "4.99K Ω" };
+		public static List<string> Loads { get; } = new() { "Open", "2000 Ω", "604 Ω", "470 Ω" };
 		public static List<string> Psrrs { get; } = new() { "None", "Hi Rail", "Low Rail", "Both Rails" };
 		public static List<string> RailVoltages { get; } = new() { "1", "2", "5", "10", "12", "14.4" };
 		public static List<string> NegRailVoltages { get; } = new() { "-1", "-2", "-5", "-10", "-12", "-14.4" };
 		public static List<string> ConfigOptions { get; } = Enum.GetNames(typeof(OpampConfigOptions)).ToList();
 
-		//public static List<string> NegInputs { get; } = Enum.GetNames(typeof(OpampNegInputs)).ToList();
-		//public static List<string> PosInputs { get; } = Enum.GetNames(typeof(OpampPosInputs)).ToList();
-		//public static List<string> PosNegConnects { get; } = Enum.GetNames(typeof(OpampPosNegConnects)).ToList();
-		//public static List<string> Feedbacks { get; } = Enum.GetNames(typeof(OpampFeedbacks)).ToList();
-		//public static List<string> Loads { get; } = Enum.GetNames(typeof(LoadOptions)).ToList();
-		//public static List<string> Psrrs { get; } = Enum.GetNames(typeof(PsrrOptions)).ToList();
+		private Task RefreshTask;
+		private bool RefreshTaskCancel = false;
 
 		#region Properties
+
 		internal QA430Info? MyWindow { get; set; } = null;
+
 		[JsonIgnore]
 		public RelayCommand ShowConfigurations { get => new RelayCommand(OnShowConfigs); }
 
-		private void OnShowConfigs()
-		{
-			var wd = new QA430ShowConfigs();
-			var rslt = wd.ShowDialog();
-			if(rslt ?? false)
-			{
-				var uname = wd.ConfigName;
-				OpampConfigOption = (short)ConfigOptions.IndexOf(uname);
-			}
-		}
-
-		//public ImageSource ConfigsImage
-		//{
-		//	get
-		//	{
-		//		var logo = new BitmapImage();
-		//		logo.BeginInit();
-		//		var src = @"/QA40xPlot;component/Images/QA430Configs/QA430Configurations.png";
-		//		logo.UriSource = new Uri(src, UriKind.Relative);
-		//		logo.EndInit();
-		//		return logo;
-		//	}
-		//}
-
+		// this is used by the gui to show the current config photo
 		public ImageSource ConfigImage { 
 			get { 
 				var logo = new BitmapImage();
@@ -93,7 +71,7 @@ namespace QA40xPlot.QA430
 			get => _OpampConfigOption;
 			set { SetProperty(ref _OpampConfigOption, value); RaisePropertyChanged("ConfigImage"); }
 		}
-		//these must all be initialized to not the initial values
+
 		private short _OpampNegInput = 10;
 		public short OpampNegInput
 		{
@@ -185,17 +163,93 @@ namespace QA40xPlot.QA430
 			get => _UseFixedRails;
 			set => SetProperty(ref _UseFixedRails, value);
 		}
+
+		// things we read from the QA430
+		[JsonIgnore]
+		public string CurrentSenseHiValue
+		{
+			get
+			{
+				var val = Hw.GetHiSideSupplyCurrent();
+				return MathUtil.FormatCurrent(val);
+			}
+		}
+
+		[JsonIgnore]
+		public string CurrentSenseLowValue
+		{ 
+			get 
+			{ 
+				var val = Hw.GetLowSideSupplyCurrent();
+				return MathUtil.FormatCurrent(val);
+			} 
+		}
+
+		[JsonIgnore]
+		public string OffsetVoltage
+		{
+			get
+			{
+				var val = Hw.GetOffsetVoltage();
+				return MathUtil.FormatVoltage(val);
+			}
+		}
+
+		[JsonIgnore]
+		public string UsbVoltage
+		{
+			get
+			{
+				var val = Hw.GetUsbVoltage();
+				return MathUtil.FormatVoltage(val);
+			}
+		}
 		#endregion
+
+		/// <summary>
+		/// pop up the configuration image gallery
+		/// </summary>
+		private void OnShowConfigs()
+		{
+			var wd = new QA430ShowConfigs();
+			var rslt = wd.ShowDialog();
+			if (rslt ?? false)
+			{
+				var uname = wd.ConfigName;
+				OpampConfigOption = (short)ConfigOptions.IndexOf(uname);
+			}
+		}
+
+		/// <summary>
+		/// this keeps updating the 4 input variables
+		/// we stop when the app exits
+		/// </summary>
+		/// <returns></returns>
+		private async Task InitTimer()
+		{
+			var RefreshTimer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+			while (await RefreshTimer.WaitForNextTickAsync())
+			{
+				// Place function in here..
+				if(RefreshTaskCancel) 
+					break;
+				RefreshVars();
+			}
+		}
 
 		public QA430Model()
 		{
 			// set up a listener for when any property changes
+			// we could embed them into the setproperty line but 
+			// this puts all the 'set option' code in one place
 			PropertyChanged += DoPropertyChanged;
+			RefreshTask = InitTimer();
 		}
 
 		~QA430Model()
 		{
 			PropertyChanged -= DoPropertyChanged;
+			RefreshTaskCancel = true;
 		}
 
 		/// <summary>
@@ -244,6 +298,18 @@ namespace QA40xPlot.QA430
 				qausb.QAModel.MyWindow.Close();
 				qausb.QAModel.MyWindow = null;
 			}
+		}
+
+		/// <summary>
+		/// the 4 sense values get refreshed every second, but because the property
+		/// is readonly it requires a push (RaisePropertyChanged)
+		/// </summary>
+		internal void RefreshVars()
+		{
+			RaisePropertyChanged(nameof(UsbVoltage));
+			RaisePropertyChanged(nameof(OffsetVoltage));
+			RaisePropertyChanged(nameof(CurrentSenseLowValue));
+			RaisePropertyChanged(nameof(CurrentSenseHiValue));
 		}
 
 		internal async Task<bool> SetDefaults()
@@ -617,6 +683,11 @@ namespace QA40xPlot.QA430
 					break;
 				case "ConfigImage":
 					// used internally
+					break;
+				case nameof(UsbVoltage):
+				case nameof(OffsetVoltage):
+				case nameof(CurrentSenseLowValue):
+				case nameof(CurrentSenseHiValue):
 					break;
 				default:
 					Debug.WriteLine($"Unknown property change {e.PropertyName}");

@@ -1,4 +1,5 @@
-﻿using static QA40xPlot.QA430.QA430Model;
+﻿using QA40xPlot.Libraries;
+using static QA40xPlot.QA430.QA430Model;
 
 namespace QA40xPlot.QA430
 {
@@ -35,274 +36,6 @@ namespace QA40xPlot.QA430
         {
             await Task.Delay(500);
 		}
-
-        internal static UInt32 ResetOpampPathRelays(UInt32 writeVal)
-        {
-            // Need to clear relays 0..8. That's 9 bits.
-            // We don't want to touch relay 9 and above, as 
-            // these control load, supplies, current sense, 
-            // PSRR.
-            writeVal = writeVal.BitClear(0x1FF);
-            return writeVal;
-        }
-
-        /// <summary>
-        /// 60 dB gain for BW measurement
-        /// </summary>
-        /// <param name="writeVal"></param>
-        /// <returns></returns>
-        internal static UInt32 SetOpampConfig1(UInt32 writeVal)
-        {
-            writeVal = ResetOpampPathRelays(writeVal);
-
-            // Select 4.99 ohm series
-            writeVal = SetNegInput(OpampNegInputs.GndTo4p99, writeVal);
-
-            // Select 4.99K feedback
-            writeVal = SetFeedback(OpampFeedbacks.R4p99k, writeVal);
-
-            // Select no connection between inverting and non-inverting
-            writeVal = SetPosNegConnect(OpampPosNegConnects.Open, writeVal);
-
-            // Selection opamp + input to analyzer
-            writeVal = SetPosInput(OpampPosInputs.Analyzer, writeVal);
-
-            return writeVal;
-        }
-
-        /// <summary>
-        /// 60 dB gain for CMRR measurement
-        /// </summary>
-        /// <param name="writeVal"></param>
-        /// <returns></returns>
-        internal static UInt32 SetOpampConfig2(UInt32 writeVal)
-        {
-            int targetGain = 20;
-
-
-            writeVal = ResetOpampPathRelays(writeVal);
-            if (targetGain == 0)
-            {
-                writeVal = SetFeedback(OpampFeedbacks.Short, writeVal);
-                writeVal = SetNegInput(OpampNegInputs.Open, writeVal); 
-            }
-            else if (targetGain == 20)
-            {
-                writeVal = SetFeedback(OpampFeedbacks.R4p99k, writeVal);
-                writeVal = SetNegInput(OpampNegInputs.GndTo499, writeVal); 
-            }
-            else if (targetGain == 60)
-            {
-                writeVal = SetFeedback(OpampFeedbacks.R4p99k, writeVal);
-                writeVal = SetNegInput(OpampNegInputs.GndTo4p99, writeVal); 
-            }
-            else
-            {
-                // Bad gain
-                throw new Exception("Bad gain in SEtOpampConfig2()");
-            }
-            //writeVal = SetNegInput(OpampNegInputs.GndTo4p99, writeVal); // 60 dB of gain
-            //writeVal = SetNegInput(OpampNegInputs.GndTo499, writeVal);  // 20 dB of gain
-            //writeVal = SetFeedback(OpampFeedback.R4p99k, writeVal);
-            writeVal = SetPosNegConnect(OpampPosNegConnects.Short, writeVal);
-            writeVal = SetPosInput(OpampPosInputs.Analyzer, writeVal);
-            return writeVal;
-        }
-
-        /// <summary>
-        ///  60 dB Gain for Offset and Noise Measurement
-        /// </summary>
-        /// <param name="writeVal"></param>
-        /// <returns></returns>
-        internal static UInt32 SetOpampConfig3a(UInt32 writeVal)
-        {
-            writeVal = ResetOpampPathRelays(writeVal);
-            writeVal = SetNegInput(OpampNegInputs.GndTo4p99, writeVal);
-            writeVal = SetFeedback(OpampFeedbacks.R4p99k, writeVal);
-            writeVal = SetPosNegConnect(OpampPosNegConnects.Open, writeVal);
-            writeVal = SetPosInput(OpampPosInputs.Gnd, writeVal);
-            return writeVal;
-        }
-
-        /// <summary>
-        /// 20 dB Gain for Offset and Noise Measurement
-        /// </summary>
-        /// <param name="writeVal"></param>
-        /// <returns></returns>
-        internal static UInt32 SetOpampConfig3b(UInt32 writeVal)
-        {
-            writeVal = ResetOpampPathRelays(writeVal);
-            writeVal = SetNegInput(OpampNegInputs.GndTo499, writeVal);
-            writeVal = SetFeedback(OpampFeedbacks.R4p99k, writeVal);
-            writeVal = SetPosNegConnect(OpampPosNegConnects.Open, writeVal);
-            writeVal = SetPosInput(OpampPosInputs.Gnd, writeVal);
-            return writeVal;
-        }
-
-        /// <summary>
-        /// 0 dB Gain for Offset and Noise Measurement
-        /// </summary>
-        /// <param name="writeVal"></param>
-        /// <returns></returns>
-        internal static UInt32 SetOpampConfig3c(UInt32 writeVal)
-        {
-            writeVal = ResetOpampPathRelays(writeVal);
-            writeVal = SetNegInput(OpampNegInputs.Open, writeVal);
-            writeVal = SetFeedback(OpampFeedbacks.Short, writeVal);
-            writeVal = SetPosNegConnect(OpampPosNegConnects.Open, writeVal);
-            writeVal = SetPosInput(OpampPosInputs.Gnd, writeVal);
-            return writeVal;
-        }
-
-        /// <summary>
-        /// SigGain = 10, Dist Gain = 10
-        /// </summary>
-        /// <param name="writeVal"></param>
-        /// <returns></returns>
-        internal static UInt32 SetOpampConfig4a(UInt32 writeVal)
-        {
-            writeVal = ResetOpampPathRelays(writeVal);
-            writeVal = SetNegInput(OpampNegInputs.GndTo499, writeVal);
-            writeVal = SetFeedback(OpampFeedbacks.R4p99k, writeVal);
-            writeVal = SetPosNegConnect(OpampPosNegConnects.Open, writeVal);
-            writeVal = SetPosInput(OpampPosInputs.Analyzer, writeVal);
-            return writeVal;
-        }
-
-        /// <summary>
-        /// SigGain = 10, Dist Gain = 110
-        /// </summary>
-        /// <param name="writeVal"></param>
-        /// <returns></returns>
-        internal static UInt32 SetOpampConfig4b(UInt32 writeVal)
-        {
-            writeVal = ResetOpampPathRelays(writeVal);
-            writeVal = SetNegInput(OpampNegInputs.GndTo499, writeVal);
-            writeVal = SetFeedback(OpampFeedbacks.R4p99k, writeVal);
-            writeVal = SetPosNegConnect(OpampPosNegConnects.R49p9, writeVal);
-            writeVal = SetPosInput(OpampPosInputs.Analyzer, writeVal);
-            return writeVal;
-        }
-
-        /// <summary>
-        /// Sig Gain = -10, Dist Gain = 100
-        /// </summary>
-        /// <param name="writeVal"></param>
-        /// <returns></returns>
-        internal static UInt32 SetOpampConfig5a(UInt32 writeVal)
-        {
-            writeVal = ResetOpampPathRelays(writeVal);
-            writeVal = SetNegInput(OpampNegInputs.AnalyzerTo499, writeVal);
-            writeVal = SetFeedback(OpampFeedbacks.R4p99k, writeVal);
-            writeVal = SetPosNegConnect(OpampPosNegConnects.Open, writeVal);
-            writeVal = SetPosInput(OpampPosInputs.Gnd, writeVal);
-            return writeVal;
-        }
-
-        /// <summary>
-        /// Sig Gain = -10, Dist Gain = 110
-        /// </summary>
-        /// <param name="writeVal"></param>
-        /// <returns></returns>
-        internal static UInt32 SetOpampConfig5b(UInt32 writeVal)
-        {
-            writeVal = ResetOpampPathRelays(writeVal);
-            writeVal = SetNegInput(OpampNegInputs.AnalyzerTo499, writeVal);
-            writeVal = SetFeedback(OpampFeedbacks.R4p99k, writeVal);
-            writeVal = SetPosNegConnect(OpampPosNegConnects.R49p9, writeVal);
-            writeVal = SetPosInput(OpampPosInputs.Gnd, writeVal);
-            return writeVal;
-        }
-
-        /// <summary>
-        /// Sig gain = 1, distortion gain = 1
-        /// </summary>
-        /// <param name="writeVal"></param>
-        /// <returns></returns>
-        internal static UInt32 SetOpampConfig6a(UInt32 writeVal)
-        {
-            writeVal = ResetOpampPathRelays(writeVal);
-            writeVal = SetNegInput(OpampNegInputs.Open, writeVal);
-            writeVal = SetFeedback(OpampFeedbacks.R4p99k, writeVal);
-            writeVal = SetPosNegConnect(OpampPosNegConnects.Open, writeVal);
-            writeVal = SetPosInput(OpampPosInputs.Analyzer, writeVal);
-            return writeVal;
-        }
-
-        /// <summary>
-        /// Sig gain = 1, distortion gain = 101
-        /// </summary>
-        /// <param name="writeVal"></param>
-        /// <returns></returns>
-        internal static UInt32 SetOpampConfig6b(UInt32 writeVal)
-        {
-            writeVal = ResetOpampPathRelays(writeVal);
-            writeVal = SetNegInput(OpampNegInputs.Open, writeVal);
-            writeVal = SetFeedback(OpampFeedbacks.R4p99k, writeVal);
-            writeVal = SetPosNegConnect(OpampPosNegConnects.R49p9, writeVal);
-            writeVal = SetPosInput(OpampPosInputs.Analyzer, writeVal);
-            return writeVal;
-        }
-
-        /// <summary>
-        /// Sig gain = 1, distortion gain = 1
-        /// </summary>
-        /// <param name="writeVal"></param>
-        /// <returns></returns>
-        internal static UInt32 SetOpampConfig7a(UInt32 writeVal)
-        {
-            writeVal = ResetOpampPathRelays(writeVal);
-            writeVal = SetNegInput(OpampNegInputs.AnalyzerTo4p99k, writeVal);
-            writeVal = SetFeedback(OpampFeedbacks.R4p99k, writeVal);
-            writeVal = SetPosNegConnect(OpampPosNegConnects.Open, writeVal);
-            writeVal = SetPosInput(OpampPosInputs.Gnd, writeVal);
-            return writeVal;
-        }
-
-        /// <summary>
-        /// Sig gain = 1, distortion gain = 101
-        /// </summary>
-        /// <param name="writeVal"></param>
-        /// <returns></returns>
-        internal static UInt32 SetOpampConfig7b(UInt32 writeVal)
-        {
-            writeVal = ResetOpampPathRelays(writeVal);
-            writeVal = SetNegInput(OpampNegInputs.AnalyzerTo4p99k, writeVal);
-            writeVal = SetFeedback(OpampFeedbacks.R4p99k, writeVal);
-            writeVal = SetPosNegConnect(OpampPosNegConnects.R49p9, writeVal);
-            writeVal = SetPosInput(OpampPosInputs.Gnd, writeVal);
-            return writeVal;
-        }
-
-        /// <summary>
-        /// Input Linearity and Noise
-        /// </summary>
-        /// <param name="writeVal"></param>
-        /// <returns></returns>
-        internal static UInt32 SetOpampConfig8a(UInt32 writeVal)
-        {
-            writeVal = ResetOpampPathRelays(writeVal);
-            writeVal = SetNegInput(OpampNegInputs.Open, writeVal);
-            writeVal = SetFeedback(OpampFeedbacks.Short, writeVal);
-            writeVal = SetPosNegConnect(OpampPosNegConnects.Open, writeVal);
-            writeVal = SetPosInput(OpampPosInputs.Analyzer, writeVal);
-            return writeVal;
-        }
-
-        /// <summary>
-        /// Input Linearity and Noise
-        /// </summary>
-        /// <param name="writeVal"></param>
-        /// <returns></returns>
-        internal static UInt32 SetOpampConfig8b(UInt32 writeVal)
-        {
-            writeVal = ResetOpampPathRelays(writeVal);
-            writeVal = SetNegInput(OpampNegInputs.Open, writeVal);
-            writeVal = SetFeedback(OpampFeedbacks.Short, writeVal);
-            writeVal = SetPosNegConnect(OpampPosNegConnects.Open, writeVal);
-            writeVal = SetPosInput(OpampPosInputs.AnalyzerTo100k, writeVal);
-            return writeVal;
-        }
 
         //internal static UInt32 SetPSRRInputToGround(UInt32 writeVal)
         //{
@@ -681,5 +414,26 @@ namespace QA40xPlot.QA430
 
             throw new Exception("Unexpected value in GetLoadImpedance()");
         }
-    }
+
+		static internal double GetHiSideSupplyCurrent()
+		{
+			return Qa430Usb.Singleton.ReadRegister(17) / 1000000.0;
+		}
+
+		static internal double GetLowSideSupplyCurrent()
+		{
+			return Qa430Usb.Singleton.ReadRegister(18) / 1000000.0;
+		}
+
+		static internal double GetOffsetVoltage()
+		{
+			return Qa430Usb.Singleton.ReadRegister(19) / 1000000.0;
+		}
+
+		static internal double GetUsbVoltage()
+		{
+			return Qa430Usb.Singleton.ReadRegister(20) / 1000.0;
+		}
+
+	}
 }
