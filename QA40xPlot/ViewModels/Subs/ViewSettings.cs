@@ -73,7 +73,7 @@ namespace QA40xPlot.ViewModels
 			Util.GetPropertiesFrom(vws,"ThdFreq",ThdFreq);
 			Util.GetPropertiesFrom(vws,"FreqRespVm",FreqRespVm);
 			Util.GetPropertiesFrom(vws,"ScopeVm", ScopeVm);
-			Util.GetPropertiesFrom(vws, "Main", MainVm);
+			Util.GetPropertiesFrom(vws, "MainVm", MainVm);
 			Util.GetPropertiesFrom(vws, "SettingsVm", SettingsVm);	// this will update global settings last which makes sense
 		}
 

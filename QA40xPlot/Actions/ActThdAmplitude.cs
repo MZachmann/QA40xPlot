@@ -559,22 +559,6 @@ namespace QA40xPlot.Actions
 			await showMessage("Finished");
 		}
 
-		private double SafeLog(double? din)
-		{
-			if (din == null || din == 0)
-				return -9;
-			return Math.Log10((double)din);
-		}
-
-		/// <summary>
-		/// Clear the plot
-		/// </summary>
-		void ClearPlot()
-		{
-			thdPlot.ThePlot.Clear();
-			thdPlot.Refresh();
-		}
-
 		private string SetPlotLabels()
 		{
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;

@@ -231,7 +231,7 @@ namespace QA40xPlot.QA430
 			while (await RefreshTimer.WaitForNextTickAsync())
 			{
 				// Place function in here..
-				if(RefreshTaskCancel) 
+				if (RefreshTaskCancel)
 					break;
 				RefreshVars();
 			}
