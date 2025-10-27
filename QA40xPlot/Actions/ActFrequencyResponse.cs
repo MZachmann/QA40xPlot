@@ -9,7 +9,6 @@ using ScottPlot.Plottables;
 using System.Data;
 using System.Numerics;
 using System.Windows;
-using System.Windows.Controls;
 using static QA40xPlot.ViewModels.BaseViewModel;
 
 

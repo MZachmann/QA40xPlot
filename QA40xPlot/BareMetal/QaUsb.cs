@@ -78,7 +78,7 @@ namespace QA40x.BareMetal
 		static SemaphoreSlim AcqSemaphore = new SemaphoreSlim(1);
 
 		readonly int RegReadWriteTimeout = 20;
-        readonly int MainI2SReadWriteTimeout = 2000;
+        readonly int MainI2SReadWriteTimeout = 1000; // per baremetal
 
         public byte[] CalData { get; private set; } = []; // readonly
         public (double, double)[] FCalData { get; private set; } = []; // readonly

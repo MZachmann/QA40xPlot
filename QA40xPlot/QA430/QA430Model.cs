@@ -331,6 +331,7 @@ namespace QA40xPlot.QA430
 				OpampPosInput = (short)OpampPosInputs.Analyzer;
 				OpampFeedback = (short)OpampFeedbacks.R4p99k;
 				OpampPosNegConnect = (short)OpampPosNegConnects.Open;
+				UseFixedRails = true;	// not using this is just painful, so...
 				// don't allow analyzer to drive rails
 				PsrrOption = (short)PsrrOptions.BothPsrrInputsGrounded;
 				LoadOption = (short)LoadOptions.Open;

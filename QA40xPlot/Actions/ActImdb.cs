@@ -800,6 +800,28 @@ namespace QA40xPlot.Actions
 			return resultNr;
 		}
 
+		// given a view model determine what color to border the data summary box
+		// so it matches the plot line color
+		private void SetVmColor(ImdChannelViewModel vm, int index)
+		{
+			var srcTab = OtherTabs.Find(item => item.GetProperty("Left") == vm);
+			string clr = "Transparent";
+			if (srcTab != null)
+			{
+				clr = srcTab.Definition.LeftColor;
+			}
+			else
+			{
+				srcTab = OtherTabs.Find(item => item.GetProperty("Right") == vm);
+				if (srcTab != null)
+				{
+					clr = srcTab.Definition.RightColor;
+				}
+			}
+			var scottClr = GraphUtil.GetPaletteColor(clr, index);
+			vm.BorderColor = new System.Windows.Media.SolidColorBrush(PlotUtil.ScottToMedia(scottClr));
+		}
+
 		private void ShowPageInfo(MyDataTab page)
 		{
 			List<ImdChannelViewModel?> channels = new();
@@ -836,8 +858,8 @@ namespace QA40xPlot.Actions
 					var mdl = seen[0];
 					if (mdl != null)
 					{
+						SetVmColor(mdl, channels.Count);
 						channels.Add(mdl);
-						mdl.BorderColor = System.Windows.Media.Brushes.DarkGreen;
 					}
 				}
 				if (channels.Count < 2 && seen.Count > 1)
@@ -845,8 +867,8 @@ namespace QA40xPlot.Actions
 					var mdl = seen[1];
 					if (mdl != null)
 					{
+						SetVmColor(mdl, channels.Count);
 						channels.Add(mdl);
-						mdl.BorderColor = System.Windows.Media.Brushes.DarkOrange;
 					}
 				}
 			}

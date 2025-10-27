@@ -5,6 +5,30 @@
 		/// <summary>
 		/// find the shown Left,Right properties in the datatab list
 		/// </summary>
+		/// <typeparam name="T">type of datatab</typeparam>
+		/// <typeparam name="U">result type/viewmodel type</typeparam>
+		/// <param name="tabs">list of other tabs</param>
+		/// <returns>tabs that are enabled</returns>
+		public static List<DataTab<T>> FindShown<T>(List<DataTab<T>> tabs)
+		{
+			List<DataTab<T>> result = new();
+			foreach (var t in tabs)
+			{
+				if (t.Definition.IsOnL)
+				{
+					result.Add(t);
+				}
+				else if (t.Definition.IsOnR)
+				{
+					result.Add(t);
+				}
+			}
+			return result;
+		}
+
+		/// <summary>
+		/// find the shown Left,Right properties in the datatab list
+		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <typeparam name="U"></typeparam>
 		/// <param name="tabs"></param>

@@ -5,6 +5,7 @@ using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
+using System.Threading.Channels;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
 
@@ -182,6 +183,26 @@ namespace QA40xPlot.Actions
 			return dout; // return the generated waveform
 		}
 
+		private void SetVmColor(ThdChannelViewModel vm, int index)
+		{
+			var srcTab = OtherTabs.Find(item => item.GetProperty("Left") == vm);
+			string clr = "Transparent";
+			if (srcTab != null)
+			{
+				clr = srcTab.Definition.LeftColor;
+			}
+			else
+			{
+				srcTab = OtherTabs.Find(item => item.GetProperty("Right") == vm);
+				if (srcTab != null)
+				{
+					clr = srcTab.Definition.RightColor;
+				}
+			}
+			var scottClr = GraphUtil.GetPaletteColor(clr, index);
+			vm.BorderColor = new System.Windows.Media.SolidColorBrush(PlotUtil.ScottToMedia(scottClr));
+		}
+
 		private void ShowPageInfo(MyDataTab page)
 		{
 			List<ThdChannelViewModel?> channels = new();
@@ -219,8 +240,8 @@ namespace QA40xPlot.Actions
 					var mdl = seen[0];
 					if(mdl != null)
 					{
+						SetVmColor(mdl, channels.Count);
 						channels.Add(mdl);
-						mdl.BorderColor = System.Windows.Media.Brushes.DarkGreen;
 					}
 				}
 				if (channels.Count < 2 && seen.Count > 1)
@@ -228,8 +249,8 @@ namespace QA40xPlot.Actions
 					var mdl = seen[1];
 					if (mdl != null)
 					{
+						SetVmColor(mdl, channels.Count);
 						channels.Add(mdl);
-						mdl.BorderColor = System.Windows.Media.Brushes.DarkOrange;
 					}
 				}
 			}
@@ -892,7 +913,7 @@ namespace QA40xPlot.Actions
 
 				Scatter plotLeft = myPlot.Add.Scatter(keepFreqs, leftdBV);
 				plotLeft.LineWidth = lineWidth;
-				plotLeft.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, 2 * measurementNr); // zero is bad
+				plotLeft.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, 2 * measurementNr);
 				plotLeft.MarkerSize = 1;
 				plotLeft.LegendText = isMain ? "Left" : ClipName(page.Definition.Name) + ".L";
 			}

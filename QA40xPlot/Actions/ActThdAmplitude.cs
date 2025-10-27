@@ -432,8 +432,9 @@ namespace QA40xPlot.Actions
 			await QaComm.SetSampleRate(vm.SampleRateVal);
 			await QaComm.SetFftSize(vm.FftSizeVal);
 			await QaComm.SetWindowing(vm.WindowingMethod);
-			await QaComm.SetInputRange(6);  // set the input range to 6dB for low noise but some resistance to V
-					// this only applies for the noise measurement
+				// set the input range to 0dB for low noise
+				// this only applies for the noise measurement
+			await QaComm.SetInputRange(0);  
 
 			// ********************************************************************
 			// Do noise floor measurement

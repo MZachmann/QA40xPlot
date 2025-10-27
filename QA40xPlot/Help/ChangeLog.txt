@@ -2,6 +2,12 @@
 --------------------------------------------
 This changelog shows the changes made for each version
 --------------------------------------------
+v 1.1.36
+- better reflect the line color to data box for gotten data
+- calculate amplitude sweep noise floor using 0 attenuator instead of 6
+v 1.1.35
+- fix the fail to load window rect
+- add click-to-image for qa430 config
 v 1.1.34
 - add the 4 sense outputs to QA430 info
 v 1.1.33
