@@ -152,6 +152,7 @@ namespace QA40xPlot.Libraries
 					page.NoiseFloorC = jsonObject.NoiseFloorC;
 					page.Definition = jsonObject.Definition;
 					page.TimeRslt = jsonObject.TimeRslt;
+					page.SweepSteps = jsonObject.SweepSteps;
 					page.Sweep = jsonObject.Sweep;
 					if (page.ViewModel != null)
 						jsonObject.ViewModel.CopyPropertiesTo(page.ViewModel);

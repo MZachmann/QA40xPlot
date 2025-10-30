@@ -83,9 +83,9 @@ namespace QA40xPlot
 			}
 			InitializeComponent();
 			var vm = ViewModels.ViewSettings.Singleton.MainVm;
+			vm.ScreenDpi = TestGetDpi();
 			this.DataContext = vm;
 			vm.ProgressMessage = "Welcome to QA40xPlot v" + GetVersionInfo() + fload;
-			vm.ScreenDpi = TestGetDpi();
 			this.ContentRendered += DoContentRendered;
 		}
 

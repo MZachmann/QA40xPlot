@@ -3,6 +3,7 @@ using QA40xPlot.ViewModels;
 using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Numerics;
+using QA40xPlot.QA430;
 
 namespace QA40xPlot.Data
 {
@@ -117,6 +118,11 @@ namespace QA40xPlot.Data
 		public double[] RawRight { get; set; } = [];  // columnar data for sweeps
 	}
 
+	public class SweepStepList
+	{ 
+		public AcquireStep[] Steps { get; set; } = [];
+	}
+
 	// our way of storing results (pages) in our Document. Each datatab has
 	// a viewmodel, a time series and a dictionary of other properties
 	public class DataTab<T>
@@ -130,8 +136,9 @@ namespace QA40xPlot.Data
 		public LeftRightPair NoiseFloorA { get; set; } = new();      // if we have the noise floor measurement we just need to retain the scalars
 		public LeftRightPair NoiseFloorC { get; set; } = new();      // if we have the noise floor measurement we just need to retain the scalars
 																	 // for sweeps
-		public SweepData Sweep { get; set; } = new();           // X values, freq or time or amplitude...
-		// this is just a load/save object that converts TimeRslt doubles into longs for saving exactly
+		public SweepData Sweep { get; set; } = new();				// X values, freq or time or amplitude...
+		public SweepStepList SweepSteps { get; set; } = new();		// qa430 configuration list
+																	// this is just a load/save object that converts TimeRslt doubles into longs for saving exactly
 		public LeftRightTimeSaver? TimeSaver { get; set; } = null; // the time series, if any
 		// this is just a load/save object that converts FreqRslt doubles into longs for saving exactly
 		public LeftRightFreqSaver? FreqSaver { get; set; } = null; // the time series, if any
@@ -144,10 +151,17 @@ namespace QA40xPlot.Data
 		public int Show { get; set; }        // Show in graph 0 = none, 1 = left, 2 = right, 3 = both
 		[JsonIgnore]
 		public int Id { get; set; } // the generator, if any
+
 		[JsonIgnore]
 		public LeftRightFrequencySeries? FreqRslt { 
 			get { return GetProperty<LeftRightFrequencySeries>("FFT"); }
 			set { SetProperty("FFT", value); }
+		}
+		[JsonIgnore]
+		public LeftRightFrequencySeries? NoiseRslt
+		{
+			get { return GetProperty<LeftRightFrequencySeries>("Noise"); }
+			set { SetProperty("Noise", value); }
 		}
 		[JsonIgnore]
 		public Complex[] GainData { 

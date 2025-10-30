@@ -10,10 +10,57 @@ using System.Diagnostics;
 using System.Threading;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using static QA40xPlot.QA430.QA430Model;
 
 namespace QA40xPlot.QA430
 {
-	internal class QA430Model : FloorViewModel
+	internal struct QA430Config
+	{
+		public readonly OpampNegInputs CfgNegInput;
+		public readonly OpampPosInputs CfgPosInput;
+		public readonly OpampPosNegConnects CfgPosNegConnect;
+		public readonly OpampFeedbacks CfgFeedback;
+		public readonly int CfgGain = 1;
+		public readonly int CfgDistgain = 1;
+		public readonly string Name;
+		public QA430Config(string name, OpampNegInputs ni, OpampPosInputs pi, OpampPosNegConnects pnc, OpampFeedbacks fb, int gain, int distgain)
+		{
+			Name = name;
+			CfgNegInput = ni;
+			CfgPosInput = pi;
+			CfgPosNegConnect = pnc;
+			CfgFeedback = fb;
+			CfgGain = gain;
+			CfgDistgain = distgain;
+		}
+	}
+
+	// cfg,load,supply are used to set the QA430 for acquisition steps
+	// Gain, Distgain are just passed to the app for internal math 
+	public struct AcquireStep
+	{
+		public string Cfg;      // configuration name
+		public LoadOptions Load; // load option
+		public int Gain;        // signal gain for use by app
+		public int Distgain;    // distortion gain for use by app
+		public double Supply;   // supply voltage
+
+		public AcquireStep(AcquireStep asIn) 
+		{
+			Cfg = asIn.Cfg;
+			Load = asIn.Load;
+			Gain = asIn.Gain;
+			Distgain = asIn.Distgain;
+			Supply = asIn.Supply;
+		}
+
+		public string ToSuffix()
+		{
+			return $"{Load}_G{Gain}_S{Supply}";
+		}
+	};
+
+	public class QA430Model : FloorViewModel
 	{
 		const int RelayRegister = 5;
 
@@ -22,7 +69,7 @@ namespace QA40xPlot.QA430
 		internal enum OpampPosInputs : ushort { Analyzer, Gnd, AnalyzerTo100k }
 		internal enum OpampPosNegConnects : ushort { Open, R49p9, Short }
 		internal enum OpampFeedbacks : ushort { Short, R4p99k }
-		internal enum LoadOptions : ushort { Open, R2000, R604, R470 }
+		public enum LoadOptions : ushort { Open, R2000, R604, R470 }
 		internal enum PsrrOptions : ushort { BothPsrrInputsGrounded, HiRailToAnalyzer, LowRailToAnalyzer, BothRailsToAnalyzer }
 		internal enum OpampConfigOptions : ushort { Custom, Config1, Config2, Config3a, Config3b, Config3c, Config4a, Config4b, Config5a, Config5b, Config6a, Config6b, Config7a, Config7b, Config8a, Config8b };
 		// also
@@ -42,8 +89,44 @@ namespace QA40xPlot.QA430
 		public static List<string> NegRailVoltages { get; } = new() { "-1", "-2", "-5", "-10", "-12", "-14.4" };
 		public static List<string> ConfigOptions { get; } = Enum.GetNames(typeof(OpampConfigOptions)).ToList();
 
-		private Task RefreshTask;
+		private readonly Task RefreshTask;
 		private bool RefreshTaskCancel = false;
+
+		static readonly QA430Config C1 = new QA430Config("Config1", OpampNegInputs.GndTo4p99, OpampPosInputs.Analyzer, 
+					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, 0, 0);
+		static readonly QA430Config C2a = new QA430Config("Config2a", OpampNegInputs.Open, OpampPosInputs.Analyzer,
+					OpampPosNegConnects.Short, OpampFeedbacks.Short, 0, 0);
+		static readonly QA430Config C2b = new QA430Config("Config2b", OpampNegInputs.GndTo499, OpampPosInputs.Analyzer,
+					OpampPosNegConnects.Short, OpampFeedbacks.R4p99k, 0, 0);
+		static readonly QA430Config C2c = new QA430Config("Config2", OpampNegInputs.GndTo4p99, OpampPosInputs.Analyzer,
+					OpampPosNegConnects.Short, OpampFeedbacks.R4p99k, 0, 0);	// note the Config2 name
+		static readonly QA430Config C3a = new QA430Config("Config3a", OpampNegInputs.GndTo4p99, OpampPosInputs.Gnd,
+					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, 0, 0);
+		static readonly QA430Config C3b = new QA430Config("Config3b", OpampNegInputs.GndTo499, OpampPosInputs.Gnd,
+					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, 0, 0);
+		static readonly QA430Config C3c = new QA430Config("Config3c", OpampNegInputs.Open, OpampPosInputs.Gnd,
+					OpampPosNegConnects.Open, OpampFeedbacks.Short, 0, 0);
+		static readonly QA430Config C4a = new QA430Config("Config4a", OpampNegInputs.GndTo499, OpampPosInputs.Analyzer,
+					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, 10, 10);
+		static readonly QA430Config C4b = new QA430Config("Config4b", OpampNegInputs.GndTo499, OpampPosInputs.Analyzer,
+					OpampPosNegConnects.R49p9, OpampFeedbacks.R4p99k, 10, 110);
+		static readonly QA430Config C5a = new QA430Config("Config5a", OpampNegInputs.AnalyzerTo499, OpampPosInputs.Gnd,
+					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, -10, 10);
+		static readonly QA430Config C5b = new QA430Config("Config5b", OpampNegInputs.AnalyzerTo499, OpampPosInputs.Gnd,
+					OpampPosNegConnects.R49p9, OpampFeedbacks.R4p99k, -10, 110 );
+		static readonly QA430Config C6a = new QA430Config("Config6a", OpampNegInputs.Open, OpampPosInputs.Analyzer, 
+					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, 1, 1);
+		static readonly QA430Config C6b = new QA430Config("Config6b", OpampNegInputs.Open, OpampPosInputs.Analyzer,
+					OpampPosNegConnects.R49p9, OpampFeedbacks.R4p99k, 1, 101);
+		static readonly QA430Config C7a = new QA430Config("Config7a", OpampNegInputs.AnalyzerTo4p99k, OpampPosInputs.Gnd,
+					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, -1, 1);
+		static readonly QA430Config C7b = new QA430Config("Config7b", OpampNegInputs.AnalyzerTo4p99k, OpampPosInputs.Gnd,
+					OpampPosNegConnects.R49p9, OpampFeedbacks.R4p99k, -1, 101);
+		static readonly QA430Config C8a = new QA430Config("Config8a", OpampNegInputs.Open, OpampPosInputs.Analyzer,
+					OpampPosNegConnects.Open, OpampFeedbacks.Short, 0, 0);
+		static readonly QA430Config C8b = new QA430Config("Config8b", OpampNegInputs.Open, OpampPosInputs.AnalyzerTo100k,
+					OpampPosNegConnects.Open, OpampFeedbacks.Short, 0, 0);
+		QA430Config[] AllConfigs = new QA430Config[] { C1, C2a, C2b, C2c, C3a, C3b, C3c, C4a, C4b, C5a, C5b, C6a, C6b, C7a, C7b, C8a, C8b };
 
 		#region Properties
 
@@ -279,6 +362,8 @@ namespace QA40xPlot.QA430
 					uu.Show();
 					model.MyWindow = uu;
 					ViewSettings.Singleton.MainVm.HasQA430 = true;
+					// default to 6a and set the dialog display after rendering
+					uu.ContentRendered += (s, e) => { model.OpampConfigOption = (short)OpampConfigOptions.Config6a; };
 				}
 			}
 
@@ -290,14 +375,19 @@ namespace QA40xPlot.QA430
 
 		internal static void EndQA430Op()
 		{
+			// close the usb connection
 			var qausb = QA430.Qa430Usb.Singleton;
-			qausb?.Close(true);
-			if (qausb?.QAModel.MyWindow != null)
+			if(qausb == null)
+				return;
+			qausb.Close(true);
+			// close and clear the window if it exists
+			var wnd = qausb.QAModel.MyWindow;
+			if (wnd != null)
 			{
-				qausb.QAModel.MyWindow.AllowClose = true;
-				qausb.QAModel.MyWindow.Close();
-				qausb.QAModel.MyWindow = null;
+				wnd.AllowClose = true;
+				wnd.Close();
 			}
+			qausb.QAModel.MyWindow = null;
 		}
 
 		/// <summary>
@@ -371,219 +461,88 @@ namespace QA40xPlot.QA430
 			ShowRegisters("SetConfiguration"); // for debugging write register configuration
 		}
 
-		/// <summary>
-		/// 60 dB gain for BW measurement
-		/// </summary>
-		/// <param name="writeVal"></param>
-		/// <returns></returns>
-		internal void SetOpampConfig1()
+		public LoadOptions FindLoad(int Loadval)
 		{
-			// Select 4.99 ohm series
-			SetConfiguration(OpampNegInputs.GndTo4p99,
-						OpampFeedbacks.R4p99k,
-						OpampPosNegConnects.Open,
-						OpampPosInputs.Analyzer);
-		}
-
-		/// <summary>
-		/// 60 dB gain for CMRR measurement
-		/// </summary>
-		/// <param name="writeVal"></param>
-		/// <returns></returns>
-		internal void SetOpampConfig2()
-		{
-			int targetGain = 20;
-			if (targetGain == 0)
+			switch (Loadval)
 			{
-				OpampFeedback = (short)OpampFeedbacks.Short;
-				OpampNegInput = (short)OpampNegInputs.Open;
+				default:
+					Debug.WriteLine($"Unknown load value {Loadval}, defaulting to Open");
+					return LoadOptions.Open;
+				case 1000000:
+					return LoadOptions.Open;
+				case 2000:
+					return LoadOptions.R2000;
+				case 604:
+					return LoadOptions.R604;
+				case 470:
+					return LoadOptions.R470;
 			}
-			else if (targetGain == 20)
+		}
+
+		public List<AcquireStep> ExpandLoadOptions(List<AcquireStep> srcSteps)
+		{
+			List<AcquireStep> newSteps = new List<AcquireStep>();
+			foreach (var step in srcSteps)
 			{
-				OpampFeedback = (short)OpampFeedbacks.R4p99k;
-				OpampNegInput = (short)OpampNegInputs.GndTo499;
+				var ldo = Enum.GetValues(typeof(LoadOptions)).Cast<LoadOptions>().ToList();
+				foreach (var ldoopt in ldo)
+				{
+					var stp = new AcquireStep(step);
+					stp.Load = ldoopt;
+					newSteps.Add(stp);
+				}
 			}
-			else if (targetGain == 60)
+			return newSteps;
+		}
+
+		public List<AcquireStep> ExpandGainOptions(List<AcquireStep> srcSteps)
+		{
+			List<AcquireStep> newSteps = new List<AcquireStep>();
+			foreach (var step in srcSteps)
 			{
-				OpampFeedback = (short)OpampFeedbacks.R4p99k;
-				OpampNegInput = (short)OpampNegInputs.GndTo4p99;
+				string[] ldo = ["Config6b", "Config7b", "Config4b", "Config5b"];
+				foreach (var ldoopt in ldo)
+				{
+					QA430Model? model430 = Qa430Usb.Singleton?.QAModel;
+					var config = model430?.FindOpampConfig(ldoopt);
+					var stp = new AcquireStep(step);
+					stp.Cfg = ldoopt;
+					stp.Gain = config?.CfgGain ?? 1;
+					stp.Distgain = config?.CfgDistgain ?? 1;
+					newSteps.Add(stp);
+				}
 			}
-			else
+			return newSteps;
+		}
+
+		public List<AcquireStep> ExpandSupplyOptions(List<AcquireStep> srcSteps)
+		{
+			List<AcquireStep> newSteps = new List<AcquireStep>();
+			foreach (var step in srcSteps)
 			{
-				// Bad gain
-				throw new Exception("Bad gain in SEtOpampConfig2()");
+				int[] supp = [1, 2, 5, 10, 15];
+				foreach (var supplyOpt in supp)
+				{
+					var stp = new AcquireStep(step);
+					stp.Supply = supplyOpt;
+					newSteps.Add(stp);
+				}
 			}
-			OpampPosNegConnect = (short)OpampPosNegConnects.Short;
-			OpampPosInput = (short)OpampPosInputs.Analyzer;
+			return newSteps;
 		}
 
-		/// <summary>
-		///  60 dB Gain for Offset and Noise Measurement
-		/// </summary>
-		/// <param name="writeVal"></param>
-		/// <returns></returns>
-		internal void SetOpampConfig3a()
+		public void SetOpampConfig(string configName)
 		{
-			SetConfiguration( OpampNegInputs.GndTo4p99,
-						OpampFeedbacks.R4p99k,
-						OpampPosNegConnects.Open,
-						OpampPosInputs.Gnd);
+			var config = FindOpampConfig(configName);
+			SetConfiguration(config.CfgNegInput, config.CfgFeedback, config.CfgPosNegConnect, config.CfgPosInput);
+			// setting configuration sets to custom so fix the image display
+			OpampConfigOption = (short)Math.Max(0, ConfigOptions.IndexOf(configName));
 		}
 
-		/// <summary>
-		/// 20 dB Gain for Offset and Noise Measurement
-		/// </summary>
-		/// <param name="writeVal"></param>
-		/// <returns></returns>
-		internal void SetOpampConfig3b()
+		internal QA430Config FindOpampConfig(string configName)
 		{
-			SetConfiguration( OpampNegInputs.GndTo499,
-						OpampFeedbacks.R4p99k,
-						OpampPosNegConnects.Open,
-						OpampPosInputs.Gnd);
-		}
-
-		/// <summary>
-		/// 0 dB Gain for Offset and Noise Measurement
-		/// </summary>
-		/// <param name="writeVal"></param>
-		/// <returns></returns>
-		internal void SetOpampConfig3c()
-		{
-			SetConfiguration(OpampNegInputs.Open,
-						OpampFeedbacks.Short,
-						OpampPosNegConnects.Open,
-						OpampPosInputs.Gnd);
-		}
-
-		/// <summary>
-		/// SigGain = 10, Dist Gain = 10
-		/// </summary>
-		/// <param name="writeVal"></param>
-		/// <returns></returns>
-		internal void SetOpampConfig4a()
-		{
-			SetConfiguration(OpampNegInputs.GndTo499,
-						OpampFeedbacks.R4p99k,
-						OpampPosNegConnects.Open,
-						OpampPosInputs.Analyzer);
-		}
-
-		/// <summary>
-		/// SigGain = 10, Dist Gain = 110
-		/// </summary>
-		/// <param name="writeVal"></param>
-		/// <returns></returns>
-		internal void SetOpampConfig4b()
-		{
-			SetConfiguration(OpampNegInputs.GndTo499,
-						OpampFeedbacks.R4p99k,
-						OpampPosNegConnects.R49p9,
-						OpampPosInputs.Analyzer);
-		}
-
-		/// <summary>
-		/// Sig Gain = -10, Dist Gain = 100
-		/// </summary>
-		/// <param name="writeVal"></param>
-		/// <returns></returns>
-		internal void SetOpampConfig5a()
-		{
-			SetConfiguration(OpampNegInputs.AnalyzerTo499,
-						OpampFeedbacks.R4p99k,
-						OpampPosNegConnects.Open,
-						OpampPosInputs.Gnd);
-		}
-
-		/// <summary>
-		/// Sig Gain = -10, Dist Gain = 110
-		/// </summary>
-		/// <param name="writeVal"></param>
-		/// <returns></returns>
-		internal void SetOpampConfig5b()
-		{
-			SetConfiguration(OpampNegInputs.AnalyzerTo499,
-						OpampFeedbacks.R4p99k,
-						OpampPosNegConnects.R49p9,
-						OpampPosInputs.Gnd);
-		}
-
-		/// <summary>
-		/// Sig gain = 1, distortion gain = 1
-		/// </summary>
-		/// <param name="writeVal"></param>
-		/// <returns></returns>
-		internal void SetOpampConfig6a()
-		{
-			SetConfiguration(OpampNegInputs.Open,
-						OpampFeedbacks.R4p99k,
-						OpampPosNegConnects.Open,
-						OpampPosInputs.Analyzer);
-		}
-
-		/// <summary>
-		/// Sig gain = 1, distortion gain = 101
-		/// </summary>
-		/// <param name="writeVal"></param>
-		/// <returns></returns>
-		internal void SetOpampConfig6b()
-		{
-			SetConfiguration(OpampNegInputs.Open,
-						OpampFeedbacks.R4p99k,
-						OpampPosNegConnects.R49p9,
-						OpampPosInputs.Analyzer);
-		}
-
-		/// <summary>
-		/// Sig gain = 1, distortion gain = 1
-		/// </summary>
-		/// <param name="writeVal"></param>
-		/// <returns></returns>
-		internal void SetOpampConfig7a()
-		{
-			SetConfiguration(OpampNegInputs.AnalyzerTo4p99k,
-						OpampFeedbacks.R4p99k,
-						OpampPosNegConnects.Open,
-						OpampPosInputs.Gnd);
-		}
-
-		/// <summary>
-		/// Sig gain = 1, distortion gain = 101
-		/// </summary>
-		/// <param name="writeVal"></param>
-		/// <returns></returns>
-		internal void SetOpampConfig7b()
-		{
-			SetConfiguration(OpampNegInputs.AnalyzerTo4p99k,
-						OpampFeedbacks.R4p99k,
-						OpampPosNegConnects.R49p9,
-						OpampPosInputs.Gnd);
-		}
-
-		/// <summary>
-		/// Input Linearity and Noise
-		/// </summary>
-		/// <param name="writeVal"></param>
-		/// <returns></returns>
-		internal void SetOpampConfig8a()
-		{
-			SetConfiguration(OpampNegInputs.Open,
-						OpampFeedbacks.Short,
-						OpampPosNegConnects.Open,
-						OpampPosInputs.Analyzer);
-		}
-
-		/// <summary>
-		/// Input Linearity and Noise
-		/// </summary>
-		/// <param name="writeVal"></param>
-		/// <returns></returns>
-		internal void SetOpampConfig8b()
-		{
-			SetConfiguration(OpampNegInputs.Open,
-						OpampFeedbacks.Short,
-						OpampPosNegConnects.R49p9,
-						OpampPosInputs.Analyzer);
+			var config = AllConfigs.FirstOrDefault(c => c.Name == configName);
+			return config;
 		}
 
 		internal void ExecConfiguration(short iId)
@@ -591,49 +550,49 @@ namespace QA40xPlot.QA430
 			switch (iId)
 			{
 				case (short)OpampConfigOptions.Config1:
-					SetOpampConfig1();
+					SetOpampConfig("Config1");
 					break;
 				case (short)OpampConfigOptions.Config2:
-					SetOpampConfig2();
+					SetOpampConfig("Config2");	// 60db variant
 					break;
 				case (short)OpampConfigOptions.Config3a:
-					SetOpampConfig3a();
+					SetOpampConfig("Config3a");
 					break;
 				case (short)OpampConfigOptions.Config3b:
-					SetOpampConfig3b();
+					SetOpampConfig("Config3b");
 					break;
 				case (short)OpampConfigOptions.Config3c:
-					SetOpampConfig3c();
+					SetOpampConfig("Config3c");
 					break;
 				case (short)OpampConfigOptions.Config4a:
-					SetOpampConfig4a();
+					SetOpampConfig("Config4a");
 					break;
 				case (short)OpampConfigOptions.Config4b:
-					SetOpampConfig4b();
+					SetOpampConfig("Config4b");
 					break;
 				case (short)OpampConfigOptions.Config5a:
-					SetOpampConfig5a();
+					SetOpampConfig("Config5a");
 					break;
 				case (short)OpampConfigOptions.Config5b:
-					SetOpampConfig5b();
+					SetOpampConfig("Config5b");
 					break;
 				case (short)OpampConfigOptions.Config6a:
-					SetOpampConfig6a();
+					SetOpampConfig("Config6a");
 					break;
 				case (short)OpampConfigOptions.Config6b:
-					SetOpampConfig6b();
+					SetOpampConfig("Config6b");
 					break;
 				case (short)OpampConfigOptions.Config7a:
-					SetOpampConfig7a();
+					SetOpampConfig("Config7a");
 					break;
 				case (short)OpampConfigOptions.Config7b:
-					SetOpampConfig7b();
+					SetOpampConfig("Config7b");
 					break;
 				case (short)OpampConfigOptions.Config8a:
-					SetOpampConfig8a();
+					SetOpampConfig("Config8a");
 					break;
 				case (short)OpampConfigOptions.Config8b:
-					SetOpampConfig8b();
+					SetOpampConfig("Config8b");
 					break;
 				default:
 					break;

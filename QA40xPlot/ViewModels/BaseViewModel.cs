@@ -331,6 +331,13 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ExpandGenerator, value);
 		}
 
+		private bool _ExpandVars = true;       // expand the generator section?
+		public bool ExpandVars
+		{
+			get => _ExpandVars;
+			set => SetProperty(ref _ExpandVars, value);
+		}
+
 		private bool _ExpandSampling = true;       // expand the Sampling section?
 		public bool ExpandSampling
 		{

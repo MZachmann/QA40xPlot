@@ -33,7 +33,7 @@ namespace QA40xPlot.Views
 			}
 		}
 
-		private void OnSelChanged(object sender, MouseEventArgs e)
+		private void OnSelChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
 		{
 			// The event was raised by the user
 			QA430Model qam = (QA430Model)DataContext;

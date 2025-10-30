@@ -41,23 +41,23 @@
                 <!--Columns 1,2 = settings-->
                 <Label Grid.Row="0" Grid.Column="0" Content="Neg Input" ></Label>
                 <ComboBox Grid.Row="0" Grid.Column="1" 
-                  ItemsSource="{Binding NegInputs}" PreviewMouseLeftButtonDown ="OnSelChanged" 
+                  ItemsSource="{Binding NegInputs}" SelectionChanged ="OnSelChanged" 
                   SelectedIndex="{Binding OpampNegInput}"/>
                 <Label Grid.Row="1" Grid.Column="0" Content="Pos Input" ></Label>
                 <ComboBox Grid.Row="1" Grid.Column="1" 
-                  ItemsSource="{Binding PosInputs}" PreviewMouseLeftButtonDown="OnSelChanged" 
+                  ItemsSource="{Binding PosInputs}" SelectionChanged="OnSelChanged" 
                   SelectedIndex="{Binding OpampPosInput}"/>
                 <Label Grid.Row="2" Grid.Column="0" Content="Pos-Neg Connection" ></Label>
                 <ComboBox Grid.Row="2" Grid.Column="1" 
-                  ItemsSource="{Binding PosNegConnects}" PreviewMouseLeftButtonDown="OnSelChanged" 
+                  ItemsSource="{Binding PosNegConnects}" SelectionChanged="OnSelChanged" 
                   SelectedIndex="{Binding OpampPosNegConnect}"/>
                 <Label Grid.Row="3" Grid.Column="0" Content="Feedback" ></Label>
                 <ComboBox Grid.Row="3" Grid.Column="1" 
-                  ItemsSource="{Binding Feedbacks}" PreviewMouseLeftButtonDown="OnSelChanged" 
+                  ItemsSource="{Binding Feedbacks}" SelectionChanged="OnSelChanged" 
                   SelectedIndex="{Binding OpampFeedback}"/>
                 <Label Grid.Row="4" Grid.Column="0" Content="Load" ></Label>
                 <ComboBox Grid.Row="4" Grid.Column="1" 
-                  ItemsSource="{Binding Loads}" PreviewMouseLeftButtonDown="OnSelChanged" 
+                  ItemsSource="{Binding Loads}"
                   SelectedIndex="{Binding LoadOption}"/>
                 <Separator Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2"
                   Height="10" Background="AliceBlue" HorizontalAlignment="Stretch" />

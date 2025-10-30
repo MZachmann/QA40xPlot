@@ -22,6 +22,7 @@ namespace QA40xPlot.ViewModels
 		public ThdFreqViewModel ThdFreq { get; private set; }
 		public ThdAmpViewModel ThdAmp { get; private set; }
 		public FreqRespViewModel FreqRespVm { get; private set; }
+		public FreqSweepViewModel FreqVm { get; private set; }
 		public ScopeViewModel ScopeVm { get; private set; }
 		public MainViewModel MainVm { get; private set; }
 		public SettingsViewModel SettingsVm { get; private set; }
@@ -50,6 +51,8 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public static string ExternalGain { get => ViewSettings.Singleton.SettingsVm.ExternalGain; }
 		[JsonIgnore]
+		public static double SafetyMargin { get => MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.SafetyMargin, 5); }
+		[JsonIgnore]
 		public static string NoiseWeight { get => ViewSettings.Singleton.SettingsVm.NoiseWeight; }
 		[JsonIgnore]
 		public static int WaveEchoes { get => ViewSettings.Singleton.SettingsVm.EchoDevices; }
@@ -73,6 +76,7 @@ namespace QA40xPlot.ViewModels
 			Util.GetPropertiesFrom(vws,"ThdFreq",ThdFreq);
 			Util.GetPropertiesFrom(vws,"FreqRespVm",FreqRespVm);
 			Util.GetPropertiesFrom(vws,"ScopeVm", ScopeVm);
+			Util.GetPropertiesFrom(vws, "FreqVm", FreqVm);
 			Util.GetPropertiesFrom(vws, "MainVm", MainVm);
 			Util.GetPropertiesFrom(vws, "SettingsVm", SettingsVm);	// this will update global settings last which makes sense
 		}
@@ -93,6 +97,7 @@ namespace QA40xPlot.ViewModels
 			ThdFreq = new ThdFreqViewModel();
 			FreqRespVm = new FreqRespViewModel();
 			ScopeVm = new ScopeViewModel();
+			FreqVm = new FreqSweepViewModel();
 			TabDefs = new DataDescript();
 		}
 	}

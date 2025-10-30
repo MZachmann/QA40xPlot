@@ -89,6 +89,11 @@
                     <views:FreqRespPlotPage  />
                 </Grid>
             </TabItem>
+            <TabItem Header="Opamp" Name="freqsweep" Visibility="{Binding HasQA430, Converter={StaticResource BoolVisConverter}}" >
+                <Grid Background="{Binding Background, Mode=OneWay}">
+                    <views:FreqSweepPlotPage  />
+                </Grid>
+            </TabItem>
             <TabItem Header="Settings" Name="settings" >
                 <Grid Background="{Binding Background, Mode=OneWay}">
                     <views:SettingsPage  />

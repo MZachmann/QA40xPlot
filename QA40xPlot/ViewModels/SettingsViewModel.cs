@@ -239,14 +239,18 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
+		private string _SafetyMargin = "5"; // dB above the tested required attenuation
+		public string SafetyMargin
+		{
+			get { return _SafetyMargin; }
+			set	{ SetProperty(ref _SafetyMargin, value); }
+		}
+
 		private string _TestChannel = "Left";
 		public string TestChannel
 		{
 			get { return _TestChannel; }
-			set
-			{
-				SetProperty(ref _TestChannel, value);
-			}
+			set	{ SetProperty(ref _TestChannel, value);	}
 		}
 
 		private string _AmplifierLoad = string.Empty;

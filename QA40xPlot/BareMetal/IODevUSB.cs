@@ -178,6 +178,7 @@ namespace QA40xPlot.BareMetal
 			return 18; // Default to 18 dB if no suitable value is found
 		}
 
+		// note that averages refers to time series acquisitions
 		public async ValueTask<LeftRightSeries> DoAcquireUser(uint averages, CancellationToken ct, double[] dataLeft, double[] dataRight, bool getFreq)
 		{
 			if (!_UsbApi.IsOpen())
@@ -262,6 +263,7 @@ namespace QA40xPlot.BareMetal
 			return lrfs;        // Only one measurement
 		}
 
+		// note that averages refers to time series acquisitions
 		public async ValueTask<LeftRightSeries> DoAcquisitions(uint averages, CancellationToken ct, bool getFreq)
 		{
 			if (!_UsbApi.IsOpen())

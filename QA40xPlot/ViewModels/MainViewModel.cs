@@ -71,11 +71,12 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _ProgressMax; set => SetProperty(ref _ProgressMax, value);
 		}
-		private double _ScreenDpi = 0;
+		private double _ScreenDpi = 72;
 		[JsonIgnore]
 		public double ScreenDpi
 		{
-			get => _ScreenDpi; set => SetProperty(ref _ScreenDpi, value);
+			get => _ScreenDpi; 
+			set => SetProperty(ref _ScreenDpi, value);
 		}
 
 		private string _FreqRespHdr = "Response";
@@ -425,6 +426,9 @@ namespace QA40xPlot.ViewModels
 					break;
 				case "tva":
 					CurrentView = ViewSettings.Singleton.ThdAmp;
+					break;
+				case "freqsweep":	// qa430 opamp tab
+					CurrentView = ViewSettings.Singleton.FreqVm;
 					break;
 				case "settings":
 					CurrentView = ViewSettings.Singleton.SettingsVm;
