@@ -193,7 +193,7 @@ namespace QA40xPlot.ViewModels
 
 			try
 			{
-				var u = sr.Split(new char[] { ',' }).Select(x => MathUtil.ToDouble(x)).ToArray();
+				var u = sr.Split(',').Select(x => MathUtil.ToDouble(x)).ToArray();
 				if (u.Length < 4)
 					return;
 

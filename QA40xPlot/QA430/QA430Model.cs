@@ -56,7 +56,7 @@ namespace QA40xPlot.QA430
 
 		public string ToSuffix()
 		{
-			return $"{Load}_G{Gain}_S{Supply}";
+			return $"{Load}_{Supply}V_Gain={Gain}";
 		}
 	};
 
@@ -479,14 +479,21 @@ namespace QA40xPlot.QA430
 			}
 		}
 
-		public List<AcquireStep> ExpandLoadOptions(List<AcquireStep> srcSteps)
+		public List<AcquireStep> ExpandLoadOptions(List<AcquireStep> srcSteps, bool[] whom)
 		{
 			List<AcquireStep> newSteps = new List<AcquireStep>();
+			var u = whom.Count(x => x);
+			if (u == 0)
+				return newSteps;    // nothing selected
+
 			foreach (var step in srcSteps)
 			{
 				var ldo = Enum.GetValues(typeof(LoadOptions)).Cast<LoadOptions>().ToList();
+				int whoIdx = 0;
 				foreach (var ldoopt in ldo)
 				{
+					if (!whom[whoIdx++])
+						continue;
 					var stp = new AcquireStep(step);
 					stp.Load = ldoopt;
 					newSteps.Add(stp);
@@ -495,14 +502,21 @@ namespace QA40xPlot.QA430
 			return newSteps;
 		}
 
-		public List<AcquireStep> ExpandGainOptions(List<AcquireStep> srcSteps)
+		public List<AcquireStep> ExpandGainOptions(List<AcquireStep> srcSteps, bool[] whom)
 		{
 			List<AcquireStep> newSteps = new List<AcquireStep>();
+			var u = whom.Count(x => x);
+			if (u ==0)
+				return newSteps;    // nothing selected
+
 			foreach (var step in srcSteps)
 			{
 				string[] ldo = ["Config6b", "Config7b", "Config4b", "Config5b"];
+				int whoIdx = 0;
 				foreach (var ldoopt in ldo)
 				{
+					if (!whom[whoIdx++])
+						continue;
 					QA430Model? model430 = Qa430Usb.Singleton?.QAModel;
 					var config = model430?.FindOpampConfig(ldoopt);
 					var stp = new AcquireStep(step);
@@ -515,13 +529,12 @@ namespace QA40xPlot.QA430
 			return newSteps;
 		}
 
-		public List<AcquireStep> ExpandSupplyOptions(List<AcquireStep> srcSteps)
+		public List<AcquireStep> ExpandSupplyOptions(List<AcquireStep> srcSteps, double[] values)
 		{
 			List<AcquireStep> newSteps = new List<AcquireStep>();
 			foreach (var step in srcSteps)
 			{
-				int[] supp = [1, 2, 5, 10, 15];
-				foreach (var supplyOpt in supp)
+				foreach (var supplyOpt in values)
 				{
 					var stp = new AcquireStep(step);
 					stp.Supply = supplyOpt;

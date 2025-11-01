@@ -19,18 +19,57 @@
             <StackPanel Margin="0,1,1,0">
                 <views:StartStop />
                 <Expander Header="—— Variables" IsExpanded="{Binding ExpandVars}"  >
-                    <Grid Margin="25,0,0,0">
+                    <Grid >
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" MinWidth="{Binding LeftWidth}" />
+                            <ColumnDefinition Width="{Binding LeftWidth}" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" MinWidth="10" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <CheckBox Content="Load" IsChecked="{Binding VaryLoad}" Grid.Row="0"  />
-                        <CheckBox Content="Gain" IsChecked="{Binding VaryGain}" Grid.Row="1"  />
-                        <CheckBox Content="Supply" IsChecked="{Binding VarySupply}" Grid.Row="2"  />
+                        <CheckBox Content="Load" IsChecked="{Binding VaryLoad}" VerticalAlignment="Center" HorizontalAlignment="Right"
+                                  Grid.Row="0" Grid.Column="0" Margin="0,0,10,0" />
+                        <Button Name="LoadButton" Content="{Binding LoadSummary}" ToolTip="{Binding LoadSummary}"
+                                Margin="0,2,0,2"
+                                    Width="120" Click="LoadButton_Click" HorizontalAlignment="Left" Grid.Row="0" Grid.Column="1" />
+                        <Popup Name="LoadPopup" PlacementTarget="{Binding ElementName=LoadButton}" StaysOpen="False"
+                               Closed="LoadPopup_Closed" >
+                            <Border BorderThickness="1" >
+                                <ListBox ItemsSource="{Binding Loadsets}">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected}" />
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Border>
+                        </Popup>
+                        <CheckBox Content="Gain" IsChecked="{Binding VaryGain}" VerticalAlignment="Center" HorizontalAlignment="Right"
+                                  Grid.Row="1" Grid.Column="0" Margin="0,0,10,0"  />
+                        <Button Name="GainButton" Content="{Binding GainSummary}" ToolTip="{Binding GainSummary}"
+                                 Margin="0,2,0,2"
+                                Width="120" Click="GainButton_Click" Grid.Row="1" Grid.Column="1"/>
+                        <Popup Name="GainPopup" PlacementTarget="{Binding ElementName=GainButton}" StaysOpen="False"
+                             Closed="GainPopup_Closed" >
+                            <Border BorderThickness="1" >
+                                <ListBox ItemsSource="{Binding Gainsets}">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected}" />
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Border>
+                        </Popup>
+                        <CheckBox Content="Supply" IsChecked="{Binding VarySupply}" VerticalAlignment="Center" Margin="0,0,10,0" HorizontalAlignment="Right"
+                                  Grid.Row="2" Grid.Column="0" ToolTip="Enter space or semicolon delimited values" />
+                        <TextBox  Margin="0,2,0,2" Text="{Binding SupplyList}" ToolTip="{Binding SupplyList}" Width="120" VerticalAlignment="Center" Grid.Row="2" Grid.Column="1" />
                     </Grid>
                 </Expander>
                 <Expander Header="—— Generator" IsExpanded="{Binding ExpandGenerator}"  >
@@ -165,10 +204,6 @@
                     <CheckBox Content="THD" IsChecked="{Binding ShowTHD}" Grid.Row="1" Grid.Column="0"  />
                     <CheckBox Content="THD+N" IsChecked="{Binding ShowTHDN}" Grid.Row="2" Grid.Column="0"  />
                     <CheckBox Content="Noise Density" IsChecked="{Binding ShowNoise}" Grid.Row="3" Grid.Column="0"  />
-                    <CheckBox Content="Tab Info" ToolTip="{Binding TabInfoTip}"
-                              IsChecked="{Binding ShowTabInfo}" Grid.Row="4" Grid.Column="0"  />
-                    <CheckBox Content="Mini-Plots" ToolTip="{Binding MiniPlotsTip}"
-                              IsChecked="{Binding KeepMiniPlots}" Grid.Row="5" Grid.Column="0"  />
                 </Grid>
             </Expander>
 
@@ -183,8 +218,10 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="0"  />
-                    <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="1"  />
+                    <CheckBox Content="Tab Info" ToolTip="{Binding TabInfoTip}"
+                              IsChecked="{Binding ShowTabInfo}" Grid.Row="0" Grid.Column="0"  />
+                    <CheckBox Content="Mini-Plots" ToolTip="{Binding MiniPlotsTip}"
+                              IsChecked="{Binding KeepMiniPlots}" Grid.Row="1" Grid.Column="0"  />
                     <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="2"  />
                     <CheckBox Content="Data Points" IsChecked="{Binding ShowPoints}" Grid.Row="3"  />
                 </Grid>

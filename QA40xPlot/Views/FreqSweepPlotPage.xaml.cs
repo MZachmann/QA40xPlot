@@ -36,5 +36,25 @@ namespace QA40xPlot.Views
 			this.AmpLoad.DataContext = ViewSettings.Singleton.SettingsVm;
 		}
 
+		private void GainButton_Click(object sender, System.Windows.RoutedEventArgs e)
+		{
+			GainPopup.IsOpen = !GainPopup.IsOpen;
+		}
+
+		private void LoadButton_Click(object sender, System.Windows.RoutedEventArgs e)
+		{
+			LoadPopup.IsOpen = !LoadPopup.IsOpen;
+
+		}
+
+		private void GainPopup_Closed(object sender, EventArgs e)
+		{
+			FreqSweepViewModel.UpdateGain();
+		}
+
+		private void LoadPopup_Closed(object sender, EventArgs e)
+		{
+			FreqSweepViewModel.UpdateLoad();
+		}
 	}
 }

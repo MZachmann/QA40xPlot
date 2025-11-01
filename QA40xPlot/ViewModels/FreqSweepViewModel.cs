@@ -5,12 +5,37 @@ using QA40xPlot.Actions;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.Views;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 
 namespace QA40xPlot.ViewModels
 {
+	public class SelItem : FloorViewModel
+	{
+		private bool _IsSelected = false;
+		public bool IsSelected
+		{
+			get => _IsSelected;
+			set
+			{
+				SetProperty(ref _IsSelected, value);
+			}
+		}
+
+		private string _Name = string.Empty;
+		public string Name { 
+			get => _Name;
+			set => SetProperty(ref _Name, value);
+		}
+		internal SelItem(bool isSel, string name)
+		{
+			IsSelected = isSel;
+			Name = name;
+		}
+	}
+
 	public class FreqSweepViewModel : BaseViewModel
 	{
 		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
@@ -32,6 +57,10 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public AsyncRelayCommand DoGetTab { get => new AsyncRelayCommand(GetItTab); }
 		[JsonIgnore]
+		public RelayCommand DoUpdateLoad { get => new RelayCommand(UpdateLoad); }
+		[JsonIgnore]
+		public RelayCommand DoUpdateGain { get => new RelayCommand(UpdateGain); }
+		[JsonIgnore]
 		public RelayCommand DoSaveTab { get => new RelayCommand(SaveItTab); }
 		private static FreqSweepViewModel MyVModel { get => ViewSettings.Singleton.FreqVm; }
 
@@ -40,15 +69,15 @@ namespace QA40xPlot.ViewModels
 		public bool VaryLoad
 		{
 			get => _VaryLoad;
-			set => SetProperty(ref _VaryLoad, value);
+			set { SetProperty(ref _VaryLoad, value); RaisePropertyChanged("LoadSummary"); }
 		}
 
 		private bool _VaryGain = false;
 		public bool VaryGain
 		{
 			get => _VaryGain;
-			set => SetProperty(ref _VaryGain, value);
-		}
+			set { SetProperty(ref _VaryGain, value); RaisePropertyChanged("GainSummary"); }
+}
 
 		private bool _VarySupply = false;
 		public bool VarySupply
@@ -138,6 +167,60 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _ShowNoise;
 			set => SetProperty(ref _ShowNoise, value);
+		}
+
+		private ObservableCollection<SelItem> _Loadsets = [new SelItem(true, "Open"), new SelItem(true, "2000 Ω"),
+					new SelItem(true, "604 Ω"), new SelItem(true, "470 Ω")];
+		[JsonIgnore]
+		public ObservableCollection<SelItem> Loadsets
+		{
+			get => _Loadsets;
+			set => SetProperty(ref _Loadsets, value);
+		}
+
+		private ObservableCollection<SelItem> _Gainsets = [new SelItem(true, "1"),  new SelItem(true, "-1"),
+					new SelItem(true, "10"),  new SelItem(true, "-10")];
+		[JsonIgnore]
+		public ObservableCollection<SelItem> Gainsets
+		{
+			get => _Gainsets;
+			set => SetProperty(ref _Gainsets, value);
+		}
+
+		private string _SupplyList = "1;2;4;8;12;15";
+		public string SupplyList
+		{
+			get => _SupplyList;
+			set => SetProperty(ref _SupplyList, value);
+		}
+
+		// when this is saved it shows the current settings
+		// the value is set only when we load a configuration so parse it
+		public string LoadSummary
+		{
+			get => string.Join(',', Loadsets.Where(x => x.IsSelected).Select(x => x.Name));
+			set { 
+				var u = value.Split(',', StringSplitOptions.RemoveEmptyEntries);
+				foreach (var item in Loadsets)
+				{
+					item.IsSelected = u.Contains(item.Name);
+				}
+				RaisePropertyChanged("LoadSummary"); }
+		}
+
+		// when this is saved it shows the current settings
+		// the value is set only when we load a configuration so parse it
+		public string GainSummary
+		{
+			get => string.Join(',', Gainsets.Where(x => x.IsSelected).Select(x => x.Name));
+			set {
+				var u = value.Split(',', StringSplitOptions.RemoveEmptyEntries);
+				foreach (var item in Gainsets)
+				{
+					item.IsSelected = u.Contains(item.Name);
+				}
+				RaisePropertyChanged("GainSummary"); 
+			}
 		}
 		#endregion
 
@@ -293,6 +376,16 @@ namespace QA40xPlot.ViewModels
 			await DoGetLoad(false);
 		}
 
+		public static void UpdateGain()
+		{
+			MyVModel.RaisePropertyChanged("GainSummary");
+		}
+
+		public static void UpdateLoad()
+		{
+			MyVModel.RaisePropertyChanged("LoadSummary");
+		}
+
 
 		private static string FileAddon()
 		{
@@ -305,7 +398,7 @@ namespace QA40xPlot.ViewModels
 		{
 			SaveFileDialog saveFileDialog = new SaveFileDialog
 			{
-				FileName = String.Format("QaTFreq{0}", FileAddon()), // Default file name
+				FileName = String.Format("QaOpamp{0}", FileAddon()), // Default file name
 				DefaultExt = ".plt", // Default file extension
 				Filter = PlotFileFilter // Filter files by extension
 			};

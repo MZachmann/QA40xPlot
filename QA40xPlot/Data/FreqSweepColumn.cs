@@ -1,5 +1,11 @@
 ﻿namespace QA40xPlot.Data
 {
+	public class FreqSweepLine
+	{
+		public string Label { get; set; } = "";
+		public FreqSweepColumn[] Columns { get; set; } = [];
+	}
+
 	// helper for thd sweeps
     public class FreqSweepColumn
     {

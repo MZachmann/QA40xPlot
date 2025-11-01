@@ -1,4 +1,6 @@
-﻿using QA40xPlot.BareMetal;
+﻿using Microsoft.VisualBasic.FileIO;
+using OpenTK.Compute.OpenCL;
+using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.QA430;
@@ -34,10 +36,20 @@ namespace QA40xPlot.Actions
 		private static FreqSweepViewModel MyVModel { get => ViewSettings.Singleton.FreqVm; }
 		CancellationTokenSource CanToken;                                 // Measurement cancelation token
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        public ActFreqSweep(Views.PlotControl graphSwp, Views.PlotControl graphFft, Views.PlotControl graphTime)
+		private List<FreqSweepLine>? FrequencyLines(MyDataTab page)
+		{ 
+			return (List<FreqSweepLine>?)page.GetProperty("Left"); 
+		}
+
+		private List<FreqSweepLine>? FrequencyLinesRight(MyDataTab page)
+		{ 
+			return (List<FreqSweepLine>?)page.GetProperty("Right"); 
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		public ActFreqSweep(Views.PlotControl graphSwp, Views.PlotControl graphFft, Views.PlotControl graphTime)
         {
             fftPlot = graphFft;
             timePlot = graphTime;
@@ -96,25 +108,52 @@ namespace QA40xPlot.Actions
 			return col;
 		}
 
-		private FreqSweepColumn[] RawToColumns(double[] raw)
+		private List<FreqSweepLine> RawToColumns(AcquireStep[] steps, double[] raw)
 		{			
 			if (raw.Length == 0)
 				return [];
 			List<FreqSweepColumn> left = new();
-			for (int i = 0; i < raw.Length; i += FreqSweepColumn.FreqSweepColumnCount)
+			// make columns from the raw data
+			int i;
+			for (i = 0; i < raw.Length; i += FreqSweepColumn.FreqSweepColumnCount)
 			{
 				var col = ArrayToColumn(raw, (uint)i);
 				left.Add(col);
 			}
-			return left.ToArray();
+			// convert into freqsweeplines
+			List<FreqSweepLine> lines = new();
+			// line lengths
+			var maxF = left.Max(x => x.Freq);   // maximum frequency
+			int linelength = 0;
+			for (i = 0; i < left.Count; i ++)
+			{
+				if (left[i].Freq >= maxF)
+				{
+					linelength = i+1;
+					break;
+				}
+			}
+			if (linelength == 0)
+				return lines;
+			// now create list of lines
+			var numLines = (left.Count + linelength - 1) / linelength;	// round up
+			for (i = 0; i < numLines; i++)
+			{
+				var line = new FreqSweepLine();
+				line.Label = steps[i].ToSuffix();
+				line.Columns = left.Skip(i * linelength).Take(linelength).ToArray();
+				lines.Add(line);
+			}
+
+			return lines;
 		}
 
 		// convert the raw data into columns of data
 		private void RawToFreqSweepColumns(MyDataTab page)
 		{
-			var u = RawToColumns(page.Sweep.RawLeft);
+			var u = RawToColumns(page.SweepSteps.Steps, page.Sweep.RawLeft);
 			page.SetProperty("Left", u);
-			var v = RawToColumns(page.Sweep.RawRight);
+			var v = RawToColumns(page.SweepSteps.Steps, page.Sweep.RawRight);
 			page.SetProperty("Right", v);
 		}
 
@@ -145,21 +184,28 @@ namespace QA40xPlot.Actions
 				List<FreqSweepColumn> steps = new();
 				if (specVm.ShowLeft)
 				{
-					var a1 = (FreqSweepColumn[]?)PageData.GetProperty("Left");
+					var a1 = FrequencyLines(PageData);
 					if (a1 != null)
-						steps.AddRange(a1);
+						foreach (var x in a1)
+						{
+							steps.AddRange(x.Columns);
+						}
 				}
 				if (specVm.ShowRight)
 				{
-					var a1 = (FreqSweepColumn[]?)PageData.GetProperty("Right");
+					var a1 = FrequencyLinesRight(PageData);
 					if (a1 != null)
-						steps.AddRange(a1);
+						foreach (var x in a1)
+						{
+							steps.AddRange(x.Columns);
+						}
 				}
-				var seen = DataUtil.FindShownInfo<FreqSweepViewModel, FreqSweepColumn[]>(OtherTabs);
+				var seen = DataUtil.FindShownInfo<FreqSweepViewModel, List<FreqSweepLine>>(OtherTabs);
 				foreach (var s in seen)
 				{
 					if (s != null)
-						steps.AddRange(s);
+						foreach(var x in s)
+							steps.AddRange(x.Columns);
 				}
 
 				if (steps.Count == 0)
@@ -205,28 +251,26 @@ namespace QA40xPlot.Actions
 		private (FreqSweepColumn, FreqSweepColumn) LookupColumn(MyDataTab page, double freq)
 		{
 			var vm = MyVModel;
-			var vf = page.Sweep.X;
-			if (vf.Length == 0)
+			var allLines = FrequencyLines(page);
+			if (allLines == null || allLines.Count == 0)
 			{
 				return (new FreqSweepColumn(), new FreqSweepColumn());
 			}
 			// find nearest amplitude (both left and right will be identical here if scanned)
-			var bin = vf.Count(x => x < freq) - 1;    // find first freq less than me
+			var bin = allLines[0].Columns.Count(x => x.Freq <= freq) - 1;    // find first freq less than me
 			if (bin == -1)
 				bin = 0;
-			var anearest = vf[bin];
-			if (bin < (vf.Length - 1) && Math.Abs(freq - anearest) > Math.Abs(freq - vf[bin + 1]))
-			{
-				bin++;
-			}
+			var anearest = allLines[0].Columns[bin].Freq;
+			//if (bin < (vf.Length - 1) && Math.Abs(freq - anearest) > Math.Abs(freq - vf[bin + 1]))
+			//{
+			//	bin++;
+			//}
 			FreqSweepColumn? mf1 = new FreqSweepColumn();
 			FreqSweepColumn? mf2 = new FreqSweepColumn();
-			var u = (FreqSweepColumn[]?)page.GetProperty("Left");
+			mf1 = (allLines[0].Columns)[bin];    // get the left channel
+			List<FreqSweepLine>? u = FrequencyLinesRight(page);
 			if(u != null)
-				mf1 = (u)[bin];    // get the left channel
-			u = (FreqSweepColumn[]?)page.GetProperty("Right");
-			if (u != null)
-				mf2 = (u)[bin];    // get the left channel
+				mf2 = (u[0].Columns)[bin];    // get the left channel
 			return (mf1, mf2);
 		}
 
@@ -346,7 +390,7 @@ namespace QA40xPlot.Actions
 			PageData.FreqRslt = null;
 
 			// Show message
-			await showMessage(CanToken.IsCancellationRequested ? $"Measurement cancelled!" : $"Measurement finished!");
+			await showMessage(CanToken.IsCancellationRequested ? "Measurement cancelled!" : "Measurement finished!");
 
 			await EndAction(freqVm);
 
@@ -446,13 +490,24 @@ namespace QA40xPlot.Actions
 				QA430Model? model430 = Qa430Usb.Singleton?.QAModel;
 
 				if (vm.VaryLoad)
-					variables = model430?.ExpandLoadOptions(variables) ?? variables;
+				{
+					bool[] useOption = freqVm.Loadsets.Select(x => x.IsSelected).ToArray();
+					variables = model430?.ExpandLoadOptions(variables, useOption) ?? variables;
+				}
 
 				if (vm.VaryGain)
-					variables = model430?.ExpandGainOptions(variables) ?? variables;
+				{
+
+					bool[] useOption = freqVm.Gainsets.Select(x => x.IsSelected).ToArray();
+					variables = model430?.ExpandGainOptions(variables, useOption) ?? variables;
+				}
 
 				if (vm.VarySupply)
-					variables = model430?.ExpandSupplyOptions(variables) ?? variables;
+				{
+					double[] supplies = vm.SupplyList.Split([';', ' '], StringSplitOptions.RemoveEmptyEntries).
+						Select(x => MathUtil.ToDouble(x, 15)).ToArray();
+					variables = model430?.ExpandSupplyOptions(variables, supplies) ?? variables;
+				}
 
 				string lastCfg = string.Empty;
 				page.SweepSteps.Steps = variables.ToArray();
@@ -746,20 +801,20 @@ namespace QA40xPlot.Actions
             }
 
 			// which columns are we displaying? left, right or both
-			List<FreqSweepColumn[]> columns;
-			FreqSweepColumn[] leftCol = page.GetProperty("Left") as FreqSweepColumn[] ?? [];
-			FreqSweepColumn[] rightCol = page.GetProperty("Right") as FreqSweepColumn[] ?? [];
-			if (showLeft && showRight)
+			List<FreqSweepLine>[] lineGroup;
+			List<FreqSweepLine>? leftCol = FrequencyLines(page);
+			List<FreqSweepLine>? rightCol = FrequencyLinesRight(page);
+			if (showLeft && showRight && leftCol != null && rightCol != null)
             {
-                columns = [leftCol, rightCol];
+                lineGroup = [leftCol, rightCol];
             }
-            else if (!showRight)
+            else if (showLeft && leftCol != null)
             {
-                columns = [leftCol];
+                lineGroup = [leftCol];
             }
             else
             {
-                columns = [rightCol];
+                lineGroup = (rightCol!=null) ? [rightCol] : [];
             }
 
             string suffix = ".";
@@ -767,41 +822,23 @@ namespace QA40xPlot.Actions
             if (showRight && showLeft)
                 suffix = ".L.";
 
-			// copy the vector of columns into vectors of values
-			// scaling by X.mag since it's all relative to the fundamental
-			var mysteps = page.SweepSteps.Steps;
-			if (mysteps == null || mysteps.Length == 0)
-				return;
-
-			foreach (var col in columns)
+			// for each list of lines (left and right)
+			foreach (var lineList in lineGroup)
 			{
-				// here the col = FrequencyColumn[] is all measured columns so far
-				// and they cycle frequency by AcquireStep so
-				var rowStart = 0;   // count the row length
-				var rowEnd = 0;
-				var rowNumber = 0;
 				var colorNum = 0;
-				while (rowStart < col.Length)
+				foreach (var line in lineList)
 				{
-					// figure out the end of the row based on frequency increasing
-					for (rowEnd = rowStart; rowEnd < col.Length - 1; rowEnd++)
-					{
-						if (col[rowEnd + 1].Freq < col[rowEnd].Freq)
-							break;
-					}
-					var subcol = col[rowStart..(rowEnd + 1)];
-					var subsuffix = suffix + ((rowNumber < mysteps.Length) ? mysteps[rowNumber].ToSuffix() : string.Empty);
-					var freq = subcol.Select(x => Math.Log10(x.Freq)).ToArray();
+					var subsuffix = suffix + line.Label;
+					var colArray = line.Columns;
+					var freq = colArray.Select(x => Math.Log10(x.Freq)).ToArray();
 					if (freqVm.ShowMagnitude)
-						AddPlot(freq, subcol.Select(x => FormVal(x.Mag, x.Mag)).ToList(), colorNum++, "Mag" + subsuffix, lp);
+						AddPlot(freq, colArray.Select(x => FormVal(x.Mag, x.Mag)).ToList(), colorNum++, "Mag" + subsuffix, lp);
 					if (freqVm.ShowTHDN)
-						AddPlot(freq, subcol.Select(x => FormVal(x.THDN, x.Mag)).ToList(), colorNum++, "THDN" + subsuffix, lp);
+						AddPlot(freq, colArray.Select(x => FormVal(x.THDN, x.Mag)).ToList(), colorNum++, "THDN" + subsuffix, lp);
 					if (freqVm.ShowTHD)
-						AddPlot(freq, subcol.Select(x => FormVal(x.THD, x.Mag)).ToList(), colorNum++, "THD" + subsuffix, lp);
+						AddPlot(freq, colArray.Select(x => FormVal(x.THD, x.Mag)).ToList(), colorNum++, "THD" + subsuffix, lp);
 					if (freqVm.ShowNoise)
-						AddPlot(freq, subcol.Select(x => FormVal(x.Noise, x.Mag)).ToList(), colorNum++, "Noise" + subsuffix, lp);
-					rowNumber++;
-					rowStart = rowEnd + 1;
+						AddPlot(freq, colArray.Select(x => FormVal(x.Noise, x.Mag)).ToList(), colorNum++, "Noise" + subsuffix, lp);
 				}
 				suffix = ".R.";          // second pass iff there are both channels
 				//lp = isMain ? LinePattern.DenselyDashed : LinePattern.Dotted;
