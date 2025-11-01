@@ -2,6 +2,9 @@
 --------------------------------------------
 This changelog shows the changes made for each version
 --------------------------------------------
+v 1.1.37
+- updates to Opamp test for better variance selection
+- fixup configuration to load Opamp variables
 v 1.1.36
 - better reflect the line color to data box for gotten data
 - calculate amplitude sweep noise floor using 0 attenuator instead of 6
