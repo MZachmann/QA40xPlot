@@ -2,6 +2,10 @@
 --------------------------------------------
 This changelog shows the changes made for each version
 --------------------------------------------
+v 1.1.38
+- Opamp test
+ - get cursor display correct
+ - add palette edit button and scrollbar
 v 1.1.37
 - updates to Opamp test for better variance selection
 - fixup configuration to load Opamp variables

@@ -842,22 +842,24 @@ namespace QA40xPlot.Actions
                 suffix = ".L.";
 
 			// for each list of lines (left and right)
+			var prefix = (measurementNr == 0) ? string.Empty : (measurementNr + ".");
 			foreach (var lineList in lineGroup)
 			{
-				var colorNum = 0;
+				var colorNum = (measurementNr > 1) ? (measurementNr-1) * 5 : 0;
 				foreach (var line in lineList)
 				{
 					var subsuffix = suffix + line.Label;
 					var colArray = line.Columns;
 					var freq = colArray.Select(x => Math.Log10(x.Freq)).ToArray();
+					var colorBase = colorNum;
 					if (freqVm.ShowMagnitude)
-						AddPlot(freq, colArray.Select(x => FormVal(x.Mag, x.Mag)).ToList(), colorNum++, "Mag" + subsuffix, lp);
+						AddPlot(freq, colArray.Select(x => FormVal(x.Mag, x.Mag)).ToList(), colorNum++, prefix + "Mag" + subsuffix, lp);
 					if (freqVm.ShowTHDN)
-						AddPlot(freq, colArray.Select(x => FormVal(x.THDN, x.Mag)).ToList(), colorNum++, "THDN" + subsuffix, lp);
+						AddPlot(freq, colArray.Select(x => FormVal(x.THDN, x.Mag)).ToList(), colorNum++, prefix + "THDN" + subsuffix, lp);
 					if (freqVm.ShowTHD)
-						AddPlot(freq, colArray.Select(x => FormVal(x.THD, x.Mag)).ToList(), colorNum++, "THD" + subsuffix, lp);
+						AddPlot(freq, colArray.Select(x => FormVal(x.THD, x.Mag)).ToList(), colorNum++, prefix + "THD" + subsuffix, lp);
 					if (freqVm.ShowNoise)
-						AddPlot(freq, colArray.Select(x => FormVal(x.Noise, x.Mag)).ToList(), colorNum++, "Noise" + subsuffix, lp);
+						AddPlot(freq, colArray.Select(x => FormVal(x.Noise, x.Mag)).ToList(), colorNum++, prefix + "Noise" + subsuffix, lp);
 				}
 				suffix = ".R.";          // second pass iff there are both channels
 				//lp = isMain ? LinePattern.DenselyDashed : LinePattern.Dotted;
@@ -891,8 +893,7 @@ namespace QA40xPlot.Actions
 				foreach (var other in OtherTabs)
 				{
 					if (other != null && other.Show != 0)
-						PlotValues(other, resultNr, false);
-					resultNr++;
+						PlotValues(other, resultNr++, false);
 				}
 			}
 		}
