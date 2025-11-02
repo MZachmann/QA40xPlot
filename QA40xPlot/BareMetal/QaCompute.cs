@@ -199,7 +199,7 @@ namespace QA40xPlot.BareMetal
 				return new();
 
 			var ffs = lrs.Left;
-			var notchOct = 0.15;
+			var notchOct = fundFreq > 1000 ? 0.2 : 0.5;	// at low frequencies it is not enough data points at 0.2
 			var thdLeft = ComputeThdnLinear(windowing, ffs, lrs.Df, fundFreq, notchOct, minFreq, maxFreq, weighting);
 			thdLeft = QaLibrary.ConvertVoltage(thdLeft, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 			ffs = lrs.Right;
@@ -212,8 +212,8 @@ namespace QA40xPlot.BareMetal
 		internal static double ComputeSnrRatio(string windowing, double[] signalFreqLin, double df, double fundamental, double minFreq, double maxFreq, string weighting, bool debug = false)
 		{
 			// Calculate notch filter bounds in Hz
-			//var notchOctaves = 0.5; // aes-17 2015 standard notch
-			var notchOctaves = 0.15; // my preferred notch much tighter and more realistic nowadays
+			var notchOctaves = 0.5; // aes-17 2015 standard notch
+			//var notchOctaves = 0.15; // my preferred notch much tighter and more realistic nowadays
 			double notchLowerBound = fundamental / Math.Pow(2, notchOctaves);
 			double notchUpperBound = fundamental * Math.Pow(2, notchOctaves);
 			double[] weights = GetWeights(0, signalFreqLin.Length, df, weighting);
@@ -249,8 +249,8 @@ namespace QA40xPlot.BareMetal
 		internal static double ComputeSinadRatio(string windowing, double[] signalFreqLin, double df, double fundamental, double minFreq, double maxFreq, string weighting, bool debug = false)
 		{
 			// Calculate notch filter bounds in Hz
-			//var notchOctaves = 0.5; // aes-17 2015 standard notch
-			var notchOctaves = 0.15; // my preferred notch much tighter and more realistic nowadays
+			var notchOctaves = 0.5; // aes-17 2015 standard notch
+			//var notchOctaves = 0.15; // my preferred notch much tighter and more realistic nowadays
 			double notchLowerBound = fundamental / Math.Pow(2, notchOctaves);
 			double notchUpperBound = fundamental * Math.Pow(2, notchOctaves);
 			double[] weights = GetWeights(0, signalFreqLin.Length, df, weighting);
@@ -741,6 +741,8 @@ namespace QA40xPlot.BareMetal
 		internal static double ComputeRmsF(double[] signalFreqLin, double df, double lowerBound, double upperBound, string windowing, string Weighting = "")
 		{
 			double sum = 0;
+			if(lowerBound >= upperBound)
+				return 0.0;
 			var mx = Math.Max(lowerBound, upperBound);
 			lowerBound = Math.Min(lowerBound, upperBound);
 			upperBound = mx; // make sure lowerBound is always less than upperBound
