@@ -76,6 +76,11 @@ namespace QA40xPlot.Libraries
 			Right = right;
 		}
         public LeftRightPair() { }
+        public void Divby(double dX)
+        {
+            Left /= dX;
+            Right /= dX;
+		}
 	}
 
     public class LeftRightFreqSaver

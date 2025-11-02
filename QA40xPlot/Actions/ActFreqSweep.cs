@@ -248,57 +248,58 @@ namespace QA40xPlot.Actions
 			return rrc;
 		}
 
-		private (FreqSweepColumn, FreqSweepColumn) LookupColumn(MyDataTab page, double freq)
+		private List<FreqSweepDot> LookupColumn(MyDataTab page, double freq)
 		{
 			var vm = MyVModel;
 			var allLines = FrequencyLines(page);
+			List<FreqSweepDot> dots = new();
 			if (allLines == null || allLines.Count == 0)
 			{
-				return (new FreqSweepColumn(), new FreqSweepColumn());
+				return dots;
 			}
 			// find nearest amplitude (both left and right will be identical here if scanned)
 			var bin = allLines[0].Columns.Count(x => x.Freq <= freq) - 1;    // find first freq less than me
 			if (bin == -1)
 				bin = 0;
-			var anearest = allLines[0].Columns[bin].Freq;
-			//if (bin < (vf.Length - 1) && Math.Abs(freq - anearest) > Math.Abs(freq - vf[bin + 1]))
-			//{
-			//	bin++;
-			//}
-			FreqSweepColumn? mf1 = new FreqSweepColumn();
-			FreqSweepColumn? mf2 = new FreqSweepColumn();
-			mf1 = (allLines[0].Columns)[bin];    // get the left channel
-			List<FreqSweepLine>? u = FrequencyLinesRight(page);
-			if(u != null)
-				mf2 = (u[0].Columns)[bin];    // get the left channel
-			return (mf1, mf2);
+			var matchFreq = allLines[0].Columns[bin].Freq;	// the actual frequency we want
+			var allMatch = allLines.Where(x => x.Columns.Length > bin && Math.Abs(x.Columns[bin].Freq - matchFreq) < 0.001).ToArray();
+			foreach(var line in allMatch) 
+			{
+				// last line isn't long enough yet
+				if (line.Columns.Length < bin)
+					break;
+				var dot = new FreqSweepDot();
+				dot.Label = line.Label;
+				dot.Column = line.Columns[bin];
+				dots.Add(dot);
+			}
+			return dots;
 		}
 
-		public FreqSweepColumn[] LookupX(double freq)
+		// for a given frequency, lookup the left and right columns
+		// this is used by the cursor display
+		public FreqSweepDot[] LookupX(double freq)
 		{
 			var vm = MyVModel;
-			List<FreqSweepColumn> myset = new();
-			var all = LookupColumn(PageData, freq); // lookup the columns
-			if (vm.ShowLeft)
-				myset.Add(all.Item1);
-			if (vm.ShowRight)
-				myset.Add(all.Item2);
-			if (myset.Count < 2 && OtherTabs.Count > 0)
+			var allLines = LookupColumn(PageData, freq); // lookup the columns
+			if (OtherTabs.Count > 0)
 			{
+				int tabCnt = 1;
 				foreach (var o in OtherTabs)
 				{
+					if (!o.Definition.IsOnL)
+						continue;
 					var all2 = LookupColumn(o, freq); // lookup the columns
-					if (o.Definition.IsOnL)
-						myset.Add(all2.Item1);
-					if (myset.Count == 2)
-						break;
-					if (o.Definition.IsOnR)
-						myset.Add(all2.Item2);
-					if (myset.Count == 2)
-						break;
+					var tabChr = tabCnt + ".";
+					foreach (var ail in all2)
+					{
+						ail.Label = tabChr + ail.Label;
+					}
+					allLines.AddRange(all2);
+					tabCnt++;
 				}
 			}
-			return myset.ToArray();
+			return allLines.ToArray();
 		}
 
 		public void PinGraphRange(string who)
@@ -395,6 +396,18 @@ namespace QA40xPlot.Actions
 			await EndAction(freqVm);
 
 			await showMessage("Finished");
+		}
+
+		// input noises is uniform frequency based on fft
+		public static double GetNoiseSmooth(double[] noises, double binSize, double dFreq)
+		{
+			var bin = Math.Floor(dFreq / binSize);  // which frequency bin
+			var bincnt = dFreq / (20 * binSize);  // #bins == +-1/10 of an octave
+			bincnt = Math.Min(10, bincnt);     // limit to 100 bins
+			var minbin = Math.Max(0, (int)(bin - bincnt));
+			var maxbin = Math.Min(noises.Length - 1, (int)(bin + bincnt));
+			var avenoise = noises.Skip(minbin).Take(maxbin-minbin).Average(x => x); // average noise within these bins
+			return avenoise / Math.Sqrt(binSize);	// ? i think
 		}
 
 		public async Task<bool> RunAcquisition()
@@ -515,24 +528,24 @@ namespace QA40xPlot.Actions
 				// loop through the variables being changed
 				// they are config name, load, gain, supply voltage
 				// ********************************************************************
-				foreach (var myvar in variables) // sweep the different configurations
+				foreach (var myConfig in variables) // sweep the different configurations
 				{
 					var model = Qa430Usb.Singleton?.QAModel;
 					if(model != null)
 					{
-						if(myvar.Cfg != lastCfg && myvar.Cfg.Length > 0)
+						if(myConfig.Cfg != lastCfg && myConfig.Cfg.Length > 0)
 						{
-							model.SetOpampConfig(myvar.Cfg);
-							lastCfg = myvar.Cfg;
+							model.SetOpampConfig(myConfig.Cfg);
+							lastCfg = myConfig.Cfg;
 						}
 						if (vm.VaryLoad)
-							model.LoadOption = (short)myvar.Load;
+							model.LoadOption = (short)myConfig.Load;
 						if(vm.VarySupply)
 						{
-							if(myvar.Supply < 15)
+							if(myConfig.Supply < 15)
 							{
-								model.NegRailVoltage = (-myvar.Supply).ToString();
-								model.PosRailVoltage = myvar.Supply.ToString();
+								model.NegRailVoltage = (-myConfig.Supply).ToString();
+								model.PosRailVoltage = myConfig.Supply.ToString();
 								model.UseFixedRails = false;
 							}
 							else
@@ -541,36 +554,30 @@ namespace QA40xPlot.Actions
 							}
 						}
 					}
+
 					// ********************************************************************
 					// Do noise floor measurement
 					// ********************************************************************
-					// do this with the config6b configuration, 101x dist gain
+					// do this with the specified opamp configuration
 					var noisy = await MeasureNoise(MyVModel, CanToken.Token);
-					{
-						noisy.Item1.Left = noisy.Item1.Left / myvar.Distgain;
-						noisy.Item1.Right = noisy.Item1.Right / myvar.Distgain;
-						noisy.Item2.Left = noisy.Item2.Left / myvar.Distgain;
-						noisy.Item2.Right = noisy.Item2.Right / myvar.Distgain;
-						noisy.Item3.Left = noisy.Item3.Left / myvar.Distgain;
-						noisy.Item3.Right = noisy.Item3.Right / myvar.Distgain;
-					}
+					noisy.Item1.Divby(myConfig.Distgain);
+					noisy.Item2.Divby(myConfig.Distgain);
+					noisy.Item3.Divby(myConfig.Distgain);
 					page.NoiseFloor = noisy.Item1;
 					page.NoiseFloorA = noisy.Item2;
 					page.NoiseFloorC = noisy.Item3;
+
 					if (CanToken.IsCancellationRequested)
 						return false;
-					var noiseRslt = await MeasureNoiseFreq(MyVModel, 4, CanToken.Token);	// get noise 
-					if(noiseRslt != null)
-					{
-						noiseRslt.Left = noiseRslt.Left.Select(x => x / myvar.Distgain).ToArray();
-					}
+					// get the entire noise response (maybe scaled)
+					var noiseRslt = await MeasureNoiseFreq(MyVModel, 4, CanToken.Token);    // get noise averaged 4 times
 
 					// enable generator
 					WaveGenerator.SetEnabled(true);
 					// ********************************************************************
 					// Step through the list of frequencies
 					// ********************************************************************
-					genVolt = vm.ToGenVoltage(vm.GenVoltage, frqtest, GEN_INPUT, gains) / Math.Abs(myvar.Gain);   // input voltage for request
+					genVolt = vm.ToGenVoltage(vm.GenVoltage, frqtest, GEN_INPUT, gains) / Math.Abs(myConfig.Gain);   // input voltage for request
 					page.Definition.GeneratorVoltage = genVolt;   // set the generator voltage in the definition
 					MyVModel.GeneratorVoltage = MathUtil.FormatVoltage(genVolt);
 					for (int f = 0; f < stepBinFrequencies.Length; f++)
@@ -614,9 +621,11 @@ namespace QA40xPlot.Actions
 
 						// even with multiple configurations
 						// this will keep stacking up stuff while frequency array shows min...max,min...max,...
-						var work = CalculateColumn(page, freqy, CanToken.Token, myvar); // do the math for the columns
+						var work = CalculateColumn(page, freqy, CanToken.Token, myConfig, noiseRslt); // do the math for the columns
 						if(work.Item1 != null && work.Item2 != null)
+						{
 							AddColumn(page, freqy, work.Item1, work.Item2);
+						}
 
 						MyVModel.LinkAbout(PageData.Definition); 
 						// this just needs to extract all the pieces
@@ -643,7 +652,8 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="ct">Cancellation token</param>
 		/// <returns>result. false if cancelled</returns>
-		private (FreqSweepColumn?,FreqSweepColumn?) CalculateColumn(MyDataTab msr, double dFreq, CancellationToken ct, AcquireStep acqConfig)
+		private (FreqSweepColumn?,FreqSweepColumn?) CalculateColumn(MyDataTab msr, double dFreq, 
+			CancellationToken ct, AcquireStep acqConfig, LeftRightFrequencySeries? lfrsNoise)
 		{
 			if (msr.FreqRslt == null)
 			{
@@ -659,7 +669,7 @@ namespace QA40xPlot.Actions
 			var lrfs = msr.FreqRslt;    // frequency response
 			var maxf = msr.FreqRslt.Df * msr.FreqRslt.Left.Length;
 
-			LeftRightPair thds = QaCompute.GetThdDb(vm.WindowingMethod, lrfs, dFreq, 20.0, Math.Min(20000, maxf));
+			LeftRightPair thds = QaCompute.GetThdDb(vm.WindowingMethod, lrfs, dFreq, 20.0, Math.Min(50000, maxf));
 			LeftRightPair thdN = QaCompute.GetThdnDb(vm.WindowingMethod, lrfs, dFreq, 20.0, maxf, ViewSettings.NoiseWeight);
 
 			var floor = msr.NoiseFloor;
@@ -679,18 +689,27 @@ namespace QA40xPlot.Actions
 
 			foreach (var step in steps)
 			{
-				bool bl = step == left;
+				bool bl = step == left;		// stepping left?
 				step.Freq = dFreq;
 				step.Mag = QaMath.MagAtFreq((bl ? msr.FreqRslt.Left : msr.FreqRslt.Right), msr.FreqRslt.Df, dFreq);
 				step.THD = step.Mag * Math.Pow(10, (bl ? thds.Left : thds.Right) / 20); // in volts from dB relative to mag
 				step.THDN = step.Mag * Math.Pow(10, (bl ? thdN.Left : thdN.Right) / 20); // in volts from dB relative to mag
 				step.Phase = 0;
-				step.Noise = (bl ? floor.Left : floor.Right); // noise floor adjusted for bin size
+				if(!bl)
+				{
+					step.Noise = floor.Right; // noise floor adjusted for bin size
+				}
+				else
+				{
+					if(lfrsNoise == null)
+						step.Noise = floor.Left / dmult; // noise floor
+					else
+						step.Noise = GetNoiseSmooth(lfrsNoise.Left, lfrsNoise.Df, dFreq) / dmult; // noise density smoothed
+				}
 				
 				// divide by the amount of distortion gain since that is a voltage gain
 				step.THD /= dmult;
 				step.THDN /= dmult;
-				step.Noise /= dmult;
 			}
 
 			return (left, right);

@@ -52,6 +52,7 @@
 <p> The Video Tutorial&nbsp;&nbsp;&nbsp; <a href="https://youtu.be/veuTcE5_wk8">Click here for the Tutorial</a></p>
 <p> The Changelog&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a href="File:../Help/ChangeLog.txt">Click here for the Changelog</a></p>
 <p> &nbsp;</p>
+<h1 style="color:red">Tests</h1>
 <table>
     <thead>
         <tr>
@@ -98,11 +99,34 @@
         </tr>
     </tbody>
 </table>
-
+<p>Later in this help, tests and options are described in more detail.</p>
 <h1>Configuration at Startup</h1>
 <p>By default, when you start QA40xPlot, it will look for a file named <strong>QADefault.cfg</strong> in your <em>Documents</em> folder. If this configuration file is found, it is then loaded at startup. You may also run QA40xPlot with a single argument of the name of the configuration to load at startup. This can be a short name, in which case the app will look in <em>Documents</em> or you may use a full path name.</p>
 <p>If there is no QADefault.cfg in <em>Documents</em> and you don&#39;t provide an argument with a filename path the program will use internal default values.</p>
-<p>If you enable <strong>Save on Exit</strong> for the session configuration, the data will always be saved to QADefault.cfg in <em>Documents</em>.</p>
+<p>If you enable <strong>Save on Exit</strong> for the session configuration, the current settings will always be saved to QADefault.cfg in <em>Documents</em> and thus loaded at startup.</p>
+<h1>Loading and Saving</h1>
+<p>There are two kinds of load/save within QA40xPlot. </p>
+<p>A) At the upper right are a load and a save button that load and save the configuration - all of the QA40xPlot settings.</p>
+<p>B) At the lower left are buttons with Get, Load, and Save. These load and save the current test (tab) data and options. See below for more.</p>
+<h1>Tab - Get, Load, and Save</h1>
+<p>
+    Each tab has a Get, a Load and a Save button in the left hand column at the bottom. When saved, the tab settings and plot data
+    are saved to a compressed .plt file (by default named something.plt.zip). This file can be manually opened in Windows and the contents are a JSON text file. It can also, of course,
+    be loaded.
+</p>
+<p>
+    When a saved tab is loaded two things happen. First, the plot data is displayed. Second, the original sweep settings are
+    entered back into the user interface. So, the screen will look exactly as it did when the sweep/test was run. This lets you know
+    exactly what settings you used for the test. It also allows for limited examination of the plot data.
+</p>
+<p>
+    When a saved tab is gotten (Get) the name will show up under the button with an L and R checkbox.
+    By default L is usually clicked on when gotten. Click the L and R to show/hide each channel.
+    Click the color boxes next to the L and R to change the plot line colors.
+    Add more saved tests by clicking the Get button again.
+    Click the garbage icon to remove a saved tab. This will not delete the file on-disk.
+</p>
+
 <h1>Command Buttons</h1>
 Along the top right of the screen are a few command buttons. If this becomes too many it will turn into a menu.
 <table>
@@ -194,24 +218,6 @@ Along the top right of the screen are a few command buttons. If this becomes too
 <p>For tests that are sinusoidal (spectrum, thd vs frequency/amplitude) the gain is calculated at the fundamental frequency. For tests over a frequency range the gain is calculated using two frequencies or a chirp range.</p>
 <h1>Cursor</h1>
 <p>All of the tests support a <strong>cursor</strong>. As you move your mouse in the plot a small box in the lower right shows the nearest data point. Some charts have a visual on-screen point, some don&#39;t.</p>
-<h1>Tab Get, Load, and Save</h1>
-<p>
-    Each tab has a Get, a Load and a Save button in the left hand column at the bottom. When saved, the tab settings and plot data
-    are saved to a compressed .plt file (by default named something.plt.zip). This file can be manually opened in Windows and the contents are a JSON text file. It can also, of course,
-    be loaded.
-</p>
-<p>
-    When a saved tab is loaded two things happen. First, the plot data is displayed. Second, the original sweep settings are
-    entered back into the user interface. So, the screen will look exactly as it did when the sweep/test was run. This lets you know
-    exactly what settings you used for the test. It also allows for limited examination of the plot data.
-</p>
-<p>
-    When a saved tab is gotten (Get) the name will show up under the button with an L and R checkbox.
-    By default L is usually clicked on when gotten. Click the L and R to show/hide each channel.
-    Click the color boxes next to the L and R to change the plot line colors.
-    Add more saved tests by clicking the Get button again.
-    Click the garbage icon to remove a saved tab. This will not delete the file on-disk.
-</p>
 
 <h1 style="color:red">Settings</h1>
 <h1>The global Settings tab</h1>

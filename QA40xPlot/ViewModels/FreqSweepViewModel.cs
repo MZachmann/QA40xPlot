@@ -242,6 +242,9 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
+				case "DSPlotColors":
+					MyAction?.UpdateGraph(false);
+					break;
 				case "UpdateGraph":
 					MyAction?.UpdateGraph(true);
 					break;
@@ -329,10 +332,14 @@ namespace QA40xPlot.ViewModels
 			return GraphUtil.PrettyPrint(x, vm.PlotFormat);
 		}
 
-		private static string FormatCursor(FreqSweepColumn column)
+		private static string FormatCursor(FreqSweepDot dot)
 		{
 			var vm = MyVModel;
-			string sout = "Mag: " + FormatValue(column.Mag, column.Mag) + Environment.NewLine;
+			var column = dot.Column;
+
+			string sout = "--" + dot.Label + Environment.NewLine;
+			if (vm.ShowMagnitude)
+				sout += "Mag: " + FormatValue(column.Mag, column.Mag) + Environment.NewLine;
 			if (vm.ShowPhase)
 				sout += "Phase: " + FormatValue(column.Phase, column.Mag) + Environment.NewLine;
 			if (vm.ShowTHDN)
@@ -481,13 +488,14 @@ namespace QA40xPlot.ViewModels
 			var zv = MyAction.LookupX(FreqValue);
 			if(zv.Length > 0)
 			{
-				FreqShow = MathUtil.FormatLogger(zv[0].Freq);
+				FreqShow = MathUtil.FormatLogger(zv[0].Column.Freq);
+				if(! ShowMagnitude)
+					ZValue += "Mag: " + FormatValue(zv[0].Column.Mag, zv[0].Column.Mag) + Environment.NewLine;
 				foreach (var item in zv)
 				{
 					if (item != null)
 					{
 						ZValue += FormatCursor(item);
-						ZValue += "------------" + Environment.NewLine;
 					}
 				}
 			}

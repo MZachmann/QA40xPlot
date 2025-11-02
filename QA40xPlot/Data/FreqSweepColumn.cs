@@ -6,8 +6,14 @@
 		public FreqSweepColumn[] Columns { get; set; } = [];
 	}
 
+	public class FreqSweepDot
+	{
+		public string Label { get; set; } = "";
+		public FreqSweepColumn Column { get; set; } = new();
+	}
+
 	// helper for thd sweeps
-    public class FreqSweepColumn
+	public class FreqSweepColumn
     {
 		public const int FreqSweepColumnCount = 7;
 		// readings
