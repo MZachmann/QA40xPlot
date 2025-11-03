@@ -46,6 +46,32 @@ namespace QA40xPlot.Data
 			}  // left color for the graph
 		}
 
+		private string _OffsetLeft = "0";
+		[JsonIgnore]
+		public string OffsetLeft
+		{
+			get { return _OffsetLeft; }
+			set { SetProperty(ref _OffsetLeft, value); }
+		}
+		[JsonIgnore]
+		public double OffsetLeftValue
+		{
+			get =>	MathUtil.ToDouble(_OffsetLeft, 0);
+		}
+
+		private string _OffsetRight = "0";
+		[JsonIgnore]
+		public string OffsetRight
+		{
+			get { return _OffsetRight; }
+			set { SetProperty(ref _OffsetRight, value); }
+		}
+		[JsonIgnore]
+		public double OffsetRightValue
+		{
+			get => MathUtil.ToDouble(_OffsetRight, 0);
+		}
+
 		private bool _IsOnL = false;
 		[JsonIgnore]
 		public bool IsOnL

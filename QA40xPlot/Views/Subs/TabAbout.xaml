@@ -8,27 +8,54 @@
              Background="{Binding ThemeBackground}"
              d:DesignHeight="450" d:DesignWidth="150">
     <Border BorderBrush="LightGreen" BorderThickness="1">
-        <StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <Label Content="Name" />
-                <TextBox Text="{Binding Name}"  MinWidth="120" />
-            </StackPanel>
-            <Label Content="Heading" />
-            <TextBox Text="{Binding Heading}"  MinWidth="180" />
-            <Label Content="Left Color" />
-            <StackPanel Orientation="Horizontal">
-                <ComboBox IsEditable="True" MinWidth="80" ToolTip="Type/set the color. Transparent -> Use default" 
+        <StackPanel Margin="5,10,5,3">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Label Content="Test Information" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" 
+                       HorizontalAlignment="Center" VerticalContentAlignment="Center" />
+                <Label Content="Name" HorizontalAlignment="Right" Grid.Row="1" Grid.Column="0" />
+                <TextBox Text="{Binding Name}" VerticalContentAlignment="Center" MinWidth="120" Grid.Row="1" Grid.Column="1" />
+                <Label Content="Heading" HorizontalAlignment="Right" Grid.Row="2" Grid.Column="0"/>
+                <TextBox Text="{Binding Heading}" VerticalContentAlignment="Center"  MinWidth="180" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"/>
+                <Label Content="Left" Grid.Row="3" Grid.Column="0"/>
+                <Label Content="Color" HorizontalAlignment="Right" Grid.Row="4" Grid.Column="0"/>
+                <ComboBox IsEditable="True" MinWidth="80" Grid.Row="4" Grid.Column="1"
+                  ToolTip="Type/set the color. Transparent -> Use default" 
                   Text="{Binding LeftColor, Mode=TwoWay}" 
                   ItemsSource="{Binding PlotColors}" />
-            <local:ColorBox Color="{Binding LeftColor}" Margin="5,0,0,0" Width="40" />
-            </StackPanel>
-            <Label Content="Right Color" />
-            <StackPanel Orientation="Horizontal">
-                <ComboBox IsEditable="True" MinWidth="80" ToolTip="Type/set the color. Transparent -> Use default" 
+                <local:ColorBox Color="{Binding LeftColor}" Margin="5,0,0,0" Width="40" Grid.Row="4" Grid.Column="2" />
+                <Label Content="Offset" HorizontalAlignment="Right" Grid.Row="5" Grid.Column="0" />
+                <TextBox MinWidth="80" Text="{Binding OffsetLeft, Mode=TwoWay}" VerticalContentAlignment="Center" 
+                         Grid.Row="5" Grid.Column="1"/>
+                <Label Content="dBV"  Grid.Row="5" Grid.Column="2" />
+                <Label Content="Right" Grid.Row="6" Grid.Column="0"/>
+                <Label Content="Color" HorizontalAlignment="Right" Grid.Row="7" Grid.Column="0"/>
+                <ComboBox IsEditable="True" MinWidth="80" Grid.Row="7" Grid.Column="1"
+                  ToolTip="Type/set the color. Transparent -> Use default" 
                   Text="{Binding RightColor, Mode=TwoWay}" 
                   ItemsSource="{Binding PlotColors}" />
-                <local:ColorBox Color="{Binding RightColor}" Margin="5,0,0,0" Width="40" />
-            </StackPanel>
+                <local:ColorBox Color="{Binding RightColor}" Margin="5,0,0,0" Width="40" Grid.Row="7" Grid.Column="2" />
+                <Label Content="Offset" HorizontalAlignment="Right" Grid.Row="8" Grid.Column="0" />
+                <TextBox MinWidth="80" Text="{Binding OffsetRight, Mode=TwoWay}"  VerticalContentAlignment="Center" 
+                         Grid.Row="8" Grid.Column="1"/>
+                <Label Content="dBV"  Grid.Row="8" Grid.Column="2" />
+            </Grid>
             <Label Content="Description" />
             <TextBox Text="{Binding Description}" Height="200" AcceptsReturn="True" TextWrapping="Wrap"  />
         </StackPanel>
