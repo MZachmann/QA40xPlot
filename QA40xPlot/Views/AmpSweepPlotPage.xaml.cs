@@ -1,18 +1,18 @@
 ﻿using QA40xPlot.ViewModels;
 using System.Windows.Controls;
-using Windows.UI.ViewManagement;
 
 namespace QA40xPlot.Views
 {
 	/// <summary>
-	/// Interaction logic for opamp test : frequency sweep page
+	/// Interaction logic for Opamp Test : amplitude sweep page
 	/// </summary>
-	public partial class FreqSweepPlotPage : UserControl
+	public partial class AmpSweepPlotPage : UserControl
 	{
-		public FreqSweepPlotPage()
+
+		public AmpSweepPlotPage()
 		{
 			InitializeComponent();
-			var vm = ViewSettings.Singleton.FreqVm;
+			var vm = ViewSettings.Singleton.AmpSweepVm;
 			this.DataContext = vm;
 			vm.SetAction(this.WpfPlot1, this.MiniShow.WpfPlot2, this.MiniShow.WpfPlot3, this.TAbout);
 		}
@@ -30,12 +30,12 @@ namespace QA40xPlot.Views
 
 		private void GainPopup_Closed(object sender, EventArgs e)
 		{
-			FreqSweepViewModel.UpdateGain();
+			AmpSweepViewModel.UpdateGain();
 		}
 
 		private void LoadPopup_Closed(object sender, EventArgs e)
 		{
-			FreqSweepViewModel.UpdateLoad();
+			AmpSweepViewModel.UpdateLoad();
 		}
 	}
 }

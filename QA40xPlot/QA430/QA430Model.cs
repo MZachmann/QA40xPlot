@@ -1,6 +1,4 @@
-﻿#define USEQA430
-
-using CommunityToolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.Input;
 using Newtonsoft.Json;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
@@ -316,7 +314,8 @@ namespace QA40xPlot.QA430
 				// Place function in here..
 				if (RefreshTaskCancel)
 					break;
-				RefreshVars();
+				if( ViewSettings.Singleton.MainVm.HasQA430 && ViewSettings.Singleton.MainVm.ShowQA430)
+					RefreshVars();
 			}
 		}
 
@@ -332,7 +331,13 @@ namespace QA40xPlot.QA430
 		~QA430Model()
 		{
 			PropertyChanged -= DoPropertyChanged;
-			RefreshTaskCancel = true;
+			KillTimer();
+		}
+
+		public async Task WaitForQA430Relays()
+		{
+			// wait for the QA430 to settle after a relay change
+			await Hw.WaitForRelays();
 		}
 
 		/// <summary>
@@ -340,9 +345,8 @@ namespace QA40xPlot.QA430
 		/// initializes to config6a
 		/// </summary>
 		/// <returns>connected USB to QA430?</returns>
-		internal static async Task<bool> BeginQA430Op()
+		internal static bool BeginQA430Op()
 		{
-#if USEQA430
 			var x = Qa430Usb.Singleton;
 			if (x.IsOpen())
 			{
@@ -355,7 +359,7 @@ namespace QA40xPlot.QA430
 			{
 				// we have a QA430 connected. Initialize it to a known state
 				var model = Qa430Usb.Singleton.QAModel;
-				var didStart = await model.SetDefaults();
+				var didStart = model.SetDefaults();
 				if (didStart)
 				{
 					var uu = new QA430Info();
@@ -368,26 +372,29 @@ namespace QA40xPlot.QA430
 			}
 
 			return y;
-#else
-			return false;
-#endif
 		}
 
 		internal static void EndQA430Op()
 		{
 			// close the usb connection
-			var qausb = QA430.Qa430Usb.Singleton;
+			var qausb = Qa430Usb.Singleton;
 			if(qausb == null)
 				return;
-			qausb.Close(true);
+			qausb.QAModel.KillTimer();
 			// close and clear the window if it exists
 			var wnd = qausb.QAModel.MyWindow;
 			if (wnd != null)
 			{
 				wnd.AllowClose = true;
 				wnd.Close();
+				qausb.QAModel.MyWindow = null;
 			}
-			qausb.QAModel.MyWindow = null;
+			qausb.Close(true);
+		}
+
+		internal void KillTimer()
+		{
+			RefreshTaskCancel = true;
 		}
 
 		/// <summary>
@@ -402,7 +409,7 @@ namespace QA40xPlot.QA430
 			RaisePropertyChanged(nameof(CurrentSenseHiValue));
 		}
 
-		internal async Task<bool> SetDefaults()
+		internal bool SetDefaults()
 		{
 			try
 			{
@@ -413,7 +420,6 @@ namespace QA40xPlot.QA430
 				PosRailVoltage = "1.0";
 				NegRailVoltage = "-1.0";
 				UseFixedRails = false;
-				await Hw.WaitForRelays();   // let the relays settle
 
 				ShowRegisters("Voltage set");
 
@@ -425,11 +431,10 @@ namespace QA40xPlot.QA430
 				// don't allow analyzer to drive rails
 				PsrrOption = (short)PsrrOptions.BothPsrrInputsGrounded;
 				LoadOption = (short)LoadOptions.Open;
-				await Hw.WaitForRelays();
+
 				ShowRegisters("Relays set");    // sb E00C,11,11,1
 
 				EnableSupply = true;
-				await Hw.WaitForRelays();
 				ShowRegisters("Voltage enabled");    // sb E00C,11,11,1
 				return true;
 			}

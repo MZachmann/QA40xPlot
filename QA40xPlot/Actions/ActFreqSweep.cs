@@ -448,6 +448,9 @@ namespace QA40xPlot.Actions
 			{
 				// ********************************************************************
 				// Determine input level for attenuation
+				// we know that all settings of the QA430 have defined gain so that
+				// we can calculate the required attenuation up front and then vary the driving voltage
+				// to keep constant output voltage no matter configuration
 				// ********************************************************************
 				var genOut = ToGenOutVolts(genVolt, frqtest, gains);   // output voltage for request
 				double amplifierOutputVoltagedBV = QaLibrary.ConvertVoltage(genOut, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
@@ -553,6 +556,8 @@ namespace QA40xPlot.Actions
 								model.UseFixedRails = true;
 							}
 						}
+						// now that the QA430 relays are set, wait a bit...
+						await model.WaitForQA430Relays();
 					}
 
 					// ********************************************************************

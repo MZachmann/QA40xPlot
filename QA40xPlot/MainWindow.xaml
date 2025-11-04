@@ -24,7 +24,7 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" Grid.Column="1" Grid.Row="0" >
-                <Button Content="QA430" Click="OnQA430" Margin="4,2,4,2" Visibility="{Binding HasQA430, Converter={StaticResource BoolVisConverter}}">
+                <Button Content="QA430" Click="OnQA430" Margin="4,2,4,2" Visibility="{Binding ShowQA430, Converter={StaticResource BoolVisConverter}}">
                     <Button.ToolTip>
                         <ToolTip Content="Show/hide the QA430 Configuration" />
                     </Button.ToolTip>
@@ -89,9 +89,14 @@
                     <views:FreqRespPlotPage  />
                 </Grid>
             </TabItem>
-            <TabItem Header="Opamp" Name="freqsweep" Visibility="{Binding HasQA430, Converter={StaticResource BoolVisConverter}}" >
+            <TabItem Header="Opamp.Freq" Name="freqsweep" Visibility="{Binding ShowQA430, Converter={StaticResource BoolVisConverter}}" >
                 <Grid Background="{Binding Background, Mode=OneWay}">
                     <views:FreqSweepPlotPage  />
+                </Grid>
+            </TabItem>
+            <TabItem Header="Opamp.Amp" Name="ampsweep" Visibility="{Binding ShowQA430, Converter={StaticResource BoolVisConverter}}" >
+                <Grid Background="{Binding Background, Mode=OneWay}">
+                    <views:AmpSweepPlotPage  />
                 </Grid>
             </TabItem>
             <TabItem Header="Settings" Name="settings" >

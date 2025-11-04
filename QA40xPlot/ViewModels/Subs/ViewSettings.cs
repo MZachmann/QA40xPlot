@@ -23,6 +23,7 @@ namespace QA40xPlot.ViewModels
 		public ThdAmpViewModel ThdAmp { get; private set; }
 		public FreqRespViewModel FreqRespVm { get; private set; }
 		public FreqSweepViewModel FreqVm { get; private set; }
+		public AmpSweepViewModel AmpSweepVm { get; private set; }
 		public ScopeViewModel ScopeVm { get; private set; }
 		public MainViewModel MainVm { get; private set; }
 		public SettingsViewModel SettingsVm { get; private set; }
@@ -77,6 +78,7 @@ namespace QA40xPlot.ViewModels
 			Util.GetPropertiesFrom(vws,"FreqRespVm",FreqRespVm);
 			Util.GetPropertiesFrom(vws,"ScopeVm", ScopeVm);
 			Util.GetPropertiesFrom(vws, "FreqVm", FreqVm);
+			Util.GetPropertiesFrom(vws, "AmpSweepVm", AmpSweepVm);
 			Util.GetPropertiesFrom(vws, "MainVm", MainVm);
 			Util.GetPropertiesFrom(vws, "SettingsVm", SettingsVm);	// this will update global settings last which makes sense
 		}
@@ -98,6 +100,7 @@ namespace QA40xPlot.ViewModels
 			FreqRespVm = new FreqRespViewModel();
 			ScopeVm = new ScopeViewModel();
 			FreqVm = new FreqSweepViewModel();
+			AmpSweepVm = new AmpSweepViewModel();
 			TabDefs = new DataDescript();
 		}
 	}

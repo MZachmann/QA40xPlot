@@ -45,6 +45,14 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _GraphBackground, value);
 		}
 
+		private bool _ShowQA430 = false;
+		[JsonIgnore]
+		public bool ShowQA430
+		{
+			get => _ShowQA430;
+			set => SetProperty(ref _ShowQA430, value);
+		}
+
 		private bool _HasQA430 = false;
 		[JsonIgnore]
 		public bool HasQA430

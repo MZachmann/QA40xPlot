@@ -13,37 +13,16 @@ using System.Windows.Input;
 
 namespace QA40xPlot.ViewModels
 {
-	public class SelItem : FloorViewModel
-	{
-		private bool _IsSelected = false;
-		public bool IsSelected
-		{
-			get => _IsSelected;
-			set
-			{
-				SetProperty(ref _IsSelected, value);
-			}
-		}
-
-		private string _Name = string.Empty;
-		public string Name { 
-			get => _Name;
-			set => SetProperty(ref _Name, value);
-		}
-		internal SelItem(bool isSel, string name)
-		{
-			IsSelected = isSel;
-			Name = name;
-		}
-	}
-
-	public class FreqSweepViewModel : BaseViewModel
+	public class AmpSweepViewModel : BaseViewModel
 	{
 		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
+		public static List<String> StartVoltages { get => new List<string> { "0.0001", "0.0002", "0.0005", "0.001", "0.002", "0.005", "0.01", "0.02", "0.05", "0.1", "0.2", "0.5" }; }
+		public static List<String> EndVoltages { get => new List<string> { "1", "2", "5", "10", "20", "50", "100", "200" }; }
+		private static AmpSweepViewModel MyVModel { get => ViewSettings.Singleton.AmpSweepVm; }
 
-		private ActFreqSweep MyAction { get => actFreq; }
-		private PlotControl actPlot { get; set; }
-		private ActFreqSweep actFreq { get; set; }
+		private ActAmpSweep MyAction { get => actSweep; }
+		private ActAmpSweep actSweep { get; set; }
+		private PlotControl actPlot {  get; set; }
 
 		[JsonIgnore]
 		public RelayCommand DoStart { get => new RelayCommand(StartIt); }
@@ -63,7 +42,7 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand DoUpdateLoad { get => new RelayCommand(UpdateLoad); }
 		[JsonIgnore]
 		public RelayCommand DoUpdateGain { get => new RelayCommand(UpdateGain); }
-		private static FreqSweepViewModel MyVModel { get => ViewSettings.Singleton.FreqVm; }
+
 
 		#region Setters and Getters
 		private bool _VaryLoad = false;
@@ -78,7 +57,7 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _VaryGain;
 			set { SetProperty(ref _VaryGain, value); RaisePropertyChanged("GainSummary"); }
-}
+		}
 
 		private bool _VarySupply = false;
 		public bool VarySupply
@@ -87,42 +66,41 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _VarySupply, value);
 		}
 
-		private string _GenVoltage = string.Empty;
-		public string GenVoltage
+		private string _StartVoltage = string.Empty;         // type of alert
+		public string StartVoltage
 		{
-			get => _GenVoltage; set => SetProperty(ref _GenVoltage, value);
+			get => _StartVoltage; set => SetProperty(ref _StartVoltage, value);
 		}
 
-		private string _StartFreq = string.Empty;
-		public string StartFreq
+		private string _EndVoltage = string.Empty;         // type of alert
+		public string EndVoltage
 		{
-			get => _StartFreq;
-			set => SetProperty(ref _StartFreq, value);
+			get => _EndVoltage; set => SetProperty(ref _EndVoltage, value);
 		}
 
-		private string _EndFreq = string.Empty;
-		public string EndFreq
+		private string _StartPower = string.Empty;         // type of alert
+		public string StartPower
 		{
-			get => _EndFreq;
-			set => SetProperty(ref _EndFreq, value);
+			get => _StartPower; set => SetProperty(ref _StartPower, value);
 		}
 
-		private uint _StepsOctave;
+		private string _EndPower = string.Empty;         // type of alert
+		public string EndPower
+		{
+			get => _EndPower; set => SetProperty(ref _EndPower, value);
+		}
+
+		private string _TestFreq = string.Empty;         // type of alert
+		public string TestFreq
+		{
+			get => _TestFreq;
+			set => SetProperty(ref _TestFreq, value);
+		}
+
+		private uint _StepsOctave;         // type of alert
 		public uint StepsOctave
 		{
 			get => _StepsOctave; set => SetProperty(ref _StepsOctave, value);
-		}
-
-		private bool _RightChannel;
-		public bool RightChannel
-		{
-			get => _RightChannel; set => SetProperty(ref _RightChannel, value);
-		}
-
-		private bool _LeftChannel;
-		public bool LeftChannel
-		{
-			get => _LeftChannel; set => SetProperty(ref _LeftChannel, value);
 		}
 
 		private bool _ShowPoints;
@@ -157,19 +135,42 @@ namespace QA40xPlot.ViewModels
 			get => _ShowMagnitude;
 			set => SetProperty(ref _ShowMagnitude, value);
 		}
-		private bool _ShowPhase;
-		public bool ShowPhase
+		private bool _ShowD2;
+		public bool ShowD2
 		{
-			get => _ShowPhase;
-			set => SetProperty(ref _ShowPhase, value);
+			get => _ShowD2;
+			set => SetProperty(ref _ShowD2, value);
 		}
-		private bool _ShowNoise;
-		public bool ShowNoise
+		private bool _ShowD3;
+		public bool ShowD3
 		{
-			get => _ShowNoise;
-			set => SetProperty(ref _ShowNoise, value);
+			get => _ShowD3;
+			set => SetProperty(ref _ShowD3, value);
 		}
-
+		private bool _ShowD4;
+		public bool ShowD4
+		{
+			get => _ShowD4;
+			set => SetProperty(ref _ShowD4, value);
+		}
+		private bool _ShowD5;
+		public bool ShowD5
+		{
+			get => _ShowD5;
+			set => SetProperty(ref _ShowD5, value);
+		}
+		private bool _ShowD6;
+		public bool ShowD6
+		{
+			get => _ShowD6;
+			set => SetProperty(ref _ShowD6, value);
+		}
+		private bool _ShowNoiseFloor;
+		public bool ShowNoiseFloor
+		{
+			get => _ShowNoiseFloor;
+			set => SetProperty(ref _ShowNoiseFloor, value);
+		}
 		private ObservableCollection<SelItem> _Loadsets = [new SelItem(true, "Open"), new SelItem(true, "2000 Ω"),
 					new SelItem(true, "604 Ω"), new SelItem(true, "470 Ω")];
 		[JsonIgnore]
@@ -200,13 +201,15 @@ namespace QA40xPlot.ViewModels
 		public string LoadSummary
 		{
 			get => string.Join(',', Loadsets.Where(x => x.IsSelected).Select(x => x.Name));
-			set { 
+			set
+			{
 				var u = value.Split(',', StringSplitOptions.RemoveEmptyEntries);
 				foreach (var item in Loadsets)
 				{
 					item.IsSelected = u.Contains(item.Name);
 				}
-				RaisePropertyChanged("LoadSummary"); }
+				RaisePropertyChanged("LoadSummary");
+			}
 		}
 
 		// when this is saved it shows the current settings
@@ -214,34 +217,27 @@ namespace QA40xPlot.ViewModels
 		public string GainSummary
 		{
 			get => string.Join(',', Gainsets.Where(x => x.IsSelected).Select(x => x.Name));
-			set {
+			set
+			{
 				var u = value.Split(',', StringSplitOptions.RemoveEmptyEntries);
 				foreach (var item in Gainsets)
 				{
 					item.IsSelected = u.Contains(item.Name);
 				}
-				RaisePropertyChanged("GainSummary"); 
+				RaisePropertyChanged("GainSummary");
 			}
 		}
+
 		#endregion
 
-		private static void StartIt()
+		public static void UpdateGain()
 		{
-			var nowHave = QA430Model.BeginQA430Op();
-			if (!nowHave)
-			{
-				MessageBox.Show("QA-430 device not connected.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
-				return;
-			}
-			// Implement the logic to start the measurement process
-			var vm = ViewSettings.Singleton.FreqVm;
-			vm.actFreq?.DoMeasurement();
+			MyVModel.RaisePropertyChanged("GainSummary");
 		}
 
-		private static void StopIt()
+		public static void UpdateLoad()
 		{
-			var vm = ViewSettings.Singleton.FreqVm;
-			vm.actFreq?.DoCancel();
+			MyVModel.RaisePropertyChanged("LoadSummary");
 		}
 
 		// the property change is used to trigger repaints of the graph
@@ -269,6 +265,10 @@ namespace QA40xPlot.ViewModels
 					RaisePropertyChanged("GraphUnit");
 					MyAction?.UpdateGraph(true);
 					break;
+				case "GenDirection":
+					MyAction?.UpdateGraph(true);
+					break;
+				case "XAxisType":
 				case "GraphStartX":
 				case "GraphEndX":
 				case "RangeBottomdB":
@@ -283,12 +283,15 @@ namespace QA40xPlot.ViewModels
 					ShowInfos();
 					MyAction?.UpdateGraph(false);
 					break;
-
 				case "ShowTHDN":
 				case "ShowTHD":
 				case "ShowMagnitude":
-				case "ShowPhase":
-				case "ShowNoise":
+				case "ShowD2":
+				case "ShowD3":
+				case "ShowD4":
+				case "ShowD5":
+				case "ShowD6":
+				case "ShowNoiseFloor":
 				case "ShowPoints":
 				case "ShowThickLines":
 					MyAction?.UpdateGraph(false);
@@ -296,16 +299,6 @@ namespace QA40xPlot.ViewModels
 				default:
 					break;
 			}
-		}
-
-		public void SetAction(PlotControl plot, PlotControl plot1, PlotControl plot2, TabAbout tAbout)
-		{
-			actFreq = new ActFreqSweep(plot, plot1, plot2);
-			SetupMainPlot(plot);
-			actPlot = plot;
-			actAbout = tAbout;
-			MyVModel.LinkAbout(actFreq.PageData.Definition);
-			ShowInfos();
 		}
 
 		// here param is the id of the tab to remove from the othertab list
@@ -320,6 +313,25 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
+		private static void StartIt()
+		{
+			var nowHave = QA430Model.BeginQA430Op();
+			if (!nowHave)
+			{
+				MessageBox.Show("QA-430 device not connected.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+				return;
+			}
+			// Implement the logic to start the measurement process
+			var vm = ViewSettings.Singleton.AmpSweepVm;
+			vm.actSweep?.DoMeasurement();
+		}
+
+		private static void StopIt()
+		{
+			var vm = ViewSettings.Singleton.AmpSweepVm;
+			vm.actSweep?.DoCancel();
+		}
+
 		private void ShowInfos()
 		{
 			if (actAbout != null)
@@ -331,31 +343,15 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		// this always uses the 'global' format so others work too
-		private static string FormatValue(double d1, double dMax)
+		public void SetAction(PlotControl plot, PlotControl plot1, PlotControl plot2, TabAbout tAbout)
 		{
-			var vm = MyVModel;
-			var x = GraphUtil.ReformatValue(vm.PlotFormat, d1, dMax);
-			return GraphUtil.PrettyPrint(x, vm.PlotFormat);
-		}
+			actSweep = new ActAmpSweep(plot, plot1, plot2);
+			SetupMainPlot(plot);
+			actPlot = plot;
+			actAbout = tAbout;
+			MyVModel.LinkAbout(actSweep.PageData.Definition);
+			ShowInfos();
 
-		private static string FormatCursor(FreqSweepDot dot)
-		{
-			var vm = MyVModel;
-			var column = dot.Column;
-
-			string sout = "--" + dot.Label + Environment.NewLine;
-			if (vm.ShowMagnitude)
-				sout += "Mag: " + FormatValue(column.Mag, column.Mag) + Environment.NewLine;
-			if (vm.ShowPhase)
-				sout += "Phase: " + FormatValue(column.Phase, column.Mag) + Environment.NewLine;
-			if (vm.ShowTHDN)
-				sout += "THD+N: " + FormatValue(column.THDN, column.Mag) + Environment.NewLine;
-			if (vm.ShowTHD)
-				sout += "THD: " + FormatValue(column.THD, column.Mag) + Environment.NewLine;
-			if (vm.ShowNoise)
-				sout += "Noise: " + FormatValue(column.Noise, column.Mag) + Environment.NewLine;
-			return sout;
 		}
 
 		private static async Task DoGetLoad(bool isLoad)
@@ -375,8 +371,7 @@ namespace QA40xPlot.ViewModels
 			{
 				// open document
 				string filename = openFileDialog.FileName;
-				var vm = MyVModel;
-				await vm.actFreq.LoadFromFile(filename, isLoad);
+				await MyVModel.actSweep.LoadFromFile(filename, isLoad);
 			}
 		}
 
@@ -390,15 +385,6 @@ namespace QA40xPlot.ViewModels
 			await DoGetLoad(false);
 		}
 
-		public static void UpdateGain()
-		{
-			MyVModel.RaisePropertyChanged("GainSummary");
-		}
-
-		public static void UpdateLoad()
-		{
-			MyVModel.RaisePropertyChanged("LoadSummary");
-		}
 
 		private static string FileAddon()
 		{
@@ -407,11 +393,11 @@ namespace QA40xPlot.ViewModels
 			return formattedDate;
 		}
 
-		private static void SaveItTab()
+		private void SaveItTab()
 		{
 			SaveFileDialog saveFileDialog = new SaveFileDialog
 			{
-				FileName = String.Format("QaOpamp{0}", FileAddon()), // Default file name
+				FileName = String.Format("QaTAmp{0}", FileAddon()), // Default file name
 				DefaultExt = ".plt", // Default file extension
 				Filter = PlotFileFilter // Filter files by extension
 			};
@@ -426,7 +412,7 @@ namespace QA40xPlot.ViewModels
 				string filename = saveFileDialog.FileName;
 				if (filename.Count() > 1)
 				{
-					MyVModel.actFreq.SaveToFile(filename);
+					MyAction.SaveToFile(filename);
 				}
 			}
 		}
@@ -444,9 +430,10 @@ namespace QA40xPlot.ViewModels
 			var bounds = MyAction.GetDataBounds();
 			switch (parameter)
 			{
-				case "XF":  // X frequency
-					this.GraphStartX = bounds.Left.ToString("0");
-					this.GraphEndX = bounds.Right.ToString("0");
+				case "XM":  // X magnitude
+					// calculate the bounds here. X is provided in input or output volts/power
+					this.GraphStartX = bounds.Left.ToString("G2");
+					this.GraphEndX = (bounds.Left + bounds.Right).ToString("G2");
 					break;
 				case "YP":  // Y percents
 					{
@@ -473,12 +460,45 @@ namespace QA40xPlot.ViewModels
 			MyAction?.UpdateGraph(true);
 		}
 
+
 		// when the mouse moves in the plotcontrol window it sends a mouseevent to the parent view model (this)
 		// here's the tracker event handler
 		private static void DoMouseTracked(object sender, MouseEventArgs e)
 		{
-			var thdFreqVm = ViewSettings.Singleton.FreqVm;
-			thdFreqVm.DoMouse(sender, e);
+			var thdAmpVm = ViewSettings.Singleton.AmpSweepVm;
+			thdAmpVm.DoMouse(sender, e);
+		}
+
+		// this always uses the 'global' format so others work too
+		private static string FormatValue(double d1, double dMax)
+		{
+			var vm = MyVModel;
+			var x = GraphUtil.ReformatValue(vm.PlotFormat, d1, dMax);
+			return GraphUtil.PrettyPrint(x, vm.PlotFormat);
+		}
+
+
+		private static string FormatCursor(ThdColumn column)
+		{
+			var vm = MyVModel;
+			string sout = "Mag: " + FormatValue(column.Mag, column.Mag) + Environment.NewLine;
+			if (vm.ShowTHDN)
+				sout += "THD+N: " + FormatValue(column.THDN, column.Mag) + Environment.NewLine;
+			if (vm.ShowTHD)
+				sout += "THD: " + FormatValue(column.THD, column.Mag) + Environment.NewLine;
+			if (vm.ShowNoiseFloor)
+				sout += "Noise: " + FormatValue(column.Noise, column.Mag) + Environment.NewLine;
+			if (vm.ShowD2)
+				sout += "D2: " + FormatValue(column.D2, column.Mag) + Environment.NewLine;
+			if (vm.ShowD3)
+				sout += "D3: " + FormatValue(column.D3, column.Mag) + Environment.NewLine;
+			if (vm.ShowD4)
+				sout += "D4: " + FormatValue(column.D4, column.Mag) + Environment.NewLine;
+			if (vm.ShowD5)
+				sout += "D5: " + FormatValue(column.D5, column.Mag) + Environment.NewLine;
+			if (vm.ShowD6)
+				sout += "D6+: " + FormatValue(column.D6P, column.Mag) + Environment.NewLine;
+			return sout;
 		}
 
 		private void DoMouse(object sender, MouseEventArgs e)
@@ -488,20 +508,20 @@ namespace QA40xPlot.ViewModels
 			{
 				var p = e.GetPosition(actPlot);
 				var cord = ConvertScottCoords(actPlot, p.X, p.Y);
-				FreqValue = Math.Pow(10, cord.Item1); // frequency
+				FreqValue = Math.Pow(10, cord.Item1); // amplitude actually
 			}
+
 			ZValue = string.Empty;
 			var zv = MyAction.LookupX(FreqValue);
-			if(zv.Length > 0)
+			if (zv.Length > 0)
 			{
-				FreqShow = MathUtil.FormatLogger(zv[0].Column.Freq);
-				if(! ShowMagnitude)
-					ZValue += "Mag: " + FormatValue(zv[0].Column.Mag, zv[0].Column.Mag) + Environment.NewLine;
+				FreqShow = MathUtil.FormatLogger(zv[0].GenVolts) + "->" + MathUtil.FormatLogger(zv[0].Mag);
 				foreach (var item in zv)
 				{
 					if (item != null)
 					{
 						ZValue += FormatCursor(item);
+						ZValue += "------------" + Environment.NewLine;
 					}
 				}
 			}
@@ -511,31 +531,30 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		~FreqSweepViewModel()
+		~AmpSweepViewModel()
 		{
 			PropertyChanged -= CheckPropertyChanged;
 			MouseTracked -= DoMouseTracked;
 		}
 
-		public FreqSweepViewModel()
+		public AmpSweepViewModel()
 		{
-			Name = "ThdFreq";
+			Name = "ThdAmp";
 			PropertyChanged += CheckPropertyChanged;
 			MouseTracked += DoMouseTracked;
 
-			this.actPlot = default!;
-			this.actFreq = default!;
-
-			LeftWidth = 95;  // reset the width of the left column
+			LeftWidth = 90;  // reset the width of the left column
 			RightWidth = 50; // reset the width of the right column
 
-			StartFreq = "20";
-			EndFreq = "20000";
-			GraphStartX = "20";
-			GraphEndX = "20000";
+
+			actPlot = default!;
+			actSweep = default!;
+
+			TestFreq = "1000";
+			GraphStartX = "0.002";
+			GraphEndX = "10";
 			StepsOctave = 1;
-			LeftChannel = true;
-			RightChannel = false;
+
 			RangeTop = "1";             // when graphing percents distortion this is logarithmic 0.01....
 			RangeBottom = "0.001";
 
@@ -545,19 +564,27 @@ namespace QA40xPlot.ViewModels
 
 			ShowTHD = true;
 			ShowMagnitude = true;
-			ShowPhase = false;
-			ShowNoise = false;
-			ShowTHDN = false;
+			ShowD2 = true;
+			ShowD3 = true;
+			ShowD4 = true;
+			ShowD5 = true;
+			ShowD6 = true;
+			ShowNoiseFloor = true;
 
+			WindowingMethod = "Hann";
 			RangeTopdB = "20";
 			RangeBottomdB = "-180";
 
-			GenVoltage = "0.10";
+			StartVoltage = "0.1";
+			EndVoltage = "1";
+			StartPower = "0.5";
+			EndPower = "5";
 
 			ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
 			ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;          
-			// make a few things happen to synch the gui. don't await this.
+			// make a few things happen to synch the gui
 			Task.Delay(1000).ContinueWith(t => { MyAction?.UpdateGraph(true); });
 		}
 	}
 }
+

@@ -2,6 +2,11 @@
 --------------------------------------------
 This changelog shows the changes made for each version
 --------------------------------------------
+v 1.1.39
+- add Offset options to tab info
+- change distortion/noise bandwidth to 1/2 octave
+- improve tab info dialog box layout
+- fixup palette choices for multitests
 v 1.1.38
 - Opamp test
  - get cursor display correct

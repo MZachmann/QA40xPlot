@@ -2,6 +2,7 @@
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using QA40xPlot.BareMetal;
+using QA40xPlot.QA430;
 using QA40xPlot.Views;
 using System.Diagnostics;
 using System.Windows;
@@ -139,6 +140,25 @@ namespace QA40xPlot.ViewModels
 			{
 				SetProperty(ref _EchoChannel, value);
 				RaisePropertyChanged("UseExternalEcho");
+			}
+		}
+
+		private bool _EnableQA430 = false;
+		public bool EnableQA430
+		{
+			get { return _EnableQA430; }
+			set
+			{
+				if( SetProperty(ref _EnableQA430, value) && ViewSettings.Singleton != null)
+				{
+					ViewSettings.Singleton.MainVm.ShowQA430 = value;
+					if (!value)
+					{
+						// make sure to close QA430 if disabling
+						QA430Model.EndQA430Op();
+						ViewSettings.Singleton.MainVm.HasQA430 = false;
+					}
+				}
 			}
 		}
 

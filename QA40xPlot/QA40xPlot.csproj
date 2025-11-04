@@ -15,8 +15,8 @@
     <AssemblyOriginatorKeyFile>Keys\sgKey.snk</AssemblyOriginatorKeyFile>
     <ApplicationIcon>Images\favicon.ico</ApplicationIcon>
     <UseWindowsForms>False</UseWindowsForms>
-    <AssemblyVersion>1.1.38</AssemblyVersion>
-    <FileVersion>1.1.38</FileVersion>
+    <AssemblyVersion>1.1.39</AssemblyVersion>
+    <FileVersion>1.1.39</FileVersion>
 	</PropertyGroup>
 
   <ItemGroup>
@@ -132,6 +132,9 @@
     <Compile Update="Views\Subs\MiniShow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\AmpSweepPlotPage.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\ThdAmpPlotPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -141,12 +144,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Configs\DarkView.cfg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Configs\LightView.cfg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Help\AudioMath.pdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

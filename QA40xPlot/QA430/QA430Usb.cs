@@ -114,6 +114,7 @@ namespace QA40xPlot.QA430
                 // if we're exiting really close this stuff
                 if(OnExit)
                 {
+                    QAModel.KillTimer();
 					// clear stuff
 					RegisterReader = null;
 					RegisterWriter = null;

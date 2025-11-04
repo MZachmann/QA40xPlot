@@ -130,10 +130,20 @@ namespace QA40xPlot
 			}
 		}
 
+		// press QA430 button
 		private void OnQA430(object sender, RoutedEventArgs e)
 		{
 			try
 			{
+				if( ViewSettings.Singleton.MainVm.HasQA430 == false)
+				{
+					var nowHave = QA430Model.BeginQA430Op();
+					if(!nowHave)
+					{
+						MessageBox.Show("QA-430 device not connected.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+						return;
+					}
+				}
 				var x = QA430.Qa430Usb.Singleton;
 				var wind = x?.QAModel.MyWindow;
 				if(wind != null)
@@ -163,14 +173,22 @@ namespace QA40xPlot
 				Application.Current.MainWindow.WindowState = WindowState.Maximized;
 			}
 			this.InvalidateVisual();
-			QA430Model.BeginQA430Op().ContinueWith(x=>1);	// the continuewith gets rid of an async warning
+
+			// now start QA430 if possible
+			if(ViewSettings.Singleton != null)
+			{
+				ViewSettings.Singleton.MainVm.ShowQA430 = ViewSettings.Singleton.SettingsVm.EnableQA430;
+				if (ViewSettings.Singleton.MainVm.ShowQA430)
+					QA430Model.BeginQA430Op();
+			}
 		}
 
 		protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
 		{
 			try
 			{
-				QA430Model.EndQA430Op();
+				if(ViewSettings.Singleton.MainVm.HasQA430)
+					QA430Model.EndQA430Op();
 
 				if (ViewSettings.Singleton.SettingsVm.RelayUsage != "Never")
 				{
