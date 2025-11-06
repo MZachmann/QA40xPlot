@@ -40,6 +40,7 @@ namespace QA40xPlot.ViewModels
 		public static string TabInfoTip { get => "Click to set line colors and edit plot headings"; }
 		public static string SummaryDataTip { get => "Click to see a box with summary test statistics"; }
 		public static string MiniPlotsTip { get => "Click to show the mini plots persistently"; }
+		public static string LegendTip { get => "Click on to show or off to hide the legend."; }
 		public static string PinGraphTip { get => "Click to pin the current graph range"; }
 		public static List<string> ChannelList { get => new List<string> { "Left", "Right" }; }
 		public static List<string> PowerFreqList { get => new List<string> { "50", "60" }; }
@@ -65,6 +66,8 @@ namespace QA40xPlot.ViewModels
 		protected TabAbout actAbout { get; set; } = new();
 		[JsonIgnore]
 		public DataDescript DataInfo { get; set; } = new(); // set when we set the datapage via linkabout
+		[JsonIgnore]
+		internal MarkerList LegendInfo { get; set; } = new(); // set when we set the datapage via linkabout
 
 		[JsonIgnore]
 		public bool IsGenPower { get => (GenDirection == MeasureVoltsFull[2]); }
@@ -98,6 +101,13 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _ShowMiniPlots;
 			set => SetProperty(ref _ShowMiniPlots, value);
+		}
+
+		private bool _ShowLegend = true;
+		public bool ShowLegend
+		{
+			get => _ShowLegend;
+			set => SetProperty(ref _ShowLegend, value);
 		}
 
 		[JsonIgnore]

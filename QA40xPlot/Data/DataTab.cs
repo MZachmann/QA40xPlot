@@ -174,7 +174,7 @@ namespace QA40xPlot.Data
 		[JsonIgnore]
 		public LeftRightTimeSeries TimeRslt { get; set; }   // if we acquired data
 		[JsonIgnore]
-		public int Show { get; set; }        // Show in graph 0 = none, 1 = left, 2 = right, 3 = both
+		public int Show { get => (Definition.IsOnL ? 1 : 0) + (Definition.IsOnR ? 2 : 0); }        // Show in graph 0 = none, 1 = left, 2 = right, 3 = both
 		[JsonIgnore]
 		public int Id { get; set; } // the generator, if any
 

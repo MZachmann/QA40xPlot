@@ -128,7 +128,6 @@ namespace QA40xPlot.Actions
 			}
 			else
 			{
-				page.Show = 1; // show the left channel new
 				OtherTabs.Add(page); // add the new one
 				MyVModel.OtherSetList.Add(page.Definition);
 			}

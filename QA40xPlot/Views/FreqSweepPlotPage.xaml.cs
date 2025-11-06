@@ -14,6 +14,7 @@ namespace QA40xPlot.Views
 			InitializeComponent();
 			var vm = ViewSettings.Singleton.FreqVm;
 			this.DataContext = vm;
+			this.LegendWindow.SetDataContext(vm);
 			vm.SetAction(this.WpfPlot1, this.MiniShow.WpfPlot2, this.MiniShow.WpfPlot3, this.TAbout);
 		}
 

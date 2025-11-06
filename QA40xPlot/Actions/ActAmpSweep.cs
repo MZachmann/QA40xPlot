@@ -343,9 +343,7 @@ namespace QA40xPlot.Actions
 			}
 			else
 			{
-				page.Show = 1; // show the left channel new
 				OtherTabs.Add(page); // add the new one
-				//var oss = new OtherSet(page.Definition.Name, page.Show, page.Id);
 				MyVModel.OtherSetList.Add(page.Definition);
 			}
 
@@ -616,8 +614,8 @@ namespace QA40xPlot.Actions
 			var lrfs = msr.FreqRslt;    // frequency response
 
 			var maxf = msr.FreqRslt.Df * msr.FreqRslt.Left.Length;
-			//LeftRightPair snrdb = QaCompute.GetSnrDb(lrfs, dFreq, 20.0, maxf);
-			LeftRightPair thds = QaCompute.GetThdDb(vm.WindowingMethod, lrfs, dFreq, 20.0, Math.Min(20000, maxf));
+
+			LeftRightPair thds = QaCompute.GetThdDb(vm.WindowingMethod, lrfs, dFreq, 20.0, Math.Min(50000, maxf));
 			LeftRightPair thdN = QaCompute.GetThdnDb(vm.WindowingMethod, lrfs, dFreq, 20.0, maxf, ViewSettings.NoiseWeight);
 
 			var frq = msr.FreqRslt.Left;    // start with left

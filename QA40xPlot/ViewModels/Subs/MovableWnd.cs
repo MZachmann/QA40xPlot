@@ -41,9 +41,18 @@ namespace QA40xPlot.ViewModels.Subs
 			{
 				var pos = e.GetPosition(u);
 				// Do something with pos if needed
+				var halign = u.HorizontalAlignment;
+				var valign = u.VerticalAlignment;
 				var mgn = u.Margin;
-				mgn.Left += pos.X - _MouseX;
-				mgn.Top += pos.Y - _MouseY;
+				if(halign == HorizontalAlignment.Left)
+					mgn.Left += pos.X - _MouseX;
+				else
+					mgn.Right -= pos.X - _MouseX;
+				if(valign == VerticalAlignment.Top)
+					mgn.Top += pos.Y - _MouseY;
+				else
+					mgn.Bottom -= pos.Y - _MouseY;
+				// once we start moving it, reset right and bottom to 0
 				u.Margin = mgn;
 			}
 		}

@@ -319,6 +319,21 @@ namespace QA40xPlot.Libraries
 
 		}
 
+		public static System.Windows.Media.DoubleCollection ScottToMedia(ScottPlot.LinePattern lp)
+		{
+			switch (lp.Name)
+			{ 
+				case "Dashed":
+					return new System.Windows.Media.DoubleCollection() { 5, 5, 5, 5, 5, 3 };
+				case "Dotted":
+					return new System.Windows.Media.DoubleCollection() { 2, 5, 2, 5, 2, 5, 2, 5 };
+				case "DenselyDashed":
+					return new System.Windows.Media.DoubleCollection() { 5, 2, 5, 2, 5, 2, 5, 2 };
+				default:
+					return new System.Windows.Media.DoubleCollection() {28};
+			}
+		}
+
 		public static System.Windows.Media.Color ScottToMedia(ScottPlot.Color clr)
 		{
 			// Convert the ScottPlot Color object to a System.Windows.Media.Color object

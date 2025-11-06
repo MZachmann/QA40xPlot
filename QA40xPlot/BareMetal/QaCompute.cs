@@ -102,7 +102,13 @@ namespace QA40xPlot.BareMetal
 		internal static LeftRightPair GetSnrDb(string windowing, LeftRightFrequencySeries lrs, double fundFreq, double minFreq, double maxFreq, string weighting)
 		{
 			if (lrs == null)
-				return new();
+				return new(200,200);
+
+			if(minFreq >= maxFreq)
+			{
+				Debug.WriteLine("minFreq must be less than maxFreq in GetSnrDb");
+				return new(200, 200);
+			}
 
 			var ffs = lrs.Left;
 			var thdLeft = ComputeSnrRatio(windowing, ffs, lrs.Df, fundFreq, minFreq, maxFreq, weighting, false);
@@ -134,7 +140,7 @@ namespace QA40xPlot.BareMetal
 			// double[] signalFreqLin, double[] frequencies, double fundamental,
 			// int numHarmonics = 5, bool debug = false
 			if (lrs == null)
-				return new();
+				return new(0,0);
 
 			var ffs = lrs.Left;
 			var thdLeft = ComputeThdLinear(windowing, ffs, lrs.Df, fundFreq, 7, false);
@@ -248,6 +254,11 @@ namespace QA40xPlot.BareMetal
 
 		internal static double ComputeSinadRatio(string windowing, double[] signalFreqLin, double df, double fundamental, double minFreq, double maxFreq, string weighting, bool debug = false)
 		{
+			if(minFreq >= maxFreq)
+			{
+				Debug.WriteLine("minFreq must be less than maxFreq in ComputeSinadRatio");
+				return 200.0;
+			}
 			// Calculate notch filter bounds in Hz
 			var notchOctaves = 0.5; // aes-17 2015 standard notch
 			//var notchOctaves = 0.15; // my preferred notch much tighter and more realistic nowadays

@@ -173,6 +173,8 @@
                   VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,50,54,0" />
             <views:MiniShow x:Name="MiniShow" Visibility="{Binding ShowMiniPlots, Converter={StaticResource BoolVisConverter}}"
                             VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,80,64,0" />
+            <views:LegendWnd x:Name="LegendWindow" Visibility="{Binding ShowLegend, Converter={StaticResource BoolVisConverter}}"
+                VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,70,40,0" />
         </Grid>
         <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
             <StackPanel Orientation="Vertical">
@@ -218,9 +220,11 @@
                               IsChecked="{Binding ShowTabInfo}" Grid.Row="0" Grid.Column="0"  />
                     <CheckBox Content="Mini-Plots" ToolTip="{Binding MiniPlotsTip}"
                               IsChecked="{Binding KeepMiniPlots}" Grid.Row="1" Grid.Column="0"  />
-                    <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="2"  />
-                    <CheckBox Content="Data Points" IsChecked="{Binding ShowPoints}" Grid.Row="3"  />
-                    <Button  Content="Edit Palette" Command="{Binding EditPaletteCommand}" Margin="12, 2" Grid.Row="4"></Button>
+                    <CheckBox Content="Legend" ToolTip="{Binding ShowLegendTip}"
+                            IsChecked="{Binding ShowLegend}" Grid.Row="2" Grid.Column="0"  />
+                    <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="3"  />
+                    <CheckBox Content="Data Points" IsChecked="{Binding ShowPoints}" Grid.Row="4"  />
+                    <Button  Content="Edit Palette" Command="{Binding EditPaletteCommand}" Margin="12, 2" Grid.Row="5"></Button>
                 </Grid>
             </Expander>
 

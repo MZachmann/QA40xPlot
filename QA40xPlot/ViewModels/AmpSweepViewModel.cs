@@ -13,7 +13,7 @@ using System.Windows.Input;
 
 namespace QA40xPlot.ViewModels
 {
-	public class AmpSweepViewModel : BaseViewModel
+	public class AmpSweepViewModel : OpampViewModel
 	{
 		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 		public static List<String> StartVoltages { get => new List<string> { "0.0001", "0.0002", "0.0005", "0.001", "0.002", "0.005", "0.01", "0.02", "0.05", "0.1", "0.2", "0.5" }; }
@@ -171,63 +171,6 @@ namespace QA40xPlot.ViewModels
 			get => _ShowNoiseFloor;
 			set => SetProperty(ref _ShowNoiseFloor, value);
 		}
-		private ObservableCollection<SelItem> _Loadsets = [new SelItem(true, "Open"), new SelItem(true, "2000 Ω"),
-					new SelItem(true, "604 Ω"), new SelItem(true, "470 Ω")];
-		[JsonIgnore]
-		public ObservableCollection<SelItem> Loadsets
-		{
-			get => _Loadsets;
-			set => SetProperty(ref _Loadsets, value);
-		}
-
-		private ObservableCollection<SelItem> _Gainsets = [new SelItem(true, "1"),  new SelItem(true, "-1"),
-					new SelItem(true, "10"),  new SelItem(true, "-10")];
-		[JsonIgnore]
-		public ObservableCollection<SelItem> Gainsets
-		{
-			get => _Gainsets;
-			set => SetProperty(ref _Gainsets, value);
-		}
-
-		private string _SupplyList = "1;2;4;8;12;15";
-		public string SupplyList
-		{
-			get => _SupplyList;
-			set => SetProperty(ref _SupplyList, value);
-		}
-
-		// when this is saved it shows the current settings
-		// the value is set only when we load a configuration so parse it
-		public string LoadSummary
-		{
-			get => string.Join(',', Loadsets.Where(x => x.IsSelected).Select(x => x.Name));
-			set
-			{
-				var u = value.Split(',', StringSplitOptions.RemoveEmptyEntries);
-				foreach (var item in Loadsets)
-				{
-					item.IsSelected = u.Contains(item.Name);
-				}
-				RaisePropertyChanged("LoadSummary");
-			}
-		}
-
-		// when this is saved it shows the current settings
-		// the value is set only when we load a configuration so parse it
-		public string GainSummary
-		{
-			get => string.Join(',', Gainsets.Where(x => x.IsSelected).Select(x => x.Name));
-			set
-			{
-				var u = value.Split(',', StringSplitOptions.RemoveEmptyEntries);
-				foreach (var item in Gainsets)
-				{
-					item.IsSelected = u.Contains(item.Name);
-				}
-				RaisePropertyChanged("GainSummary");
-			}
-		}
-
 		#endregion
 
 		public static void UpdateGain()

@@ -1,0 +1,18 @@
+﻿<UserControl x:Class="QA40xPlot.Views.LegendWnd"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:QA40xPlot"
+             xmlns:views ="clr-namespace:QA40xPlot.Views"
+             mc:Ignorable="d" 
+             Background="{Binding ThemeBackground}"
+             MinHeight="10" MinWidth="100"
+             MouseDown="OnWindMouseDown" MouseUp="OnWindMouseUp" MouseMove="OnWindMouseMove" 
+             d:DesignHeight="300" d:DesignWidth="200" >
+    <Border x:Name="TheBorder" BorderThickness="1,9,1,1" BorderBrush="DarkGray" >
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" >
+            <WrapPanel x:Name="LegendWrapPanel"  Margin="4,4,4,4" />
+        </ScrollViewer>
+    </Border>
+</UserControl>

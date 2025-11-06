@@ -358,7 +358,6 @@ namespace QA40xPlot.Actions
 			}
 			else
 			{
-				page.Show = 1; // show the left channel new
 				OtherTabs.Add(page); // add the new one
 				//var oss = new OtherSet(page.Definition.Name, page.Show, page.Id);
 				MyVModel.OtherSetList.Add(page.Definition);
@@ -513,7 +512,6 @@ namespace QA40xPlot.Actions
 
 				if (vm.VaryGain)
 				{
-
 					bool[] useOption = freqVm.Gainsets.Select(x => x.IsSelected).ToArray();
 					variables = model430?.ExpandGainOptions(variables, useOption) ?? variables;
 				}
@@ -754,6 +752,7 @@ namespace QA40xPlot.Actions
 			UpdatePlotTitle();
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
+			myPlot.HideLegend();
 			swpPlot.Refresh();
         }
 
@@ -774,6 +773,7 @@ namespace QA40xPlot.Actions
 			UpdatePlotTitle();
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
+			myPlot.HideLegend();
 			swpPlot.Refresh();
         }
 
@@ -822,7 +822,9 @@ namespace QA40xPlot.Actions
                 plot.MarkerSize = markerSize;
                 plot.LegendText = legendText;
                 plot.LinePattern = linePattern;
-            }
+				var fvm = MyVModel;
+				fvm.LegendInfo.Add(new MarkerItem(linePattern, plot.Color, legendText) );
+			}
 
 			// which columns are we displaying? left, right or both
 			List<FreqSweepLine>[] lineGroup;
@@ -878,22 +880,23 @@ namespace QA40xPlot.Actions
         {
 			swpPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
             int resultNr = 0;
-            FreqSweepViewModel thd = MyVModel;
+            FreqSweepViewModel freqVm = MyVModel;
 
-			if (GraphUtil.IsPlotFormatLog(thd.PlotFormat))
+			if (GraphUtil.IsPlotFormatLog(freqVm.PlotFormat))
             {
                 if (settingsChanged)
                 {
-                    InitializeMagnitudePlot(thd.PlotFormat);
+                    InitializeMagnitudePlot(freqVm.PlotFormat);
                 }
             }
             else
             {
                 if (settingsChanged)
                 {
-                    InitializeThdPlot(thd.PlotFormat);
+                    InitializeThdPlot(freqVm.PlotFormat);
 				}
             }
+			freqVm.LegendInfo.Clear();
 			PlotValues(PageData, resultNr++, true);
 			if (OtherTabs.Count > 0)
 			{

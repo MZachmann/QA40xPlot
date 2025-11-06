@@ -141,7 +141,6 @@ namespace QA40xPlot.Actions
 			}
 			else
 			{
-				page.Show = 1; // show the left channel new
 				OtherTabs.Add(page); // add the new one
 				//var oss = new OtherSet(page.Definition.Name, page.Show, page.Id);
 				MyVModel.OtherSetList.Add(page.Definition);
@@ -484,8 +483,8 @@ namespace QA40xPlot.Actions
 				freq = 1016.6; // the default multitone frequency, 1016.6 Hz
 			}
 			var lrfs = msr.FreqRslt;    // frequency response
-
-			var maxf = 20000; // the app seems to use 20,000 so not sampleRate/ 2.0;
+			// get snr math stuff
+			var maxf = Math.Min(80000, lrfs.Df * lrfs.Left.Length);
 			LeftRightPair sinaddb = QaCompute.GetSinadDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf, ViewSettings.NoiseWeight);
 			LeftRightPair snrdb = QaCompute.GetSnrDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf, ViewSettings.NoiseWeight);
 			LeftRightPair thds = QaCompute.GetThdDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf);

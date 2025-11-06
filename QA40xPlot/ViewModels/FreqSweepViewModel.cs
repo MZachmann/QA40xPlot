@@ -13,31 +13,7 @@ using System.Windows.Input;
 
 namespace QA40xPlot.ViewModels
 {
-	public class SelItem : FloorViewModel
-	{
-		private bool _IsSelected = false;
-		public bool IsSelected
-		{
-			get => _IsSelected;
-			set
-			{
-				SetProperty(ref _IsSelected, value);
-			}
-		}
-
-		private string _Name = string.Empty;
-		public string Name { 
-			get => _Name;
-			set => SetProperty(ref _Name, value);
-		}
-		internal SelItem(bool isSel, string name)
-		{
-			IsSelected = isSel;
-			Name = name;
-		}
-	}
-
-	public class FreqSweepViewModel : BaseViewModel
+	public class FreqSweepViewModel :OpampViewModel
 	{
 		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 
@@ -170,59 +146,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowNoise, value);
 		}
 
-		private ObservableCollection<SelItem> _Loadsets = [new SelItem(true, "Open"), new SelItem(true, "2000 Ω"),
-					new SelItem(true, "604 Ω"), new SelItem(true, "470 Ω")];
-		[JsonIgnore]
-		public ObservableCollection<SelItem> Loadsets
-		{
-			get => _Loadsets;
-			set => SetProperty(ref _Loadsets, value);
-		}
-
-		private ObservableCollection<SelItem> _Gainsets = [new SelItem(true, "1"),  new SelItem(true, "-1"),
-					new SelItem(true, "10"),  new SelItem(true, "-10")];
-		[JsonIgnore]
-		public ObservableCollection<SelItem> Gainsets
-		{
-			get => _Gainsets;
-			set => SetProperty(ref _Gainsets, value);
-		}
-
-		private string _SupplyList = "1;2;4;8;12;15";
-		public string SupplyList
-		{
-			get => _SupplyList;
-			set => SetProperty(ref _SupplyList, value);
-		}
-
-		// when this is saved it shows the current settings
-		// the value is set only when we load a configuration so parse it
-		public string LoadSummary
-		{
-			get => string.Join(',', Loadsets.Where(x => x.IsSelected).Select(x => x.Name));
-			set { 
-				var u = value.Split(',', StringSplitOptions.RemoveEmptyEntries);
-				foreach (var item in Loadsets)
-				{
-					item.IsSelected = u.Contains(item.Name);
-				}
-				RaisePropertyChanged("LoadSummary"); }
-		}
-
-		// when this is saved it shows the current settings
-		// the value is set only when we load a configuration so parse it
-		public string GainSummary
-		{
-			get => string.Join(',', Gainsets.Where(x => x.IsSelected).Select(x => x.Name));
-			set {
-				var u = value.Split(',', StringSplitOptions.RemoveEmptyEntries);
-				foreach (var item in Gainsets)
-				{
-					item.IsSelected = u.Contains(item.Name);
-				}
-				RaisePropertyChanged("GainSummary"); 
-			}
-		}
 		#endregion
 
 		private static void StartIt()
@@ -519,7 +442,7 @@ namespace QA40xPlot.ViewModels
 
 		public FreqSweepViewModel()
 		{
-			Name = "ThdFreq";
+			Name = "FreqSweep";
 			PropertyChanged += CheckPropertyChanged;
 			MouseTracked += DoMouseTracked;
 

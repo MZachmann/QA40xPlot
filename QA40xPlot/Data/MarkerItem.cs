@@ -1,0 +1,39 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace QA40xPlot.Data
+{
+	// to support the internal LegendWnd legend window
+	// we have a list of these MarkerItem objects
+	internal class MarkerList : ObservableCollection<MarkerItem>
+	{
+		internal MarkerList() : base()
+		{
+		}
+	}
+
+	internal class MarkerItem
+	{
+		internal ScottPlot.LinePattern ThePattern { get; set; }
+		internal ScottPlot.Color TheColor { get; set; }
+		internal string Label { get; set; }
+
+		internal MarkerItem()
+		{
+			ThePattern = ScottPlot.LinePattern.Solid;
+			TheColor = ScottPlot.Colors.Black;
+			Label = string.Empty;
+		}
+
+		internal MarkerItem(ScottPlot.LinePattern pattern, ScottPlot.Color color, string label)
+		{
+			ThePattern = pattern;
+			TheColor = color;
+			Label = label;
+		}
+	}
+}
