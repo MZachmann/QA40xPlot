@@ -10,9 +10,7 @@
              MinHeight="10" MinWidth="100"
              MouseDown="OnWindMouseDown" MouseUp="OnWindMouseUp" MouseMove="OnWindMouseMove" 
              d:DesignHeight="300" d:DesignWidth="200" >
-    <Border x:Name="TheBorder" BorderThickness="1,9,1,1" BorderBrush="DarkGray" >
-        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" >
-            <WrapPanel x:Name="LegendWrapPanel"  Margin="4,4,4,4" />
-        </ScrollViewer>
+    <Border x:Name="TheBorder" BorderThickness="1,3,1,1" BorderBrush="DarkGray" >
+            <WrapPanel x:Name="LegendWrapPanel" Orientation="Vertical"  Margin="4,4,4,4" />
     </Border>
 </UserControl>

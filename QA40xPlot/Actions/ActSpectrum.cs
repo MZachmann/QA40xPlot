@@ -1,4 +1,5 @@
-﻿using QA40xPlot.BareMetal;
+﻿using NAudio.Gui;
+using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
@@ -646,6 +647,7 @@ namespace QA40xPlot.Actions
 			var mymark = myPlot.Add.Marker(Math.Log10(frequency), markView,
 				MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), markerCol);
 			mymark.LegendText = string.Format("{1}: {0}", GraphUtil.PrettyPrint(markVal, vm.PlotFormat), (int)frequency);
+			MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, mymark.Color, mymark.LegendText));
 		}
 
 		private void ShowHarmonicMarkers(MyDataTab page)
@@ -915,6 +917,7 @@ namespace QA40xPlot.Actions
 				plotLeft.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, 2 * measurementNr);
 				plotLeft.MarkerSize = 1;
 				plotLeft.LegendText = isMain ? "Left" : ClipName(page.Definition.Name) + ".L";
+				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotLeft.Color, plotLeft.LegendText));
 			}
 
 			if (useRight)
@@ -931,6 +934,7 @@ namespace QA40xPlot.Actions
 				plotRight.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, 2 * measurementNr + 1); // color 0 is bad
 				plotRight.MarkerSize = 1;
 				plotRight.LegendText = isMain ? "Right" : ClipName(page.Definition.Name) + ".R";
+				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotRight.Color, plotRight.LegendText));
 			}
 
 			fftPlot.Refresh();
@@ -958,17 +962,18 @@ namespace QA40xPlot.Actions
 			ViewSettings.Singleton.ChannelRight.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd;
 
 			ShowPageInfo(PageData); // show the page info in the display
+			DrawPlotLines(resultNr);
 			if (PageData.FreqRslt != null)
 			{
 				ShowHarmonicMarkers(PageData);
 				ShowPowerMarkers(PageData);
 			}
-			DrawPlotLines(resultNr);
 		}
 
 		public int DrawPlotLines(int resultNr)
 		{
 			fftPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
+			MyVModel.LegendInfo.Clear();
 			PlotValues(PageData, resultNr++, true);
 			if (OtherTabs.Count > 0)
 			{

@@ -752,7 +752,6 @@ namespace QA40xPlot.Actions
 			UpdatePlotTitle();
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
-			myPlot.HideLegend();
 			swpPlot.Refresh();
         }
 
@@ -822,8 +821,7 @@ namespace QA40xPlot.Actions
                 plot.MarkerSize = markerSize;
                 plot.LegendText = legendText;
                 plot.LinePattern = linePattern;
-				var fvm = MyVModel;
-				fvm.LegendInfo.Add(new MarkerItem(linePattern, plot.Color, legendText) );
+				MyVModel.LegendInfo.Add(new MarkerItem(linePattern, plot.Color, legendText) );
 			}
 
 			// which columns are we displaying? left, right or both

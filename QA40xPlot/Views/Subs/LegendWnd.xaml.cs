@@ -2,7 +2,6 @@
 using QA40xPlot.ViewModels;
 using QA40xPlot.ViewModels.Subs;
 using System.Collections.Specialized;
-using System.Drawing;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
@@ -131,13 +130,18 @@ namespace QA40xPlot.Views
 					Text = marker.Label,
 					IsReadOnly = true,
 					Margin = new Thickness(5, 0, 0, 0),
+					BorderBrush = Brushes.Transparent
 				};
 				kid.Children.Add(tbox);
 				maxSize = Math.Max(maxSize, MeasureString(tbox, marker.Label));
 				LegendWrapPanel.Children.Add(kid);
 			}
 			// now autosize
-			maxSize += 10;		// slop
+			maxSize += 10;      // slop
+			// all but the none theme add more white space
+			var isSmall = (ViewSettings.Singleton.SettingsVm.ThemeSet == "None");
+			if (!isSmall)
+				maxSize += 20;
 			foreach (var kid in LegendWrapPanel.Children)
 			{
 				var st = kid as StackPanel;
@@ -146,8 +150,9 @@ namespace QA40xPlot.Views
 					((TextBox)st.Children[1]).Width = maxSize;
 			}
 			// now make the panel at most 10xn
-			maxSize += 50;	// add line length
-			LegendWrapPanel.MaxWidth = maxSize + (maxSize * (int)(info.Count / 10));
+			//maxSize += 50;  // add line length
+			//LegendWrapPanel.MaxWidth = maxSize + (maxSize * (int)(info.Count / 10));
+			LegendWrapPanel.MaxHeight = isSmall ? 165 : 250; // gives us 9 per column
 		}
 	}
 }

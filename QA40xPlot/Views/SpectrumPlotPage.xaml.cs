@@ -13,6 +13,7 @@ namespace QA40xPlot.Views
 			InitializeComponent();
 			var vm = ViewModels.ViewSettings.Singleton.SpectrumVm;
 			this.DataContext = vm;
+			LegendWindow.SetDataContext(vm);
 			vm.SetAction(this, this.WpfPlot1, this.Info1, this.Info2, this.TAbout);
 		}
 	}

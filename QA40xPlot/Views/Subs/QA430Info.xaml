@@ -12,7 +12,7 @@
         <StackPanel Orientation="Vertical" Margin="5,6,0,0" >
             <StackPanel Orientation="Vertical" Margin="15,0,0,0">
                 <StackPanel Orientation="Horizontal">
-                    <Label Content="Configuration: "></Label>
+                    <Label Content="Configuration: " VerticalAlignment="Center"></Label>
                     <ComboBox ItemsSource="{Binding ConfigOptions}" SelectedIndex="{Binding OpampConfigOption}" />
                     <Button Margin="5,0,0,0" Content="..." HorizontalContentAlignment="Center" Width="35" Command="{Binding ShowConfigurations}" />
                 </StackPanel>
@@ -39,23 +39,23 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <!--Columns 1,2 = settings-->
-                <Label Grid.Row="0" Grid.Column="0" Content="Neg Input" ></Label>
+                <Label Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Content="Neg Input" ></Label>
                 <ComboBox Grid.Row="0" Grid.Column="1" 
                   ItemsSource="{Binding NegInputs}" SelectionChanged ="OnSelChanged" 
                   SelectedIndex="{Binding OpampNegInput}"/>
-                <Label Grid.Row="1" Grid.Column="0" Content="Pos Input" ></Label>
+                <Label Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Content="Pos Input" ></Label>
                 <ComboBox Grid.Row="1" Grid.Column="1" 
                   ItemsSource="{Binding PosInputs}" SelectionChanged="OnSelChanged" 
                   SelectedIndex="{Binding OpampPosInput}"/>
-                <Label Grid.Row="2" Grid.Column="0" Content="Pos-Neg Connection" ></Label>
+                <Label Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Content="Pos-Neg Connection" ></Label>
                 <ComboBox Grid.Row="2" Grid.Column="1" 
                   ItemsSource="{Binding PosNegConnects}" SelectionChanged="OnSelChanged" 
                   SelectedIndex="{Binding OpampPosNegConnect}"/>
-                <Label Grid.Row="3" Grid.Column="0" Content="Feedback" ></Label>
+                <Label Grid.Row="3" Grid.Column="0" VerticalAlignment="Center" Content="Feedback" ></Label>
                 <ComboBox Grid.Row="3" Grid.Column="1" 
                   ItemsSource="{Binding Feedbacks}" SelectionChanged="OnSelChanged" 
                   SelectedIndex="{Binding OpampFeedback}"/>
-                <Label Grid.Row="4" Grid.Column="0" Content="Load" ></Label>
+                <Label Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Content="Load" ></Label>
                 <ComboBox Grid.Row="4" Grid.Column="1" 
                   ItemsSource="{Binding Loads}"
                   SelectedIndex="{Binding LoadOption}"/>
@@ -63,11 +63,11 @@
                   Height="10" Background="AliceBlue" HorizontalAlignment="Stretch" />
                 <CheckBox Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2"
                   Content="Use Fixed Rails" IsChecked="{Binding UseFixedRails}" />
-                <Label Grid.Row="7" Grid.Column="0" Content="Pos Rail" ></Label>
+                <Label Grid.Row="7" Grid.Column="0" VerticalAlignment="Center" Content="Pos Rail" ></Label>
                 <ComboBox Grid.Row="7" Grid.Column="1" IsEditable="True"
                   ItemsSource="{Binding RailVoltages}" 
                   Text="{Binding PosRailVoltage, UpdateSourceTrigger=LostFocus}"/>
-                <Label Grid.Row="8" Grid.Column="0" Content="Neg Rail" ></Label>
+                <Label Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" Content="Neg Rail" ></Label>
                 <ComboBox Grid.Row="8" Grid.Column="1" IsEditable="True"
                   ItemsSource="{Binding NegRailVoltages, UpdateSourceTrigger=LostFocus}" 
                   Text="{Binding NegRailVoltage}"/>
@@ -76,13 +76,13 @@
                 <!--Spacer-->
                 <Label Grid.Row="0" Grid.Column="2" Content=" " ></Label>
                 <!--Columns 4,5 = output-->
-                <Label Grid.Row="0" Grid.Column="3" Content="Current +" ></Label>
+                <Label Grid.Row="0" Grid.Column="3" VerticalAlignment="Center" Content="Current +" ></Label>
                 <TextBlock Grid.Row="0" Grid.Column="4" VerticalAlignment="Center" Text="{Binding CurrentSenseHiValue}" />
-                <Label Grid.Row="1" Grid.Column="3" Content="Current -" ></Label>
+                <Label Grid.Row="1" Grid.Column="3" VerticalAlignment="Center" Content="Current -" ></Label>
                 <TextBlock Grid.Row="1" Grid.Column="4" VerticalAlignment="Center" Text="{Binding CurrentSenseLowValue}" />
-                <Label Grid.Row="2" Grid.Column="3" Content="Offset Voltage" ></Label>
+                <Label Grid.Row="2" Grid.Column="3" VerticalAlignment="Center" Content="Offset Voltage" ></Label>
                 <TextBlock Grid.Row="2" Grid.Column="4" VerticalAlignment="Center" Text="{Binding OffsetVoltage}" />
-                <Label Grid.Row="3" Grid.Column="3" Content="USB Voltage" ></Label>
+                <Label Grid.Row="3" Grid.Column="3" VerticalAlignment="Center" Content="USB Voltage" ></Label>
                 <TextBlock Grid.Row="3" Grid.Column="4" VerticalAlignment="Center" Text="{Binding UsbVoltage}" />
             </Grid>
             <Button Command="{Binding ShowConfigurations}" >

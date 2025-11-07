@@ -244,7 +244,8 @@ namespace QA40xPlot.Libraries
 			//myPlot.Legend.OutlineColor = Color.FromHex("#d7d7d7");
 
 			// Legend
-			SetupLegend(myPlot);
+			// SetupLegend(myPlot);
+			myPlot.HideLegend();
 			UpdateAPlot(myPlot);
 		}
 

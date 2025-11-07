@@ -31,9 +31,10 @@ namespace QA40xPlot.Views
 		{
 			InitializeComponent();
 			var vm = ViewModels.ViewSettings.Singleton.ThdFreq;
-			this.DataContext = vm;
-			vm.SetAction(this.WpfPlot1, this.MiniShow.WpfPlot2, this.MiniShow.WpfPlot3, this.TAbout);
-			this.AmpLoad.DataContext = ViewSettings.Singleton.SettingsVm;
+			DataContext = vm;
+			LegendWindow.SetDataContext(vm);
+			vm.SetAction(WpfPlot1, MiniShow.WpfPlot2, MiniShow.WpfPlot3, TAbout);
+			AmpLoad.DataContext = ViewSettings.Singleton.SettingsVm;
 		}
 
 	}

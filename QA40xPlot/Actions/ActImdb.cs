@@ -525,6 +525,7 @@ namespace QA40xPlot.Actions
 			var mymark = myPlot.Add.Marker(Math.Log10(frequency), markView,
 				MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), markerCol);
 			mymark.LegendText = string.Format("{1}: {0}", GraphUtil.PrettyPrint(markVal, vm.PlotFormat), (int)frequency);
+			MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, mymark.Color, mymark.LegendText));
 		}
 
 		private void ShowHarmonicMarkers(MyDataTab page)
@@ -710,6 +711,7 @@ namespace QA40xPlot.Actions
 				plotLeft.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, measurementNr * 2);
 				plotLeft.MarkerSize = 1;
 				plotLeft.LegendText = isMain ? "Left" : ClipName(page.Definition.Name) + ".L";
+				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotLeft.Color, plotLeft.LegendText));
 			}
 
 			if (useRight)
@@ -726,6 +728,7 @@ namespace QA40xPlot.Actions
 				plotRight.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, measurementNr * 2 + 1);
 				plotRight.MarkerSize = 1;
 				plotRight.LegendText = isMain ? "Right" : ClipName(page.Definition.Name) + ".R";
+				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotRight.Color, plotRight.LegendText));
 			}
 
 			fftPlot.Refresh();
@@ -774,17 +777,18 @@ namespace QA40xPlot.Actions
 			ViewSettings.Singleton.ImdChannelLeft.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd;
 			ViewSettings.Singleton.ImdChannelRight.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd;
 			ShowPageInfo(PageData);
+			DrawPlotLines(resultNr);
 			if (PageData.FreqRslt != null)
 			{
 				ShowHarmonicMarkers(PageData);
 				ShowPowerMarkers(PageData);
 			}
-			DrawPlotLines(resultNr);
 		}
 
 		public int DrawPlotLines(int resultNr)
 		{
 			fftPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
+			MyVModel.LegendInfo.Clear();
 			PlotValues(PageData, resultNr++, true);
 			if (OtherTabs.Count > 0)
 			{

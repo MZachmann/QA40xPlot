@@ -753,6 +753,7 @@ namespace QA40xPlot.Actions
 				plot.MarkerSize = markerSize;
 				plot.LegendText = legendText;
 				plot.LinePattern = linePattern;
+				MyVModel.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText));
 			}
 
 			// which columns are we displaying? left, right or both
@@ -840,6 +841,7 @@ namespace QA40xPlot.Actions
 					InitializeThdPlot(thd.PlotFormat);
 				}
 			}
+			MyVModel.LegendInfo.Clear();
 			PlotValues(PageData, resultNr++, true);
 			if (OtherTabs.Count > 0)
 			{

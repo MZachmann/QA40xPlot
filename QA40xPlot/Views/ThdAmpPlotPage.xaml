@@ -128,6 +128,8 @@
                   VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,50,54,0" />
             <views:MiniShow x:Name="MiniShow" Visibility="{Binding ShowMiniPlots, Converter={StaticResource BoolVisConverter}}" 
                             VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,80,64,0" />
+            <views:LegendWnd x:Name="LegendWindow" Visibility="{Binding ShowLegend, Converter={StaticResource BoolVisConverter}}"
+                VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,70,40,0" />
         </Grid>
         <StackPanel Grid.Column="2" Orientation="Vertical">
             <views:YAxisDb />
@@ -213,8 +215,10 @@
                     </Grid.RowDefinitions>
                     <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="0"  />
                     <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="1"  />
-                    <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="2"  />
-                    <CheckBox Content="Data Points" IsChecked="{Binding ShowPoints}" Grid.Row="3"  />
+                    <CheckBox Content="Legend" ToolTip="{Binding ShowLegendTip}"
+                            IsChecked="{Binding ShowLegend}" Grid.Row="2" Grid.Column="0"  />
+                    <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="3"  />
+                    <CheckBox Content="Data Points" IsChecked="{Binding ShowPoints}" Grid.Row="4"  />
                 </Grid>
             </Expander>
 
