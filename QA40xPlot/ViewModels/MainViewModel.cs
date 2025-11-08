@@ -53,6 +53,15 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowQA430, value);
 		}
 
+		// the maximum width of a tab
+		private double _MaxTab = 400;
+		[JsonIgnore]
+		public double MaxTab
+		{
+			get => _MaxTab;
+			set => SetProperty(ref _MaxTab, value);
+		}
+
 		private bool _HasQA430 = false;
 		[JsonIgnore]
 		public bool HasQA430
@@ -222,7 +231,7 @@ namespace QA40xPlot.ViewModels
 			{
 				Debug.WriteLine($"Error: {ex.Message}");
 			}
-		}	
+		}
 
 		public void SaveToSettings(string filename)
 		{

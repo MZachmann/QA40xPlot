@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Windows.Media;
 
 namespace QA40xPlot.Libraries
 {
@@ -200,6 +201,23 @@ namespace QA40xPlot.Libraries
 		{
 			val = (int)(Math.Floor(val));
 			return FormatUnits(val, "°");
+		}
+
+		public static double MeasureString(System.Windows.Controls.TextBox textBlock, string? candidate)
+		{
+			if (candidate == null)
+				return 0;
+
+			var formattedText = new FormattedText(
+				candidate,
+				CultureInfo.CurrentCulture,
+				System.Windows.FlowDirection.LeftToRight,
+				new Typeface(textBlock.FontFamily, textBlock.FontStyle, textBlock.FontWeight, textBlock.FontStretch),
+				textBlock.FontSize,
+				System.Windows.Media.Brushes.Black,
+				new NumberSubstitution(),
+				VisualTreeHelper.GetDpi(textBlock).PixelsPerDip);
+			return formattedText.Width;
 		}
 
 	}

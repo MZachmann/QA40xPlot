@@ -80,20 +80,6 @@ namespace QA40xPlot.Views
 				_MovableWnd.OnWindMouseMove(sender, e);
 		}
 
-		private double MeasureString(TextBox textBlock, string candidate)
-		{
-			var formattedText = new FormattedText(
-				candidate,
-				CultureInfo.CurrentCulture,
-				FlowDirection.LeftToRight,
-				new Typeface(textBlock.FontFamily, textBlock.FontStyle, textBlock.FontWeight, textBlock.FontStretch),
-				textBlock.FontSize,
-				System.Windows.Media.Brushes.Black,
-				new NumberSubstitution(),
-				VisualTreeHelper.GetDpi(textBlock).PixelsPerDip);
-			return formattedText.Width;
-		}
-
 		private void PopulateLegends()
 		{
 			var baseview = DataContext as BaseViewModel;
@@ -133,7 +119,7 @@ namespace QA40xPlot.Views
 					BorderBrush = Brushes.Transparent
 				};
 				kid.Children.Add(tbox);
-				maxSize = Math.Max(maxSize, MeasureString(tbox, marker.Label));
+				maxSize = Math.Max(maxSize, MathUtil.MeasureString(tbox, marker.Label));
 				LegendWrapPanel.Children.Add(kid);
 			}
 			// now autosize

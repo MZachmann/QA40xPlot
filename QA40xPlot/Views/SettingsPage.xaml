@@ -83,7 +83,7 @@
             <CheckBox  Grid.Row="4" Grid.Column="1" IsChecked="{Binding EnableQA430}" 
                        Content="On" VerticalAlignment="Center" />
             <TextBlock TextWrapping="Wrap" MaxWidth="600" 
-                   Text="If you have a QA430 connected, this enables the GUI on startup." 
+                   Text="If you have a QA430 connected, this enables the GUI." 
                    HorizontalAlignment="Left" VerticalAlignment="Center"
                    Grid.Row="4" Grid.Column="4" />
             <local:GroupHeader Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="5"  />

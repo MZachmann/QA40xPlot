@@ -58,48 +58,51 @@
             <Label Grid.Row="0" Grid.Column="0" Content="{Binding ProgressMessage}"/>
             <ProgressBar Grid.Row="1" Grid.Column="0" Minimum="0" Maximum="100" MinHeight="5" Value="{Binding ProgressAmount}" />
         </Grid>
-        <TabControl Grid.Row="2" SelectionChanged="OnNewTab">
-            <TabItem Header="Spectrum" Name="spectrum">
+        <TabControl Grid.Row="2" SelectionChanged="OnNewTab"
+                    SizeChanged="DoTabSizeChanged" >
+            <TabItem Header="Spectrum" Name="spectrum"  MaxWidth="{Binding MaxTab}">
                 <Grid Background="{Binding Background, Mode=OneWay}" >
                     <views:SpectrumPlotPage  />
                 </Grid>
             </TabItem>
-            <TabItem Header="Intermodulation" Name="intermod">
+            <TabItem Header="Intermodulation" Name="intermod" MaxWidth="{Binding MaxTab}">
                 <Grid Background="{Binding Background, Mode=OneWay}" >
                     <views:ImdPlotPage  />
                 </Grid>
             </TabItem>
-            <TabItem Header="Scope" Name="scope">
+            <TabItem Header="Scope" Name="scope" MaxWidth="{Binding MaxTab}">
                 <Grid Background="{Binding Background, Mode=OneWay}" >
                     <views:ScopePlotPage  />
                 </Grid>
             </TabItem>
-            <TabItem Header="THD vs Frequency" Name="tvf">
+            <TabItem Header="THD vs Frequency" Name="tvf" MaxWidth="{Binding MaxTab}">
                 <Grid Background="{Binding Background, Mode=OneWay}">
                     <views:ThdFreqPlotPage  />
                 </Grid> 
             </TabItem>
-            <TabItem Header="THD vs Amplitude" Name="tva">
+            <TabItem Header="THD vs Amplitude" Name="tva" MaxWidth="{Binding MaxTab}">
                 <Grid Background="{Binding Background, Mode=OneWay}">
                     <views:ThdAmpPlotPage  />
                 </Grid>
             </TabItem>
-           <TabItem Header="{Binding FreqRespHdr}" Name="freqresp" >
+            <TabItem Header="{Binding FreqRespHdr}" Name="freqresp"  MaxWidth="{Binding MaxTab}" >
                 <Grid Background="{Binding Background, Mode=OneWay}">
                     <views:FreqRespPlotPage  />
                 </Grid>
             </TabItem>
-            <TabItem Header="Opamp.Freq" Name="freqsweep" Visibility="{Binding ShowQA430, Converter={StaticResource BoolVisConverter}}" >
+            <TabItem Header="Opamp.Freq" Name="freqsweep"  MaxWidth="{Binding MaxTab}"
+                     Visibility="{Binding ShowQA430, Converter={StaticResource BoolVisConverter}}" >
                 <Grid Background="{Binding Background, Mode=OneWay}">
                     <views:FreqSweepPlotPage  />
                 </Grid>
             </TabItem>
-            <TabItem Header="Opamp.Amp" Name="ampsweep" Visibility="{Binding ShowQA430, Converter={StaticResource BoolVisConverter}}" >
+            <TabItem Header="Opamp.Amp" Name="ampsweep"  MaxWidth="{Binding MaxTab}"
+                     Visibility="{Binding ShowQA430, Converter={StaticResource BoolVisConverter}}" >
                 <Grid Background="{Binding Background, Mode=OneWay}">
                     <views:AmpSweepPlotPage  />
                 </Grid>
             </TabItem>
-            <TabItem Header="Settings" Name="settings" >
+            <TabItem Header="Settings" Name="settings"  MaxWidth="{Binding MaxTab}">
                 <Grid Background="{Binding Background, Mode=OneWay}">
                     <views:SettingsPage  />
                 </Grid>

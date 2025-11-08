@@ -25,6 +25,8 @@ namespace QA40xPlot
 		[DllImport("User32.dll")]
 		public static extern uint GetDpiForSystem();
 
+		private double _MaxTabWidth = 0;
+
 		// Modify the GetVersionInfo method
 		static string GetVersionInfo()
 		{
@@ -237,5 +239,33 @@ namespace QA40xPlot
 			base.OnClosing(e);
 		}
 
+		// in dark mode the tabs are much too wide so let them get smaller this way
+		// each time the window size changes change the maximum tab width so they fit
+		private void DoTabSizeChanged(object sender, SizeChangedEventArgs e)
+		{
+			var tab = sender as TabControl;
+			bool calcWidth = _MaxTabWidth == 0;
+			if (tab != null)
+			{
+				var w = tab.RenderSize.Width;
+				var tabItems = tab.Items;
+				int ct = 0;
+				foreach (var item in tabItems)
+				{
+					var ti = item as TabItem;
+					if (ti != null)
+					{
+						if(ti.Visibility == Visibility.Visible)
+							ct++;
+						if(calcWidth)
+						{
+							var u = new TextBox();
+							_MaxTabWidth = Math.Max(_MaxTabWidth, 10 + MathUtil.MeasureString(u, ti.Header as string));
+						}
+					}
+				}
+				ViewSettings.Singleton.MainVm.MaxTab = Math.Max(80, Math.Max(_MaxTabWidth, w / (ct+1)));
+			}
+		}
 	}
 }
