@@ -21,19 +21,22 @@ namespace QA40xPlot.Data
 		internal ScottPlot.LinePattern ThePattern { get; set; }
 		internal ScottPlot.Color TheColor { get; set; }
 		internal string Label { get; set; }
+		internal int ColorIdx { get; set; }
 
 		internal MarkerItem()
 		{
 			ThePattern = ScottPlot.LinePattern.Solid;
 			TheColor = ScottPlot.Colors.Black;
 			Label = string.Empty;
+			ColorIdx = 0;
 		}
 
-		internal MarkerItem(ScottPlot.LinePattern pattern, ScottPlot.Color color, string label)
+		internal MarkerItem(ScottPlot.LinePattern pattern, ScottPlot.Color color, string label, int idx)
 		{
 			ThePattern = pattern;
 			TheColor = color;
 			Label = label;
+			ColorIdx = idx;
 		}
 	}
 }

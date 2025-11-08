@@ -6,6 +6,9 @@ namespace QA40xPlot.ViewModels
 	// this add some stuff used by all the opamp tests
 	public abstract class OpampViewModel : BaseViewModel
 	{
+		[JsonIgnore]
+		public string SupplyTip { get => "Delimit tests with space or semicolon. Use | or _ to delimit +-"; }
+
 		private ObservableCollection<SelectItem> _Loadsets = [new SelectItem(true, "Open"), new SelectItem(true, "2000 Ω"),
 					new SelectItem(true, "604 Ω"), new SelectItem(true, "470 Ω")];
 		[JsonIgnore]
@@ -24,7 +27,7 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _Gainsets, value);
 		}
 
-		private string _SupplyList = "1;2;4;8;12;15";
+		private string _SupplyList = "6|5.5;7;12;15";
 		public string SupplyList
 		{
 			get => _SupplyList;

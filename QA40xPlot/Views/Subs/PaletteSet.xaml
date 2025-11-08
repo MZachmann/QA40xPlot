@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:QA40xPlot.Views"
              Title="Edit Plot Palette"
              mc:Ignorable="d" 
-         Width="505" Height="187"
+         Width="655" Height="187"
              d:DesignHeight="450" d:DesignWidth="800">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Orientation="Vertical">

@@ -1,8 +1,10 @@
 ﻿using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
+using QA40xPlot.ViewModels.Subs;
 using ScottPlot.NamedColors;
 using System.Collections.ObjectModel;
+using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -32,6 +34,17 @@ namespace QA40xPlot.Views
 				{
 					ColorName = color
 				});
+			}
+			if( hexlist.Length < ThePalette.PaletteSize)
+			{
+				var j = ThePalette.PaletteSize - hexlist.Length;
+				for(int i=0; i<j; i++)
+				{
+					PaletteColors.Add(new ColorInfo
+					{
+						ColorName = hexlist[i % hexlist.Length]
+					});
+				}
 			}
 		}
 	}
@@ -95,19 +108,31 @@ namespace QA40xPlot.Views
 			}
 			var wrap = this.PaletteSpot;    // the wrap panel in the XAML
 			var colors = _PaletteShow.PaletteColors; // the colors from the PaletteView
+			int indx = 0;
 			foreach (var color in colors)
 			{
-
-				var button = new ColorBox
+				var clrbutton = new ColorBox
 				{
 					Color = color.ColorName,
 					Background = System.Windows.Media.Brushes.Transparent,
 					BorderBrush = System.Windows.Media.Brushes.Transparent,
-					Width = 50,
-					Height = 50,
+					Width = 60,
+					Height = 60
 				};
-
-				button.PropertyChanged += (sender,e) =>
+				var button = new Canvas()
+				{
+					Width = 60,
+					Height = 60,
+				};
+				var txtbutton = new TextBox()
+				{
+					Text = indx.ToString(),
+					BorderThickness = new Thickness(0)
+				};
+				button.Children.Add(clrbutton);
+				button.Children.Add(txtbutton);
+				indx++;
+				clrbutton.PropertyChanged += (sender,e) =>
 				{	if (e.PropertyName == nameof(ColorBox.Color))
 					{
 						ApplySet(); // apply the changes when the color changes
@@ -115,7 +140,7 @@ namespace QA40xPlot.Views
 				};
 
 				wrap.Children.Add(button);
-				_Buttons.Add(button);	// so we can do ok easily
+				_Buttons.Add(clrbutton);	// so we can do ok easily
 			}
 		}
 

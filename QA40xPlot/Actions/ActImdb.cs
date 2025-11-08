@@ -5,6 +5,7 @@ using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
+using System.Diagnostics.Metrics;
 using System.Windows;
 using System.Windows.Media;
 using static QA40xPlot.ViewModels.BaseViewModel;
@@ -489,7 +490,7 @@ namespace QA40xPlot.Actions
 			return !ct.IsCancellationRequested;
 		}
 
-		private void AddAMarker(MyDataTab page, double frequency, bool isred = false)
+		private void AddAMarker(MyDataTab page, double frequency, bool ispower = false)
 		{
 			var vm = page.ViewModel;
 
@@ -513,19 +514,12 @@ namespace QA40xPlot.Actions
 			}
 			var markView = GraphUtil.IsPlotFormatLog(vm.PlotFormat) ? markVal : Math.Log10(markVal);
 
-			ScottPlot.Color markerCol = new ScottPlot.Color();
-			if (!vm.ShowLeft)
-			{
-				markerCol = isred ? ScottPlot.Colors.Green : ScottPlot.Colors.DarkGreen;
-			}
-			else
-			{
-				markerCol = isred ? ScottPlot.Colors.Red : ScottPlot.Colors.DarkOrange;
-			}
+			var colorIdx = ispower ? (int)StockColors.POWER : (int)StockColors.HARMONICS;
+			ScottPlot.Color markerCol = GraphUtil.GetPaletteColor(null, colorIdx);
 			var mymark = myPlot.Add.Marker(Math.Log10(frequency), markView,
 				MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), markerCol);
 			mymark.LegendText = string.Format("{1}: {0}", GraphUtil.PrettyPrint(markVal, vm.PlotFormat), (int)frequency);
-			MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, mymark.Color, mymark.LegendText));
+			MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, mymark.Color, mymark.LegendText, colorIdx));
 		}
 
 		private void ShowHarmonicMarkers(MyDataTab page)
@@ -711,7 +705,7 @@ namespace QA40xPlot.Actions
 				plotLeft.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, measurementNr * 2);
 				plotLeft.MarkerSize = 1;
 				plotLeft.LegendText = isMain ? "Left" : ClipName(page.Definition.Name) + ".L";
-				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotLeft.Color, plotLeft.LegendText));
+				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotLeft.Color, plotLeft.LegendText, measurementNr * 2));
 			}
 
 			if (useRight)
@@ -728,7 +722,7 @@ namespace QA40xPlot.Actions
 				plotRight.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, measurementNr * 2 + 1);
 				plotRight.MarkerSize = 1;
 				plotRight.LegendText = isMain ? "Right" : ClipName(page.Definition.Name) + ".R";
-				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotRight.Color, plotRight.LegendText));
+				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotRight.Color, plotRight.LegendText, measurementNr * 2 + 1));
 			}
 
 			fftPlot.Refresh();

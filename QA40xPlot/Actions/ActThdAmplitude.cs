@@ -754,7 +754,7 @@ namespace QA40xPlot.Actions
 				plot.MarkerSize = markerSize;
 				plot.LegendText = legendText;
 				plot.LinePattern = linePattern;
-				MyVModel.LegendInfo.Add(new MarkerItem(linePattern, plot.Color, legendText));
+				MyVModel.LegendInfo.Add(new MarkerItem(linePattern, plot.Color, legendText, colorIndex));
 			}
 
 			// which columns are we displaying? left, right or both

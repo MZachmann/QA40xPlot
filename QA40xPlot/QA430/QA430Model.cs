@@ -41,7 +41,8 @@ namespace QA40xPlot.QA430
 		public LoadOptions Load; // load option
 		public int Gain;        // signal gain for use by app
 		public int Distgain;    // distortion gain for use by app
-		public double Supply;   // supply voltage
+		public double SupplyP;  // supply positive voltage
+		public double SupplyN;	// supply negative voltage
 
 		public AcquireStep(AcquireStep asIn) 
 		{
@@ -49,12 +50,17 @@ namespace QA40xPlot.QA430
 			Load = asIn.Load;
 			Gain = asIn.Gain;
 			Distgain = asIn.Distgain;
-			Supply = asIn.Supply;
+			SupplyP = asIn.SupplyP;
+			SupplyN = asIn.SupplyN;
 		}
 
 		public string ToSuffix()
 		{
-			return $"{Load}_{Supply}V_Gain={Gain}";
+			if(SupplyN == SupplyP)
+			{
+				return $"{Load}_{SupplyP}V_Gain={Gain}";
+			}
+			return $"{Load}_{SupplyP}V|{SupplyN}V_Gain={Gain}";
 		}
 	};
 
@@ -534,7 +540,7 @@ namespace QA40xPlot.QA430
 			return newSteps;
 		}
 
-		public List<AcquireStep> ExpandSupplyOptions(List<AcquireStep> srcSteps, double[] values)
+		public List<AcquireStep> ExpandSupplyOptions(List<AcquireStep> srcSteps, List<(double,double)> values)
 		{
 			List<AcquireStep> newSteps = new List<AcquireStep>();
 			foreach (var step in srcSteps)
@@ -542,7 +548,8 @@ namespace QA40xPlot.QA430
 				foreach (var supplyOpt in values)
 				{
 					var stp = new AcquireStep(step);
-					stp.Supply = supplyOpt;
+					stp.SupplyP = supplyOpt.Item1;
+					stp.SupplyN = supplyOpt.Item2;
 					newSteps.Add(stp);
 				}
 			}

@@ -499,7 +499,7 @@ namespace QA40xPlot.Actions
 			{
 				var variables = new List<AcquireStep>()
 				{
-					new AcquireStep() { Cfg = "Config6b", Load = QA430Model.LoadOptions.Open, Gain = 1, Distgain=101, Supply = 15 }    // unity 16b with 101 dist gain
+					new AcquireStep() { Cfg = "Config6b", Load = QA430Model.LoadOptions.Open, Gain = 1, Distgain=101, SupplyP = 15, SupplyN = 15 }    // unity 16b with 101 dist gain
 				};
 
 				QA430Model? model430 = Qa430Usb.Singleton?.QAModel;
@@ -518,8 +518,20 @@ namespace QA40xPlot.Actions
 
 				if (vm.VarySupply)
 				{
-					double[] supplies = vm.SupplyList.Split([';', ' '], StringSplitOptions.RemoveEmptyEntries).
-						Select(x => MathUtil.ToDouble(x, 15)).ToArray();
+					var voltages = vm.SupplyList.Split([';', ' ',':'], StringSplitOptions.RemoveEmptyEntries);
+					List<(double, double)> supplies = new();
+					// parse the entries
+					foreach (var voltage in voltages) 
+					{
+						var avolt = voltage.Split(['|','_','*']);
+						double voltp = 15;
+						if (avolt.Length > 0)
+							voltp = MathUtil.ToDouble(avolt[0], 15);
+						var voltn = voltp;
+						if(avolt.Length > 1)
+							voltn = MathUtil.ToDouble(avolt[1], 15);
+						supplies.Add((voltp, voltn));
+					}
 					variables = model430?.ExpandSupplyOptions(variables, supplies) ?? variables;
 				}
 
@@ -543,10 +555,10 @@ namespace QA40xPlot.Actions
 							model.LoadOption = (short)myConfig.Load;
 						if(vm.VarySupply)
 						{
-							if(myConfig.Supply < 15)
+							if(myConfig.SupplyP < 15)
 							{
-								model.NegRailVoltage = (-myConfig.Supply).ToString();
-								model.PosRailVoltage = myConfig.Supply.ToString();
+								model.NegRailVoltage = (-myConfig.SupplyN).ToString();
+								model.PosRailVoltage = myConfig.SupplyP.ToString();
 								model.UseFixedRails = false;
 							}
 							else
@@ -672,8 +684,8 @@ namespace QA40xPlot.Actions
 			var lrfs = msr.FreqRslt;    // frequency response
 			var maxf = msr.FreqRslt.Df * msr.FreqRslt.Left.Length;
 
-			LeftRightPair thds = QaCompute.GetThdDb(vm.WindowingMethod, lrfs, dFreq, 20.0, Math.Min(50000, maxf));
-			LeftRightPair thdN = QaCompute.GetThdnDb(vm.WindowingMethod, lrfs, dFreq, 20.0, maxf, ViewSettings.NoiseWeight);
+			LeftRightPair thds = QaCompute.GetThdDb(vm.WindowingMethod, lrfs, dFreq, 20.0, Math.Min(80000, maxf));
+			LeftRightPair thdN = QaCompute.GetThdnDb(vm.WindowingMethod, lrfs, dFreq, 20.0, Math.Min(80000, maxf), ViewSettings.NoiseWeight);
 
 			var floor = msr.NoiseFloor;
 			switch (ViewSettings.NoiseWeight)
@@ -821,7 +833,7 @@ namespace QA40xPlot.Actions
                 plot.MarkerSize = markerSize;
                 plot.LegendText = legendText;
                 plot.LinePattern = linePattern;
-				MyVModel.LegendInfo.Add(new MarkerItem(linePattern, plot.Color, legendText) );
+				MyVModel.LegendInfo.Add(new MarkerItem(linePattern, plot.Color, legendText, colorIndex) );
 			}
 
 			// which columns are we displaying? left, right or both

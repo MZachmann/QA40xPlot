@@ -108,7 +108,7 @@ namespace QA40xPlot.Views
 					Y2 = 0,
 					VerticalAlignment = VerticalAlignment.Center,
 					StrokeThickness = 2,
-					StrokeDashArray = stkArray,
+					StrokeDashArray = stkArray
 				};
 				kid.Children.Add(lne);
 				var tbox = new TextBox()
@@ -116,7 +116,8 @@ namespace QA40xPlot.Views
 					Text = marker.Label,
 					IsReadOnly = true,
 					Margin = new Thickness(5, 0, 0, 0),
-					BorderBrush = Brushes.Transparent
+					BorderBrush = Brushes.Transparent,
+					ToolTip = "Palette index=" + marker.ColorIdx
 				};
 				kid.Children.Add(tbox);
 				maxSize = Math.Max(maxSize, MathUtil.MeasureString(tbox, marker.Label));

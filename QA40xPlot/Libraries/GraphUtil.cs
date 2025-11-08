@@ -1,6 +1,5 @@
 ﻿using QA40xPlot.ViewModels;
 using QA40xPlot.ViewModels.Subs;
-using ScottPlot;
 using System.IO;
 using System.Windows;
 using System.Windows.Media;
@@ -15,6 +14,14 @@ namespace QA40xPlot.Libraries
 		AXIS_SIZE = 9,
 		LABEL_SIZE = 9,
 		LEGEND_SIZE = 9,
+	}
+
+	// use the last four palette colors
+	// leaving space for a second channel at 17,19
+	public enum StockColors
+	{
+		HARMONICS = 16,
+		POWER = 18
 	}
 
 	public static class GraphUtil
@@ -35,9 +42,9 @@ namespace QA40xPlot.Libraries
 			return (int)(fontsize * vm.ScreenDpi / 72);
 		}
 
-		public static ScottPlot.Color GetPaletteColor(string colorName, int iIndex)
+		public static ScottPlot.Color GetPaletteColor(string? colorName, int iIndex)
 		{
-			if("Transparent" != colorName)
+			if(colorName != null && "Transparent" != colorName && colorName.Length > 0)
 			{
 				return PlotUtil.StrToColor(colorName);
 			}

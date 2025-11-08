@@ -10,6 +10,7 @@ namespace QA40xPlot.ViewModels.Subs
 {
 	public class ThePalette : IPalette
 	{
+		public static int PaletteSize { get => 20; }		// expected palette length
 		private string _HexString = string.Empty;
 		private string[] _HexList = [];
 		private uint[] _HexColors = [];
@@ -27,10 +28,10 @@ namespace QA40xPlot.ViewModels.Subs
 				{
 					_HexString = hexColors;
 					_HexList = hexColors.Split(',').Select(x => x.TrimStart()).ToArray();
-					_HexColors = new uint[_HexList.Length];
-					for (int i = 0; i < _HexColors.Length; i++)
+					_HexColors = new uint[PaletteSize];
+					for (int i = 0; i < PaletteSize; i++)
 					{
-						var clr = _HexList[i];
+						var clr = (i >= _HexList.Length) ? _HexList[i - _HexList.Length] : _HexList[i];
 						_HexColors[i] = Libraries.PlotUtil.StrToColor(clr).ARGB;
 					}
 				}
