@@ -7,6 +7,8 @@ v 1.1.41
 - show palette indices in the legend tooltips
 - make tab headings narrower when using themes
 - support |and _ for pos/neg supply delimiters in opamp test
+- support multiple voltage opamp sweep
+- support generator direction in opamp sweep
 v 1.1.40
 - replace the stock legend with a movable cleaner legend
 - add a "ShowLegend" option to the tests
