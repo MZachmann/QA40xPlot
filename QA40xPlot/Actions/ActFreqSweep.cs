@@ -1,6 +1,5 @@
-﻿using Microsoft.VisualBasic.FileIO;
-using OpenTK.Compute.OpenCL;
-using QA40xPlot.BareMetal;
+﻿using QA40xPlot.BareMetal;
+using QA40xPlot.Converters;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.QA430;
@@ -136,11 +135,12 @@ namespace QA40xPlot.Actions
 			if (linelength == 0)
 				return lines;
 			// now create list of lines
-			var numLines = (left.Count + linelength - 1) / linelength;	// round up
+			var numLines = (left.Count + linelength - 1) / linelength;  // round up
+			bool showVolt = 1 < steps.Select(x => x.GenVolt).Distinct().Count();	// more than one voltage, show them
 			for (i = 0; i < numLines; i++)
 			{
 				var line = new FreqSweepLine();
-				line.Label = steps[i].ToSuffix();
+				line.Label = steps[i].ToSuffix(showVolt);
 				line.Columns = left.Skip(i * linelength).Take(linelength).ToArray();
 				lines.Add(line);
 			}
@@ -432,19 +432,34 @@ namespace QA40xPlot.Actions
 			// ********************************************************************
 			// Determine input level / attenuation
 			// ********************************************************************
+			// before getting the gain curve set to gain of 1
+			// and then chirp
+			{
+				var model = Qa430Usb.Singleton?.QAModel;
+				if(model != null)
+				{
+					model.SetOpampConfig("Config6a");
+					model.UseFixedRails = true;
+					model.LoadOption = (short)QA430Model.LoadOptions.Open;
+				}
+			}
+
 			await CalculateGainCurve(MyVModel);
 			if (LRGains == null)
 				return false;
 
 			var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
 			int[] frqtest = [ToBinNumber(startFreq, LRGains), ToBinNumber(endFreq, LRGains)];
-			var genVolt = vm.ToGenVoltage(vm.GenVoltage, frqtest, GEN_INPUT, gains);   // input voltage for request
-            page.Definition.GeneratorVoltage = genVolt;   // set the generator voltage in the definition
 			double[] stepBinFrequencies = [];
 			double binSize = 0;
-
+			// here they are in the format of the generator test...
+			var voltValues = vm.Voltsets.SelectedValues(true).ToList();
 			try
 			{
+				// to figure out attenuation use the first gen voltage
+				var voltx = voltValues.First().ToString();
+				var genVolt = vm.ToGenVoltage(voltx, frqtest, GEN_INPUT, gains);   // input voltage for request
+				page.Definition.GeneratorVoltage = genVolt;   // set the generator voltage in the definition
 				// ********************************************************************
 				// Determine input level for attenuation
 				// we know that all settings of the QA430 have defined gain so that
@@ -518,7 +533,7 @@ namespace QA40xPlot.Actions
 
 				if (vm.VarySupply)
 				{
-					var voltages = vm.SupplyList.Split([';', ' ',':'], StringSplitOptions.RemoveEmptyEntries);
+					var voltages = vm.Supplysets.SelectedNames(true);
 					List<(double, double)> supplies = new();
 					// parse the entries
 					foreach (var voltage in voltages) 
@@ -534,6 +549,24 @@ namespace QA40xPlot.Actions
 					}
 					variables = model430?.ExpandSupplyOptions(variables, supplies) ?? variables;
 				}
+
+				// now expand the generator voltage options
+				{
+					var vnew = new List<AcquireStep>();
+					for (int i = 0; i < variables.Count; i++)
+					{
+						foreach (var v in voltValues)
+						{
+							var vl = variables[i];
+							vl.GenVolt = v;
+							vl.GenVoltFmt = (vm.IsGenPower ?  MathUtil.FormatPower(v) : MathUtil.FormatVoltage(v));
+							vnew.Add(vl);
+						}
+					}
+					variables = vnew;
+				}
+
+				// now variables is the list of sweep steps we will execute
 
 				string lastCfg = string.Empty;
 				page.SweepSteps.Steps = variables.ToArray();
@@ -553,22 +586,32 @@ namespace QA40xPlot.Actions
 						}
 						if (vm.VaryLoad)
 							model.LoadOption = (short)myConfig.Load;
-						if(vm.VarySupply)
+						else
+							model.LoadOption = (short)QA430Model.LoadOptions.Open;
+						if (vm.VarySupply && myConfig.SupplyP < 15)
 						{
-							if(myConfig.SupplyP < 15)
-							{
-								model.NegRailVoltage = (-myConfig.SupplyN).ToString();
-								model.PosRailVoltage = myConfig.SupplyP.ToString();
-								model.UseFixedRails = false;
-							}
-							else
-							{
-								model.UseFixedRails = true;
-							}
+							model.NegRailVoltage = (-myConfig.SupplyN).ToString();
+							model.PosRailVoltage = myConfig.SupplyP.ToString();
+							model.UseFixedRails = false;
 						}
+						else
+							model.UseFixedRails = true;
 						// now that the QA430 relays are set, wait a bit...
 						await model.WaitForQA430Relays();
 					}
+					// sweeping generator voltage as well
+					var genVolt = vm.ToGenVoltage(myConfig.GenVolt.ToString(), frqtest, GEN_INPUT, gains);   // input voltage for request
+					page.Definition.GeneratorVoltage = genVolt;   // set the generator voltage in the definition
+					var genOut = ToGenOutVolts(genVolt, frqtest, gains);   // output voltage for request
+					double amplifierOutputVoltagedBV = QaLibrary.ConvertVoltage(genOut, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+
+					// Get input voltage based on desired output voltage
+					var attenuation = QaLibrary.DetermineAttenuation(amplifierOutputVoltagedBV);
+
+					// Set the new input range
+					MyVModel.Attenuation = attenuation;   // visible display
+					vm.Attenuation = attenuation;         // my setting
+					await QaComm.SetInputRange(attenuation);
 
 					// ********************************************************************
 					// Do noise floor measurement
@@ -592,16 +635,16 @@ namespace QA40xPlot.Actions
 					// ********************************************************************
 					// Step through the list of frequencies
 					// ********************************************************************
-					genVolt = vm.ToGenVoltage(vm.GenVoltage, frqtest, GEN_INPUT, gains) / Math.Abs(myConfig.Gain);   // input voltage for request
-					page.Definition.GeneratorVoltage = genVolt;   // set the generator voltage in the definition
-					MyVModel.GeneratorVoltage = MathUtil.FormatVoltage(genVolt);
+					var genScaleVolt = genVolt / Math.Abs(myConfig.Gain);   // input voltage for request
+					page.Definition.GeneratorVoltage = genScaleVolt;   // set the generator voltage in the definition
+					MyVModel.GeneratorVoltage = MathUtil.FormatVoltage(genScaleVolt);
 					for (int f = 0; f < stepBinFrequencies.Length; f++)
 					{
 						var freqy = stepBinFrequencies[f];
 						await showMessage($"Measuring {freqy:0.#} Hz at {genVolt:G3} V.");
 						await showProgress(100 * (f + 1) / stepBinFrequencies.Length);
 
-						WaveGenerator.SetGen1(freqy, genVolt, true);             // send a sine wave
+						WaveGenerator.SetGen1(freqy, genScaleVolt, true);             // send a sine wave
 						WaveGenerator.SetGen2(0, 0, false);            // send a sine wave
 						LeftRightSeries lrfs;
 

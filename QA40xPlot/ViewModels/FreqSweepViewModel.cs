@@ -323,6 +323,16 @@ namespace QA40xPlot.ViewModels
 			MyVModel.RaisePropertyChanged("LoadSummary");
 		}
 
+		public static void UpdateVoltages()
+		{
+			MyVModel.RaisePropertyChanged("VoltageDisplay");
+		}
+
+		public static void UpdateSupplies()
+		{
+			MyVModel.RaisePropertyChanged("SupplyDisplay");
+		}
+
 		private static string FileAddon()
 		{
 			DateTime now = DateTime.Now;

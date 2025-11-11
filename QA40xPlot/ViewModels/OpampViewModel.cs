@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System.Collections.ObjectModel;
 
 namespace QA40xPlot.ViewModels
 {
@@ -7,41 +6,106 @@ namespace QA40xPlot.ViewModels
 	public abstract class OpampViewModel : BaseViewModel
 	{
 		[JsonIgnore]
-		public string SupplyTip { get => "Delimit tests with space or semicolon. Use | or _ to delimit +-"; }
+		public string SupplyTip { get => "Enter supply values. May use | to delimit +-. Default 15V"; }
 
-		private ObservableCollection<SelectItem> _Loadsets = [new SelectItem(true, "Open"), new SelectItem(true, "2000 Ω"),
-					new SelectItem(true, "604 Ω"), new SelectItem(true, "470 Ω")];
+		private SelectItemList _Loadsets = [
+				new SelectItem(true, "Open"), new SelectItem(true, "2000 Ω"),
+				new SelectItem(true, "604 Ω"), new SelectItem(true, "470 Ω")
+			];
 		[JsonIgnore]
-		public ObservableCollection<SelectItem> Loadsets
+		public SelectItemList Loadsets
 		{
 			get => _Loadsets;
 			set => SetProperty(ref _Loadsets, value);
 		}
 
-		private ObservableCollection<SelectItem> _Gainsets = [new SelectItem(true, "1"),  new SelectItem(true, "-1"),
+		private SelectItemList _Supplysets = [new SelectItem(true, "7"),  new SelectItem(false, "9"),
+					new SelectItem(false, "12|8"),  new SelectItem(false, "15")];
+		[JsonIgnore]
+		public SelectItemList Supplysets
+		{
+			get => _Supplysets;
+			set => SetProperty(ref _Supplysets, value);
+		}
+
+		private SelectItemList _Voltsets = [new SelectItem(true, "0.1"),  new SelectItem(false, "1"),
+					new SelectItem(false, "3"),  new SelectItem(false, "5.5")];
+		[JsonIgnore]
+		public SelectItemList Voltsets
+		{
+			get => _Voltsets;
+			set => SetProperty(ref _Voltsets, value);
+		}
+
+		private SelectItemList _Gainsets = [new SelectItem(true, "1"),  new SelectItem(true, "-1"),
 					new SelectItem(true, "10"),  new SelectItem(true, "-10")];
 		[JsonIgnore]
-		public ObservableCollection<SelectItem> Gainsets
+		public SelectItemList Gainsets
 		{
 			get => _Gainsets;
 			set => SetProperty(ref _Gainsets, value);
 		}
 
-		private string _SupplyList = "6|5.5;7;12;15";
-		public string SupplyList
+		[JsonIgnore]
+		public string SupplyDisplay
 		{
-			get => _SupplyList;
-			set => SetProperty(ref _SupplyList, value);
+			get
+			{
+				var jn = string.Join(SelectItemList.Delimit, Supplysets.SelectedNames(true));
+				return jn;
+			}
+		}
+
+		// when this is saved it shows the current settings
+		// the value is set only when we load a configuration so parse it
+		public string SupplySummary
+		{
+			get
+			{
+				var jn = Supplysets.ParseableList("15");
+				return jn;
+			}
+			set
+			{
+				Supplysets = SelectItemList.ParseList(value, 4);
+				RaisePropertyChanged("SupplyDisplay");
+			}
+		}
+
+		[JsonIgnore]
+		public string VoltageDisplay
+		{
+			get
+			{
+				var jn = string.Join(SelectItemList.Delimit, Voltsets.SelectedNames(true));
+				return jn;
+			}
+		}
+
+		// when this is saved it shows the current settings
+		// the value is set only when we load a configuration so parse it
+		public string VoltSummary
+		{
+			get 
+			{
+				var jn = Voltsets.ParseableList("0.1");
+				return jn;
+			}
+			set
+			{
+				Voltsets = SelectItemList.ParseList(value, 4);
+				RaisePropertyChanged("VoltageDisplay");
+			}
 		}
 
 		// when this is saved it shows the current settings
 		// the value is set only when we load a configuration so parse it
 		public string LoadSummary
 		{
-			get => string.Join(',', Loadsets.Where(x => x.IsSelected).Select(x => x.Name));
+			get => string.Join(SelectItemList.Delimit, Loadsets.SelectedNames());
 			set
 			{
-				var u = value.Split(',', StringSplitOptions.RemoveEmptyEntries);
+				var u = value.Split(SelectItemList.Delimit, StringSplitOptions.RemoveEmptyEntries);
 				foreach (var item in Loadsets)
 				{
 					item.IsSelected = u.Contains(item.Name);
@@ -54,10 +118,10 @@ namespace QA40xPlot.ViewModels
 		// the value is set only when we load a configuration so parse it
 		public string GainSummary
 		{
-			get => string.Join(',', Gainsets.Where(x => x.IsSelected).Select(x => x.Name));
+			get => string.Join(SelectItemList.Delimit, Gainsets.SelectedNames());
 			set
 			{
-				var u = value.Split(',', StringSplitOptions.RemoveEmptyEntries);
+				var u = value.Split(SelectItemList.Delimit, StringSplitOptions.RemoveEmptyEntries);
 				foreach (var item in Gainsets)
 				{
 					item.IsSelected = u.Contains(item.Name);

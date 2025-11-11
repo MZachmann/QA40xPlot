@@ -6,7 +6,6 @@
              xmlns:views="clr-namespace:QA40xPlot.Views"
              xmlns:vm="clr-namespace:QA40xPlot.ViewModels"
              xmlns:local="clr-namespace:QA40xPlot"
-             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
              mc:Ignorable="d" 
              d:DesignHeight="750" d:DesignWidth="800">
     <Grid Height="Auto" Width="Auto">

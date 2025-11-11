@@ -26,7 +26,16 @@ namespace QA40xPlot.Views
 		private void LoadButton_Click(object sender, System.Windows.RoutedEventArgs e)
 		{
 			LoadPopup.IsOpen = !LoadPopup.IsOpen;
+		}
 
+		private void SupplyButton_Click(object sender, System.Windows.RoutedEventArgs e)
+		{
+			SupplyPopup.IsOpen = !SupplyPopup.IsOpen;
+		}
+
+		private void VoltButton_Click(object sender, System.Windows.RoutedEventArgs e)
+		{
+			VoltPopup.IsOpen = !VoltPopup.IsOpen;
 		}
 
 		private void GainPopup_Closed(object sender, EventArgs e)
@@ -38,5 +47,16 @@ namespace QA40xPlot.Views
 		{
 			FreqSweepViewModel.UpdateLoad();
 		}
+
+		private void VoltPopup_Closed(object sender, EventArgs e)
+		{
+			FreqSweepViewModel.UpdateVoltages();
+		}
+
+		private void SupplyPopup_Closed(object sender, EventArgs e)
+		{
+			FreqSweepViewModel.UpdateSupplies();
+		}
+
 	}
 }

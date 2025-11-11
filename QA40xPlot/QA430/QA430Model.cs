@@ -42,7 +42,9 @@ namespace QA40xPlot.QA430
 		public int Gain;        // signal gain for use by app
 		public int Distgain;    // distortion gain for use by app
 		public double SupplyP;  // supply positive voltage
-		public double SupplyN;	// supply negative voltage
+		public double SupplyN;  // supply negative voltage
+		public double GenVolt { get; set; }	// generator voltage
+		public string GenVoltFmt { get; set; } // generator voltage formatted
 
 		public AcquireStep(AcquireStep asIn) 
 		{
@@ -52,15 +54,20 @@ namespace QA40xPlot.QA430
 			Distgain = asIn.Distgain;
 			SupplyP = asIn.SupplyP;
 			SupplyN = asIn.SupplyN;
+			GenVolt = asIn.GenVolt;
+			GenVoltFmt = asIn.GenVoltFmt;
 		}
 
-		public string ToSuffix()
+		public string ToSuffix(bool addVolt)
 		{
+			string sout = string.Empty;
 			if(SupplyN == SupplyP)
-			{
-				return $"{Load}_{SupplyP}V_Gain={Gain}";
-			}
-			return $"{Load}_{SupplyP}V|{SupplyN}V_Gain={Gain}";
+				sout = $"{Load};{SupplyP}V;Gain={Gain}";
+			else
+				sout = $"{Load};{SupplyP}V|{SupplyN}V;Gain={Gain}";
+			if(addVolt)
+				sout = sout + ";@" + GenVoltFmt;
+			return sout;
 		}
 	};
 

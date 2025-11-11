@@ -40,7 +40,7 @@ namespace QA40xPlot.ViewModels
 		public static string TabInfoTip { get => "Click to set line colors and edit plot headings"; }
 		public static string SummaryDataTip { get => "Click to see a box with summary test statistics"; }
 		public static string MiniPlotsTip { get => "Click to show the mini plots persistently"; }
-		public static string LegendTip { get => "Click on to show or off to hide the legend."; }
+		public static string ShowLegendTip { get => "Click on to show or off to hide the legend."; }
 		public static string PinGraphTip { get => "Click to pin the current graph range"; }
 		public static List<string> ChannelList { get => new List<string> { "Left", "Right" }; }
 		public static List<string> PowerFreqList { get => new List<string> { "50", "60" }; }
@@ -233,6 +233,19 @@ namespace QA40xPlot.ViewModels
 			set
 			{
 				SetProperty(ref _GenVoltageUnits, value);
+			}
+		}
+
+		/// <summary>
+		/// for use by the unit converters, serialized
+		/// </summary>
+		private string _GenVoltUnits = "V";
+		public string GenVoltUnits
+		{
+			get { return _GenVoltUnits; }
+			set
+			{
+				SetProperty(ref _GenVoltUnits, value);
 			}
 		}
 
@@ -478,6 +491,11 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _RightWidth, value);
 		}
 
+		// return true if this is a voltage value
+		public static bool FindDirection(string genFormat)
+		{
+			return genFormat.Contains('V');
+		}
 
 		/// <summary>
 		/// Given an input voltage format, get a display format converter
@@ -523,15 +541,14 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _GenDirection;
 			set {
-				var oldd = IsGenPower;
 				if( SetProperty(ref _GenDirection, value))
 				{
 					RaisePropertyChanged("GenAmpDescript");
 					RaisePropertyChanged("GenAmpUnits");
-					if (oldd != IsGenPower)
-					{
+					if(IsGenPower == FindDirection(GenVoltageUnits))
 						GenVoltageUnits = AlterDirection(GenVoltageUnits);
-					}
+					if (IsGenPower == FindDirection(GenVoltUnits))
+						GenVoltUnits = AlterDirection(GenVoltUnits);
 				}
 			}
 		}
@@ -568,7 +585,8 @@ namespace QA40xPlot.ViewModels
 			var mvm = ViewSettings.Singleton.MainVm.CurrentView; // the current viewmodel
 			if (parameter != null && mvm != null)
 			{
-				mvm.SetGeneratorVolts(parameter.ToString() ?? string.Empty);
+				mvm.GenVoltUnits = parameter.ToString() ?? string.Empty;	// serialized value
+				mvm.SetGeneratorVolts(mvm.GenVoltUnits);	// do math...
 			}
 		}
 
@@ -596,6 +614,29 @@ namespace QA40xPlot.ViewModels
 
 
 		public static void ShowMenu(object? parameter)
+		{
+			var mvm = ViewSettings.Singleton.MainVm.CurrentView; // the current viewmodel
+			if (parameter is Button button && mvm != null)
+			{
+				button.ContextMenu = new ContextMenu(); // Clear any previous context menu
+				var dutDirection = BaseViewModel.ToDirection(mvm.GenDirection);
+				var unitList = (dutDirection == E_GeneratorDirection.OUTPUT_POWER) ? BaseViewModel.PowerUnits : BaseViewModel.VoltageUnits;
+				foreach (var unit in unitList)
+				{
+					MenuItem unitItem = new MenuItem
+					{
+						Header = unit,
+						Command = mvm.SetGenVolts, // set the unit of measure string
+						CommandParameter = unit
+					};
+					button.ContextMenu.Items.Add(unitItem);
+				}
+				button.ContextMenu.PlacementTarget = button;
+				button.ContextMenu.IsOpen = true;
+			}
+		}
+
+		public static void ShowVolts(object? parameter)
 		{
 			var mvm = ViewSettings.Singleton.MainVm.CurrentView; // the current viewmodel
 			if (parameter is Button button && mvm != null)

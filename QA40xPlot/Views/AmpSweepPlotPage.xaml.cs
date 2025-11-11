@@ -26,7 +26,6 @@ namespace QA40xPlot.Views
 		private void LoadButton_Click(object sender, System.Windows.RoutedEventArgs e)
 		{
 			LoadPopup.IsOpen = !LoadPopup.IsOpen;
-
 		}
 
 		private void GainPopup_Closed(object sender, EventArgs e)
@@ -37,6 +36,11 @@ namespace QA40xPlot.Views
 		private void LoadPopup_Closed(object sender, EventArgs e)
 		{
 			AmpSweepViewModel.UpdateLoad();
+		}
+
+		private void VoltPopup_Closed(object sender, EventArgs e)
+		{
+			AmpSweepViewModel.UpdateVoltages();
 		}
 	}
 }

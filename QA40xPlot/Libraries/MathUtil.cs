@@ -157,6 +157,16 @@ namespace QA40xPlot.Libraries
 		/// <summary>
 		/// <param name="val">value to format</param>
 		/// <returns>string with best suffix</returns>
+		public static string FormatPower(double val)
+		{
+			return FormatUnits(val, "W");
+		}
+
+		/// <summary>
+		/// pretty format voltage only
+		/// <summary>
+		/// <param name="val">value to format</param>
+		/// <returns>string with best suffix</returns>
 		public static string FormatCurrent(double val)
 		{
 			return FormatUnits(val, "A");

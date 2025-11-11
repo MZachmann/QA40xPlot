@@ -183,6 +183,11 @@ namespace QA40xPlot.ViewModels
 			MyVModel.RaisePropertyChanged("LoadSummary");
 		}
 
+		public static void UpdateVoltages()
+		{
+			MyVModel.RaisePropertyChanged("VoltageDisplay");
+		}
+
 		// the property change is used to trigger repaints of the graph
 		private void CheckPropertyChanged(object? sender, PropertyChangedEventArgs e)
 		{
