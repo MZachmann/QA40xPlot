@@ -733,10 +733,11 @@ namespace QA40xPlot.Actions
 			FreqSweepViewModel vm = msr.ViewModel;
 
 			var lrfs = msr.FreqRslt;    // frequency response
-			var maxf = msr.FreqRslt.Df * msr.FreqRslt.Left.Length;
+			var maxScan = msr.FreqRslt.Df * msr.FreqRslt.Left.Length;
+			var maxf = Math.Min(vm.HasQA430 ? 80000 : 20000, maxScan);	// opamps use 80KHz bandwidth, audio uses 20KHz
 
-			LeftRightPair thds = QaCompute.GetThdDb(vm.WindowingMethod, lrfs, dFreq, 20.0, Math.Min(80000, maxf));
-			LeftRightPair thdN = QaCompute.GetThdnDb(vm.WindowingMethod, lrfs, dFreq, 20.0, Math.Min(80000, maxf), ViewSettings.NoiseWeight);
+			LeftRightPair thds = QaCompute.GetThdDb(vm.WindowingMethod, lrfs, dFreq, 20.0, maxScan);
+			LeftRightPair thdN = QaCompute.GetThdnDb(vm.WindowingMethod, lrfs, dFreq, 20.0, maxf, ViewSettings.NoiseWeight);
 
 			var floor = msr.NoiseFloor;
 			switch (ViewSettings.NoiseWeight)
@@ -752,7 +753,7 @@ namespace QA40xPlot.Actions
 			}
 
 			double dmult = acqConfig.Distgain;
-
+			// here steps just counts left then right
 			foreach (var step in steps)
 			{
 				bool bl = step == left;		// stepping left?
@@ -763,7 +764,10 @@ namespace QA40xPlot.Actions
 				step.Phase = 0;
 				if(!bl)
 				{
-					step.Noise = floor.Right; // noise floor adjusted for bin size
+					if (lfrsNoise == null)
+						step.Noise = floor.Right / dmult; // noise floor
+					else
+						step.Noise = GetNoiseSmooth(lfrsNoise.Right, lfrsNoise.Df, dFreq) / dmult; // noise density smoothed
 				}
 				else
 				{
@@ -932,7 +936,7 @@ namespace QA40xPlot.Actions
 						AddPlot(freq, colArray.Select(x => FormVal(x.Noise, x.Mag)).ToList(), colorNum, prefix + "Noise" + subsuffix, lp);
 				}
 				suffix = ".R.";          // second pass iff there are both channels
-				//lp = isMain ? LinePattern.DenselyDashed : LinePattern.Dotted;
+				lp = isMain ? LinePattern.DenselyDashed : LinePattern.Dotted;
 			}
 			swpPlot.Refresh();
         }

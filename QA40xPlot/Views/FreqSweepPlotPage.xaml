@@ -257,18 +257,21 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <CheckBox Content="Tab Info" ToolTip="{Binding TabInfoTip}"
-                              IsChecked="{Binding ShowTabInfo}" Grid.Row="0" Grid.Column="0"  />
-                    <CheckBox Content="Mini-Plots" ToolTip="{Binding MiniPlotsTip}"
-                              IsChecked="{Binding KeepMiniPlots}" Grid.Row="1" Grid.Column="0"  />
-                    <CheckBox Content="Legend" ToolTip="{Binding ShowLegendTip}"
-                            IsChecked="{Binding ShowLegend}" Grid.Row="2" Grid.Column="0"  />
-                    <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="3"  />
-                    <CheckBox Content="Data Points" IsChecked="{Binding ShowPoints}" Grid.Row="4"  />
-                    <Button  Content="Edit Palette" Command="{Binding EditPaletteCommand}" Margin="12, 2" Grid.Row="5"></Button>
-                </Grid>
+                        <CheckBox Content="Tab Info" ToolTip="{Binding TabInfoTip}"
+                                  IsChecked="{Binding ShowTabInfo}" Grid.Row="0" Grid.Column="0"  />
+                        <CheckBox Content="Mini-Plots" ToolTip="{Binding MiniPlotsTip}"
+                                  IsChecked="{Binding KeepMiniPlots}" Grid.Row="1" Grid.Column="0"  />
+                        <CheckBox Content="Legend" ToolTip="{Binding ShowLegendTip}"
+                                IsChecked="{Binding ShowLegend}" Grid.Row="2" Grid.Column="0"  />
+                        <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="3"  />
+                        <CheckBox Content="Data Points" IsChecked="{Binding ShowPoints}" Grid.Row="4"  />
+                        <Button  Content="Edit Palette" Command="{Binding EditPaletteCommand}" Margin="12, 2" Grid.Row="5"></Button>
+                        <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="6"  />
+                        <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="7"  />
+                    </Grid>
             </Expander>
 
             <views:GroupHeader Header="Cursor" />

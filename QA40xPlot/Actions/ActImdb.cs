@@ -409,10 +409,11 @@ namespace QA40xPlot.Actions
 			freq2 = Math.Max(u, freq2);	// freq2 is always the largest
 			var lrfs = msr.FreqRslt;    // frequency response
 
-			var maxf = 20000; // the app seems to use 20,000 so not sampleRate/ 2.0;
+			var maxScan = lrfs.Df * lrfs.Left.Length;
+			var maxf = Math.Min(20000, maxScan); // the app seems to use 20,000 so not sampleRate/ 2.0;
 			var wdw = vm.WindowingMethod; // windowing method
 			double[] funds = [freq, freq2];
-			LeftRightPair thds = QaCompute.GetImdDb(wdw, lrfs, funds, 20.0, maxf);
+			LeftRightPair thds = QaCompute.GetImdDb(wdw, lrfs, funds, 20.0, maxScan);
 			LeftRightPair thdN = QaCompute.GetImdnDb(wdw, lrfs, funds, 20.0, maxf, ViewSettings.NoiseWeight);
 			LeftRightPair snrimdb = QaCompute.GetSnrImdDb(wdw, lrfs, funds, 20.0, maxf, ViewSettings.NoiseWeight);
 			var method = QaCompute.GetImdMethod(funds);

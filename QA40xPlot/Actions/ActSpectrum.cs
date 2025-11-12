@@ -483,11 +483,14 @@ namespace QA40xPlot.Actions
 			}
 			var lrfs = msr.FreqRslt;    // frequency response
 			// get snr math stuff
-			var maxf = Math.Min(80000, lrfs.Df * lrfs.Left.Length);
+
+			// use noise bandwidth of 20 KHz
+			var maxf = Math.Min(20000, lrfs.Df * lrfs.Left.Length);
 			LeftRightPair sinaddb = QaCompute.GetSinadDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf, ViewSettings.NoiseWeight);
 			LeftRightPair snrdb = QaCompute.GetSnrDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf, ViewSettings.NoiseWeight);
-			LeftRightPair thds = QaCompute.GetThdDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf);
 			LeftRightPair thdN = QaCompute.GetThdnDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf, ViewSettings.NoiseWeight);
+			maxf = Math.Min(Math.Max(20000, freq * 5), lrfs.Df * lrfs.Left.Length);
+			LeftRightPair thds = QaCompute.GetThdDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf);
 
 			ThdChannelViewModel[] steps = [left, right];
 			foreach (var step in steps)
