@@ -2,8 +2,11 @@
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
+using QA40xPlot.Views;
+using ScottPlot.Colormaps;
 using System.Data;
 using System.IO;
+using System.Linq;
 using System.Windows;
 
 namespace QA40xPlot.Actions
@@ -308,7 +311,6 @@ namespace QA40xPlot.Actions
 		{
 			// show that we're autoing...
 			var atten = bvm.Attenuation;
-			bvm.Attenuation = QaLibrary.DEVICE_MAX_ATTENUATION;
 			await showMessage("Calculating DUT gain");
 			LRGains = await DetermineGainCurve(bvm, true, 1);
 			bvm.Attenuation = atten; // restore the original value just in case bvm is also the local model
@@ -325,26 +327,18 @@ namespace QA40xPlot.Actions
 			bvm.Attenuation = atten;    // restore the original value and button display
 		}
 
-		/// <summary>
-		/// Determine the gain curve for the device. This is done by sending a chirp at 96KHz
-		/// this sets the attenuation in hardware to 42 before the test
-		/// </summary>
-		/// <param name="inits"></param>
-		/// <param name="average"></param>
-		/// <returns></returns>
-		protected static async Task<LeftRightFrequencySeries?> DetermineGainCurve(BaseViewModel bvm, bool inits, int average = 1)
+		protected static async Task<LeftRightFrequencySeries?> SubGainCurve(BaseViewModel bvm, bool inits, int average, double genV, int atten)
 		{
-			// initialize very quick run, use 192K so valid up to 20KHz
 			uint fftsize = 65536;
 			uint sampleRate = 96000;
-			string swindow = "Hann";		// we need a reasonable windowing no matter user request
-			if (true != await QaComm.InitializeDevice(sampleRate, fftsize, swindow, QaLibrary.DEVICE_MAX_ATTENUATION))
-				return null;
+			string swindow = "Hann";        // we need a reasonable windowing no matter user request
+			bvm.Attenuation = atten;
+			await QaComm.SetInputRange(atten);
 
 			{
 				// the simplest thing here is to do a chirp at a low value...
-				var generatorV = 0.1;			// testing at .01 has more noise
-												// so use 0.1V as reasonable
+				var generatorV = genV;          // testing at .01 has more noise
+												// so use 0.1V as reasonable when possible
 				var chirpy = Chirps.ChirpVp((int)fftsize, sampleRate, generatorV, 6, 24000);
 				var ct = new CancellationTokenSource();
 				// get the data
@@ -363,7 +357,7 @@ namespace QA40xPlot.Actions
 					lrts.dt = acqData.TimeRslt.dt;
 					LeftRightFrequencySeries lraddon = new LeftRightFrequencySeries();
 					(lraddon.Left, lraddon.Right) = Chirps.NormalizeChirpDbl(swindow, chirpy, generatorV, (lrts.Left, lrts.Right));
-					if(j == 0)
+					if (j == 0)
 					{
 						lrfs.Left = lraddon.Left;
 						lrfs.Right = lraddon.Right;
@@ -388,7 +382,8 @@ namespace QA40xPlot.Actions
 				//
 				// now hack some stuff in for the gain curve...
 				//
-				for(int i=0; i<5; i++)
+				int i = 0;
+				for (i = 0; i < 5; i++)
 				{
 					lrfs.Left[i] = lrfs.Left[5];
 					lrfs.Right[i] = lrfs.Right[5];
@@ -397,21 +392,60 @@ namespace QA40xPlot.Actions
 				lrfOut.Df = lrfs.Df;
 				lrfOut.Left = new double[lrfs.Left.Length];
 				lrfOut.Right = new double[lrfs.Right.Length];
-				for(int i=1; i<(lrfs.Right.Length-1); i++)
+				var lst = lrfs.Left.Length - 1;
+				for (i = 1; i < lst; i++)
 				{
 					lrfOut.Right[i] = .2 * lrfs.Right[i - 1] + .6 * lrfs.Right[i] + .2 * lrfs.Right[i + 1];
 				}
-				for (int i = 1; i < (lrfs.Left.Length - 1); i++)
+				for (i = 1; i < lst; i++)
 				{
 					lrfOut.Left[i] = .2 * lrfs.Left[i - 1] + .6 * lrfs.Left[i] + .2 * lrfs.Left[i + 1];
 				}
 				lrfOut.Right[0] = lrfs.Right[0];
 				lrfOut.Left[0] = lrfs.Left[0];
-				var lst = lrfs.Left.Count() - 1;
 				lrfOut.Right[lst] = lrfs.Right[lst];
 				lrfOut.Left[lst] = lrfs.Left[lst];
 				return lrfOut;       // Return the new generator amplitude and acquisition data
 			}
+		}
+
+		/// <summary>
+		/// Determine the gain curve for the device. This is done by sending a chirp at 96KHz
+		/// this sets the attenuation in hardware to 42 before the test
+		/// </summary>
+		/// <param name="inits"></param>
+		/// <param name="average"></param>
+		/// <returns></returns>
+		protected static async Task<LeftRightFrequencySeries?> DetermineGainCurve(BaseViewModel bvm, bool inits, int average = 1)
+		{
+			// initialize very quick run, use 192K so valid up to 20KHz
+			uint fftsize = 65536;
+			uint sampleRate = 96000;
+			string swindow = "Hann";        // we need a reasonable windowing no matter user request
+			bvm.Attenuation = QaLibrary.DEVICE_MAX_ATTENUATION; // try this out
+			if (true != await QaComm.InitializeDevice(sampleRate, fftsize, swindow, (int)bvm.Attenuation))
+				return null;
+			// try at 0.01 volt generator and 42dB attenuation
+			var lrfs = await SubGainCurve(bvm, inits, average, 0.01, (int)bvm.Attenuation);
+			// now do it again louder for better accuracy
+			if(lrfs == null) 
+				return null;
+			var maxGain = Math.Max(0.01, lrfs.Left.Skip(10).Take((int)(20000 / lrfs.Df)).Max());
+			maxGain = Math.Max(maxGain, Math.Max(0.01, lrfs.Right.Skip(10).Take((int)(20000 / lrfs.Df)).Max()));
+			if(maxGain <= 100)
+			{
+				// now try at 0.1V or greater if no gain
+				// and appropriate attenuation for best accuracy
+				var gvolt = 0.1;
+				if (maxGain < 0.5)
+					gvolt = Math.Min(1, 0.1 / maxGain);
+				double ampdBV = QaLibrary.ConvertVoltage(gvolt * maxGain, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+
+				// Get input voltage based on desired output voltage
+				var attenuation = QaLibrary.DetermineAttenuation(ampdBV);
+				lrfs = await SubGainCurve(bvm, inits, average, gvolt, attenuation);
+			}
+			return lrfs;
 		}
 	}
 }
