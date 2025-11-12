@@ -5,6 +5,7 @@ using QA40xPlot.Libraries;
 using QA40xPlot.Views;
 using ScottPlot;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -236,17 +237,20 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		/// <summary>
-		/// for use by the unit converters, serialized
-		/// </summary>
-		private string _GenVoltUnits = "V";
-		public string GenVoltUnits
+		private int _LeftWidth; // the width of the left channel in units
+		[JsonIgnore]
+		public int LeftWidth
 		{
-			get { return _GenVoltUnits; }
-			set
-			{
-				SetProperty(ref _GenVoltUnits, value);
-			}
+			get => _LeftWidth;
+			set => SetProperty(ref _LeftWidth, value);
+		}
+
+		private int _RightWidth; // the width of the left channel in units
+		[JsonIgnore]
+		public int RightWidth
+		{
+			get => _RightWidth;
+			set => SetProperty(ref _RightWidth, value);
 		}
 
 		/// <summary>
@@ -289,6 +293,19 @@ namespace QA40xPlot.ViewModels
 		#endregion
 
 		#region Setters and Getters
+
+		/// <summary>
+		/// for use by the unit converters, serialized
+		/// </summary>
+		private string _GenVoltUnits = "V";
+		public string GenVoltUnits
+		{
+			get { return _GenVoltUnits; }
+			set
+			{
+				SetProperty(ref _GenVoltUnits, value);
+			}
+		}
 
 		private bool _ShowThickLines;
 		public bool ShowThickLines
@@ -403,7 +420,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ExpandGraphData, value);
 		}
 
-
 		private bool _ExpandGraphOptions = true;       // expand the GraphOptions section?
 		public bool ExpandGraphOptions
 		{
@@ -477,20 +493,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowRight, value);
 		}
 
-		private int _LeftWidth; // the width of the left channel in units
-		public int LeftWidth
-		{
-			get => _LeftWidth;
-			set => SetProperty(ref _LeftWidth, value);
-		}
-
-		private int _RightWidth; // the width of the left channel in units
-		public int RightWidth
-		{
-			get => _RightWidth;
-			set => SetProperty(ref _RightWidth, value);
-		}
-
 		// return true if this is a voltage value
 		public static bool FindDirection(string genFormat)
 		{
@@ -535,7 +537,6 @@ namespace QA40xPlot.ViewModels
 			return "W"; // default to volts
 		}
 
-
 		private string _GenDirection = string.Empty;
 		public string GenDirection
 		{
@@ -552,6 +553,7 @@ namespace QA40xPlot.ViewModels
 				}
 			}
 		}
+
 		private double _Attenuation;
 		public double Attenuation
 		{
@@ -791,6 +793,10 @@ namespace QA40xPlot.ViewModels
 					binmax = Math.Min(abin, binmax);  // limit this
 				}
 				maxGain = lrGains.Skip(binmin).Take(Math.Max(1,binmax - binmin)).Max();
+				var df = binNumber[0] / 20.0;
+				var idx = Array.IndexOf(lrGains, maxGain);
+				var dfrq = df * idx;
+				Debug.WriteLine($"Max Gain of {maxGain} at {dfrq}" + Environment.NewLine);
 			}
 			
 			if (maxGain <= 0.0)

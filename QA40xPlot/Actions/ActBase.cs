@@ -279,23 +279,6 @@ namespace QA40xPlot.Actions
 			int binmin = (int)Math.Max(0, fundamentalBin - 2);
 			int bintrack = (int)(Math.Min(fftsize, fundamentalBin + 2) - binmin);
 
-			//// the amplitude is max of a small area
-			//var maxl = GetFGain(acqData.FreqRslt.Left, generatorV, binmin, bintrack);
-			//var maxr = GetFGain(acqData.FreqRslt.Right, generatorV, binmin, bintrack);
-
-			//var maxi = Math.Max(maxl, maxr);
-			//// since we're running with 42db of attenuation...
-			//if (maxi < 0.1)
-			//{
-			//	// get some more accuracy with this
-			//	await QaComm.SetInputRange(18);
-			//	// do two and average them
-			//	await QaComm.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
-			//	acqData = await QaComm.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
-			//	if (acqData == null || acqData.FreqRslt == null || ct.IsCancellationRequested)
-			//		return null;
-			//}
-
 			// calculate gain for each channel from frequency response
 			LeftRightFrequencySeries lrfs = new LeftRightFrequencySeries();
 			lrfs.Left = new double[] { GetFGain(acqData.FreqRslt.Left, generatorV, binmin, bintrack) };
@@ -352,15 +335,16 @@ namespace QA40xPlot.Actions
 		protected static async Task<LeftRightFrequencySeries?> DetermineGainCurve(BaseViewModel bvm, bool inits, int average = 1)
 		{
 			// initialize very quick run, use 192K so valid up to 20KHz
-			uint fftsize = 32768;
-			uint sampleRate = 192000;
+			uint fftsize = 65536;
+			uint sampleRate = 96000;
 			string swindow = "Hann";		// we need a reasonable windowing no matter user request
 			if (true != await QaComm.InitializeDevice(sampleRate, fftsize, swindow, QaLibrary.DEVICE_MAX_ATTENUATION))
 				return null;
 
 			{
 				// the simplest thing here is to do a chirp at a low value...
-				var generatorV = 0.01;			// random low test value
+				var generatorV = 0.1;			// testing at .01 has more noise
+												// so use 0.1V as reasonable
 				var chirpy = Chirps.ChirpVp((int)fftsize, sampleRate, generatorV, 6, 24000);
 				var ct = new CancellationTokenSource();
 				// get the data
@@ -409,16 +393,24 @@ namespace QA40xPlot.Actions
 					lrfs.Left[i] = lrfs.Left[5];
 					lrfs.Right[i] = lrfs.Right[5];
 				}
-				// smoothing
-				double dl = lrfs.Left[0];
-				double dr = lrfs.Right[0];
-				for (int i=0; i<lrfs.Left.Length; i++)
+				var lrfOut = new LeftRightFrequencySeries();
+				lrfOut.Df = lrfs.Df;
+				lrfOut.Left = new double[lrfs.Left.Length];
+				lrfOut.Right = new double[lrfs.Right.Length];
+				for(int i=1; i<(lrfs.Right.Length-1); i++)
 				{
-					lrfs.Left[i] = dl * .1 + lrfs.Left[i] * 0.9;
-					lrfs.Right[i] = dl * .1 + lrfs.Right[i] * 0.9;
+					lrfOut.Right[i] = .2 * lrfs.Right[i - 1] + .6 * lrfs.Right[i] + .2 * lrfs.Right[i + 1];
 				}
-				//var newlen = 10000 / lrfs.Df; // 10KHz max frequency
-				return lrfs;       // Return the new generator amplitude and acquisition data
+				for (int i = 1; i < (lrfs.Left.Length - 1); i++)
+				{
+					lrfOut.Left[i] = .2 * lrfs.Left[i - 1] + .6 * lrfs.Left[i] + .2 * lrfs.Left[i + 1];
+				}
+				lrfOut.Right[0] = lrfs.Right[0];
+				lrfOut.Left[0] = lrfs.Left[0];
+				var lst = lrfs.Left.Count() - 1;
+				lrfOut.Right[lst] = lrfs.Right[lst];
+				lrfOut.Left[lst] = lrfs.Left[lst];
+				return lrfOut;       // Return the new generator amplitude and acquisition data
 			}
 		}
 	}

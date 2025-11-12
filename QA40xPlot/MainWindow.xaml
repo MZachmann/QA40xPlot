@@ -97,7 +97,7 @@
                 </Grid>
             </TabItem>
             <TabItem Header="Opamp.Amp" Name="ampsweep"  MaxWidth="{Binding MaxTab}"
-                     Visibility="{Binding ShowQA430, Converter={StaticResource BoolVisConverter}}" >
+                     Visibility="Collapsed" >
                 <Grid Background="{Binding Background, Mode=OneWay}">
                     <views:AmpSweepPlotPage  />
                 </Grid>

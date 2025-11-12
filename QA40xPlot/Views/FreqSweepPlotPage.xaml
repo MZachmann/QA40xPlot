@@ -16,7 +16,7 @@
         <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden">
             <StackPanel Margin="0,1,1,0">
                 <views:StartStop />
-                <Expander Header="—— Variables" IsExpanded="{Binding ExpandVars}"  >
+                <Expander Header="—— Variables" IsExpanded="{Binding ExpandVars}" Visibility="{Binding HasQA430, Converter={StaticResource BoolVisConverter}}"  >
                     <Grid >
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="{Binding LeftWidth}" />

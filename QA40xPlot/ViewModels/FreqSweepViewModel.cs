@@ -148,16 +148,23 @@ namespace QA40xPlot.ViewModels
 
 		#endregion
 
+		private void CheckQA430()
+		{
+			var vm = ViewSettings.Singleton.FreqVm;
+			vm.HasQA430 = QA430Model.BeginQA430Op();
+		}
+
 		private static void StartIt()
 		{
-			var nowHave = QA430Model.BeginQA430Op();
-			if (!nowHave)
-			{
-				MessageBox.Show("QA-430 device not connected.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
-				return;
-			}
 			// Implement the logic to start the measurement process
 			var vm = ViewSettings.Singleton.FreqVm;
+			vm.HasQA430 = QA430Model.BeginQA430Op();
+			//if (!vm.HasQA430)
+			//{
+			//	MessageBox.Show("QA-430 device not connected.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+			//	return;
+			//}
+
 			vm.actFreq?.DoMeasurement();
 		}
 
@@ -172,6 +179,10 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
+				case "CheckQA430":
+					CheckQA430();
+					RaisePropertyChanged("HasQA430");
+					break;
 				case "DSPlotColors":
 					MyAction?.UpdateGraph(false);
 					break;

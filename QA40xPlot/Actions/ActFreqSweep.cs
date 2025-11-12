@@ -1,5 +1,4 @@
 ﻿using QA40xPlot.BareMetal;
-using QA40xPlot.Converters;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.QA430;
@@ -140,7 +139,7 @@ namespace QA40xPlot.Actions
 			for (i = 0; i < numLines; i++)
 			{
 				var line = new FreqSweepLine();
-				line.Label = steps[i].ToSuffix(showVolt);
+				line.Label = steps[i].ToSuffix(showVolt, MyVModel.HasQA430);
 				line.Columns = left.Skip(i * linelength).Take(linelength).ToArray();
 				lines.Add(line);
 			}
@@ -434,6 +433,7 @@ namespace QA40xPlot.Actions
 			// ********************************************************************
 			// before getting the gain curve set to gain of 1
 			// and then chirp
+			if(vm.HasQA430)
 			{
 				var model = Qa430Usb.Singleton?.QAModel;
 				if(model != null)
@@ -441,6 +441,8 @@ namespace QA40xPlot.Actions
 					model.SetOpampConfig("Config6a");
 					model.UseFixedRails = true;
 					model.LoadOption = (short)QA430Model.LoadOptions.Open;
+					// now that the QA430 relays are set, wait a bit...
+					await model.WaitForQA430Relays();
 				}
 			}
 
@@ -516,22 +518,28 @@ namespace QA40xPlot.Actions
 				{
 					new AcquireStep() { Cfg = "Config6b", Load = QA430Model.LoadOptions.Open, Gain = 1, Distgain=101, SupplyP = 15, SupplyN = 15 }    // unity 16b with 101 dist gain
 				};
+				if(! vm.HasQA430)
+				{
+					var u = variables[0];
+					u.Distgain = 1;
+					variables[0] = u;
+				}
 
-				QA430Model? model430 = Qa430Usb.Singleton?.QAModel;
+				QA430Model? model430 = vm.HasQA430 ? Qa430Usb.Singleton?.QAModel : null;
 
-				if (vm.VaryLoad)
+				if (vm.VaryLoad && model430 != null)
 				{
 					bool[] useOption = freqVm.Loadsets.Select(x => x.IsSelected).ToArray();
-					variables = model430?.ExpandLoadOptions(variables, useOption) ?? variables;
+					variables = model430.ExpandLoadOptions(variables, useOption) ?? variables;
 				}
 
-				if (vm.VaryGain)
+				if (vm.VaryGain && model430 != null)
 				{
 					bool[] useOption = freqVm.Gainsets.Select(x => x.IsSelected).ToArray();
-					variables = model430?.ExpandGainOptions(variables, useOption) ?? variables;
+					variables = model430.ExpandGainOptions(variables, useOption) ?? variables;
 				}
 
-				if (vm.VarySupply)
+				if (vm.VarySupply && model430 != null)
 				{
 					var voltages = vm.Supplysets.SelectedNames(true);
 					List<(double, double)> supplies = new();
@@ -547,7 +555,7 @@ namespace QA40xPlot.Actions
 							voltn = MathUtil.ToDouble(avolt[1], 15);
 						supplies.Add((voltp, voltn));
 					}
-					variables = model430?.ExpandSupplyOptions(variables, supplies) ?? variables;
+					variables = model430.ExpandSupplyOptions(variables, supplies) ?? variables;
 				}
 
 				// now expand the generator voltage options
@@ -576,7 +584,7 @@ namespace QA40xPlot.Actions
 				// ********************************************************************
 				foreach (var myConfig in variables) // sweep the different configurations
 				{
-					var model = Qa430Usb.Singleton?.QAModel;
+					QA430Model? model = vm.HasQA430 ? Qa430Usb.Singleton?.QAModel : null;
 					if(model != null)
 					{
 						if(myConfig.Cfg != lastCfg && myConfig.Cfg.Length > 0)

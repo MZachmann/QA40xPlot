@@ -56,6 +56,11 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
+		// simple ask if we have a qa430. don't bother raising property change
+		// this is set when the start button is pushed
+		[JsonIgnore]
+		public bool HasQA430 { get; set; }
+
 		// when this is saved it shows the current settings
 		// the value is set only when we load a configuration so parse it
 		public string SupplySummary

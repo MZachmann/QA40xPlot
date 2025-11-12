@@ -58,15 +58,22 @@ namespace QA40xPlot.QA430
 			GenVoltFmt = asIn.GenVoltFmt;
 		}
 
-		public string ToSuffix(bool addVolt)
+		public string ToSuffix(bool addVolt, bool hasQa430)
 		{
 			string sout = string.Empty;
-			if(SupplyN == SupplyP)
-				sout = $"{Load};{SupplyP}V;Gain={Gain}";
+			if(hasQa430)
+			{
+				if (SupplyN == SupplyP)
+					sout = $"{Load};{SupplyP}V;Gain={Gain}";
+				else
+					sout = $"{Load};{SupplyP}V|{SupplyN}V;Gain={Gain}";
+				if (addVolt)
+					sout = sout + ";@" + GenVoltFmt;
+			}
 			else
-				sout = $"{Load};{SupplyP}V|{SupplyN}V;Gain={Gain}";
-			if(addVolt)
-				sout = sout + ";@" + GenVoltFmt;
+			{
+				sout = "@" + GenVoltFmt;
+			}
 			return sout;
 		}
 	};
