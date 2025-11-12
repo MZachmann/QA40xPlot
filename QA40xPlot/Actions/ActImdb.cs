@@ -410,7 +410,7 @@ namespace QA40xPlot.Actions
 			var lrfs = msr.FreqRslt;    // frequency response
 
 			var maxScan = lrfs.Df * lrfs.Left.Length;
-			var maxf = Math.Min(20000, maxScan); // the app seems to use 20,000 so not sampleRate/ 2.0;
+			var maxf = Math.Min(ViewSettings.NoiseBandwidth, maxScan); // the app seems to use 20,000 so not sampleRate/ 2.0;
 			var wdw = vm.WindowingMethod; // windowing method
 			double[] funds = [freq, freq2];
 			LeftRightPair thds = QaCompute.GetImdDb(wdw, lrfs, funds, 20.0, maxScan);

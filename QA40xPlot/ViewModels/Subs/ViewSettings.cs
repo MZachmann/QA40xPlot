@@ -68,6 +68,8 @@ namespace QA40xPlot.ViewModels
 		public static bool IsSaveOnExit { get => ViewSettings.Singleton.SettingsVm?.SaveOnExit == "True"; }
 		[JsonIgnore]
 		public static bool IsUseREST { get => ViewSettings.Singleton.SettingsVm?.UseREST == true; }
+		[JsonIgnore]
+		public static double NoiseBandwidth { get => MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.NoiseBandwidthStr, 20000); }
 
 		public void GetSettingsFrom( Dictionary<string, Dictionary<string,object>> vws)
 		{

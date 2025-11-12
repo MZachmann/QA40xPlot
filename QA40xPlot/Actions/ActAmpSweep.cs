@@ -615,7 +615,7 @@ namespace QA40xPlot.Actions
 
 			var maxf = msr.FreqRslt.Df * msr.FreqRslt.Left.Length;
 
-			LeftRightPair thds = QaCompute.GetThdDb(vm.WindowingMethod, lrfs, dFreq, 20.0, Math.Min(50000, maxf));
+			LeftRightPair thds = QaCompute.GetThdDb(vm.WindowingMethod, lrfs, dFreq, 20.0, Math.Min(80000, maxf));
 			LeftRightPair thdN = QaCompute.GetThdnDb(vm.WindowingMethod, lrfs, dFreq, 20.0, maxf, ViewSettings.NoiseWeight);
 
 			var frq = msr.FreqRslt.Left;    // start with left

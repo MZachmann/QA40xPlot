@@ -22,6 +22,8 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Label Content="Amplifier Load: " Grid.Row="0" Grid.Column="0" Padding="0,2,0,0" />
                 <Label x:Name="AmpLoad" Content="{Binding AmplifierLoad}" ToolTip="Change this value in Settings" 
@@ -47,11 +49,20 @@
                 <Label x:Name="Noises" Content="{Binding NoiseWeight}" HorizontalAlignment="Right"  Padding="2,0"  
                        ToolTip="Weighting method for noise analysis" Grid.Row="4" Grid.Column="1"  
                        Visibility="{Binding NoiseWeight, ConverterParameter=Z, Converter={StaticResource StringVisConverter}}" />
-                <Label x:Name="SoundDevice2" Content="Sound Device: " Grid.Row="5" Grid.Column="0"  Padding="0"
+                <Label x:Name="Noiseband" Content="Noise Bandwidth" HorizontalAlignment="Right"  Padding="2,0"  
+                       Grid.Row="5" Grid.Column="0"
+                       Visibility="{Binding NoiseBandwidthStr, ConverterParameter=20000, Converter={StaticResource StringVisConverter}}" />
+                <Label x:Name="Noiseband2" Content="{Binding NoiseBandwidthStr}" HorizontalAlignment="Right"  Padding="2,0"  
+                       ToolTip="Bandwidth for noise analyses" Grid.Row="5" Grid.Column="1"
+                        Visibility="{Binding NoiseBandwidthStr, ConverterParameter=20000, Converter={StaticResource StringVisConverter}}" />
+                <Label x:Name="Noiseband3" Content="Hz" HorizontalAlignment="Left" Padding="2,0"
+                      Grid.Row="5" Grid.Column="2"
+                        Visibility="{Binding NoiseBandwidthStr, ConverterParameter=20000, Converter={StaticResource StringVisConverter}}" />
+                <Label x:Name="SoundDevice2" Content="Sound Device: " Grid.Row="6" Grid.Column="0"  Padding="0"
                        ToolTip="Name of Windows Sound echo device"
                        Visibility="{Binding UseExternalEcho, Converter={StaticResource BoolVisConverter}}"/>
                 <Label x:Name="SoundDevice" Content="{Binding EchoName}" HorizontalAlignment="Left"  Padding="2,0"  
-                       Grid.Row="5" Grid.Column="1" MaxWidth="80"  
+                       Grid.Row="7" Grid.Column="1" MaxWidth="80"  
                        Grid.ColumnSpan="2"
                        ToolTip="{Binding EchoName}"
                        Visibility="{Binding UseExternalEcho, Converter={StaticResource BoolVisConverter}}" />

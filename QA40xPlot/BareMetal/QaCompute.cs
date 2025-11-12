@@ -1,6 +1,7 @@
 
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
+using QA40xPlot.ViewModels;
 using System.Diagnostics;
 using System.Numerics;
 using System.Windows.Interop;
@@ -630,8 +631,9 @@ namespace QA40xPlot.BareMetal
 			if (lrfs == null)
 				return new LeftRightPair(1e-20, 1e-20);
 
-			var noiseLeft = QaCompute.ComputeRmsF(lrfs.Left, lrfs.Df, 20, 20000, windowing, weighting);
-			var noiseRight = QaCompute.ComputeRmsF(lrfs.Right, lrfs.Df, 20, 20000, windowing, weighting);
+			var maxf = ViewSettings.NoiseBandwidth;
+			var noiseLeft = QaCompute.ComputeRmsF(lrfs.Left, lrfs.Df, 20, maxf, windowing, weighting);
+			var noiseRight = QaCompute.ComputeRmsF(lrfs.Right, lrfs.Df, 20, maxf, windowing, weighting);
 			// calculate the noise floor
 			return new LeftRightPair(noiseLeft, noiseRight);
 		}

@@ -482,14 +482,14 @@ namespace QA40xPlot.Actions
 				freq = 1016.6; // the default multitone frequency, 1016.6 Hz
 			}
 			var lrfs = msr.FreqRslt;    // frequency response
-			// get snr math stuff
+										// get snr math stuff
 
-			// use noise bandwidth of 20 KHz
-			var maxf = Math.Min(20000, lrfs.Df * lrfs.Left.Length);
+			// use noise bandwidth of NoiseBandwidth Hz
+			var maxf = Math.Min(ViewSettings.NoiseBandwidth, lrfs.Df * lrfs.Left.Length);
 			LeftRightPair sinaddb = QaCompute.GetSinadDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf, ViewSettings.NoiseWeight);
 			LeftRightPair snrdb = QaCompute.GetSnrDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf, ViewSettings.NoiseWeight);
 			LeftRightPair thdN = QaCompute.GetThdnDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf, ViewSettings.NoiseWeight);
-			maxf = Math.Min(Math.Max(20000, freq * 5), lrfs.Df * lrfs.Left.Length);
+			maxf = Math.Min(Math.Max(maxf, freq * 5), lrfs.Df * lrfs.Left.Length);
 			LeftRightPair thds = QaCompute.GetThdDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf);
 
 			ThdChannelViewModel[] steps = [left, right];
@@ -512,7 +512,7 @@ namespace QA40xPlot.Actions
 				step.ThdNIndB = isleft ? thdN.Left : thdN.Right;
 				step.ThdIndB = isleft ? thds.Left : thds.Right;
 				step.GaindB = 20 * Math.Log10(step.FundamentalVolts / Math.Max(1e-10, step.GeneratorVolts));
-				double rmsV = QaCompute.ComputeRmsF(frq, msr.FreqRslt.Df, 20, 20000, vm.WindowingMethod);
+				double rmsV = QaCompute.ComputeRmsF(frq, msr.FreqRslt.Df, 20, maxf, vm.WindowingMethod);
 				step.TotalV = rmsV;
 				step.TotalW = rmsV * rmsV / ViewSettings.AmplifierLoad;
 				step.ShowDataPercents = vm.ShowDataPercent;

@@ -734,7 +734,7 @@ namespace QA40xPlot.Actions
 
 			var lrfs = msr.FreqRslt;    // frequency response
 			var maxScan = msr.FreqRslt.Df * msr.FreqRslt.Left.Length;
-			var maxf = Math.Min(vm.HasQA430 ? 80000 : 20000, maxScan);	// opamps use 80KHz bandwidth, audio uses 20KHz
+			var maxf = Math.Min(ViewSettings.NoiseBandwidth, maxScan);	// opamps use 80KHz bandwidth, audio uses 20KHz
 
 			LeftRightPair thds = QaCompute.GetThdDb(vm.WindowingMethod, lrfs, dFreq, 20.0, maxScan);
 			LeftRightPair thdN = QaCompute.GetThdnDb(vm.WindowingMethod, lrfs, dFreq, 20.0, maxf, ViewSettings.NoiseWeight);
