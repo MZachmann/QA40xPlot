@@ -118,64 +118,65 @@
             <views:LegendWnd x:Name="LegendWindow" Visibility="{Binding ShowLegend, Converter={StaticResource BoolVisConverter}}"
                     VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,70,40,0" />
         </Grid>
-        <!--End of main plot area--> 
-            <StackPanel Grid.Column="2" Orientation="Vertical">
-            <views:YAxisDb />
-            <views:YAxisPerc />
-            <views:XAxisHz />
-            <Expander Header="—— Graph Data"  IsExpanded="{Binding ExpandGraphData}" >
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <CheckBox Content="Summary Data" ToolTip="{Binding SummaryDataTip}"
+        <!--End of main plot area-->
+        <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+            <StackPanel Orientation="Vertical">
+                <views:YAxisDb />
+                <views:YAxisPerc />
+                <views:XAxisHz />
+                <Expander Header="—— Graph Data"  IsExpanded="{Binding ExpandGraphData}" >
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <CheckBox Content="Summary Data" ToolTip="{Binding SummaryDataTip}"
                               IsChecked="{Binding ShowSummary}" Grid.Row="0"  />
-                    <CheckBox Content="Tab Info" ToolTip="{Binding TabInfoTip}"
+                        <CheckBox Content="Tab Info" ToolTip="{Binding TabInfoTip}"
                               IsChecked="{Binding ShowTabInfo}" Grid.Row="1"  />
-                    <CheckBox Content="Harmonic Markers" IsChecked="{Binding ShowMarkers}" Grid.Row="2"  />
-                    <CheckBox Content="Power Markers" IsChecked="{Binding ShowPowerMarkers}" Grid.Row="3"  />
-                </Grid>
-            </Expander>
+                        <CheckBox Content="Harmonic Markers" IsChecked="{Binding ShowMarkers}" Grid.Row="2"  />
+                        <CheckBox Content="Power Markers" IsChecked="{Binding ShowPowerMarkers}" Grid.Row="3"  />
+                    </Grid>
+                </Expander>
 
-            <Expander Header="—— Options"  IsExpanded="{Binding ExpandGraphOptions}" >
-                <Grid>
+                <Expander Header="—— Options"  IsExpanded="{Binding ExpandGraphOptions}" >
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="0"  />
+                        <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="1"  />
+                        <CheckBox Content="Legend" ToolTip="{Binding ShowLegendTip}"
+                            IsChecked="{Binding ShowLegend}" Grid.Row="2" Grid.Column="0"  />
+                        <CheckBox Content="% - Data Summary" IsChecked="{Binding ShowDataPercent}" Grid.Row="3"  />
+                        <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="4"  />
+                        <Button  Content="Edit Palette" Command="{Binding EditPaletteCommand}" Margin="12, 2" Grid.Row="5"></Button>
+                    </Grid>
+                </Expander>
+
+                <views:GroupHeader Header="Cursor" />
+                <Grid >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="0"  />
-                    <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="1"  />
-                    <CheckBox Content="Legend" ToolTip="{Binding ShowLegendTip}"
-                            IsChecked="{Binding ShowLegend}" Grid.Row="2" Grid.Column="0"  />
-                    <CheckBox Content="% - Data Summary" IsChecked="{Binding ShowDataPercent}" Grid.Row="3"  />
-                    <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="4"  />
-                    <Button  Content="Edit Palette" Command="{Binding EditPaletteCommand}" Margin="12, 2" Grid.Row="5"></Button>
+                    <Label Content="Frequency" Grid.Row="0" Grid.Column="0" IsEnabled="{Binding IsTracking}" />
+                    <Label Content="{Binding FreqShow}" Grid.Row="0" Grid.Column="1" IsEnabled="{Binding IsTracking}" Width="70" />
+                    <TextBox Text="{Binding ZValue}" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" TextWrapping="Wrap" AcceptsReturn="True" Width="120" HorizontalAlignment="Left" />
                 </Grid>
-            </Expander>
-
-            <views:GroupHeader Header="Cursor" />
-            <Grid >
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Label Content="Frequency" Grid.Row="0" Grid.Column="0" IsEnabled="{Binding IsTracking}" />
-                <Label Content="{Binding FreqShow}" Grid.Row="0" Grid.Column="1" IsEnabled="{Binding IsTracking}" Width="70" />
-                <TextBox Text="{Binding ZValue}" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" TextWrapping="Wrap" AcceptsReturn="True" Width="120" HorizontalAlignment="Left" />
-            </Grid>
-
-        </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>

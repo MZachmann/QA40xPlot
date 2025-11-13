@@ -179,104 +179,106 @@
             <views:LegendWnd x:Name="LegendWindow" Visibility="{Binding ShowLegend, Converter={StaticResource BoolVisConverter}}"
                 VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,70,40,0" />
         </Grid>
-        <StackPanel Grid.Column="2" Orientation="Vertical">
-            <views:YAxisDb />
-            <views:YAxisPerc />
-            <Expander Header="—— X Axis"  IsExpanded="{Binding ExpandXAxis}" >
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" MinWidth="{Binding RightWidth}" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Label Content="From" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"  />
-                    <ComboBox MinWidth="70" IsEditable="True" Grid.Row="0" Grid.Column="1"  Text="{Binding GraphStartX}" ItemsSource="{Binding StartVoltages}"
+        <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+            <StackPanel Orientation="Vertical">
+                <views:YAxisDb />
+                <views:YAxisPerc />
+                <Expander Header="—— X Axis"  IsExpanded="{Binding ExpandXAxis}" >
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" MinWidth="{Binding RightWidth}" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Label Content="From" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"  />
+                        <ComboBox MinWidth="70" IsEditable="True" Grid.Row="0" Grid.Column="1"  Text="{Binding GraphStartX}" ItemsSource="{Binding StartVoltages}"
                               VerticalContentAlignment="Center"
                               >
-                    </ComboBox>
-                    <Label Content="V" Grid.Row="0" Grid.Column="2" VerticalAlignment="Center"  />
-                    <Label Content="To" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"   />
-                    <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1" Text="{Binding GraphEndX}" ItemsSource="{Binding EndVoltages}">
-                    </ComboBox>
-                    <Label Content="V" Grid.Row="1" Grid.Column="2" VerticalAlignment="Center"  />
-                    <Button Content="" Command="{Binding DoViewToFit}" CommandParameter="XM"
+                        </ComboBox>
+                        <Label Content="V" Grid.Row="0" Grid.Column="2" VerticalAlignment="Center"  />
+                        <Label Content="To" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"   />
+                        <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1" Text="{Binding GraphEndX}" ItemsSource="{Binding EndVoltages}">
+                        </ComboBox>
+                        <Label Content="V" Grid.Row="1" Grid.Column="2" VerticalAlignment="Center"  />
+                        <Button Content="" Command="{Binding DoViewToFit}" CommandParameter="XM"
                             FontFamily="Segoe Fluent Icons"
                             Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  
                         HorizontalAlignment="Right" VerticalAlignment="Center"  >
-                        <Button.ToolTip >
-                            <ToolTip FontFamily="Arial" Content="{Binding PinGraphTip}" />
-                        </Button.ToolTip>
-                    </Button>
-                    <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="XM"
+                            <Button.ToolTip >
+                                <ToolTip FontFamily="Arial" Content="{Binding PinGraphTip}" />
+                            </Button.ToolTip>
+                        </Button>
+                        <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="XM"
                             Margin="0,4,0,0" Grid.Row="2" Grid.Column="1"  HorizontalAlignment="Right" VerticalAlignment="Center"   />
-                </Grid>
-            </Expander>
+                    </Grid>
+                </Expander>
 
-            <Expander Header="—— Graph Data"  IsExpanded="{Binding ExpandGraphData}" >
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <CheckBox Content="Magnitude" IsChecked="{Binding ShowMagnitude}" Grid.Row="0"  />
-                    <CheckBox Content="THD" IsChecked="{Binding ShowTHD}" Grid.Row="1" Grid.Column="0"  />
-                    <CheckBox Content="THD+N" IsChecked="{Binding ShowTHDN}" Grid.Row="1" Grid.Column="1"  />
-                    <CheckBox Content="D2" IsChecked="{Binding ShowD2}" Grid.Row="2" Grid.Column="0"  />
-                    <CheckBox Content="D3" IsChecked="{Binding ShowD3}" Grid.Row="2" Grid.Column="1"  />
-                    <CheckBox Content="D4" IsChecked="{Binding ShowD4}" Grid.Row="3"  Grid.Column="0" />
-                    <CheckBox Content="D5" IsChecked="{Binding ShowD5}" Grid.Row="3" Grid.Column="1" />
-                    <CheckBox Content="D6+" IsChecked="{Binding ShowD6}" Grid.Row="4" Grid.Column="0" />
-                    <CheckBox Content="Noise Floor" IsChecked="{Binding ShowNoiseFloor}" Grid.Row="5" Grid.Column="0"  />
-                    <CheckBox Content="Tab Info" ToolTip="{Binding TabInfoTip}"
+                <Expander Header="—— Graph Data"  IsExpanded="{Binding ExpandGraphData}" >
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <CheckBox Content="Magnitude" IsChecked="{Binding ShowMagnitude}" Grid.Row="0"  />
+                        <CheckBox Content="THD" IsChecked="{Binding ShowTHD}" Grid.Row="1" Grid.Column="0"  />
+                        <CheckBox Content="THD+N" IsChecked="{Binding ShowTHDN}" Grid.Row="1" Grid.Column="1"  />
+                        <CheckBox Content="D2" IsChecked="{Binding ShowD2}" Grid.Row="2" Grid.Column="0"  />
+                        <CheckBox Content="D3" IsChecked="{Binding ShowD3}" Grid.Row="2" Grid.Column="1"  />
+                        <CheckBox Content="D4" IsChecked="{Binding ShowD4}" Grid.Row="3"  Grid.Column="0" />
+                        <CheckBox Content="D5" IsChecked="{Binding ShowD5}" Grid.Row="3" Grid.Column="1" />
+                        <CheckBox Content="D6+" IsChecked="{Binding ShowD6}" Grid.Row="4" Grid.Column="0" />
+                        <CheckBox Content="Noise Floor" IsChecked="{Binding ShowNoiseFloor}" Grid.Row="5" Grid.Column="0"  />
+                        <CheckBox Content="Tab Info" ToolTip="{Binding TabInfoTip}"
                               IsChecked="{Binding ShowTabInfo}" Grid.Row="6" Grid.Column="0"  />
-                    <CheckBox Content="Mini-Plots" ToolTip="{Binding MiniPlotsTip}"
+                        <CheckBox Content="Mini-Plots" ToolTip="{Binding MiniPlotsTip}"
                               IsChecked="{Binding KeepMiniPlots}" Grid.Row="7" Grid.Column="0"  />
-                </Grid>
-            </Expander>
+                    </Grid>
+                </Expander>
 
-            <Expander Header="—— Options"  IsExpanded="{Binding ExpandGraphOptions}" >
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="0"  />
-                    <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="1"  />
-                    <CheckBox Content="Legend" ToolTip="{Binding ShowLegendTip}"
+                <Expander Header="—— Options"  IsExpanded="{Binding ExpandGraphOptions}" >
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="0"  />
+                        <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="1"  />
+                        <CheckBox Content="Legend" ToolTip="{Binding ShowLegendTip}"
                             IsChecked="{Binding ShowLegend}" Grid.Row="2" Grid.Column="0"  />
-                    <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="3"  />
-                    <CheckBox Content="Data Points" IsChecked="{Binding ShowPoints}" Grid.Row="4"  />
-                </Grid>
-            </Expander>
+                        <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="3"  />
+                        <CheckBox Content="Data Points" IsChecked="{Binding ShowPoints}" Grid.Row="4"  />
+                    </Grid>
+                </Expander>
 
-            <views:GroupHeader Header="Cursor" />
-            <StackPanel Orientation="Vertical">
-                <Label Content="Generator -> Out" Grid.Row="0" Grid.Column="0" IsEnabled="{Binding IsTracking}" />
-                <Label Content="{Binding FreqShow}" Grid.Row="0" Grid.Column="1" IsEnabled="{Binding IsTracking}" />
-                <TextBox Text="{Binding ZValue}" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" TextWrapping="Wrap" AcceptsReturn="True" Width="120" HorizontalAlignment="Left" />
+                <views:GroupHeader Header="Cursor" />
+                <StackPanel Orientation="Vertical">
+                    <Label Content="Generator -> Out" Grid.Row="0" Grid.Column="0" IsEnabled="{Binding IsTracking}" />
+                    <Label Content="{Binding FreqShow}" Grid.Row="0" Grid.Column="1" IsEnabled="{Binding IsTracking}" />
+                    <TextBox Text="{Binding ZValue}" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" TextWrapping="Wrap" AcceptsReturn="True" Width="120" HorizontalAlignment="Left" />
+                </StackPanel>
+
             </StackPanel>
-
-        </StackPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>

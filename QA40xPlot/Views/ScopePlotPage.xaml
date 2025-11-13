@@ -146,131 +146,132 @@
             <views:TabAbout x:Name="TAbout"  Visibility="Hidden"
                   VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,50,34,0" />
         </Grid>
-        <StackPanel Grid.Column="2" Orientation="Vertical">
-            <Expander Header="—— Y Axis"  IsExpanded="{Binding ExpandYAxis}" >
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" MinWidth="{Binding RightWidth}" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Label Content="Top" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right"  VerticalAlignment="Center" />
-                    <ComboBox IsEditable="True" MinWidth="70" Grid.Column="1"  Grid.Row="0"   
+        <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+            <StackPanel Orientation="Vertical">
+                <Expander Header="—— Y Axis"  IsExpanded="{Binding ExpandYAxis}" >
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" MinWidth="{Binding RightWidth}" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Label Content="Top" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right"  VerticalAlignment="Center" />
+                        <ComboBox IsEditable="True" MinWidth="70" Grid.Column="1"  Grid.Row="0"   
                         VerticalContentAlignment="Center"
                               Text="{Binding RangeTop}" ItemsSource="{Binding AbsoluteValues}" >
-                    </ComboBox>
-                    <Label Content="V" Grid.Row="0" Grid.Column="2" VerticalAlignment="Center"  />
-                    <Label Content="Bottom" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right"  VerticalAlignment="Center" />
-                    <ComboBox IsEditable="True" Grid.Column="1"  Grid.Row="1"   Text="{Binding RangeBottom}" 
+                        </ComboBox>
+                        <Label Content="V" Grid.Row="0" Grid.Column="2" VerticalAlignment="Center"  />
+                        <Label Content="Bottom" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right"  VerticalAlignment="Center" />
+                        <ComboBox IsEditable="True" Grid.Column="1"  Grid.Row="1"   Text="{Binding RangeBottom}" 
                         VerticalContentAlignment="Center"
                               ItemsSource="{Binding AbsoluteValues}">
-                    </ComboBox>
-                    <Label Content="V" Grid.Row="1" Grid.Column="2" VerticalAlignment="Center"  />
-                    <Button Content="" Command="{Binding DoViewToFit}" CommandParameter="YM"
+                        </ComboBox>
+                        <Label Content="V" Grid.Row="1" Grid.Column="2" VerticalAlignment="Center"  />
+                        <Button Content="" Command="{Binding DoViewToFit}" CommandParameter="YM"
                             FontFamily="Segoe Fluent Icons"
                             Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  
                         HorizontalAlignment="Right" VerticalAlignment="Center"  >
-                        <Button.ToolTip >
-                            <ToolTip FontFamily="Arial" Content="{Binding PinGraphTip}" />
-                        </Button.ToolTip>
-                    </Button>
-                    <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="YM"
+                            <Button.ToolTip >
+                                <ToolTip FontFamily="Arial" Content="{Binding PinGraphTip}" />
+                            </Button.ToolTip>
+                        </Button>
+                        <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="YM"
                             Margin="0,4,0,0" Grid.Row="2" Grid.Column="1"  HorizontalAlignment="Right" VerticalAlignment="Center"   />
-                </Grid>
-            </Expander>
+                    </Grid>
+                </Expander>
 
-            <Expander Header="—— X Axis"  IsExpanded="{Binding ExpandXAxis}" >
-                <Grid>
+                <Expander Header="—— X Axis"  IsExpanded="{Binding ExpandXAxis}" >
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" MinWidth="{Binding RightWidth}" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Label Content="From" Grid.Row="0"  Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"  />
+                        <ComboBox  IsEditable="True" Grid.Row="0" Grid.Column="1"   
+                        VerticalContentAlignment="Center"
+                               Text="{Binding GraphStartX}" ItemsSource="{Binding TimeSteps}" >
+                        </ComboBox>
+                        <Label Content="mS" Grid.Row="0"  Grid.Column="2" VerticalAlignment="Center" />
+                        <Label Content="To" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"  />
+                        <ComboBox  MinWidth="70" IsEditable="True" Grid.Row="1" Grid.Column="1"  
+                        VerticalContentAlignment="Center"
+                               Text="{Binding GraphEndX}" ItemsSource="{Binding TimeSteps}">
+                        </ComboBox>
+                        <Label Content="mS" Grid.Row="1"  Grid.Column="2" VerticalAlignment="Center" />
+                        <Button Content="" Command="{Binding DoViewToFit}" CommandParameter="XT"
+                            FontFamily="Segoe Fluent Icons"
+                            Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  
+                        HorizontalAlignment="Right" VerticalAlignment="Center"  >
+                            <Button.ToolTip >
+                                <ToolTip FontFamily="Arial" Content="{Binding PinGraphTip}" />
+                            </Button.ToolTip>
+                        </Button>
+                        <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="XF"
+                            Margin="0,4,0,0" Grid.Row="2" Grid.Column="1"  HorizontalAlignment="Right" VerticalAlignment="Center"   />
+                    </Grid>
+                </Expander>
+
+                <Expander Header="—— Graph Data"  IsExpanded="{Binding ExpandGraphData}" >
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <CheckBox Content="Summary Data" ToolTip="{Binding SummaryDataTip}"
+                              IsChecked="{Binding ShowSummary}" Grid.Row="0"  />
+                        <CheckBox Content="Tab Info" ToolTip="{Binding TabInfoTip}"
+                              IsChecked="{Binding ShowTabInfo}" Grid.Row="1"  />
+                    </Grid>
+                </Expander>
+
+                <Expander Header="—— Options"  IsExpanded="{Binding ExpandGraphOptions}" >
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="0"  />
+                        <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="1"  />
+                        <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="2"  />
+                        <CheckBox Content="Data Points" IsChecked="{Binding ShowPoints}" Grid.Row="3"  />
+                        <Button  Content="Edit Palette" Command="{Binding EditPaletteCommand}" Margin="12, 2" Grid.Row="4"></Button>
+                    </Grid>
+                </Expander>
+
+                <views:GroupHeader Header="Cursor" />
+                <Grid >
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" MinWidth="{Binding RightWidth}" />
-                        <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <Label Content="From" Grid.Row="0"  Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"  />
-                    <ComboBox  IsEditable="True" Grid.Row="0" Grid.Column="1"   
-                        VerticalContentAlignment="Center"
-                               Text="{Binding GraphStartX}" ItemsSource="{Binding TimeSteps}" >
-                    </ComboBox>
-                    <Label Content="mS" Grid.Row="0"  Grid.Column="2" VerticalAlignment="Center" />
-                    <Label Content="To" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"  />
-                    <ComboBox  MinWidth="70" IsEditable="True" Grid.Row="1" Grid.Column="1"  
-                        VerticalContentAlignment="Center"
-                               Text="{Binding GraphEndX}" ItemsSource="{Binding TimeSteps}">
-                    </ComboBox>
-                    <Label Content="mS" Grid.Row="1"  Grid.Column="2" VerticalAlignment="Center" />
-                    <Button Content="" Command="{Binding DoViewToFit}" CommandParameter="XT"
-                            FontFamily="Segoe Fluent Icons"
-                            Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  
-                        HorizontalAlignment="Right" VerticalAlignment="Center"  >
-                        <Button.ToolTip >
-                            <ToolTip FontFamily="Arial" Content="{Binding PinGraphTip}" />
-                        </Button.ToolTip>
-                    </Button>
-                    <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="XF"
-                            Margin="0,4,0,0" Grid.Row="2" Grid.Column="1"  HorizontalAlignment="Right" VerticalAlignment="Center"   />
+                    <Label Content="Time" Grid.Row="0" Grid.Column="0" IsEnabled="{Binding IsTracking}" />
+                    <Label Content="{Binding FreqShow}" Grid.Row="0" Grid.Column="1" IsEnabled="{Binding IsTracking}" Width="70" />
+                    <TextBox Text="{Binding ZValue}" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" TextWrapping="Wrap" AcceptsReturn="True" Width="120" HorizontalAlignment="Left" />
                 </Grid>
-            </Expander>
-
-            <Expander Header="—— Graph Data"  IsExpanded="{Binding ExpandGraphData}" >
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <CheckBox Content="Summary Data" ToolTip="{Binding SummaryDataTip}"
-                              IsChecked="{Binding ShowSummary}" Grid.Row="0"  />
-                    <CheckBox Content="Tab Info" ToolTip="{Binding TabInfoTip}"
-                              IsChecked="{Binding ShowTabInfo}" Grid.Row="1"  />
-                </Grid>
-            </Expander>
-
-            <Expander Header="—— Options"  IsExpanded="{Binding ExpandGraphOptions}" >
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="0"  />
-                    <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="1"  />
-                    <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="2"  />
-                    <CheckBox Content="Data Points" IsChecked="{Binding ShowPoints}" Grid.Row="3"  />
-                    <Button  Content="Edit Palette" Command="{Binding EditPaletteCommand}" Margin="12, 2" Grid.Row="4"></Button>
-                </Grid>
-            </Expander>
-
-            <views:GroupHeader Header="Cursor" />
-            <Grid >
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Label Content="Time" Grid.Row="0" Grid.Column="0" IsEnabled="{Binding IsTracking}" />
-                <Label Content="{Binding FreqShow}" Grid.Row="0" Grid.Column="1" IsEnabled="{Binding IsTracking}" Width="70" />
-                <TextBox Text="{Binding ZValue}" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" TextWrapping="Wrap" AcceptsReturn="True" Width="120" HorizontalAlignment="Left" />
-            </Grid>
-
-        </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>
