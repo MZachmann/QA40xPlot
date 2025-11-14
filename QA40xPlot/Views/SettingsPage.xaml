@@ -81,7 +81,7 @@
                    HorizontalAlignment="Left" VerticalAlignment="Center"
                    Grid.Row="2" Grid.Column="4" />
             <local:GroupHeader Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5"  />
-            <Label Content="Enable QA430" Grid.Row="4" Grid.Column="0" HorizontalAlignment="Left" />
+            <Label VerticalAlignment="Center" Content="Enable QA430:" Grid.Row="4" Grid.Column="0" HorizontalAlignment="Left" />
             <CheckBox  Grid.Row="4" Grid.Column="1" IsChecked="{Binding EnableQA430}" 
                        Content="On" VerticalAlignment="Center" />
             <TextBlock TextWrapping="Wrap" MaxWidth="600" 
@@ -251,6 +251,7 @@
             <local:GroupHeader Grid.Row="42" Grid.Column="0" Grid.ColumnSpan="5"  />
             <Label VerticalAlignment="Center" Content="Safety Margin: " Grid.Row="43" Grid.Column="0" />
             <ComboBox IsEditable="True"  Grid.Row="43" Grid.Column="1" MinWidth="80" Text="{Binding SafetyMargin}" ItemsSource="{Binding GenVoltages}" />
+            <Label VerticalAlignment="Center" Content="dB" Grid.Row="43" Grid.Column="2" HorizontalAlignment="Left" />
             <TextBlock TextWrapping="Wrap" MaxWidth="600" 
                    Text="Attenuator dB safety margin to add to calculated necessary attenuation - default 5." 
                    HorizontalAlignment="Left" VerticalAlignment="Center"

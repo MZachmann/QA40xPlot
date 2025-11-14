@@ -392,6 +392,7 @@ namespace QA40xPlot.BareMetal
 
 			// Calculate the sum of squares of the harmonic amplitudes
 			double harmonicAmplitudesSqSum = 0.0;
+			double linearSum = 0.0;
 			for (int n = 2; n <= numHarmonics; n++)
 			{
 				double harmonicFreq = n * fundamental;
@@ -400,6 +401,7 @@ namespace QA40xPlot.BareMetal
 
 				double harmonicAmplitude = QaMath.MagAtFreq(signalFreqLin, df, harmonicFreq);
 				harmonicAmplitudesSqSum += Math.Pow(harmonicAmplitude, 2);
+				linearSum += harmonicAmplitude;
 
 				// Debugging: Show the harmonic amplitude in dB and the bins being examined
 				if (debug)
@@ -411,6 +413,7 @@ namespace QA40xPlot.BareMetal
 
 			// Compute THD
 			double thd = Math.Sqrt(harmonicAmplitudesSqSum) / fundamentalAmplitude;
+			//thd = linearSum / fundamentalAmplitude;
 
 			// Debugging: Show THD computation details
 			if (debug)
@@ -762,8 +765,8 @@ namespace QA40xPlot.BareMetal
 
 			try
 			{
-				var lb = Math.Max(1,(int)(lowerBound / df));
-				var ub = Math.Min(signalFreqLin.Length-1, (int)(upperBound / df));
+				var lb = Math.Max(1, QaLibrary.GetBinOfFrequency(lowerBound, df));
+				var ub = Math.Min(signalFreqLin.Length-1, QaLibrary.GetBinOfFrequency(upperBound, df));
 				if( Weighting.Length == 0 || Weighting == "Z")
 				{
 					for (int i = lb; i < ub; i++)
@@ -773,7 +776,7 @@ namespace QA40xPlot.BareMetal
 				}
 				else
 				{
-					double[] wgt = GetWeights(lb, ub - lb, df, Weighting);
+					double[] wgt = GetWeights((int)lb, (int)(ub - lb), df, Weighting);
 					for (int i = lb; i < ub; i++)
 					{
 						sum += signalFreqLin[i] * signalFreqLin[i] * wgt[i-lb] * wgt[i - lb];

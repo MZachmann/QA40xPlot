@@ -187,7 +187,7 @@ namespace QA40xPlot.Actions
 
 		protected static int ToBinNumber(double dFreq, LeftRightFrequencySeries? lrGain)
 		{
-			return (int)Math.Floor(dFreq / (lrGain?.Df ?? 1));
+			return QaLibrary.GetBinOfFrequency(dFreq, (lrGain?.Df ?? 1));
 		}
 
 		protected async Task<LeftRightFrequencySeries?> MeasureNoiseFreq(BaseViewModel bvm, uint averages, CancellationToken ct, bool setRange = false)
@@ -278,9 +278,9 @@ namespace QA40xPlot.Actions
 			if (acqData == null || acqData.FreqRslt == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
 				return null;
 
-			uint fundamentalBin = QaLibrary.GetBinOfFrequency(dfreq, acqData.FreqRslt.Df);
-			int binmin = (int)Math.Max(0, fundamentalBin - 2);
-			int bintrack = (int)(Math.Min(fftsize, fundamentalBin + 2) - binmin);
+			int fundamentalBin = QaLibrary.GetBinOfFrequency(dfreq, acqData.FreqRslt.Df);
+			int binmin = Math.Max(0, fundamentalBin - 2);
+			int bintrack = (int)Math.Min(fftsize, fundamentalBin + 2) - binmin;
 
 			// calculate gain for each channel from frequency response
 			LeftRightFrequencySeries lrfs = new LeftRightFrequencySeries();

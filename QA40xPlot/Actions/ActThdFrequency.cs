@@ -449,7 +449,7 @@ namespace QA40xPlot.Actions
 					page.TimeRslt = lrfs.TimeRslt ?? new();
 					page.FreqRslt = lrfs.FreqRslt;
 
-					uint fundamentalBin = QaLibrary.GetBinOfFrequency(stepBinFrequencies[f], binSize);
+					int fundamentalBin = QaLibrary.GetBinOfFrequency(stepBinFrequencies[f], binSize);
 					if (page.TimeRslt.Left.Length == 0 || lrfs.FreqRslt == null || fundamentalBin >= lrfs.FreqRslt.Left.Length)               // Check in bin within range
 						break;
 

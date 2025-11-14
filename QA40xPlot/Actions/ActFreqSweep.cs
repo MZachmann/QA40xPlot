@@ -399,7 +399,7 @@ namespace QA40xPlot.Actions
 		// input noises is uniform frequency based on fft
 		public static double GetNoiseSmooth(double[] noises, double binSize, double dFreq)
 		{
-			var bin = Math.Floor(dFreq / binSize);  // which frequency bin
+			var bin = QaLibrary.GetBinOfFrequency(dFreq, binSize);  // which frequency bin
 			var bincnt = dFreq / (20 * binSize);  // #bins == +-1/10 of an octave
 			bincnt = Math.Min(10, bincnt);     // limit to 100 bins
 			var minbin = Math.Max(0, (int)(bin - bincnt));
@@ -677,7 +677,7 @@ namespace QA40xPlot.Actions
 						page.TimeRslt = lrfs.TimeRslt ?? new();
 						page.FreqRslt = lrfs.FreqRslt;
 
-						uint fundamentalBin = QaLibrary.GetBinOfFrequency(stepBinFrequencies[f], binSize);
+						int fundamentalBin = QaLibrary.GetBinOfFrequency(stepBinFrequencies[f], binSize);
 						if (page.TimeRslt.Left.Length == 0 || lrfs.FreqRslt == null || fundamentalBin >= lrfs.FreqRslt.Left.Length)               // Check in bin within range
 							break;
 

@@ -47,7 +47,7 @@ namespace QA40xPlot.Libraries
 
 		public static double MagAtFreq(double[] pts, double df, double dFreq)
 		{
-			var bin = (int)Math.Floor(dFreq / df);
+			var bin = (int)QaLibrary.GetBinOfFrequency(dFreq, df);
 			if (bin >= pts.Length)
 				return 0;
 			var ba = pts[bin];

@@ -616,7 +616,6 @@ namespace QA40xPlot.Actions
 		{
 			var vm = page.ViewModel;
 
-			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			var sampleRate = vm.SampleRateVal;
 			var fftsize = vm.FftSizeVal;
 			int bin = (int)QaLibrary.GetBinOfFrequency(frequency, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
@@ -638,6 +637,7 @@ namespace QA40xPlot.Actions
 
 			var colorIdx = ispower ? (int)StockColors.POWER : (int)StockColors.HARMONICS;
 			ScottPlot.Color markerCol = GraphUtil.GetPaletteColor(null, colorIdx);
+			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			var mymark = myPlot.Add.Marker(Math.Log10(frequency), markView,
 				MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), markerCol);
 			mymark.LegendText = string.Format("{1}: {0}", GraphUtil.PrettyPrint(markVal, vm.PlotFormat), (int)frequency);
@@ -675,34 +675,26 @@ namespace QA40xPlot.Actions
 			if (!vm.ShowLeft && !vm.ShowRight)
 				return;
 
-            List<double> freqchecks = new List<double> { 50, 60, 100, 150, 120, 180 };
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			if (vm.ShowPowerMarkers)
 			{
 				var sampleRate = vm.SampleRateVal;
 				var fftsize = vm.FftSizeVal;
 				double fsel = 0;
-				//double maxdata = -10;
 				var fftdata = vm.ShowLeft ? page.FreqRslt?.Left : page.FreqRslt?.Right;
 				if (fftdata == null)
 					return;
-				// find if 50 or 60hz is higher, indicating power line frequency
-				//foreach (double freq in freqchecks)
-				//{
-				//	var data = QaMath.MagAtFreq(fftdata, vm.FftSizeVal, freq);
-				//	if (data > maxdata)
-				//	{
-				//		fsel = (freq == 50 || freq == 100 || freq==150) ? 50 : 60;
-				//	}
-				//}
 				fsel = ToD(ViewSettings.Singleton.SettingsVm.PowerFrequency, 60); // 50 or 60hz
 				if (fsel < 10)
 					fsel = 60;
 				// mark 4 harmonics of power frequency
+				var binSize = QaLibrary.CalcBinSize(sampleRate, fftsize);
 				for (int i=1; i<5; i++)
                 {
-					var data = QaMath.MagAtFreq(fftdata, vm.FftSizeVal, fsel*i);
+					var data = QaMath.MagAtFreq(fftdata, binSize, fsel*i);
                     double udif = 20 * Math.Log10(data);
+					var fv = MathUtil.FormatVoltage(data);
+					System.Diagnostics.Debug.WriteLine($"freq: {fsel * i} is {fv} or {udif}dBV");
                     AddAMarker(page, fsel*i, true);
 				}
 			}

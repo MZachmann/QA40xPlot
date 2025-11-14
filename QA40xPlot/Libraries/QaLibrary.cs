@@ -49,31 +49,31 @@ namespace QA40xPlot.Libraries
             return (double)sampleRate / (double)fftSize;
         }
 
-        /// <summary>
-        /// Calculates in which bin the supplied frequency is
-        /// </summary>
-        /// <param name="frequency">The frequency to query</param>
-        /// <param name="sampleRate">Sample rate in samples per second</param>
-        /// <param name="fftSize">The fft buffer size</param>
-        /// <returns>The bin containing the frequncy</returns>
-        static public uint GetBinOfFrequency(double frequency, uint sampleRate, uint fftSize)
+		/// <summary>
+		/// Calculates in which bin the supplied frequency is
+		/// </summary>
+		/// <param name="frequency">The frequency to query</param>
+		/// <param name="binSize">Frequency span of a single bin</param>
+		/// <returns>The bin containing the frequncy</returns>
+		static public int GetBinOfFrequency(double frequency, double binSize)
+		{
+			return (int)Math.Round(frequency / binSize);
+		}
+
+		/// <summary>
+		/// Calculates in which bin the supplied frequency is
+		/// </summary>
+		/// <param name="frequency">The frequency to query</param>
+		/// <param name="sampleRate">Sample rate in samples per second</param>
+		/// <param name="fftSize">The fft buffer size</param>
+		/// <returns>The bin containing the frequncy</returns>
+		static public int GetBinOfFrequency(double frequency, uint sampleRate, uint fftSize)
         {
             double binSize = CalcBinSize(sampleRate, fftSize);
-            uint binNumber = (uint)Math.Floor(frequency / binSize);
+            int binNumber = QaLibrary.GetBinOfFrequency(frequency, binSize);
             if (binNumber > fftSize)
                 throw new ArgumentOutOfRangeException();                    // Frequency does not exist in the fft
             return binNumber;
-        }
-
-        /// <summary>
-        /// Calculates in which bin the supplied frequency is
-        /// </summary>
-        /// <param name="frequency">The frequency to query</param>
-        /// <param name="binSize">Frequency span of a single bin</param>
-        /// <returns>The bin containing the frequncy</returns>
-        static public uint GetBinOfFrequency(double frequency, double binSize)
-        {
-            return (uint)Math.Round(frequency / binSize);
         }
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace QA40xPlot.Libraries
         /// <returns>The center frequency of the nearest bin</returns>
         static public double GetNearestBinFrequency(double setFrequency, uint sampleRate, uint fftSize)
         {
-            uint binOfFreq = GetBinOfFrequency(setFrequency, sampleRate, fftSize);
+            int binOfFreq = GetBinOfFrequency(setFrequency, sampleRate, fftSize);
             double binSize = CalcBinSize(sampleRate, fftSize);
 
             return binOfFreq * binSize;
