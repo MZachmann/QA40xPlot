@@ -881,8 +881,7 @@ namespace QA40xPlot.Actions
             {
 				var u = measurementNr;
 				if (yValues.Count == 0) return;
-                Scatter? plot = null;
-				plot = swpPlot.ThePlot.Add.Scatter(xValues, yValues.ToArray());
+				var plot = swpPlot.ThePlot.Add.SignalXY(xValues, yValues.ToArray());
 				plot.LineWidth = lineWidth;
 				plot.Color = GraphUtil.GetPaletteColor("Transparent", colorIndex);
                 plot.MarkerSize = markerSize;
@@ -943,7 +942,7 @@ namespace QA40xPlot.Actions
 
         public void UpdateGraph(bool settingsChanged)
         {
-			swpPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
+			swpPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
             int resultNr = 0;
             FreqSweepViewModel freqVm = MyVModel;
 

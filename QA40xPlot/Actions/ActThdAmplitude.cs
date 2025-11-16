@@ -747,8 +747,7 @@ namespace QA40xPlot.Actions
 			{
 				var u = measurementNr;
 				if (yValues.Count == 0) return;
-				Scatter? plot = null;
-				plot = thdPlot.ThePlot.Add.Scatter(xValues, yValues.ToArray());
+				var plot = thdPlot.ThePlot.Add.SignalXY(xValues, yValues.ToArray());
 				plot.LineWidth = lineWidth;
 				plot.Color = GraphUtil.GetPaletteColor("Transparent", colorIndex);
 				plot.MarkerSize = markerSize;
@@ -824,7 +823,7 @@ namespace QA40xPlot.Actions
 
 		public void UpdateGraph(bool settingsChanged)
 		{
-			thdPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
+			thdPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
 			int resultNr = 0;
 			ThdAmpViewModel thd = MyVModel;
 

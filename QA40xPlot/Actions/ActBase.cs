@@ -2,11 +2,9 @@
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
-using QA40xPlot.Views;
-using ScottPlot.Colormaps;
 using System.Data;
 using System.IO;
-using System.Linq;
+using System.Numerics;
 using System.Windows;
 
 namespace QA40xPlot.Actions
@@ -44,6 +42,33 @@ namespace QA40xPlot.Actions
 		protected static double ToD(string sval, double defval = 0.0)
 		{
 			return MathUtil.ToDouble(sval, defval);
+		}
+
+		public static Complex[] AddResponseOffset(double[] frequencies, Complex[] gaindata, DataDescript definition, TestingType ttype)
+		{
+			if (ttype != TestingType.Response && ttype != TestingType.Gain)
+				return gaindata;
+			if (definition.OffsetLeftValue == 0 && definition.OffsetRightValue == 0)
+				return gaindata;
+			var scaleLeft = QaLibrary.ConvertVoltage(definition.OffsetLeftValue, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
+			if (ttype == TestingType.Response)
+			{
+				var scaleRight = QaLibrary.ConvertVoltage(definition.OffsetRightValue, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
+				// response value is Left,Right
+				for (int i = 0; i < gaindata.Length; i++)
+				{
+					gaindata[i] = new Complex(gaindata[i].Real * scaleLeft, gaindata[i].Imaginary * scaleRight);
+				}
+			}
+			else
+			{
+				// gain, value is gain, phase
+				for (int i = 0; i < gaindata.Length; i++)
+				{
+					gaindata[i] = new Complex(gaindata[i].Real * scaleLeft, gaindata[i].Imaginary);
+				}
+			}
+			return gaindata;
 		}
 
 		public void PinGraphRanges(ScottPlot.Plot myPlot, BaseViewModel bvm, string who)

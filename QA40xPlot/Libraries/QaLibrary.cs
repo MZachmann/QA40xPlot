@@ -333,14 +333,14 @@ namespace QA40xPlot.Libraries
                     dBV_Right_Y.Add(20 * Math.Log10(fftData.Right[f]));
             }
 
-            // add a scatter plot to the plot
+            // add a line plot to the plot
             double[] logFreqX = freqX.Select(Math.Log10).ToArray();
             double[] logHTot_Left_Y = dBV_Left_Y.ToArray();
             double[] logHTot_Right_Y = dBV_Right_Y.ToArray();
 
             if (leftEnabled)
             {
-                Scatter plotTot_Left = myPlot.Add.Scatter(logFreqX, logHTot_Left_Y);
+                var plotTot_Left = myPlot.Add.SignalXY(logFreqX, logHTot_Left_Y);
                 plotTot_Left.LineWidth = 1;
                 plotTot_Left.Color = BlueColor;  // Blue
                 plotTot_Left.MarkerSize = 1;
@@ -348,7 +348,7 @@ namespace QA40xPlot.Libraries
 
             if (rightEnabled)
             {
-                Scatter plotTot_Right = myPlot.Add.Scatter(logFreqX, logHTot_Right_Y);
+                var plotTot_Right = myPlot.Add.SignalXY(logFreqX, logHTot_Right_Y);
                 plotTot_Right.LineWidth = 1;
                 if (leftEnabled)
                     plotTot_Right.Color = RedXColor; // Red transparant
@@ -515,7 +515,7 @@ namespace QA40xPlot.Libraries
 
             if (leftEnabled)
             {
-                Scatter plot_left = myPlot.Add.Scatter(timeX, voltY_left);
+                var plot_left = myPlot.Add.SignalXY(timeX, voltY_left);
                 plot_left.LineWidth = 1;
                 plot_left.Color = BlueColor;  // Blue
                 plot_left.MarkerSize = 2;
@@ -523,7 +523,7 @@ namespace QA40xPlot.Libraries
 
             if (rightEnabled)
             {
-                Scatter plot_right = myPlot.Add.Scatter(timeX, voltY_right);
+                var plot_right = myPlot.Add.SignalXY(timeX, voltY_right);
                 plot_right.LineWidth = 1;
                 if (leftEnabled)
                     plot_right.Color = RedXColor; // Red transparant if left channel behind it

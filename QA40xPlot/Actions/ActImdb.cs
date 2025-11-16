@@ -683,25 +683,19 @@ namespace QA40xPlot.Actions
 			double[] rightdBV = [];
 			string plotForm = MyVModel.PlotFormat;
 
-			// add a scatter plot to the plot
+			// add a line plot to the plot
 			var lineWidth = MyVModel.ShowThickLines ? _Thickness : 1;   // so it dynamically updates
 
 			int trimOff = 1;
-			int keepCnt = fftData.Left.Length - 1; // skip the DC value
-			var minPlotX = Math.Pow(10, myPlot.Axes.Bottom.Min);
-			var maxPlotX = Math.Pow(10, myPlot.Axes.Bottom.Max);    // back into linear frequency values
-			trimOff = Math.Max(trimOff, (int)(minPlotX / fftData.Df)); // trim off the low frequencies
-			keepCnt = Math.Min(keepCnt, (int)((maxPlotX - minPlotX) / fftData.Df) + 1); // keep the high frequencies
-			var keepFreqs = freqLogX.Skip(trimOff-1).Take(keepCnt).ToArray();
 			if (useLeft)
 			{
-				var vf = fftData.Left.Skip(trimOff).Take(keepCnt);
+				var vf = fftData.Left.Skip(trimOff);
 				double maxleft = Math.Max(1e-20, fftData.Left.Skip(1).Max());
 				// the usual dbv display
 				var fvi = GraphUtil.GetLogFormatter(plotForm, maxleft);
 				leftdBV = vf.Select(fvi).ToArray();
 
-				Scatter plotLeft = myPlot.Add.Scatter(keepFreqs, leftdBV);
+				var plotLeft = myPlot.Add.SignalXY(freqLogX, leftdBV);
 				plotLeft.LineWidth = lineWidth;
 				plotLeft.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, measurementNr * 2);
 				plotLeft.MarkerSize = 1;
@@ -711,14 +705,14 @@ namespace QA40xPlot.Actions
 
 			if (useRight)
 			{
-				var vf = fftData.Right.Skip(trimOff).Take(keepCnt);
+				var vf = fftData.Right.Skip(trimOff);
 				// find the max value of the left and right channels
 				double maxright = Math.Max(1e-20, fftData.Right.Skip(1).Max());
 				// now use that to calculate percents. Since Y axis is logarithmic use log of percent
 				var fvi = GraphUtil.GetLogFormatter(plotForm, maxright);
 				rightdBV = vf.Select(fvi).ToArray();
 
-				Scatter plotRight = myPlot.Add.Scatter(keepFreqs, rightdBV);
+				var plotRight = myPlot.Add.SignalXY(freqLogX, rightdBV);
 				plotRight.LineWidth = lineWidth;
 				plotRight.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, measurementNr * 2 + 1);
 				plotRight.MarkerSize = 1;
@@ -782,7 +776,7 @@ namespace QA40xPlot.Actions
 
 		public int DrawPlotLines(int resultNr)
 		{
-			fftPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
+			fftPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
 			MyVModel.LegendInfo.Clear();
 			PlotValues(PageData, resultNr++, true);
 			if (OtherTabs.Count > 0)

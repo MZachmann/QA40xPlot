@@ -292,6 +292,8 @@ namespace QA40xPlot.Actions
 				else
 					await RunFreqTest(NextPage, stepBinFrequencies, voltagedBV);
 				AddMicCorrection(NextPage); // add mic correction if any
+				var ttype = msr.GetTestingType(msr.TestType);
+				NextPage.GainData = AddResponseOffset(NextPage.GainFrequencies, NextPage.GainData, NextPage.Definition, ttype);    // add offset correction if any
 
 				UpdateGraph(false);
 				if (!ReferenceEquals(PageData, NextPage))
@@ -309,8 +311,8 @@ namespace QA40xPlot.Actions
 					}
 					else
 						await RunFreqTest(PageData, stepBinFrequencies, voltagedBV);
-					AddMicCorrection(NextPage); // add mic correction if any
-
+					AddMicCorrection(PageData);     // add mic correction if any
+					PageData.GainData = AddResponseOffset(PageData.GainFrequencies, PageData.GainData, PageData.Definition, ttype);    // add offset correction if any
 					UpdateGraph(false);
 				} 
 			}
@@ -985,7 +987,7 @@ namespace QA40xPlot.Actions
 					break;
 			}
 			//SetMagFreqRule(myPlot);
-			var plot = myPlot.Add.Scatter(logFreqX, YValues);
+			var plot = myPlot.Add.SignalXY(logFreqX, YValues);
 			plot.LineWidth = lineWidth;
 			plot.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, measurementNr * 2);
 			plot.MarkerSize = markerSize;
@@ -997,18 +999,18 @@ namespace QA40xPlot.Actions
                 if(ttype == TestingType.Gain || ttype == TestingType.Impedance)
                 {
 					phases = Regularize(phaseValues);
-					plot = myPlot.Add.Scatter(logFreqX, phases);
+					plot = myPlot.Add.SignalXY(logFreqX, phases);
 					plot.Axes.YAxis = myPlot.Axes.Right;
 					plot.LegendText = "Phase (Deg)";
 				}
 				else if (ttype == TestingType.Response)
 				{
-					plot = myPlot.Add.Scatter(logFreqX, phases);
+					plot = myPlot.Add.SignalXY(logFreqX, phases);
 					plot.LegendText = "Right dBV";
 				}
 				else
 				{
-					plot = myPlot.Add.Scatter(logFreqX, phases);
+					plot = myPlot.Add.SignalXY(logFreqX, phases);
 					plot.LegendText = "Right dB";
 				}
 				plot.LineWidth = lineWidth;
@@ -1023,7 +1025,7 @@ namespace QA40xPlot.Actions
 		public void UpdateGraph(bool settingsChanged)
         {
 			frqrsPlot.ThePlot.Remove<Marker>();             // Remove all current lines
-			frqrsPlot.ThePlot.Remove<Scatter>();             // Remove all current lines
+			frqrsPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
 			var frqsrVm = MyVModel;
 
 			int resultNr = 0;

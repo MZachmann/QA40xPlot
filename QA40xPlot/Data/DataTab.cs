@@ -7,6 +7,8 @@ using QA40xPlot.QA430;
 
 namespace QA40xPlot.Data
 {
+	// this contains info about the test as well as intermediate results
+	// it contains a set of properties that do not persist
 	public class DataDescript : FloorViewModel
 	{
 		private string _Name = string.Empty;
@@ -278,13 +280,13 @@ namespace QA40xPlot.Data
 			Id = _CurrentId++;  // unique id for the data descriptor
 			if (viewModel != null)
 			{
-				ViewModel = (T)((ICloneable)viewModel).Clone();   // get a blank vm
+				ViewModel = (T)((ICloneable)viewModel).Clone();   // get a copy of the VM here
 			}
 			else
 			{
 				ViewModel = default!;
 			}
-			//var nama = ViewModel?.GetType();	// debug view
+
 			TimeRslt = series;
 			Definition.Name = string.Empty;
 			Definition.Description = string.Empty;

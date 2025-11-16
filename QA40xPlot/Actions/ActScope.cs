@@ -447,7 +447,7 @@ namespace QA40xPlot.Actions
 			var markerSize = scopeVm.ShowPoints ? (showThick ? _Thickness : 1) + 3 : 1;
 			if (useLeft)
 			{
-				Scatter pLeft = myPlot.Add.Scatter(timeX, timeData.Left);
+				var pLeft = myPlot.Add.SignalXY(timeX, timeData.Left);
 				pLeft.LineWidth = showThick ? _Thickness : 1;
 				pLeft.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, measurementNr * 2);
 				pLeft.MarkerSize = markerSize;
@@ -456,7 +456,7 @@ namespace QA40xPlot.Actions
 
 			if (useRight)
 			{
-				Scatter pRight = myPlot.Add.Scatter(timeX, timeData.Right);
+				var pRight = myPlot.Add.SignalXY(timeX, timeData.Right);
 				pRight.LineWidth = showThick ? _Thickness : 1;
 				pRight.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, measurementNr * 2 + 1);
 				pRight.MarkerSize = markerSize;
@@ -599,7 +599,7 @@ namespace QA40xPlot.Actions
 		public int DrawPlotLines(int resultNr)
 		{
 
-			timePlot.ThePlot.Remove<Scatter>();             // Remove all current lines
+			timePlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
 			PlotValues(PageData, resultNr++, true);
 			if (OtherTabs.Count > 0)
 			{

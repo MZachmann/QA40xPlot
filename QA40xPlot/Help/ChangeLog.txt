@@ -2,9 +2,12 @@
 --------------------------------------------
 This changelog shows the changes made for each version
 --------------------------------------------
+v 1.1.44
+- switch from scottplot scatter to signalxy plots for massive graph drawing speedup
 v 1.1.43
 - improve pixel tracking in the on-screen markers
 - make bin-indexing consistent
+- add scrollbars to right columns in tabs
 v 1.1.42
 - add noise bandwidth setting for thd+n and noise floor measurements
 - change default bandwidth to 20KHz for most tests
