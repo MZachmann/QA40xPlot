@@ -29,32 +29,32 @@
                 </Grid.RowDefinitions>
                 <Label Content="Test Information" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" 
                        HorizontalAlignment="Center" VerticalContentAlignment="Center" />
-                <Label Content="Name" HorizontalAlignment="Right" Grid.Row="1" Grid.Column="0" />
+                <Label Content="Name" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="1" Grid.Column="0" />
                 <TextBox Text="{Binding Name}" VerticalContentAlignment="Center" MinWidth="120" Grid.Row="1" Grid.Column="1" />
-                <Label Content="Heading" HorizontalAlignment="Right" Grid.Row="2" Grid.Column="0"/>
+                <Label Content="Heading" VerticalAlignment="Center" HorizontalAlignment="Right" Grid.Row="2" Grid.Column="0"/>
                 <TextBox Text="{Binding Heading}" VerticalContentAlignment="Center"  MinWidth="180" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"/>
                 <Label Content="Left" Grid.Row="3" Grid.Column="0"/>
-                <Label Content="Color" HorizontalAlignment="Right" Grid.Row="4" Grid.Column="0"/>
+                <Label Content="Color" VerticalAlignment="Center" HorizontalAlignment="Right" Grid.Row="4" Grid.Column="0"/>
                 <ComboBox IsEditable="True" MinWidth="80" Grid.Row="4" Grid.Column="1"
                   ToolTip="Type/set the color. Transparent -> Use default" 
                   Text="{Binding LeftColor, Mode=TwoWay}" 
                   ItemsSource="{Binding PlotColors}" />
                 <local:ColorBox Color="{Binding LeftColor}" Margin="5,0,0,0" Width="40" Grid.Row="4" Grid.Column="2" />
-                <Label Content="Offset" HorizontalAlignment="Right" Grid.Row="5" Grid.Column="0" />
+                <Label Content="Offset" VerticalAlignment="Center" HorizontalAlignment="Right" Grid.Row="5" Grid.Column="0" />
                 <TextBox MinWidth="80" Text="{Binding OffsetLeft, Mode=TwoWay}" VerticalContentAlignment="Center" 
                          Grid.Row="5" Grid.Column="1"/>
-                <Label Content="dBV"  Grid.Row="5" Grid.Column="2" />
+                <Label Content="dBV" VerticalAlignment="Center"  Grid.Row="5" Grid.Column="2" />
                 <Label Content="Right" Grid.Row="6" Grid.Column="0"/>
-                <Label Content="Color" HorizontalAlignment="Right" Grid.Row="7" Grid.Column="0"/>
+                <Label Content="Color" VerticalAlignment="Center" HorizontalAlignment="Right" Grid.Row="7" Grid.Column="0"/>
                 <ComboBox IsEditable="True" MinWidth="80" Grid.Row="7" Grid.Column="1"
                   ToolTip="Type/set the color. Transparent -> Use default" 
                   Text="{Binding RightColor, Mode=TwoWay}" 
                   ItemsSource="{Binding PlotColors}" />
                 <local:ColorBox Color="{Binding RightColor}" Margin="5,0,0,0" Width="40" Grid.Row="7" Grid.Column="2" />
-                <Label Content="Offset" HorizontalAlignment="Right" Grid.Row="8" Grid.Column="0" />
+                <Label Content="Offset" VerticalAlignment="Center" HorizontalAlignment="Right" Grid.Row="8" Grid.Column="0" />
                 <TextBox MinWidth="80" Text="{Binding OffsetRight, Mode=TwoWay}"  VerticalContentAlignment="Center" 
                          Grid.Row="8" Grid.Column="1"/>
-                <Label Content="dBV"  Grid.Row="8" Grid.Column="2" />
+                <Label Content="dBV" VerticalAlignment="Center"  Grid.Row="8" Grid.Column="2" />
             </Grid>
             <Label Content="Description" />
             <TextBox Text="{Binding Description}" Height="200" AcceptsReturn="True" TextWrapping="Wrap"  />

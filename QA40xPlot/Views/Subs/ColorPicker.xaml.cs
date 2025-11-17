@@ -100,7 +100,8 @@ namespace QA40xPlot.Views
 					Background = new System.Windows.Media.SolidColorBrush(color),
 					Width = 30,
 					Height = 30,
-					Margin = new Thickness(5)
+					Margin = new Thickness(5),
+					Style = (Style)FindResource("NoHoverButtonStyle"),
 				};
 				if (mycolor == color)
 				{
@@ -110,6 +111,7 @@ namespace QA40xPlot.Views
 					colorButton.BorderBrush = System.Windows.Media.Brushes.Red; // Highlight the current color
 				}
 				colorButton.Click += ColorButton_Click;
+
 				ColorWrapPanel.Children.Add(colorButton);
 			}
 		}

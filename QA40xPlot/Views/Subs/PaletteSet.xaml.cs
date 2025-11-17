@@ -127,7 +127,8 @@ namespace QA40xPlot.Views
 				var txtbutton = new TextBox()
 				{
 					Text = indx.ToString(),
-					BorderThickness = new Thickness(0)
+					BorderThickness = new Thickness(0),
+					IsReadOnly = true
 				};
 				button.Children.Add(clrbutton);
 				button.Children.Add(txtbutton);
