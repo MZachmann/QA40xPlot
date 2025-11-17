@@ -287,36 +287,14 @@ public class FreqRespViewModel : BaseViewModel
 		return vm.actFreq.CreateExportData();
 	}
 
-	private static async Task DoGetLoad(bool isLoad)
-	{
-		OpenFileDialog openFileDialog = new OpenFileDialog
-		{
-			FileName = string.Empty, // Default file name
-			DefaultExt = ".zip", // Default file extension
-			Filter = PlotFileFilter // Filter files by extension
-		};
-
-		// Show save file dialog box
-		bool? result = openFileDialog.ShowDialog();
-
-		// Process save file dialog box results
-		if (result == true)
-		{
-			// open document
-			string filename = openFileDialog.FileName;
-			var vm = MyVModel;
-			await vm.actFreq.LoadFromFile(filename, isLoad);
-		}
-	}
-
 	private static async Task LoadItTab()
 	{
-		await DoGetLoad(true);
+		await DoGetLoad(MyVModel.actFreq, PlotFileFilter, true);
 	}
 
 	private static async Task GetItTab()
 	{
-		await DoGetLoad(false);
+		await DoGetLoad(MyVModel.actFreq, PlotFileFilter, false);
 	}
 
 

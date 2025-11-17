@@ -45,7 +45,7 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand DoSaveTab { get => new RelayCommand(SaveItTab); }
 
 		private static ImdViewModel MyVModel { get => ViewSettings.Singleton.ImdVm; }
-
+		private static ActImd MyBase { get => MyVModel.actImd; }
 
 		#region Setters and Getters
 
@@ -287,7 +287,6 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-
 		private static string FileAddon()
 		{
 			DateTime now = DateTime.Now;
@@ -295,36 +294,14 @@ namespace QA40xPlot.ViewModels
 			return formattedDate;
 		}
 
-		private static async Task DoGetLoad(bool isLoad)
-		{
-			OpenFileDialog openFileDialog = new OpenFileDialog
-			{
-				FileName = string.Empty, // Default file name
-				DefaultExt = ".zip", // Default file extension
-				Filter = PlotFileFilter // Filter files by extension
-			};
-
-			// Show save file dialog box
-			bool? result = openFileDialog.ShowDialog();
-
-			// Process save file dialog box results
-			if (result == true)
-			{
-				// open document
-				string filename = openFileDialog.FileName;
-				var vm = MyVModel;
-				await vm.actImd.LoadFromFile(filename, isLoad);
-			}
-		}
-
 		private static async Task LoadIt()
 		{
-			await DoGetLoad(true);
+			await DoGetLoad(MyBase, PlotFileFilter, true);
 		}
 
 		private static async Task GetIt()
 		{
-			await DoGetLoad(false);
+			await DoGetLoad(MyBase, PlotFileFilter, false);
 		}
 
 

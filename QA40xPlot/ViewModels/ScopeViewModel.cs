@@ -238,36 +238,14 @@ namespace QA40xPlot.ViewModels
 			vm.actScope?.DoCancel();
 		}
 
-		private static async Task DoGetLoad(bool isLoad)
-		{
-			OpenFileDialog openFileDialog = new OpenFileDialog
-			{
-				FileName = string.Empty, // Default file name
-				DefaultExt = ".zip", // Default file extension
-				Filter = PlotFileFilter // Filter files by extension
-			};
-
-			// Show save file dialog box
-			bool? result = openFileDialog.ShowDialog();
-
-			// Process save file dialog box results
-			if (result == true)
-			{
-				// open document
-				string filename = openFileDialog.FileName;
-				var vm = MyVModel;
-				await vm.actScope.LoadFromFile(filename, isLoad);
-			}
-		}
-
 		private static async Task LoadItTab()
 		{
-			await DoGetLoad(true);
+			await DoGetLoad(MyVModel.actScope, PlotFileFilter, true);
 		}
 
 		private static async Task GetItTab()
 		{
-			await DoGetLoad(false);
+			await DoGetLoad(MyVModel.actScope, PlotFileFilter, false);
 		}
 
 

@@ -3,15 +3,22 @@ using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Numerics;
 using System.Windows;
 
 namespace QA40xPlot.Actions
 {
-	public class ActBase
+	public partial class ActBase
 	{
 		public List<LeftRightFrequencySeries> FrequencyHistory { get; set; } = new();   // for averaging
+
+		public virtual Task LoadFromFile(string fileName, bool doLoad)
+		{
+			Debug.Assert(false);	// should never get here
+			return null;  
+		}
 
 		// this is the initial gain calculation so that we can get attenuation and input voltage settings
 		private LeftRightFrequencySeries? _LRGains = null;

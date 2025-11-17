@@ -93,7 +93,7 @@ namespace QA40xPlot.Actions
 			return Util.SaveToFile<ImdViewModel>(PageData, fileName, PageData.ViewModel.Averages > 1);
 		}
 
-		public async Task LoadFromFile(string fileName, bool isMain)
+		public override async Task LoadFromFile(string fileName, bool isMain)
 		{
 			var page = LoadFile(fileName);
 			if (page != null)

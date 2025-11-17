@@ -313,7 +313,7 @@ namespace QA40xPlot.Actions
 			return Util.SaveToFile<FreqSweepViewModel>(PageData, fileName);
 		}
 
-		public async Task LoadFromFile(string fileName, bool doLoad)
+		public override async Task LoadFromFile(string fileName, bool doLoad)
 		{
 			var page = Util.LoadFile<FreqSweepViewModel>(PageData, fileName);
 			if(page != null)

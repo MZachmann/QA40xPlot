@@ -27,7 +27,7 @@ namespace QA40xPlot.QA430
 			if (_AttachedDevice != null)
 				return _AttachedDevice;
 
-			// Attempt to open QA402 or QA403 device
+			// Attempt to open QA430 device
 			_ModelName = string.Empty;
 			UsbDevice usbdev = UsbDevice.OpenUsbDevice(_USBFindQA430);
 			if(usbdev != null)

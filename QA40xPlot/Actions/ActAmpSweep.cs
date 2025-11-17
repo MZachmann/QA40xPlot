@@ -298,7 +298,7 @@ namespace QA40xPlot.Actions
 			return Util.SaveToFile<AmpSweepViewModel>(PageData, fileName);
 		}
 
-		public async Task LoadFromFile(string fileName, bool doLoad)
+		public override async Task LoadFromFile(string fileName, bool doLoad)
 		{
 			var page = Util.LoadFile<AmpSweepViewModel>(PageData, fileName);
 			if (page != null)

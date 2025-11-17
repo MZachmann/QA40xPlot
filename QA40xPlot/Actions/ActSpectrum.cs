@@ -94,7 +94,7 @@ namespace QA40xPlot.Actions
 			return Util.SaveToFile<SpectrumViewModel>(PageData, fileName, PageData.ViewModel.Averages > 1);
 		}
 
-		public async Task LoadFromFile(string fileName, bool doLoad)
+		public override async Task LoadFromFile(string fileName, bool doLoad)
 		{
 			var page = Util.LoadFile<SpectrumViewModel>(PageData, fileName);
 			if (page != null)

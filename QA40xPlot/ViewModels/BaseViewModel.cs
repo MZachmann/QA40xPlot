@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using Newtonsoft.Json;
+using QA40xPlot.Actions;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.Views;
@@ -614,6 +615,37 @@ namespace QA40xPlot.ViewModels
 			return NearestBinFreq(MathUtil.ToDouble(sfreq, 1000.0));
 		}
 
+		public static async Task DoGetLoad(ActBase myAct, string fileFilter, bool isLoad)
+		{
+			Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
+			{
+				FileName = string.Empty, // Default file name
+				DefaultExt = ".zip", // Default file extension
+				Filter = fileFilter // Filter files by extension
+			};
+
+			openFileDialog.Multiselect = !isLoad;
+
+			// Show save file dialog box
+			bool? result = openFileDialog.ShowDialog();
+
+			// Process save file dialog box results
+			if (result == true && isLoad)
+			{
+				// open document
+				string filename = openFileDialog.FileName;
+				await myAct.LoadFromFile(filename, isLoad);
+			}
+			else if (result == true && !isLoad)
+			{
+				// get documents
+				var filename = openFileDialog.FileNames;
+				foreach (var fname in filename)
+				{
+					await myAct.LoadFromFile(fname, isLoad);
+				}
+			}
+		}
 
 		public static void ShowMenu(object? parameter)
 		{
