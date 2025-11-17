@@ -4,6 +4,8 @@ This changelog shows the changes made for each version
 --------------------------------------------
 v 1.1.44
 - switch from scottplot scatter to signalxy plots for massive graph drawing speedup
+- remove graph-limiting from spectrum and imd plots
+- early support for offset in frequency response
 v 1.1.43
 - improve pixel tracking in the on-screen markers
 - make bin-indexing consistent
