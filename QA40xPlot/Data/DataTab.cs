@@ -198,33 +198,39 @@ namespace QA40xPlot.Data
 			set { SetProperty("Noise", value); }
 		}
 		[JsonIgnore]
-		public Complex[] GainData
+		public double[] GainLeft { get => GainData.Item1; }
+		[JsonIgnore]
+		public double[] GainRight { get => GainData.Item2; }
+		[JsonIgnore]
+		public double[] GainReal { get => GainData.Item1; }
+		[JsonIgnore]
+		public double[] GainImag { get => GainData.Item2; }
+		[JsonIgnore]
+		public Complex[] GainCplx { get => GainData.Item1.Zip(GainData.Item2, (x, y) => new Complex(x, y)).ToArray(); }
+		[JsonIgnore]
+		public (double[], double[]) GainData
 		{
 			get
 			{
-				if (Sweep.RawLeft.Length == 0)
-					return [];
-				try
-				{
-					return Sweep.RawLeft.Zip(Sweep.RawRight, (x, y) => new Complex(x, y)).ToArray();
-				}
-				catch (Exception)
-				{
-				}
-				return [];
+				if (Sweep.RawLeft == null || Sweep.RawLeft.Length == 0)
+					return ([],[]);
+				return (Sweep.RawLeft, Sweep.RawRight);
 			}
 			set
 			{
-				if (value == null || value.Length == 0)
+				if(value.Item1 == null || value.Item2 == null)
+				{
 					Sweep.RawLeft = [];
-				else
-					Sweep.RawLeft = value.Select(x => x.Real).ToArray();
-				if (value == null || value.Length == 0)
 					Sweep.RawRight = [];
+				}
 				else
-					Sweep.RawRight = value.Select(x => x.Imaginary).ToArray();
+				{
+					Sweep.RawLeft = value.Item1;
+					Sweep.RawRight = value.Item2;
+				}
 			}
 		}
+
 		[JsonIgnore]
 		public double[] GainFrequencies
 		{

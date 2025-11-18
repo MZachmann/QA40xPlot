@@ -51,7 +51,7 @@ namespace QA40xPlot.Actions
 			return MathUtil.ToDouble(sval, defval);
 		}
 
-		public static Complex[] AddResponseOffset(double[] frequencies, Complex[] gaindata, DataDescript definition, TestingType ttype)
+		public static (double[],double[]) AddResponseOffset(double[] frequencies, (double[], double[]) gaindata, DataDescript definition, TestingType ttype)
 		{
 			if (ttype != TestingType.Response && ttype != TestingType.Gain)
 				return gaindata;
@@ -62,18 +62,29 @@ namespace QA40xPlot.Actions
 			{
 				var scaleRight = QaLibrary.ConvertVoltage(definition.OffsetRightValue, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
 				// response value is Left,Right
-				for (int i = 0; i < gaindata.Length; i++)
+				double[] gainleft = new double[gaindata.Item1.Length];
+				double[] gainright = new double[gaindata.Item1.Length];
+				for (int i = 0; i < gaindata.Item1.Length; i++)
 				{
-					gaindata[i] = new Complex(gaindata[i].Real * scaleLeft, gaindata[i].Imaginary * scaleRight);
+					gainleft[i] = gaindata.Item1[i] * scaleLeft;
+					gainright[i] = gaindata.Item2[i] * scaleRight;
 				}
+				gaindata = (gainleft, gainright);
 			}
 			else
 			{
 				// gain, value is gain, phase
-				for (int i = 0; i < gaindata.Length; i++)
+				// response value is Left,Right
+				double[] gainleft = new double[gaindata.Item1.Length];
+				for (int i = 0; i < gaindata.Item1.Length; i++)
 				{
-					gaindata[i] = new Complex(gaindata[i].Real * scaleLeft, gaindata[i].Imaginary);
+					gainleft[i] = gaindata.Item1[i] * scaleLeft;
 				}
+				//for (int i = 0; i < gaindata.Length; i++)
+				//{
+				//	gaindata[i] = new Complex(gaindata[i].Real * scaleLeft, gaindata[i].Imaginary);
+				//}
+				gaindata.Item1 = gainleft;
 			}
 			return gaindata;
 		}

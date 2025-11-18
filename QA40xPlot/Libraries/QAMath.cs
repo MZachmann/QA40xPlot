@@ -116,9 +116,18 @@ namespace QA40xPlot.Libraries
 				return -1;
 		}
 
+		// for some reason the window creation eats a moderate amount
+		// of CPU resources so cache it stupidly
+		private static string _Windowingtype = string.Empty;
+		private static FftSharp.Window _FftWindow = new FftSharp.Windows.Rectangular();
+
 		public static FftSharp.Window GetWindowType(string windowType)
 		{
-			FftSharp.Window window = new FftSharp.Windows.Rectangular();
+			if (_Windowingtype == windowType)
+				return _FftWindow;
+
+			_Windowingtype = windowType;
+			FftSharp.Window window;
 			switch (windowType)
 			{
 				case "Bartlett":
@@ -151,7 +160,11 @@ namespace QA40xPlot.Libraries
 				case "Welch":
 					window = new FftSharp.Windows.Welch();    // best?
 					break;
+				default:
+					window = new FftSharp.Windows.Rectangular();
+					break;
 			}
+			_FftWindow = window;
 			return window;
 		}
 

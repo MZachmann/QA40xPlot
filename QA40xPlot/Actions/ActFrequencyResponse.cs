@@ -178,7 +178,10 @@ namespace QA40xPlot.Actions
 					var gains = miccomp.Right.Select(x => QaLibrary.ConvertVoltage(-x, E_VoltageUnit.dBV, E_VoltageUnit.Volt)).ToArray();
 					var crctdata = QaMath.LinearApproximate(freqs, gains, page.GainFrequencies); // interpolate the mic correction data
 																								 // apply mic correction to the left channel
-					page.GainData = page.GainData.Zip(crctdata, (x, y) => x * y).ToArray();
+					//page.GainData = page.GainData.Zip(crctdata, (x, y) => x * y).ToArray();
+					page.GainData = (page.GainLeft.Zip(crctdata, (x, y) => x * y).ToArray(),
+						page.GainRight.Zip(crctdata, (x, y) => x * y).ToArray());
+
 				}
 			}
 		}
@@ -271,7 +274,7 @@ namespace QA40xPlot.Actions
 					return;
 
 				// If in continous mode we continue sweeping until cancellation requested.
-				NextPage.GainData = []; // new list of complex data
+				NextPage.GainData = ([],[]); // new list of complex data
 				NextPage.GainFrequencies = [];
 
 				// ********************************************************************
@@ -334,7 +337,7 @@ namespace QA40xPlot.Actions
 		// create a blob with F,Left,Right data for export
 		public DataBlob? CreateExportData()
 		{
-			if (PageData == null || PageData.GainFrequencies == null || PageData.GainData == null)
+			if (PageData == null || PageData.GainFrequencies == null || PageData.GainData.Item1 == null)
 				return null;
 			DataBlob db = new();
 			var frsqVm = MyVModel;
@@ -350,24 +353,28 @@ namespace QA40xPlot.Actions
 				case TestingType.Response:
 					if (frsqVm.ShowRight && !frsqVm.ShowLeft)
 					{
-						db.LeftData = PageData.GainData.Select(x => x.Imaginary).ToList();
+						db.LeftData = PageData.GainData.Item2.ToList();
 					}
 					else
 					{
-						db.LeftData = PageData.GainData.Select(x => x.Real).ToList();
+						db.LeftData = PageData.GainData.Item1.ToList();
 					}
 					break;
 				case TestingType.Gain:
-					var gld = PageData.GainData.ToArray();
-					db.LeftData = FFT.Magnitude(gld).ToList();
-					db.PhaseData = FFT.Phase(gld).ToList();
+					//var gld = PageData.GainData.ToArray();
+					//db.LeftData = FFT.Magnitude(gld).ToList();
+					//db.PhaseData = FFT.Phase(gld).ToList();
+					db.LeftData = PageData.GainReal.Zip(PageData.GainImag, (x, y) => Math.Sqrt(x * x + y * y)).ToList();
+					db.PhaseData = PageData.GainReal.Zip(PageData.GainImag, (x, y) => Math.Atan2(y, x)).ToList();
 					break;
 				case TestingType.Impedance:
 					{
 						double rref = MathUtil.ToDouble(MyVModel.ZReference, 8);
-						db.LeftData = PageData.GainData.Select(x => rref * ToImpedance(x).Magnitude).ToList();
-						// YValues = gainY.Select(x => rref * x.Magnitude/(1-x.Magnitude)).ToArray();
-						db.PhaseData = PageData.GainData.Select(x => ToImpedance(x).Phase).ToList();
+						//db.LeftData = PageData.GainData.Select(x => rref * ToImpedance(x).Magnitude).ToList();
+						db.LeftData = PageData.GainReal.Zip(PageData.GainImag, (x, y) => rref * MathUtil.ToImpedanceMag(x, y)).ToList();
+						//// YValues = gainY.Select(x => rref * x.Magnitude/(1-x.Magnitude)).ToArray();
+						db.PhaseData = PageData.GainReal.Zip(PageData.GainImag, (x, y) => MathUtil.ToImpedancePhase(x, y)).ToList();
+						//db.PhaseData = PageData.GainData.Select(x => ToImpedance(x).Phase).ToList();
 					}
 					break;
 			}
@@ -406,9 +413,10 @@ namespace QA40xPlot.Actions
 		{
 			var vm = PageData.ViewModel;    // measurement settings
 			var vmr = PageData.GainFrequencies; // test data
-			var msd = PageData.GainData;
+			var msdre = PageData.GainReal;
+			var msdim = PageData.GainImag;
 
-			if (vmr == null || vmr.Length == 0 || msd == null)
+			if (vmr == null || vmr.Length == 0 || msdre == null || msdim == null)
 				return Rect.Empty;
 
 			Rect rrc = new Rect(0, 0, 0, 0);
@@ -420,30 +428,32 @@ namespace QA40xPlot.Actions
 			{
 				if (vm.ShowLeft)
 				{
-					rrc.Y = msd.Min(x => x.Real);
-					rrc.Height = msd.Max(x => x.Real) - rrc.Y;
+					rrc.Y = msdre.Min();
+					rrc.Height = msdre.Max() - rrc.Y;
 					if (vm.ShowRight)
 					{
-						rrc.Y = Math.Min(rrc.Y, msd.Min(x => x.Imaginary));
-						rrc.Height = Math.Max(rrc.Height, msd.Max(x => x.Imaginary) - rrc.Y);
+						rrc.Y = Math.Min(rrc.Y, msdim.Min());
+						rrc.Height = Math.Max(rrc.Height, msdim.Max() - rrc.Y);
 					}
 				}
 				else if (vm.ShowRight)
 				{
-					rrc.Y = msd.Min(x => x.Imaginary);
-					rrc.Height = msd.Max(x => x.Imaginary) - rrc.Y;
+					rrc.Y = msdim.Min();
+					rrc.Height = msdim.Max() - rrc.Y;
 				}
 			}
 			else if (ttype == TestingType.Gain)
 			{
-				rrc.Y = msd.Min(x => x.Magnitude);
-				rrc.Height = msd.Max(x => x.Magnitude) - rrc.Y;
+				var mags = MathUtil.ToCplxMag(msdre, msdim);
+				rrc.Y = mags.Min();
+				rrc.Height = mags.Max() - rrc.Y;
 			}
-			else if (PageData.GainData != null && PageData.GainData.Length > 0)
+			else if (PageData.GainLeft != null && PageData.GainLeft.Length > 0)
 			{   // impedance
 				double rref = ToD(vm.ZReference, 10);
-				var minL = PageData.GainData.Min(x => ToImpedance(x).Magnitude);
-				var maxL = PageData.GainData.Max(x => ToImpedance(x).Magnitude);
+				var gainZ = PageData.GainReal.Zip(PageData.GainImag, (x, y) => MathUtil.ToImpedanceMag(x, y));
+				var minL = gainZ.Min();
+				var maxL = gainZ.Max();
 				var minZohms = rref * minL;
 				var maxZohms = rref * maxL;
 				rrc.Y = minZohms;
@@ -454,14 +464,15 @@ namespace QA40xPlot.Actions
 
 		public ValueTuple<double, double, double> LookupX(double freq)
 		{
-			if (PageData.GainFrequencies == null || PageData.GainData == null)
+			if (PageData.GainFrequencies == null || PageData.GainLeft == null || PageData.GainRight == null)
 				return ValueTuple.Create(0.0, 0.0, 0.0);
 
 			var freqs = PageData.GainFrequencies;
 			ValueTuple<double, double, double> tup = ValueTuple.Create(1.0, 1.0, 1.0);
 			if (freqs != null && freqs.Length > 0)
 			{
-				var values = PageData.GainData;
+				var valuesRe = PageData.GainReal;
+				var valuesIm = PageData.GainImag;
 				// find nearest frequency from list
 				var bin = freqs.Count(x => x < freq) - 1;    // find first freq less than me
 				if (bin == -1)
@@ -478,23 +489,28 @@ namespace QA40xPlot.Actions
 				{
 					case TestingType.Crosstalk:
 						// send freq, gain, gain2
-						tup = ValueTuple.Create(freqs[bin], values[bin].Real, values[bin].Imaginary);
+						tup = ValueTuple.Create(freqs[bin], valuesRe[bin], valuesIm[bin]);
 						break;
 					case TestingType.Response:
 						// send freq, gain, gain2
-						tup = ValueTuple.Create(freqs[bin], values[bin].Real, values[bin].Imaginary);
+						tup = ValueTuple.Create(freqs[bin], valuesRe[bin], valuesIm[bin]);
 						break;
 					case TestingType.Impedance:
 						{   // send freq, ohms, phasedeg
 							double rref = ToD(frsqVm.ZReference, 10);
-							var impval = ToImpedance(values[bin]);
-							var ohms = rref * impval.Magnitude;
-							tup = ValueTuple.Create(freqs[bin], ohms, 180 * impval.Phase / Math.PI);
+							var impval = MathUtil.ToImpedanceMag(valuesRe[bin], valuesIm[bin]);
+							var ohms = rref * impval;
+							impval = MathUtil.ToImpedancePhase(valuesRe[bin], valuesIm[bin]);
+							tup = ValueTuple.Create(freqs[bin], ohms, 180 * impval / Math.PI);
 						}
 						break;
 					case TestingType.Gain:
-						// send freq, gain, phasedeg
-						tup = ValueTuple.Create(freqs[bin], values[bin].Magnitude, 180 * values[bin].Phase / Math.PI);
+						{
+							// send freq, gain, phasedeg
+							var mag = MathUtil.ToCplxMag(valuesRe[bin], valuesIm[bin]);
+							var phas = MathUtil.ToCplxPhase(valuesRe[bin], valuesIm[bin]);
+							tup = ValueTuple.Create(freqs[bin], mag, 180 * phas / Math.PI);
+						}
 						break;
 				}
 			}
@@ -518,13 +534,17 @@ namespace QA40xPlot.Actions
 				{
 					total += f;
 				}
-				page.GainData = page.GainData.Append(total / vm.Averages).ToArray();
+				total /= vm.Averages;
+				page.GainData = (page.GainReal.Append(total.Real).ToArray(), page.GainImag.Append(total.Imaginary).ToArray());
+				//page.GainData = page.GainData.Append(total / vm.Averages).ToArray();
 			}
 			else
 			{
 				await showMessage(string.Format("Checking + {0:0}", dfreq));   // need a delay to actually see it
 				var ga = await GetGain(dfreq, vm, ttype);
-				page.GainData = page.GainData.Append(ga).ToArray();
+				//page.GainData = page.GainData.Append(ga).ToArray();
+				page.GainData = (page.GainReal.Append(ga.Real).ToArray(), page.GainImag.Append(ga.Imaginary).ToArray());
+
 			}
 		}
 
@@ -549,7 +569,7 @@ namespace QA40xPlot.Actions
 
 			try
 			{
-				page.GainData = []; // new list of complex data
+				page.GainData = ([],[]); // new list of complex data
 				page.GainFrequencies = []; // new list of frequencies
 				if (ct.IsCancellationRequested)
 					return false;
@@ -565,24 +585,24 @@ namespace QA40xPlot.Actions
 					if (ttype == TestingType.Crosstalk)
 					{
 						// each one adds a step so carefully....
+						// run it once, read the gain data, then run it over again the other direction
+						// here GainRight = the response right channel, GainLeft = left channel response
 						var exData = page.GainData; // save the data
 						var exFreq = page.GainFrequencies; // save the frequencies
 						WaveGenerator.SetChannels(WaveChannels.Left); // crosstalk is both channels
 						await RunStep(page, TestingType.Response, dfreq, genVolt);      // get gain of both channels
-						var mygainL = page.GainData[page.GainData.Length - 1]; // last gain value
+						var gainRight = page.GainRight.Last() / Math.Max(1e-10, page.GainLeft.Last());	// signal was sent on left channel
 
 						page.GainData = exData; // new list of complex data
 						page.GainFrequencies = exFreq; // new list of frequencies
 						WaveGenerator.SetChannels(WaveChannels.Right); // crosstalk is both channels
 						await RunStep(page, TestingType.Response, dfreq, genVolt);      // get gain of both channels
 						WaveGenerator.SetChannels(WaveChannels.Both); // crosstalk is both channels
-																	  // merge the data
-						var allgain = page.GainData.ToArray();      // parse it and clone it
-						var mygainR = allgain[allgain.Length - 1]; // last gain value
-						var gainRight = mygainR.Real / Math.Max(1e-10, mygainR.Imaginary);
-						var gainLeft = mygainL.Imaginary / Math.Max(1e-10, mygainL.Real);
-						allgain[allgain.Length - 1] = new Complex(gainLeft, gainRight); // replace the last value with the crosstalk gain
-						page.GainData = allgain; // set the gain data to the new crosstalk gain
+						var gainLeft = page.GainLeft.Last() / Math.Max(1e-10, page.GainRight.Last());	// signal was sent on right channel
+						// merge the data and update the GainData Property
+						var idxread = page.GainLeft.Length - 1;
+						page.GainData.Item1[idxread] = gainLeft; // set the gain data to the new crosstalk gain
+						page.GainData.Item2[idxread] = gainRight; // set the gain data to the new crosstalk gain
 					}
 					else
 					{
@@ -719,20 +739,33 @@ namespace QA40xPlot.Actions
 				{
 					case TestingType.Crosstalk:
 						// here complex value is the fft data left / right
-						page.GainData = mlft.Zip(mref, (l, r) => { return new Complex(l.Magnitude, r.Magnitude); }).ToArray();
+						//page.GainData = mlft.Zip(mref, (l, r) => { return new Complex(l.Magnitude, r.Magnitude); }).ToArray();
+						page.GainData = (mlft.Select(x => { return x.Magnitude; }).ToArray(),
+										 mref.Select(x => { return x.Magnitude; }).ToArray());
 						break;
 					case TestingType.Response:
 						// left, right are magnitude. left uses right as reference
-						page.GainData = mlft.Zip(mref,
-							(l, r) => { return new Complex(l.Magnitude, r.Magnitude); }).ToArray();
+						page.GainData = (mlft.Select(x => { return x.Magnitude; }).ToArray(),
+										 mref.Select(x => { return x.Magnitude; }).ToArray());
+						//page.GainData = mlft.Zip(mref, (l, r) => { return new Complex(l.Magnitude, r.Magnitude); }).ToArray();
 						break;
 					case TestingType.Gain:
 						// here complex value is the fft data left / right
-						page.GainData = mlft.Zip(mref, (l, r) => { return l / r; }).ToArray();
+						// page.GainData = mlft.Zip(mref, (l, r) => { return l / r; }).ToArray();
+						{
+							var cplxdiv = mlft.Zip(mref, (l, r) => { return l / r; });
+							page.GainData = (cplxdiv.Select(x => x.Real).ToArray(), 
+											 cplxdiv.Select(x => x.Imaginary).ToArray());
+						}
 						break;
 					case TestingType.Impedance:
 						// here complex value is the fft data left / right
-						page.GainData = mlft.Zip(mref, (l, r) => { return l / r; }).ToArray();
+						//page.GainData = mlft.Zip(mref, (l, r) => { return l / r; }).ToArray();
+						{
+							var cplxdiv = mlft.Zip(mref, (l, r) => { return l / r; });
+							page.GainData = (cplxdiv.Select(x => x.Real).ToArray(), 
+											 cplxdiv.Select(x => x.Imaginary).ToArray());
+						}
 						break;
 				}
 			}
@@ -752,6 +785,7 @@ namespace QA40xPlot.Actions
 		private async Task<bool> RunChirpTest(MyDataTab page, double voltagedBV)
 		{
 			var vm = page.ViewModel;
+			var perOctave = 0.05;		// octave smoothing by default
 			// Check if cancel button pressed
 			if (ct.IsCancellationRequested)
 				return false;
@@ -762,41 +796,41 @@ namespace QA40xPlot.Actions
 			if (ttype != TestingType.Crosstalk)
 			{
 				didRun = await DoChirpTest(page, voltagedBV, ttype);
+				if(ttype == TestingType.Response)
+				{
+					// smooth the response curve?
+					var gainLeft = MathUtil.SmoothForward(page.GainLeft, perOctave);
+					var gainRight = MathUtil.SmoothForward(page.GainRight, perOctave);
+					page.GainData = (gainLeft, gainRight);
+				}
 				//var df = page.GainFrequencies[2] - page.GainFrequencies[1];
 				//var gainall = QaCompute.AWeight((int)(page.GainFrequencies[0] / df), page.GainFrequencies.Length, df);
 				//page.GainData = gainall.Select(x => new Complex(x, 0)).ToArray();
 			}
 			else
 			{
-				page.GainData = []; // new list of complex data
+				page.GainData = ([],[]); // new list of complex data
 				page.GainFrequencies = []; // new list of frequencies
+				// left->right crosstalk
 				WaveGenerator.SetChannels(WaveChannels.Left); // left channel on
 				didRun = await DoChirpTest(page, voltagedBV, TestingType.Response);
-				if (ct.IsCancellationRequested)
-					return false;
-				var exData = page.GainData; // save the data
-				var exFreq = page.GainFrequencies; // save the frequencies
-				page.GainData = []; // new list of complex data
-				page.GainFrequencies = []; // new list of frequencies
-				WaveGenerator.SetChannels(WaveChannels.Right); // right channel on
-				didRun = await DoChirpTest(page, voltagedBV, TestingType.Response);
-				if (ct.IsCancellationRequested)
-					return false;
-				WaveGenerator.SetChannels(WaveChannels.Both); // back to default both
-															  // merge
-				var gainRight = page.GainData.Select(x => x.Real / Math.Max(1e-10, x.Imaginary)).ToArray();
-				var gainLeft = exData.Select(x => x.Imaginary / Math.Max(1e-10, x.Real)).ToArray();
-				var gainall = gainLeft.Zip(gainRight, (x, y) => new Complex(x, y)).ToArray();
-				// average 5?
-				for (int i = 0; i < (gainall.Length - 20); i++)
+				var gainRight = page.GainRight.Zip(page.GainLeft, (x, y) => x / Math.Max(1e-10, y)).ToArray();
+				if (!ct.IsCancellationRequested)
 				{
-					var u = gainall[i];
-					var cnt = Math.Max(5, Math.Min(20, i / 50));
-					for (int j = 1; j < cnt; j++)
-						u += gainall[i + j];
-					gainall[i] = u / cnt; // average the gain
+					// right->left crosstalk
+					page.GainData = ([], []); // new list of complex data
+					page.GainFrequencies = []; // new list of frequencies
+					WaveGenerator.SetChannels(WaveChannels.Right); // right channel on
+					didRun = await DoChirpTest(page, voltagedBV, TestingType.Response);
 				}
-				page.GainData = gainall;
+				if (!ct.IsCancellationRequested)
+				{
+					var gainLeft = page.GainLeft.Zip(page.GainRight, (x, y) => x / Math.Max(1e-10, y)).ToArray();
+					gainLeft = MathUtil.SmoothForward(gainLeft, perOctave);
+					gainRight = MathUtil.SmoothForward(gainRight, perOctave);
+					page.GainData = (gainLeft, gainRight);
+				}
+				WaveGenerator.SetChannels(WaveChannels.Both); // back to default both
 			}
 
 			UpdateGraph(false);
@@ -916,12 +950,11 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
 			var frqrsVm = MyVModel;
 
-			if (page.GainData == null || page.GainFrequencies == null)
+			if (page.GainLeft == null || page.GainFrequencies == null)
 				return;
 
 			var freqX = page.GainFrequencies;
-			var gainY = page.GainData;
-			if (gainY.Length == 0 || freqX.Length == 0)
+			if (page.GainLeft.Length == 0 || freqX.Length == 0)
 				return;
 
 			if (freqX[0] == 0)
@@ -940,60 +973,73 @@ namespace QA40xPlot.Actions
 			switch (ttype)
 			{
 				case TestingType.Crosstalk:
-					YValues = gainY.Select(x => 20 * Math.Log10(x.Real)).ToArray(); // real is the left gain
-					phaseValues = gainY.Select(x => 20 * Math.Log10(x.Imaginary)).ToArray();
-					legendname = "dB";
+					{
+						YValues = page.GainReal.Select(x => 20 * Math.Log10(x)).ToArray(); // real is the left gain
+						phaseValues = page.GainImag.Select(x => 20 * Math.Log10(x)).ToArray();
+						legendname = "dB";
+					}
 					break;
 				case TestingType.Gain:
-					YValues = gainY.Select(x => 20 * Math.Log10(x.Magnitude)).ToArray();
-					phaseValues = gainY.Select(x => 180 * x.Phase / Math.PI).ToArray();
-					legendname = "Gain";
+					{
+						YValues = MathUtil.ToCplxMag(page.GainReal, page.GainImag).Select(x => 20 * Math.Log10(x)).ToArray();
+						phaseValues = MathUtil.ToCplxPhase(page.GainReal, page.GainImag).Select(x => 180 * x / Math.PI).ToArray();
+						legendname = "Gain";
+					}
 					break;
 				case TestingType.Response:
-					YValues = gainY.Select(x => 20 * Math.Log10(x.Real)).ToArray(); // real is the left gain
-					phaseValues = gainY.Select(x => 20 * Math.Log10(x.Imaginary)).ToArray();
-					legendname = "dBV";
+					{
+						YValues = page.GainReal.Select(x => 20 * Math.Log10(x)).ToArray(); // real is the left gain
+						phaseValues = page.GainImag.Select(x => 20 * Math.Log10(x)).ToArray();
+						legendname = "dBV";
+					}
 					break;
 				case TestingType.Impedance:
-					YValues = gainY.Select(x => rref * ToImpedance(x).Magnitude).ToArray();
-					// YValues = gainY.Select(x => rref * x.Magnitude/(1-x.Magnitude)).ToArray();
-					phaseValues = gainY.Select(x => 180 * ToImpedance(x).Phase / Math.PI).ToArray();
-					legendname = "|Z| Ohms";
-					if (myPlot.Axes.Rules.Count > 0)
 					{
-						var rule = myPlot.Axes.Rules.First();
-						if (rule is MaximumBoundary)
+						YValues = MathUtil.ToImpedanceMag(page.GainReal, page.GainImag).Select(x => rref * x).ToArray();
+						phaseValues = MathUtil.ToImpedancePhase(page.GainReal, page.GainImag).Select(x => 180 * x / Math.PI).ToArray();
+						legendname = "|Z| Ohms";
+						if (myPlot.Axes.Rules.Count > 0)
 						{
-							// change to an impedance set of limits
-							var myrule = ((MaximumBoundary)rule);
-							var oldlimit = myrule.Limits;
-							AxisLimits axs = new AxisLimits(oldlimit.Left, oldlimit.Right, 0, 2000);
-							myrule.Limits = axs;
+							var rule = myPlot.Axes.Rules.First();
+							if (rule is MaximumBoundary)
+							{
+								// change to an impedance set of limits
+								var myrule = ((MaximumBoundary)rule);
+								var oldlimit = myrule.Limits;
+								AxisLimits axs = new AxisLimits(oldlimit.Left, oldlimit.Right, 0, 2000);
+								myrule.Limits = axs;
+							}
+						}
+						if (myPlot.Axes.Rules.Count > 1)
+						{
+							var rule = myPlot.Axes.Rules.Last();
+							if (rule is MaximumBoundary)
+							{
+								// change to an impedance set of limits
+								var myrule = ((MaximumBoundary)rule);
+								var oldlimit = myrule.Limits;
+								AxisLimits axs = new AxisLimits(oldlimit.Left, oldlimit.Right, -360, 360);
+								myrule.Limits = axs;
+							}
 						}
 					}
-					if (myPlot.Axes.Rules.Count > 1)
-					{
-						var rule = myPlot.Axes.Rules.Last();
-						if (rule is MaximumBoundary)
-						{
-							// change to an impedance set of limits
-							var myrule = ((MaximumBoundary)rule);
-							var oldlimit = myrule.Limits;
-							AxisLimits axs = new AxisLimits(oldlimit.Left, oldlimit.Right, -360, 360);
-							myrule.Limits = axs;
-						}
-					}
-
 					break;
 			}
 			//SetMagFreqRule(myPlot);
-			var plot = myPlot.Add.SignalXY(logFreqX, YValues);
-			plot.LineWidth = lineWidth;
-			plot.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, measurementNr * 2);
-			plot.MarkerSize = markerSize;
-			plot.LegendText = legendname;
-			plot.LinePattern = LinePattern.Solid;
-			if ((ttype == TestingType.Gain || ttype == TestingType.Impedance) || frqrsVm.ShowRight)
+			var showPlot = (isMain ) || (!isMain && page.Definition.IsOnL);
+			SignalXY plot;
+			if ((ttype == TestingType.Gain || ttype == TestingType.Impedance) || showPlot)
+			{
+				plot = myPlot.Add.SignalXY(logFreqX, YValues);
+				plot.LineWidth = lineWidth;
+				plot.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, measurementNr * 2);
+				plot.MarkerSize = markerSize;
+				plot.LegendText = legendname;
+				plot.LinePattern = LinePattern.Solid;
+			}
+
+			showPlot = (isMain && frqrsVm.ShowRight) || (!isMain && page.Definition.IsOnR);
+			if ((ttype == TestingType.Gain || ttype == TestingType.Impedance) || showPlot)
 			{
 				var phases = phaseValues;
 				if (ttype == TestingType.Gain || ttype == TestingType.Impedance)
@@ -1142,32 +1188,32 @@ namespace QA40xPlot.Actions
 			myPlot.Remove<Text>();
 
 			// GAIN
-			if (PageData != null && PageData.GainData != null)
+			if (PageData != null && PageData.GainLeft != null)
 			{
 				// Gain BW
-				if (PageData.ViewModel.LeftChannel)
-				{
-					var gainBW3dB = CalculateBandwidth(-3, PageData.GainData.Select(x => x.Magnitude).ToArray(), PageData.FreqRslt?.Df ?? 1);        // Volts is gain
+				//if (PageData.ViewModel.LeftChannel)
+				//{
+				//	var gainBW3dB = CalculateBandwidth(-3, PageData.GainData.Select(x => x.Magnitude).ToArray(), PageData.FreqRslt?.Df ?? 1);        // Volts is gain
 
-					var gainBW1dB = CalculateBandwidth(-1, PageData.GainData.Select(x => x.Magnitude).ToArray(), PageData.FreqRslt?.Df ?? 1);
+				//	var gainBW1dB = CalculateBandwidth(-1, PageData.GainData.Select(x => x.Magnitude).ToArray(), PageData.FreqRslt?.Df ?? 1);
 
-					// Draw bandwidth lines
-					var colors = new GraphColors();
-					float lineWidth = frqrsVm.ShowThickLines ? _Thickness : 1;
+				//	// Draw bandwidth lines
+				//	var colors = new GraphColors();
+				//	float lineWidth = frqrsVm.ShowThickLines ? _Thickness : 1;
 
-					if (frqrsVm.ShowLeft && frqrsVm.LeftChannel)
-					{
-						if (frqrsVm.Show3dBBandwidth_L)
-						{
-							DrawBandwithLines(3, gainBW3dB, 0);
-						}
+				//	if (frqrsVm.ShowLeft && frqrsVm.LeftChannel)
+				//	{
+				//		if (frqrsVm.Show3dBBandwidth_L)
+				//		{
+				//			DrawBandwithLines(3, gainBW3dB, 0);
+				//		}
 
-						if (frqrsVm.Show1dBBandwidth_L)
-						{
-							DrawBandwithLines(1, gainBW1dB, 1);
-						}
-					}
-				}
+				//		if (frqrsVm.Show1dBBandwidth_L)
+				//		{
+				//			DrawBandwithLines(1, gainBW1dB, 1);
+				//		}
+				//	}
+				//}
 			}
 		}
 

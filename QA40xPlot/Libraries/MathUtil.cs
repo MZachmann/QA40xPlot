@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Numerics;
 using System.Windows.Media;
 
 namespace QA40xPlot.Libraries
@@ -230,6 +231,125 @@ namespace QA40xPlot.Libraries
 			return formattedText.Width;
 		}
 
+		public static double[] ToImpedanceMag(double[] re, double[] im)
+		{
+			var xout = new double[re.Length];
+			for (int i = 0; i < im.Length; i++)
+			{
+				xout[i] = ToImpedanceMag(re[i], im[i]);
+			}
+			return xout;
+		}
+
+		public static double[] ToImpedancePhase(double[] re, double[] im)
+		{
+			var xout = new double[re.Length];
+			for (int i = 0; i < im.Length; i++)
+			{
+				xout[i] = ToImpedancePhase(re[i], im[i]);
+			}
+			return xout;
+		}
+
+		// return mag of Z/(1-Z)
+		public static double ToImpedanceMag(double re, double im)
+		{
+			var re1 = 1 - re;
+			// divide (re,im)/(re1,im) = (re*re1 - im*im, im*re1 - re*im)/(re1 * re1 + im * im)
+			var denom = re1 * re1 + im * im;
+			var renew = (re * re1 - im * im) / denom;
+			var imnew = (im * re1 - re * im) / denom;
+			var magout = Math.Sqrt(renew * renew + imnew * imnew);
+			var tcplx = (new Complex(re, im)) / (new Complex(1 - re, -im));
+			var tmag = tcplx.Magnitude;
+			return magout;
+			//var xtest = z / ((new Complex(1, 0)) - z);  // do the math
+			//return xtest;
+		}
+
+		// return phase of Z/(1-Z)
+		public static double ToImpedancePhase(double re, double im)
+		{
+			var re1 = 1 - re;
+			// divide (re,im)/(re1,im) = (re*re1 - im*im, im*re1 - re*im)/(re1 * re1 + im * im)
+			var denom = re1 * re1 + im * im;
+			var renew = (re * re1 - im * im) / denom;
+			var imnew = (im * re1 - re * im) / denom;
+			var phaseout = Math.Atan2(imnew, renew);
+			var tcplx = (new Complex(re, im)) / (new Complex(1 - re, -im));
+			var tphase = tcplx.Phase;
+			return phaseout;
+		}
+
+		public static double[] ToCplxMag(double[] re, double[] im)
+		{
+			var xout = new double[re.Length];
+			for (int i = 0; i < im.Length; i++)
+			{
+				xout[i] = ToCplxMag(re[i], im[i]);
+			}
+			return xout;
+		}
+
+		public static double[] ToCplxPhase(double[] re, double[] im)
+		{
+			var xout = new double[re.Length];
+			for (int i = 0; i < im.Length; i++)
+			{
+				xout[i] = ToCplxPhase(re[i], im[i]);
+			}
+			return xout;
+		}
+
+		// return mag of Z/(1-Z)
+		public static double ToCplxMag(double re, double im)
+		{
+			var magout = Math.Sqrt(re * re + im * im);
+			return magout;
+			//var xtest = z / ((new Complex(1, 0)) - z);  // do the math
+			//return xtest;
+		}
+
+		// return phase of Z/(1-Z)
+		public static double ToCplxPhase(double re, double im)
+		{
+			var phaseout = Math.Atan2(im, re);
+			return phaseout;
+		}
+
+		/// <summary>
+		/// Forward smoothing using a running total
+		/// Increases the windowSize as F increases logarithmically
+		/// the window size 'goal' is a percent of an octave
+		/// </summary>
+		/// <param name="data">the double[] data to smooth</param>
+		/// <param name="windowSize">the size of the window</param>
+		/// <param name="windowDelta">every N points increase the windowSize by 1</param>
+		/// <returns></returns>
+		public static double[] SmoothForward(double[] data, double perOctave)
+		{
+			double[] smooth = new double[data.Length];
+			double runningSum = 0;
+			int pointsInSum = 0;
+			int windowSize = 1;
+			for (int i = 0; i < smooth.Length; i++)
+			{
+				runningSum += data[i];
+				if (pointsInSum < windowSize)
+				{
+					pointsInSum++;
+					smooth[i] = runningSum / pointsInSum;
+					continue;
+				}
+				runningSum -= data[i - windowSize];
+				smooth[i] = runningSum / windowSize;
+				if ( (i*perOctave) > windowSize)
+				{
+					windowSize++;
+				}
+			}
+			return smooth;
+		}
 	}
 }
 
