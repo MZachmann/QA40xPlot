@@ -10,7 +10,7 @@
 
 	public class GenWaveform
 	{
-		public string Name { get; set; } = "Sine";	// the type of waveform
+		public string Name { get; set; } = "Sine";  // the type of waveform
 		public double Frequency { get; set; }
 		public double FreqEnd { get; set; }
 		public double Voltage { get; set; }

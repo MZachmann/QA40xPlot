@@ -14,7 +14,7 @@ public class SoundUtil : FloorViewModel, IDisposable
 {
 	public static readonly int EchoNone = 0;        // only the QA40x makes sound
 	public static readonly int EchoQuiet = 1;       // only the Windows Sound device makes sound
-	public static readonly int EchoBoth = 2;		// both make sound
+	public static readonly int EchoBoth = 2;        // both make sound
 
 	double[] _DataLeft { get; set; } = [];
 	double[] _DataRight { get; set; } = [];
@@ -80,7 +80,7 @@ public class SoundUtil : FloorViewModel, IDisposable
 	{
 		var idx = SettingsViewModel.EchoChannels.IndexOf(ViewSettings.Singleton.SettingsVm.EchoChannel);
 		if (idx < 0)
-			idx = 0;	// default to none
+			idx = 0;    // default to none
 		return idx;
 	}
 
@@ -104,7 +104,7 @@ public class SoundUtil : FloorViewModel, IDisposable
 		var snd = ViewSettings.Singleton.MainVm.ExternalSound;
 		if (snd != null)
 		{
-			if(snd._DeviceName != deviceName)
+			if (snd._DeviceName != deviceName)
 			{
 				snd.Dispose();
 				ViewSettings.Singleton.MainVm.ExternalSound = null;
@@ -112,11 +112,11 @@ public class SoundUtil : FloorViewModel, IDisposable
 			}
 		}
 
-		if(snd == null && deviceName.Length > 0)
+		if (snd == null && deviceName.Length > 0)
 		{
 			var soundObj = new SoundUtil();
 			var mydev = soundObj.InitDevice(deviceName);
-			if(mydev != null)
+			if (mydev != null)
 			{
 				ViewSettings.Singleton.MainVm.ExternalSound = soundObj;
 				snd = soundObj;
@@ -126,7 +126,7 @@ public class SoundUtil : FloorViewModel, IDisposable
 		// snd not null => .ExternalSound is set to it
 		if (snd != null)
 		{
-			snd.CreateSound(leftOut, rightOut, sampleRate);	// this may set IsNew
+			snd.CreateSound(leftOut, rightOut, sampleRate); // this may set IsNew
 		}
 		return snd;
 	}
@@ -164,7 +164,7 @@ public class SoundUtil : FloorViewModel, IDisposable
 
 	public bool IsFormatSupported(WaveFormat wvfmt)
 	{
-		if(SndDevice == null) 
+		if (SndDevice == null)
 			return false;
 
 		bool isSupported = SndDevice.AudioClient.IsFormatSupported(
@@ -239,7 +239,7 @@ public class SoundUtil : FloorViewModel, IDisposable
 	/// <returns></returns>
 	public WaveFormat? GetBestWaveFormat(int sampleRate, int Channels, bool isShared)
 	{
-		if(!isShared)
+		if (!isShared)
 		{
 			var allowExcl = FindSupportedFormats(false);
 			var waves = FilterEncoding(allowExcl, WaveFormatEncoding.Pcm);
@@ -352,14 +352,14 @@ public class SoundUtil : FloorViewModel, IDisposable
 				WasapiOut? waveOut = null;
 				try
 				{
-					waveOut = new(SndDevice, 
+					waveOut = new(SndDevice,
 						IsShared ? AudioClientShareMode.Shared : AudioClientShareMode.Exclusive,
 						useEventSync: true, latency: 40);
 
 				}
 				catch
 				{
-					waveOut = new(SndDevice, AudioClientShareMode.Shared, useEventSync: true, latency:40);
+					waveOut = new(SndDevice, AudioClientShareMode.Shared, useEventSync: true, latency: 40);
 					IsShared = false;
 				}
 				WaveRender = waveOut;
@@ -379,16 +379,16 @@ public class SoundUtil : FloorViewModel, IDisposable
 	{
 		// check cache...
 		bool isCached = false;
-		if(_DataLeft.Length == leftOut.Length && _DataRight.Length == rightOut.Length && _SampleRate == sampleRate)
+		if (_DataLeft.Length == leftOut.Length && _DataRight.Length == rightOut.Length && _SampleRate == sampleRate)
 		{
 			isCached = _DataLeft.SequenceEqual(leftOut) && _DataRight.SequenceEqual(rightOut);
 		}
 
 		// we have to figure out a waveformat that is supported by the board and usable
 		// and whether it's exclusive (preferred) or shared mode
-		if(! isCached)
+		if (!isCached)
 		{
-			if(WaveRender != null)
+			if (WaveRender != null)
 			{
 				WaveRender.Dispose();
 				CreateRender();
@@ -398,7 +398,7 @@ public class SoundUtil : FloorViewModel, IDisposable
 			const int channels = 2;
 			WaveFormat wvf = new WaveFormat(sampleRate, bitsPerSample, channels);
 			IsShared = true;   // default to shared
-			// check exclusive first
+							   // check exclusive first
 			var wvf2 = GetBestWaveFormat(sampleRate, channels, false);
 			if (wvf2 != null)
 			{
@@ -425,7 +425,7 @@ public class SoundUtil : FloorViewModel, IDisposable
 			var maxSound = Math.Max(leftOut.Max(), soundlimit);
 			var maxv = Int32.MaxValue * 1.0 / maxSound;
 			byte[] byteData = [];
-			if( WaveForm.Encoding == WaveFormatEncoding.IeeeFloat)
+			if (WaveForm.Encoding == WaveFormatEncoding.IeeeFloat)
 			{
 				maxv = 1.0 / maxSound;
 				float[] intData = leftOut.Select(s => (float)(s * maxv)).ToArray();
@@ -455,10 +455,10 @@ public class SoundUtil : FloorViewModel, IDisposable
 			}
 
 			// now pump it out if we have the actual format or resample it if not
-			if(WaveForm.SampleRate != sampleRate || WaveForm.Channels != 2 || WaveForm.BitsPerSample != bitsPerSample)
+			if (WaveForm.SampleRate != sampleRate || WaveForm.Channels != 2 || WaveForm.BitsPerSample != bitsPerSample)
 			{
 				var wv = new WaveFormat(sampleRate, bitsPerSample, channels);
-				if(WaveForm.Encoding == WaveFormatEncoding.IeeeFloat)
+				if (WaveForm.Encoding == WaveFormatEncoding.IeeeFloat)
 					wv = WaveFormat.CreateIeeeFloatWaveFormat(sampleRate, channels);
 				_Provider = new RawSourceWaveStream(new MemoryStream(byteData), wv);
 				var resampler = new WdlResamplingSampleProvider(_Provider.ToSampleProvider(), wvf.SampleRate);
@@ -523,7 +523,7 @@ public class SoundUtil : FloorViewModel, IDisposable
 		if (_Provider != null)
 		{
 			WaveRender?.Stop();
-			_Provider.Position = 0;	// prepare to play again
+			_Provider.Position = 0; // prepare to play again
 		}
 	}
 

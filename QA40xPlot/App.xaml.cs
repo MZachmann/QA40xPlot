@@ -1,6 +1,4 @@
-﻿using System.Configuration;
-using System.Data;
-using System.Windows;
+﻿using System.Windows;
 
 // Written by MZachmann 4-24-2025
 // some of this code came from the original Qa40x application by Joost Breed
@@ -9,11 +7,11 @@ using System.Windows;
 
 namespace QA40xPlot
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
-    public partial class App : Application
-    {
+	/// <summary>
+	/// Interaction logic for App.xaml
+	/// </summary>
+	public partial class App : Application
+	{
 		public string DefaultCfg { get; set; } = "";
 		public string StockDefaultCfg { get; set; } = "QADefault.cfg";
 		protected override void OnStartup(StartupEventArgs e)
@@ -22,7 +20,7 @@ namespace QA40xPlot
 			var callFile = e.Args.FirstOrDefault();
 			if (callFile != null && callFile.Length > 0)
 			{
-				if(!callFile.EndsWith(".cfg", StringComparison.OrdinalIgnoreCase))
+				if (!callFile.EndsWith(".cfg", StringComparison.OrdinalIgnoreCase))
 				{
 					DefaultCfg = callFile + ".cfg";
 				}

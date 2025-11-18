@@ -131,7 +131,7 @@ namespace QA40xPlot.BareMetal
 			Complex[] leftFft = [];
 			Complex[] rightFft = [];
 
-			 var window = QaMath.GetWindowType(windowing);    // best?
+			var window = QaMath.GetWindowType(windowing);    // best?
 
 			double[] inp = window.Apply(chirp, true);  // the input signal
 			var chirpFft = FFT.Forward(inp);
@@ -139,7 +139,7 @@ namespace QA40xPlot.BareMetal
 
 			// Left channel
 
-			chirpFft = chirpFft.Select(x => (x.Real != 0 || x.Imaginary != 0) ? x : new Complex(1e-10,0)).ToArray(); // avoid divide by zero
+			chirpFft = chirpFft.Select(x => (x.Real != 0 || x.Imaginary != 0) ? x : new Complex(1e-10, 0)).ToArray(); // avoid divide by zero
 
 			if (rdata.leftData != null)
 			{

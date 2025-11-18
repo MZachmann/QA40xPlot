@@ -43,7 +43,7 @@ namespace QA40xPlot.BareMetal
 
 		public uint GetSampleRate() { return _SampleRate; }
 
-		public OutputSources GetOutputSource() {  return _OutputSource; }
+		public OutputSources GetOutputSource() { return _OutputSource; }
 
 		public string GetWindowing() { return _Windowing; }
 
@@ -105,7 +105,7 @@ namespace QA40xPlot.BareMetal
 
 		public async ValueTask<bool> InitializeDevice(uint sampleRate, uint fftsize, string Windowing, int attenuation)
 		{
-			return await QaREST.InitializeDevice(sampleRate, fftsize, "Hann", attenuation);	// ignore whatever is passed in here for windowing
+			return await QaREST.InitializeDevice(sampleRate, fftsize, "Hann", attenuation); // ignore whatever is passed in here for windowing
 		}
 
 	}

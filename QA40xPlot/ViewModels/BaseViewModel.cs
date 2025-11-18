@@ -21,20 +21,20 @@ namespace QA40xPlot.ViewModels
 		public static List<string> WindowingTypes { get => new List<string> { "Bartlett", "Blackman", "Cosine", "FlatTop", "Hamming", "Hann", "Kaiser", "Rectangular", "Tukey", "Welch" }; }
 		public static List<string> EndFrequencies { get => new List<string> { "1000", "2000", "5000", "10000", "20000", "50000", "100000" }; }
 		public static List<string> StartFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "5000", "10000" }; }
-		public static List<string> TopDbs { get => new List<string> { "100", "50", "20", "0", "-50", "-80"  }; }
+		public static List<string> TopDbs { get => new List<string> { "100", "50", "20", "0", "-50", "-80" }; }
 		public static List<string> BottomDbs { get => new List<string> { "0", "-50", "-100", "-120", "-140", "-160", "-180", "-200" }; }
 		public static List<string> StartPercents { get => new List<string> { "1000", "100", "10", "1", "0.1", "0.01" }; }
 		public static List<string> EndPercents { get => new List<string> { "0.1", "0.01", "0.001", "0.0001", "0.00001", "0.000001", "0.0000001" }; }
-		public static List<string> SampleRates { get => new List<string> { "48000", "96000", "192000", "384000"}; }
-		public static List<string>	FftSizes { get => new List<string> { "8K","16K", "32K", "64K", "128K", "256K", "512K", "1024K" }; }
-		public static List<uint>	FftActualSizes { get => new List<uint> { 8192, 16384, 32768, 65536, 131072, 262144, 524288, 1048576 }; }
+		public static List<string> SampleRates { get => new List<string> { "48000", "96000", "192000", "384000" }; }
+		public static List<string> FftSizes { get => new List<string> { "8K", "16K", "32K", "64K", "128K", "256K", "512K", "1024K" }; }
+		public static List<uint> FftActualSizes { get => new List<uint> { 8192, 16384, 32768, 65536, 131072, 262144, 524288, 1048576 }; }
 		public static List<string> GenVoltages { get => new List<string> { "0.05", "0.1", "0.25", "0.5", "0.75", "1", "2", "5" }; }
 		public static List<string> GenPowers { get => new List<string> { "0.05", "0.1", "0.25", "0.5", "0.75", "1", "2", "5", "10", "25" }; }
 		public static List<string> MeasureVolts { get => new List<string> { "Input Voltage", "Output Voltage" }; }
 		public static List<string> MeasureVoltsFull { get => new List<string> { "Input Voltage", "Output Voltage", "Output Power" }; }
-		public static List<string> Impedances { get => new List<string> { "2","4", "8", "10","16", "20", "100", "500", "1000" }; }
-		public static List<string> Waveforms { get => new List<string> { "Sine", "Square", "Multitone","Impulse", "Chirp" }; }
-		public static List<string> Attenuations { get => new List<string> { "0", "20", "10", "-6", "-10", "-20", "-30"}; }
+		public static List<string> Impedances { get => new List<string> { "2", "4", "8", "10", "16", "20", "100", "500", "1000" }; }
+		public static List<string> Waveforms { get => new List<string> { "Sine", "Square", "Multitone", "Impulse", "Chirp" }; }
+		public static List<string> Attenuations { get => new List<string> { "0", "20", "10", "-6", "-10", "-20", "-30" }; }
 		public static string PlotFileFilter { get => "Plot files|*.plt;*.zip|All files|*.*"; }
 		public static string DutInfo { get => "DUT = Device Under Test"; }
 		public static string DutDescript { get => "Input Voltage = DUT Input(Generator Output), Output Voltage = DUT Output(QA40x Input)"; }
@@ -83,7 +83,8 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		private ObservableCollection<DataDescript> _OtherSetList = new();
 		[JsonIgnore]
-		public ObservableCollection<DataDescript> OtherSetList {
+		public ObservableCollection<DataDescript> OtherSetList
+		{
 			get => _OtherSetList;
 			set => SetProperty(ref _OtherSetList, value);
 		}
@@ -271,8 +272,8 @@ namespace QA40xPlot.ViewModels
 					i++;
 				}
 				if (i == 0)
-					i = value.Length;	// just a word, make that the value
-				SetProperty(ref _GeneratorVoltage, value.Substring(0,i));
+					i = value.Length;   // just a word, make that the value
+				SetProperty(ref _GeneratorVoltage, value.Substring(0, i));
 				GeneratorVoltageUnits = value.Substring(i).Trim(); // the rest is the units
 			}
 		}
@@ -365,7 +366,7 @@ namespace QA40xPlot.ViewModels
 			set { SetProperty(ref _KeepMiniPlots, value); ShowMiniPlots = value; }
 		}
 
-		private bool _ExpandGenerator = true;		// expand the generator section?
+		private bool _ExpandGenerator = true;       // expand the generator section?
 		public bool ExpandGenerator
 		{
 			get => _ExpandGenerator;
@@ -476,7 +477,7 @@ namespace QA40xPlot.ViewModels
 		private uint _Averages;         // type of alert
 		public uint Averages
 		{
-			get => _Averages; 
+			get => _Averages;
 			set => SetProperty(ref _Averages, value);
 		}
 
@@ -542,12 +543,13 @@ namespace QA40xPlot.ViewModels
 		public string GenDirection
 		{
 			get => _GenDirection;
-			set {
-				if( SetProperty(ref _GenDirection, value))
+			set
+			{
+				if (SetProperty(ref _GenDirection, value))
 				{
 					RaisePropertyChanged("GenAmpDescript");
 					RaisePropertyChanged("GenAmpUnits");
-					if(IsGenPower == FindDirection(GenVoltageUnits))
+					if (IsGenPower == FindDirection(GenVoltageUnits))
 						GenVoltageUnits = AlterDirection(GenVoltageUnits);
 					if (IsGenPower == FindDirection(GenVoltUnits))
 						GenVoltUnits = AlterDirection(GenVoltUnits);
@@ -588,8 +590,8 @@ namespace QA40xPlot.ViewModels
 			var mvm = ViewSettings.Singleton.MainVm.CurrentView; // the current viewmodel
 			if (parameter != null && mvm != null)
 			{
-				mvm.GenVoltUnits = parameter.ToString() ?? string.Empty;	// serialized value
-				mvm.SetGeneratorVolts(mvm.GenVoltUnits);	// do math...
+				mvm.GenVoltUnits = parameter.ToString() ?? string.Empty;    // serialized value
+				mvm.SetGeneratorVolts(mvm.GenVoltUnits);    // do math...
 			}
 		}
 
@@ -702,7 +704,7 @@ namespace QA40xPlot.ViewModels
 		/// </summary>
 		/// <param name="direction"></param>
 		/// <returns></returns>
-		public static E_GeneratorDirection ToDirection(string  direction)
+		public static E_GeneratorDirection ToDirection(string direction)
 		{
 			var u = MeasureVoltsFull.IndexOf(direction);
 			if (u == -1)
@@ -717,13 +719,13 @@ namespace QA40xPlot.ViewModels
 
 		public void LinkAbout(DataDescript fmv)
 		{
-			if(DataInfo != null)
+			if (DataInfo != null)
 			{
-				DataInfo.MainVm = null;	// if the last vm pointed here, empty it
+				DataInfo.MainVm = null; // if the last vm pointed here, empty it
 			}
 			fmv.MainVm = this;  // point to the primary vm for messaging
 			actAbout.SetDataContext(fmv);
-			DataInfo = fmv;		// and the datadescript for binding
+			DataInfo = fmv;     // and the datadescript for binding
 		}
 
 		public List<int> FindShownOthers()
@@ -804,33 +806,33 @@ namespace QA40xPlot.ViewModels
 				return vtest;
 			}
 			var maxGain = lrGains.Max();
-			if( lrGains.Length > 2)
+			if (lrGains.Length > 2)
 			{
 				// figure out which bins we want
-				int binmin = Math.Min(lrGains.Length-2, 2);
+				int binmin = Math.Min(lrGains.Length - 2, 2);
 				int binmax = Math.Max(1, lrGains.Length - 2);
-				if(binNumber.Length == 0)
+				if (binNumber.Length == 0)
 				{
 					binmin = Math.Min(lrGains.Length - 5, 3);
 					binmax = Math.Max(lrGains.Length - 5, 3);
 				}
 				else if (binNumber[0] != 0)
 				{
-					int abin = binNumber[0]-1;				// approximate bin
+					int abin = binNumber[0] - 1;                // approximate bin
 					binmin = Math.Max(binmin, abin);        // random....
 					if (binNumber.Length == 2)
 						abin = binNumber[1];
 					else
-						abin = binNumber[0] + 6;						// random....
+						abin = binNumber[0] + 6;                        // random....
 					binmax = Math.Min(abin, binmax);  // limit this
 				}
-				maxGain = lrGains.Skip(binmin).Take(Math.Max(1,binmax - binmin)).Max();
+				maxGain = lrGains.Skip(binmin).Take(Math.Max(1, binmax - binmin)).Max();
 				var df = binNumber[0] / 20.0;
 				var idx = Array.IndexOf(lrGains, maxGain);
 				var dfrq = df * idx;
 				Debug.WriteLine($"Max Gain of {maxGain} at {dfrq}" + Environment.NewLine);
 			}
-			
+
 			if (maxGain <= 0.0)
 				return vtest;
 
@@ -886,7 +888,7 @@ namespace QA40xPlot.ViewModels
 			RaisePropertyChanged("UpdateGraph");   // cause the right kind of repaint
 		}
 
-		public 	BaseViewModel()
+		public BaseViewModel()
 		{
 			HasExport = false;
 			GenDirection = MeasureVolts[0];
@@ -909,7 +911,7 @@ namespace QA40xPlot.ViewModels
 
 		// convert mouse coordinates to scottplot coordinates
 		// from ScottPlot github comment https://github.com/ScottPlot/ScottPlot/issues/3514
-		public static Tuple<double,double> ConvertScottCoords(PlotControl plt, double x, double y)
+		public static Tuple<double, double> ConvertScottCoords(PlotControl plt, double x, double y)
 		{
 			PresentationSource source = PresentationSource.FromVisual(plt);
 			double dpiX = 1;

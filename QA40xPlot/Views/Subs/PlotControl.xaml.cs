@@ -71,7 +71,7 @@ namespace QA40xPlot.Views
 		}
 
 		public void Refresh()
-		{ 
+		{
 			Plot.Refresh();
 		}
 

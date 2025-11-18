@@ -1,9 +1,9 @@
-﻿using QA40xPlot.Libraries;
+﻿using Newtonsoft.Json;
+using QA40xPlot.Libraries;
+using QA40xPlot.QA430;
 using QA40xPlot.ViewModels;
-using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Numerics;
-using QA40xPlot.QA430;
 
 namespace QA40xPlot.Data
 {
@@ -36,15 +36,20 @@ namespace QA40xPlot.Data
 		public string LeftColor
 		{
 			get => _LeftColor;
-			set { SetProperty(ref _LeftColor, value); 
-				RaisePropertyChanged("Repaint"); }  // left color for the graph
+			set
+			{
+				SetProperty(ref _LeftColor, value);
+				RaisePropertyChanged("Repaint");
+			}  // left color for the graph
 		}
 		private string _RightColor = "Transparent"; // left color for the graph
 		public string RightColor
 		{
-				get => _RightColor;
-				set { SetProperty(ref _RightColor, value);  // left color for the graph
-						RaisePropertyChanged("Repaint");	// this will notify the main graph via special property
+			get => _RightColor;
+			set
+			{
+				SetProperty(ref _RightColor, value);  // left color for the graph
+				RaisePropertyChanged("Repaint");    // this will notify the main graph via special property
 			}  // left color for the graph
 		}
 
@@ -58,7 +63,7 @@ namespace QA40xPlot.Data
 		[JsonIgnore]
 		public double OffsetLeftValue
 		{
-			get =>	MathUtil.ToDouble(_OffsetLeft, 0);
+			get => MathUtil.ToDouble(_OffsetLeft, 0);
 		}
 
 		private string _OffsetRight = "0";
@@ -131,7 +136,7 @@ namespace QA40xPlot.Data
 		private void ChangeDefinition(object? sender, PropertyChangedEventArgs e)
 		{
 			List<string> used = new() { "Name", "Heading", "Repaint" };
-			var mainVm = ViewSettings.Singleton.MainVm.CurrentView;	// ????
+			var mainVm = ViewSettings.Singleton.MainVm.CurrentView; // ????
 			if (mainVm != null && used.Contains(e.PropertyName ?? string.Empty))
 			{
 				mainVm.RaisePropertyChanged("Ds" + e.PropertyName);
@@ -147,7 +152,7 @@ namespace QA40xPlot.Data
 	}
 
 	public class SweepStepList
-	{ 
+	{
 		public AcquireStep[] Steps { get; set; } = [];
 	}
 
@@ -164,11 +169,11 @@ namespace QA40xPlot.Data
 		public LeftRightPair NoiseFloorA { get; set; } = new();      // if we have the noise floor measurement we just need to retain the scalars
 		public LeftRightPair NoiseFloorC { get; set; } = new();      // if we have the noise floor measurement we just need to retain the scalars
 																	 // for sweeps
-		public SweepData Sweep { get; set; } = new();				// X values, freq or time or amplitude...
-		public SweepStepList SweepSteps { get; set; } = new();		// qa430 configuration list
+		public SweepData Sweep { get; set; } = new();               // X values, freq or time or amplitude...
+		public SweepStepList SweepSteps { get; set; } = new();      // qa430 configuration list
 																	// this is just a load/save object that converts TimeRslt doubles into longs for saving exactly
 		public LeftRightTimeSaver? TimeSaver { get; set; } = null; // the time series, if any
-		// this is just a load/save object that converts FreqRslt doubles into longs for saving exactly
+																   // this is just a load/save object that converts FreqRslt doubles into longs for saving exactly
 		public LeftRightFreqSaver? FreqSaver { get; set; } = null; // the time series, if any
 
 		// ------------------------------------------------------------------
@@ -181,7 +186,8 @@ namespace QA40xPlot.Data
 		public int Id { get; set; } // the generator, if any
 
 		[JsonIgnore]
-		public LeftRightFrequencySeries? FreqRslt { 
+		public LeftRightFrequencySeries? FreqRslt
+		{
 			get { return GetProperty<LeftRightFrequencySeries>("FFT"); }
 			set { SetProperty("FFT", value); }
 		}
@@ -192,8 +198,10 @@ namespace QA40xPlot.Data
 			set { SetProperty("Noise", value); }
 		}
 		[JsonIgnore]
-		public Complex[] GainData { 
-			get {
+		public Complex[] GainData
+		{
+			get
+			{
 				if (Sweep.RawLeft.Length == 0)
 					return [];
 				try
@@ -205,8 +213,9 @@ namespace QA40xPlot.Data
 				}
 				return [];
 			}
-			set { 
-				if(value == null || value.Length == 0)
+			set
+			{
+				if (value == null || value.Length == 0)
 					Sweep.RawLeft = [];
 				else
 					Sweep.RawLeft = value.Select(x => x.Real).ToArray();
@@ -217,7 +226,8 @@ namespace QA40xPlot.Data
 			}
 		}
 		[JsonIgnore]
-		public double[] GainFrequencies	{
+		public double[] GainFrequencies
+		{
 			get { return Sweep.X; }
 			set { Sweep.X = value; }
 		}
@@ -227,9 +237,9 @@ namespace QA40xPlot.Data
 
 		public void SetProperty(string key, object? value)
 		{
-			if (value != null) 
-				PropertySet[key] = value; 
-			else 
+			if (value != null)
+				PropertySet[key] = value;
+			else
 				PropertySet.Remove(key);
 		}
 
@@ -256,7 +266,7 @@ namespace QA40xPlot.Data
 				try
 				{
 					var u = PropertySet[key];
-					if(u == null)
+					if (u == null)
 						return default;
 					return (K)u;
 				}
@@ -274,7 +284,7 @@ namespace QA40xPlot.Data
 		/// <param name="viewModel"></param>
 		/// <param name="series"></param>
 		/// <param name="dct"></param>
-		public DataTab(T viewModel, LeftRightTimeSeries series, Dictionary<string,object>? dct = null)
+		public DataTab(T viewModel, LeftRightTimeSeries series, Dictionary<string, object>? dct = null)
 		{
 			Definition.Id = _CurrentId;
 			Id = _CurrentId++;  // unique id for the data descriptor

@@ -1,16 +1,16 @@
-﻿using QA40xPlot.Actions;
+﻿using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
+using Newtonsoft.Json;
+using QA40xPlot.Actions;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.Views;
-using System.ComponentModel;
-using Newtonsoft.Json;
-using System.Windows;
-using System.Windows.Input;
 using ScottPlot;
 using ScottPlot.Plottables;
-using CommunityToolkit.Mvvm.Input;
-using Microsoft.Win32;
+using System.ComponentModel;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 
 namespace QA40xPlot.ViewModels
@@ -22,9 +22,9 @@ namespace QA40xPlot.ViewModels
 
 		private ActSpectrum MyAction { get => actSpec; }
 		private static SpectrumViewModel MyVModel { get => ViewSettings.Singleton.SpectrumVm; }
-		private PlotControl actPlot {  get; set; }
-		private  ActSpectrum actSpec { get;  set; }
-		private ThdChannelInfo actInfoLeft { get;  set; }
+		private PlotControl actPlot { get; set; }
+		private ActSpectrum actSpec { get; set; }
+		private ThdChannelInfo actInfoLeft { get; set; }
 		private ThdChannelInfo actInfoRight { get; set; }
 		[JsonIgnore]
 		public RelayCommand<object> SetAttenuate { get => new RelayCommand<object>(SetAtten); }
@@ -57,7 +57,7 @@ namespace QA40xPlot.ViewModels
 		public bool DoAutoAttn
 		{
 			get { return _DoAutoAttn; }
-			set { if ( SetProperty(ref _DoAutoAttn, value)) RaisePropertyChanged("AttenColor"); }
+			set { if (SetProperty(ref _DoAutoAttn, value)) RaisePropertyChanged("AttenColor"); }
 		}
 
 		private string _Gen1Waveform = string.Empty;
@@ -121,7 +121,7 @@ namespace QA40xPlot.ViewModels
 			uint frames = 0;
 			if (ShowLeft)
 				frames++;
-			if(ShowRight)
+			if (ShowRight)
 				frames++;
 			var seen = (OtherSetList == null) ? 0 : OtherSetList.Count(x => x.IsOnR) + OtherSetList.Count(x => x.IsOnL);
 			frames += (uint)seen;
@@ -198,12 +198,12 @@ namespace QA40xPlot.ViewModels
 			return MyAction?.CreateExportData();
 		}
 
-				// here param is the id of the tab to remove from the othertab list
+		// here param is the id of the tab to remove from the othertab list
 		public override void DoDeleteIt(string param)
 		{
 			var id = MathUtil.ToInt(param, -1);
 			var fat = OtherSetList.FirstOrDefault(x => x.Id == id);
-			if(fat != null)
+			if (fat != null)
 			{
 				OtherSetList.Remove(fat);
 				MyAction.DeleteTab(id);
@@ -247,12 +247,12 @@ namespace QA40xPlot.ViewModels
 
 		private static async Task LoadIt()
 		{
-			await DoGetLoad(MyVModel.actSpec, PlotFileFilter, true);
+			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, true);
 		}
 
 		private static async Task GetIt()
 		{
-			await DoGetLoad(MyVModel.actSpec, PlotFileFilter, false);
+			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, false);
 		}
 
 		private static string FileAddon()
@@ -279,7 +279,7 @@ namespace QA40xPlot.ViewModels
 			{
 				// Save document
 				string filename = saveFileDialog.FileName;
-				if(filename.Count() > 1)
+				if (filename.Length > 1)
 				{
 					var vm = MyVModel;
 					vm.actSpec.SaveToFile(filename);
@@ -339,7 +339,7 @@ namespace QA40xPlot.ViewModels
 
 		private static Marker? MyMark = null;
 		private void DoMouse(object? sender, MouseEventArgs e)
-		{ 
+		{
 			SetMouseTrack(e);
 			// it's too laggy while it's running....
 			if (IsRunning || !IsTracking)
@@ -353,7 +353,7 @@ namespace QA40xPlot.ViewModels
 
 			var zv = MyAction.LookupXY(FreqValue, ypos, ShowRight && !ShowLeft);
 			var valdBV = GraphUtil.ReformatValue(PlotFormat, zv.Item2, zv.Item3);
-			if( ! GraphUtil.IsPlotFormatLog(PlotFormat))
+			if (!GraphUtil.IsPlotFormatLog(PlotFormat))
 			{
 				valdBV = Math.Log10(valdBV);
 			}

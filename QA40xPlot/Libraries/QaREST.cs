@@ -1,10 +1,6 @@
-﻿using FftSharp;
-using NAudio.CoreAudioApi;
-using NAudio.Wave;
-using QA40xPlot.BareMetal;
+﻿using QA40xPlot.BareMetal;
 using QA40xPlot.ViewModels;
 using ScottPlot;
-using System.Diagnostics;
 using System.Net.Sockets;
 using System.Windows;
 
@@ -113,7 +109,7 @@ namespace QA40xPlot.Libraries
 			SoundUtil? soundObj = null;
 			if (useExternal)
 			{
-				if( SoundUtil.EchoQuiet == ViewSettings.WaveEchoes)
+				if (SoundUtil.EchoQuiet == ViewSettings.WaveEchoes)
 				{
 					// we play the sound but don't use it, so zero the data
 					dtL = zeroes;
@@ -132,7 +128,7 @@ namespace QA40xPlot.Libraries
 			await Qa40x.DoUserAcquisition(dtL, dtR);
 			soundObj?.Stop();
 
-			if (ct.IsCancellationRequested )
+			if (ct.IsCancellationRequested)
 				return lrfs;
 
 			{
@@ -140,7 +136,7 @@ namespace QA40xPlot.Libraries
 				var gain = MathUtil.ToDouble(ViewSettings.ExternalGain, 0);
 				if (gain != 0.0)
 				{
-					gain = 1.0 / QaLibrary.ConvertVoltage(gain, Data.E_VoltageUnit.dBV, Data.E_VoltageUnit.Volt);	// linearize
+					gain = 1.0 / QaLibrary.ConvertVoltage(gain, Data.E_VoltageUnit.dBV, Data.E_VoltageUnit.Volt);   // linearize
 					lrfs.TimeRslt.Left = lrfs.TimeRslt.Left.Select(x => x * gain).ToArray();
 					lrfs.TimeRslt.Right = lrfs.TimeRslt.Right.Select(x => x * gain).ToArray();
 				}
@@ -148,7 +144,7 @@ namespace QA40xPlot.Libraries
 					return lrfs;
 			}
 
-			if(getFreq)
+			if (getFreq)
 			{
 				// we do the math here to support more windowing options
 				// but more importantly we scaled the time result for an external gain device

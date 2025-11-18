@@ -30,11 +30,11 @@ namespace QA40xPlot.QA430
 			// Attempt to open QA430 device
 			_ModelName = string.Empty;
 			UsbDevice usbdev = UsbDevice.OpenUsbDevice(_USBFindQA430);
-			if(usbdev != null)
+			if (usbdev != null)
 			{
 				_ModelName = "QA430";
 			}
-			if(usbdev != null)
+			if (usbdev != null)
 			{
 				// note that this is always null in my installation which seems to be WinUsb
 				var iusbdev = usbdev as IUsbDevice;
@@ -59,7 +59,7 @@ namespace QA40xPlot.QA430
 			if (_AttachedDevice != null)
 			{
 				// for some reason close crashes when exiting
-				if(_AttachedDevice.IsOpen && !OnExit)
+				if (_AttachedDevice.IsOpen && !OnExit)
 				{
 					var iusbdev = _AttachedDevice as IUsbDevice;
 					iusbdev?.ReleaseInterface(_IdInterface);

@@ -7,7 +7,6 @@ using ScottPlot.Plottables;
 using System.Data;
 using System.Net.Http;
 using System.Windows;
-using System.Windows.Interop;
 using static QA40xPlot.ViewModels.BaseViewModel;
 
 namespace QA40xPlot.Actions
@@ -265,7 +264,7 @@ namespace QA40xPlot.Actions
 					var all2 = LookupColumn(o, x); // lookup the columns
 					if (o.Definition.IsOnL)
 						myset.Add(all2.Item1);
-					if(myset.Count == 2)
+					if (myset.Count == 2)
 						break;
 					if (o.Definition.IsOnR)
 						myset.Add(all2.Item2);
@@ -344,7 +343,7 @@ namespace QA40xPlot.Actions
 			else
 			{
 				OtherTabs.Add(page); // add the new one
-				//var oss = new OtherSet(page.Definition.Name, page.Show, page.Id);
+									 //var oss = new OtherSet(page.Definition.Name, page.Show, page.Id);
 				MyVModel.OtherSetList.Add(page.Definition);
 			}
 
@@ -384,7 +383,7 @@ namespace QA40xPlot.Actions
 		}
 
 		public async Task RunMeasurement()
-		{ 
+		{
 			var thdAmp = MyVModel;
 
 			ct = new();
@@ -431,9 +430,9 @@ namespace QA40xPlot.Actions
 			await QaComm.SetSampleRate(vm.SampleRateVal);
 			await QaComm.SetFftSize(vm.FftSizeVal);
 			await QaComm.SetWindowing(vm.WindowingMethod);
-				// set the input range to 0dB for low noise
-				// this only applies for the noise measurement
-			await QaComm.SetInputRange(0);  
+			// set the input range to 0dB for low noise
+			// this only applies for the noise measurement
+			await QaComm.SetInputRange(0);
 
 			// ********************************************************************
 			// Do noise floor measurement
@@ -448,10 +447,10 @@ namespace QA40xPlot.Actions
 			//QaLibrary.PlotMiniFftGraph(fftPlot, noisy.FreqRslt, vm.ShowLeft, vm.ShowRight);
 			//QaLibrary.PlotMiniTimeGraph(timePlot, noisy.TimeRslt, testFrequency, vm.ShowLeft, vm.ShowRight);
 
-			WaveGenerator.SetEnabled(true);	 // turn on the generator
-			// ********************************************************************
-			// Step through the list of voltages
-			// ********************************************************************
+			WaveGenerator.SetEnabled(true);  // turn on the generator
+											 // ********************************************************************
+											 // Step through the list of voltages
+											 // ********************************************************************
 			for (int i = 0; i < stepInVoltages.Length; i++)
 			{
 				// attenuate for both channels
@@ -468,7 +467,7 @@ namespace QA40xPlot.Actions
 
 				// Set generator
 				await QaComm.SetInputRange(attenuate);
-				thdAmp.Attenuation = attenuate;	// update the GUI
+				thdAmp.Attenuation = attenuate; // update the GUI
 				vm.Attenuation = attenuate; // update the model data
 
 				LeftRightSeries? lrfs = null;
@@ -513,7 +512,7 @@ namespace QA40xPlot.Actions
 				page.TimeRslt = lrfs.TimeRslt ?? new();
 				page.FreqRslt = lrfs.FreqRslt;
 
-				if (page.TimeRslt.Left.Length == 0 || lrfs.FreqRslt == null )               // Check in bin within range
+				if (page.TimeRslt.Left.Length == 0 || lrfs.FreqRslt == null)               // Check in bin within range
 					break;
 
 				// Plot the mini graphs
@@ -680,7 +679,7 @@ namespace QA40xPlot.Actions
 				myPlot.Axes.SetLimits(Math.Log10(ToD(thdFreq.GraphStartX, .001)), Math.Log10(ToD(thdFreq.GraphEndX, .001)),
 					Math.Log10(ToD(thdFreq.RangeBottom)), Math.Log10(ToD(thdFreq.RangeTop)));
 			}
-			catch 
+			catch
 			{
 			}
 			UpdatePlotTitle();
@@ -782,7 +781,7 @@ namespace QA40xPlot.Actions
 			double[] amps = [];
 			foreach (var col in columns)
 			{
-				switch(ttype)
+				switch (ttype)
 				{
 					case E_GeneratorDirection.INPUT_VOLTAGE:
 						amps = col.Select(x => x.GenVolts).ToArray();

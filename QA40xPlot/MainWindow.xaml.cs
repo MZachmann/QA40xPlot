@@ -1,6 +1,4 @@
-﻿using Microsoft.Win32;
-using Newtonsoft.Json;
-using QA40xPlot.BareMetal;
+﻿using QA40xPlot.BareMetal;
 using QA40xPlot.Libraries;
 using QA40xPlot.QA430;
 using QA40xPlot.ViewModels;
@@ -66,7 +64,7 @@ namespace QA40xPlot
 			var ffile = ((App)Application.Current).DefaultCfg;
 			string fload = string.Empty;
 			string fpath;
-			if ( Path.IsPathRooted(ffile) )
+			if (Path.IsPathRooted(ffile))
 			{
 				fpath = ffile;
 			}
@@ -126,7 +124,7 @@ namespace QA40xPlot
 				Process.Start(new ProcessStartInfo(dir + filename) { UseShellExecute = true });
 				e.Handled = true;
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
 				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
 			}
@@ -137,10 +135,10 @@ namespace QA40xPlot
 		{
 			try
 			{
-				if( ViewSettings.Singleton.MainVm.HasQA430 == false)
+				if (ViewSettings.Singleton.MainVm.HasQA430 == false)
 				{
 					var nowHave = QA430Model.BeginQA430Op();
-					if(!nowHave)
+					if (!nowHave)
 					{
 						MessageBox.Show("QA-430 device not connected.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
 						return;
@@ -148,9 +146,9 @@ namespace QA40xPlot
 				}
 				var x = QA430.Qa430Usb.Singleton;
 				var wind = x?.QAModel.MyWindow;
-				if(wind != null)
+				if (wind != null)
 				{
-					if(wind.IsVisible)
+					if (wind.IsVisible)
 						wind.Hide();
 					else
 						wind.Show();
@@ -177,7 +175,7 @@ namespace QA40xPlot
 			this.InvalidateVisual();
 
 			// now start QA430 if possible
-			if(ViewSettings.Singleton != null)
+			if (ViewSettings.Singleton != null)
 			{
 				ViewSettings.Singleton.MainVm.ShowQA430 = ViewSettings.Singleton.SettingsVm.EnableQA430;
 				if (ViewSettings.Singleton.MainVm.ShowQA430)
@@ -189,14 +187,14 @@ namespace QA40xPlot
 		{
 			try
 			{
-				if(ViewSettings.Singleton.MainVm.HasQA430)
+				if (ViewSettings.Singleton.MainVm.HasQA430)
 					QA430Model.EndQA430Op();
 
 				if (ViewSettings.Singleton.SettingsVm.RelayUsage != "Never")
 				{
-					if (!ViewSettings.IsUseREST )
+					if (!ViewSettings.IsUseREST)
 					{
-						var qadev = QaComm.CheckDeviceConnected();	// this will try to reopen the usb
+						var qadev = QaComm.CheckDeviceConnected();  // this will try to reopen the usb
 						var iscon = qadev.AsTask().Wait(50);
 					}
 					// set max attenuation for safety, turns on ATTEN led
@@ -222,7 +220,7 @@ namespace QA40xPlot
 				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
 			}
 			// do my stuff before closing
-			if ( ViewSettings.IsSaveOnExit)
+			if (ViewSettings.IsSaveOnExit)
 			{
 				try
 				{
@@ -255,16 +253,16 @@ namespace QA40xPlot
 					var ti = item as TabItem;
 					if (ti != null)
 					{
-						if(ti.Visibility == Visibility.Visible)
+						if (ti.Visibility == Visibility.Visible)
 							ct++;
-						if(calcWidth)
+						if (calcWidth)
 						{
 							var u = new TextBox();
 							_MaxTabWidth = Math.Max(_MaxTabWidth, 10 + MathUtil.MeasureString(u, ti.Header as string));
 						}
 					}
 				}
-				ViewSettings.Singleton.MainVm.MaxTab = Math.Max(80, Math.Max(_MaxTabWidth, w / (ct+1)));
+				ViewSettings.Singleton.MainVm.MaxTab = Math.Max(80, Math.Max(_MaxTabWidth, w / (ct + 1)));
 			}
 		}
 	}

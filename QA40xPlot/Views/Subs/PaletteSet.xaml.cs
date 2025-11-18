@@ -1,10 +1,6 @@
-﻿using QA40xPlot.Data;
-using QA40xPlot.Libraries;
-using QA40xPlot.ViewModels;
+﻿using QA40xPlot.ViewModels;
 using QA40xPlot.ViewModels.Subs;
-using ScottPlot.NamedColors;
 using System.Collections.ObjectModel;
-using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -35,10 +31,10 @@ namespace QA40xPlot.Views
 					ColorName = color
 				});
 			}
-			if( hexlist.Length < ThePalette.PaletteSize)
+			if (hexlist.Length < ThePalette.PaletteSize)
 			{
 				var j = ThePalette.PaletteSize - hexlist.Length;
-				for(int i=0; i<j; i++)
+				for (int i = 0; i < j; i++)
 				{
 					PaletteColors.Add(new ColorInfo
 					{
@@ -133,15 +129,16 @@ namespace QA40xPlot.Views
 				button.Children.Add(clrbutton);
 				button.Children.Add(txtbutton);
 				indx++;
-				clrbutton.PropertyChanged += (sender,e) =>
-				{	if (e.PropertyName == nameof(ColorBox.Color))
+				clrbutton.PropertyChanged += (sender, e) =>
+				{
+					if (e.PropertyName == nameof(ColorBox.Color))
 					{
 						ApplySet(); // apply the changes when the color changes
 					}
 				};
 
 				wrap.Children.Add(button);
-				_Buttons.Add(clrbutton);	// so we can do ok easily
+				_Buttons.Add(clrbutton);    // so we can do ok easily
 			}
 		}
 

@@ -20,7 +20,7 @@ public class FreqRespViewModel : BaseViewModel
 
 	private ActFrequencyResponse MyAction { get => actFreq; }
 	private PlotControl actPlot { get; set; }
-	private ActFrequencyResponse actFreq { get;  set; }
+	private ActFrequencyResponse actFreq { get; set; }
 	[JsonIgnore]
 	public AsyncRelayCommand DoStart { get => new AsyncRelayCommand(StartIt); }
 	[JsonIgnore]
@@ -185,7 +185,7 @@ public class FreqRespViewModel : BaseViewModel
 				{
 					actAbout.Visibility = ShowTabInfo ? Visibility.Visible : Visibility.Hidden;
 					var fvm = actAbout.DataContext as FloorViewModel;
-					if( fvm != null)
+					if (fvm != null)
 						fvm.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd; ;
 				}
 				break;
@@ -197,7 +197,7 @@ public class FreqRespViewModel : BaseViewModel
 				break;
 			case "TestType":
 				// set the tab header as we change type
-				if( ViewSettings.Singleton != null && ViewSettings.Singleton.MainVm != null && ViewSettings.Singleton.MainVm.FreqRespHdr != null)
+				if (ViewSettings.Singleton != null && ViewSettings.Singleton.MainVm != null && ViewSettings.Singleton.MainVm.FreqRespHdr != null)
 				{
 					ViewSettings.Singleton.MainVm.FreqRespHdr = TestType;
 				}
@@ -219,9 +219,9 @@ public class FreqRespViewModel : BaseViewModel
 				MyAction?.UpdateGraph(false);
 				break;
 			case "SampleRate":
-				if(IsChirp)
+				if (IsChirp)
 				{
-					if( SampleRate == "96000")
+					if (SampleRate == "96000")
 					{
 						this.FftSize = "64K";
 					}
@@ -289,12 +289,12 @@ public class FreqRespViewModel : BaseViewModel
 
 	private static async Task LoadItTab()
 	{
-		await DoGetLoad(MyVModel.actFreq, PlotFileFilter, true);
+		await DoGetLoad(MyVModel.MyAction, PlotFileFilter, true);
 	}
 
 	private static async Task GetItTab()
 	{
-		await DoGetLoad(MyVModel.actFreq, PlotFileFilter, false);
+		await DoGetLoad(MyVModel.MyAction, PlotFileFilter, false);
 	}
 
 
@@ -330,7 +330,7 @@ public class FreqRespViewModel : BaseViewModel
 		{
 			// Save document
 			string filename = saveFileDialog.FileName;
-			if (filename.Count() > 1)
+			if (filename.Length > 1)
 			{
 				var vm = MyVModel;
 				vm.actFreq.SaveToFile(filename);
@@ -341,7 +341,7 @@ public class FreqRespViewModel : BaseViewModel
 	private void OnViewToFit(object? parameter)
 	{
 		var pram = parameter as string;
-		if (pram == null) 
+		if (pram == null)
 			return;
 		MyAction.PinGraphRange(pram);
 	}
@@ -401,7 +401,7 @@ public class FreqRespViewModel : BaseViewModel
 		var zv = MyAction.LookupX(FreqValue);
 		var ttype = GetTestingType(TestType);
 		FreqShow = zv.Item1.ToString("0.# Hz");
-		switch ( ttype)
+		switch (ttype)
 		{
 			case TestingType.Crosstalk:
 				ZValue = "Left: " + (20 * Math.Log10(zv.Item2)).ToString("0.## dB") + Environment.NewLine + "Right: " + (20 * Math.Log10(zv.Item3)).ToString("0.## dB");
@@ -417,7 +417,7 @@ public class FreqRespViewModel : BaseViewModel
 					ZValue += Environment.NewLine + "X: " + MathUtil.FormatUnits(x.Real, "R") + ", " + MathUtil.FormatUnits(x.Imaginary, "I");
 					var res = MathUtil.FormatResistance(x.Real);
 					string sadd = string.Empty;
-					if(x.Imaginary >= 0)
+					if (x.Imaginary >= 0)
 					{
 						var ind = MathUtil.FormatInductance(x.Imaginary / (2 * Math.PI * zv.Item1));       // imaginary over 2piF
 						sadd = res + " + " + ind;
@@ -476,7 +476,7 @@ public class FreqRespViewModel : BaseViewModel
 		Show1dBBandwidth_L = false;
 		Show1dBBandwidth_R = false;
 		ShowPoints = true;
-		TestType = TestTypes[0];	// this messes up if we start at impedance and set to impedance later so ??
+		TestType = TestTypes[0];    // this messes up if we start at impedance and set to impedance later so ??
 
 		PlotFormat = "dBV";
 

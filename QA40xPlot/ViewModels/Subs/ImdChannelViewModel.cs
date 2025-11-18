@@ -1,12 +1,5 @@
-﻿using QA40xPlot.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Newtonsoft.Json;
-using System.Threading.Tasks;
-using System.Windows.Controls;
-using QA40xPlot.Libraries;
+﻿using Newtonsoft.Json;
+using QA40xPlot.Data;
 
 namespace QA40xPlot.ViewModels
 {
@@ -200,8 +193,8 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowDataPercents, value);
 		}
 
-		public ImdChannelViewModel() 
-		{ 
+		public ImdChannelViewModel()
+		{
 		}
 
 	}

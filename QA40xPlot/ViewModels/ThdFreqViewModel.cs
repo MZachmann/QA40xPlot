@@ -280,12 +280,12 @@ namespace QA40xPlot.ViewModels
 
 		private static async Task LoadItTab()
 		{
-			await DoGetLoad(MyVModel.actThd, PlotFileFilter, true);
+			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, true);
 		}
 
 		private static async Task GetItTab()
 		{
-			await DoGetLoad(MyVModel.actThd, PlotFileFilter, false);
+			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, false);
 		}
 
 
@@ -313,7 +313,7 @@ namespace QA40xPlot.ViewModels
 			{
 				// Save document
 				string filename = saveFileDialog.FileName;
-				if (filename.Count() > 1)
+				if (filename.Length > 1)
 				{
 					MyVModel.actThd.SaveToFile(filename);
 				}
@@ -381,7 +381,7 @@ namespace QA40xPlot.ViewModels
 			}
 			ZValue = string.Empty;
 			var zv = MyAction.LookupX(FreqValue);
-			if(zv.Length > 0)
+			if (zv.Length > 0)
 			{
 				FreqShow = MathUtil.FormatLogger(zv[0].Freq);
 				foreach (var item in zv)
@@ -446,7 +446,7 @@ namespace QA40xPlot.ViewModels
 			GenVoltage = "0.10";
 
 			ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
-			ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;          
+			ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;
 			// make a few things happen to synch the gui. don't await this.
 			Task.Delay(1000).ContinueWith(t => { MyAction?.UpdateGraph(true); });
 		}

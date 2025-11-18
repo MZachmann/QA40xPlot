@@ -5,7 +5,7 @@ using System.Windows.Controls;
 
 namespace QA40xPlot.Views
 {
-	public partial class ColorBox : UserControl , INotifyPropertyChanged
+	public partial class ColorBox : UserControl, INotifyPropertyChanged
 	{
 		public ColorBox()
 		{
@@ -24,7 +24,7 @@ namespace QA40xPlot.Views
 			var colorPickerDialog = new ColorPicker(Color);
 			var originalColor = Color;
 			colorPickerDialog.CallMe = OnColorChange;
-			colorPickerDialog.DataContext = this.DataContext;	// so background color is right
+			colorPickerDialog.DataContext = this.DataContext;   // so background color is right
 			if (colorPickerDialog.ShowDialog() == true)
 			{
 				Color = colorPickerDialog.NowColor;
@@ -54,7 +54,7 @@ namespace QA40xPlot.Views
 				// this is called when it gets set by palette editor
 				var oldc = Color;
 				SetValue(ColorProperty, value);
-				if( oldc != Color)
+				if (oldc != Color)
 					RaisePropertyChanged("Color");
 			}
 		}

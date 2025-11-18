@@ -6,14 +6,13 @@ using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.QA430;
 using QA40xPlot.Views;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 
 namespace QA40xPlot.ViewModels
 {
-	public class FreqSweepViewModel :OpampViewModel
+	public class FreqSweepViewModel : OpampViewModel
 	{
 		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 
@@ -54,7 +53,7 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _VaryGain;
 			set { SetProperty(ref _VaryGain, value); RaisePropertyChanged("GainSummary"); }
-}
+		}
 
 		private bool _VarySupply = false;
 		public bool VarySupply
@@ -294,12 +293,12 @@ namespace QA40xPlot.ViewModels
 
 		private static async Task LoadItTab()
 		{
-			await DoGetLoad(MyVModel.actFreq, PlotFileFilter, true);
+			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, true);
 		}
 
 		private static async Task GetItTab()
 		{
-			await DoGetLoad(MyVModel.actFreq, PlotFileFilter, false);
+			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, false);
 		}
 
 		public static void UpdateGain()
@@ -346,7 +345,7 @@ namespace QA40xPlot.ViewModels
 			{
 				// Save document
 				string filename = saveFileDialog.FileName;
-				if (filename.Count() > 1)
+				if (filename.Length > 1)
 				{
 					MyVModel.actFreq.SaveToFile(filename);
 				}
@@ -414,10 +413,10 @@ namespace QA40xPlot.ViewModels
 			}
 			ZValue = string.Empty;
 			var zv = MyAction.LookupX(FreqValue);
-			if(zv.Length > 0)
+			if (zv.Length > 0)
 			{
 				FreqShow = MathUtil.FormatLogger(zv[0].Column.Freq);
-				if(! ShowMagnitude)
+				if (!ShowMagnitude)
 					ZValue += "Mag: " + FormatValue(zv[0].Column.Mag, zv[0].Column.Mag) + Environment.NewLine;
 				foreach (var item in zv)
 				{
@@ -477,7 +476,7 @@ namespace QA40xPlot.ViewModels
 			GenVoltage = "0.10";
 
 			ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
-			ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;          
+			ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;
 			// make a few things happen to synch the gui. don't await this.
 			Task.Delay(1000).ContinueWith(t => { MyAction?.UpdateGraph(true); });
 		}

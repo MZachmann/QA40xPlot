@@ -2,19 +2,15 @@
 
 // this aggregates the settings somewhere static, which does mean only one of each
 
-using System.Reflection;
-using System.Windows;
 using Newtonsoft.Json;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
-using QA40xPlot.Views;
-using ScottPlot;
 
 namespace QA40xPlot.ViewModels
 {
 	public class ViewSettings
 	{
-		private readonly Dictionary<string, string> _ProductTitle = new Dictionary<string, string>() { { "Name", "QA40xPlot" }, { "Version", "0.20"} };
+		private readonly Dictionary<string, string> _ProductTitle = new Dictionary<string, string>() { { "Name", "QA40xPlot" }, { "Version", "0.20" } };
 		public Dictionary<string, string> Product { get { return _ProductTitle; } private set {; } }
 		public static ViewSettings Singleton { get; private set; } = new ViewSettings();
 		public SpectrumViewModel SpectrumVm { get; private set; }
@@ -71,21 +67,21 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public static double NoiseBandwidth { get => MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.NoiseBandwidthStr, 20000); }
 
-		public void GetSettingsFrom( Dictionary<string, Dictionary<string,object>> vws)
+		public void GetSettingsFrom(Dictionary<string, Dictionary<string, object>> vws)
 		{
-			Util.GetPropertiesFrom(vws,"SpectrumVm",SpectrumVm);
-			Util.GetPropertiesFrom(vws,"ImdVm",ImdVm);
-			Util.GetPropertiesFrom(vws,"ThdAmp",ThdAmp);
-			Util.GetPropertiesFrom(vws,"ThdFreq",ThdFreq);
-			Util.GetPropertiesFrom(vws,"FreqRespVm",FreqRespVm);
-			Util.GetPropertiesFrom(vws,"ScopeVm", ScopeVm);
+			Util.GetPropertiesFrom(vws, "SpectrumVm", SpectrumVm);
+			Util.GetPropertiesFrom(vws, "ImdVm", ImdVm);
+			Util.GetPropertiesFrom(vws, "ThdAmp", ThdAmp);
+			Util.GetPropertiesFrom(vws, "ThdFreq", ThdFreq);
+			Util.GetPropertiesFrom(vws, "FreqRespVm", FreqRespVm);
+			Util.GetPropertiesFrom(vws, "ScopeVm", ScopeVm);
 			Util.GetPropertiesFrom(vws, "FreqVm", FreqVm);
 			Util.GetPropertiesFrom(vws, "AmpSweepVm", AmpSweepVm);
 			Util.GetPropertiesFrom(vws, "MainVm", MainVm);
-			Util.GetPropertiesFrom(vws, "SettingsVm", SettingsVm);	// this will update global settings last which makes sense
+			Util.GetPropertiesFrom(vws, "SettingsVm", SettingsVm);  // this will update global settings last which makes sense
 		}
 
-		public ViewSettings() 
+		public ViewSettings()
 		{
 			SettingsVm = new SettingsViewModel();
 			MainVm = new MainViewModel();

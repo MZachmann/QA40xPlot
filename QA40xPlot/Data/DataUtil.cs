@@ -85,7 +85,7 @@
 			return result;
 		}
 
-			/// <summary>
+		/// <summary>
 		/// find the shown Left,Right properties in the datatab list
 		/// </summary>
 		/// <typeparam name="T"></typeparam>

@@ -32,10 +32,10 @@ namespace QA40xPlot.BareMetal
 			// Attempt to open QA402 or QA403 device
 			_ModelName = string.Empty;
 			UsbDevice usbdev = UsbDevice.OpenUsbDevice(_USBFindQA402);
-			if(usbdev == null)
+			if (usbdev == null)
 			{
 				usbdev = UsbDevice.OpenUsbDevice(_USBFindQA403);
-				if(usbdev != null)
+				if (usbdev != null)
 				{
 					_ModelName = "QA403";
 
@@ -50,7 +50,7 @@ namespace QA40xPlot.BareMetal
 			//	throw new Exception("No QA402/QA403 analyzer found");
 			//}
 			// note that this is always null in my installation which seems to be WinUsb
-			if(usbdev != null)
+			if (usbdev != null)
 			{
 				var iusbdev = usbdev as IUsbDevice;
 				iusbdev?.ResetDevice();
@@ -75,7 +75,7 @@ namespace QA40xPlot.BareMetal
 			if (_AttachedDevice != null)
 			{
 				// for some reason close crashes when exiting
-				if(_AttachedDevice.IsOpen && !OnExit)
+				if (_AttachedDevice.IsOpen && !OnExit)
 				{
 					var iusbdev = _AttachedDevice as IUsbDevice;
 					iusbdev?.ReleaseInterface(_IdInterface);

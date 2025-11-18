@@ -1,8 +1,4 @@
-﻿using QA40xPlot.Libraries;
-using QA40xPlot.ViewModels;
-using System;
-using System.Runtime.CompilerServices;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 
 namespace QA40xPlot.Views
@@ -72,10 +68,11 @@ namespace QA40xPlot.Views
 		public int Value
 		{
 			get => (int)GetValue(ValueProperty);
-			set { 
-					value = Math.Max(Minimum, Math.Min(Maximum, value));
-					SetValue(ValueProperty, value);
-				}
+			set
+			{
+				value = Math.Max(Minimum, Math.Min(Maximum, value));
+				SetValue(ValueProperty, value);
+			}
 		}
 
 		public int Minimum

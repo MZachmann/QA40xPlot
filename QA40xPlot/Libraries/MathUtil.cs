@@ -15,7 +15,7 @@ namespace QA40xPlot.Libraries
 		public static double ToDouble(string? text, double fallback = 1e-6)
 		{
 			CultureInfo usCulture = new CultureInfo("en-US");
-			if( text == null)
+			if (text == null)
 				return fallback; // return fallback if text is null
 
 			string txtInt = text.Replace(',', '.');     // convert commas to decimal points for US culture
@@ -117,9 +117,9 @@ namespace QA40xPlot.Libraries
 			{
 				rslt = (val / 1000000).ToString("0.###") + "M" + units;
 			}
-			else if ( val >= 1000)
+			else if (val >= 1000)
 			{
-				rslt = (val/1000).ToString("0.###") + "K" + units;
+				rslt = (val / 1000).ToString("0.###") + "K" + units;
 			}
 			else if (val >= 1)
 			{

@@ -1,6 +1,5 @@
 ﻿using QA40xPlot.ViewModels;
 using System.Windows.Controls;
-using Windows.UI.ViewManagement;
 
 namespace QA40xPlot.Views
 {

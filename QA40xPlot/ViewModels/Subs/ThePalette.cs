@@ -1,16 +1,11 @@
 ﻿using ScottPlot;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QA40xPlot.ViewModels.Subs
 {
 	public class ThePalette : IPalette
 	{
-		public static int PaletteSize { get => 20; }		// expected palette length
+		public static int PaletteSize { get => 20; }        // expected palette length
 		private string _HexString = string.Empty;
 		private string[] _HexList = [];
 		private uint[] _HexColors = [];
@@ -22,7 +17,7 @@ namespace QA40xPlot.ViewModels.Subs
 
 		private uint[] ParseColors(string hexColors)
 		{
-			if( _HexString != hexColors )
+			if (_HexString != hexColors)
 			{
 				try
 				{
@@ -52,7 +47,7 @@ namespace QA40xPlot.ViewModels.Subs
 
 		public string GetColorName(int index)
 		{
-			if(_HexList.Length == 0)
+			if (_HexList.Length == 0)
 				return "Transparent"; // default to transparent if no colors are defined
 			return _HexList[index % _HexList.Length];
 		}

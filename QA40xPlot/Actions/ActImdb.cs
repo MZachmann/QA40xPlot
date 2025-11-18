@@ -5,7 +5,6 @@ using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
-using System.Diagnostics.Metrics;
 using System.Windows;
 using System.Windows.Media;
 using static QA40xPlot.ViewModels.BaseViewModel;
@@ -18,7 +17,7 @@ namespace QA40xPlot.Actions
 	using MyDataTab = DataTab<ImdViewModel>;
 
 	public class ActImd : ActBase
-    {
+	{
 		public MyDataTab PageData { get; private set; } // Data used in this form instance
 		private List<MyDataTab> OtherTabs { get; set; } = new List<MyDataTab>(); // Other tabs in the document
 		private readonly Views.PlotControl fftPlot;
@@ -32,7 +31,7 @@ namespace QA40xPlot.Actions
 		/// Constructor
 		/// </summary>
 		public ActImd(Views.PlotControl graphFft)
-        {
+		{
 			fftPlot = graphFft;
 			ct = new CancellationTokenSource();
 			PageData = new(MyVModel, new LeftRightTimeSeries());
@@ -49,8 +48,8 @@ namespace QA40xPlot.Actions
 
 
 		public void DoCancel()
-        {
-            ct.Cancel();
+		{
+			ct.Cancel();
 		}
 
 		// create a blob with F,Left,Right data for export
@@ -66,7 +65,7 @@ namespace QA40xPlot.Actions
 			var sampleRate = MathUtil.ToUint(imdVm.SampleRate);
 			var fftsize = vfs.Left.Length;
 			var binSize = QaLibrary.CalcBinSize(sampleRate, (uint)fftsize);
-			if(imdVm.ShowRight && ! imdVm.ShowLeft)
+			if (imdVm.ShowRight && !imdVm.ShowLeft)
 			{
 				db.LeftData = vfs.Right.ToList();
 			}
@@ -126,7 +125,7 @@ namespace QA40xPlot.Actions
 			}
 			await PostProcess(page, ct.Token);
 
-			if( isMain)
+			if (isMain)
 			{
 				// we can't overwrite the viewmodel since it links to the display proper
 				// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
@@ -140,7 +139,7 @@ namespace QA40xPlot.Actions
 			else
 			{
 				OtherTabs.Add(page); // add the new one
-				//var oss = new OtherSet(page.Definition.Name, page.Show, page.Id);
+									 //var oss = new OtherSet(page.Definition.Name, page.Show, page.Id);
 				MyVModel.OtherSetList.Add(page.Definition);
 			}
 
@@ -148,7 +147,7 @@ namespace QA40xPlot.Actions
 		}
 
 		private static double[] BuildWave(MyDataTab page, double volts)
-		{ 
+		{
 			var vm = page.ViewModel;
 			var freq = vm.NearestBinFreq(vm.Gen1Frequency);
 			var freq2 = vm.NearestBinFreq(vm.Gen2Frequency);
@@ -171,7 +170,7 @@ namespace QA40xPlot.Actions
 			var vsee1 = MathUtil.FormatVoltage(v1);
 			var vsee2 = MathUtil.FormatVoltage(v2);
 			string vout = "";
-			if(vm.UseGenerator && vm.UseGenerator2)
+			if (vm.UseGenerator && vm.UseGenerator2)
 			{
 				vout = $"{vsee1}, {vsee2}";
 			}
@@ -351,7 +350,7 @@ namespace QA40xPlot.Actions
 				int[] frqtest = [ToBinNumber(freq, LRGains)];
 				var genVolt = vm.ToGenVoltage(vm.Gen1Voltage, frqtest, GEN_INPUT, gains);   // input voltage 1
 
-				msr.Definition.GeneratorVoltage = genVolt;	// used by the buildwave
+				msr.Definition.GeneratorVoltage = genVolt;  // used by the buildwave
 
 				// Check if cancel button pressed
 				if (ct.IsCancellationRequested)
@@ -406,7 +405,7 @@ namespace QA40xPlot.Actions
 			var freq2 = vm.NearestBinFreq(vm.Gen2Frequency);
 			var u = freq;
 			freq = Math.Min(freq, freq2);
-			freq2 = Math.Max(u, freq2);	// freq2 is always the largest
+			freq2 = Math.Max(u, freq2); // freq2 is always the largest
 			var lrfs = msr.FreqRslt;    // frequency response
 
 			var maxScan = lrfs.Df * lrfs.Left.Length;
@@ -455,7 +454,7 @@ namespace QA40xPlot.Actions
 				}
 				step.NoiseFloorV = (isleft ? floor.Left : floor.Right);
 				step.NoiseFloorPct = 100 * step.NoiseFloorV / denom; // ?
-				// note that all imd calculations use the fundamental2 value as base
+																	 // note that all imd calculations use the fundamental2 value as base
 				step.ThdNInV = denom * QaLibrary.ConvertVoltage(isleft ? thdN.Left : thdN.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
 				step.ThdInV = denom * QaLibrary.ConvertVoltage(isleft ? thds.Left : thds.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
 				step.ThdInPercent = 100 * step.ThdInV / denom;
@@ -585,22 +584,22 @@ namespace QA40xPlot.Actions
 				// check 4 harmonics of power frequency
 				for (int i = 1; i < 5; i++)
 				{
-					var data = QaMath.MagAtFreq(fftdata, vm.FftSizeVal, fsel*i);
+					var data = QaMath.MagAtFreq(fftdata, vm.FftSizeVal, fsel * i);
 					double udif = 20 * Math.Log10(data);
-					AddAMarker(page, fsel*i, true);
+					AddAMarker(page, fsel * i, true);
 				}
 			}
 		}
 
-		private void Addif(ref List<double> frqs, double dval )
+		private void Addif(ref List<double> frqs, double dval)
 		{
-			if( dval > 0)
+			if (dval > 0)
 				frqs.Add(dval);
 		}
 
 		private double[] MakeHarmonics(double f1, double f2, double maxF)
 		{
-			if( f1 > f2)
+			if (f1 > f2)
 			{
 				var a = f2;
 				f2 = f1;
@@ -608,17 +607,17 @@ namespace QA40xPlot.Actions
 			}
 			List<double> harmFreqs = new List<double>();
 			//2nd order
-			var hf = harmFreqs.Append(f2 - f1);	// d2L
+			var hf = harmFreqs.Append(f2 - f1); // d2L
 			hf = hf.Append(f2 + f1);            // d2H
-			//3rd order
+												//3rd order
 			hf = hf.Append(f2 - 2 * f1);        // d3L
-			hf = hf.Append(f2 + 2*f1);          // d3H
+			hf = hf.Append(f2 + 2 * f1);          // d3H
 			hf = hf.Append(f1 - 2 * f2);        // d3La
-			hf = hf.Append(f1 + 2*f2);          // d3Ha
-			//4th order for f2 only
+			hf = hf.Append(f1 + 2 * f2);          // d3Ha
+												  //4th order for f2 only
 			hf = hf.Append(f2 - 3 * f1);        // d4L
-			hf = hf.Append(f2 + 3*f1);			// d4H
-			//5th order for f2 only
+			hf = hf.Append(f2 + 3 * f1);            // d4H
+													//5th order for f2 only
 			hf = hf.Append(f2 + 4 * f1);        // d2hl
 			hf = hf.Append(f2 - 4 * f1);
 			// the displayer shows zeros for out of range, so keep all freqs here
@@ -626,19 +625,19 @@ namespace QA40xPlot.Actions
 			return hf.ToArray();
 		}
 
-        /// <summary>
-        /// Clear the plot
-        /// </summary>
-        void ClearPlot()
-        {
-            fftPlot.ThePlot.Clear();
-            fftPlot.Refresh();
-        }
+		/// <summary>
+		/// Clear the plot
+		/// </summary>
+		void ClearPlot()
+		{
+			fftPlot.ThePlot.Clear();
+			fftPlot.Refresh();
+		}
 
 		string GetTheTitle(ScottPlot.Plot myPlot)
 		{
 			var imdVm = MyVModel;
-			if( imdVm.IntermodType == "Custom")
+			if (imdVm.IntermodType == "Custom")
 				return "Intermodulation Distortion";
 			else
 			{
@@ -826,7 +825,7 @@ namespace QA40xPlot.Actions
 					channels.Add(mdl);
 					var clr = GraphUtil.PlotPalette.GetColorName(0);
 					var brs = new System.Windows.Media.BrushConverter().ConvertFromString(clr);
-					if(brs != null)
+					if (brs != null)
 						mdl.BorderColor = (Brush)brs;
 				}
 			}
@@ -880,11 +879,11 @@ namespace QA40xPlot.Actions
 		///  Start measurement button click
 		/// </summary>
 		public async Task DoMeasurement()
-        {
+		{
 			var imdVm = MyVModel;
-			if (! await StartAction(imdVm))
-				return; 
-            ct = new();
+			if (!await StartAction(imdVm))
+				return;
+			ct = new();
 
 			// sweep data
 			LeftRightTimeSeries lrts = new();
@@ -914,13 +913,13 @@ namespace QA40xPlot.Actions
 				// find the two input voltages for our testing
 				var v1in = vm.ToGenVoltage(vm.Gen1Voltage, frqtest, GEN_INPUT, gains);  // get generator voltage
 				var v2in = v1in / vm.GenDivisor;  // get second input voltage
-																						 // now find the output voltages for this input
-				var v1lout = ToGenOutVolts(v1in, frqtest, LRGains.Left);	// left channel output V
+												  // now find the output voltages for this input
+				var v1lout = ToGenOutVolts(v1in, frqtest, LRGains.Left);    // left channel output V
 				var v2lout = ToGenOutVolts(v2in, frq2test, LRGains.Left);
-				var v1rout = ToGenOutVolts(v1in, frqtest, LRGains.Right);	// right channel output V
+				var v1rout = ToGenOutVolts(v1in, frqtest, LRGains.Right);   // right channel output V
 				var v2rout = ToGenOutVolts(v2in, frq2test, LRGains.Right);
 				// just add them since they may be in phase
-				var vtotal = Math.Max(v1lout + v2lout, v1rout + v2rout);	// max sum 
+				var vtotal = Math.Max(v1lout + v2lout, v1rout + v2rout);    // max sum 
 
 
 				var vdbv = QaLibrary.ConvertVoltage(vtotal, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
@@ -1024,7 +1023,7 @@ namespace QA40xPlot.Actions
 
 			// if a frequency is out of range show it as zero values rather than removing it
 			// so we can keep fixed format of the summary table
-			foreach(var step in steps)
+			foreach (var step in steps)
 			{
 				List<HarmonicData> harmonics = new List<HarmonicData>();
 				for (int harmonicNumber = 0; harmonicNumber < freqList.Length; harmonicNumber++)                                                  // For now up to 12 harmonics, start at 2nd

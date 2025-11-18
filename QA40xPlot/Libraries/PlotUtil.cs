@@ -323,7 +323,7 @@ namespace QA40xPlot.Libraries
 		public static System.Windows.Media.DoubleCollection ScottToMedia(ScottPlot.LinePattern lp)
 		{
 			switch (lp.Name)
-			{ 
+			{
 				case "Dashed":
 					return new System.Windows.Media.DoubleCollection() { 5, 5, 5, 5, 5, 3 };
 				case "Dotted":
@@ -331,7 +331,7 @@ namespace QA40xPlot.Libraries
 				case "DenselyDashed":
 					return new System.Windows.Media.DoubleCollection() { 5, 2, 5, 2, 5, 2, 5, 2 };
 				default:
-					return new System.Windows.Media.DoubleCollection() {28};
+					return new System.Windows.Media.DoubleCollection() { 28 };
 			}
 		}
 
@@ -350,7 +350,7 @@ namespace QA40xPlot.Libraries
 		public static ScottPlot.Color MediaToScott(System.Windows.Media.Color clr)
 		{
 			// Convert the ScottPlot Color object to a System.Windows.Media.Color object
-			var c = new ScottPlot.Color( clr.A, clr.R, clr.G, clr.B);
+			var c = new ScottPlot.Color(clr.A, clr.R, clr.G, clr.B);
 			return c;
 		}
 
@@ -404,7 +404,7 @@ namespace QA40xPlot.Libraries
 		private static double ToBrightness(Color clr)
 		{
 			// BT.601 Y = 0.299 R + 0.587 G + 0.114 B
-			return clr.R * 0.299 + clr.G * 0.587 + clr.B * 0.114; 
+			return clr.R * 0.299 + clr.G * 0.587 + clr.B * 0.114;
 		}
 
 		/// <summary>

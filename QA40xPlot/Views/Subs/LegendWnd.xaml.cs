@@ -2,7 +2,6 @@
 using QA40xPlot.ViewModels;
 using QA40xPlot.ViewModels.Subs;
 using System.Collections.Specialized;
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -26,7 +25,7 @@ namespace QA40xPlot.Views
 		~LegendWnd()
 		{
 			var vm = this.DataContext as BaseViewModel;
-			if(vm != null && vm.LegendInfo != null)
+			if (vm != null && vm.LegendInfo != null)
 			{
 				vm.LegendInfo.CollectionChanged -= Vm_PropertyChanged;
 			}
@@ -42,9 +41,9 @@ namespace QA40xPlot.Views
 		// trap when we add data to the legend list
 		private void Vm_PropertyChanged(object? sender, NotifyCollectionChangedEventArgs e)
 		{
-			if(sender != null)
+			if (sender != null)
 			{
-				if(e.Action == NotifyCollectionChangedAction.Add)
+				if (e.Action == NotifyCollectionChangedAction.Add)
 				{
 					PopulateLegends();
 					checkReset = true;
@@ -58,7 +57,7 @@ namespace QA40xPlot.Views
 
 		private void OnWindMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
 		{
-			if(sender is LegendWnd)
+			if (sender is LegendWnd)
 			{
 				TheBorder.BorderBrush = System.Windows.Media.Brushes.Green;
 				_MovableWnd.OnWindMouseDown(sender, e);
@@ -83,15 +82,15 @@ namespace QA40xPlot.Views
 		private void PopulateLegends()
 		{
 			var baseview = DataContext as BaseViewModel;
-			if (baseview == null )
+			if (baseview == null)
 				return;
 			// empty the wrap panel
 
 			LegendWrapPanel.Children.Clear();
 			var info = baseview.LegendInfo; // short name of the list of markers
-			// convert marker info into a UIElement stackpanel
+											// convert marker info into a UIElement stackpanel
 			double maxSize = 0;
-			foreach(var marker in info)
+			foreach (var marker in info)
 			{
 				var kid = new StackPanel()
 				{
@@ -125,7 +124,7 @@ namespace QA40xPlot.Views
 			}
 			// now autosize
 			maxSize += 10;      // slop
-			// all but the none theme add more white space
+								// all but the none theme add more white space
 			var isSmall = (ViewSettings.Singleton.SettingsVm.ThemeSet == "None");
 			if (!isSmall)
 				maxSize += 20;
@@ -133,7 +132,7 @@ namespace QA40xPlot.Views
 			{
 				var st = kid as StackPanel;
 				// bump each textbox to be same width
-				if(st != null)
+				if (st != null)
 					((TextBox)st.Children[1]).Width = maxSize;
 			}
 			// now make the panel at most 10xn

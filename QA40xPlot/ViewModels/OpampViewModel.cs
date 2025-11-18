@@ -91,7 +91,7 @@ namespace QA40xPlot.ViewModels
 		// the value is set only when we load a configuration so parse it
 		public string VoltSummary
 		{
-			get 
+			get
 			{
 				var jn = Voltsets.ParseableList("0.1");
 				return jn;

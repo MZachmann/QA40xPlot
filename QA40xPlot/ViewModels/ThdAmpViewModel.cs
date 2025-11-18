@@ -20,7 +20,7 @@ namespace QA40xPlot.ViewModels
 
 		private ActThdAmplitude MyAction { get => actThd; }
 		private ActThdAmplitude actThd { get; set; }
-		private PlotControl actPlot {  get; set; }
+		private PlotControl actPlot { get; set; }
 
 		[JsonIgnore]
 		public RelayCommand DoStart { get => new RelayCommand(StartIt); }
@@ -252,12 +252,12 @@ namespace QA40xPlot.ViewModels
 
 		private static async Task LoadItTab()
 		{
-			await DoGetLoad(MyVModel.actThd, PlotFileFilter, true);
+			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, true);
 		}
 
 		private static async Task GetItTab()
 		{
-			await DoGetLoad(MyVModel.actThd, PlotFileFilter, false);
+			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, false);
 		}
 
 
@@ -285,7 +285,7 @@ namespace QA40xPlot.ViewModels
 			{
 				// Save document
 				string filename = saveFileDialog.FileName;
-				if (filename.Count() > 1)
+				if (filename.Length > 1)
 				{
 					MyAction.SaveToFile(filename);
 				}
@@ -306,7 +306,7 @@ namespace QA40xPlot.ViewModels
 			switch (parameter)
 			{
 				case "XM":  // X magnitude
-					// calculate the bounds here. X is provided in input or output volts/power
+							// calculate the bounds here. X is provided in input or output volts/power
 					this.GraphStartX = bounds.Left.ToString("G2");
 					this.GraphEndX = (bounds.Left + bounds.Right).ToString("G2");
 					break;
@@ -456,7 +456,7 @@ namespace QA40xPlot.ViewModels
 			EndPower = "5";
 
 			ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
-			ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;          
+			ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;
 			// make a few things happen to synch the gui
 			Task.Delay(1000).ContinueWith(t => { MyAction?.UpdateGraph(true); });
 		}

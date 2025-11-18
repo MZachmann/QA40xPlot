@@ -3,7 +3,6 @@ using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using System.Windows;
 using System.Windows.Data;
-using Windows.Globalization.NumberFormatting;
 
 namespace QA40xPlot.Converters
 {
@@ -79,7 +78,7 @@ namespace QA40xPlot.Converters
 			if (parameter != null && parameter is string)
 			{
 				var idigits = MathUtil.ToInt((string)parameter, 3); // get the number of digits to round to
-				if(idigits >= 0)
+				if (idigits >= 0)
 				{
 					if (value is double dblValue)
 					{
@@ -93,7 +92,7 @@ namespace QA40xPlot.Converters
 					if (value is double dblValue)
 					{
 						var suffix = Math.Abs(idigits).ToString(); // get the suffix for the number of digits
-						return dblValue.ToString("F"+suffix); // format to n significant digits
+						return dblValue.ToString("F" + suffix); // format to n significant digits
 					}
 				}
 			}
@@ -207,7 +206,7 @@ namespace QA40xPlot.Converters
 			string rslt = string.Empty;
 			{
 				double dv = (double)value;
-				if(dv <= 0)
+				if (dv <= 0)
 				{
 					return "N/A dBV"; // no negative voltages
 				}
@@ -221,7 +220,7 @@ namespace QA40xPlot.Converters
 				{
 					rslt = dv.ToString("0.##");
 				}
-				else 
+				else
 				{
 					rslt = dv.ToString("G3");
 				}
@@ -256,9 +255,9 @@ namespace QA40xPlot.Converters
 				case "W":
 					return value;
 				case "dBW":
-					return 10*Math.Log10(value);
+					return 10 * Math.Log10(value);
 				case "dBm":
-					return 10 * Math.Log10(value/1000);
+					return 10 * Math.Log10(value / 1000);
 				// voltage formats
 				case "mV":
 					return value * 1000;
@@ -309,7 +308,7 @@ namespace QA40xPlot.Converters
 				case "dBu":
 					return Math.Pow(10, value / 20) * 0.775;
 				case "dBFS":
-					return Math.Pow(10, (value+18) / 20);
+					return Math.Pow(10, (value + 18) / 20);
 			}
 			return value; // default to volts
 		}
@@ -319,18 +318,18 @@ namespace QA40xPlot.Converters
 			var ampnew = string.Empty;
 			try
 			{
-				if (value == DependencyProperty.UnsetValue )
+				if (value == DependencyProperty.UnsetValue)
 					return string.Empty;
 				// get the input variables here
 				var ampvalue = MathUtil.ToDouble((string)value, 0);     // actual voltage or power
 				var ampUnit = ViewSettings.Singleton.MainVm.CurrentView?.GenVoltageUnits;            // unit of measure as string
-				if(ampUnit != null)
+				if (ampUnit != null)
 				{
 					var ampD = PreformatValue(ampvalue, ampUnit); // convert to volts or watts
 					ampnew = ampD.ToString("G4"); // format the value to 3 significant digits
 				}
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
 				// log the error
 				System.Diagnostics.Debug.WriteLine($"Error in VoltUnitConverter: {ex.Message}");
@@ -340,7 +339,7 @@ namespace QA40xPlot.Converters
 
 		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
 		{
-			if (value == DependencyProperty.UnsetValue )
+			if (value == DependencyProperty.UnsetValue)
 				return string.Empty;
 			var ampnew = value;
 			try

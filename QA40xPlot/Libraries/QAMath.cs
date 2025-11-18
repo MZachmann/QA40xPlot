@@ -13,8 +13,8 @@ using System.Windows;
 
 namespace QA40xPlot.Libraries
 {
-    public static class QaMath
-    {
+	public static class QaMath
+	{
 		// convert from one frequency band to another
 		public static double[] LinearApproximate(double[] fIn, double[] valIn, double[] fOut)
 		{
@@ -30,8 +30,8 @@ namespace QA40xPlot.Libraries
 					idx++;
 				if (idx == 0)
 					result[i] = valIn[0];
-				else if(idx == maxl)
-					result[i] = valIn[maxl-1];
+				else if (idx == maxl)
+					result[i] = valIn[maxl - 1];
 				else
 				{
 					var x1 = fIn[idx - 1];
@@ -55,7 +55,7 @@ namespace QA40xPlot.Libraries
 				ba = Math.Max(ba, pts[bin - 1]);
 			if (bin > 1)
 				ba = Math.Max(ba, pts[bin - 2]);
-			if (bin < (pts.Length-1))
+			if (bin < (pts.Length - 1))
 				ba = Math.Max(ba, pts[bin + 1]);
 			if (bin < (pts.Length - 2))
 				ba = Math.Max(ba, pts[bin + 2]);
@@ -78,19 +78,19 @@ namespace QA40xPlot.Libraries
 			var totalV = QaCompute.ComputeRmsTime(timeSeries);
 			var windowBw = 1.5; // hann
 			var totalVF = Math.Sqrt(freqSeries.Select(x => x * x / windowBw).Sum()); // rms voltage
-			var fundamentalV = freqSeries.Max();	// fundamental magnitude of output
-			var totalV3 = freqSeries.Select(x => x * df * x * df).Sum();	// ?
+			var fundamentalV = freqSeries.Max();    // fundamental magnitude of output
+			var totalV3 = freqSeries.Select(x => x * df * x * df).Sum();    // ?
 			List<double> thd = new();
 			var dfreq = freqSeries.ToList().IndexOf(fundamentalV) * df;
 			double thdall = 0;
-			for(int i=2; i<12; i++)
+			for (int i = 2; i < 12; i++)
 			{
 				var x = MagAtFreq(freqSeries, df, dfreq * i);
-				thd.Add(x/fundamentalV);		// each individual distortion component
-				thdall += x * x;				// total sum of squares
+				thd.Add(x / fundamentalV);      // each individual distortion component
+				thdall += x * x;                // total sum of squares
 			}
 			var thd_pct = 100 * Math.Sqrt(thdall) / fundamentalV;   // total thd in percent
-			var snr = 20*Math.Log10(totalV / Math.Sqrt(totalV*totalV - fundamentalV*fundamentalV));
+			var snr = 20 * Math.Log10(totalV / Math.Sqrt(totalV * totalV - fundamentalV * fundamentalV));
 
 			return 0;
 
@@ -99,8 +99,8 @@ namespace QA40xPlot.Libraries
 		private static double Squares(double f)
 		{
 			// is freq in left or right quadrange
-			var u = f % (2*Math.PI);
-			if( u < Math.PI)
+			var u = f % (2 * Math.PI);
+			if (u < Math.PI)
 				return 1;
 			else
 				return -1;
@@ -110,7 +110,7 @@ namespace QA40xPlot.Libraries
 		{
 			// is freq in left or right quadrange
 			var u = f % (2 * Math.PI);
-			if (u < Math.PI/4)
+			if (u < Math.PI / 4)
 				return 1;
 			else
 				return -1;
@@ -200,7 +200,7 @@ namespace QA40xPlot.Libraries
 		private static double[] MakeMultitone(GenWaveform gw, GenWaveSample samples)
 		{
 			var dvamp = gw.Voltage * Math.Sqrt(2); // rms voltage -> peak voltage
-			// is freq in left or right quadrange
+												   // is freq in left or right quadrange
 			var freqs = Enumerable.Range(0, 32).Select(x => 20 * Math.Pow(2, x / 3.0)).
 						Select(f => QaLibrary.GetNearestBinFrequency(f, (uint)samples.SampleRate, (uint)samples.SampleSize)).ToList();
 			double[] wave = new double[samples.SampleSize];
@@ -208,7 +208,7 @@ namespace QA40xPlot.Libraries
 			{
 				var theta = Enumerable.Range(0, samples.SampleSize).Select(x => 2 * Math.PI * f * x / samples.SampleRate);
 				var thetav = theta.Select(f => dvamp * Math.Sin(f)).ToList();
-				for(int i = 0; i < samples.SampleSize; i++)
+				for (int i = 0; i < samples.SampleSize; i++)
 				{
 					wave[i] += thetav[i];   // accumulate the tone values
 				}
@@ -219,26 +219,26 @@ namespace QA40xPlot.Libraries
 
 		private static double[] MakeWave(GenWaveform gw, GenWaveSample samples)
 		{
-			if( gw.Name == "Multitone")
+			if (gw.Name == "Multitone")
 			{
 				return MakeMultitone(gw, samples);
 			}
 
 			var dvamp = gw.Voltage * Math.Sqrt(2); // rms voltage -> peak voltage
-			// we always put frequencies in the bin so they don't leak into other bins when we sample them
+												   // we always put frequencies in the bin so they don't leak into other bins when we sample them
 			var freq = QaLibrary.GetNearestBinFrequency(gw.Frequency, (uint)samples.SampleRate, (uint)samples.SampleSize);
 			// frequency vector
 			var theta = Enumerable.Range(0, samples.SampleSize).Select(x => 2 * Math.PI * freq * x / samples.SampleRate);
 			var totalth = theta.Max();
 			// now evaluate
-			switch ( gw.Name)
+			switch (gw.Name)
 			{
-				case "":		// this is just wrong... so use sine here
+				case "":        // this is just wrong... so use sine here
 				case "Sine":
 					// use a bin frequency???
 					return theta.Select(f => dvamp * Math.Sin(f)).ToArray();
 				case "Square":
-					return theta.Select(f => dvamp  * Squares(f)).ToArray();
+					return theta.Select(f => dvamp * Squares(f)).ToArray();
 				case "Impulse":
 					return theta.Select(f => dvamp * Impulse(f)).ToArray();
 				case "Chirp":
@@ -263,7 +263,7 @@ namespace QA40xPlot.Libraries
 			foreach (var gwi in gws)
 			{
 				var lr2 = MakeWave(gwi, gwSample);
-				for(int i = 0; i < gwSample.SampleSize; i++)
+				for (int i = 0; i < gwSample.SampleSize; i++)
 				{
 					lresult[i] += lr2[i];   // accumulate the tone values
 				}
@@ -277,9 +277,9 @@ namespace QA40xPlot.Libraries
 		// Y = 10^(Slope*X + Y-intercept)
 		public static List<double> CalculateChirp(double f0, double f1, double dVolts, uint chirpSize, uint sampleRate)
 		{
-			double dt = 1 / (double)sampleRate;	// interval time
+			double dt = 1 / (double)sampleRate; // interval time
 			var lout = new List<double>();
-			var k = f1/f0;	// number of octaves
+			var k = f1 / f0;    // number of octaves
 			var T = chirpSize * dt; // total time
 			for (int i = 0; i < chirpSize; i++)
 			{
@@ -287,7 +287,7 @@ namespace QA40xPlot.Libraries
 				double t = i * dt;
 				double ft = f0 * Math.Pow(k, (t / T));
 				var fmulx = T / Math.Log(k);
-				lout.Add((dVolts * Math.Sqrt(2)) * Math.Cos(2 * Math.PI * fmulx * ft )); // * Math.Sqrt(ft / f1));
+				lout.Add((dVolts * Math.Sqrt(2)) * Math.Cos(2 * Math.PI * fmulx * ft)); // * Math.Sqrt(ft / f1));
 			}
 			return lout;
 		}
@@ -297,7 +297,7 @@ namespace QA40xPlot.Libraries
 		public static System.Numerics.Complex CalculateGainPhase(double fundamentalFreq, LeftRightSeries measuredSeries)
 		{
 			var measuredTimeSeries = measuredSeries.TimeRslt;
-			if(measuredTimeSeries == null)
+			if (measuredTimeSeries == null)
 				return Complex.Zero;
 
 			var m2 = Math.Sqrt(2);
@@ -313,7 +313,7 @@ namespace QA40xPlot.Libraries
 			System.Numerics.Complex u = new();
 			try
 			{
-				var nca = (int)(0.01 + 1 / measuredTimeSeries.dt);		// total time in tics = sample rate
+				var nca = (int)(0.01 + 1 / measuredTimeSeries.dt);      // total time in tics = sample rate
 				var fundamentalBin = QaLibrary.GetBinOfFrequency(fundamentalFreq, (uint)nca, (uint)measuredTimeSeries.Left.Length);
 				var ratio = spectrum_measured[fundamentalBin] / spectrum_ref[fundamentalBin];
 				u = ratio;
@@ -330,14 +330,14 @@ namespace QA40xPlot.Libraries
 		public static System.Numerics.Complex CalculateDualGain(double fundamentalFreq, LeftRightSeries measuredSeries)
 		{
 			var measuredTimeSeries = measuredSeries.TimeRslt;
-			if( measuredTimeSeries == null)
+			if (measuredTimeSeries == null)
 				return Complex.Zero;
 
 			var m2 = Math.Sqrt(2);
 			// Left channel
 			// we do manual FFT here because we may as well and do flattop for precision
 			var window = new FftSharp.Windows.FlatTop();
-			double[] windowed_measured = window.Apply(measuredTimeSeries.Left, true);	// true == normalized by # elements
+			double[] windowed_measured = window.Apply(measuredTimeSeries.Left, true);   // true == normalized by # elements
 			System.Numerics.Complex[] spectrum_measured = FFT.Forward(windowed_measured);
 
 			double[] windowed_ref = window.Apply(measuredTimeSeries.Right, true);
@@ -350,7 +350,7 @@ namespace QA40xPlot.Libraries
 				var fundamentalBin = QaLibrary.GetBinOfFrequency(fundamentalFreq, (uint)nca, (uint)measuredTimeSeries.Left.Length);
 				double left = spectrum_measured[fundamentalBin].Magnitude * m2;
 				double right = spectrum_ref[fundamentalBin].Magnitude * m2;
-				u = new Complex(left, right);	// pack it in stupidly
+				u = new Complex(left, right);   // pack it in stupidly
 			}
 			catch (Exception ex)
 			{

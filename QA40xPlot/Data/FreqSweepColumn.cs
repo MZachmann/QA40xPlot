@@ -14,7 +14,7 @@
 
 	// helper for thd sweeps
 	public class FreqSweepColumn
-    {
+	{
 		public const int FreqSweepColumnCount = 7;
 		// readings
 		public double Mag { get; set; }

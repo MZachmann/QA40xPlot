@@ -21,10 +21,10 @@ namespace QA40xPlot.Actions
 	using MyDataTab = DataTab<FreqSweepViewModel>;
 
 	public class ActFreqSweep : ActBase
-    {
-        private readonly Views.PlotControl swpPlot;
-        private readonly Views.PlotControl fftPlot;
-        private readonly Views.PlotControl timePlot;
+	{
+		private readonly Views.PlotControl swpPlot;
+		private readonly Views.PlotControl fftPlot;
+		private readonly Views.PlotControl timePlot;
 
 		public MyDataTab PageData { get; private set; } // Data used in this form instance
 		private List<MyDataTab> OtherTabs { get; set; } = new List<MyDataTab>(); // Other tabs in the document
@@ -35,35 +35,35 @@ namespace QA40xPlot.Actions
 		CancellationTokenSource CanToken;                                 // Measurement cancelation token
 
 		private List<FreqSweepLine>? FrequencyLines(MyDataTab page)
-		{ 
-			return (List<FreqSweepLine>?)page.GetProperty("Left"); 
+		{
+			return (List<FreqSweepLine>?)page.GetProperty("Left");
 		}
 
 		private List<FreqSweepLine>? FrequencyLinesRight(MyDataTab page)
-		{ 
-			return (List<FreqSweepLine>?)page.GetProperty("Right"); 
+		{
+			return (List<FreqSweepLine>?)page.GetProperty("Right");
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		public ActFreqSweep(Views.PlotControl graphSwp, Views.PlotControl graphFft, Views.PlotControl graphTime)
-        {
-            fftPlot = graphFft;
-            timePlot = graphTime;
-            swpPlot = graphSwp;
+		{
+			fftPlot = graphFft;
+			timePlot = graphTime;
+			swpPlot = graphSwp;
 
 			CanToken = new CancellationTokenSource();
 			PageData = new(MyVModel, new LeftRightTimeSeries());
 
 			// Show empty graphs
 			FreqSweepViewModel vm = MyVModel;
-            QaLibrary.InitMiniFftPlot(fftPlot, MathUtil.ToDouble(vm.StartFreq, 10),
-                MathUtil.ToDouble(vm.EndFreq, 20000), -150, 20);
-            QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -1, 1);
+			QaLibrary.InitMiniFftPlot(fftPlot, MathUtil.ToDouble(vm.StartFreq, 10),
+				MathUtil.ToDouble(vm.EndFreq, 20000), -150, 20);
+			QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -1, 1);
 
-            UpdateGraph(true);
-        }
+			UpdateGraph(true);
+		}
 
 		// here param is the id of the tab to remove from the othertab list
 		public void DeleteTab(int id)
@@ -73,9 +73,9 @@ namespace QA40xPlot.Actions
 		}
 
 		public void DoCancel()
-        {
-            CanToken.Cancel();
-        }
+		{
+			CanToken.Cancel();
+		}
 
 		public void UpdatePlotTitle()
 		{
@@ -93,7 +93,7 @@ namespace QA40xPlot.Actions
 			return new double[] { col.Freq, col.Mag, col.Phase, col.THD, col.THDN, col.Noise, col.GenVolts };
 		}
 
-		private FreqSweepColumn  ArrayToColumn(double[] rawData, uint startIdx)
+		private FreqSweepColumn ArrayToColumn(double[] rawData, uint startIdx)
 		{
 			FreqSweepColumn col = new();
 			col.Freq = rawData[startIdx];
@@ -107,7 +107,7 @@ namespace QA40xPlot.Actions
 		}
 
 		private List<FreqSweepLine> RawToColumns(AcquireStep[] steps, double[] raw)
-		{			
+		{
 			if (raw.Length == 0)
 				return [];
 			List<FreqSweepColumn> left = new();
@@ -123,11 +123,11 @@ namespace QA40xPlot.Actions
 			// line lengths
 			var maxF = left.Max(x => x.Freq);   // maximum frequency
 			int linelength = 0;
-			for (i = 0; i < left.Count; i ++)
+			for (i = 0; i < left.Count; i++)
 			{
 				if (left[i].Freq >= maxF)
 				{
-					linelength = i+1;
+					linelength = i + 1;
 					break;
 				}
 			}
@@ -135,7 +135,7 @@ namespace QA40xPlot.Actions
 				return lines;
 			// now create list of lines
 			var numLines = (left.Count + linelength - 1) / linelength;  // round up
-			bool showVolt = 1 < steps.Select(x => x.GenVolt).Distinct().Count();	// more than one voltage, show them
+			bool showVolt = 1 < steps.Select(x => x.GenVolt).Distinct().Count();    // more than one voltage, show them
 			for (i = 0; i < numLines; i++)
 			{
 				var line = new FreqSweepLine();
@@ -163,7 +163,7 @@ namespace QA40xPlot.Actions
 		/// <param name="left"></param>
 		/// <param name="right"></param>
 		private void AddColumn(MyDataTab page, double x, FreqSweepColumn left, FreqSweepColumn right)
-        {
+		{
 			page.Sweep.X = page.Sweep.X.Append(x).ToArray();
 			page.Sweep.RawLeft = page.Sweep.RawLeft.Concat(ColumnToArray(left)).ToArray();
 			page.Sweep.RawRight = page.Sweep.RawRight.Concat(ColumnToArray(right)).ToArray();
@@ -203,7 +203,7 @@ namespace QA40xPlot.Actions
 				foreach (var s in seen)
 				{
 					if (s != null)
-						foreach(var x in s)
+						foreach (var x in s)
 							steps.AddRange(x.Columns);
 				}
 
@@ -217,17 +217,17 @@ namespace QA40xPlot.Actions
 
 				double maxY = -1e10;
 				double minY = 1e10;
-				if(specVm.ShowMagnitude)
+				if (specVm.ShowMagnitude)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.Mag));
 					minY = Math.Min(minY, arsteps.Min(x => x.Mag));
 				}
-				if(specVm.ShowTHD)
+				if (specVm.ShowTHD)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.THD));
 					minY = Math.Min(minY, arsteps.Min(x => x.THD));
 				}
-				if(specVm.ShowTHDN)
+				if (specVm.ShowTHDN)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.THDN));
 					minY = Math.Min(minY, arsteps.Min(x => x.THDN));
@@ -240,7 +240,7 @@ namespace QA40xPlot.Actions
 				rrc.Y = minY;      // min magnitude will be min value shown
 				rrc.Height = maxY - minY;      // max voltage absolute
 			}
-			catch( Exception ex)
+			catch (Exception ex)
 			{
 				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
 			}
@@ -260,9 +260,9 @@ namespace QA40xPlot.Actions
 			var bin = allLines[0].Columns.Count(x => x.Freq <= freq) - 1;    // find first freq less than me
 			if (bin == -1)
 				bin = 0;
-			var matchFreq = allLines[0].Columns[bin].Freq;	// the actual frequency we want
+			var matchFreq = allLines[0].Columns[bin].Freq;  // the actual frequency we want
 			var allMatch = allLines.Where(x => x.Columns.Length > bin && Math.Abs(x.Columns[bin].Freq - matchFreq) < 0.001).ToArray();
-			foreach(var line in allMatch) 
+			foreach (var line in allMatch)
 			{
 				// last line isn't long enough yet
 				if (line.Columns.Length < bin)
@@ -316,7 +316,7 @@ namespace QA40xPlot.Actions
 		public override async Task LoadFromFile(string fileName, bool doLoad)
 		{
 			var page = Util.LoadFile<FreqSweepViewModel>(PageData, fileName);
-			if(page != null)
+			if (page != null)
 			{
 				RawToFreqSweepColumns(page);
 				await FinishLoad(page, doLoad, fileName);
@@ -358,7 +358,7 @@ namespace QA40xPlot.Actions
 			else
 			{
 				OtherTabs.Add(page); // add the new one
-				//var oss = new OtherSet(page.Definition.Name, page.Show, page.Id);
+									 //var oss = new OtherSet(page.Definition.Name, page.Show, page.Id);
 				MyVModel.OtherSetList.Add(page.Definition);
 			}
 
@@ -404,8 +404,8 @@ namespace QA40xPlot.Actions
 			bincnt = Math.Min(10, bincnt);     // limit to 100 bins
 			var minbin = Math.Max(0, (int)(bin - bincnt));
 			var maxbin = Math.Min(noises.Length - 1, (int)(bin + bincnt));
-			var avenoise = noises.Skip(minbin).Take(maxbin-minbin).Average(x => x); // average noise within these bins
-			return avenoise / Math.Sqrt(binSize);	// ? i think
+			var avenoise = noises.Skip(minbin).Take(maxbin - minbin).Average(x => x); // average noise within these bins
+			return avenoise / Math.Sqrt(binSize);   // ? i think
 		}
 
 		public async Task<bool> RunAcquisition()
@@ -425,7 +425,7 @@ namespace QA40xPlot.Actions
 			var startFreq = vm.NearestBinFreq(vm.StartFreq);
 			var endFreq = vm.NearestBinFreq(vm.EndFreq);
 
-			QaLibrary.InitMiniFftPlot(fftPlot, Math.Max(10,startFreq), endFreq, -150, 20);
+			QaLibrary.InitMiniFftPlot(fftPlot, Math.Max(10, startFreq), endFreq, -150, 20);
 			QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -1, 1);
 
 			// ********************************************************************
@@ -433,10 +433,10 @@ namespace QA40xPlot.Actions
 			// ********************************************************************
 			// before getting the gain curve set to gain of 1
 			// and then chirp
-			if(vm.HasQA430)
+			if (vm.HasQA430)
 			{
 				var model = Qa430Usb.Singleton?.QAModel;
-				if(model != null)
+				if (model != null)
 				{
 					model.SetOpampConfig("Config6a");
 					model.UseFixedRails = true;
@@ -462,12 +462,12 @@ namespace QA40xPlot.Actions
 				var voltx = voltValues.First().ToString();
 				var genVolt = vm.ToGenVoltage(voltx, frqtest, GEN_INPUT, gains);   // input voltage for request
 				page.Definition.GeneratorVoltage = genVolt;   // set the generator voltage in the definition
-				// ********************************************************************
-				// Determine input level for attenuation
-				// we know that all settings of the QA430 have defined gain so that
-				// we can calculate the required attenuation up front and then vary the driving voltage
-				// to keep constant output voltage no matter configuration
-				// ********************************************************************
+															  // ********************************************************************
+															  // Determine input level for attenuation
+															  // we know that all settings of the QA430 have defined gain so that
+															  // we can calculate the required attenuation up front and then vary the driving voltage
+															  // to keep constant output voltage no matter configuration
+															  // ********************************************************************
 				var genOut = ToGenOutVolts(genVolt, frqtest, gains);   // output voltage for request
 				double amplifierOutputVoltagedBV = QaLibrary.ConvertVoltage(genOut, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
@@ -518,7 +518,7 @@ namespace QA40xPlot.Actions
 				{
 					new AcquireStep() { Cfg = "Config6b", Load = QA430Model.LoadOptions.Open, Gain = 1, Distgain=101, SupplyP = 15, SupplyN = 15 }    // unity 16b with 101 dist gain
 				};
-				if(! vm.HasQA430)
+				if (!vm.HasQA430)
 				{
 					var u = variables[0];
 					u.Distgain = 1;
@@ -544,14 +544,14 @@ namespace QA40xPlot.Actions
 					var voltages = vm.Supplysets.SelectedNames(true);
 					List<(double, double)> supplies = new();
 					// parse the entries
-					foreach (var voltage in voltages) 
+					foreach (var voltage in voltages)
 					{
-						var avolt = voltage.Split(['|','_','*']);
+						var avolt = voltage.Split(['|', '_', '*']);
 						double voltp = 15;
 						if (avolt.Length > 0)
 							voltp = MathUtil.ToDouble(avolt[0], 15);
 						var voltn = voltp;
-						if(avolt.Length > 1)
+						if (avolt.Length > 1)
 							voltn = MathUtil.ToDouble(avolt[1], 15);
 						supplies.Add((voltp, voltn));
 					}
@@ -567,7 +567,7 @@ namespace QA40xPlot.Actions
 						{
 							var vl = variables[i];
 							vl.GenVolt = v;
-							vl.GenVoltFmt = (vm.IsGenPower ?  MathUtil.FormatPower(v) : MathUtil.FormatVoltage(v));
+							vl.GenVoltFmt = (vm.IsGenPower ? MathUtil.FormatPower(v) : MathUtil.FormatVoltage(v));
 							vnew.Add(vl);
 						}
 					}
@@ -585,9 +585,9 @@ namespace QA40xPlot.Actions
 				foreach (var myConfig in variables) // sweep the different configurations
 				{
 					QA430Model? model = vm.HasQA430 ? Qa430Usb.Singleton?.QAModel : null;
-					if(model != null)
+					if (model != null)
 					{
-						if(myConfig.Cfg != lastCfg && myConfig.Cfg.Length > 0)
+						if (myConfig.Cfg != lastCfg && myConfig.Cfg.Length > 0)
 						{
 							model.SetOpampConfig(myConfig.Cfg);
 							lastCfg = myConfig.Cfg;
@@ -688,12 +688,12 @@ namespace QA40xPlot.Actions
 						// even with multiple configurations
 						// this will keep stacking up stuff while frequency array shows min...max,min...max,...
 						var work = CalculateColumn(page, freqy, CanToken.Token, myConfig, noiseRslt); // do the math for the columns
-						if(work.Item1 != null && work.Item2 != null)
+						if (work.Item1 != null && work.Item2 != null)
 						{
 							AddColumn(page, freqy, work.Item1, work.Item2);
 						}
 
-						MyVModel.LinkAbout(PageData.Definition); 
+						MyVModel.LinkAbout(PageData.Definition);
 						// this just needs to extract all the pieces
 						RawToFreqSweepColumns(page);
 						UpdateGraph(false);
@@ -718,12 +718,12 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="ct">Cancellation token</param>
 		/// <returns>result. false if cancelled</returns>
-		private (FreqSweepColumn?,FreqSweepColumn?) CalculateColumn(MyDataTab msr, double dFreq, 
+		private (FreqSweepColumn?, FreqSweepColumn?) CalculateColumn(MyDataTab msr, double dFreq,
 			CancellationToken ct, AcquireStep acqConfig, LeftRightFrequencySeries? lfrsNoise)
 		{
 			if (msr.FreqRslt == null)
 			{
-				return (null,null);
+				return (null, null);
 			}
 
 			// left and right channels summary info to fill in
@@ -734,7 +734,7 @@ namespace QA40xPlot.Actions
 
 			var lrfs = msr.FreqRslt;    // frequency response
 			var maxScan = msr.FreqRslt.Df * msr.FreqRslt.Left.Length;
-			var maxf = Math.Min(ViewSettings.NoiseBandwidth, maxScan);	// opamps use 80KHz bandwidth, audio uses 20KHz
+			var maxf = Math.Min(ViewSettings.NoiseBandwidth, maxScan);  // opamps use 80KHz bandwidth, audio uses 20KHz
 
 			LeftRightPair thds = QaCompute.GetThdDb(vm.WindowingMethod, lrfs, dFreq, 20.0, maxScan);
 			LeftRightPair thdN = QaCompute.GetThdnDb(vm.WindowingMethod, lrfs, dFreq, 20.0, maxf, ViewSettings.NoiseWeight);
@@ -756,13 +756,13 @@ namespace QA40xPlot.Actions
 			// here steps just counts left then right
 			foreach (var step in steps)
 			{
-				bool bl = step == left;		// stepping left?
+				bool bl = step == left;     // stepping left?
 				step.Freq = dFreq;
 				step.Mag = QaMath.MagAtFreq((bl ? msr.FreqRslt.Left : msr.FreqRslt.Right), msr.FreqRslt.Df, dFreq);
 				step.THD = step.Mag * Math.Pow(10, (bl ? thds.Left : thds.Right) / 20); // in volts from dB relative to mag
 				step.THDN = step.Mag * Math.Pow(10, (bl ? thdN.Left : thdN.Right) / 20); // in volts from dB relative to mag
 				step.Phase = 0;
-				if(!bl)
+				if (!bl)
 				{
 					if (lfrsNoise == null)
 						step.Noise = floor.Right / dmult; // noise floor
@@ -771,12 +771,12 @@ namespace QA40xPlot.Actions
 				}
 				else
 				{
-					if(lfrsNoise == null)
+					if (lfrsNoise == null)
 						step.Noise = floor.Left / dmult; // noise floor
 					else
 						step.Noise = GetNoiseSmooth(lfrsNoise.Left, lfrsNoise.Df, dFreq) / dmult; // noise density smoothed
 				}
-				
+
 				// divide by the amount of distortion gain since that is a voltage gain
 				step.THD /= dmult;
 				step.THDN /= dmult;
@@ -785,31 +785,31 @@ namespace QA40xPlot.Actions
 			return (left, right);
 		}
 
-        /// <summary>
-        /// do post processing, just a bunch of easy math and moving stuff into viewmodels
-        /// </summary>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns>result. false if cancelled</returns>
-        private async Task<bool> PostProcess(MyDataTab msr, CancellationToken ct)
-        {
+		/// <summary>
+		/// do post processing, just a bunch of easy math and moving stuff into viewmodels
+		/// </summary>
+		/// <param name="ct">Cancellation token</param>
+		/// <returns>result. false if cancelled</returns>
+		private async Task<bool> PostProcess(MyDataTab msr, CancellationToken ct)
+		{
 			await Task.Delay(1); // allow the UI to update
 			return true;
-        }
+		}
 
-        /// <summary>
+		/// <summary>
 		/// Clear the plot
 		/// </summary>
 		void ClearPlot()
-        {
-            swpPlot.ThePlot.Clear();
-            swpPlot.Refresh();
-        }
+		{
+			swpPlot.ThePlot.Clear();
+			swpPlot.Refresh();
+		}
 
 		/// <summary>
 		/// Ititialize the THD % plot
 		/// </summary>
 		void InitializeThdPlot(string plotFormat = "%")
-        {
+		{
 			ScottPlot.Plot myPlot = swpPlot.ThePlot;
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
@@ -820,13 +820,13 @@ namespace QA40xPlot.Actions
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
 			swpPlot.Refresh();
-        }
+		}
 
-        /// <summary>
-        /// Initialize the magnitude plot
-        /// </summary>
-        void InitializeMagnitudePlot(string plotFormat = "dBV")
-        {
+		/// <summary>
+		/// Initialize the magnitude plot
+		/// </summary>
+		void InitializeMagnitudePlot(string plotFormat = "dBV")
+		{
 			var thdFreq = MyVModel;
 			ScottPlot.Plot myPlot = swpPlot.ThePlot;
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
@@ -841,7 +841,7 @@ namespace QA40xPlot.Actions
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
 			myPlot.HideLegend();
 			swpPlot.Refresh();
-        }
+		}
 
 		// this always uses the 'global' format so others work too
 		private double FormVal(double d1, double dMax)
@@ -854,8 +854,8 @@ namespace QA40xPlot.Actions
 		/// Plot the  THD magnitude (dB) data
 		/// </summary>
 		/// <param name="data">The data to plot</param>
-        private void PlotValues(MyDataTab page, int measurementNr, bool isMain)
-        {
+		private void PlotValues(MyDataTab page, int measurementNr, bool isMain)
+		{
 			var freqVm = MyVModel;
 			bool showLeft;
 			bool showRight;
@@ -874,20 +874,20 @@ namespace QA40xPlot.Actions
 				return;
 
 			float lineWidth = freqVm.ShowThickLines ? _Thickness : 1;
-            float markerSize = freqVm.ShowPoints ? lineWidth + 3 : 1;
+			float markerSize = freqVm.ShowPoints ? lineWidth + 3 : 1;
 
-            // here Y values are in dBV
-            void AddPlot(double[] xValues, List<double> yValues, int colorIndex, string legendText, LinePattern linePattern)
-            {
+			// here Y values are in dBV
+			void AddPlot(double[] xValues, List<double> yValues, int colorIndex, string legendText, LinePattern linePattern)
+			{
 				var u = measurementNr;
 				if (yValues.Count == 0) return;
 				var plot = swpPlot.ThePlot.Add.SignalXY(xValues, yValues.ToArray());
 				plot.LineWidth = lineWidth;
 				plot.Color = GraphUtil.GetPaletteColor("Transparent", colorIndex);
-                plot.MarkerSize = markerSize;
-                plot.LegendText = legendText;
-                plot.LinePattern = linePattern;
-				MyVModel.LegendInfo.Add(new MarkerItem(linePattern, plot.Color, legendText, colorIndex) );
+				plot.MarkerSize = markerSize;
+				plot.LegendText = legendText;
+				plot.LinePattern = linePattern;
+				MyVModel.LegendInfo.Add(new MarkerItem(linePattern, plot.Color, legendText, colorIndex));
 			}
 
 			// which columns are we displaying? left, right or both
@@ -895,28 +895,28 @@ namespace QA40xPlot.Actions
 			List<FreqSweepLine>? leftCol = FrequencyLines(page);
 			List<FreqSweepLine>? rightCol = FrequencyLinesRight(page);
 			if (showLeft && showRight && leftCol != null && rightCol != null)
-            {
-                lineGroup = [leftCol, rightCol];
-            }
-            else if (showLeft && leftCol != null)
-            {
-                lineGroup = [leftCol];
-            }
-            else
-            {
-                lineGroup = (rightCol!=null) ? [rightCol] : [];
-            }
+			{
+				lineGroup = [leftCol, rightCol];
+			}
+			else if (showLeft && leftCol != null)
+			{
+				lineGroup = [leftCol];
+			}
+			else
+			{
+				lineGroup = (rightCol != null) ? [rightCol] : [];
+			}
 
-            string suffix = ".";
-            var lp = isMain ? LinePattern.Solid : LinePattern.Dashed;
-            if (showRight && showLeft)
-                suffix = ".L.";
+			string suffix = ".";
+			var lp = isMain ? LinePattern.Solid : LinePattern.Dashed;
+			if (showRight && showLeft)
+				suffix = ".L.";
 
 			// for each list of lines (left and right)
 			var prefix = (measurementNr == 0) ? string.Empty : (measurementNr + ".");
 			foreach (var lineList in lineGroup)
 			{
-				var colorNum = (measurementNr > 1) ? (measurementNr-1) * 5 : 0;
+				var colorNum = (measurementNr > 1) ? (measurementNr - 1) * 5 : 0;
 				foreach (var line in lineList)
 				{
 					var subsuffix = suffix + line.Label;
@@ -938,28 +938,28 @@ namespace QA40xPlot.Actions
 				lp = isMain ? LinePattern.DenselyDashed : LinePattern.Dotted;
 			}
 			swpPlot.Refresh();
-        }
+		}
 
-        public void UpdateGraph(bool settingsChanged)
-        {
+		public void UpdateGraph(bool settingsChanged)
+		{
 			swpPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
-            int resultNr = 0;
-            FreqSweepViewModel freqVm = MyVModel;
+			int resultNr = 0;
+			FreqSweepViewModel freqVm = MyVModel;
 
 			if (GraphUtil.IsPlotFormatLog(freqVm.PlotFormat))
-            {
-                if (settingsChanged)
-                {
-                    InitializeMagnitudePlot(freqVm.PlotFormat);
-                }
-            }
-            else
-            {
-                if (settingsChanged)
-                {
-                    InitializeThdPlot(freqVm.PlotFormat);
+			{
+				if (settingsChanged)
+				{
+					InitializeMagnitudePlot(freqVm.PlotFormat);
 				}
-            }
+			}
+			else
+			{
+				if (settingsChanged)
+				{
+					InitializeThdPlot(freqVm.PlotFormat);
+				}
+			}
 			freqVm.LegendInfo.Clear();
 			PlotValues(PageData, resultNr++, true);
 			if (OtherTabs.Count > 0)

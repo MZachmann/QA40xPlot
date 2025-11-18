@@ -37,7 +37,7 @@ namespace QA40xPlot.Views
 			ClrOpacity = TxtToOpaque(currentColor);             // normalize to 0-100
 			DoShowOpaque(ClrOpacity); // Show the opacity percentage
 			var viewWind = ViewSettings.Singleton.MainVm.CurrentColorRect;
-			if(viewWind.Length > 0)
+			if (viewWind.Length > 0)
 			{
 				MainViewModel.SetWindowSize(this, viewWind);
 			}
@@ -54,9 +54,9 @@ namespace QA40xPlot.Views
 			var currentColor = PlotUtil.StrToColor(NowColor);
 			List<System.Windows.Media.Color> allcolors = new();
 			var mycolor = PlotUtil.ScottToMedia(currentColor);
-			int[] bytelist = [ 0, 45, 128, 185, 225, 255 ];
+			int[] bytelist = [0, 45, 128, 185, 225, 255];
 			int[] greenbytes = [0, 45, 90, 128, 150, 185, 225, 255];
-			foreach(var r in bytelist)
+			foreach (var r in bytelist)
 			{
 				foreach (var g in greenbytes)
 				{
@@ -73,7 +73,7 @@ namespace QA40xPlot.Views
 			var blueDom = allcolors.Where(x => x.B > x.R && x.B > x.G).ToList();
 			var grayDom = allcolors.Where(x => x.R == x.G && x.R == x.B).ToList();
 			// enhance the gray set
-			grayDom = Enumerable.Range(0, 16).Select(x => (byte)(17*x)).Select(x =>
+			grayDom = Enumerable.Range(0, 16).Select(x => (byte)(17 * x)).Select(x =>
 				System.Windows.Media.Color.FromRgb(x, x, x)).ToList();
 			var otherDom = allcolors.Where(x => !redDom.Contains(x) && !greenDom.Contains(x) && !blueDom.Contains(x) && !grayDom.Contains(x)).ToList();
 
@@ -167,7 +167,7 @@ namespace QA40xPlot.Views
 		private void DoApply(object sender, RoutedEventArgs e)
 		{
 			ViewSettings.Singleton.MainVm.CurrentColorRect = MainViewModel.GetWindowSize(this);
-			if(CallMe != null)
+			if (CallMe != null)
 				CallMe(this);
 		}
 
@@ -177,7 +177,7 @@ namespace QA40xPlot.Views
 			{
 				// Convert the slider value (0-100) to an opacity value (0-255)
 				var alphaVal = slider.Value; // 0...1
-				if(alphaVal < 99 || NowColor.Contains("#"))
+				if (alphaVal < 99 || NowColor.Contains("#"))
 				{
 					var currentColor = PlotUtil.StrToColor(NowColor).WithAlpha(alphaVal / 100.0);
 					NowColor = PlotUtil.ColorToStr(currentColor); // Update the NowColor property
@@ -199,10 +199,10 @@ namespace QA40xPlot.Views
 		{
 			var dx = d as ColorPicker;
 			if (dx == null)
-				return ; // not a ColorPicker
+				return; // not a ColorPicker
 
 			var color = e.NewValue as string;  // the new entry
-			var ecolor = dx.AValue;			// the last entry from program 
+			var ecolor = dx.AValue;         // the last entry from program 
 			if (color != ecolor && color != null)
 			{
 				// we get here if use is actually editing the value manually

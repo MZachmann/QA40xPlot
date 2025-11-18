@@ -8,9 +8,10 @@ namespace QA40xPlot.Views
 	public partial class GroupHeader : UserControl
 	{
 		private string _Header = string.Empty;
-		public string Header { 
+		public string Header
+		{
 			get => _Header;
-			set { this.Headline.Content = value; _Header = value; } 
+			set { this.Headline.Content = value; _Header = value; }
 		}
 
 		public GroupHeader()

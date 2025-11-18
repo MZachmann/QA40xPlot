@@ -5,12 +5,8 @@ using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
-using System.Drawing.Drawing2D;
-using System.Runtime.Intrinsics.X86;
 using System.Windows;
-using System.Windows.Controls;
 using static QA40xPlot.ViewModels.BaseViewModel;
-using static SkiaSharp.HarfBuzz.SKShaper;
 
 // various things for the thd vs frequency activity
 

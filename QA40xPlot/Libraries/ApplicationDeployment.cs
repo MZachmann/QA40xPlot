@@ -1,6 +1,4 @@
-﻿using System;
-
-/// This comes straight from dotnet-mage with slight update to nullables
+﻿/// This comes straight from dotnet-mage with slight update to nullables
 
 namespace QA40xPlot.Libraries
 {

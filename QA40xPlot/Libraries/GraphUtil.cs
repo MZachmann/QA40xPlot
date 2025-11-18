@@ -27,7 +27,7 @@ namespace QA40xPlot.Libraries
 	public static class GraphUtil
 	{
 		private static ThePalette _PlotPalette = new ThePalette();
-			//new ScottPlot.Palettes.Tsitsulin();
+		//new ScottPlot.Palettes.Tsitsulin();
 
 		public static ThePalette PlotPalette { get => _PlotPalette; }
 
@@ -44,11 +44,11 @@ namespace QA40xPlot.Libraries
 
 		public static ScottPlot.Color GetPaletteColor(string? colorName, int iIndex)
 		{
-			if(colorName != null && "Transparent" != colorName && colorName.Length > 0)
+			if (colorName != null && "Transparent" != colorName && colorName.Length > 0)
 			{
 				return PlotUtil.StrToColor(colorName);
 			}
-			var c = PlotPalette.GetColor(iIndex);	// these may be translucent
+			var c = PlotPalette.GetColor(iIndex);   // these may be translucent
 			return c;
 		}
 
@@ -106,7 +106,7 @@ namespace QA40xPlot.Libraries
 					}
 				}
 			}
-			else if(plotFormat == "%")
+			else if (plotFormat == "%")
 			{
 				if (adv <= 1e-5)
 				{
@@ -114,11 +114,11 @@ namespace QA40xPlot.Libraries
 				}
 				if (adv < 1.0)
 				{
-					rslt =  dv.ToString("0.######");
+					rslt = dv.ToString("0.######");
 				}
 				else if (adv < 10.0)
 				{
-					rslt =  dv.ToString("0.##");
+					rslt = dv.ToString("0.##");
 				}
 				else
 				{
@@ -172,7 +172,7 @@ namespace QA40xPlot.Libraries
 		/// <returns>a function to get plottable value</returns>
 		public static Func<double, double> GetLogFormatter(string plotFormat, double refX = 1.0)
 		{
-			if( IsPlotFormatLog(plotFormat))
+			if (IsPlotFormatLog(plotFormat))
 			{
 				return GetValueFormatter(plotFormat, refX);
 			}
@@ -195,12 +195,12 @@ namespace QA40xPlot.Libraries
 		/// <param name="plotFormat">the format</param>
 		/// <param name="refX">the ref (max) value for percent and dBr</param>
 		/// <returns>a Function(double) that does the display conversion</returns>
-		public static Func<double,double> GetValueFormatter(string plotFormat, double refX = 1.0)
+		public static Func<double, double> GetValueFormatter(string plotFormat, double refX = 1.0)
 		{
 			switch (plotFormat)
 			{
 				case "SPL":
-					return (x => 20 * Math.Log10(x) );
+					return (x => 20 * Math.Log10(x));
 				case "dBFS":    // the generator has 18dBV output, the input has 32dBV maximum
 					return (x => 20 * Math.Log10(x) - 32);
 				case "dBr":
@@ -208,7 +208,7 @@ namespace QA40xPlot.Libraries
 				case "dBu":
 					return (x => 20 * Math.Log10(x / 0.775));
 				case "dBV":
-					return (x => 20 * Math.Log10(x ));
+					return (x => 20 * Math.Log10(x));
 				case "dBW":
 					return (x => 10 * Math.Log10(x * x / ViewSettings.AmplifierLoad));
 				case "V":
@@ -268,7 +268,7 @@ namespace QA40xPlot.Libraries
 					return plotFormat;
 				case "%":
 					return "%";
-				case "Ohms":		// not available for user...
+				case "Ohms":        // not available for user...
 					return "Ohms";
 			}
 			return string.Empty; // default to none

@@ -18,7 +18,7 @@ namespace QA40xPlot.Views
 			PopulateImages();
 		}
 
-		public string ConfigName {get;set;} = "";
+		public string ConfigName { get; set; } = "";
 
 		public void PopulateImages()
 		{

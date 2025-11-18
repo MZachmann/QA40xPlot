@@ -15,7 +15,7 @@ namespace QA40xPlot.ViewModels
 		/// <returns></returns>
 		public string ParseableList(string ifnone)
 		{
-			if(! this.Any())
+			if (!this.Any())
 			{
 				this.Add(new SelectItem(true, ifnone));
 			}

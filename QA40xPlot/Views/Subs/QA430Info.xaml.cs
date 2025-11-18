@@ -1,6 +1,5 @@
 ﻿using QA40xPlot.QA430;
 using System.Windows;
-using System.Windows.Input;
 
 namespace QA40xPlot.Views
 {

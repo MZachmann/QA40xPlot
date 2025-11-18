@@ -1,8 +1,8 @@
 ﻿namespace QA40xPlot.Data
 {
 	// helper for thd sweeps
-    public class ThdColumn
-    {
+	public class ThdColumn
+	{
 		public const int ThdColumnCount = 11;
 		// readings
 		public double Mag { get; set; }

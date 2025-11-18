@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
@@ -44,11 +39,11 @@ namespace QA40xPlot.ViewModels.Subs
 				var halign = u.HorizontalAlignment;
 				var valign = u.VerticalAlignment;
 				var mgn = u.Margin;
-				if(halign == HorizontalAlignment.Left)
+				if (halign == HorizontalAlignment.Left)
 					mgn.Left += pos.X - _MouseX;
 				else
 					mgn.Right -= pos.X - _MouseX;
-				if(valign == VerticalAlignment.Top)
+				if (valign == VerticalAlignment.Top)
 					mgn.Top += pos.Y - _MouseY;
 				else
 					mgn.Bottom -= pos.Y - _MouseY;

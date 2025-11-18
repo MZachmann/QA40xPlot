@@ -12,7 +12,7 @@ namespace QA40xPlot.BareMetal
 		private static readonly Dictionary<int, int> _Output2Reg = new() { { 18, 3 }, { 8, 2 }, { -2, 1 }, { -12, 0 } };
 		private static readonly Dictionary<int, int> _Input2Reg = new() { { 0, 0 }, { 6, 1 }, { 12, 2 }, { 18, 3 }, { 24, 4 }, { 30, 5 }, { 36, 6 }, { 42, 7 } };
 		private static readonly Dictionary<int, int> _Samplerate2Reg = new() { { 48000, 0 }, { 96000, 1 }, { 192000, 2 }, { 384000, 3 } }; // 384K?
-		// sweep parameters
+																																		   // sweep parameters
 		private uint _FftSize = (uint)_InvalidInt;
 		private int _OutputRange = _InvalidInt;
 		private int _Attenuation = _InvalidInt;
@@ -20,7 +20,7 @@ namespace QA40xPlot.BareMetal
 		private OutputSources _OutputSource = OutputSources.Invalid; // default to sine
 		private string _Windowing = "Invalid";
 		//
-		private QaUsb _UsbApi = new();		// our local Usb controller
+		private QaUsb _UsbApi = new();      // our local Usb controller
 
 		public string Name => "USB";    // the name of the io device
 
@@ -36,11 +36,11 @@ namespace QA40xPlot.BareMetal
 
 		public ValueTask<bool> CheckDeviceConnected()
 		{
-			if(!_UsbApi.IsOpen())
+			if (!_UsbApi.IsOpen())
 			{
 				Debug.WriteLine("USB device not yet open");
-				var work = _UsbApi.Open();	// try to open it
-				if(!work)
+				var work = _UsbApi.Open();  // try to open it
+				if (!work)
 				{
 					Debug.WriteLine("USB device not connected");
 					return new ValueTask<bool>(false);
@@ -72,7 +72,7 @@ namespace QA40xPlot.BareMetal
 
 		public ValueTask Close(bool onExit)
 		{
-			if(_UsbApi.IsOpen())
+			if (_UsbApi.IsOpen())
 			{
 				Debug.WriteLine($"Closing USB device with {onExit}");
 				_UsbApi.Close(onExit);
@@ -239,7 +239,7 @@ namespace QA40xPlot.BareMetal
 				lrfs.TimeRslt.dt = 1.0 / _SampleRate;
 			}
 			// if it's a QA402 the data comes in with channels 'backwards' so we flip them
-			if ( "QA402" == QaLowUsb.GetDeviceModel())
+			if ("QA402" == QaLowUsb.GetDeviceModel())
 			{
 				var x = lrfs.TimeRslt.Left;
 				lrfs.TimeRslt.Left = lrfs.TimeRslt.Right;
@@ -284,7 +284,7 @@ namespace QA40xPlot.BareMetal
 					_UsbApi.Open();
 				}
 				var isConnected = await CheckDeviceConnected();
-				if(! isConnected)
+				if (!isConnected)
 				{
 					Debug.WriteLine("USB device not connected");
 					return false;

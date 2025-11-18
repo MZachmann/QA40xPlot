@@ -17,13 +17,16 @@ namespace QA40xPlot.ViewModels
 	{
 		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 		public static List<String> GenFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "2000", "5000", "10000" }; }
-		public static List<String> IntermodTypes { get => new List<string> { "Custom", "SMPTE (60Hz.7KHz 4:1)", "DIN (250Hz.8KHz 4:1",
+		public static List<String> IntermodTypes
+		{
+			get => new List<string> { "Custom", "SMPTE (60Hz.7KHz 4:1)", "DIN (250Hz.8KHz 4:1",
 			"CCIF (19KHz.20KHz 1:1)", "AES-17 MD (41Hz.7993Hz 4:1)", "AES-17 DFD (18KHz.20KHz 1:1)",
-			"TDFD Phono (3005Hz.4462Hz 1:1)" }; }
+			"TDFD Phono (3005Hz.4462Hz 1:1)" };
+		}
 		private ActImd MyAction { get => actImd; }
-		private ActImd actImd { get;  set; }
+		private ActImd actImd { get; set; }
 		private PlotControl actPlot { get; set; }
-		private ImdChannelInfo actInfoLeft { get;  set; }
+		private ImdChannelInfo actInfoLeft { get; set; }
 		private ImdChannelInfo actInfoRight { get; set; }
 		[JsonIgnore]
 		public RelayCommand<object> SetAttenuate { get => new RelayCommand<object>(SetAtten); }
@@ -45,7 +48,6 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand DoSaveTab { get => new RelayCommand(SaveItTab); }
 
 		private static ImdViewModel MyVModel { get => ViewSettings.Singleton.ImdVm; }
-		private static ActImd MyBase { get => MyVModel.actImd; }
 
 		#region Setters and Getters
 
@@ -58,7 +60,7 @@ namespace QA40xPlot.ViewModels
 		public bool DoAutoAttn
 		{
 			get { return _DoAutoAttn; }
-			set { if(SetProperty(ref _DoAutoAttn, value)) RaisePropertyChanged("AttenColor"); }
+			set { if (SetProperty(ref _DoAutoAttn, value)) RaisePropertyChanged("AttenColor"); }
 		}
 
 		private string _Gen1Frequency = string.Empty;
@@ -182,7 +184,7 @@ namespace QA40xPlot.ViewModels
 				case "PlotFormat":
 					// we may need to change the axis
 					ToShowRange = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Collapsed : Visibility.Visible;
-					ToShowdB = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Visible : Visibility.Collapsed; 
+					ToShowdB = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Visible : Visibility.Collapsed;
 					RaisePropertyChanged("GraphUnit");
 					MyAction?.UpdateGraph(true);
 					break;
@@ -279,7 +281,7 @@ namespace QA40xPlot.ViewModels
 			{
 				// Save document
 				string filename = saveFileDialog.FileName;
-				if (filename.Count() > 1)
+				if (filename.Length > 1)
 				{
 					var vm = MyVModel;
 					vm.actImd.SaveToFile(filename);
@@ -296,12 +298,12 @@ namespace QA40xPlot.ViewModels
 
 		private static async Task LoadIt()
 		{
-			await DoGetLoad(MyBase, PlotFileFilter, true);
+			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, true);
 		}
 
 		private static async Task GetIt()
 		{
-			await DoGetLoad(MyBase, PlotFileFilter, false);
+			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, false);
 		}
 
 
@@ -373,9 +375,9 @@ namespace QA40xPlot.ViewModels
 		{
 			var ax = IntermodType;
 			var tt = ToDirection(GenDirection);
-			if( tt == E_GeneratorDirection.OUTPUT_POWER)
+			if (tt == E_GeneratorDirection.OUTPUT_POWER)
 			{
-				Gen2Voltage = (MathUtil.ToDouble(this.Gen1Voltage, 1e-5) / (divisor*divisor)).ToString();
+				Gen2Voltage = (MathUtil.ToDouble(this.Gen1Voltage, 1e-5) / (divisor * divisor)).ToString();
 			}
 			else
 			{
@@ -441,11 +443,11 @@ namespace QA40xPlot.ViewModels
 				return;
 			}
 
-			if ( tt.Contains("SMPTE "))
+			if (tt.Contains("SMPTE "))
 			{
 				ExecIm(60, 7000, 4);
 			}
-			else if(tt.Contains("DIN "))
+			else if (tt.Contains("DIN "))
 			{
 				ExecIm(250, 8000, 4);
 			}
@@ -518,7 +520,7 @@ namespace QA40xPlot.ViewModels
 		{
 			PropertyChanged -= CheckPropertyChanged;
 			MouseTracked -= DoMouseTracked;
-		 
+
 		}
 
 		public ImdViewModel()
@@ -566,7 +568,7 @@ namespace QA40xPlot.ViewModels
 			PlotFormat = "dBV";
 
 			ToShowRange = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Collapsed : Visibility.Visible;
-			ToShowdB = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Visible : Visibility.Collapsed; 
+			ToShowdB = GraphUtil.IsPlotFormatLog(PlotFormat) ? Visibility.Visible : Visibility.Collapsed;
 
 			// make a few things happen to synch the gui
 			Task.Delay(1000).ContinueWith(t => { MyAction?.UpdateGraph(true); });

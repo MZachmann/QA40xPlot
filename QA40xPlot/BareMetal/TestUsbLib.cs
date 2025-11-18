@@ -1,11 +1,7 @@
-﻿using QA40xPlot.Libraries;
-using System.Diagnostics;
-
-// Written by MZachmann 4-24-2025
+﻿// Written by MZachmann 4-24-2025
 // much of the bare metal code comes originally from the PyQa40x library and from the Qa40x_BareMetal library on github
 // see https://github.com/QuantAsylum/QA40x_BareMetal
 // and https://github.com/QuantAsylum/PyQa40x
-
 
 namespace QA40xPlot.BareMetal
 {

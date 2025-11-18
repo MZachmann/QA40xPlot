@@ -1,11 +1,13 @@
-QA40xPlot
-
+# QA40xPlot
+## Summary
 QA40xPlot is an Audio Analysis application designed around the QuantAsylum QA40x Audio Analyzer series
 of hardware. 
 
 - It takes advantage of the QA40x absolute voltage readout. 
 - Tests may be autoranged by using app control of the attenuator.
 - Tests are specified by QA40x generator voltage or DUT output voltage or DUT output power.
+- Test results can be saved and then later loaded or used as chart overlays.
+- External (sound device) generators such as DACs may be used/tested instead of the QA40x generator.
 
 This Audio Analysis application started as a Fork of https://github.com/breedj/qa40x-audio-analyser.
 Some code was borrowed from QuantAsylum's Qa40x_BareMetal and PyQa40x repositories on Github.
@@ -13,14 +15,12 @@ Some code was borrowed from QuantAsylum's Qa40x_BareMetal and PyQa40x repositori
 ## Installation
 The installer may be run from https://mzachmann.github.io. Once installed, copy the desktop icon to the taskbar if you wish
 to pin it there.
-## Known Problems
-The program may rarely not start on first try. Retry and it should then start up.
 
+## Known Problems
 If you switch test type in the Response/Impedance/Gain tab the data will persist (so you may switch back)
 but the graphical view is unlikely to be right for this other test. Rerun the test if you switch types.
 
 ## Overview
-
 The analyzer contains 
 
 - a spectral sweep
@@ -31,41 +31,45 @@ The analyzer contains
 - a THD vs Amplitude sweep
 - an impedance vs frequency sweep with amplitude and phase
 - a bode plot sweep (swept gain and phase)
+- a crosstalk test
 
 ## Code
 The code is based on C#, .NET 9, and WPF (Windows Presentation Foundation).
 
 ## Documentation
-There is a help button in the application that brings up a page of help.
+There is a help button in the application that brings up a page of help. 
+
+There is also a lengthy but good youtube tutorial. The video tutorial has a 
+clickable table of contents in the description.
 
 ## To Run
-
-The Release is delivered as a zipped signed .msi setup program that just needs to be executed. Ignore the security warning (click More Info).
+The installer creates an icon on your desktop and links to the usual Windows run options. 
+The program is self-updating. It checks for updates each time it is run.
 
 ### USB Direct
-***NEW as of 1.1***----->>>
 This program is totally standalone and requires only that the Qa40x hardware is connected to the PC via USB. 
 The program should automatically find the QA40x hardware and connect to it.
 
-The USB connection is active only while a test is running.
+The USB connection is active only once a test is run.
 
 If you experience issues with the USB connection, which is dependent on things like CPU performance, then
-there is a setting touse the REST interface provided by the QA40x factory application.
+there is a setting to use the REST interface provided by the QA40x factory application.
 
 ### Default Configuration
-
 **At startup** the program looks in your My Documents folder (usually \Users\yourname\Documents) and if it finds 
 a saved configuration file named **QADefault.cfg** then that file is loaded.
 
+The configuration can be autosaved on exit so it always has your last settings.
+
 ## General Info
-
 The spectral and intermodulation tests include an option for autoranging. Most other tests automatically autorange.
+The autorange safety margin is adjustable.
 
-Three tests: impedance testing, frequency response, and gain (bode plot) are wrapped in a single tab whose name
-will dynamically change between the 3 (Impedance, Response, Gain) based on your selection in the tab.
+Four tests: impedance testing, frequency response, gain (bode plot), and crosstalk are wrapped in a single tab 
+whose name dynamically changes between the 4 (Impedance, Response, Gain, Crosstalk) based on your selection in the tab.
 
-**Cursors** are visible in the lower right of the screen, below graph options. When you move the mouse in the window
-the cursor values will track the displayed data. Click the mouse to stop changing frequency (fixing the value unless the program runs
+**Cursors** are visible in the lower right of the screen, below graph options. When you move the mouse in the chart window
+the cursor values track the mouse location. Click the mouse to stop changing frequency (fixing the value unless the program runs
 continuously). Click the mouse again to release the hold.
 
 ## Impedance and Gain Test Connection
@@ -75,7 +79,11 @@ continuously). Click the mouse again to release the hold.
 * the top of the DUT goes to the left channel and the bottom of the reference resistor
 * the top of the reference resistor goes to both the input (QA40x generator output) and the right channel.
 
-**The Gain Test** assumes the reference (QA40x generator output) is connected to the right channel and the signal with gain (DUT output) is connected to the left channel.
+**The Gain Test** assumes the reference (QA40x generator output) is connected to the right channel and the signal with gain 
+(DUT output) is connected to the left channel.
+
+**The Crosstalk Test** requires that you connect one signal to DUT left and right channels then
+connect the output channels of the DUT to each QA40x input channel.
 
 ## Photos
 Spectral Plot

@@ -1,13 +1,12 @@
-﻿using System.IO.Compression;
-using System.IO;
-using System.Reflection;
-using System.Windows;
-using System.Text;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using QA40xPlot.Data;
 using QA40xPlot.ViewModels;
-using Newtonsoft.Json.Linq;
-using System.Diagnostics;
+using System.IO;
+using System.IO.Compression;
+using System.Reflection;
+using System.Text;
+using System.Windows;
 
 namespace QA40xPlot.Libraries
 {
@@ -26,7 +25,7 @@ namespace QA40xPlot.Libraries
 				if (compFile.Length > 0 && compFile == _CompensationFile && _MicCompensation != null)
 				{
 					vtd = File.GetLastWriteTime(compFile); // get the last write time of the file
-					if(vtd == _LastCompEdit)
+					if (vtd == _LastCompEdit)
 						return _MicCompensation;
 				}
 				_CompensationFile = string.Empty; // reset the file name
@@ -36,7 +35,7 @@ namespace QA40xPlot.Libraries
 				if (!File.Exists(compFile))
 					throw new Exception("Compensation file not found.");
 
-				var txtData = File.ReadAllText(compFile);	// get the compensation data
+				var txtData = File.ReadAllText(compFile);   // get the compensation data
 				var lines = txtData.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries); // lines of text w/o \r\n
 				int i = 0;
 				lines = lines.Select(x => x.TrimStart()).ToArray(); // trim whitespace
@@ -44,18 +43,18 @@ namespace QA40xPlot.Libraries
 				{
 					i++; // skip the header lines
 				}
-				if(i > 3)
+				if (i > 3)
 					throw new Exception("Invalid mic compensation file format. Expected numeric data after header lines.");
 				List<double> freq = new List<double>();
 				List<double> gain = new List<double>();
-				for(; i < lines.Length; i++)
+				for (; i < lines.Length; i++)
 				{
 					var parts = lines[i].Split(new[] { ' ', '\t', ',' }, StringSplitOptions.RemoveEmptyEntries);
 					if (parts.Length < 2)
 						continue; // skip invalid lines
 					var f = MathUtil.ToDouble(parts[0], -1230.0); // first part is frequency
 					var g = MathUtil.ToDouble(parts[1], -1230.0); // second part is gain
-					if(f != -1230 && g != -1230)
+					if (f != -1230 && g != -1230)
 					{
 						freq.Add(f);
 						gain.Add(g);
@@ -112,7 +111,7 @@ namespace QA40xPlot.Libraries
 					x = u["ViewModel"]["Name"].ToString() ?? string.Empty;
 					var z = model.ViewModel as BaseViewModel;
 					isValid = z?.IsValidLoadModel(x ?? "") ?? false;
-					if(u.ContainsKey("TimeRslt"))
+					if (u.ContainsKey("TimeRslt"))
 						oldTime = u["TimeRslt"];
 				}
 				if (!isValid)
@@ -121,11 +120,11 @@ namespace QA40xPlot.Libraries
 					return null;
 				}
 
-					// Deserialize the JSON string into an object
+				// Deserialize the JSON string into an object
 				var jsonObject = JsonConvert.DeserializeObject<DataTab<Model>>(jsonContent);
 				if (jsonObject != null)
 				{
-					if( jsonObject.TimeSaver != null && jsonObject.TimeSaver.Left.Length > 0)
+					if (jsonObject.TimeSaver != null && jsonObject.TimeSaver.Left.Length > 0)
 					{
 						// we have a time saver, convert it to a time series
 						jsonObject.TimeRslt = jsonObject.TimeSaver.ToSeries(); // convert the time saver to a time series
@@ -158,7 +157,7 @@ namespace QA40xPlot.Libraries
 						jsonObject.ViewModel.CopyPropertiesTo(page.ViewModel);
 					page.Definition.Id = id; // keep the same id
 					page.Definition.FileName = fileName; // re-set the filename
-					if(jsonObject.FreqRslt != null)
+					if (jsonObject.FreqRslt != null)
 						page.FreqRslt = jsonObject.FreqRslt; // set the frequency result
 					page.Definition.IsOnL = true;
 					page.Definition.IsOnR = false;
@@ -180,13 +179,13 @@ namespace QA40xPlot.Libraries
 			try
 			{
 				// convert time data to longer stuff
-				if(page.TimeRslt != null && page.TimeRslt.Left.Length > 0)
+				if (page.TimeRslt != null && page.TimeRslt.Left.Length > 0)
 				{
 					page.TimeSaver = new LeftRightTimeSaver();
 					page.TimeSaver.FromSeries(page.TimeRslt);
 				}
 
-				if(saveFreq && page.FreqRslt != null && page.FreqRslt.Left.Length > 0)
+				if (saveFreq && page.FreqRslt != null && page.FreqRslt.Left.Length > 0)
 				{
 					page.FreqSaver = new LeftRightFreqSaver();
 					page.FreqSaver.FromSeries(page.FreqRslt);
@@ -199,7 +198,7 @@ namespace QA40xPlot.Libraries
 				// Write the JSON string to a file
 				// File.WriteAllText(fileName, jsonString);
 				var fname = fileName;
-				if( !fname.Contains(".zip"))
+				if (!fname.Contains(".zip"))
 					fname += ".zip";
 				Util.CompressTextToFile(jsonString, fname); // zip it
 			}
@@ -278,7 +277,7 @@ namespace QA40xPlot.Libraries
 						}
 					}
 				}
-				foreach(var prop in pending)
+				foreach (var prop in pending)
 				{
 					if (vws.ContainsKey(prop.Name))
 					{

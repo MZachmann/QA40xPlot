@@ -16,8 +16,8 @@ namespace QA40xPlot.Actions
 
 		public virtual Task LoadFromFile(string fileName, bool doLoad)
 		{
-			Debug.Assert(false);	// should never get here
-			return null;  
+			Debug.Assert(false);    // should never get here
+			return null;
 		}
 
 		// this is the initial gain calculation so that we can get attenuation and input voltage settings
@@ -187,17 +187,17 @@ namespace QA40xPlot.Actions
 		{
 			// Turn the generator off
 			WaveGenerator.SetEnabled(false);
-			if ( ViewSettings.Singleton.SettingsVm.RelayUsage == "OnFinish")
+			if (ViewSettings.Singleton.SettingsVm.RelayUsage == "OnFinish")
 				await QaComm.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION);  // set max attenuation while idle...
-																	// detach from usb port
-			//QaComm.Close(false);
+																			   // detach from usb port
+																			   //QaComm.Close(false);
 			bvm.IsRunning = false;
 			bvm.HasSave = true; // set the save flag
-			if( !bvm.KeepMiniPlots)
+			if (!bvm.KeepMiniPlots)
 			{
 				_ = Task.Delay(1000).ContinueWith(x => bvm.ShowMiniPlots = false); // disable mini plots after a second
 			}
-			FrequencyHistory.Clear();	// empty averaging history
+			FrequencyHistory.Clear();   // empty averaging history
 		}
 
 		protected async Task showMessage(String msg, int delay = 0)
@@ -264,11 +264,11 @@ namespace QA40xPlot.Actions
 		/// <param name="ct">token</param>
 		/// <param name="setRange">set range to 0 then back</param>
 		/// <returns>Noise unweighted, A weighted, and C weighted</returns>
-		protected async Task<(LeftRightPair,LeftRightPair,LeftRightPair)> MeasureNoise(BaseViewModel bvm, CancellationToken ct, bool setRange = false)
+		protected async Task<(LeftRightPair, LeftRightPair, LeftRightPair)> MeasureNoise(BaseViewModel bvm, CancellationToken ct, bool setRange = false)
 		{
 			var freqRslt = await MeasureNoiseFreq(bvm, 1, ct, setRange);
 
-			if(freqRslt != null && freqRslt.Left != null)
+			if (freqRslt != null && freqRslt.Left != null)
 			{
 				LeftRightPair nfgr = QaCompute.CalculateNoise(bvm.WindowingMethod, freqRslt, "");
 				LeftRightPair nfgrA = QaCompute.CalculateNoise(bvm.WindowingMethod, freqRslt, "A");
@@ -298,7 +298,7 @@ namespace QA40xPlot.Actions
 
 			// the simplest thing here is to do a quick burst low value...
 			var generatorV = 0.01;          // random low test value
-			// we must have this in the bin center here
+											// we must have this in the bin center here
 			dfreq = QaLibrary.GetNearestBinFrequency(dfreq, sampleRate, fftsize);
 			WaveGenerator.SetGen1(dfreq, generatorV, true); // send a sine wave
 			WaveGenerator.SetEnabled(true);                 // enable generator
@@ -319,7 +319,7 @@ namespace QA40xPlot.Actions
 			lrfs.Left = new double[] { GetFGain(acqData.FreqRslt.Left, generatorV, binmin, bintrack) };
 			lrfs.Right = new double[] { GetFGain(acqData.FreqRslt.Right, generatorV, binmin, bintrack) };
 			lrfs.Df = acqData.FreqRslt.Df;
-				
+
 			// if we're asking for averaging
 			for (int j = 1; j < average; j++)
 			{
@@ -346,14 +346,14 @@ namespace QA40xPlot.Actions
 			await showMessage("Calculating DUT gain");
 			LRGains = await DetermineGainCurve(bvm, true, 1);
 			bvm.Attenuation = atten; // restore the original value just in case bvm is also the local model
-			// in general this gets reset immediately for the next test
+									 // in general this gets reset immediately for the next test
 		}
 
 		protected async Task CalculateGainAtFreq(BaseViewModel bvm, double dFreq, int averages = 1)
 		{
 			// show that we're autoing...
 			var atten = bvm.Attenuation;
-			bvm.Attenuation = QaLibrary.DEVICE_MAX_ATTENUATION;	// update the GUI button
+			bvm.Attenuation = QaLibrary.DEVICE_MAX_ATTENUATION; // update the GUI button
 			await showMessage($"Calculating DUT gain at {dFreq}");
 			LRGains = await DetermineGainAtFreq(bvm, dFreq, averages);
 			bvm.Attenuation = atten;    // restore the original value and button display
@@ -460,11 +460,11 @@ namespace QA40xPlot.Actions
 			// try at 0.01 volt generator and 42dB attenuation
 			var lrfs = await SubGainCurve(bvm, inits, average, 0.01, (int)bvm.Attenuation);
 			// now do it again louder for better accuracy
-			if(lrfs == null) 
+			if (lrfs == null)
 				return null;
 			var maxGain = Math.Max(0.01, lrfs.Left.Skip(10).Take((int)(20000 / lrfs.Df)).Max());
 			maxGain = Math.Max(maxGain, Math.Max(0.01, lrfs.Right.Skip(10).Take((int)(20000 / lrfs.Df)).Max()));
-			if(maxGain <= 100)
+			if (maxGain <= 100)
 			{
 				// now try at 0.1V or greater if no gain
 				// and appropriate attenuation for best accuracy

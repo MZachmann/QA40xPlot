@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using System.ComponentModel;
-using System.Drawing;
 using System.Runtime.CompilerServices;
 
 namespace QA40xPlot.ViewModels
@@ -35,7 +34,8 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public System.Windows.Media.Brush ThemeBackground
 		{
-			get {
+			get
+			{
 				try
 				{
 					var x = ViewSettings.Singleton.SettingsVm.ThemeSet;
@@ -49,7 +49,7 @@ namespace QA40xPlot.ViewModels
 					var bclr = System.Windows.Media.Color.FromArgb(150, color.R, color.G, color.B);
 					return new System.Windows.Media.SolidColorBrush(bclr);
 				}
-				catch (Exception )
+				catch (Exception)
 				{
 				}
 				return System.Windows.Media.Brushes.Red;

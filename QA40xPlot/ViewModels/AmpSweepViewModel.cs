@@ -6,7 +6,6 @@ using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.QA430;
 using QA40xPlot.Views;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
@@ -22,7 +21,7 @@ namespace QA40xPlot.ViewModels
 
 		private ActAmpSweep MyAction { get => actSweep; }
 		private ActAmpSweep actSweep { get; set; }
-		private PlotControl actPlot {  get; set; }
+		private PlotControl actPlot { get; set; }
 
 		[JsonIgnore]
 		public RelayCommand DoStart { get => new RelayCommand(StartIt); }
@@ -304,12 +303,12 @@ namespace QA40xPlot.ViewModels
 
 		private static async Task LoadItTab()
 		{
-			await DoGetLoad(MyVModel.actSweep, PlotFileFilter, true);
+			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, true);
 		}
 
 		private static async Task GetItTab()
 		{
-			await DoGetLoad(MyVModel.actSweep, PlotFileFilter, false);
+			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, false);
 		}
 
 
@@ -337,7 +336,7 @@ namespace QA40xPlot.ViewModels
 			{
 				// Save document
 				string filename = saveFileDialog.FileName;
-				if (filename.Count() > 1)
+				if (filename.Length > 1)
 				{
 					MyAction.SaveToFile(filename);
 				}
@@ -358,7 +357,7 @@ namespace QA40xPlot.ViewModels
 			switch (parameter)
 			{
 				case "XM":  // X magnitude
-					// calculate the bounds here. X is provided in input or output volts/power
+							// calculate the bounds here. X is provided in input or output volts/power
 					this.GraphStartX = bounds.Left.ToString("G2");
 					this.GraphEndX = (bounds.Left + bounds.Right).ToString("G2");
 					break;
@@ -508,7 +507,7 @@ namespace QA40xPlot.ViewModels
 			EndPower = "5";
 
 			ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
-			ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;          
+			ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;
 			// make a few things happen to synch the gui
 			Task.Delay(1000).ContinueWith(t => { MyAction?.UpdateGraph(true); });
 		}

@@ -5,7 +5,6 @@ using QA40xPlot.ViewModels;
 using QA40xPlot.Views;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Threading;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using static QA40xPlot.QA430.QA430Model;
@@ -43,10 +42,10 @@ namespace QA40xPlot.QA430
 		public int Distgain;    // distortion gain for use by app
 		public double SupplyP;  // supply positive voltage
 		public double SupplyN;  // supply negative voltage
-		public double GenVolt { get; set; }	// generator voltage
+		public double GenVolt { get; set; } // generator voltage
 		public string GenVoltFmt { get; set; } // generator voltage formatted
 
-		public AcquireStep(AcquireStep asIn) 
+		public AcquireStep(AcquireStep asIn)
 		{
 			Cfg = asIn.Cfg;
 			Load = asIn.Load;
@@ -61,7 +60,7 @@ namespace QA40xPlot.QA430
 		public string ToSuffix(bool addVolt, bool hasQa430)
 		{
 			string sout = string.Empty;
-			if(hasQa430)
+			if (hasQa430)
 			{
 				if (SupplyN == SupplyP)
 					sout = $"{Load};{SupplyP}V;Gain={Gain}";
@@ -110,14 +109,14 @@ namespace QA40xPlot.QA430
 		private readonly Task RefreshTask;
 		private bool RefreshTaskCancel = false;
 
-		static readonly QA430Config C1 = new QA430Config("Config1", OpampNegInputs.GndTo4p99, OpampPosInputs.Analyzer, 
+		static readonly QA430Config C1 = new QA430Config("Config1", OpampNegInputs.GndTo4p99, OpampPosInputs.Analyzer,
 					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, 0, 0);
 		static readonly QA430Config C2a = new QA430Config("Config2a", OpampNegInputs.Open, OpampPosInputs.Analyzer,
 					OpampPosNegConnects.Short, OpampFeedbacks.Short, 0, 0);
 		static readonly QA430Config C2b = new QA430Config("Config2b", OpampNegInputs.GndTo499, OpampPosInputs.Analyzer,
 					OpampPosNegConnects.Short, OpampFeedbacks.R4p99k, 0, 0);
 		static readonly QA430Config C2c = new QA430Config("Config2", OpampNegInputs.GndTo4p99, OpampPosInputs.Analyzer,
-					OpampPosNegConnects.Short, OpampFeedbacks.R4p99k, 0, 0);	// note the Config2 name
+					OpampPosNegConnects.Short, OpampFeedbacks.R4p99k, 0, 0);    // note the Config2 name
 		static readonly QA430Config C3a = new QA430Config("Config3a", OpampNegInputs.GndTo4p99, OpampPosInputs.Gnd,
 					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, 0, 0);
 		static readonly QA430Config C3b = new QA430Config("Config3b", OpampNegInputs.GndTo499, OpampPosInputs.Gnd,
@@ -131,8 +130,8 @@ namespace QA40xPlot.QA430
 		static readonly QA430Config C5a = new QA430Config("Config5a", OpampNegInputs.AnalyzerTo499, OpampPosInputs.Gnd,
 					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, -10, 10);
 		static readonly QA430Config C5b = new QA430Config("Config5b", OpampNegInputs.AnalyzerTo499, OpampPosInputs.Gnd,
-					OpampPosNegConnects.R49p9, OpampFeedbacks.R4p99k, -10, 110 );
-		static readonly QA430Config C6a = new QA430Config("Config6a", OpampNegInputs.Open, OpampPosInputs.Analyzer, 
+					OpampPosNegConnects.R49p9, OpampFeedbacks.R4p99k, -10, 110);
+		static readonly QA430Config C6a = new QA430Config("Config6a", OpampNegInputs.Open, OpampPosInputs.Analyzer,
 					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, 1, 1);
 		static readonly QA430Config C6b = new QA430Config("Config6b", OpampNegInputs.Open, OpampPosInputs.Analyzer,
 					OpampPosNegConnects.R49p9, OpampFeedbacks.R4p99k, 1, 101);
@@ -154,8 +153,10 @@ namespace QA40xPlot.QA430
 		public RelayCommand ShowConfigurations { get => new RelayCommand(OnShowConfigs); }
 
 		// this is used by the gui to show the current config photo
-		public ImageSource ConfigImage { 
-			get { 
+		public ImageSource ConfigImage
+		{
+			get
+			{
 				var logo = new BitmapImage();
 				logo.BeginInit();
 				var src = @"/QA40xPlot;component/Images/QA430Configs/" + ConfigOptions[OpampConfigOption] + ".png";
@@ -278,12 +279,12 @@ namespace QA40xPlot.QA430
 
 		[JsonIgnore]
 		public string CurrentSenseLowValue
-		{ 
-			get 
-			{ 
+		{
+			get
+			{
 				var val = Hw.GetLowSideSupplyCurrent();
 				return MathUtil.FormatCurrent(val);
-			} 
+			}
 		}
 
 		[JsonIgnore]
@@ -334,7 +335,7 @@ namespace QA40xPlot.QA430
 				// Place function in here..
 				if (RefreshTaskCancel)
 					break;
-				if( ViewSettings.Singleton.MainVm.HasQA430 && ViewSettings.Singleton.MainVm.ShowQA430)
+				if (ViewSettings.Singleton.MainVm.HasQA430 && ViewSettings.Singleton.MainVm.ShowQA430)
 					RefreshVars();
 			}
 		}
@@ -398,7 +399,7 @@ namespace QA40xPlot.QA430
 		{
 			// close the usb connection
 			var qausb = Qa430Usb.Singleton;
-			if(qausb == null)
+			if (qausb == null)
 				return;
 			qausb.QAModel.KillTimer();
 			// close and clear the window if it exists
@@ -447,8 +448,8 @@ namespace QA40xPlot.QA430
 				OpampPosInput = (short)OpampPosInputs.Analyzer;
 				OpampFeedback = (short)OpampFeedbacks.R4p99k;
 				OpampPosNegConnect = (short)OpampPosNegConnects.Open;
-				UseFixedRails = true;	// not using this is just painful, so...
-				// don't allow analyzer to drive rails
+				UseFixedRails = true;   // not using this is just painful, so...
+										// don't allow analyzer to drive rails
 				PsrrOption = (short)PsrrOptions.BothPsrrInputsGrounded;
 				LoadOption = (short)LoadOptions.Open;
 
@@ -531,7 +532,7 @@ namespace QA40xPlot.QA430
 		{
 			List<AcquireStep> newSteps = new List<AcquireStep>();
 			var u = whom.Count(x => x);
-			if (u ==0)
+			if (u == 0)
 				return newSteps;    // nothing selected
 
 			foreach (var step in srcSteps)
@@ -554,7 +555,7 @@ namespace QA40xPlot.QA430
 			return newSteps;
 		}
 
-		public List<AcquireStep> ExpandSupplyOptions(List<AcquireStep> srcSteps, List<(double,double)> values)
+		public List<AcquireStep> ExpandSupplyOptions(List<AcquireStep> srcSteps, List<(double, double)> values)
 		{
 			List<AcquireStep> newSteps = new List<AcquireStep>();
 			foreach (var step in srcSteps)
@@ -592,7 +593,7 @@ namespace QA40xPlot.QA430
 					SetOpampConfig("Config1");
 					break;
 				case (short)OpampConfigOptions.Config2:
-					SetOpampConfig("Config2");	// 60db variant
+					SetOpampConfig("Config2");  // 60db variant
 					break;
 				case (short)OpampConfigOptions.Config3a:
 					SetOpampConfig("Config3a");

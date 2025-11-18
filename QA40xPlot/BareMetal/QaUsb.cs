@@ -27,61 +27,61 @@ namespace QA40x.BareMetal
 	/// A simple class to help wrap async transfers
 	/// </summary>
 	class AsyncResult
-    {
-        /// <summary>
-        /// This is specific to the underlying library. LIBUSBDOTNET uses UsbTransfer. 
-        /// WinUsbDotNet uses IAsyncResult.
-        /// </summary>
-        UsbTransfer UsbXfer;
+	{
+		/// <summary>
+		/// This is specific to the underlying library. LIBUSBDOTNET uses UsbTransfer. 
+		/// WinUsbDotNet uses IAsyncResult.
+		/// </summary>
+		UsbTransfer UsbXfer;
 
-        /// <summary>
-        /// Buffer of data to be received.
-        /// </summary>
-        public byte[] ReadBuffer;
+		/// <summary>
+		/// Buffer of data to be received.
+		/// </summary>
+		public byte[] ReadBuffer;
 
-        /// <summary>
-        /// This will change depending on lib used.
-        /// </summary>
-        /// <param name="usb"></param>
-        public AsyncResult(UsbTransfer usb, byte[] readBuffer)
-        {
+		/// <summary>
+		/// This will change depending on lib used.
+		/// </summary>
+		/// <param name="usb"></param>
+		public AsyncResult(UsbTransfer usb, byte[] readBuffer)
+		{
 			UsbXfer = usb;
 			ReadBuffer = readBuffer;
-        }
+		}
 
-        /// <summary>
-        /// Waits until the data associated with this USB object has been read from 
-        /// or written to, or timed out
-        /// </summary>
-        /// <returns></returns>
-        public int Wait()
-        {
-            UsbXfer.Wait(out int transferred);
-            return transferred;
-        }
-    }
+		/// <summary>
+		/// Waits until the data associated with this USB object has been read from 
+		/// or written to, or timed out
+		/// </summary>
+		/// <returns></returns>
+		public int Wait()
+		{
+			UsbXfer.Wait(out int transferred);
+			return transferred;
+		}
+	}
 
 	/// <summary>
 	/// This class is solely used to communicate with the USB device. It handles the
-    /// higher level calls and basic read/writes. It also has replacment calls
-    /// for the common QaLibrary methods such as DoAcquisition and InitializeDevice.
+	/// higher level calls and basic read/writes. It also has replacment calls
+	/// for the common QaLibrary methods such as DoAcquisition and InitializeDevice.
 	/// </summary>
 	class QaUsb
-    {
-        object ReadRegLock = new object();
+	{
+		object ReadRegLock = new object();
 		private readonly static int _RelayMilliseconds = 2000; // how long to wait for relays to settle down after changing input/output ranges
 
 		List<AsyncResult> WriteQueue = new List<AsyncResult>();
-        List<AsyncResult> ReadQueue = new List<AsyncResult>();
+		List<AsyncResult> ReadQueue = new List<AsyncResult>();
 		/// Tracks whether or not an acq is in process. The count starts at one, and when it goes busy
 		/// it will drop to zero, and then return to 1 when not busy
 		static SemaphoreSlim AcqSemaphore = new SemaphoreSlim(1);
 
 		readonly int RegReadWriteTimeout = 20;
-        readonly int MainI2SReadWriteTimeout = 1000; // per baremetal
+		readonly int MainI2SReadWriteTimeout = 1000; // per baremetal
 
-        public byte[] CalData { get; private set; } = []; // readonly
-        public (double, double)[] FCalData { get; private set; } = []; // readonly
+		public byte[] CalData { get; private set; } = []; // readonly
+		public (double, double)[] FCalData { get; private set; } = []; // readonly
 
 		// the usb device we talk to
 		public UsbDevice? Device { get; private set; } = null;
@@ -92,10 +92,10 @@ namespace QA40x.BareMetal
 		public UsbEndpointReader? DataReader { get; private set; } = null;
 		public UsbEndpointWriter? DataWriter { get; private set; } = null;
 
-        public QaUsb()
-        {
+		public QaUsb()
+		{
 
-        }
+		}
 
 		public bool IsOpen()
 		{
@@ -107,14 +107,14 @@ namespace QA40x.BareMetal
 		/// </summary>
 		/// <returns></returns>
 		public bool Open()
-        {
+		{
 			Debug.Assert(Device == null, "Open called when device is already open");
 			bool brslt = false;
 			// Attempt to open QA402 or QA403 device
 			try
 			{
 				Device = QaLowUsb.AttachDevice();
-				if(null == Device)
+				if (null == Device)
 				{
 					Debug.WriteLine("No QA402/QA403 analyzer found");
 					return false;
@@ -133,29 +133,29 @@ namespace QA40x.BareMetal
 				fcals.AddRange(gcals);
 				FCalData = fcals.ToArray();     // doubles instead of bytes mainly for debugging
 				Debug.WriteLine($"Calibration data: {string.Join(", ", FCalData)}");
-                brslt = true;
+				brslt = true;
 			}
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error: {ex.Message}");
-            }
+			catch (Exception ex)
+			{
+				Debug.WriteLine($"Error: {ex.Message}");
+			}
 
-            return brslt;
-        }
+			return brslt;
+		}
 
-        /// <summary>
-        /// Closes a USB connection (if it's open)
-        /// </summary>
-        /// <returns></returns>
-        public bool Close(bool OnExit)
-        {
+		/// <summary>
+		/// Closes a USB connection (if it's open)
+		/// </summary>
+		/// <returns></returns>
+		public bool Close(bool OnExit)
+		{
 			try
 			{
 				// Stop streaming. This also extinguishes the RUN led
 				WriteRegister(8, 0);
-                // if we're exiting really close this stuff
-                if(OnExit)
-                {
+				// if we're exiting really close this stuff
+				if (OnExit)
+				{
 					// clear stuff
 					DataReader = null;
 					DataWriter = null;
@@ -169,15 +169,15 @@ namespace QA40x.BareMetal
 			{
 				Debug.WriteLine($"An error occurred during cleanup: {e.Message}");
 			}
-            return true;
+			return true;
 		}
 
-        /// <summary>
-        /// Generates a random number, writes that to register 0, and attempts to read that same value back.
-        /// </summary>
-        /// <returns></returns>
-        public bool VerifyConnection()
-        {
+		/// <summary>
+		/// Generates a random number, writes that to register 0, and attempts to read that same value back.
+		/// </summary>
+		/// <returns></returns>
+		public bool VerifyConnection()
+		{
 			if (Device == null)
 				return false;
 
@@ -198,8 +198,8 @@ namespace QA40x.BareMetal
 			{
 				Debug.WriteLine($"An error occurred during verifyconnection: {e.Message}");
 			}
-            return false;
-        }
+			return false;
+		}
 
 		/// <summary>
 		/// read the calibration data from the device
@@ -331,7 +331,7 @@ namespace QA40x.BareMetal
 					_LastOutputRange = u;
 				}
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
 				Debug.WriteLine($"Error: {ex.Message}");
 			}
@@ -496,7 +496,7 @@ namespace QA40x.BareMetal
 
 			SoundUtil? soundObj = null;
 
-			if(useExternal)
+			if (useExternal)
 			{
 				var lexout = leftOut.ToList();
 				var rexout = rightOut.ToList();
@@ -609,7 +609,7 @@ namespace QA40x.BareMetal
 				var roff = 0;
 
 				// check delay offset and calculate latency
-				if(leftOut.Max() > 1e-7 || rightOut.Max() > 1e-7)
+				if (leftOut.Max() > 1e-7 || rightOut.Max() > 1e-7)
 				{
 					// amount of signal to check for latency
 					var samplerate = QaComm.GetSampleRate();
@@ -620,9 +620,9 @@ namespace QA40x.BareMetal
 					edelay = Math.Abs(edelay);
 
 					// rough calculate the DC offset
-					const int tossdc = 30;	// skip leading gunk
-					var dcoffsetL = r.Left.Skip(tossdc).Take(preBuf-tossdc).Average();
-					var dcoffsetR = r.Right.Skip(tossdc).Take(preBuf-tossdc).Average();
+					const int tossdc = 30;  // skip leading gunk
+					var dcoffsetL = r.Left.Skip(tossdc).Take(preBuf - tossdc).Average();
+					var dcoffsetR = r.Right.Skip(tossdc).Take(preBuf - tossdc).Average();
 					// correct the ADC data along the way
 					double ldmax = (HasAChannel(true) ? 0.01 : 1e-3) / (adcCal.Left * adcCorrection);
 					double rdmax = (HasAChannel(false) ? 0.01 : 1e-3) / (adcCal.Right * adcCorrection);
@@ -630,9 +630,9 @@ namespace QA40x.BareMetal
 					// this scans through the input data looking for the first sample that exceeds a small threshold
 					// locations are found per channel in case they come from different devices
 					var checkamount = preBuf + adelay;
-					if( useExternal )
+					if (useExternal)
 						checkamount = preBuf + Math.Max(adelay, edelay);
-					for (int i=preBuf; i<checkamount; i++)
+					for (int i = preBuf; i < checkamount; i++)
 					{
 						// empirically we get -7e-5 until signal shows up
 						// i assume that's dc offset...
@@ -642,14 +642,14 @@ namespace QA40x.BareMetal
 						{
 							Debug.WriteLine($"Detect left {inx} at {i}");
 							loff = i;
-							if(roff != 0)
+							if (roff != 0)
 								break;
 						}
-						if(roff == 0 && Math.Abs(iny - dcoffsetR) > rdmax)
+						if (roff == 0 && Math.Abs(iny - dcoffsetR) > rdmax)
 						{
 							Debug.WriteLine($"Detect right {iny} at {i}");
 							roff = i;
-							if(loff != 0)
+							if (loff != 0)
 								break;
 						}
 					}
@@ -660,13 +660,13 @@ namespace QA40x.BareMetal
 						roff = preBuf + (HasAChannel(false) ? adelay : edelay);
 					if (!useExternal || !SoundUtil.HasChannel(true))
 					{
-						if(loff > (preBuf + adelay))
+						if (loff > (preBuf + adelay))
 							loff = preBuf + adelay;
 						if (loff < preBuf)
 							loff = preBuf;
 					}
 					else
-					{	// external audio going to left channel
+					{   // external audio going to left channel
 						if (ViewSettings.Singleton.SettingsVm.EchoDelay < 0)
 						{
 							loff = Math.Min(preBuf + edelay, loff);  // calculated
@@ -698,7 +698,7 @@ namespace QA40x.BareMetal
 					}
 
 					// programming bug from earlier, so guard
-					if(loff < 0 || roff < 0)
+					if (loff < 0 || roff < 0)
 					{
 						roff = Math.Abs(roff);
 						loff = Math.Abs(loff);
@@ -780,162 +780,162 @@ namespace QA40x.BareMetal
 			}
 		}
 
-        /// <summary>
-        /// Performs a read on a USB register
-        /// </summary>
-        /// <param name="reg"></param>
-        /// <returns></returns>
-        public UInt32 ReadRegister(byte reg)
-        {
-            byte[] data = new byte[4];
-            UInt32 val;
+		/// <summary>
+		/// Performs a read on a USB register
+		/// </summary>
+		/// <param name="reg"></param>
+		/// <returns></returns>
+		public UInt32 ReadRegister(byte reg)
+		{
+			byte[] data = new byte[4];
+			UInt32 val;
 
-            // Lock so reads (two step USB operation) can't be broken up by writes (single step USB operation). We need to 
-            // consider there can be USB writes from the main (UI) thread, and also from the aquisition thread. So, it's 
-            // important to ensure a read doesn't get broken up
-            lock (ReadRegLock)
-            {
-                try
-                {
-                    byte[] txBuf = WriteRegisterPrep((byte)(0x80 + reg), 0);
-                    WriteRegisterRaw(txBuf);
-                    int len = 0;
-                    RegisterReader?.Read(data, RegReadWriteTimeout, out len);
+			// Lock so reads (two step USB operation) can't be broken up by writes (single step USB operation). We need to 
+			// consider there can be USB writes from the main (UI) thread, and also from the aquisition thread. So, it's 
+			// important to ensure a read doesn't get broken up
+			lock (ReadRegLock)
+			{
+				try
+				{
+					byte[] txBuf = WriteRegisterPrep((byte)(0x80 + reg), 0);
+					WriteRegisterRaw(txBuf);
+					int len = 0;
+					RegisterReader?.Read(data, RegReadWriteTimeout, out len);
 
-                    if (len == 0)
-                        throw new Exception($"Usb.ReadRegister failed to read data. Register: {reg}");
+					if (len == 0)
+						throw new Exception($"Usb.ReadRegister failed to read data. Register: {reg}");
 
-                    val = (UInt32)((data[0] << 24) + (data[1] << 16) + (data[2] << 8) + data[3]);
+					val = (UInt32)((data[0] << 24) + (data[1] << 16) + (data[2] << 8) + data[3]);
 
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Error: {ex.Message}");
+				}
+				catch (Exception ex)
+				{
+					Debug.WriteLine($"Error: {ex.Message}");
 					throw;
-                }
-            }
+				}
+			}
 
-            return val;
-        }
+			return val;
+		}
 
-        /// <summary>
-        /// Writes to a USB register
-        /// </summary>
-        /// <param name="reg"></param>
-        /// <param name="val"></param>
-        public void WriteRegister(byte reg, uint val)
-        {
-            // Values greater than or equal to 0x80 signify a read. Not allowed here
-            if (reg >= 0x80)
-            {
-                throw new Exception("Usb.WriteRegister(): Invalid register");
-            }
+		/// <summary>
+		/// Writes to a USB register
+		/// </summary>
+		/// <param name="reg"></param>
+		/// <param name="val"></param>
+		public void WriteRegister(byte reg, uint val)
+		{
+			// Values greater than or equal to 0x80 signify a read. Not allowed here
+			if (reg >= 0x80)
+			{
+				throw new Exception("Usb.WriteRegister(): Invalid register");
+			}
 
-            byte[] buf = WriteRegisterPrep(reg, val);
+			byte[] buf = WriteRegisterPrep(reg, val);
 
-            lock (ReadRegLock)
-            {
-                WriteRegisterRaw(buf);
-            }
-        }
+			lock (ReadRegLock)
+			{
+				WriteRegisterRaw(buf);
+			}
+		}
 
-        void WriteRegisterRaw(byte[] data)
-        {
-            int len = data.Length;
-            try
-            {
+		void WriteRegisterRaw(byte[] data)
+		{
+			int len = data.Length;
+			try
+			{
 				RegisterWriter?.Write(data, RegReadWriteTimeout, out len);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error: {ex.Message}");
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine($"Error: {ex.Message}");
 				throw;
-            }
-        }
+			}
+		}
 
-        byte[] WriteRegisterPrep(byte reg, uint val)
-        {
-            byte[] array = BitConverter.GetBytes(val).Reverse().ToArray();
+		byte[] WriteRegisterPrep(byte reg, uint val)
+		{
+			byte[] array = BitConverter.GetBytes(val).Reverse().ToArray();
 			byte[] r = new byte[5];
 
-            r[0] = reg;
-            Array.Copy(array, 0, r, 1, 4);
-            return r;
-        }
+			r[0] = reg;
+			Array.Copy(array, 0, r, 1, 4);
+			return r;
+		}
 
-        //
-        // METHODS BELOW MUST BE CALLED FROM A SINGLE THREAD. The code below is simply a wrapper for overlapped IO.
-        // Since the data acquistion is exclusively performed its own thread this isn't an issue. The root issue is
-        // that the c# List<AsyncResult> type isn't thread safe. Thus the restriction
-        //
+		//
+		// METHODS BELOW MUST BE CALLED FROM A SINGLE THREAD. The code below is simply a wrapper for overlapped IO.
+		// Since the data acquistion is exclusively performed its own thread this isn't an issue. The root issue is
+		// that the c# List<AsyncResult> type isn't thread safe. Thus the restriction
+		//
 
-        public void InitOverlapped()
-        {
-            WriteQueue.Clear();
-            ReadQueue.Clear();
-        }
+		public void InitOverlapped()
+		{
+			WriteQueue.Clear();
+			ReadQueue.Clear();
+		}
 
-        /// <summary>
-        /// Submits a buffer to be written and returns immediately. The submitted buffer is 
-        /// copied to a local buffer before returning.
-        /// </summary>
-        /// <param name="data"></param>
-        public void WriteDataBegin(byte[] data, int offset, int len)
-        {
-            ErrorCode ec;
+		/// <summary>
+		/// Submits a buffer to be written and returns immediately. The submitted buffer is 
+		/// copied to a local buffer before returning.
+		/// </summary>
+		/// <param name="data"></param>
+		public void WriteDataBegin(byte[] data, int offset, int len)
+		{
+			ErrorCode ec;
 
-            if (len == 0)
-                return;
+			if (len == 0)
+				return;
 
-            byte[] localBuf = new byte[len];
-            Array.Copy(data, offset, localBuf, 0, len);
+			byte[] localBuf = new byte[len];
+			Array.Copy(data, offset, localBuf, 0, len);
 			UsbTransfer? ar = null;
 			ec = DataWriter?.SubmitAsyncTransfer(localBuf, 0, localBuf.Length, MainI2SReadWriteTimeout, out ar) ?? ErrorCode.UnknownError;
-            if (ec != ErrorCode.None)
-            {
-                //Log.WriteLine(LogType.Error, "Error code in Usb.WriteDataBegin: ");
-                throw new Exception("Bad result in WriteDataBegin in Usb.cs");
-            }
-            if(ar != null)
-                WriteQueue.Add(new AsyncResult(ar, localBuf));
-        }
+			if (ec != ErrorCode.None)
+			{
+				//Log.WriteLine(LogType.Error, "Error code in Usb.WriteDataBegin: ");
+				throw new Exception("Bad result in WriteDataBegin in Usb.cs");
+			}
+			if (ar != null)
+				WriteQueue.Add(new AsyncResult(ar, localBuf));
+		}
 
-        /// <summary>
-        /// Waits until the oldest submitted buffers has been written successfully OR timed out.
-        /// The number of bytes written is returned.
-        /// </summary>
-        /// <returns></returns>
-        public int WriteDataEnd()
-        {
-            if (WriteQueue.Count == 0)
-                throw new Exception("No buffers in Usb WriteDataEnd()");
+		/// <summary>
+		/// Waits until the oldest submitted buffers has been written successfully OR timed out.
+		/// The number of bytes written is returned.
+		/// </summary>
+		/// <returns></returns>
+		public int WriteDataEnd()
+		{
+			if (WriteQueue.Count == 0)
+				throw new Exception("No buffers in Usb WriteDataEnd()");
 
-            AsyncResult ar = WriteQueue[0];
-            WriteQueue.RemoveAt(0);
-            return ar.Wait();
-        }
+			AsyncResult ar = WriteQueue[0];
+			WriteQueue.RemoveAt(0);
+			return ar.Wait();
+		}
 
-        /// <summary>
-        /// Creates and submits a buffer to be read asynchronously. Returns immediately.
-        /// </summary>
-        /// <param name="data"></param>
-        public void ReadDataBegin(int bufSize)
-        {
-            byte[] readBuffer = new byte[bufSize];
+		/// <summary>
+		/// Creates and submits a buffer to be read asynchronously. Returns immediately.
+		/// </summary>
+		/// <param name="data"></param>
+		public void ReadDataBegin(int bufSize)
+		{
+			byte[] readBuffer = new byte[bufSize];
 			UsbTransfer? ar = null;
 			DataReader?.SubmitAsyncTransfer(readBuffer, 0, readBuffer.Length, MainI2SReadWriteTimeout, out ar);
-            if(ar != null)
-                ReadQueue.Add(new AsyncResult(ar, readBuffer));
-        }
+			if (ar != null)
+				ReadQueue.Add(new AsyncResult(ar, readBuffer));
+		}
 
-        /// <summary>
-        /// Waits until the oldest submitted buffer has been read successfully OR timed out
-        /// </summary>
-        /// <returns></returns>
-        public byte[] ReadDataEnd()
-        {
-            if(ReadQueue.Count > 0)
-            {
+		/// <summary>
+		/// Waits until the oldest submitted buffer has been read successfully OR timed out
+		/// </summary>
+		/// <returns></returns>
+		public byte[] ReadDataEnd()
+		{
+			if (ReadQueue.Count > 0)
+			{
 				AsyncResult ar = ReadQueue[0];
 				ReadQueue.RemoveAt(0);
 				if (ar.Wait() == 0)
@@ -947,7 +947,7 @@ namespace QA40x.BareMetal
 					return ar.ReadBuffer;
 				}
 			}
-            return [];
+			return [];
 		}
 
 	}

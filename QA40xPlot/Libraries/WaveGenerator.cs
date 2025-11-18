@@ -1,7 +1,5 @@
 ﻿using QA40xPlot.Data;
 using QA40xPlot.ViewModels;
-using System.Diagnostics;
-using System.Threading.Channels;
 
 namespace QA40xPlot.Libraries
 {
@@ -10,9 +8,11 @@ namespace QA40xPlot.Libraries
 		public GenWaveform GenParams { get; private set; }
 		public GenWaveform Gen2Params { get; private set; }
 		public bool IsEnabled { get; set; }
-		public WaveChannels Channels { get => GenParams.Channels;
-										set => GenParams.Channels = value;
-										}
+		public WaveChannels Channels
+		{
+			get => GenParams.Channels;
+			set => GenParams.Channels = value;
+		}
 
 		public static WaveGenerator Singleton = new WaveGenerator();
 
@@ -52,7 +52,7 @@ namespace QA40xPlot.Libraries
 			gwf.Channels = channels;
 		}
 
-		public static void SetGen2(double freq, double volts, bool ison, string name=  "Sine")
+		public static void SetGen2(double freq, double volts, bool ison, string name = "Sine")
 		{
 			SetParams(Singleton.Gen2Params, freq, volts, ison);
 			Singleton.Gen2Params.Name = name;
@@ -87,16 +87,16 @@ namespace QA40xPlot.Libraries
 			var dx = Generate(sampleRate, sampleSize);
 			var how = Singleton.Channels;
 			double[] blank = [];
-			if(how != WaveChannels.Both)
+			if (how != WaveChannels.Both)
 			{
 				// if debug distortion is enabled, set the crosstalk channel to Addon%
 				blank = new double[sampleSize];
-				if(ViewSettings.AddonDistortion > 0)
+				if (ViewSettings.AddonDistortion > 0)
 				{
-					blank = dx.Select(x => x * ViewSettings.AddonDistortion/100).ToArray();
+					blank = dx.Select(x => x * ViewSettings.AddonDistortion / 100).ToArray();
 				}
 			}
-			switch(how)
+			switch (how)
 			{
 				case WaveChannels.Left:
 					return (dx, blank);

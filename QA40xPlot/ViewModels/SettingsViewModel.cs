@@ -12,22 +12,25 @@ namespace QA40xPlot.ViewModels
 {
 	public class SettingsViewModel : BaseViewModel
 	{
-		public static List<String> UsbBufferSizes { get => new List<string>() { "2048", "4096", "8192", "16384", "32768", "65536"}; }
+		public static List<String> UsbBufferSizes { get => new List<string>() { "2048", "4096", "8192", "16384", "32768", "65536" }; }
 		public static List<String> RelayUsageList { get => new List<string>() { "Never", "OnFinish", "OnExit" }; }
 		public static List<String> NoiseBandList { get => new List<string>() { "20000", "50000", "80000", "100000" }; }
 		public static List<String> NoiseWeightList { get => new List<string>() { "Z", "A", "C" }; }
 		public static List<String> EchoTypes { get => new List<string>() { "QA40x", "WinDevice", "Both" }; }
 		public static List<String> EchoChannels { get => new List<string>() { "None", "Left", "Right", "L+R" }; }
-		public const int EchoChannelLeft = 1;	// in list order
+		public const int EchoChannelLeft = 1;   // in list order
 		public const int EchoChannelRight = 2;
 		[JsonIgnore]
 		public List<string> EchoNames { get { var x = SoundUtil.EnumerateDevices().ToList(); return x; } }
 
-		public static List<String> BackColors { get => new List<string>() { "Transparent", "#dce4e4", "#60ffffff",
+		public static List<String> BackColors
+		{
+			get => new List<string>() { "Transparent", "#dce4e4", "#60ffffff",
 			"#f8f8f8", "White",
-			"MintCream", "LightGray", 
+			"MintCream", "LightGray",
 
-			"DarkGray", "LightGreen", "Lavender" }; }
+			"DarkGray", "LightGreen", "Lavender" };
+		}
 		public static List<String> PlotColors
 		{
 			get => new List<string>() { "Transparent",
@@ -66,9 +69,9 @@ namespace QA40xPlot.ViewModels
 			"yellow, pink, teal, cyan, #00c6f8," +
 			"#878500, #00a76c, #f6da9c, #ff5caa, #8accff, #4bff4b, #6efff4, #edc1f5";
 
-		public string PaletteColors 
+		public string PaletteColors
 		{
-			get => _PaletteColors; 
+			get => _PaletteColors;
 			set => SetProperty(ref _PaletteColors, value);
 		}
 
@@ -150,7 +153,7 @@ namespace QA40xPlot.ViewModels
 			get { return _EnableQA430; }
 			set
 			{
-				if( SetProperty(ref _EnableQA430, value) && ViewSettings.Singleton != null)
+				if (SetProperty(ref _EnableQA430, value) && ViewSettings.Singleton != null)
 				{
 					ViewSettings.Singleton.MainVm.ShowQA430 = value;
 					if (!value)
@@ -164,12 +167,13 @@ namespace QA40xPlot.ViewModels
 		}
 
 		private string _MicCompFile = string.Empty;
-		public string MicCompFile {
+		public string MicCompFile
+		{
 			get => _MicCompFile;
 			set => SetProperty(ref _MicCompFile, value);
 		}
 
-		private string _BackgroundClr = BackColors[1];	// mintcream
+		private string _BackgroundClr = BackColors[1];  // mintcream
 		public string BackgroundClr
 		{
 			get { return _BackgroundClr; }
@@ -180,7 +184,7 @@ namespace QA40xPlot.ViewModels
 				{
 					// set the background color of the main window
 					var clr = (SolidColorBrush?)new BrushConverter().ConvertFrom(value);
-					if (clr != null) 
+					if (clr != null)
 						ViewSettings.Singleton.MainVm.Background = clr;
 				}
 				catch (Exception ex)
@@ -206,7 +210,7 @@ namespace QA40xPlot.ViewModels
 			get { return _ThemeSet; }
 			set
 			{
-				if(value != _ThemeSet)
+				if (value != _ThemeSet)
 				{
 					SetProperty(ref _ThemeSet, value);
 					// -- set theme
@@ -215,9 +219,9 @@ namespace QA40xPlot.ViewModels
 					{
 						case "None":
 							Application.Current.ThemeMode = ThemeMode.None;
-							if( BackgroundClr ==  BackColors[0] )
+							if (BackgroundClr == BackColors[0])
 							{
-								BackgroundClr = BackColors[1];	// transparent doesn't work well
+								BackgroundClr = BackColors[1];  // transparent doesn't work well
 							}
 							break;
 						case "Light":
@@ -250,7 +254,7 @@ namespace QA40xPlot.ViewModels
 				try
 				{
 					var clr = (SolidColorBrush?)new BrushConverter().ConvertFrom(value);
-					if (clr != null) 
+					if (clr != null)
 						ViewSettings.Singleton.MainVm.GraphBackground = clr;
 				}
 				catch (Exception ex)
@@ -264,21 +268,21 @@ namespace QA40xPlot.ViewModels
 		public string SafetyMargin
 		{
 			get { return _SafetyMargin; }
-			set	{ SetProperty(ref _SafetyMargin, value); }
+			set { SetProperty(ref _SafetyMargin, value); }
 		}
 
 		private string _TestChannel = "Left";
 		public string TestChannel
 		{
 			get { return _TestChannel; }
-			set	{ SetProperty(ref _TestChannel, value);	}
+			set { SetProperty(ref _TestChannel, value); }
 		}
 
 		private string _AmplifierLoad = string.Empty;
 		public string AmplifierLoad
 		{
 			get { return _AmplifierLoad; }
-			set	{ SetProperty(ref _AmplifierLoad, value); }
+			set { SetProperty(ref _AmplifierLoad, value); }
 		}
 
 		private string _NoiseBandwidthStr = "20000";
@@ -294,7 +298,7 @@ namespace QA40xPlot.ViewModels
 		public string ExternalGain
 		{
 			get { return _ExternalGain; }
-			set { SetProperty(ref _ExternalGain, value); }	// copy to the globally visible value
+			set { SetProperty(ref _ExternalGain, value); }  // copy to the globally visible value
 		}
 		// weighting method for noise analysis
 		private string _NoiseWeight = "Z"; // "Z","A", "C"
@@ -346,7 +350,7 @@ namespace QA40xPlot.ViewModels
 		#endregion
 
 
-		public SettingsViewModel() 
+		public SettingsViewModel()
 		{
 			Name = "Settings";
 			_AmplifierLoad = "10";
@@ -373,13 +377,13 @@ namespace QA40xPlot.ViewModels
 		{
 			OpenFileDialog openFileDialog = new OpenFileDialog
 			{
-				FileName = System.IO.Path.GetFileName( MicCompFile), // Default file name
+				FileName = System.IO.Path.GetFileName(MicCompFile), // Default file name
 				DefaultExt = ".txt", // Default file extension
 				Filter = "Mic files|*.txt|All files|*.*" // Filter files by extension
 			};
 			// Show save file dialog box
 			bool? result = openFileDialog.ShowDialog();
-			if(result == true)
+			if (result == true)
 			{
 				// Get the file name and display in the TextBox
 				MicCompFile = openFileDialog.FileName;

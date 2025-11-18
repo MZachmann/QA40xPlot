@@ -5,7 +5,6 @@ using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -26,7 +25,7 @@ namespace QA40xPlot.ViewModels
 
 
 		#region Setters and Getters
-		private System.Windows.Media.SolidColorBrush _Background = 
+		private System.Windows.Media.SolidColorBrush _Background =
 			(new BrushConverter().ConvertFrom("#dce4e4") as SolidColorBrush) ?? System.Windows.Media.Brushes.MintCream;
 		private System.Windows.Media.SolidColorBrush _GraphBackground =
 			(new BrushConverter().ConvertFrom("#f8f8f8") as SolidColorBrush) ?? System.Windows.Media.Brushes.MintCream;
@@ -34,7 +33,7 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public System.Windows.Media.SolidColorBrush Background
 		{
-			get => _Background; 
+			get => _Background;
 			set => SetProperty(ref _Background, value);
 		}
 
@@ -92,7 +91,7 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public double ScreenDpi
 		{
-			get => _ScreenDpi; 
+			get => _ScreenDpi;
 			set => SetProperty(ref _ScreenDpi, value);
 		}
 
@@ -109,10 +108,11 @@ namespace QA40xPlot.ViewModels
 		public BaseViewModel? CurrentView
 		{
 			get { return _CurrentView; }
-			set { 
+			set
+			{
 				SetProperty(ref _CurrentView, value);
-				RaisePropertyChanged("HasExport");	// always update this
-				}
+				RaisePropertyChanged("HasExport");  // always update this
+			}
 		}
 
 		// the sound object if we're using an external device also
@@ -205,7 +205,7 @@ namespace QA40xPlot.ViewModels
 		// parse it and set the window size
 		public static void SetWindowSize(Window wndw, string sr)
 		{
-			if(sr.Length == 0)
+			if (sr.Length == 0)
 				return;
 
 			try
@@ -238,7 +238,7 @@ namespace QA40xPlot.ViewModels
 			var cfgData = ViewSettings.Singleton;
 			// Ensure the current window size is captured
 			var windsize = GetWindowSize(Application.Current.MainWindow);
-			if(windsize.Length > 0)
+			if (windsize.Length > 0)
 				ViewSettings.Singleton.MainVm.CurrentWindowRect = windsize;
 			ViewSettings.Singleton.MainVm.CurrentWindowState = Application.Current.MainWindow.WindowState.ToString();
 
@@ -258,15 +258,15 @@ namespace QA40xPlot.ViewModels
 				string jsonContent = File.ReadAllText(filename);
 				// Deserialize the JSON string into an object
 				var jsonObject = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(jsonContent);
-				if( jsonObject != null)
+				if (jsonObject != null)
 					ViewSettings.Singleton.GetSettingsFrom(jsonObject);
 				var winRect = ViewSettings.Singleton.MainVm.CurrentWindowRect;
-				if(winRect.Length > 0)
+				if (winRect.Length > 0)
 				{
 					SetWindowSize(Application.Current.MainWindow, winRect);
 				}
 				var winState = ViewSettings.Singleton.MainVm.CurrentWindowState;
-				if(winState == "Maximized")
+				if (winState == "Maximized")
 				{
 					this.CurrentWindowState = "Maximized";
 				}
@@ -307,11 +307,11 @@ namespace QA40xPlot.ViewModels
 				{
 					var va = vmf.FreqData[i];
 					var vb = vmf.LeftData[i];
-					if( isImpedance)
+					if (isImpedance)
 					{
 						sout += string.Format("{0:F0}, {1:F4}, {2:F4}\r\n", vmf.FreqData[i], vmf.LeftData[i], 180 * vmf.PhaseData[i] / Math.PI);
 					}
-					else if ( vmf.PhaseData.Count > 0 )
+					else if (vmf.PhaseData.Count > 0)
 					{
 						sout += string.Format("{0:F0}, {1:F4}, {2:F4}\r\n", vmf.FreqData[i], 20 * Math.Log10(vmf.LeftData[i]), 180 * vmf.PhaseData[i] / Math.PI);
 					}
@@ -328,7 +328,7 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		public async Task OnPhoto()        
+		public async Task OnPhoto()
 		{
 			DateTime now = DateTime.Now;
 			string formattedDate = $"{now:yyyy-MM-dd HH:mm:ss}";
@@ -444,16 +444,16 @@ namespace QA40xPlot.ViewModels
 				case "tva":
 					CurrentView = ViewSettings.Singleton.ThdAmp;
 					break;
-				case "freqsweep":	// qa430 opamp tab
+				case "freqsweep":   // qa430 opamp tab
 					CurrentView = ViewSettings.Singleton.FreqVm;
 					CurrentView.RaisePropertyChanged("CheckQA430");  // on new window refresh the list
 					break;
 				case "settings":
 					CurrentView = ViewSettings.Singleton.SettingsVm;
-					CurrentView.RaisePropertyChanged("EchoNames");	// on new window refresh the list
+					CurrentView.RaisePropertyChanged("EchoNames");  // on new window refresh the list
 					break;
 			}
-			if(CurrentView != null)
+			if (CurrentView != null)
 			{
 				CurrentView.ForceGraphUpdate();
 			}

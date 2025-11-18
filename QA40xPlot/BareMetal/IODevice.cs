@@ -1,9 +1,4 @@
 ﻿using QA40xPlot.Libraries;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QA40xPlot.BareMetal
 {
@@ -15,7 +10,7 @@ namespace QA40xPlot.BareMetal
 	{
 		public static IODevice IOFactory(string name)
 		{
-			switch(name)
+			switch (name)
 			{
 				case "USB": return new IODevUSB();
 				case "REST": return new IODevREST();
@@ -23,8 +18,8 @@ namespace QA40xPlot.BareMetal
 			}
 		}
 
-		public string Name { get; }	// the name of the io device
-		// queries
+		public string Name { get; } // the name of the io device
+									// queries
 		public ValueTask<bool> IsServerRunning();
 		public ValueTask<bool> CheckDeviceConnected();
 		// open and close
@@ -33,7 +28,7 @@ namespace QA40xPlot.BareMetal
 		public ValueTask Close(bool onExit);
 		// properties. getters are not async every since we cache this stuff.
 		public int GetInputRange();
-		public int  GetOutputRange();
+		public int GetOutputRange();
 		public uint GetSampleRate();
 		public uint GetFftSize();
 		public string GetWindowing();

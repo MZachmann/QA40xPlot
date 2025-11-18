@@ -7,7 +7,6 @@ using QA40xPlot.Libraries;
 using QA40xPlot.Views;
 using ScottPlot;
 using ScottPlot.Plottables;
-using System;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
@@ -19,13 +18,13 @@ namespace QA40xPlot.ViewModels
 		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 		public static List<String> GenFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "2000", "5000", "10000" }; }
 		public static List<String> AbsoluteValues { get => new List<string> { "5", "2", "1", "0.5", "0.1", "0.05", "-0.05", "-0.1", "-0.5", "-1", "-2", "-5" }; }
-		public static List<String> TimeSteps { get => new List<string> { "0",".1",".5","1","5", "10", "20", "50", "100", "200", "500", "1000", "5000", "10000" }; }
+		public static List<String> TimeSteps { get => new List<string> { "0", ".1", ".5", "1", "5", "10", "20", "50", "100", "200", "500", "1000", "5000", "10000" }; }
 
 		private ActScope MyAction { get => actScope; }
 		private static ScopeViewModel MyVModel { get => ViewSettings.Singleton.ScopeVm; }
-		private PlotControl actPlot {  get; set; }
-		private ActScope actScope { get;  set; }
-		private ScopeInfo actInfoLeft { get;  set; }
+		private PlotControl actPlot { get; set; }
+		private ActScope actScope { get; set; }
+		private ScopeInfo actInfoLeft { get; set; }
 		private ScopeInfo actInfoRight { get; set; }
 		[JsonIgnore]
 		public RelayCommand<object> SetAttenuate { get => new RelayCommand<object>(SetAtten); }
@@ -72,7 +71,7 @@ namespace QA40xPlot.ViewModels
 		public bool DoAutoAttn
 		{
 			get { return _DoAutoAttn; }
-			set { if ( SetProperty(ref _DoAutoAttn, value)) RaisePropertyChanged("AttenColor"); }
+			set { if (SetProperty(ref _DoAutoAttn, value)) RaisePropertyChanged("AttenColor"); }
 		}
 
 		private bool _ShowPoints = false;
@@ -240,12 +239,12 @@ namespace QA40xPlot.ViewModels
 
 		private static async Task LoadItTab()
 		{
-			await DoGetLoad(MyVModel.actScope, PlotFileFilter, true);
+			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, true);
 		}
 
 		private static async Task GetItTab()
 		{
-			await DoGetLoad(MyVModel.actScope, PlotFileFilter, false);
+			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, false);
 		}
 
 
@@ -273,7 +272,7 @@ namespace QA40xPlot.ViewModels
 			{
 				// Save document
 				string filename = saveFileDialog.FileName;
-				if (filename.Count() > 1)
+				if (filename.Length > 1)
 				{
 					var vm = MyVModel;
 					vm.actScope.SaveToFile(filename);
@@ -340,7 +339,7 @@ namespace QA40xPlot.ViewModels
 
 		private static Marker? MyMark = null;
 		private void DoMouse(object? sender, MouseEventArgs e)
-		{ 
+		{
 			SetMouseTrack(e);
 			// it's too laggy while it's running....
 			if (IsRunning || !IsTracking)

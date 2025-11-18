@@ -1,13 +1,5 @@
-﻿using QA40xPlot.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Newtonsoft.Json;
-using System.Threading.Tasks;
-using System.Windows.Controls;
-using QA40xPlot.Libraries;
-using System.Drawing;
+﻿using Newtonsoft.Json;
+using QA40xPlot.Data;
 
 namespace QA40xPlot.ViewModels
 {
@@ -41,7 +33,7 @@ namespace QA40xPlot.ViewModels
 		private double _FundamentalFrequency = 0;         // type of alert
 		public double FundamentalFrequency
 		{
-			get => _FundamentalFrequency; 
+			get => _FundamentalFrequency;
 			set => SetProperty(ref _FundamentalFrequency, value);
 		}
 

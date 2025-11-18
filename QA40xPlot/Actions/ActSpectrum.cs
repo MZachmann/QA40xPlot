@@ -18,29 +18,29 @@ namespace QA40xPlot.Actions
 	using MyDataTab = DataTab<SpectrumViewModel>;
 
 	public class ActSpectrum : ActBase
-    {
+	{
 		public MyDataTab PageData { get; private set; } // Data used in this form instance
 		private List<MyDataTab> OtherTabs { get; set; } = new List<MyDataTab>(); // Other tabs in the document
 		private readonly Views.PlotControl fftPlot;
 
-        private float _Thickness = 2.0f;
+		private float _Thickness = 2.0f;
 		private static SpectrumViewModel MyVModel { get => ViewSettings.Singleton.SpectrumVm; }
 		CancellationTokenSource ct { set; get; }                                 // Measurement cancelation token
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        public ActSpectrum(Views.PlotControl graphFft)
-        {
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		public ActSpectrum(Views.PlotControl graphFft)
+		{
 			fftPlot = graphFft;
 			ct = new CancellationTokenSource();
-			PageData = new( MyVModel, new LeftRightTimeSeries());
+			PageData = new(MyVModel, new LeftRightTimeSeries());
 			UpdateGraph(true);
 		}
 
 		public void DoCancel()
-        {
-            ct.Cancel();
+		{
+			ct.Cancel();
 		}
 
 		public void DeleteTab(int id)
@@ -58,7 +58,7 @@ namespace QA40xPlot.Actions
 		{
 			var specVm = MyVModel;
 			var vm = PageData.ViewModel;
-			if ( vm == null || PageData.FreqRslt == null)
+			if (vm == null || PageData.FreqRslt == null)
 				return null;
 
 			DataBlob db = new();
@@ -119,14 +119,14 @@ namespace QA40xPlot.Actions
 		public async Task FinishLoad(MyDataTab page, string fileName, bool doLoad)
 		{
 			// now recalculate everything
-			if(page.FreqRslt == null)
+			if (page.FreqRslt == null)
 			{
 				BuildFrequencies(page);
 			}
 			ClipName(page.Definition, fileName);
 
 			await PostProcess(page, ct.Token);
-			if( doLoad)
+			if (doLoad)
 			{
 				// we can't overwrite the viewmodel since it links to the display proper
 				// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
@@ -141,7 +141,7 @@ namespace QA40xPlot.Actions
 			else
 			{
 				OtherTabs.Add(page); // add the new one
-				//var oss = new OtherSet(page.Definition.Name, page.Show, page.Id);
+									 //var oss = new OtherSet(page.Definition.Name, page.Show, page.Id);
 				MyVModel.OtherSetList.Add(page.Definition);
 			}
 
@@ -161,16 +161,16 @@ namespace QA40xPlot.Actions
 			bool buse = force ? true : vm.UseGenerator;
 			double[] distout = [];
 			// do distortion addon first so wavegenerator is set up on exit (?)
-			if(buse && ViewSettings.AddonDistortion > 0 && vm.Gen1Waveform == "Sine")
+			if (buse && ViewSettings.AddonDistortion > 0 && vm.Gen1Waveform == "Sine")
 			{
-				WaveGenerator.SetGen1(2*freq, volts * ViewSettings.AddonDistortion/100, buse, "Sine");          // send a sine wave
+				WaveGenerator.SetGen1(2 * freq, volts * ViewSettings.AddonDistortion / 100, buse, "Sine");          // send a sine wave
 				WaveGenerator.SetGen2(0, 0, false);          // just a sine wave
 				distout = WaveGenerator.Generate((uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
 			}
 			WaveGenerator.SetGen1(freq, volts, buse, vm.Gen1Waveform);          // send a sine wave
-			WaveGenerator.SetGen2(0,0,false);          // just a sine wave
+			WaveGenerator.SetGen2(0, 0, false);          // just a sine wave
 			var dout = WaveGenerator.Generate((uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
-			if(distout.Length > 0)
+			if (distout.Length > 0)
 			{
 				// add the distortion to the sine wave
 				for (int i = 0; i < dout.Length; i++)
@@ -229,14 +229,14 @@ namespace QA40xPlot.Actions
 						mdl.BorderColor = (System.Windows.Media.Brush)brs;
 				}
 			}
-			if(channels.Count < 2 && OtherTabs.Count > 0)
+			if (channels.Count < 2 && OtherTabs.Count > 0)
 			{
 				// copy the shown status from othersetlist to othertabs
 				var seen = DataUtil.FindShownInfo<SpectrumViewModel, ThdChannelViewModel>(OtherTabs);
 				if (seen.Count > 0)
 				{
 					var mdl = seen[0];
-					if(mdl != null)
+					if (mdl != null)
 					{
 						SetVmColor(mdl, channels.Count);
 						channels.Add(mdl);
@@ -268,7 +268,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		public async Task DoMeasurement()
 		{
-			var specVm = MyVModel;			// the active viewmodel
+			var specVm = MyVModel;          // the active viewmodel
 			if (!await StartAction(specVm))
 				return;
 
@@ -294,9 +294,9 @@ namespace QA40xPlot.Actions
 			if (vm.DoAutoAttn && LRGains != null)
 			{
 				var wave = BuildWave(NextPage, ToD(vm.Gen1Voltage, 1e-3), true);   // build a wave to evaluate the peak values
-				// get the peak voltages then fake an rms math div by 2*sqrt(2) = 2.828
-				// since I assume that's the hardware math
-				var waveVOut = (wave.Max() - wave.Min()) / (2*Math.Sqrt(2));
+																				   // get the peak voltages then fake an rms math div by 2*sqrt(2) = 2.828
+																				   // since I assume that's the hardware math
+				var waveVOut = (wave.Max() - wave.Min()) / (2 * Math.Sqrt(2));
 				waveVOut = Math.Max(waveVOut, ToD(vm.Gen1Voltage, 1e-6)); // ensure we have a minimum voltage
 				var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
 				var vinL = vm.ToGenVoltage(waveVOut.ToString(), [], GEN_INPUT, gains); // get gen1 input voltage
@@ -304,7 +304,7 @@ namespace QA40xPlot.Actions
 				double voutR = ToGenOutVolts(vinL, [], LRGains.Right);  // for both channels
 				var vdbv = QaLibrary.ConvertVoltage(Math.Max(voutL, voutR), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 				vm.Attenuation = QaLibrary.DetermineAttenuation(vdbv);              // find attenuation for both
-				specVm.Attenuation = vm.Attenuation;	// set both to show on indicator
+				specVm.Attenuation = vm.Attenuation;    // set both to show on indicator
 			}
 
 			// run a measurement and get time data
@@ -342,7 +342,7 @@ namespace QA40xPlot.Actions
 		void BuildFrequencies(MyDataTab page)
 		{
 			var vm = page.ViewModel;
-			if(vm == null)
+			if (vm == null)
 				return;
 
 			LeftRightFrequencySeries? fseries;
@@ -355,7 +355,7 @@ namespace QA40xPlot.Actions
 				var wave = BuildWave(page, page.Definition.GeneratorVoltage);
 				fseries = QaMath.CalculateChirpFreq(vm.WindowingMethod, page.TimeRslt, wave.ToArray(), page.Definition.GeneratorVoltage, vm.SampleRateVal, vm.FftSizeVal);   // normalize the result for flat response
 			}
-			
+
 			if (fseries != null)
 			{
 				LeftRightFrequencySeries fresult = CalculateAverages(fseries, vm.Averages);
@@ -462,8 +462,8 @@ namespace QA40xPlot.Actions
 		/// <param name="ct">Cancellation token</param>
 		/// <returns>result. false if cancelled</returns>
 		private async Task<bool> PostProcess(MyDataTab msr, CancellationToken ct)
-        {
-			if(msr.FreqRslt == null)
+		{
+			if (msr.FreqRslt == null)
 			{
 				await showMessage("No frequency result");
 				return false;
@@ -546,8 +546,8 @@ namespace QA40xPlot.Actions
 			// Show message
 			await showMessage($"Measurement finished");
 
-            return !ct.IsCancellationRequested;
-        }
+			return !ct.IsCancellationRequested;
+		}
 
 		public void ReformatChannels()
 		{
@@ -562,7 +562,7 @@ namespace QA40xPlot.Actions
 		{
 			var left = page.GetProperty("Left") as ThdChannelViewModel;
 			var right = page.GetProperty("Right") as ThdChannelViewModel;
-			if(left != null && right != null)
+			if (left != null && right != null)
 			{
 				left.ShowDataPercents = MyVModel.ShowDataPercent;
 				right.ShowDataPercents = MyVModel.ShowDataPercent;
@@ -572,7 +572,7 @@ namespace QA40xPlot.Actions
 		private void CalculateHarmonics(MyDataTab page, ThdChannelViewModel left, ThdChannelViewModel right)
 		{
 			var vm = page.ViewModel;
-			if(page.FreqRslt == null)
+			if (page.FreqRslt == null)
 				return;
 
 			// Loop through harmonics up tot the 10th
@@ -587,7 +587,7 @@ namespace QA40xPlot.Actions
 				for (int harmonicNumber = 2; harmonicNumber <= 10; harmonicNumber++)                                                  // For now up to 12 harmonics, start at 2nd
 				{
 					double harmonicFrequency = freq * harmonicNumber;
-					if (harmonicFrequency > maxfreq) 
+					if (harmonicFrequency > maxfreq)
 						harmonicFrequency = maxfreq / 2;
 
 					var ffts = step.IsLeft ? page.FreqRslt.Left : page.FreqRslt.Right;
@@ -628,7 +628,7 @@ namespace QA40xPlot.Actions
 				double maxright = rightData.Max();
 				markVal = GraphUtil.ReformatValue(vm.PlotFormat, rightData[bin], maxright);
 			}
-			else if(leftData != null)
+			else if (leftData != null)
 			{
 				double maxleft = leftData.Max();
 				markVal = GraphUtil.ReformatValue(vm.PlotFormat, leftData[bin], maxleft);
@@ -689,13 +689,13 @@ namespace QA40xPlot.Actions
 					fsel = 60;
 				// mark 4 harmonics of power frequency
 				var binSize = QaLibrary.CalcBinSize(sampleRate, fftsize);
-				for (int i=1; i<5; i++)
-                {
-					var data = QaMath.MagAtFreq(fftdata, binSize, fsel*i);
-                    double udif = 20 * Math.Log10(data);
+				for (int i = 1; i < 5; i++)
+				{
+					var data = QaMath.MagAtFreq(fftdata, binSize, fsel * i);
+					double udif = 20 * Math.Log10(data);
 					var fv = MathUtil.FormatVoltage(data);
 					System.Diagnostics.Debug.WriteLine($"freq: {fsel * i} is {fv} or {udif}dBV");
-                    AddAMarker(page, fsel*i, true);
+					AddAMarker(page, fsel * i, true);
 				}
 			}
 		}
@@ -703,8 +703,8 @@ namespace QA40xPlot.Actions
 
 		public Rect GetDataBounds()
 		{
-			var vm = PageData.ViewModel;	// measurement settings
-			if(PageData.FreqRslt == null && OtherTabs.Count == 0)
+			var vm = PageData.ViewModel;    // measurement settings
+			if (PageData.FreqRslt == null && OtherTabs.Count == 0)
 				return new Rect(0, 0, 0, 0);
 
 			var specVm = MyVModel;     // current settings
@@ -721,7 +721,7 @@ namespace QA40xPlot.Actions
 				tabs.Add(ffs.Right);
 			}
 			var u = DataUtil.FindShownFreqs(OtherTabs);
-			if (u.Count > 0) 
+			if (u.Count > 0)
 			{
 				foreach (var item in u)
 				{
@@ -729,11 +729,11 @@ namespace QA40xPlot.Actions
 				}
 			}
 
-			if(tabs.Count == 0)
+			if (tabs.Count == 0)
 				return new Rect(0, 0, 0, 0);
 
-			rrc.X = ffs?.Df ?? 1.0;	// ignore 0
-			rrc.Y = tabs.Min( x => x.Min());
+			rrc.X = ffs?.Df ?? 1.0; // ignore 0
+			rrc.Y = tabs.Min(x => x.Min());
 			rrc.Width = (ffs?.Df ?? 1) * tabs.First().Length - rrc.X;
 			rrc.Height = tabs.Max(x => x.Max()) - rrc.Y;
 
@@ -747,11 +747,11 @@ namespace QA40xPlot.Actions
 		/// <param name="posndBV">Y of mouse in plot</param>
 		/// <param name="useRight">which channel</param>
 		/// <returns>a tuple of df, value, value in pct</returns>
-		public ValueTuple<double,double,double> LookupXY(double freq, double posndBV, bool useRight)
+		public ValueTuple<double, double, double> LookupXY(double freq, double posndBV, bool useRight)
 		{
 			var fftdata = PageData.FreqRslt;
 			if (freq <= 0 || fftdata == null || PageData == null)
-				return ValueTuple.Create(0.0,0.0,0.0);
+				return ValueTuple.Create(0.0, 0.0, 0.0);
 			try
 			{
 				// get the data to look through
@@ -771,7 +771,7 @@ namespace QA40xPlot.Actions
 					var msr = PageData.ViewModel;
 					var vfi = GraphUtil.GetLogFormatter(msr.PlotFormat, useRight ? right.FundamentalVolts : left.FundamentalVolts);
 					var distsx = ffs.Skip(binmin).Take(binmax - binmin);
-					IEnumerable<Pixel> distasx = distsx.Select((fftd, index) => 
+					IEnumerable<Pixel> distasx = distsx.Select((fftd, index) =>
 							myPlot.GetPixel(new Coordinates(Math.Log10((index + binmin) * fftdata.Df),
 									vfi(ffs[binmin + index]))));
 					var distx = distasx.Select(x => Math.Pow(x.X - pixel.X, 2) + Math.Pow(x.Y - pixel.Y, 2));
@@ -779,17 +779,17 @@ namespace QA40xPlot.Actions
 					bin = binmin + dlist.IndexOf(dlist.Min());
 
 					var vm = MyVModel;
-					if ( bin < ffs.Length)
+					if (bin < ffs.Length)
 					{
 						var vfun = useRight ? right.FundamentalVolts : left.FundamentalVolts;
 						return ValueTuple.Create(bin * fftdata.Df, ffs[bin], vfun);
 					}
 				}
 			}
-			catch (Exception )
+			catch (Exception)
 			{
 			}
-			return ValueTuple.Create(0.0,0.0,0.0);
+			return ValueTuple.Create(0.0, 0.0, 0.0);
 		}
 
 		public void UpdatePlotTitle()
@@ -810,10 +810,10 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
-			myPlot.Axes.SetLimitsX(Math.Log10(ToD(thdFreq.GraphStartX, 20)), 
+			myPlot.Axes.SetLimitsX(Math.Log10(ToD(thdFreq.GraphStartX, 20)),
 				Math.Log10(ToD(thdFreq.GraphEndX, 20000)), myPlot.Axes.Bottom);
 
-			myPlot.Axes.SetLimitsY( ToD(thdFreq.RangeBottomdB), ToD(thdFreq.RangeTopdB), myPlot.Axes.Left);
+			myPlot.Axes.SetLimitsY(ToD(thdFreq.RangeBottomdB), ToD(thdFreq.RangeTopdB), myPlot.Axes.Left);
 
 			UpdatePlotTitle();
 			myPlot.XLabel("Frequency (Hz)");
@@ -826,7 +826,7 @@ namespace QA40xPlot.Actions
 		/// Ititialize the THD % plot
 		/// </summary>
 		void InitializefftPlot(string plotFormat = "%")
-        {
+		{
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
@@ -838,23 +838,23 @@ namespace QA40xPlot.Actions
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
 
 			fftPlot.Refresh();
-        }
+		}
 
-        /// <summary>
-        /// Plot all of the spectral data values
-        /// </summary>
-        /// <param name="data"></param>
-        void PlotValues(MyDataTab? page, int measurementNr, bool isMain)
-        {
+		/// <summary>
+		/// Plot all of the spectral data values
+		/// </summary>
+		/// <param name="data"></param>
+		void PlotValues(MyDataTab? page, int measurementNr, bool isMain)
+		{
 			if (page == null)
 				return;
 
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 
 			var specVm = MyVModel;
-			bool useLeft;	// dynamically update these
+			bool useLeft;   // dynamically update these
 			bool useRight;
-			if( isMain)
+			if (isMain)
 			{
 				useLeft = specVm.ShowLeft; // dynamically update these
 				useRight = specVm.ShowRight;
@@ -865,7 +865,7 @@ namespace QA40xPlot.Actions
 				useRight = page.Definition.IsOnR;
 			}
 
-			if(!useLeft && !useRight)
+			if (!useLeft && !useRight)
 				return;
 
 			var fftData = page.FreqRslt;
@@ -873,7 +873,7 @@ namespace QA40xPlot.Actions
 				return;
 
 			// log of the frequencies for providing X axis values
-			double[] freqLogX = Enumerable.Range(1, fftData.Left.Length-1).
+			double[] freqLogX = Enumerable.Range(1, fftData.Left.Length - 1).
 								Select(x => Math.Log10(x * fftData.Df)).ToArray();
 			//
 			double[] leftdBV = [];
@@ -901,8 +901,8 @@ namespace QA40xPlot.Actions
 
 			if (useRight)
 			{
-				var vf = fftData.Right.Skip(1);	// the first dot is F=0 so no logs...
-				// find the max value of the left and right channels
+				var vf = fftData.Right.Skip(1); // the first dot is F=0 so no logs...
+												// find the max value of the left and right channels
 				double maxright = Math.Max(1e-20, fftData.Right.Skip(1).Max());
 				// now use that to calculate percents. Since Y axis is logarithmic use log of percent
 				var fvi = GraphUtil.GetLogFormatter(plotForm, maxright);
