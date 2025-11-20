@@ -5,6 +5,8 @@ This changelog shows the changes made for each version
 v 1.1.45
 - support multiple file select for GET operation
 - don't invert color when mouseover color boxes
+- refactor frequency response tab for code readability
+- add smoothing to frequency response chirp result
 v 1.1.44
 - switch from scottplot scatter to signalxy plots for massive graph drawing speedup
 - remove graph-limiting from spectrum and imd plots

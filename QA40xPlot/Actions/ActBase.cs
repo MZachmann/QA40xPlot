@@ -51,16 +51,55 @@ namespace QA40xPlot.Actions
 			return MathUtil.ToDouble(sval, defval);
 		}
 
-		public static (double[],double[]) AddResponseOffset(double[] frequencies, (double[], double[]) gaindata, DataDescript definition, TestingType ttype)
+		// parse a double value or...
+		// if it starts with @ return the value at that frequency
+		private static double OffsetToValue(string offset, double[] frequencies, double[] gains)
+		{
+			if (string.IsNullOrEmpty(offset))
+				return 0.0;
+			if (gains.Length == 0)
+				return 0.0;
+			if (!offset.Contains('@'))
+			{
+				return MathUtil.ToDouble(offset, 0);
+			}
+
+			var rremain = offset.Substring(offset.IndexOf('@') + 1);
+			// now we want to find response value at the frequency
+			var rfreq = MathUtil.ToDouble(rremain);
+
+			if (frequencies == null || frequencies.Length == 0)
+				return 0.0;
+
+			// find nearest frequency index
+			int bestIdx = 0;
+			double bestDiff = double.MaxValue;
+			for (int i = 0; i < frequencies.Length; i++)
+			{
+				double diff = Math.Abs(frequencies[i] - rfreq);
+				if (diff < bestDiff)
+				{
+					bestDiff = diff;
+					bestIdx = i;
+				}
+			}
+
+			int idx = Math.Min(bestIdx, gains.Length - 1);
+			return -QaLibrary.ConvertVoltage(gains[idx], E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+		}
+
+		public static (double[], double[]) AddResponseOffset(double[] frequencies, (double[], double[]) gaindata, DataDescript definition, TestingType ttype)
 		{
 			if (ttype != TestingType.Response && ttype != TestingType.Gain)
 				return gaindata;
-			if (definition.OffsetLeftValue == 0 && definition.OffsetRightValue == 0)
+			var lft = ActBase.OffsetToValue(definition.OffsetLeft, frequencies, gaindata.Item1);
+			var rgt = ActBase.OffsetToValue(definition.OffsetRight, frequencies, gaindata.Item2);
+			if (lft == 0 && rgt == 0)
 				return gaindata;
-			var scaleLeft = QaLibrary.ConvertVoltage(definition.OffsetLeftValue, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
+			var scaleLeft = QaLibrary.ConvertVoltage(lft, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
 			if (ttype == TestingType.Response)
 			{
-				var scaleRight = QaLibrary.ConvertVoltage(definition.OffsetRightValue, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
+				var scaleRight = QaLibrary.ConvertVoltage(rgt, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
 				// response value is Left,Right
 				double[] gainleft = new double[gaindata.Item1.Length];
 				double[] gainright = new double[gaindata.Item1.Length];
@@ -80,10 +119,6 @@ namespace QA40xPlot.Actions
 				{
 					gainleft[i] = gaindata.Item1[i] * scaleLeft;
 				}
-				//for (int i = 0; i < gaindata.Length; i++)
-				//{
-				//	gaindata[i] = new Complex(gaindata[i].Real * scaleLeft, gaindata[i].Imaginary);
-				//}
 				gaindata.Item1 = gainleft;
 			}
 			return gaindata;
