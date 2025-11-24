@@ -625,13 +625,11 @@ namespace QA40xPlot.Actions
 			double markVal = 0;
 			if (rightData != null && !vm.ShowLeft)
 			{
-				double maxright = rightData.Max();
-				markVal = GraphUtil.ReformatValue(vm.PlotFormat, rightData[bin], maxright);
+				markVal = GraphUtil.ReformatValue(vm.PlotFormat, rightData[bin], rightData);
 			}
 			else if (leftData != null)
 			{
-				double maxleft = leftData.Max();
-				markVal = GraphUtil.ReformatValue(vm.PlotFormat, leftData[bin], maxleft);
+				markVal = GraphUtil.ReformatValue(vm.PlotFormat, leftData[bin], leftData);
 			}
 			var markView = GraphUtil.IsPlotFormatLog(vm.PlotFormat) ? markVal : Math.Log10(markVal);
 
@@ -886,7 +884,7 @@ namespace QA40xPlot.Actions
 			if (useLeft)
 			{
 				var vf = fftData.Left.Skip(1);  // the first dot is F=0 so no logs...
-				double maxleft = Math.Max(1e-20, fftData.Left.Skip(1).Max());
+				double maxleft = Math.Max(1e-20, vf.Max());
 				// format the data into current format
 				var fvi = GraphUtil.GetLogFormatter(plotForm, maxleft);
 				leftdBV = vf.Select(fvi).ToArray();

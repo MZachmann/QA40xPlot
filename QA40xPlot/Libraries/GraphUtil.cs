@@ -189,6 +189,16 @@ namespace QA40xPlot.Libraries
 			return (x => x); // default to volts
 		}
 
+		// this just avoids taking a max of the data constantly if not in dbr
+		public static Func<double, double> GetValueFormatter(string plotFormat, double[] refX)
+		{
+			if(refX == null || refX.Length == 0 || plotFormat != "dBr")
+			{
+				return GetValueFormatter(plotFormat, 1.0);
+			}
+			return GetValueFormatter(plotFormat, refX.Max());
+		}
+
 		/// <summary>
 		/// Given an input voltage format, get a display format converter
 		/// </summary>
@@ -235,12 +245,25 @@ namespace QA40xPlot.Libraries
 		}
 
 		/// <summary>
-		/// Given an input voltage, convert to the desired data format for plotting
+		/// Given an input voltage, convert to the desired data format for display
 		/// </summary>
 		/// <param name="plotFormat">the data format</param>
 		/// <param name="volts"></param>
 		/// <param name="dRef">reference value for percent and dbr</param>
-		/// <returns>the converted double with logs of linear (%,V,W) formats</returns>
+		/// <returns>the converted double</returns>
+		public static double ReformatValue(string plotFormat, double volts, double[] dRef)
+		{
+			var vfi = GetValueFormatter(plotFormat, dRef);
+			return vfi(volts);
+		}       
+		
+		/// <summary>
+				/// Given an input voltage, convert to the desired data format for plotting
+				/// </summary>
+				/// <param name="plotFormat">the data format</param>
+				/// <param name="volts"></param>
+				/// <param name="dRef">reference value for percent and dbr</param>
+				/// <returns>the converted double with logs of linear (%,V,W) formats</returns>
 		public static double ReformatLogValue(string plotFormat, double volts, double dRef = 1.0)
 		{
 			var vfi = GetLogFormatter(plotFormat, dRef);

@@ -496,6 +496,7 @@ namespace QA40x.BareMetal
 
 			SoundUtil? soundObj = null;
 
+			// we are also sending to an external sound system device
 			if (useExternal)
 			{
 				var lexout = leftOut.ToList();

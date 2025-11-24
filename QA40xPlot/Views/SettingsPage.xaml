@@ -139,7 +139,7 @@
                    Text="Select a microphone compensation file. Currently" 
                    HorizontalAlignment="Left" VerticalAlignment="Center"
                    />
-                <Label Content="{Binding MicCompFile}"/>
+                <Label Content="{Binding MicCompFile}" VerticalAlignment="Center"/>
             </StackPanel>
             <local:GroupHeader Grid.Row="15" Grid.Column="0" Grid.ColumnSpan="5"  />
             <Label VerticalAlignment="Center" Content="Noise Bandwidth: " Grid.Row="16" Grid.Column="0" />

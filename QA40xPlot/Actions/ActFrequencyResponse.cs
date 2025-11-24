@@ -295,8 +295,8 @@ namespace QA40xPlot.Actions
 				else
 					await RunFreqTest(NextPage, stepBinFrequencies, voltagedBV);
 				AddMicCorrection(NextPage); // add mic correction if any
-				var ttype = msr.GetTestingType(msr.TestType);
-				NextPage.GainData = AddResponseOffset(NextPage.GainFrequencies, NextPage.GainData, NextPage.Definition, ttype);    // add offset correction if any
+				//var ttype = msr.GetTestingType(msr.TestType);
+				//NextPage.GainData = AddResponseOffset(NextPage.GainFrequencies, NextPage.GainData, NextPage.Definition, ttype);    // add offset correction if any
 
 				UpdateGraph(false);
 				if (!ReferenceEquals(PageData, NextPage))
@@ -315,7 +315,7 @@ namespace QA40xPlot.Actions
 					else
 						await RunFreqTest(PageData, stepBinFrequencies, voltagedBV);
 					AddMicCorrection(PageData);     // add mic correction if any
-					PageData.GainData = AddResponseOffset(PageData.GainFrequencies, PageData.GainData, PageData.Definition, ttype);    // add offset correction if any
+					// PageData.GainData = AddResponseOffset(PageData.GainFrequencies, PageData.GainData, PageData.Definition, ttype);    // add offset correction if any
 					UpdateGraph(false);
 				}
 			}
@@ -949,6 +949,7 @@ namespace QA40xPlot.Actions
 		{
 			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
 			var frqrsVm = MyVModel;
+			int skipped = 0;
 
 			if (page.GainLeft == null || page.GainFrequencies == null)
 				return;
@@ -958,9 +959,9 @@ namespace QA40xPlot.Actions
 				return;
 
 			if (freqX[0] == 0)
-				freqX[0] = 1e-6;    // so can log10
+				skipped = 1;
 
-			double[] logFreqX = freqX.Select(Math.Log10).ToArray();
+			double[] logFreqX = freqX.Select(x => (x>0) ? Math.Log10(x) : 1e-6).ToArray();
 			float lineWidth = frqrsVm.ShowThickLines ? _Thickness : 1;
 			float markerSize = frqrsVm.ShowPoints ? lineWidth + 3 : 1;
 
@@ -974,8 +975,8 @@ namespace QA40xPlot.Actions
 			{
 				case TestingType.Crosstalk:
 					{
-						YValues = page.GainReal.Select(x => 20 * Math.Log10(x)).ToArray(); // real is the left gain
-						phaseValues = page.GainImag.Select(x => 20 * Math.Log10(x)).ToArray();
+						YValues = page.GainReal.Skip(skipped).Select(x => 20 * Math.Log10(x)).ToArray(); // real is the left gain
+						phaseValues = page.GainImag.Skip(skipped).Select(x => 20 * Math.Log10(x)).ToArray();
 						legendname = "dB";
 					}
 					break;
@@ -1026,11 +1027,12 @@ namespace QA40xPlot.Actions
 					break;
 			}
 			//SetMagFreqRule(myPlot);
-			var showPlot = (isMain ) || (!isMain && page.Definition.IsOnL);
+			var showPlot = isMain || page.Definition.IsOnL;
 			SignalXY plot;
+
 			if ((ttype == TestingType.Gain || ttype == TestingType.Impedance) || showPlot)
 			{
-				plot = myPlot.Add.SignalXY(logFreqX, YValues);
+				plot = myPlot.Add.SignalXY(logFreqX.Skip(skipped).ToArray(), YValues.Skip(skipped).ToArray());
 				plot.LineWidth = lineWidth;
 				plot.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, measurementNr * 2);
 				plot.MarkerSize = markerSize;
@@ -1045,18 +1047,18 @@ namespace QA40xPlot.Actions
 				if (ttype == TestingType.Gain || ttype == TestingType.Impedance)
 				{
 					phases = Regularize(phaseValues);
-					plot = myPlot.Add.SignalXY(logFreqX, phases);
+					plot = myPlot.Add.SignalXY(logFreqX.Skip(skipped).ToArray(), phases.Skip(skipped).ToArray());
 					plot.Axes.YAxis = myPlot.Axes.Right;
 					plot.LegendText = "Phase (Deg)";
 				}
 				else if (ttype == TestingType.Response)
 				{
-					plot = myPlot.Add.SignalXY(logFreqX, phases);
+					plot = myPlot.Add.SignalXY(logFreqX.Skip(skipped).ToArray(), phases.Skip(skipped).ToArray());
 					plot.LegendText = "Right dBV";
 				}
 				else
 				{
-					plot = myPlot.Add.SignalXY(logFreqX, phases);
+					plot = myPlot.Add.SignalXY(logFreqX.Skip(skipped).ToArray(), phases.Skip(skipped).ToArray());
 					plot.LegendText = "Right dB";
 				}
 				plot.LineWidth = lineWidth;
@@ -1079,6 +1081,7 @@ namespace QA40xPlot.Actions
 			switch (frqsrVm.GetTestingType(frqsrVm.TestType))
 			{
 				case TestingType.Response:
+					frqsrVm.PlotFormat = "dBV";
 					frqsrVm.PlotFormat = "dBV";
 					break;
 				case TestingType.Impedance:

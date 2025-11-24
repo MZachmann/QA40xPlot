@@ -504,13 +504,11 @@ namespace QA40xPlot.Actions
 			double markVal = 0;
 			if (rightData != null && !vm.ShowLeft)
 			{
-				double maxright = rightData.Max();
-				markVal = GraphUtil.ReformatValue(vm.PlotFormat, rightData[bin], maxright);
+				markVal = GraphUtil.ReformatValue(vm.PlotFormat, rightData[bin], rightData);
 			}
 			else if (leftData != null)
 			{
-				double maxleft = leftData.Max();
-				markVal = GraphUtil.ReformatValue(vm.PlotFormat, leftData[bin], maxleft);
+				markVal = GraphUtil.ReformatValue(vm.PlotFormat, leftData[bin], leftData);
 			}
 			var markView = GraphUtil.IsPlotFormatLog(vm.PlotFormat) ? markVal : Math.Log10(markVal);
 
