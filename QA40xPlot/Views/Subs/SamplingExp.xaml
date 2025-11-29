@@ -1,0 +1,51 @@
+﻿<UserControl x:Class="QA40xPlot.Views.SamplingExp"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+                          xmlns:views="clr-namespace:QA40xPlot.Views"
+
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:QA40xPlot.ViewModels.Subs"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Expander Header="—— Sampling" IsExpanded="{Binding ExpandSampling}"  >
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"  MinWidth="{Binding LeftWidth}" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Label Content="_Sample Rate" 
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="0" Grid.Column="0"  Target="{Binding ElementName=cbSampleRate}"  />
+            <ComboBox x:Name="cbSampleRate"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0"   
+                              VerticalContentAlignment="Center"
+                               SelectedValue="{Binding SampleRate}" ItemsSource="{Binding SampleRates}">
+            </ComboBox>
+            <Label Content="_Fft Size" HorizontalAlignment="Right" 
+                           VerticalAlignment="Center" Grid.Row="1" Grid.Column="0" Target="{Binding ElementName=cbfftSize}"  />
+            <ComboBox x:Name="cbfftSize"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1"   
+                              VerticalContentAlignment="Center"
+                               SelectedValue="{Binding FftSize}" ItemsSource="{Binding FftSizes}">
+            </ComboBox>
+            <Label Content="_Averages" HorizontalAlignment="Right" VerticalAlignment="Center" 
+                   Grid.Column="0" Grid.Row="2" Visibility="{Binding ToShowAverages}" 
+                   Target="{Binding ElementName=xcaverages}"  />
+            <views:UpDownControl x:Name="xcaverages" Value="{Binding Averages}" Visibility="{Binding ToShowAverages}" 
+                                 Minimum="1" Maximum="{Binding MaxAverages}" VerticalAlignment="Center" 
+                                 Grid.Column="1" Grid.Row="2"  />
+
+            <Label Content="_Window" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="3" Grid.Column="0" 
+                   Target="{Binding ElementName=cbWindow}" Visibility="{Binding ToShowWindowing}"  />
+            <ComboBox x:Name="cbWindow" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="3"   
+                              VerticalContentAlignment="Center" Visibility="{Binding ToShowWindowing}" 
+                               SelectedValue="{Binding WindowingMethod}" ItemsSource="{Binding WindowingTypes}">
+            </ComboBox>
+        </Grid>
+    </Expander>
+</UserControl>

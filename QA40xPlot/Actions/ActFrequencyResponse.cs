@@ -1082,7 +1082,6 @@ namespace QA40xPlot.Actions
 			{
 				case TestingType.Response:
 					frqsrVm.PlotFormat = "dBV";
-					frqsrVm.PlotFormat = "dBV";
 					break;
 				case TestingType.Impedance:
 					frqsrVm.PlotFormat = "Ohms";
@@ -1091,7 +1090,7 @@ namespace QA40xPlot.Actions
 					frqsrVm.PlotFormat = "SPL";
 					break;
 				case TestingType.Crosstalk:
-					frqsrVm.PlotFormat = "dB";
+					frqsrVm.PlotFormat = "SPL";
 					break;
 			}
 

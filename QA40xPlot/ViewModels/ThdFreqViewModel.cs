@@ -447,6 +447,8 @@ namespace QA40xPlot.ViewModels
 
 			ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
 			ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;
+
+			ToShowWindowing = Visibility.Collapsed;
 			// make a few things happen to synch the gui. don't await this.
 			Task.Delay(1000).ContinueWith(t => { MyAction?.UpdateGraph(true); });
 		}

@@ -407,6 +407,7 @@ namespace QA40xPlot.ViewModels
 			UseGenerator2 = false;
 
 			Attenuation = 42;
+			ToShowAverages = Visibility.Collapsed;
 
 			// make a few things happen to synch the gui
 			Task.Delay(1000).ContinueWith(t => { MyAction?.UpdateGraph(true); });

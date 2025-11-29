@@ -125,6 +125,23 @@ namespace QA40xPlot.ViewModels
 			get => _ToShowRange;
 			set => SetProperty(ref _ToShowRange, value);
 		}
+
+		private Visibility _ToShowAverages = Visibility.Visible;
+		[JsonIgnore]
+		public Visibility ToShowAverages
+		{
+			get => _ToShowAverages;
+			set => SetProperty(ref _ToShowAverages, value);
+		}
+
+		private Visibility _ToShowWindowing = Visibility.Visible;
+		[JsonIgnore]
+		public Visibility ToShowWindowing
+		{
+			get => _ToShowWindowing;
+			set => SetProperty(ref _ToShowWindowing, value);
+		}
+
 		private Visibility _ToShowdB;
 		[JsonIgnore]
 		public Visibility ToShowdB
