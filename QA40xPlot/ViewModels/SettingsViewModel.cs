@@ -25,7 +25,7 @@ namespace QA40xPlot.ViewModels
 
 		public static List<String> BackColors
 		{
-			get => new List<string>() { "Transparent", "#dce4e4", "#60ffffff",
+			get => new List<string>() { "Transparent", "#dce4e4", "#ecf4f4",
 			"#f8f8f8", "White",
 			"MintCream", "LightGray",
 
@@ -244,7 +244,7 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		private string _GraphBackClr = BackColors[2];  // brighten
+		private string _GraphBackClr = BackColors[3];  // brighten
 		public string GraphBackClr
 		{
 			get { return _GraphBackClr; }

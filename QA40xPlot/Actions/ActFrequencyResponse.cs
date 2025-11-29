@@ -884,7 +884,6 @@ namespace QA40xPlot.Actions
 
 			PlotUtil.InitializeMagFreqPlot(myPlot);
 			PlotUtil.SetOhmFreqRule(myPlot);
-			PlotUtil.AddPhaseFreqRule(myPlot);
 
 			myPlot.Axes.SetLimitsX(Math.Log10(MathUtil.ToDouble(frqrsVm.GraphStartX, 20.0)), Math.Log10(MathUtil.ToDouble(frqrsVm.GraphEndX, 20000)), myPlot.Axes.Bottom);
 			myPlot.Axes.SetLimitsY(MathUtil.ToDouble(frqrsVm.RangeBottomdB, -20), MathUtil.ToDouble(frqrsVm.RangeTopdB, 180), myPlot.Axes.Left);
@@ -898,11 +897,13 @@ namespace QA40xPlot.Actions
 					myPlot.Axes.Right.Label.Text = string.Empty;
 					break;
 				case TestingType.Gain:
+					PlotUtil.AddPhaseFreqRule(myPlot);
 					PlotUtil.AddPhasePlot(myPlot);
 					myPlot.YLabel("dB");
 					myPlot.Axes.Right.Label.Text = "Phase (Deg)";
 					break;
 				case TestingType.Impedance:
+					PlotUtil.AddPhaseFreqRule(myPlot);
 					PlotUtil.AddPhasePlot(myPlot);
 					myPlot.YLabel("|Z| Ohms");
 					myPlot.Axes.Right.Label.Text = "Phase (Deg)";

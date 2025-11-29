@@ -185,8 +185,8 @@ public class FreqRespViewModel : BaseViewModel
 				{
 					var ttype = MyVModel.GetTestingType(MyVModel.TestType);
 					var isdb = ttype == TestingType.Response;
-					ToShowRange = isdb ? Visibility.Collapsed : Visibility.Visible;
-					ToShowdB = isdb ? Visibility.Visible : Visibility.Collapsed;
+					//ToShowRange = isdb ? Visibility.Collapsed : Visibility.Visible;
+					//ToShowdB = isdb ? Visibility.Visible : Visibility.Collapsed;
 				}
 				RaisePropertyChanged("GraphUnit");
 				MyAction?.UpdateGraph(true);
@@ -490,8 +490,8 @@ public class FreqRespViewModel : BaseViewModel
 		TestType = TestTypes[0];    // this messes up if we start at impedance and set to impedance later so ??
 
 		PlotFormat = "dBV";
-		ToShowRange = Visibility.Collapsed;
-		ToShowdB = Visibility.Visible;
+		ToShowdB = Visibility.Collapsed;
+		ToShowRange = Visibility.Visible;
 
 		StartFreq = "20";
 		EndFreq = "20000";

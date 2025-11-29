@@ -8,7 +8,10 @@ namespace QA40xPlot.Views
 		public UpDownControl()
 		{
 			InitializeComponent();
+			ValueTextBox = ValueContainer;
 		}
+
+		public TextBox ValueTextBox { get; }
 
 		private void UpButton_Click(object sender, RoutedEventArgs e)
 		{

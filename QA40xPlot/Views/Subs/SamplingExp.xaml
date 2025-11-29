@@ -35,7 +35,7 @@
             </ComboBox>
             <Label Content="_Averages" HorizontalAlignment="Right" VerticalAlignment="Center" 
                    Grid.Column="0" Grid.Row="2" Visibility="{Binding ToShowAverages}" 
-                   Target="{Binding ElementName=xcaverages}"  />
+                   Target="{Binding ElementName=xcaverages, Path=ValueTextBox}"  />
             <views:UpDownControl x:Name="xcaverages" Value="{Binding Averages}" Visibility="{Binding ToShowAverages}" 
                                  Minimum="1" Maximum="{Binding MaxAverages}" VerticalAlignment="Center" 
                                  Grid.Column="1" Grid.Row="2"  />
