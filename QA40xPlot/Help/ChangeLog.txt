@@ -9,6 +9,7 @@ v 1.1.45
 - add smoothing to frequency response and gain chirp results
 - improve graph background default colors
 - repair averages accelerator
+- implement units for frequency response test
 v 1.1.44
 - switch from scottplot scatter to signalxy plots for massive graph drawing speedup
 - remove graph-limiting from spectrum and imd plots

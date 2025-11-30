@@ -9,6 +9,7 @@ using ScottPlot.Plottables;
 using System.Data;
 using System.Numerics;
 using System.Windows;
+using Windows.Foundation.Metadata;
 using static QA40xPlot.ViewModels.BaseViewModel;
 
 
@@ -493,7 +494,13 @@ namespace QA40xPlot.Actions
 						break;
 					case TestingType.Response:
 						// send freq, gain, gain2
-						tup = ValueTuple.Create(freqs[bin], valuesRe[bin], valuesIm[bin]);
+						{
+							var fvi = GraphUtil.GetValueFormatter(frsqVm.PlotFormat, PageData.GainReal);
+							var fvi2 = GraphUtil.GetValueFormatter(frsqVm.PlotFormat, PageData.GainImag);
+							var fl = fvi(valuesRe[bin]);
+							var fr = fvi2(valuesIm[bin]);
+							tup = ValueTuple.Create(freqs[bin], fl, fr);
+						}
 						break;
 					case TestingType.Impedance:
 						{   // send freq, ohms, phasedeg
@@ -893,7 +900,7 @@ namespace QA40xPlot.Actions
 			switch (ttype)
 			{
 				case TestingType.Response:
-					myPlot.YLabel("dBV");
+					myPlot.YLabel(GraphUtil.GetFormatTitle(frqrsVm.PlotFormat));
 					myPlot.Axes.Right.Label.Text = string.Empty;
 					break;
 				case TestingType.Gain:
@@ -990,9 +997,12 @@ namespace QA40xPlot.Actions
 					break;
 				case TestingType.Response:
 					{
-						YValues = page.GainReal.Select(x => 20 * Math.Log10(x)).ToArray(); // real is the left gain
-						phaseValues = page.GainImag.Select(x => 20 * Math.Log10(x)).ToArray();
-						legendname = "dBV";
+						//YValues = page.GainReal.Select(x => 20 * Math.Log10(x)).ToArray(); // real is the left gain
+						var fvi = GraphUtil.GetValueFormatter(frqrsVm.PlotFormat, page.GainReal);
+						YValues = page.GainReal.Select(fvi).ToArray();
+						fvi = GraphUtil.GetValueFormatter(frqrsVm.PlotFormat, page.GainImag);
+						phaseValues = page.GainImag.Select(fvi).ToArray();
+						legendname = isMain ? "Left" : ClipName(page.Definition.Name) + ".L";
 					}
 					break;
 				case TestingType.Impedance:
@@ -1055,7 +1065,7 @@ namespace QA40xPlot.Actions
 				else if (ttype == TestingType.Response)
 				{
 					plot = myPlot.Add.SignalXY(logFreqX.Skip(skipped).ToArray(), phases.Skip(skipped).ToArray());
-					plot.LegendText = "Right dBV";
+					plot.LegendText = "Right";
 				}
 				else
 				{
@@ -1078,22 +1088,6 @@ namespace QA40xPlot.Actions
 			var frqsrVm = MyVModel;
 
 			int resultNr = 0;
-
-			switch (frqsrVm.GetTestingType(frqsrVm.TestType))
-			{
-				case TestingType.Response:
-					frqsrVm.PlotFormat = "dBV";
-					break;
-				case TestingType.Impedance:
-					frqsrVm.PlotFormat = "Ohms";
-					break;
-				case TestingType.Gain:
-					frqsrVm.PlotFormat = "SPL";
-					break;
-				case TestingType.Crosstalk:
-					frqsrVm.PlotFormat = "SPL";
-					break;
-			}
 
 			if (settingsChanged)
 			{

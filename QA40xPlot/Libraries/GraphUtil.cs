@@ -133,14 +133,14 @@ namespace QA40xPlot.Libraries
 				{
 					rslt = dv.ToString("0.###");
 				}
-				if (adv < 10.0)
+				if (adv < 100.0)
 				{
 					rslt = dv.ToString("0.##");
 				}
-				else if (adv < 100.0)
-				{
-					rslt = dv.ToString("0.#");
-				}
+				//else if (adv < 100.0)
+				//{
+				//	rslt = dv.ToString("0.#");
+				//}
 				else
 				{
 					rslt = dv.ToString("0.#");
@@ -192,7 +192,7 @@ namespace QA40xPlot.Libraries
 		// this just avoids taking a max of the data constantly if not in dbr
 		public static Func<double, double> GetValueFormatter(string plotFormat, double[] refX)
 		{
-			if(refX == null || refX.Length == 0 || plotFormat != "dBr")
+			if(refX == null || refX.Length == 0 || (plotFormat != "dBr" && plotFormat != "%"))
 			{
 				return GetValueFormatter(plotFormat, 1.0);
 			}

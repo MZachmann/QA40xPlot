@@ -318,7 +318,7 @@ namespace QA40xPlot.ViewModels
 				case "YM":  // Y magnitude
 					{
 						var bot = GraphUtil.ReformatLogValue(PlotFormat, bounds.Y, bounds.Y + bounds.Height);
-						this.RangeBottomdB = bot.ToString("0");
+						this.RangeBottomdB = Math.Floor(bot).ToString("0");
 						var top = GraphUtil.ReformatLogValue(PlotFormat, bounds.Y + bounds.Height, bounds.Y + bounds.Height);
 						this.RangeTopdB = Math.Ceiling(top).ToString("0");
 					}

@@ -185,10 +185,9 @@ public class FreqRespViewModel : BaseViewModel
 				{
 					var ttype = MyVModel.GetTestingType(MyVModel.TestType);
 					var isdb = ttype == TestingType.Response;
-					//ToShowRange = isdb ? Visibility.Collapsed : Visibility.Visible;
-					//ToShowdB = isdb ? Visibility.Visible : Visibility.Collapsed;
+					ToShowRange = isdb ? Visibility.Collapsed : Visibility.Visible;
+					ToShowdB = isdb ? Visibility.Visible : Visibility.Collapsed;
 				}
-				RaisePropertyChanged("GraphUnit");
 				MyAction?.UpdateGraph(true);
 				break;
 			case "ShowTabInfo":
@@ -212,6 +211,23 @@ public class FreqRespViewModel : BaseViewModel
 				{
 					ViewSettings.Singleton.MainVm.FreqRespHdr = TestType;
 				}
+
+				switch (GetTestingType(TestType))
+				{
+					case TestingType.Response:
+						PlotFormat = "dBV";
+						break;
+					case TestingType.Impedance:
+						PlotFormat = "Ohms";
+						break;
+					case TestingType.Gain:
+						PlotFormat = "SPL";
+						break;
+					case TestingType.Crosstalk:
+						PlotFormat = "SPL";
+						break;
+				}
+
 				MyAction?.UpdateGraph(true);
 				break;
 			case "GraphStartX":
@@ -380,10 +396,17 @@ public class FreqRespViewModel : BaseViewModel
 					this.RangeBottomdB = bounds.Y.ToString("0");
 					this.RangeTopdB = (bounds.Height + bounds.Y).ToString("0");
 				}
-				else
+				else if(ttype != TestingType.Response)
 				{
 					this.RangeBottomdB = (20 * Math.Log10(Math.Max(1e-14, bounds.Y))).ToString("0");
 					this.RangeTopdB = Math.Ceiling((20 * Math.Log10(Math.Max(1e-14, bounds.Height + bounds.Y)))).ToString("0");
+				}
+				else
+				{
+					var botx = GraphUtil.ReformatLogValue(PlotFormat, bounds.Y, bounds.Y + bounds.Height);
+					this.RangeBottomdB = Math.Floor(botx).ToString("0");
+					var topx = GraphUtil.ReformatLogValue(PlotFormat, bounds.Y + bounds.Height, bounds.Y + bounds.Height);
+					this.RangeTopdB = Math.Ceiling(topx).ToString("0");
 				}
 				break;
 			default:
@@ -418,7 +441,10 @@ public class FreqRespViewModel : BaseViewModel
 				ZValue = "Left: " + (20 * Math.Log10(zv.Item2)).ToString("0.## dB") + Environment.NewLine + "Right: " + (20 * Math.Log10(zv.Item3)).ToString("0.## dB");
 				break;
 			case TestingType.Response:
-				ZValue = "Left: " + (20 * Math.Log10(zv.Item2)).ToString("0.## dBV") + Environment.NewLine + "Right: " + (20 * Math.Log10(zv.Item3)).ToString("0.## dBV");
+				{
+					ZValue = "Left: " + GraphUtil.PrettyPrint(zv.Item2, PlotFormat) + Environment.NewLine + 
+						"Right: " + GraphUtil.PrettyPrint(zv.Item3, PlotFormat);
+				}
 				break;
 			case TestingType.Impedance:
 				{
@@ -490,8 +516,8 @@ public class FreqRespViewModel : BaseViewModel
 		TestType = TestTypes[0];    // this messes up if we start at impedance and set to impedance later so ??
 
 		PlotFormat = "dBV";
-		ToShowdB = Visibility.Collapsed;
-		ToShowRange = Visibility.Visible;
+		ToShowRange = Visibility.Collapsed;
+		ToShowdB = Visibility.Visible;
 
 		StartFreq = "20";
 		EndFreq = "20000";
