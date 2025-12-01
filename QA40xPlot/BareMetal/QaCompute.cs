@@ -110,7 +110,7 @@ namespace QA40xPlot.BareMetal
 			}
 
 			var ffs = lrs.Left;
-			var thdLeft = ComputeSnrRatio(windowing, ffs, lrs.Df, fundFreq, minFreq, maxFreq, weighting, false);
+			var thdLeft = ComputeSnrRatio(windowing, ffs, lrs.Df, fundFreq, minFreq, maxFreq, weighting, true);
 			thdLeft = QaLibrary.ConvertVoltage(thdLeft, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 			ffs = lrs.Right;
 			var thdRight = ComputeSnrRatio(windowing, ffs, lrs.Df, fundFreq, minFreq, maxFreq, weighting, false);
@@ -239,13 +239,17 @@ namespace QA40xPlot.BareMetal
 			// Calculate RMS of the signal outside the notch
 			double rmsBelowNotch = ComputeRmsF(weighted, df, minFreq, notchLowerBound, windowing);
 			double rmsAboveNotch = ComputeRmsF(weighted, df, notchUpperBound, maxFreq, windowing);
-			double noiseRms = Math.Sqrt(Math.Pow(rmsBelowNotch, 2) + Math.Pow(rmsAboveNotch, 2));
-
+			// remove the harmonic distrtion levels
+			var counts = Enumerable.Range(2, 5);	// four harmonics
+			var distort = counts.Select(n => QaMath.MagAtFreq(weighted, df, n * fundamental)).Sum(x => x*x);
+			double noiseRms = Math.Sqrt(rmsBelowNotch * rmsBelowNotch + rmsAboveNotch * rmsAboveNotch - distort);
+			noiseRms = Math.Max(noiseRms, 1e-12); // prevent div by zero
 			if (debug)
 			{
-				Debug.WriteLine($"RMS Below Notch: {rmsBelowNotch:F6}");
-				Debug.WriteLine($"RMS Above Notch: {rmsAboveNotch:F6}");
-				Debug.WriteLine($"Noise RMS: {noiseRms:F6}");
+				Debug.WriteLine($"RMS Below Notch: {Math.Log10(rmsBelowNotch):F6}");
+				Debug.WriteLine($"RMS Above Notch: {Math.Log10(rmsAboveNotch):F6}");
+				Debug.WriteLine($"Distortion: {Math.Log10(distort):F6}");
+				Debug.WriteLine($"Noise RMS: {Math.Log10(noiseRms):F6}");
 			}
 
 			return fundamentalRms / noiseRms;
