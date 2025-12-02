@@ -432,7 +432,7 @@ namespace QA40xPlot.BareMetal
 		/// Compute the total intermodulation distrtion
 		/// </summary>
 		/// <param name="windowing">windowing to use</param>
-		/// <param name="signalFreqLin">the signal frequencies as an array</param>
+		/// <param name="signalFreqLin">the signal values as an array</param>
 		/// <param name="df">the delta freqeuncy</param>
 		/// <param name="fundamentals">the array of fundamental frequencies</param>
 		/// <param name="numHarmonics">number of harmonics to keep</param>

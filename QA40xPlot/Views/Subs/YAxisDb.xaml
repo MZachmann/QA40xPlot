@@ -48,6 +48,20 @@
                 </Button>
                 <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="YM"
                             Margin="0,4,0,0" Grid.Row="3" Grid.Column="1"  HorizontalAlignment="Right" VerticalAlignment="Center"   />
+                <ComboBox IsEditable="True" Grid.Row="4" Grid.Column="0"  
+                           VerticalContentAlignment="Center"
+                          Text="{Binding DbrType}" ItemsSource="{Binding DbrTypes}"
+                          Visibility="{Binding PlotFormat, Converter={StaticResource EnumVisConverter}, ConverterParameter=dBr}" >
+                </ComboBox>
+                <TextBox MinWidth="70" Grid.Row="4" Grid.Column="1"  
+                         VerticalContentAlignment="Center"
+                         Text="{Binding DbrValue}"
+                         Visibility="{Binding PlotFormat, Converter={StaticResource EnumVisConverter}, ConverterParameter=dBr}"
+                         IsEnabled="{Binding DbrType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=Max}"
+                         
+                         />
+                <Label Content="{Binding DbrUnit}" Grid.Row="4" Grid.Column="2" VerticalAlignment="Center" Visibility="{Binding PlotFormat, Converter={StaticResource EnumVisConverter}, ConverterParameter=dBr}"  />
+                
             </Grid>
         </Expander>
     </StackPanel>

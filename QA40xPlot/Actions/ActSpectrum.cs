@@ -625,11 +625,11 @@ namespace QA40xPlot.Actions
 			double markVal = 0;
 			if (rightData != null && !vm.ShowLeft)
 			{
-				markVal = GraphUtil.ReformatValue(vm.PlotFormat, rightData[bin], rightData);
+				markVal = GraphUtil.ReformatValue(vm, rightData[bin], rightData);
 			}
 			else if (leftData != null)
 			{
-				markVal = GraphUtil.ReformatValue(vm.PlotFormat, leftData[bin], leftData);
+				markVal = GraphUtil.ReformatValue(vm, leftData[bin], leftData);
 			}
 			var markView = GraphUtil.IsPlotFormatLog(vm.PlotFormat) ? markVal : Math.Log10(markVal);
 
@@ -767,7 +767,7 @@ namespace QA40xPlot.Actions
 					var binmin = Math.Max(1, abin - 5);            // random....
 					var binmax = Math.Min(ffs.Length - 1, abin + 5);           // random....
 					var msr = PageData.ViewModel;
-					var vfi = GraphUtil.GetLogFormatter(msr.PlotFormat, useRight ? right.FundamentalVolts : left.FundamentalVolts);
+					var vfi = GraphUtil.GetLogFormatter(msr, useRight ? fftdata.Right : fftdata.Left);
 					var distsx = ffs.Skip(binmin).Take(binmax - binmin);
 					IEnumerable<Pixel> distasx = distsx.Select((fftd, index) =>
 							myPlot.GetPixel(new Coordinates(Math.Log10((index + binmin) * fftdata.Df),
@@ -876,17 +876,16 @@ namespace QA40xPlot.Actions
 			//
 			double[] leftdBV = [];
 			double[] rightdBV = [];
-			string plotForm = MyVModel.PlotFormat;
+			string plotForm = specVm.PlotFormat;
 
 			// add a line plot to the plot
-			var lineWidth = MyVModel.ShowThickLines ? _Thickness : 1;   // so it dynamically updates
+			var lineWidth = specVm.ShowThickLines ? _Thickness : 1;   // so it dynamically updates
 																		//IPalette palette = new ScottPlot.Palettes.Category20();
 			if (useLeft)
 			{
-				var vf = fftData.Left.Skip(1);  // the first dot is F=0 so no logs...
-				double maxleft = Math.Max(1e-20, vf.Max());
 				// format the data into current format
-				var fvi = GraphUtil.GetLogFormatter(plotForm, maxleft);
+				var fvi = GraphUtil.GetLogFormatter(specVm, fftData.Left);
+				var vf = fftData.Left.Skip(1);  // the first dot is F=0 so no logs...
 				leftdBV = vf.Select(fvi).ToArray();
 
 				var plotLeft = myPlot.Add.SignalXY(freqLogX, leftdBV);
@@ -899,11 +898,10 @@ namespace QA40xPlot.Actions
 
 			if (useRight)
 			{
-				var vf = fftData.Right.Skip(1); // the first dot is F=0 so no logs...
 												// find the max value of the left and right channels
-				double maxright = Math.Max(1e-20, fftData.Right.Skip(1).Max());
 				// now use that to calculate percents. Since Y axis is logarithmic use log of percent
-				var fvi = GraphUtil.GetLogFormatter(plotForm, maxright);
+				var fvi = GraphUtil.GetLogFormatter(specVm, fftData.Right);
+				var vf = fftData.Right.Skip(1); // the first dot is F=0 so no logs...
 				rightdBV = vf.Select(fvi).ToArray();
 
 				var plotRight = myPlot.Add.SignalXY(freqLogX, rightdBV);

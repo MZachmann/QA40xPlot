@@ -326,20 +326,14 @@ namespace QA40xPlot.ViewModels
 					break;
 				case "YP":  // Y percents
 					{
-						var xp = bounds.Y + bounds.Height;  // max Y value
-						var bot = GraphUtil.ReformatLogValue(PlotFormat, bounds.Y, xp);
-						bot = Math.Pow(10, Math.Max(-7, Math.Floor(bot)));  // nearest power of 10
-						var top = Math.Floor(GraphUtil.ReformatLogValue(PlotFormat, xp, xp));
-						top = Math.Pow(10, Math.Min(3, top));
-						this.RangeTop = top.ToString("0.##########");
-						this.RangeBottom = bot.ToString("0.##########");
+						RecalcRange(bounds, PlotFormat);
 					}
 					break;
 				case "YM":  // Y magnitude
 					{
-						var bot = GraphUtil.ReformatLogValue(PlotFormat, bounds.Y, bounds.Y + bounds.Height);
+						var bot = GraphUtil.ReformatLogValue(this, bounds.Y, bounds.Y + bounds.Height);
 						this.RangeBottomdB = bot.ToString("0");
-						var top = GraphUtil.ReformatLogValue(PlotFormat, bounds.Y + bounds.Height, bounds.Y + bounds.Height);
+						var top = GraphUtil.ReformatLogValue(this, bounds.Y + bounds.Height, bounds.Y + bounds.Height);
 						this.RangeTopdB = Math.Ceiling(top).ToString("0");
 					}
 					break;

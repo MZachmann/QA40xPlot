@@ -53,6 +53,8 @@ namespace QA40xPlot.ViewModels
 		public static int MaxAverages { get => 20; }    // there's not much reason for this to be in a setting, but here's an easy...
 		public static List<string> PowerUnits { get => new List<string>() { "mW", "μW", "W", "dBW", "dBm" }; }
 		public static List<string> VoltageUnits { get => new List<string>() { "mV", "μV", "V", "dBV", "dBmV", "dBu", "dBFS" }; }
+		public static List<string> DbrTypes { get => new List<string>() { "Max", "@Frq", "Add" }; }
+		public static List<string> DbrUnits { get => new List<string>() { "", "Hz", "dBV" }; }
 		[JsonIgnore]
 		public RelayCommand DoGetGenUnits { get => new RelayCommand(GetGenUnits); }
 		[JsonIgnore]
@@ -111,6 +113,37 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _ShowLegend;
 			set => SetProperty(ref _ShowLegend, value);
+		}
+
+		private string _DbrType = DbrTypes[0];	// max
+		public string DbrType
+		{
+			get => _DbrType;
+			set 
+			{
+				if (SetProperty(ref _DbrType, value))
+				{
+					RaisePropertyChanged("DbrUnit");
+					ForceGraphUpdate();
+				}
+			}
+		}
+
+		private string _DbrValue = "1000";  // max
+		public string DbrValue
+		{
+			get => _DbrValue;
+			set
+			{
+			if (SetProperty(ref _DbrValue, value))
+				ForceGraphUpdate();
+			}
+		}
+
+			[JsonIgnore]
+		public string DbrUnit
+		{
+			get => DbrUnits[DbrTypes.IndexOf(DbrType)];
 		}
 
 		[JsonIgnore]
@@ -687,6 +720,22 @@ namespace QA40xPlot.ViewModels
 				button.ContextMenu.PlacementTarget = button;
 				button.ContextMenu.IsOpen = true;
 			}
+		}
+
+		/// <summary>
+		/// Find the top and bottom Y axis range strings
+		/// </summary>
+		/// <param name="bounds"></param>
+		/// <param name="PlotFormat"></param>
+		protected void RecalcRange(Rect bounds, string PlotFormat)
+		{
+			var xp = bounds.Y + bounds.Height;  // max Y value
+			var bot = GraphUtil.ReformatLogValue(this, bounds.Y, xp);
+			bot = Math.Pow(10, Math.Max(-7, Math.Floor(bot)));  // nearest power of 10
+			var top = Math.Floor(GraphUtil.ReformatLogValue(this, xp, xp));
+			top = Math.Pow(10, Math.Min(3, top));
+			this.RangeTop = top.ToString("0.##########");
+			this.RangeBottom = bot.ToString("0.##########");
 		}
 
 		public static void ShowVolts(object? parameter)

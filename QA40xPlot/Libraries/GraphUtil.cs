@@ -1,5 +1,6 @@
 ﻿using QA40xPlot.ViewModels;
 using QA40xPlot.ViewModels.Subs;
+using System.Data;
 using System.IO;
 using System.Windows;
 using System.Windows.Media;
@@ -157,10 +158,10 @@ namespace QA40xPlot.Libraries
 		/// <param name="volts"></param>
 		/// <param name="dRef"></param>
 		/// <returns></returns>
-		public static string DoValueFormat(string plotFormat, double volts, double dRef = 1.0)
+		public static string DoValueFormat(string PlotFormat, double volts, double dRef = 1.0)
 		{
-			var vfi = GetValueFormatter(plotFormat, dRef);
-			return PrettyPrint(vfi(volts), plotFormat);
+			var vfi = GetValueFormatter(PlotFormat, dRef);
+			return PrettyPrint(vfi(volts), PlotFormat);
 		}
 
 		/// <summary>
@@ -170,33 +171,53 @@ namespace QA40xPlot.Libraries
 		/// <param name="plotFormat">the format</param>
 		/// <param name="refX">the ref (max) value for scaling</param>
 		/// <returns>a function to get plottable value</returns>
-		public static Func<double, double> GetLogFormatter(string plotFormat, double refX = 1.0)
+		public static Func<double, double> GetLogFormatter(BaseViewModel bvm, double[] refX, double dF1 = 0.0)
 		{
-			if (IsPlotFormatLog(plotFormat))
+			var vfi = GetValueFormatter(bvm, refX, dF1);
+			if (IsPlotFormatLog(bvm.PlotFormat))
 			{
-				return GetValueFormatter(plotFormat, refX);
+				return vfi;
 			}
-
-			switch (plotFormat)
-			{
-				case "V":
-					return (x => Math.Log10(x));
-				case "%":
-					return (x => Math.Log10(100 * x / refX));
-				case "W":
-					return (x => Math.Log10(x * x / ViewSettings.AmplifierLoad));
-			}
-			return (x => x); // default to volts
+			return (x => Math.Log10(vfi(x)));
 		}
-
 		// this just avoids taking a max of the data constantly if not in dbr
-		public static Func<double, double> GetValueFormatter(string plotFormat, double[] refX)
+		public static Func<double, double> GetValueFormatter(BaseViewModel bvm, double[] refX, double dF1 = 0.0)
 		{
-			if(refX == null || refX.Length == 0 || (plotFormat != "dBr" && plotFormat != "%"))
+			var plotFormat = bvm.PlotFormat;
+			if (refX == null || refX.Length == 0 || (plotFormat != "dBr" && plotFormat != "%"))
 			{
 				return GetValueFormatter(plotFormat, 1.0);
 			}
-			return GetValueFormatter(plotFormat, refX.Max());
+			var ax = GetDbrReference(bvm, refX, dF1);
+			return GetValueFormatter(plotFormat, ax);
+		}
+
+		public static double GetDbrReference(BaseViewModel bvm, double[] refX, double dF1 = 0.0)
+		{
+			if (refX == null || refX.Length == 0 || (bvm.PlotFormat != "dBr" && bvm.PlotFormat != "%"))
+			{
+				return 1.0;
+			}
+			var toskip = (refX.Length > 1) ? 1 : 0;
+			if(bvm.PlotFormat != "dBr")
+				return refX.Skip(toskip).Max();
+			var idx = BaseViewModel.DbrTypes.IndexOf(bvm.DbrType);
+			switch (idx)
+			{
+				case 0:		// max
+					return refX.Skip(toskip).Max();
+				case 1:     // frequency
+					{
+						var df = QaLibrary.CalcBinSize(bvm.SampleRateVal, bvm.FftSizeVal);
+						var dfrq = MathUtil.ToDouble(bvm.DbrValue, 1000.0) - df * dF1;  // adjust for bin offset
+						dfrq = Math.Max(0.0, dfrq);
+						var mga = QaMath.MagAtFreq(refX, df, dfrq);
+						return mga;
+					}
+				case 2:     // value
+					return QaLibrary.ConvertVoltage(MathUtil.ToDouble(bvm.DbrValue, 0), Data.E_VoltageUnit.dBV, Data.E_VoltageUnit.Volt);
+			}
+			return 1.0;
 		}
 
 		/// <summary>
@@ -251,9 +272,9 @@ namespace QA40xPlot.Libraries
 		/// <param name="volts"></param>
 		/// <param name="dRef">reference value for percent and dbr</param>
 		/// <returns>the converted double</returns>
-		public static double ReformatValue(string plotFormat, double volts, double[] dRef)
+		public static double ReformatValue(BaseViewModel bvm, double volts, double[] refX)
 		{
-			var vfi = GetValueFormatter(plotFormat, dRef);
+			var vfi = GetValueFormatter(bvm, refX);
 			return vfi(volts);
 		}       
 		
@@ -264,9 +285,9 @@ namespace QA40xPlot.Libraries
 				/// <param name="volts"></param>
 				/// <param name="dRef">reference value for percent and dbr</param>
 				/// <returns>the converted double with logs of linear (%,V,W) formats</returns>
-		public static double ReformatLogValue(string plotFormat, double volts, double dRef = 1.0)
+		public static double ReformatLogValue(BaseViewModel bvm, double volts, double dRef = 1.0)
 		{
-			var vfi = GetLogFormatter(plotFormat, dRef);
+			var vfi = GetLogFormatter(bvm, [dRef]);
 			return vfi(volts);
 		}
 

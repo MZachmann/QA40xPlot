@@ -2,9 +2,11 @@
                     xmlns:convert="clr-namespace:QA40xPlot.Converters"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
         <convert:EnumBooleanConverter x:Key="EnumBooleanConverter"/>
+        <convert:EnumNotBooleanConverter x:Key="EnumNotBoolConverter"/>
         <convert:VtoPctConverter x:Key="VToPctConverter"/>
         <convert:VoltFormatter x:Key="VoltFormatter"/>
         <convert:BoolToVisibilityConverter x:Key="BoolVisConverter"/>
+        <convert:EnumToVisibilityConverter x:Key="EnumVisConverter"/>
         <convert:StringToVisibilityConverter x:Key="StringVisConverter"/>
         <convert:VoltUnitConverter x:Key="VoltUnitConverter" />
         <convert:VoltDbvFormatter x:Key="VoltDbvFormatter" />
