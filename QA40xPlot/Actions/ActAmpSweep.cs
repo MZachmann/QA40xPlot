@@ -705,7 +705,7 @@ namespace QA40xPlot.Actions
 		// this always uses the 'global' format so others work too
 		private double FormVal(double d1, double dMax)
 		{
-			var x = GraphUtil.ReformatValue(MyVModel.PlotFormat, d1, dMax);
+			var x = GraphUtil.ValueToPlot(MyVModel.PlotFormat, d1, dMax);
 			return GraphUtil.IsPlotFormatLog(MyVModel.PlotFormat) ? x : Math.Log10(x);
 		}
 

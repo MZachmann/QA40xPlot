@@ -158,9 +158,9 @@ namespace QA40xPlot.Libraries
 		/// <param name="volts"></param>
 		/// <param name="dRef"></param>
 		/// <returns></returns>
-		public static string DoValueFormat(string PlotFormat, double volts, double dRef = 1.0)
+		public static string PrettyPlotValue(string PlotFormat, double volts, double dRef = 1.0)
 		{
-			var vfi = GetValueFormatter(PlotFormat, dRef);
+			var vfi = ValueToPlotFn(PlotFormat, dRef);
 			return PrettyPrint(vfi(volts), PlotFormat);
 		}
 
@@ -171,25 +171,26 @@ namespace QA40xPlot.Libraries
 		/// <param name="plotFormat">the format</param>
 		/// <param name="refX">the ref (max) value for scaling</param>
 		/// <returns>a function to get plottable value</returns>
-		public static Func<double, double> GetLogFormatter(BaseViewModel bvm, double[] refX, double dF1 = 0.0)
+		public static Func<double, double> ValueToLogPlotFn(BaseViewModel bvm, double[] refX, double dF1 = 0.0)
 		{
-			var vfi = GetValueFormatter(bvm, refX, dF1);
+			var vfi = ValueToPlotFn(bvm, refX, dF1);
 			if (IsPlotFormatLog(bvm.PlotFormat))
 			{
 				return vfi;
 			}
 			return (x => Math.Log10(vfi(x)));
 		}
+
 		// this just avoids taking a max of the data constantly if not in dbr
-		public static Func<double, double> GetValueFormatter(BaseViewModel bvm, double[] refX, double dF1 = 0.0)
+		public static Func<double, double> ValueToPlotFn(BaseViewModel bvm, double[] refX, double dF1 = 0.0)
 		{
 			var plotFormat = bvm.PlotFormat;
 			if (refX == null || refX.Length == 0 || (plotFormat != "dBr" && plotFormat != "%"))
 			{
-				return GetValueFormatter(plotFormat, 1.0);
+				return ValueToPlotFn(plotFormat, 1.0);
 			}
 			var ax = GetDbrReference(bvm, refX, dF1);
-			return GetValueFormatter(plotFormat, ax);
+			return ValueToPlotFn(plotFormat, ax);
 		}
 
 		public static double GetDbrReference(BaseViewModel bvm, double[] refX, double dF1 = 0.0)
@@ -221,12 +222,13 @@ namespace QA40xPlot.Libraries
 		}
 
 		/// <summary>
-		/// Given an input voltage format, get a display format converter
+		/// Given an input voltage format and reference value
+		/// Return a function to convert data values to ones suitable for the Y axis
 		/// </summary>
-		/// <param name="plotFormat">the format</param>
-		/// <param name="refX">the ref (max) value for percent and dBr</param>
-		/// <returns>a Function(double) that does the display conversion</returns>
-		public static Func<double, double> GetValueFormatter(string plotFormat, double refX = 1.0)
+		/// <param name="plotFormat">the Y axis format</param>
+		/// <param name="refX">the ref value for percent (=max) and dBr(variable)</param>
+		/// <returns>a Function(double) that does the conversion</returns>
+		public static Func<double, double> ValueToPlotFn(string plotFormat, double refX = 1.0)
 		{
 			switch (plotFormat)
 			{
@@ -255,13 +257,13 @@ namespace QA40xPlot.Libraries
 		/// <summary>
 		/// Given an input voltage, convert to the desired data format for display
 		/// </summary>
-		/// <param name="plotFormat">the data format</param>
-		/// <param name="volts"></param>
+		/// <param name="plotFormat">the Y axis format</param>
+		/// <param name="volts">input value</param>
 		/// <param name="dRef">reference value for percent and dbr</param>
 		/// <returns>the converted double</returns>
-		public static double ReformatValue(string plotFormat, double volts, double dRef = 1.0)
+		public static double ValueToPlot(string plotFormat, double volts, double dRef = 1.0)
 		{
-			var vfi = GetValueFormatter(plotFormat, dRef);
+			var vfi = ValueToPlotFn(plotFormat, dRef);
 			return vfi(volts);
 		}
 
@@ -272,9 +274,9 @@ namespace QA40xPlot.Libraries
 		/// <param name="volts"></param>
 		/// <param name="dRef">reference value for percent and dbr</param>
 		/// <returns>the converted double</returns>
-		public static double ReformatValue(BaseViewModel bvm, double volts, double[] refX)
+		public static double ValueToPlot(BaseViewModel bvm, double volts, double[] refX)
 		{
-			var vfi = GetValueFormatter(bvm, refX);
+			var vfi = ValueToPlotFn(bvm, refX);
 			return vfi(volts);
 		}       
 		
@@ -285,9 +287,9 @@ namespace QA40xPlot.Libraries
 				/// <param name="volts"></param>
 				/// <param name="dRef">reference value for percent and dbr</param>
 				/// <returns>the converted double with logs of linear (%,V,W) formats</returns>
-		public static double ReformatLogValue(BaseViewModel bvm, double volts, double dRef = 1.0)
+		public static double ValueToLogPlot(BaseViewModel bvm, double volts, double dRef = 1.0)
 		{
-			var vfi = GetLogFormatter(bvm, [dRef]);
+			var vfi = ValueToLogPlotFn(bvm, [dRef]);
 			return vfi(volts);
 		}
 

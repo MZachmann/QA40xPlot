@@ -244,7 +244,7 @@ namespace QA40xPlot.Actions
 					var binmin = Math.Max(1, abin - 5);            // random....
 					var binmax = Math.Min(ffs.Length - 1, abin + 5);           // random....
 					var msr = PageData.ViewModel;
-					var vfi = GraphUtil.GetLogFormatter(msr, useRight ? fftdata.Left : fftdata.Right);
+					var vfi = GraphUtil.ValueToLogPlotFn(msr, useRight ? fftdata.Left : fftdata.Right);
 					var distsx = ffs.Skip(binmin).Take(binmax - binmin);
 					IEnumerable<Pixel> distasx = distsx.Select((fftd, index) =>
 							myPlot.GetPixel(new Coordinates(Math.Log10((index + binmin) * fftdata.Df),
@@ -470,10 +470,10 @@ namespace QA40xPlot.Actions
 				step.TotalV = rmsVT;
 				step.TotalW = rmsVT * rmsVT / ViewSettings.AmplifierLoad;
 				step.ShowDataPercents = vm.ShowDataPercent;
-				step.NoiseFloorView = GraphUtil.DoValueFormat(vm.PlotFormat, step.NoiseFloorV, denom);
-				step.Amplitude1View = GraphUtil.DoValueFormat(vm.PlotFormat, step.Fundamental1Volts, step.Fundamental1Volts);
-				step.Amplitude2View = GraphUtil.DoValueFormat(vm.PlotFormat, step.Fundamental2Volts, step.Fundamental1Volts);
-				step.AmplitudesView = GraphUtil.DoValueFormat(vm.PlotFormat, rmsVT, rmsVT);
+				step.NoiseFloorView = GraphUtil.PrettyPlotValue(vm.PlotFormat, step.NoiseFloorV, denom);
+				step.Amplitude1View = GraphUtil.PrettyPlotValue(vm.PlotFormat, step.Fundamental1Volts, step.Fundamental1Volts);
+				step.Amplitude2View = GraphUtil.PrettyPlotValue(vm.PlotFormat, step.Fundamental2Volts, step.Fundamental1Volts);
+				step.AmplitudesView = GraphUtil.PrettyPlotValue(vm.PlotFormat, rmsVT, rmsVT);
 			}
 
 			CalculateHarmonics(msr, left, right);
@@ -504,11 +504,11 @@ namespace QA40xPlot.Actions
 			double markVal = 0;
 			if (rightData != null && !vm.ShowLeft)
 			{
-				markVal = GraphUtil.ReformatValue(vm, rightData[bin], rightData);
+				markVal = GraphUtil.ValueToPlot(vm, rightData[bin], rightData);
 			}
 			else if (leftData != null)
 			{
-				markVal = GraphUtil.ReformatValue(vm, leftData[bin], leftData);
+				markVal = GraphUtil.ValueToPlot(vm, leftData[bin], leftData);
 			}
 			var markView = GraphUtil.IsPlotFormatLog(vm.PlotFormat) ? markVal : Math.Log10(markVal);
 
@@ -688,7 +688,7 @@ namespace QA40xPlot.Actions
 			{
 				var vf = fftData.Left.Skip(trimOff);
 				// the usual dbv display
-				var fvi = GraphUtil.GetLogFormatter(specVm, fftData.Left);
+				var fvi = GraphUtil.ValueToLogPlotFn(specVm, fftData.Left);
 				leftdBV = vf.Select(fvi).ToArray();
 
 				var plotLeft = myPlot.Add.SignalXY(freqLogX, leftdBV);
@@ -704,7 +704,7 @@ namespace QA40xPlot.Actions
 				var vf = fftData.Right.Skip(trimOff);
 				// find the max value of the left and right channels
 				// now use that to calculate percents. Since Y axis is logarithmic use log of percent
-				var fvi = GraphUtil.GetLogFormatter(specVm, fftData.Right);
+				var fvi = GraphUtil.ValueToLogPlotFn(specVm, fftData.Right);
 				rightdBV = vf.Select(fvi).ToArray();
 
 				var plotRight = myPlot.Add.SignalXY(freqLogX, rightdBV);

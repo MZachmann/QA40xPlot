@@ -495,8 +495,8 @@ namespace QA40xPlot.Actions
 					case TestingType.Response:
 						// send freq, gain, gain2
 						{
-							var fvi = GraphUtil.GetValueFormatter(frsqVm, PageData.GainReal, PageData.GainFrequencies.First());
-							var fvi2 = GraphUtil.GetValueFormatter(frsqVm, PageData.GainImag, PageData.GainFrequencies.First());
+							var fvi = GraphUtil.ValueToPlotFn(frsqVm, PageData.GainReal, PageData.GainFrequencies.First());
+							var fvi2 = GraphUtil.ValueToPlotFn(frsqVm, PageData.GainImag, PageData.GainFrequencies.First());
 							var fl = fvi(valuesRe[bin]);
 							var fr = fvi2(valuesIm[bin]);
 							tup = ValueTuple.Create(freqs[bin], fl, fr);
@@ -998,9 +998,9 @@ namespace QA40xPlot.Actions
 				case TestingType.Response:
 					{
 						//YValues = page.GainReal.Select(x => 20 * Math.Log10(x)).ToArray(); // real is the left gain
-						var fvi = GraphUtil.GetValueFormatter(frqrsVm, page.GainReal, PageData.GainFrequencies.First());
+						var fvi = GraphUtil.ValueToPlotFn(frqrsVm, page.GainReal, PageData.GainFrequencies.First());
 						YValues = page.GainReal.Select(fvi).ToArray();
-						fvi = GraphUtil.GetValueFormatter(frqrsVm, page.GainImag, PageData.GainFrequencies.First());
+						fvi = GraphUtil.ValueToPlotFn(frqrsVm, page.GainImag, PageData.GainFrequencies.First());
 						phaseValues = page.GainImag.Select(fvi).ToArray();
 						legendname = isMain ? "Left" : ClipName(page.Definition.Name) + ".L";
 					}

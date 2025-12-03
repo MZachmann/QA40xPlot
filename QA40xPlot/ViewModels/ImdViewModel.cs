@@ -331,9 +331,9 @@ namespace QA40xPlot.ViewModels
 					break;
 				case "YM":  // Y magnitude
 					{
-						var bot = GraphUtil.ReformatLogValue(this, bounds.Y, bounds.Y + bounds.Height);
+						var bot = GraphUtil.ValueToLogPlot(this, bounds.Y, bounds.Y + bounds.Height);
 						this.RangeBottomdB = bot.ToString("0");
-						var top = GraphUtil.ReformatLogValue(this, bounds.Y + bounds.Height, bounds.Y + bounds.Height);
+						var top = GraphUtil.ValueToLogPlot(this, bounds.Y + bounds.Height, bounds.Y + bounds.Height);
 						this.RangeTopdB = Math.Ceiling(top).ToString("0");
 					}
 					break;
@@ -486,7 +486,7 @@ namespace QA40xPlot.ViewModels
 			FreqValue = Math.Pow(10, xpos);
 
 			var zv = MyAction.LookupXY(FreqValue, ypos, ShowRight && !ShowLeft);
-			var valdBV = GraphUtil.ReformatValue(PlotFormat, zv.Item2, zv.Item3);
+			var valdBV = GraphUtil.ValueToPlot(PlotFormat, zv.Item2, zv.Item3);
 			if (!GraphUtil.IsPlotFormatLog(PlotFormat))
 			{
 				valdBV = Math.Log10(valdBV);
@@ -503,8 +503,8 @@ namespace QA40xPlot.ViewModels
 
 			FreqShow = zv.Item1.ToString("0.# Hz");
 			var valvolt = MathUtil.FormatVoltage(zv.Item2);
-			var valunit = GraphUtil.DoValueFormat(PlotFormat, zv.Item2, zv.Item3);
-			var valpercent = GraphUtil.DoValueFormat("dBV", zv.Item2, zv.Item3);
+			var valunit = GraphUtil.PrettyPlotValue(PlotFormat, zv.Item2, zv.Item3);
+			var valpercent = GraphUtil.PrettyPlotValue("dBV", zv.Item2, zv.Item3);
 			ZValue = $"{valunit}" + Environment.NewLine +
 				$"{valpercent}" + Environment.NewLine +
 				$"{valvolt}";

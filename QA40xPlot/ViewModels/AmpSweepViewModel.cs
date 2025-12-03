@@ -368,9 +368,9 @@ namespace QA40xPlot.ViewModels
 					break;
 				case "YM":  // Y magnitude
 					{
-						var bot = GraphUtil.ReformatLogValue(this, bounds.Y, bounds.Y + bounds.Height);
+						var bot = GraphUtil.ValueToLogPlot(this, bounds.Y, bounds.Y + bounds.Height);
 						this.RangeBottomdB = bot.ToString("0");
-						var top = GraphUtil.ReformatLogValue(this, bounds.Y + bounds.Height, bounds.Y + bounds.Height);
+						var top = GraphUtil.ValueToLogPlot(this, bounds.Y + bounds.Height, bounds.Y + bounds.Height);
 						this.RangeTopdB = Math.Ceiling(top).ToString("0");
 					}
 					break;
@@ -392,7 +392,7 @@ namespace QA40xPlot.ViewModels
 		private static string FormatValue(double d1, double dMax)
 		{
 			var vm = MyVModel;
-			var x = GraphUtil.ReformatValue(vm.PlotFormat, d1, dMax);
+			var x = GraphUtil.ValueToPlot(vm.PlotFormat, d1, dMax);
 			return GraphUtil.PrettyPrint(x, vm.PlotFormat);
 		}
 

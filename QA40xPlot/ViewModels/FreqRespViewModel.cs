@@ -403,9 +403,9 @@ public class FreqRespViewModel : BaseViewModel
 				}
 				else
 				{
-					var botx = GraphUtil.ReformatLogValue(this, bounds.Y, bounds.Y + bounds.Height);
+					var botx = GraphUtil.ValueToLogPlot(this, bounds.Y, bounds.Y + bounds.Height);
 					this.RangeBottomdB = Math.Floor(botx).ToString("0");
-					var topx = GraphUtil.ReformatLogValue(this, bounds.Y + bounds.Height, bounds.Y + bounds.Height);
+					var topx = GraphUtil.ValueToLogPlot(this, bounds.Y + bounds.Height, bounds.Y + bounds.Height);
 					this.RangeTopdB = Math.Ceiling(topx).ToString("0");
 				}
 				break;

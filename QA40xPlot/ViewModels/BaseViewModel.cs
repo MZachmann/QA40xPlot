@@ -730,9 +730,9 @@ namespace QA40xPlot.ViewModels
 		protected void RecalcRange(Rect bounds, string PlotFormat)
 		{
 			var xp = bounds.Y + bounds.Height;  // max Y value
-			var bot = GraphUtil.ReformatLogValue(this, bounds.Y, xp);
+			var bot = GraphUtil.ValueToLogPlot(this, bounds.Y, xp);
 			bot = Math.Pow(10, Math.Max(-7, Math.Floor(bot)));  // nearest power of 10
-			var top = Math.Floor(GraphUtil.ReformatLogValue(this, xp, xp));
+			var top = Math.Floor(GraphUtil.ValueToLogPlot(this, xp, xp));
 			top = Math.Pow(10, Math.Min(3, top));
 			this.RangeTop = top.ToString("0.##########");
 			this.RangeBottom = bot.ToString("0.##########");

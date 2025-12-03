@@ -531,8 +531,8 @@ namespace QA40xPlot.Actions
 
 				step.NoiseFloorV = (isleft ? floor.Left : floor.Right);
 				step.NoiseFloorPct = 100 * step.NoiseFloorV / step.FundamentalVolts;
-				step.NoiseFloorView = GraphUtil.DoValueFormat(vm.PlotFormat, step.NoiseFloorV, step.FundamentalVolts);
-				step.AmplitudeView = GraphUtil.DoValueFormat(vm.PlotFormat, step.FundamentalVolts, step.FundamentalVolts);
+				step.NoiseFloorView = GraphUtil.PrettyPlotValue(vm.PlotFormat, step.NoiseFloorV, step.FundamentalVolts);
+				step.AmplitudeView = GraphUtil.PrettyPlotValue(vm.PlotFormat, step.FundamentalVolts, step.FundamentalVolts);
 			}
 
 			CalculateHarmonics(msr, left, right);
@@ -625,11 +625,11 @@ namespace QA40xPlot.Actions
 			double markVal = 0;
 			if (rightData != null && !vm.ShowLeft)
 			{
-				markVal = GraphUtil.ReformatValue(vm, rightData[bin], rightData);
+				markVal = GraphUtil.ValueToPlot(vm, rightData[bin], rightData);
 			}
 			else if (leftData != null)
 			{
-				markVal = GraphUtil.ReformatValue(vm, leftData[bin], leftData);
+				markVal = GraphUtil.ValueToPlot(vm, leftData[bin], leftData);
 			}
 			var markView = GraphUtil.IsPlotFormatLog(vm.PlotFormat) ? markVal : Math.Log10(markVal);
 
@@ -767,7 +767,7 @@ namespace QA40xPlot.Actions
 					var binmin = Math.Max(1, abin - 5);            // random....
 					var binmax = Math.Min(ffs.Length - 1, abin + 5);           // random....
 					var msr = PageData.ViewModel;
-					var vfi = GraphUtil.GetLogFormatter(msr, useRight ? fftdata.Right : fftdata.Left);
+					var vfi = GraphUtil.ValueToLogPlotFn(msr, useRight ? fftdata.Right : fftdata.Left);
 					var distsx = ffs.Skip(binmin).Take(binmax - binmin);
 					IEnumerable<Pixel> distasx = distsx.Select((fftd, index) =>
 							myPlot.GetPixel(new Coordinates(Math.Log10((index + binmin) * fftdata.Df),
@@ -884,7 +884,7 @@ namespace QA40xPlot.Actions
 			if (useLeft)
 			{
 				// format the data into current format
-				var fvi = GraphUtil.GetLogFormatter(specVm, fftData.Left);
+				var fvi = GraphUtil.ValueToLogPlotFn(specVm, fftData.Left);
 				var vf = fftData.Left.Skip(1);  // the first dot is F=0 so no logs...
 				leftdBV = vf.Select(fvi).ToArray();
 
@@ -900,7 +900,7 @@ namespace QA40xPlot.Actions
 			{
 												// find the max value of the left and right channels
 				// now use that to calculate percents. Since Y axis is logarithmic use log of percent
-				var fvi = GraphUtil.GetLogFormatter(specVm, fftData.Right);
+				var fvi = GraphUtil.ValueToLogPlotFn(specVm, fftData.Right);
 				var vf = fftData.Right.Skip(1); // the first dot is F=0 so no logs...
 				rightdBV = vf.Select(fvi).ToArray();
 
