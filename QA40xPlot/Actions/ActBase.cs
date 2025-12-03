@@ -2,6 +2,7 @@
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
+using System;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
@@ -14,18 +15,75 @@ namespace QA40xPlot.Actions
 	{
 		public List<LeftRightFrequencySeries> FrequencyHistory { get; set; } = new();   // for averaging
 
-		public virtual Task LoadFromFile(string fileName, bool doLoad)
-		{
-			Debug.Assert(false);    // should never get here
-			return null;
-		}
-
 		// this is the initial gain calculation so that we can get attenuation and input voltage settings
 		private LeftRightFrequencySeries? _LRGains = null;
 		public LeftRightFrequencySeries? LRGains
 		{
 			get => _LRGains;
 			set => _LRGains = value;
+		}
+
+		public virtual Task LoadFromFile(string fileName, bool doLoad)
+		{
+			Debug.Assert(false);    // should never get here
+			return null;
+		}
+
+		public virtual Rect GetDataBounds()
+		{
+			Debug.Assert(false);    // should never get here
+			return new Rect(0, 0, 0, 0);
+		}
+
+		/// <summary>
+		/// fit to data
+		/// </summary>
+		/// <param name="bvm">the view model</param>
+		/// <param name="parameter">not used</param>
+		/// <param name="dRefs">list of data points from fft</param>
+		public void ActFitToData(BaseViewModel bvm, object? parameter, double[]? dRefs)
+		{
+			// get the raw data boundaries
+			var bounds = GetDataBounds();
+			if (dRefs == null)
+				dRefs = new double[] { 1.0 };
+
+			// convert to current units and save to gui
+			switch (parameter)
+			{
+				case "XM":  // X magnitude
+							// calculate the bounds here. X is provided in input or output volts/power
+					bvm.GraphStartX = bounds.Left.ToString("G2");
+					bvm.GraphEndX = (bounds.Left + bounds.Right).ToString("G2");
+					break;
+				case "XF":  // X frequency
+					bvm.GraphStartX = bounds.Left.ToString("0");
+					bvm.GraphEndX = bounds.Right.ToString("0");
+					break;
+				case "YP":  // Y percents
+					{
+						var xp = bounds.Y + bounds.Height;  // max Y value
+						var dref = GraphUtil.GetDbrReference(bvm, dRefs);
+						var bot = GraphUtil.ValueToLogPlot(bvm, bounds.Y, dref);
+						bot = Math.Pow(10, Math.Max(-9, Math.Floor(bot)));  // nearest power of 10
+						var top = Math.Floor(GraphUtil.ValueToLogPlot(bvm, xp, dref));
+						top = Math.Pow(10, Math.Min(3, top));
+						bvm.RangeTop = top.ToString("0.##########");
+						bvm.RangeBottom = bot.ToString("0.##########");
+					}
+					break;
+				case "YM":  // Y magnitude
+					{
+						var dref = GraphUtil.GetDbrReference(bvm, dRefs);
+						var bot = GraphUtil.ValueToLogPlot(bvm, bounds.Y, dref);
+						bvm.RangeBottomdB = bot.ToString("0");
+						var top = GraphUtil.ValueToLogPlot(bvm, bounds.Y + bounds.Height, dref);
+						bvm.RangeTopdB = Math.Ceiling(top).ToString("0");
+					}
+					break;
+				default:
+					break;
+			}
 		}
 
 		public static void ClipName(DataDescript defn, string fileName)
@@ -45,83 +103,9 @@ namespace QA40xPlot.Actions
 			}
 		}
 
-
 		protected static double ToD(string sval, double defval = 0.0)
 		{
 			return MathUtil.ToDouble(sval, defval);
-		}
-
-		// parse a double value or...
-		// if it starts with @ return the value at that frequency
-		private static double OffsetToValue(string offset, double[] frequencies, double[] gains)
-		{
-			if (string.IsNullOrEmpty(offset))
-				return 0.0;
-			if (gains.Length == 0)
-				return 0.0;
-			if (!offset.Contains('@'))
-			{
-				return MathUtil.ToDouble(offset, 0);
-			}
-
-			var rremain = offset.Substring(offset.IndexOf('@') + 1);
-			// now we want to find response value at the frequency
-			var rfreq = MathUtil.ToDouble(rremain);
-
-			if (frequencies == null || frequencies.Length == 0)
-				return 0.0;
-
-			// find nearest frequency index
-			int bestIdx = 0;
-			double bestDiff = double.MaxValue;
-			for (int i = 0; i < frequencies.Length; i++)
-			{
-				double diff = Math.Abs(frequencies[i] - rfreq);
-				if (diff < bestDiff)
-				{
-					bestDiff = diff;
-					bestIdx = i;
-				}
-			}
-
-			int idx = Math.Min(bestIdx, gains.Length - 1);
-			return -QaLibrary.ConvertVoltage(gains[idx], E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-		}
-
-		public static (double[], double[]) AddResponseOffset(double[] frequencies, (double[], double[]) gaindata, DataDescript definition, TestingType ttype)
-		{
-			if (ttype != TestingType.Response && ttype != TestingType.Gain)
-				return gaindata;
-			var lft = ActBase.OffsetToValue(definition.OffsetLeft, frequencies, gaindata.Item1);
-			var rgt = ActBase.OffsetToValue(definition.OffsetRight, frequencies, gaindata.Item2);
-			if (lft == 0 && rgt == 0)
-				return gaindata;
-			var scaleLeft = QaLibrary.ConvertVoltage(lft, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
-			if (ttype == TestingType.Response)
-			{
-				var scaleRight = QaLibrary.ConvertVoltage(rgt, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
-				// response value is Left,Right
-				double[] gainleft = new double[gaindata.Item1.Length];
-				double[] gainright = new double[gaindata.Item1.Length];
-				for (int i = 0; i < gaindata.Item1.Length; i++)
-				{
-					gainleft[i] = gaindata.Item1[i] * scaleLeft;
-					gainright[i] = gaindata.Item2[i] * scaleRight;
-				}
-				gaindata = (gainleft, gainright);
-			}
-			else
-			{
-				// gain, value is gain, phase
-				// response value is Left,Right
-				double[] gainleft = new double[gaindata.Item1.Length];
-				for (int i = 0; i < gaindata.Item1.Length; i++)
-				{
-					gainleft[i] = gaindata.Item1[i] * scaleLeft;
-				}
-				gaindata.Item1 = gainleft;
-			}
-			return gaindata;
 		}
 
 		public void PinGraphRanges(ScottPlot.Plot myPlot, BaseViewModel bvm, string who)

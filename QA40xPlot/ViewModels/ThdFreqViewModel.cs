@@ -330,29 +330,8 @@ namespace QA40xPlot.ViewModels
 
 		private void OnFitToData(object? parameter)
 		{
-			var bounds = MyAction.GetDataBounds();
-			switch (parameter)
-			{
-				case "XF":  // X frequency
-					this.GraphStartX = bounds.Left.ToString("0");
-					this.GraphEndX = bounds.Right.ToString("0");
-					break;
-				case "YP":  // Y percents
-					{
-						RecalcRange(bounds, PlotFormat);
-					}
-					break;
-				case "YM":  // Y magnitude
-					{
-						var bot = GraphUtil.ValueToLogPlot(this, bounds.Y, bounds.Y + bounds.Height);
-						this.RangeBottomdB = bot.ToString("0");
-						var top = GraphUtil.ValueToLogPlot(this, bounds.Y + bounds.Height, bounds.Y + bounds.Height);
-						this.RangeTopdB = Math.Ceiling(top).ToString("0");
-					}
-					break;
-				default:
-					break;
-			}
+			var frslt = MyAction.PageData.FreqRslt;
+			MyAction?.ActFitToData(this, parameter, ShowLeft ? frslt?.Left : frslt?.Right);
 			MyAction?.UpdateGraph(true);
 		}
 

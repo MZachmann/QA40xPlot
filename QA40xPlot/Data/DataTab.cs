@@ -198,15 +198,15 @@ namespace QA40xPlot.Data
 			set { SetProperty("Noise", value); }
 		}
 		[JsonIgnore]
-		public double[] GainLeft { get => GainData.Item1; }
+		public double[] GainLeft { get => Sweep.RawLeft ?? []; }
 		[JsonIgnore]
-		public double[] GainRight { get => GainData.Item2; }
+		public double[] GainRight { get => Sweep.RawRight ?? []; }
 		[JsonIgnore]
-		public double[] GainReal { get => GainData.Item1; }
+		public double[] GainReal { get => Sweep.RawLeft ?? []; }
 		[JsonIgnore]
-		public double[] GainImag { get => GainData.Item2; }
+		public double[] GainImag { get => Sweep.RawRight ?? []; }
 		[JsonIgnore]
-		public Complex[] GainCplx { get => GainData.Item1.Zip(GainData.Item2, (x, y) => new Complex(x, y)).ToArray(); }
+		public Complex[] GainCplx { get => GainReal.Zip(GainImag, (x, y) => new Complex(x, y)).ToArray(); }
 		[JsonIgnore]
 		public (double[], double[]) GainData
 		{

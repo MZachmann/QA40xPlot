@@ -58,8 +58,8 @@ namespace QA40xPlot.Actions
 
 			// Show empty graphs
 			FreqSweepViewModel vm = MyVModel;
-			QaLibrary.InitMiniFftPlot(fftPlot, MathUtil.ToDouble(vm.StartFreq, 10),
-				MathUtil.ToDouble(vm.EndFreq, 20000), -150, 20);
+			QaLibrary.InitMiniFftPlot(fftPlot, ToD(vm.StartFreq, 10),
+				ToD(vm.EndFreq, 20000), -150, 20);
 			QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -1, 1);
 
 			UpdateGraph(true);
@@ -169,7 +169,7 @@ namespace QA40xPlot.Actions
 			page.Sweep.RawRight = page.Sweep.RawRight.Concat(ColumnToArray(right)).ToArray();
 		}
 
-		public Rect GetDataBounds()
+		public override Rect GetDataBounds()
 		{
 			Rect rrc = new Rect(0, 0, 0, 0);
 			try
@@ -549,10 +549,10 @@ namespace QA40xPlot.Actions
 						var avolt = voltage.Split(['|', '_', '*']);
 						double voltp = 15;
 						if (avolt.Length > 0)
-							voltp = MathUtil.ToDouble(avolt[0], 15);
+							voltp = ToD(avolt[0], 15);
 						var voltn = voltp;
 						if (avolt.Length > 1)
-							voltn = MathUtil.ToDouble(avolt[1], 15);
+							voltn = ToD(avolt[1], 15);
 						supplies.Add((voltp, voltn));
 					}
 					variables = model430.ExpandSupplyOptions(variables, supplies) ?? variables;

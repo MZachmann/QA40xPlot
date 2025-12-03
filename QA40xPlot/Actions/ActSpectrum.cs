@@ -699,7 +699,7 @@ namespace QA40xPlot.Actions
 		}
 
 
-		public Rect GetDataBounds()
+		public override Rect GetDataBounds()
 		{
 			var vm = PageData.ViewModel;    // measurement settings
 			if (PageData.FreqRslt == null && OtherTabs.Count == 0)
@@ -745,11 +745,11 @@ namespace QA40xPlot.Actions
 		/// <param name="posndBV">Y of mouse in plot</param>
 		/// <param name="useRight">which channel</param>
 		/// <returns>a tuple of df, value, value in pct</returns>
-		public ValueTuple<double, double, double> LookupXY(double freq, double posndBV, bool useRight)
+		public ValueTuple<double, double, double[]> LookupXY(double freq, double posndBV, bool useRight)
 		{
 			var fftdata = PageData.FreqRslt;
 			if (freq <= 0 || fftdata == null || PageData == null)
-				return ValueTuple.Create(0.0, 0.0, 0.0);
+				return ValueTuple.Create(0.0, 0.0, new double[] { 0.0 });
 			try
 			{
 				// get the data to look through
@@ -779,15 +779,14 @@ namespace QA40xPlot.Actions
 					var vm = MyVModel;
 					if (bin < ffs.Length)
 					{
-						var vfun = useRight ? right.FundamentalVolts : left.FundamentalVolts;
-						return ValueTuple.Create(bin * fftdata.Df, ffs[bin], vfun);
+						return ValueTuple.Create(bin * fftdata.Df, ffs[bin], useRight ? fftdata.Right : fftdata.Left);
 					}
 				}
 			}
 			catch (Exception)
 			{
 			}
-			return ValueTuple.Create(0.0, 0.0, 0.0);
+			return ValueTuple.Create(0.0, 0.0, new double[] { 0.0 });
 		}
 
 		public void UpdatePlotTitle()

@@ -248,7 +248,7 @@ namespace QA40xPlot.Actions
 			return ValueTuple.Create(0.0, 0.0);
 		}
 
-		public Rect GetDataBounds()
+		public override Rect GetDataBounds()
 		{
 			var vm = PageData.ViewModel;    // measurement settings
 			if (PageData.TimeRslt.Left.Length == 0 && OtherTabs.Count() == 0)

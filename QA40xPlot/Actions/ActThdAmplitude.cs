@@ -136,8 +136,16 @@ namespace QA40xPlot.Actions
 			return outV * gains[0];
 		}
 
+		private double AllMax(List<ThdColumn[]> steps, Func<ThdColumn, double> fn)
+		{
+			return steps.Max(y => y.Max(fn));
+		}
+		private double AllMin(List<ThdColumn[]> steps, Func<ThdColumn, double> fn)
+		{
+			return steps.Min(y => y.Min(fn));
+		}
 
-		public Rect GetDataBounds()
+		public override Rect GetDataBounds()
 		{
 			Rect rrc = new Rect(0, 0, 0, 0);
 			try
@@ -194,8 +202,53 @@ namespace QA40xPlot.Actions
 				rrc.Width = xvalues.Max() - rrc.X;  // max frequency
 
 				double maxY = 0;
-				rrc.Y = steps.Min(vec => vec.Min(x => Math.Min(Math.Min(x.THD, x.D2), x.D5)));      // min magnitude will be min value shown
-				maxY = steps.Max(vec => vec.Max(x => Math.Max(x.THD, x.Mag)));       // maximum magnitude will be max value shown
+				double minY = double.MaxValue;
+				if (specVm.ShowMagnitude)
+				{
+					maxY = Math.Max(maxY, AllMax(steps, x => x.Mag));
+					minY = Math.Min(minY, AllMin(steps, x => x.Mag));
+				}
+				if (specVm.ShowTHD)
+				{
+					maxY = Math.Max(maxY, AllMax(steps, x => x.THD));
+					minY = Math.Min(minY, AllMin(steps, x => x.THD));
+				}
+				if (specVm.ShowTHDN)
+				{
+					maxY = Math.Max(maxY, AllMax(steps, x => x.THDN));
+					minY = Math.Min(minY, AllMin(steps, x => x.THDN));
+				}
+				if (specVm.ShowNoiseFloor)
+				{
+					maxY = Math.Max(maxY, AllMax(steps, x => x.Noise));
+					minY = Math.Min(minY, AllMin(steps, x => x.Noise));
+				}
+				if (specVm.ShowD2)
+				{
+					maxY = Math.Max(maxY, AllMax(steps, x => x.D2));
+					minY = Math.Min(minY, AllMin(steps, x => x.D2));
+				}
+				if (specVm.ShowD3)
+				{
+					maxY = Math.Max(maxY, AllMax(steps, x => x.D3));
+					minY = Math.Min(minY, AllMin(steps, x => x.D3));
+				}
+				if (specVm.ShowD4)
+				{
+					maxY = Math.Max(maxY, AllMax(steps, x => x.D4));
+					minY = Math.Min(minY, AllMin(steps, x => x.D4));
+				}
+				if (specVm.ShowD5)
+				{
+					maxY = Math.Max(maxY, AllMax(steps, x => x.D5));
+					minY = Math.Min(minY, AllMin(steps, x => x.D5));
+				}
+				if (specVm.ShowD6)
+				{
+					maxY = Math.Max(maxY, AllMax(steps, x => x.D6P));
+					minY = Math.Min(minY, AllMin(steps, x => x.D6P));
+				}
+				rrc.Y = minY;      // min magnitude will be min value shown
 				rrc.Height = maxY - rrc.Y;      // max voltage absolute
 			}
 			catch (Exception ex)
@@ -411,8 +464,8 @@ namespace QA40xPlot.Actions
 			// Determine voltage sequences
 			// ********************************************************************
 			// specified voltages boundaries
-			var startV = MathUtil.ToDouble(vm.StartVoltage, 1);
-			var endV = MathUtil.ToDouble(vm.EndVoltage, 1);
+			var startV = ToD(vm.StartVoltage, 1);
+			var endV = ToD(vm.EndVoltage, 1);
 			var stepVoltages = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(startV, endV, vm.StepsOctave);
 			// now convert all of the step voltages to input voltages
 			var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
@@ -774,7 +827,7 @@ namespace QA40xPlot.Actions
 			string suffix = string.Empty;
 			var lp = isMain ? LinePattern.Solid : LinePattern.Dashed;
 			if (showRight && showLeft)
-				suffix = "-L";
+				suffix = ".L";
 
 			// copy the vector of columns into vectors of values
 			var ttype = ToDirection(thdAmp.GenDirection);
@@ -812,7 +865,7 @@ namespace QA40xPlot.Actions
 					AddPlot(amps, col.Select(x => FormVal(x.D6P, x.Mag)).ToList(), 8, "D6+" + suffix, lp);
 				if (thdAmp.ShowNoiseFloor)
 					AddPlot(amps, col.Select(x => FormVal(x.Noise, x.Mag)).ToList(), 9, "Noise" + suffix, LinePattern.Dotted);
-				suffix = "-R";          // second pass iff there are both channels
+				suffix = ".R";          // second pass iff there are both channels
 				lp = isMain ? LinePattern.DenselyDashed : LinePattern.Dotted;
 			}
 

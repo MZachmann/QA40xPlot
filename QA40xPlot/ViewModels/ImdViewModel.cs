@@ -317,30 +317,8 @@ namespace QA40xPlot.ViewModels
 
 		private void OnFitToData(object? parameter)
 		{
-			var bounds = MyAction.GetDataBounds();
-			switch (parameter)
-			{
-				case "XF":  // X frequency
-					this.GraphStartX = bounds.Left.ToString("0");
-					this.GraphEndX = bounds.Right.ToString("0");
-					break;
-				case "YP":  // Y percents
-					{
-						RecalcRange(bounds, PlotFormat);
-					}
-					break;
-				case "YM":  // Y magnitude
-					{
-						var bot = GraphUtil.ValueToLogPlot(this, bounds.Y, bounds.Y + bounds.Height);
-						this.RangeBottomdB = bot.ToString("0");
-						var top = GraphUtil.ValueToLogPlot(this, bounds.Y + bounds.Height, bounds.Y + bounds.Height);
-						this.RangeTopdB = Math.Ceiling(top).ToString("0");
-					}
-					break;
-				default:
-					break;
-			}
-			MyAction?.UpdateGraph(true);
+			var frslt = MyAction.PageData.FreqRslt;
+			MyAction?.ActFitToData(this, parameter, ShowLeft ? frslt?.Left : frslt?.Right);
 		}
 
 		private void ShowInfos()
@@ -486,7 +464,7 @@ namespace QA40xPlot.ViewModels
 			FreqValue = Math.Pow(10, xpos);
 
 			var zv = MyAction.LookupXY(FreqValue, ypos, ShowRight && !ShowLeft);
-			var valdBV = GraphUtil.ValueToPlot(PlotFormat, zv.Item2, zv.Item3);
+			var valdBV = GraphUtil.ValueToPlot(this, zv.Item2, zv.Item3);
 			if (!GraphUtil.IsPlotFormatLog(PlotFormat))
 			{
 				valdBV = Math.Log10(valdBV);
@@ -503,8 +481,8 @@ namespace QA40xPlot.ViewModels
 
 			FreqShow = zv.Item1.ToString("0.# Hz");
 			var valvolt = MathUtil.FormatVoltage(zv.Item2);
-			var valunit = GraphUtil.PrettyPlotValue(PlotFormat, zv.Item2, zv.Item3);
-			var valpercent = GraphUtil.PrettyPlotValue("dBV", zv.Item2, zv.Item3);
+			var valunit = GraphUtil.PrettyPlotValue(this, zv.Item2, zv.Item3);
+			var valpercent = GraphUtil.PrettyPlotValue("dBV", zv.Item2);
 			ZValue = $"{valunit}" + Environment.NewLine +
 				$"{valpercent}" + Environment.NewLine +
 				$"{valvolt}";

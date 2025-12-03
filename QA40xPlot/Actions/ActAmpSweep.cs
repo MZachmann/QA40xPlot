@@ -136,8 +136,7 @@ namespace QA40xPlot.Actions
 			return outV * gains[0];
 		}
 
-
-		public Rect GetDataBounds()
+		public override Rect GetDataBounds()
 		{
 			Rect rrc = new Rect(0, 0, 0, 0);
 			try
@@ -410,8 +409,8 @@ namespace QA40xPlot.Actions
 			// Determine voltage sequences
 			// ********************************************************************
 			// specified voltages boundaries
-			var startV = MathUtil.ToDouble(vm.StartVoltage, 1);
-			var endV = MathUtil.ToDouble(vm.EndVoltage, 1);
+			var startV = ToD(vm.StartVoltage, 1);
+			var endV = ToD(vm.EndVoltage, 1);
 			var stepVoltages = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(startV, endV, vm.StepsOctave);
 			// now convert all of the step voltages to input voltages
 			var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;

@@ -302,30 +302,8 @@ namespace QA40xPlot.ViewModels
 
 		private void OnFitToData(object? parameter)
 		{
-			var bounds = MyAction.GetDataBounds();
-			switch (parameter)
-			{
-				case "XM":  // X magnitude
-							// calculate the bounds here. X is provided in input or output volts/power
-					this.GraphStartX = bounds.Left.ToString("G2");
-					this.GraphEndX = (bounds.Left + bounds.Right).ToString("G2");
-					break;
-				case "YP":  // Y percents
-					{
-						RecalcRange(bounds, PlotFormat);
-					}
-					break;
-				case "YM":  // Y magnitude
-					{
-						var bot = GraphUtil.ValueToLogPlot(this, bounds.Y, bounds.Y + bounds.Height);
-						this.RangeBottomdB = bot.ToString("0");
-						var top = GraphUtil.ValueToLogPlot(this, bounds.Y + bounds.Height, bounds.Y + bounds.Height);
-						this.RangeTopdB = Math.Ceiling(top).ToString("0");
-					}
-					break;
-				default:
-					break;
-			}
+			var frslt = MyAction.PageData.FreqRslt;
+			MyAction?.ActFitToData(this, parameter, ShowLeft ? frslt?.Left : frslt?.Right);
 			MyAction?.UpdateGraph(true);
 		}
 

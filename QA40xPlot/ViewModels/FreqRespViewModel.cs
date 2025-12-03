@@ -375,43 +375,7 @@ public class FreqRespViewModel : BaseViewModel
 
 	private void OnFitToData(object? parameter)
 	{
-		var bounds = MyAction.GetDataBounds();
-		switch (parameter)
-		{
-			case "XF":  // X frequency
-				this.GraphStartX = bounds.Left.ToString("0");
-				this.GraphEndX = bounds.Right.ToString("0");
-				break;
-			case "YP":  // Y percent
-				var xp = bounds.Y + bounds.Height;  // max Y value
-				var bot = ((100 * bounds.Y) / xp);  // bottom value in percent
-				bot = Math.Pow(10, Math.Max(-7, Math.Floor(Math.Log10(bot))));  // nearest power of 10
-				this.RangeTop = "100";  // always 100%
-				this.RangeBottom = bot.ToString("0.##########");
-				break;
-			case "YM":  // Y magnitude
-				var ttype = GetTestingType(TestType);
-				if (ttype == TestingType.Impedance)
-				{
-					this.RangeBottomdB = bounds.Y.ToString("0");
-					this.RangeTopdB = (bounds.Height + bounds.Y).ToString("0");
-				}
-				else if(ttype != TestingType.Response)
-				{
-					this.RangeBottomdB = (20 * Math.Log10(Math.Max(1e-14, bounds.Y))).ToString("0");
-					this.RangeTopdB = Math.Ceiling((20 * Math.Log10(Math.Max(1e-14, bounds.Height + bounds.Y)))).ToString("0");
-				}
-				else
-				{
-					var botx = GraphUtil.ValueToLogPlot(this, bounds.Y, bounds.Y + bounds.Height);
-					this.RangeBottomdB = Math.Floor(botx).ToString("0");
-					var topx = GraphUtil.ValueToLogPlot(this, bounds.Y + bounds.Height, bounds.Y + bounds.Height);
-					this.RangeTopdB = Math.Ceiling(topx).ToString("0");
-				}
-				break;
-			default:
-				break;
-		}
+		MyAction.FitToData(this, parameter, null);
 		MyAction?.UpdateGraph(true);
 	}
 

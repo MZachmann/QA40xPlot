@@ -9,9 +9,7 @@ using ScottPlot.Plottables;
 using System.Data;
 using System.Numerics;
 using System.Windows;
-using Windows.Foundation.Metadata;
 using static QA40xPlot.ViewModels.BaseViewModel;
-
 
 namespace QA40xPlot.Actions
 {
@@ -221,7 +219,7 @@ namespace QA40xPlot.Actions
 
 			// ********************************************************************
 			// Setup the device
-			if (MathUtil.ToDouble(msr.SampleRate, 0) == 0 || !FreqRespViewModel.FftSizes.Contains(msr.FftSize))
+			if (ToD(msr.SampleRate, 0) == 0 || !FreqRespViewModel.FftSizes.Contains(msr.FftSize))
 			{
 				MessageBox.Show("Invalid sample rate or fftsize settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 				return;
@@ -237,8 +235,8 @@ namespace QA40xPlot.Actions
 				return;
 			}
 
-			var fmin = MathUtil.ToDouble(msr.StartFreq);
-			var fmax = MathUtil.ToDouble(msr.EndFreq);
+			var fmin = ToD(msr.StartFreq);
+			var fmax = ToD(msr.EndFreq);
 			if (fmax > 10000)
 				fmax = 10000; // max frequency is 10kHz
 			if (fmin < 20)
@@ -281,7 +279,7 @@ namespace QA40xPlot.Actions
 				// ********************************************************************
 				// Calculate frequency steps to do if discrete
 				// ********************************************************************
-				var stepFrequencies = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(MathUtil.ToDouble(msr.StartFreq), MathUtil.ToDouble(msr.EndFreq), msr.StepsOctave);
+				var stepFrequencies = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(ToD(msr.StartFreq), MathUtil.ToDouble(msr.EndFreq), msr.StepsOctave);
 				// Translate the generated list to bin center frequencies
 				var stepBinFrequencies = QaLibrary.TranslateToBinFrequencies(stepFrequencies, sampleRate, fftsize);
 				stepBinFrequencies = stepBinFrequencies.Where(x => x >= 1 && x <= 95500)                // Filter out values that are out of range 
@@ -370,7 +368,7 @@ namespace QA40xPlot.Actions
 					break;
 				case TestingType.Impedance:
 					{
-						double rref = MathUtil.ToDouble(MyVModel.ZReference, 8);
+						double rref = ToD(MyVModel.ZReference, 8);
 						//db.LeftData = PageData.GainData.Select(x => rref * ToImpedance(x).Magnitude).ToList();
 						db.LeftData = PageData.GainReal.Zip(PageData.GainImag, (x, y) => rref * MathUtil.ToImpedanceMag(x, y)).ToList();
 						//// YValues = gainY.Select(x => rref * x.Magnitude/(1-x.Magnitude)).ToArray();
@@ -410,10 +408,13 @@ namespace QA40xPlot.Actions
 			return ga;
 		}
 
-		public Rect GetDataBounds()
+		public override Rect GetDataBounds()
 		{
-			var vm = PageData.ViewModel;    // measurement settings
+			// here we want to show what's visible so use freqVm for visibility
+			var vm = PageData.ViewModel;
+			var freqVm = MyVModel;
 			var vmr = PageData.GainFrequencies; // test data
+			var ttype = freqVm.GetTestingType(freqVm.TestType);
 			var msdre = PageData.GainReal;
 			var msdim = PageData.GainImag;
 
@@ -424,20 +425,19 @@ namespace QA40xPlot.Actions
 
 			rrc.X = vmr.Min();
 			rrc.Width = vmr.Max() - rrc.X;
-			var ttype = vm.GetTestingType(vm.TestType);
 			if (ttype == TestingType.Response || ttype == TestingType.Crosstalk)
 			{
-				if (vm.ShowLeft)
+				if (freqVm.ShowLeft)
 				{
 					rrc.Y = msdre.Min();
 					rrc.Height = msdre.Max() - rrc.Y;
-					if (vm.ShowRight)
+					if (freqVm.ShowRight)
 					{
 						rrc.Y = Math.Min(rrc.Y, msdim.Min());
 						rrc.Height = Math.Max(rrc.Height, msdim.Max() - rrc.Y);
 					}
 				}
-				else if (vm.ShowRight)
+				else if (freqVm.ShowRight)
 				{
 					rrc.Y = msdim.Min();
 					rrc.Height = msdim.Max() - rrc.Y;
@@ -451,7 +451,7 @@ namespace QA40xPlot.Actions
 			}
 			else if (PageData.GainLeft != null && PageData.GainLeft.Length > 0)
 			{   // impedance
-				double rref = ToD(vm.ZReference, 10);
+				double rref = ToD(freqVm.ZReference, 10);
 				var gainZ = PageData.GainReal.Zip(PageData.GainImag, (x, y) => MathUtil.ToImpedanceMag(x, y));
 				var minL = gainZ.Min();
 				var maxL = gainZ.Max();
@@ -495,8 +495,8 @@ namespace QA40xPlot.Actions
 					case TestingType.Response:
 						// send freq, gain, gain2
 						{
-							var fvi = GraphUtil.ValueToPlotFn(frsqVm, PageData.GainReal, PageData.GainFrequencies.First());
-							var fvi2 = GraphUtil.ValueToPlotFn(frsqVm, PageData.GainImag, PageData.GainFrequencies.First());
+							var fvi = GraphUtil.ValueToPlotFn(frsqVm, PageData.GainReal, PageData.GainFrequencies);
+							var fvi2 = GraphUtil.ValueToPlotFn(frsqVm, PageData.GainImag, PageData.GainFrequencies);
 							var fl = fvi(valuesRe[bin]);
 							var fr = fvi2(valuesIm[bin]);
 							tup = ValueTuple.Create(freqs[bin], fl, fr);
@@ -522,6 +522,56 @@ namespace QA40xPlot.Actions
 				}
 			}
 			return tup;
+		}
+
+		/// <summary>
+		/// fit to data
+		/// </summary>
+		/// <param name="bvm">the view model</param>
+		/// <param name="parameter">not used</param>
+		/// <param name="dRefs">list of data points from fft</param>
+		public void FitToData(BaseViewModel bvm, object? parameter, double[]? dRefs)
+		{
+			var bounds = GetDataBounds();
+			switch (parameter)
+			{
+				case "XF":  // X frequency
+					bvm.GraphStartX = bounds.Left.ToString("0");
+					bvm.GraphEndX = bounds.Right.ToString("0");
+					break;
+				case "YP":  // Y percent
+					var xp = bounds.Y + bounds.Height;  // max Y value
+					var bot = ((100 * bounds.Y) / xp);  // bottom value in percent
+					bot = Math.Pow(10, Math.Max(-7, Math.Floor(Math.Log10(bot))));  // nearest power of 10
+					bvm.RangeTop = "100";  // always 100%
+					bvm.RangeBottom = bot.ToString("0.##########");
+					break;
+				case "YM":  // Y magnitude
+					var frqVm = bvm as FreqRespViewModel;
+					var ttype = frqVm.GetTestingType(frqVm.TestType);
+					if (ttype == TestingType.Impedance)
+					{
+						bvm.RangeBottomdB = bounds.Y.ToString("0");
+						bvm.RangeTopdB = (bounds.Height + bounds.Y).ToString("0");
+					}
+					else if (ttype != TestingType.Response)
+					{
+						bvm.RangeBottomdB = (20 * Math.Log10(Math.Max(1e-14, bounds.Y))).ToString("0");
+						bvm.RangeTopdB = Math.Ceiling((20 * Math.Log10(Math.Max(1e-14, bounds.Height + bounds.Y)))).ToString("0");
+					}
+					else
+					{
+						var dref = GraphUtil.GetDbrReference(bvm, bvm.ShowLeft ? PageData.GainLeft : PageData.GainRight,
+							PageData.GainFrequencies);
+						var botx = GraphUtil.ValueToLogPlot(bvm, bounds.Y, dref);
+						bvm.RangeBottomdB = Math.Floor(botx).ToString("0");
+						var topx = GraphUtil.ValueToLogPlot(bvm, bounds.Y + bounds.Height, dref);
+						bvm.RangeTopdB = Math.Ceiling(topx).ToString("0");
+					}
+					break;
+				default:
+					break;
+			}
 		}
 
 		private async Task RunStep(MyDataTab page, TestingType ttype, double dfreq, double genVolt)
@@ -640,8 +690,8 @@ namespace QA40xPlot.Actions
 		{
 			var vm = page.ViewModel;
 
-			var startf = MathUtil.ToDouble(vm.StartFreq) / 3;
-			var endf = MathUtil.ToDouble(vm.EndFreq) * 3;
+			var startf = ToD(vm.StartFreq) / 3;
+			var endf = ToD(vm.EndFreq) * 3;
 			endf = Math.Min(endf, vm.SampleRateVal / 2);
 			var genv = QaLibrary.ConvertVoltage(voltagedBV, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
 			var chirpy = Chirps.ChirpVpPair((int)vm.FftSizeVal, vm.SampleRateVal, genv, startf, endf, 0.8, WaveGenerator.Singleton.Channels);
@@ -732,8 +782,8 @@ namespace QA40xPlot.Actions
 				page.GainFrequencies = Enumerable.Range(0, leftFft.Length).Select(x => x * df).ToArray();
 				var gfr = page.GainFrequencies;
 				// restrict the data to only the frequency spectrum
-				var startf = MathUtil.ToDouble(vm.StartFreq) / 3;
-				var endf = MathUtil.ToDouble(vm.EndFreq) * 3;
+				var startf = ToD(vm.StartFreq) / 3;
+				var endf = ToD(vm.EndFreq) * 3;
 				var trimf = gfr.Count(x => x < startf);
 				var trimEnd = gfr.Count(x => x <= endf) - trimf;
 				// trim them all
@@ -892,8 +942,8 @@ namespace QA40xPlot.Actions
 			PlotUtil.InitializeMagFreqPlot(myPlot);
 			PlotUtil.SetOhmFreqRule(myPlot);
 
-			myPlot.Axes.SetLimitsX(Math.Log10(MathUtil.ToDouble(frqrsVm.GraphStartX, 20.0)), Math.Log10(MathUtil.ToDouble(frqrsVm.GraphEndX, 20000)), myPlot.Axes.Bottom);
-			myPlot.Axes.SetLimitsY(MathUtil.ToDouble(frqrsVm.RangeBottomdB, -20), MathUtil.ToDouble(frqrsVm.RangeTopdB, 180), myPlot.Axes.Left);
+			myPlot.Axes.SetLimitsX(Math.Log10(ToD(frqrsVm.GraphStartX, 20.0)), Math.Log10(ToD(frqrsVm.GraphEndX, 20000)), myPlot.Axes.Bottom);
+			myPlot.Axes.SetLimitsY(ToD(frqrsVm.RangeBottomdB, -20), ToD(frqrsVm.RangeTopdB, 180), myPlot.Axes.Left);
 			myPlot.Axes.SetLimitsY(-360, 360, myPlot.Axes.Right);
 
 			var ttype = frqrsVm.GetTestingType(frqrsVm.TestType);
@@ -997,10 +1047,9 @@ namespace QA40xPlot.Actions
 					break;
 				case TestingType.Response:
 					{
-						//YValues = page.GainReal.Select(x => 20 * Math.Log10(x)).ToArray(); // real is the left gain
-						var fvi = GraphUtil.ValueToPlotFn(frqrsVm, page.GainReal, PageData.GainFrequencies.First());
+						var fvi = GraphUtil.ValueToPlotFn(frqrsVm, page.GainReal, page.GainFrequencies);
 						YValues = page.GainReal.Select(fvi).ToArray();
-						fvi = GraphUtil.ValueToPlotFn(frqrsVm, page.GainImag, PageData.GainFrequencies.First());
+						fvi = GraphUtil.ValueToPlotFn(frqrsVm, page.GainImag, page.GainFrequencies);
 						phaseValues = page.GainImag.Select(fvi).ToArray();
 						legendname = isMain ? "Left" : ClipName(page.Definition.Name) + ".L";
 					}

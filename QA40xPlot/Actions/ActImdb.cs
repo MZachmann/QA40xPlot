@@ -222,11 +222,11 @@ namespace QA40xPlot.Actions
 		/// <param name="posndBV">Y of mouse in plot</param>
 		/// <param name="useRight">which channel</param>
 		/// <returns>a tuple of df, value, value in pct</returns>
-		public ValueTuple<double, double, double> LookupXY(double freq, double posndBV, bool useRight)
+		public ValueTuple<double, double, double[]> LookupXY(double freq, double posndBV, bool useRight)
 		{
 			var fftdata = PageData.FreqRslt;
 			if (freq <= 0 || fftdata == null || PageData == null)
-				return ValueTuple.Create(0.0, 0.0, 0.0);
+				return ValueTuple.Create(0.0, 0.0, new double[] { 0.0 });
 			try
 			{
 				// get the data to look through
@@ -244,7 +244,7 @@ namespace QA40xPlot.Actions
 					var binmin = Math.Max(1, abin - 5);            // random....
 					var binmax = Math.Min(ffs.Length - 1, abin + 5);           // random....
 					var msr = PageData.ViewModel;
-					var vfi = GraphUtil.ValueToLogPlotFn(msr, useRight ? fftdata.Left : fftdata.Right);
+					var vfi = GraphUtil.ValueToLogPlotFn(msr, useRight ? fftdata.Right : fftdata.Left);
 					var distsx = ffs.Skip(binmin).Take(binmax - binmin);
 					IEnumerable<Pixel> distasx = distsx.Select((fftd, index) =>
 							myPlot.GetPixel(new Coordinates(Math.Log10((index + binmin) * fftdata.Df),
@@ -256,28 +256,25 @@ namespace QA40xPlot.Actions
 					var vm = MyVModel;
 					if (bin < ffs.Length)
 					{
-						var vfun = useRight ? right.Fundamental1Volts : left.Fundamental1Volts;
-						return ValueTuple.Create(bin * fftdata.Df, ffs[bin], vfun);
+						return ValueTuple.Create(bin * fftdata.Df, ffs[bin], useRight ? fftdata.Right : fftdata.Left);
 					}
 				}
 			}
 			catch (Exception)
 			{
 			}
-			return ValueTuple.Create(0.0, 0.0, 0.0);
+			return ValueTuple.Create(0.0, 0.0, new double[] { 0.0 });
 		}
 
-
-		public Rect GetDataBounds()
+		public override Rect GetDataBounds()
 		{
-			var vm = PageData.ViewModel;    // measurement settings
+			Rect rrc = new Rect(0, 0, 0, 0);
 			if (PageData.FreqRslt == null && OtherTabs.Count() == 0)
-				return new Rect(0, 0, 0, 0);
+				return rrc;
 
 			var specVm = MyVModel;     // current settings
 			var ffs = PageData.FreqRslt;
 
-			Rect rrc = new Rect(0, 0, 0, 0);
 			List<double[]> tabs = new List<double[]>();
 			if (specVm.ShowLeft && ffs != null)
 			{
@@ -297,7 +294,7 @@ namespace QA40xPlot.Actions
 			}
 
 			if (tabs.Count == 0)
-				return new Rect(0, 0, 0, 0);
+				return rrc;
 
 			rrc.X = ffs?.Df ?? 1.0; // ignore 0
 			rrc.Y = tabs.Min(x => x.Min());
