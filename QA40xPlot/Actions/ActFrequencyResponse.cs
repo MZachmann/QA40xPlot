@@ -548,7 +548,7 @@ namespace QA40xPlot.Actions
 					break;
 				case "YM":  // Y magnitude
 					var frqVm = bvm as FreqRespViewModel;
-					var ttype = frqVm.GetTestingType(frqVm.TestType);
+					var ttype = frqVm?.GetTestingType(frqVm.TestType) ?? TestingType.Response;
 					if (ttype == TestingType.Impedance)
 					{
 						bvm.RangeBottomdB = bounds.Y.ToString("0");

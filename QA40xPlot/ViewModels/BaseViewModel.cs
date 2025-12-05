@@ -479,6 +479,13 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ExpandGraphOptions, value);
 		}
 
+		private bool _ExpandCursor = true;
+		public bool ExpandCursor
+		{
+			get => _ExpandCursor;
+			set => SetProperty(ref _ExpandCursor, value);
+		}
+
 		private bool _ShowTabInfo = false;
 		public bool ShowTabInfo
 		{

@@ -226,21 +226,22 @@
                     </Grid>
                 </Expander>
 
-                <views:GroupHeader Header="Cursor" />
-                <Grid >
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Label Content="Time" Grid.Row="0" Grid.Column="0" IsEnabled="{Binding IsTracking}" />
-                    <Label Content="{Binding FreqShow}" Grid.Row="0" Grid.Column="1" IsEnabled="{Binding IsTracking}" Width="70" />
-                    <TextBox Text="{Binding ZValue}" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" TextWrapping="Wrap" AcceptsReturn="True" Width="120" HorizontalAlignment="Left" />
-                </Grid>
+                <Expander Header="—— Cursor"  IsExpanded="{Binding ExpandCursor}" >
+                    <Grid >
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Label Content="Time" Grid.Row="0" Grid.Column="0" IsEnabled="{Binding IsTracking}" />
+                        <Label Content="{Binding FreqShow}" Grid.Row="0" Grid.Column="1" IsEnabled="{Binding IsTracking}" Width="70" />
+                        <TextBox Text="{Binding ZValue}" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" TextWrapping="Wrap" AcceptsReturn="True" Width="120" HorizontalAlignment="Left" />
+                    </Grid>
+                </Expander>
             </StackPanel>
         </ScrollViewer>
     </Grid>

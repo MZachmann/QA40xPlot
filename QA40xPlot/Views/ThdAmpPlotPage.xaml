@@ -194,13 +194,7 @@
                         <Button  Content="Edit Palette" Command="{Binding EditPaletteCommand}" Margin="12, 2" Grid.Row="5"></Button>
                     </Grid>
                 </Expander>
-
-                <views:GroupHeader Header="Cursor" />
-                <StackPanel Orientation="Vertical">
-                    <Label Content="Generator -> Out" Grid.Row="0" Grid.Column="0" IsEnabled="{Binding IsTracking}" />
-                    <Label Content="{Binding FreqShow}" Grid.Row="0" Grid.Column="1" IsEnabled="{Binding IsTracking}" />
-                    <TextBox Text="{Binding ZValue}" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" TextWrapping="Wrap" AcceptsReturn="True" Width="120" HorizontalAlignment="Left" />
-                </StackPanel>
+                <views:CursorExpander Head="Generator:" />
             </StackPanel>
         </ScrollViewer>
     </Grid>

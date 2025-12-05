@@ -362,7 +362,7 @@ namespace QA40xPlot.ViewModels
 			var zv = MyAction.LookupX(FreqValue);
 			if (zv.Length > 0)
 			{
-				FreqShow = MathUtil.FormatLogger(zv[0].GenVolts) + "->" + MathUtil.FormatLogger(zv[0].Mag);
+				FreqShow = MathUtil.FormatLogger(zv[0].GenVolts);
 				foreach (var item in zv)
 				{
 					if (item != null)
