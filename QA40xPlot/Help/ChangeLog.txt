@@ -2,6 +2,16 @@
 --------------------------------------------
 This changelog shows the changes made for each version
 --------------------------------------------
+v 1.1.46
+- serious refactor of the graph Y-axis format support
+- addition of dBr options to the Y-axis format choices
+- remove distortion component from SNR math
+- hide response options that aren't relevant to the test type
+- improve FitToData in all tests
+-   better recognition of plot Yaxis formats
+-   don't fit unviewed plot lines in sweeps
+-   fully support dBr in most tests
+- partial implementation of dBr for discrete sweeps
 v 1.1.45
 - support multiple file select for GET operation
 - don't invert color when mouseover color boxes
