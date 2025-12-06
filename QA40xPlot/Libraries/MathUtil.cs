@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics;
+using System.Globalization;
 using System.Numerics;
 using System.Windows.Media;
 
@@ -255,34 +256,40 @@ namespace QA40xPlot.Libraries
 			return xout;
 		}
 
+		private static bool SameDouble(double a, double b)
+		{
+			return Math.Abs(a-b) < (Math.Abs(a) / 1e10);
+		}
+
 		// return mag of Z/(1-Z)
 		public static double ToImpedanceMag(double re, double im)
 		{
-			var re1 = 1 - re;
-			// divide (re,im)/(re1,im) = (re*re1 - im*im, im*re1 - re*im)/(re1 * re1 + im * im)
-			var denom = re1 * re1 + im * im;
-			var renew = (re * re1 - im * im) / denom;
-			var imnew = (im * re1 - re * im) / denom;
-			var magout = Math.Sqrt(renew * renew + imnew * imnew);
+			var maga = re * re + im * im;
+			var magb = (1 - re) * (1 - re) + im * im;
+			var tmage = Math.Sqrt(maga / magb);
+#if DEBUG
 			var tcplx = (new Complex(re, im)) / (new Complex(1 - re, -im));
 			var tmag = tcplx.Magnitude;
-			return magout;
-			//var xtest = z / ((new Complex(1, 0)) - z);  // do the math
-			//return xtest;
+			Debug.Assert(SameDouble(tmag, tmage), "disagree on magnitude");
+#endif
+			return tmage;
 		}
 
 		// return phase of Z/(1-Z)
 		public static double ToImpedancePhase(double re, double im)
 		{
-			var re1 = 1 - re;
-			// divide (re,im)/(re1,im) = (re*re1 - im*im, im*re1 - re*im)/(re1 * re1 + im * im)
-			var denom = re1 * re1 + im * im;
-			var renew = (re * re1 - im * im) / denom;
-			var imnew = (im * re1 - re * im) / denom;
-			var phaseout = Math.Atan2(imnew, renew);
+			var denomre = (1 - re) * (1 - re) + im * im;
+			var numre = (re * (1 - re) - im * im);
+			var numim = (re * im + im * (1 - re));
+			var phasea = Math.Atan2(numim / denomre, numre / denomre);
+#if DEBUG
+			var denomCplx = (new Complex(1 - re, -im)) * (new Complex(1 - re, im));
+			var numCplx = (new Complex(re, im)) * (new Complex(1 - re, im));
 			var tcplx = (new Complex(re, im)) / (new Complex(1 - re, -im));
 			var tphase = tcplx.Phase;
-			return phaseout;
+			Debug.Assert(SameDouble(tphase, phasea), "phases differ");
+#endif
+			return phasea;
 		}
 
 		public static double[] ToCplxMag(double[] re, double[] im)
@@ -330,7 +337,65 @@ namespace QA40xPlot.Libraries
 		/// <param name="windowSize">the size of the window</param>
 		/// <param name="windowDelta">every N points increase the windowSize by 1</param>
 		/// <returns></returns>
-		public static double[] SmoothForward(double[] data, double perOctave)
+		public static double[] SmoothAverage(double[] data, double perOctave)
+		{
+			double[] smooth = new double[data.Length];
+			double runningSum = 0;
+			int pointsInSum = 0;
+			int windowSize = 1;
+#if DEBUG
+			for (int i = 0; i < smooth.Length; i++)
+				smooth[i] = -100; // initialize to invalid value
+#endif
+			for (int i = 0; i < smooth.Length; i++)
+			{
+				runningSum += data[i];
+				if (pointsInSum < windowSize)
+				{
+					pointsInSum++;
+					if(pointsInSum == windowSize)
+					{
+						smooth[i - (int)(windowSize / 2)] = runningSum / windowSize;
+					}
+					continue;
+				}
+				runningSum -= data[i - windowSize];
+				smooth[i - (int)(windowSize / 2)] = runningSum / windowSize;
+				if ( ((i * perOctave) > windowSize) || (windowSize == 1))
+				{
+					windowSize += 2;
+				}
+			}
+			for (int i=0; windowSize > 2; i++)
+			{
+				smooth[data.Length - (int)(windowSize / 2)] = runningSum / windowSize;
+				runningSum -= data[data.Length - windowSize--];
+				runningSum -= data[data.Length - windowSize--];
+			}
+			// self - test that we didn't stupidly miss any points
+#if DEBUG
+			for (int i = 0; i < smooth.Length; i++)
+			{
+				if ((smooth[i] == -100))
+				{
+					Debug.Assert(false, "did not fill smoothing array");
+				}
+			}
+#endif
+			return smooth;
+		}
+
+		/// <summary>
+		/// Forward smoothing using a running total
+		/// Increases the windowSize as F increases logarithmically
+		/// the window size 'goal' is a percent of an octave
+		/// </summary>
+		/// <param name="data">the double[] data to smooth</param>
+		/// <param name="windowSize">the size of the window</param>
+		/// <param name="windowDelta">every N points increase the windowSize by 1</param>
+		/// <returns></returns>
+		public static double[] 
+			SmoothForward(double[] data, double perOctave)
 		{
 			double[] smooth = new double[data.Length];
 			double runningSum = 0;

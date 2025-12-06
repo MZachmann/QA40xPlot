@@ -2,6 +2,11 @@
 --------------------------------------------
 This changelog shows the changes made for each version
 --------------------------------------------
+v 1.1.47
+- change the smoothing algorithm to center it
+- add a smoothing option to the frequency response chirp tests
+- truncate chirped high frequency noisy part
+- add expanders to cursor section
 v 1.1.46
 - serious refactor of the graph Y-axis format support
 - addition of dBr options to the Y-axis format choices

@@ -15,7 +15,7 @@ using System.Windows.Input;
 public class FreqRespViewModel : BaseViewModel
 {
 	public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
-	public static List<String> Smoothings { get => new List<string> { "None", "1/24", "1/6" }; }
+	public static List<String> Smoothings { get => new List<string> { "0","0.001","0.01", "0.05", "0.1", "0.25" }; }
 	public static List<String> TestTypes { get => new List<string> { "Response", "Impedance", "Gain", "Crosstalk" }; }
 
 	private ActFrequencyResponse MyAction { get => actFreq; }
@@ -98,6 +98,8 @@ public class FreqRespViewModel : BaseViewModel
 		get => _Smoothing;
 		set => SetProperty(ref _Smoothing, value);
 	}
+	[JsonIgnore]
+	public double SmoothingVal {  get => MathUtil.ToDouble(Smoothing,0);}
 
 	private string _Gen1Voltage = string.Empty;         // type of alert
 	public string Gen1Voltage
@@ -471,7 +473,7 @@ public class FreqRespViewModel : BaseViewModel
 		RangeBottomdB = "-180";
 
 		Gen1Voltage = "0.1";
-		Smoothing = "None";
+		Smoothing = Smoothings[0];
 		Show3dBBandwidth_L = true;
 		Show3dBBandwidth_R = false;
 		Show1dBBandwidth_L = false;
