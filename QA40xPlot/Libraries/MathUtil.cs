@@ -134,9 +134,13 @@ namespace QA40xPlot.Libraries
 			{
 				rslt = (1000000 * val).ToString("G3") + "u" + units;
 			}
-			else
+			else if(val > 0)
 			{
 				rslt = (1e9 * val).ToString("G3") + "n" + units;
+			}
+			else
+			{
+				rslt = "0 " + units;
 			}
 			if (sign < 0)
 				rslt = "-" + rslt;

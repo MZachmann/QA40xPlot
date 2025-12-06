@@ -784,6 +784,9 @@ namespace QA40xPlot.Actions
 				// restrict the data to only the frequency spectrum
 				var startf = ToD(vm.StartFreq) / 3;
 				var endf = ToD(vm.EndFreq) * 3;
+				// we have garbage near Nyquist f so trim it off
+				if(endf > vm.SampleRateVal/2)
+					endf = 0.95 * vm.SampleRateVal/2;
 				var trimf = gfr.Count(x => x < startf);
 				var trimEnd = gfr.Count(x => x <= endf) - trimf;
 				// trim them all

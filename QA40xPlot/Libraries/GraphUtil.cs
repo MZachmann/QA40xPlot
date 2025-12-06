@@ -101,9 +101,13 @@ namespace QA40xPlot.Libraries
 					{
 						rslt = (1000000 * dv).ToString("G3") + " u" + sfx;
 					}
-					else
+					else if(adv > 0)
 					{
 						rslt = (1e9 * dv).ToString("G3") + " n" + sfx;
+					}
+					else
+					{
+						rslt = "0";
 					}
 				}
 			}
