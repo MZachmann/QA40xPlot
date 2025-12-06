@@ -7,6 +7,7 @@ v 1.1.47
 - add a smoothing option to the frequency response chirp tests
 - truncate chirped high frequency noisy part
 - add expanders to cursor section
+- fix measured impedance phase math
 v 1.1.46
 - serious refactor of the graph Y-axis format support
 - addition of dBr options to the Y-axis format choices
