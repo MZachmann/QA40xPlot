@@ -80,6 +80,22 @@ namespace QA40xPlot.Converters
 		}
 	}
 
+	public class BoolToNotVisibilityConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			if (value is bool boolValue)
+			{
+				return !boolValue ? Visibility.Visible : Visibility.Collapsed;
+			}
+			return Visibility.Collapsed;
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			return Binding.DoNothing;
+		}
+	}
+
 	// collapse if the string matches the parameter
 	public class StringToVisibilityConverter : IValueConverter
 	{

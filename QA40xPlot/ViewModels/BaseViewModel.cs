@@ -72,7 +72,8 @@ namespace QA40xPlot.ViewModels
 		public DataDescript DataInfo { get; set; } = new(); // set when we set the datapage via linkabout
 		[JsonIgnore]
 		internal MarkerList LegendInfo { get; set; } = new(); // set when we set the datapage via linkabout
-
+		[JsonIgnore]
+		public MainViewModel MainVm { get => ViewSettings.Singleton.MainVm; }
 		[JsonIgnore]
 		public bool IsGenPower { get => (GenDirection == MeasureVoltsFull[2]); }
 		[JsonIgnore]

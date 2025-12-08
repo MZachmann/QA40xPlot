@@ -432,7 +432,7 @@ namespace QA40xPlot.Actions
 				// ********************************************************************
 				// now do the step measurement
 				await showMessage($"Measuring spectrum with input of {genVolt:G3}V.");
-				await showProgress(25);
+				await showProgress(80);
 
 				var wave = BuildWave(msr, genVolt);   // also update the waveform variables
 				lrfs = await QaComm.DoAcquireUser(1, ct, wave, wave, false);
@@ -440,9 +440,9 @@ namespace QA40xPlot.Actions
 				if (lrfs.TimeRslt != null)
 				{
 					msr.TimeRslt = lrfs.TimeRslt;
-					await showProgress(50);
-					BuildFrequencies(msr);      // do the relevant fft work
 					await showProgress(90);
+					BuildFrequencies(msr);      // do the relevant fft work
+					await showProgress(100);
 				}
 				else
 				{

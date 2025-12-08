@@ -82,7 +82,7 @@ namespace QA40xPlot
 				fload = " - no default config";
 			}
 			InitializeComponent();
-			var vm = ViewModels.ViewSettings.Singleton.MainVm;
+			var vm = ViewSettings.Singleton.MainVm;
 			vm.ScreenDpi = TestGetDpi();
 			this.DataContext = vm;
 			vm.ProgressMessage = "Welcome to QA40xPlot v" + GetVersionInfo() + fload;
@@ -164,13 +164,18 @@ namespace QA40xPlot
 		private void DoContentRendered(object? sender, EventArgs e)
 		{
 			var vm = ViewSettings.Singleton?.MainVm;
-			if (vm != null && vm.CurrentWindowRect.Length > 0)
+			if(vm != null)
 			{
-				MainViewModel.SetWindowSize(Application.Current.MainWindow, vm.CurrentWindowRect);
-			}
-			if (vm != null && vm.CurrentWindowState == "Maximized")
-			{
-				Application.Current.MainWindow.WindowState = WindowState.Maximized;
+				if (TheTabs != null)
+					vm.TabControlObject = TheTabs;      // point to the tab control
+				if (vm.CurrentWindowRect.Length > 0)
+				{
+					MainViewModel.SetWindowSize(Application.Current.MainWindow, vm.CurrentWindowRect);
+				}
+				if (vm.CurrentWindowState == "Maximized")
+				{
+					Application.Current.MainWindow.WindowState = WindowState.Maximized;
+				}
 			}
 			this.InvalidateVisual();
 
@@ -181,6 +186,8 @@ namespace QA40xPlot
 				if (ViewSettings.Singleton.MainVm.ShowQA430)
 					QA430Model.BeginQA430Op();
 			}
+			if (TheTabs != null && ViewSettings.Singleton != null)
+				TabUtil.SetTabPanelVisibility(ViewSettings.Singleton.MainVm.ShowTabs, TheTabs);
 		}
 
 		protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
@@ -265,5 +272,6 @@ namespace QA40xPlot
 				ViewSettings.Singleton.MainVm.MaxTab = Math.Max(80, Math.Max(_MaxTabWidth, w / (ct + 1)));
 			}
 		}
+
 	}
 }

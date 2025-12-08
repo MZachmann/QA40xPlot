@@ -6,6 +6,7 @@
         <convert:VtoPctConverter x:Key="VToPctConverter"/>
         <convert:VoltFormatter x:Key="VoltFormatter"/>
         <convert:BoolToVisibilityConverter x:Key="BoolVisConverter"/>
+        <convert:BoolToNotVisibilityConverter x:Key="BoolNotVisConverter"/>
         <convert:EnumToVisibilityConverter x:Key="EnumVisConverter"/>
         <convert:StringToVisibilityConverter x:Key="StringVisConverter"/>
         <convert:VoltUnitConverter x:Key="VoltUnitConverter" />

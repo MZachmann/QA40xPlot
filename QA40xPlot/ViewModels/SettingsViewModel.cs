@@ -2,6 +2,7 @@
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using QA40xPlot.BareMetal;
+using QA40xPlot.Libraries;
 using QA40xPlot.QA430;
 using QA40xPlot.Views;
 using System.Diagnostics;
@@ -39,8 +40,8 @@ namespace QA40xPlot.ViewModels
 			"DarkRed", "DarkOrange", "DarkGreen", "DarkBlue", "DarkViolet"
 			};
 		}
-		public static List<string> ThemeList { get => new List<string> { "None", "Light", "Dark", "System" }; }
-
+		public static List<string> ThemeList { get; } = new List<string> { "None", "Light", "Dark", "System" };
+		public static List<string> GuiStyleList { get; } = new List<string> { "Menus", "Tabs"};
 		[JsonIgnore]
 		public RelayCommand DoMicCompensate { get => new RelayCommand(FindMicCompensate); }
 		[JsonIgnore]
@@ -239,7 +240,17 @@ namespace QA40xPlot.ViewModels
 							break;
 					}
 #pragma warning restore WPF0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-					ViewSettings.Singleton.MainVm.ThemeBkgd = BackgroundClr;
+					MainVm.ThemeBkgd = BackgroundClr;
+					if(MainVm.TabControlObject != null)
+					{
+						Task.Delay(100).ContinueWith(_ =>
+						{
+							Application.Current.Dispatcher.Invoke(() =>
+							{
+								TabUtil.SetTabPanelVisibility(MainVm.ShowTabs, MainVm.TabControlObject);
+							});
+						});
+					}
 				}
 			}
 		}

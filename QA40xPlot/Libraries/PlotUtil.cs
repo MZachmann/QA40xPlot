@@ -223,7 +223,6 @@ namespace QA40xPlot.Libraries
 			}
 
 			myPlot.Axes.Title.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.TITLE_SIZE);
-
 			myPlot.Axes.Bottom.Label.Alignment = Alignment.MiddleCenter;
 			myPlot.Axes.Bottom.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
 			myPlot.Axes.Bottom.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);

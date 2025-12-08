@@ -236,6 +236,12 @@ namespace QA40xPlot.Actions
 			await vm.SetProgressMessage(msg, delay);
 		}
 
+		/// <summary>
+		/// show progress bar amount
+		/// </summary>
+		/// <param name="progress">0...100</param>
+		/// <param name="delay">the delay in milliseconds to let the screen update</param>
+		/// <returns></returns>
 		protected async Task showProgress(int progress, int delay = 0)
 		{
 			var vm = ViewSettings.Singleton.MainVm;

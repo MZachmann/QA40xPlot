@@ -6,6 +6,7 @@
         xmlns:views="clr-namespace:QA40xPlot.Views"
         xmlns:local="clr-namespace:QA40xPlot"
         mc:Ignorable="d"
+        x:Name="MainWind"
         Title="Qa40xPlot" Height="800" Width="1600" Background="{Binding Background, Mode=OneWay}"
         ThemeMode="None">
     <Grid>
@@ -20,10 +21,12 @@
                 <RowDefinition/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <StackPanel Orientation="Horizontal" Grid.Column="1" Grid.Row="0" >
+            <StackPanel Orientation="Horizontal" Grid.Column="2" Grid.Row="0" 
+                        Visibility="{Binding ShowTabs, Converter={StaticResource BoolVisConverter}}" >
                 <Button Content="QA430" Click="OnQA430" Margin="4,2,4,2" Visibility="{Binding ShowQA430, Converter={StaticResource BoolVisConverter}}">
                     <Button.ToolTip>
                         <ToolTip Content="Show/hide the QA430 Configuration" />
@@ -55,17 +58,62 @@
                     </Button.ToolTip>
                 </Button>
             </StackPanel>
-            <Label Grid.Row="0" Grid.Column="0" Content="{Binding ProgressMessage}"/>
-            <ProgressBar Grid.Row="1" Grid.Column="0" Minimum="0" Maximum="100" MinHeight="5" Value="{Binding ProgressAmount}" />
+            <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="0"
+                       Margin="10,0,40,0" Background="Transparent"
+                       Visibility="{Binding ShowTabs, Converter={StaticResource BoolNotVisConverter}}"
+                        >
+                <Menu VerticalAlignment="Center" Background="Transparent">
+                    <MenuItem Header="_Page" >
+                        <MenuItem Header="_Spectrum" Command="{Binding SetPlotPage}" CommandParameter="Spectrum" />
+                        <MenuItem Header="_Intermodulation" Command="{Binding SetPlotPage}" CommandParameter="Intermodulation" />
+                        <MenuItem Header="Sco_pe" Command="{Binding SetPlotPage}" CommandParameter="Scope" />
+                        <MenuItem Header="THD vs _Frequency" Command="{Binding SetPlotPage}" CommandParameter="ThdFreq" />
+                        <MenuItem Header="THD vs _Amplitude" Command="{Binding SetPlotPage}" CommandParameter="ThdAmp" />
+                        <MenuItem Header="Frequency _Response" Command="{Binding SetPlotPage}" CommandParameter="Response" />
+                        <MenuItem Header="Settings" Command="{Binding SetPlotPage}" CommandParameter="Settings" />
+                        <!--<MenuItem Header="I_mpedance" Command="{Binding SetPlotPage}" CommandParameter="Response" />
+                    <MenuItem Header="_Crosstalk" Command="{Binding SetPlotPage}" CommandParameter="Response" />
+                    <MenuItem Header="_Gain" Command="{Binding SetPlotPage}" CommandParameter="Response" />-->
+                        <MenuItem Header="Opamp vs Frequency" Command="{Binding SetPlotPage}" 
+                          CommandParameter="Opamp.Freq"
+                          Visibility="{Binding ShowQA430, Converter={StaticResource BoolVisConverter}}"
+                          />
+                        <MenuItem Header="Opamp vs Amplitude" Command="{Binding SetPlotPage}"
+                          CommandParameter="Opamp.Amp"
+                          Visibility="{Binding ShowQA430, Converter={StaticResource BoolVisConverter}}"
+                          />
+                    </MenuItem>
+                    <MenuItem Header="_Command">
+                        <MenuItem Header="_Help" Click="OnHelp" />
+                        <MenuItem Header="_Photo" Command="{Binding DoPhoto}" />
+                        <MenuItem Header="_Export Data" Command="{Binding DoExport}" />
+                        <MenuItem Header="_Save Configuration" Command="{Binding DoSaveCfg}" />
+                        <MenuItem Header="_Load Configuration" Command="{Binding DoLoadCfg}" />
+                    </MenuItem>
+                    <!--<MenuItem Header="_Results">
+                        <MenuItem Header="Sa_ve Test Result"/>
+                        <MenuItem Header="Load _Test Result"/>
+                        <MenuItem Header="Get Test _Result"/>
+                    </MenuItem>-->
+                </Menu>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3">
+                <Rectangle Fill="#40888888"  Width="2" />
+                <Grid MaxWidth="400" >
+                   <Label VerticalAlignment="Center" Content="{Binding ProgressMessage}"/>
+                   <ProgressBar Opacity=".1" Background="Transparent"  Minimum="0" Maximum="100" MinHeight="25" Value="{Binding ProgressAmount}" />
+                </Grid>
+            </StackPanel>
         </Grid>
         <TabControl Grid.Row="2" SelectionChanged="OnNewTab"
-                    SizeChanged="DoTabSizeChanged" >
-            <TabItem Header="Spectrum" Name="spectrum"  MaxWidth="{Binding MaxTab}">
+                    SelectedIndex="{Binding PlotPageIndex, Mode=TwoWay}"
+                    SizeChanged="DoTabSizeChanged" x:Name="TheTabs" >
+            <TabItem Header="Spectrum" Name="spectrum"  MaxWidth="{Binding MaxTab}" >
                 <Grid Background="{Binding Background, Mode=OneWay}" >
                     <views:SpectrumPlotPage  />
                 </Grid>
             </TabItem>
-            <TabItem Header="Intermodulation" Name="intermod" MaxWidth="{Binding MaxTab}">
+            <TabItem Header="Intermodulation" Name="intermod" MaxWidth="{Binding MaxTab}" >
                 <Grid Background="{Binding Background, Mode=OneWay}" >
                     <views:ImdPlotPage  />
                 </Grid>
@@ -78,7 +126,7 @@
             <TabItem Header="THD vs Frequency" Name="tvf" MaxWidth="{Binding MaxTab}">
                 <Grid Background="{Binding Background, Mode=OneWay}">
                     <views:ThdFreqPlotPage  />
-                </Grid> 
+                </Grid>
             </TabItem>
             <TabItem Header="THD vs Amplitude" Name="tva" MaxWidth="{Binding MaxTab}">
                 <Grid Background="{Binding Background, Mode=OneWay}">

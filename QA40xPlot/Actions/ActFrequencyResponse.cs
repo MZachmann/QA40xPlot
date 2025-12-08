@@ -197,6 +197,7 @@ namespace QA40xPlot.Actions
 				return;
 			if (vmFreq.IsChirp)
 				vmFreq.ShowMiniPlots = false; // don't show mini plots during chirp
+			await showProgress(0, 50);
 
 			vmFreq.HasExport = false;
 			ct = new();
@@ -614,6 +615,7 @@ namespace QA40xPlot.Actions
 		private async Task<bool> RunFreqTest(MyDataTab page, double[] stepBinFrequencies, double voltagedBV)
 		{
 			var vm = page.ViewModel;
+			await showProgress(0, 50);
 			// Check if cancel button pressed
 			if (ct.IsCancellationRequested)
 				return false;
@@ -689,6 +691,7 @@ namespace QA40xPlot.Actions
 		private async Task<(LeftRightSeries?, Complex[], Complex[])> RunChirpAcquire(MyDataTab page, double voltagedBV)
 		{
 			var vm = page.ViewModel;
+			await showProgress(0, 50);
 
 			var startf = ToD(vm.StartFreq) / 3;
 			var endf = ToD(vm.EndFreq) * 3;
@@ -701,6 +704,7 @@ namespace QA40xPlot.Actions
 			page.TimeRslt = lfrs.TimeRslt;
 			if (ct.IsCancellationRequested)
 				return (null, [], []);
+			await showProgress(50, 50);
 
 			Complex[] leftFft = [];
 			Complex[] rightFft = [];
@@ -734,6 +738,8 @@ namespace QA40xPlot.Actions
 			lrfs.Right = rightFft.Select(x => x.Magnitude).ToArray();
 			lrfs.Df = QaLibrary.CalcBinSize(vm.SampleRateVal, vm.FftSizeVal); // frequency step size
 			lfrs.FreqRslt = lrfs;
+			await showProgress(100, 50);
+
 			return (lfrs, leftFft, rightFft);
 		}
 

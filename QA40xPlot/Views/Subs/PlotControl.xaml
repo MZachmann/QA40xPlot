@@ -7,5 +7,10 @@
              xmlns:local="clr-namespace:QA40xPlot"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" >
-        <ScottPlot:WpfPlot x:Name="TheWpfPlot" />
+    <Grid>
+        <ScottPlot:WpfPlot x:Name="TheWpfPlot" Margin="5,10,5,5" />
+        <Label Content="{Binding DsHeading}" HorizontalAlignment="Right" 
+                   FontSize="16" 
+                   VerticalAlignment="Top" Margin="0,22,0,0"  />
+    </Grid>
 </UserControl>

@@ -3,6 +3,7 @@ using Microsoft.Win32;
 using Newtonsoft.Json;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
+using ScottPlot.Colormaps;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
@@ -15,6 +16,34 @@ namespace QA40xPlot.ViewModels
 	public class MainViewModel : FloorViewModel
 	{
 		[JsonIgnore]
+		public List<string> PageNames { get; } = new List<string>
+		{
+			"Spectrum",	"Intermodulation","Scope", "ThdFreq",
+			"ThdAmp", "Response", "Opamp.Freq", "Opamp.Amp",
+			"Settings", "Impedance", "Crosstalk", "Gain",
+		};
+		[JsonIgnore]
+		public RelayCommand<object> SetPlotPage { get => new RelayCommand<object>(DoSetPlotPage); }
+		[JsonIgnore]
+		public DependencyObject? TabControlObject { get; set; } = null;
+
+		private void DoSetPlotPage(object? parameter)
+		{
+			PlotPageType = parameter as string ?? "Spectrum";
+		}
+
+		private bool _ShowTabs = true;
+		public bool ShowTabs
+		{
+			get => _ShowTabs;
+			set
+			{
+				if(SetProperty(ref _ShowTabs, value) && TabControlObject != null)
+					TabUtil.SetTabPanelVisibility(value, TabControlObject);
+			}
+		}
+
+		[JsonIgnore]
 		public RelayCommand DoExport { get => new RelayCommand(OnExport); }
 		[JsonIgnore]
 		public RelayCommand DoSaveCfg { get => new RelayCommand(OnSaveCfg); }
@@ -22,7 +51,6 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand DoLoadCfg { get => new RelayCommand(OnLoadCfg); }
 		[JsonIgnore]
 		public AsyncRelayCommand DoPhoto { get => new AsyncRelayCommand(OnPhoto); }
-
 
 		#region Setters and Getters
 		private System.Windows.Media.SolidColorBrush _Background =
@@ -130,6 +158,41 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _CurrentPaletteRect;
 			set => SetProperty(ref _CurrentPaletteRect, value);
+		}
+
+		private string _GuiStyle = "Tabs";
+		public string GuiStyle
+		{
+			get { return _GuiStyle; }
+			set
+			{
+				SetProperty(ref _GuiStyle, value);
+				ShowTabs = (value == "Tabs");
+			}
+		}
+
+		private string _PlotPageType = "Spectrum";
+		public string PlotPageType
+		{
+			get => _PlotPageType;
+			set {
+				SetProperty(ref _PlotPageType, value);
+				PlotPageIndex = PageNames.IndexOf(value);
+				}
+		}
+
+		private int _PlotPageIndex = 0;
+		[JsonIgnore]
+		public int PlotPageIndex
+		{
+			get => _PlotPageIndex;
+			set
+			{
+				SetProperty(ref _PlotPageIndex, value);
+				// synchronize the page name if we are showing tabs
+				if (ShowTabs && value >= 0 && value < PageNames.Count)
+					_PlotPageType = PageNames[value];
+			}
 		}
 
 		private string _CurrentWindowRect = string.Empty;
@@ -476,6 +539,10 @@ namespace QA40xPlot.ViewModels
 			ProgressAmount = progress;
 			if (delay > 0)
 				await Task.Delay(delay);
+		}
+
+		public MainViewModel()
+		{
 		}
 	}
 }

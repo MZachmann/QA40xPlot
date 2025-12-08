@@ -111,8 +111,7 @@
             </StackPanel>
         </ScrollViewer>
         <Grid Grid.Column="1">
-            <Label Content="{Binding DsHeading}" HorizontalAlignment="Center" VerticalAlignment="Top" />
-            <views:PlotControl x:Name="WpfPlot1"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="0,20,0,0" />
+            <views:PlotControl x:Name="WpfPlot1"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
             <views:ImdChannelInfo x:Name="Info1"
                 VerticalAlignment="Top" HorizontalAlignment="Left" Margin="60,70,0,0" />
             <views:ImdChannelInfo x:Name="Info2"
