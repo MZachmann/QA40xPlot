@@ -210,6 +210,24 @@ namespace QA40xPlot.Libraries
 			return true;
 		}
 
+		public static string GetDefaultConfigPath()
+		{
+			// look for a default config file before we paint the windows for theme setting...
+			var fdocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+			var ffile = ((App)Application.Current).DefaultCfg;
+			string fload = string.Empty;
+			string fpath;
+			if (Path.IsPathRooted(ffile))
+			{
+				fpath = ffile;
+			}
+			else
+			{
+				fpath = fdocs + @"\" + ffile;
+			}
+			return fpath;
+		}
+
 		static string UncompressFileToText(string filePath)
 		{
 			using (FileStream compressedFileStream = new FileStream(filePath, FileMode.Open))

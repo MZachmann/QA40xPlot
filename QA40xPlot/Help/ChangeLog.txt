@@ -2,6 +2,8 @@
 --------------------------------------------
 This changelog shows the changes made for each version
 --------------------------------------------
+v 1.2.01
+- 
 v 1.2.00
 - add option to replace the tabbed gui with menus
 - improve app esthetics by changing plot boundaries

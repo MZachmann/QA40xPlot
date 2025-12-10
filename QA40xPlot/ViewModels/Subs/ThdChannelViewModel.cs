@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using QA40xPlot.Data;
+using System.Windows;
 
 namespace QA40xPlot.ViewModels
 {
@@ -156,6 +157,14 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _ShowDataPercents;
 			set => SetProperty(ref _ShowDataPercents, value);
+		}
+
+		public ThdChannelViewModel()
+		{
+			Harmonics = new List<HarmonicData>();
+			// just to remove null reference issues during initial display
+			for (int i = 0; i < 10; i++)
+				Harmonics.Add(new HarmonicData());
 		}
 
 		public void CalculateChannelValues(double Fundamental, bool showPercent)

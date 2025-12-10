@@ -109,39 +109,7 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowMiniPlots, value);
 		}
 
-		private bool _ShowLegend = true;
-		public bool ShowLegend
-		{
-			get => _ShowLegend;
-			set => SetProperty(ref _ShowLegend, value);
-		}
-
-		private string _DbrType = DbrTypes[0];	// max
-		public string DbrType
-		{
-			get => _DbrType;
-			set 
-			{
-				if (SetProperty(ref _DbrType, value))
-				{
-					RaisePropertyChanged("DbrUnit");
-					ForceGraphUpdate();
-				}
-			}
-		}
-
-		private string _DbrValue = "1000";  // max
-		public string DbrValue
-		{
-			get => _DbrValue;
-			set
-			{
-			if (SetProperty(ref _DbrValue, value))
-				ForceGraphUpdate();
-			}
-		}
-
-			[JsonIgnore]
+		[JsonIgnore]
 		public string DbrUnit
 		{
 			get => DbrUnits[DbrTypes.IndexOf(DbrType)];
@@ -342,10 +310,40 @@ namespace QA40xPlot.ViewModels
 				SetProperty(ref _GeneratorVoltageUnits, value);
 			}
 		}
-
 		#endregion
 
 		#region Setters and Getters
+		private bool _ShowLegend = true;
+		public bool ShowLegend
+		{
+			get => _ShowLegend;
+			set => SetProperty(ref _ShowLegend, value);
+		}
+
+		private string _DbrType = DbrTypes[0];  // max
+		public string DbrType
+		{
+			get => _DbrType;
+			set
+			{
+				if (SetProperty(ref _DbrType, value))
+				{
+					RaisePropertyChanged("DbrUnit");
+					ForceGraphUpdate();
+				}
+			}
+		}
+
+		private string _DbrValue = "1000";  // max
+		public string DbrValue
+		{
+			get => _DbrValue;
+			set
+			{
+				if (SetProperty(ref _DbrValue, value))
+					ForceGraphUpdate();
+			}
+		}
 
 		/// <summary>
 		/// for use by the unit converters, serialized

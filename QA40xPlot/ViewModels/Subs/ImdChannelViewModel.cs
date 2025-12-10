@@ -195,7 +195,10 @@ namespace QA40xPlot.ViewModels
 
 		public ImdChannelViewModel()
 		{
+			Harmonics = new List<HarmonicData>();
+			// just to remove null reference issues during initial display
+			for (int i=0; i<10; i++)
+				Harmonics.Add(new HarmonicData());
 		}
-
 	}
 }

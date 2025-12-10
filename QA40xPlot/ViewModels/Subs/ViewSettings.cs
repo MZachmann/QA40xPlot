@@ -1,18 +1,16 @@
-﻿
-
-// this aggregates the settings somewhere static, which does mean only one of each
-
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 
+// this aggregates the settings somewhere static, which does mean only one of each
 namespace QA40xPlot.ViewModels
 {
 	public class ViewSettings
 	{
+		public static ViewSettings Singleton { get; private set; } = new ViewSettings();
+
 		private readonly Dictionary<string, string> _ProductTitle = new Dictionary<string, string>() { { "Name", "QA40xPlot" }, { "Version", "0.20" } };
 		public Dictionary<string, string> Product { get { return _ProductTitle; } private set {; } }
-		public static ViewSettings Singleton { get; private set; } = new ViewSettings();
 		public SpectrumViewModel SpectrumVm { get; private set; }
 		public ImdViewModel ImdVm { get; private set; }
 		public ThdFreqViewModel ThdFreq { get; private set; }

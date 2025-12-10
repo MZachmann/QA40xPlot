@@ -59,19 +59,10 @@ namespace QA40xPlot
 
 		public MainWindow()
 		{
-			// look for a default config file before we paint the windows for theme setting...
-			var fdocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-			var ffile = ((App)Application.Current).DefaultCfg;
 			string fload = string.Empty;
-			string fpath;
-			if (Path.IsPathRooted(ffile))
-			{
-				fpath = ffile;
-			}
-			else
-			{
-				fpath = fdocs + @"\" + ffile;
-			}
+			var fdocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+			// look for a default config file before we paint the windows for theme setting...
+			string fpath = Util.GetDefaultConfigPath();
 			if (File.Exists(fpath))
 			{
 				ViewSettings.Singleton.MainVm.LoadFromSettings(fpath);

@@ -70,7 +70,7 @@
                         <MenuItem Header="THD vs _Frequency" Command="{Binding SetPlotPage}" CommandParameter="ThdFreq" />
                         <MenuItem Header="THD vs _Amplitude" Command="{Binding SetPlotPage}" CommandParameter="ThdAmp" />
                         <MenuItem Header="Frequency _Response" Command="{Binding SetPlotPage}" CommandParameter="Response" />
-                        <MenuItem Header="Settings" Command="{Binding SetPlotPage}" CommandParameter="Settings" />
+                        <MenuItem Header="S_ettings" Command="{Binding SetPlotPage}" CommandParameter="Settings" />
                         <!--<MenuItem Header="I_mpedance" Command="{Binding SetPlotPage}" CommandParameter="Response" />
                     <MenuItem Header="_Crosstalk" Command="{Binding SetPlotPage}" CommandParameter="Response" />
                     <MenuItem Header="_Gain" Command="{Binding SetPlotPage}" CommandParameter="Response" />-->
@@ -89,6 +89,7 @@
                         <MenuItem Header="_Export Data" Command="{Binding DoExport}" />
                         <MenuItem Header="_Save Configuration" Command="{Binding DoSaveCfg}" />
                         <MenuItem Header="_Load Configuration" Command="{Binding DoLoadCfg}" />
+                        <MenuItem Header="Save Configuration as _Default" Command="{Binding DoSaveDfltCfg}" />
                     </MenuItem>
                     <!--<MenuItem Header="_Results">
                         <MenuItem Header="Sa_ve Test Result"/>

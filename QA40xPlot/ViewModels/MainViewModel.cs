@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -47,6 +48,8 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand DoExport { get => new RelayCommand(OnExport); }
 		[JsonIgnore]
 		public RelayCommand DoSaveCfg { get => new RelayCommand(OnSaveCfg); }
+		[JsonIgnore]
+		public AsyncRelayCommand DoSaveDfltCfg { get => new AsyncRelayCommand(OnSaveDfltCfg); }
 		[JsonIgnore]
 		public RelayCommand DoLoadCfg { get => new RelayCommand(OnLoadCfg); }
 		[JsonIgnore]
@@ -438,6 +441,16 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
+		private async Task OnSaveDfltCfg()
+		{
+			string filename = Util.GetDefaultConfigPath();
+			var vm = ViewSettings.Singleton.MainVm;
+			await vm.SetProgressBar(0);
+			await vm.SetProgressMessage($"Saved to {filename}", 50);
+			SaveToSettings(filename);
+			await vm.SetProgressBar(100);
+		}
+
 		private void OnSaveCfg()
 		{
 			SaveFileDialog saveFileDialog = new SaveFileDialog
@@ -457,7 +470,6 @@ namespace QA40xPlot.ViewModels
 				string filename = saveFileDialog.FileName;
 				SaveToSettings(filename);
 			}
-
 		}
 
 		private void OnLoadCfg()
