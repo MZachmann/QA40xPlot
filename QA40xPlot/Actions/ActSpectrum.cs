@@ -892,7 +892,7 @@ namespace QA40xPlot.Actions
 				plotLeft.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, 2 * measurementNr);
 				plotLeft.MarkerSize = 1;
 				plotLeft.LegendText = isMain ? "Left" : ClipName(page.Definition.Name) + ".L";
-				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotLeft.Color, plotLeft.LegendText, 2 * measurementNr));
+				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotLeft.Color, plotLeft.LegendText, 2 * measurementNr, plotLeft, fftPlot));
 			}
 
 			if (useRight)
@@ -908,7 +908,7 @@ namespace QA40xPlot.Actions
 				plotRight.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, 2 * measurementNr + 1); // color 0 is bad
 				plotRight.MarkerSize = 1;
 				plotRight.LegendText = isMain ? "Right" : ClipName(page.Definition.Name) + ".R";
-				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotRight.Color, plotRight.LegendText, 2 * measurementNr + 1));
+				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotRight.Color, plotRight.LegendText, 2 * measurementNr + 1, plotRight, fftPlot));
 			}
 
 			fftPlot.Refresh();

@@ -313,12 +313,12 @@ namespace QA40xPlot.ViewModels
 
 		public static void UpdateVoltages()
 		{
-			MyVModel.RaisePropertyChanged("VoltageDisplay");
+			MyVModel.RaisePropertyChanged("VoltSummary");
 		}
 
 		public static void UpdateSupplies()
 		{
-			MyVModel.RaisePropertyChanged("SupplyDisplay");
+			MyVModel.RaisePropertyChanged("SupplySummary");
 		}
 
 		private static string FileAddon()
@@ -451,7 +451,13 @@ namespace QA40xPlot.ViewModels
 			ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
 			ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;
 			// make a few things happen to synch the gui. don't await this.
-			Task.Delay(1000).ContinueWith(t => { MyAction?.UpdateGraph(true); });
+			Task.Delay(1000).ContinueWith(_ =>
+			{
+				Application.Current.Dispatcher.Invoke(() =>
+				{
+					MyAction?.UpdateGraph(true);
+				});
+			});
 		}
 	}
 }

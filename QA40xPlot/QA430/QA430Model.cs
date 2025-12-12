@@ -3,10 +3,12 @@ using Newtonsoft.Json;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using QA40xPlot.Views;
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Media.Media3D;
 using static QA40xPlot.QA430.QA430Model;
 
 namespace QA40xPlot.QA430
@@ -60,12 +62,13 @@ namespace QA40xPlot.QA430
 		public string ToSuffix(bool addVolt, bool hasQa430)
 		{
 			string sout = string.Empty;
+			var aload = QA430Model.FormatLoad(Load);
 			if (hasQa430)
 			{
 				if (SupplyN == SupplyP)
-					sout = $"{Load};{SupplyP}V;Gain={Gain}";
+					sout = $"{aload};{SupplyP}VDC;Gain={Gain}";
 				else
-					sout = $"{Load};{SupplyP}V|{SupplyN}V;Gain={Gain}";
+					sout = $"{aload};+{SupplyP}|-{SupplyN}VDC;Gain={Gain}";
 				if (addVolt)
 					sout = sout + ";@" + GenVoltFmt;
 			}
@@ -94,6 +97,7 @@ namespace QA40xPlot.QA430
 		// use fixed rails
 		// current sense enable
 		// supply enable
+		public static List<string> DistortionConfigs { get; } = ["Config6b", "Config7b", "Config4b", "Config5b"];
 
 		// choice names for combo boxes
 		public static List<string> NegInputs { get; } = new() { "Signal + 499 Ω", "Gnd + 4.99 Ω", "Open", "Signal + 4.99K Ω", "Gnd + 499 Ω" };
@@ -467,6 +471,15 @@ namespace QA40xPlot.QA430
 			return false;
 		}
 
+		internal async Task PrepareDefault()
+		{
+			SetOpampConfig("Config6a");
+			UseFixedRails = true;
+			LoadOption = (short)QA430Model.LoadOptions.Open;
+			// now that the QA430 relays are set, wait a bit...
+			await WaitForQA430Relays();
+		}
+
 		public void ShowRegisters(string also = "")
 		{
 			var qausb = Qa430Usb.Singleton;
@@ -505,62 +518,113 @@ namespace QA40xPlot.QA430
 			}
 		}
 
-		public List<AcquireStep> ExpandLoadOptions(List<AcquireStep> srcSteps, bool[] whom)
+		public static string FormatLoad(LoadOptions load)
 		{
-			List<AcquireStep> newSteps = new List<AcquireStep>();
-			var u = whom.Count(x => x);
-			if (u == 0)
-				return newSteps;    // nothing selected
+			if (load == LoadOptions.Open)
+				return "Open";
+			else if (load == LoadOptions.R2000)
+				return "2000Ω";
+			else if (load == LoadOptions.R604)
+				return "604Ω";
+			else if (load == LoadOptions.R470)
+				return "470Ω";
+			else
+				return "Unknown";
+		}
 
-			foreach (var step in srcSteps)
+		public List<AcquireStep> ExpandLoadOptions(List<AcquireStep> srcSteps, string whom)
+		{
+			var items = SelectItemList.ParseList(whom, 0).Where(x => x.IsSelected).ToList();
+			if(items == null || items.Count == 0)
+				return srcSteps;    // nothing selected
+
+			List<AcquireStep> newSteps = new List<AcquireStep>();
+			foreach (var item in items)
 			{
-				var ldo = Enum.GetValues(typeof(LoadOptions)).Cast<LoadOptions>().ToList();
-				int whoIdx = 0;
-				foreach (var ldoopt in ldo)
+				object? value = 0;
+				var vname = item.Name.TrimEnd('Ω').TrimEnd();
+				if (vname != "Open")
+					vname = "R" + vname;
+				Enum.TryParse(typeof(LoadOptions), vname, true,out value);
+				if(value == null)
+					continue;
+				LoadOptions ldoopt = (LoadOptions)value;
+				var newlist = srcSteps.Select(s =>
 				{
-					if (!whom[whoIdx++])
-						continue;
-					var stp = new AcquireStep(step);
+					var stp = new AcquireStep(s);
 					stp.Load = ldoopt;
-					newSteps.Add(stp);
-				}
+					return stp;
+				}).ToList();
+				newSteps.AddRange(newlist);
 			}
 			return newSteps;
 		}
 
-		public List<AcquireStep> ExpandGainOptions(List<AcquireStep> srcSteps, bool[] whom)
+		private QA430Config? GainToConfig(int gainValue)
 		{
-			List<AcquireStep> newSteps = new List<AcquireStep>();
-			var u = whom.Count(x => x);
-			if (u == 0)
-				return newSteps;    // nothing selected
-
-			foreach (var step in srcSteps)
+			QA430Model? model430 = Qa430Usb.Singleton?.QAModel;
+			foreach(var config in DistortionConfigs)
 			{
-				string[] ldo = ["Config6b", "Config7b", "Config4b", "Config5b"];
-				int whoIdx = 0;
-				foreach (var ldoopt in ldo)
+				QA430Config? cfg = model430?.FindOpampConfig(config);
+				if(cfg?.CfgGain == gainValue)
 				{
-					if (!whom[whoIdx++])
-						continue;
-					QA430Model? model430 = Qa430Usb.Singleton?.QAModel;
-					var config = model430?.FindOpampConfig(ldoopt);
+					return cfg;
+				}
+			}
+			return model430?.FindOpampConfig("Config6b"); // default
+		}
+
+		public List<AcquireStep> ExpandGainOptions(List<AcquireStep> srcSteps, string gainOpts)
+		{
+			var gainSet = SelectItemList.ParseList(gainOpts, 0).Where(x => x.IsSelected).ToList();        // convert to a list of items
+			if ((gainSet == null || gainSet.Count == 0))
+			{
+				return srcSteps;
+			}
+			List<AcquireStep> newSteps = new List<AcquireStep>();
+			foreach(var opt in gainSet)
+			{
+				var gain = MathUtil.ToDouble(opt.Name, -150);
+				var cfg = GainToConfig((int)gain);
+				if (cfg == null)
+					continue;
+				foreach (var step in srcSteps)
+				{
+					// for different gain we --
+					// have to change the configuration name and the distortion gain
 					var stp = new AcquireStep(step);
-					stp.Cfg = ldoopt;
-					stp.Gain = config?.CfgGain ?? 1;
-					stp.Distgain = config?.CfgDistgain ?? 1;
+					stp.Cfg = cfg?.Name ?? string.Empty;
+					stp.Gain = (int)gain;
+					stp.Distgain = cfg?.CfgDistgain ?? 1;
 					newSteps.Add(stp);
 				}
 			}
+
 			return newSteps;
 		}
 
-		public List<AcquireStep> ExpandSupplyOptions(List<AcquireStep> srcSteps, List<(double, double)> values)
+		public List<AcquireStep> ExpandSupplyOptions(List<AcquireStep> srcSteps, string supplyOpts)
 		{
+			var supplySet = SelectItemList.ParseList(supplyOpts, 0);
+
+			List<(double, double)> supplies = new();
+			// parse the entries
+			foreach (var voltage in supplySet.SelectedNames())
+			{
+				var avolt = voltage.Split(['|', '_', '*']);
+				double voltp = 15;
+				if (avolt.Length > 0)
+					voltp = MathUtil.ToDouble(avolt[0], 15);
+				var voltn = voltp;
+				if (avolt.Length > 1)
+					voltn = MathUtil.ToDouble(avolt[1], 15);
+				supplies.Add((voltp, voltn));
+			}
+
 			List<AcquireStep> newSteps = new List<AcquireStep>();
 			foreach (var step in srcSteps)
 			{
-				foreach (var supplyOpt in values)
+				foreach (var supplyOpt in supplies)
 				{
 					var stp = new AcquireStep(step);
 					stp.SupplyP = supplyOpt.Item1;

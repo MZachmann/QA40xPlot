@@ -1,0 +1,40 @@
+﻿<UserControl x:Class="QA40xPlot.Views.ComboDrop"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:QA40xPlot.Views"
+             mc:Ignorable="d" 
+             x:Name="MySelf"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="1" Margin="0,2,0,2" >
+            <ComboBox x:Name="cbCombo" Text="{Binding TheText, ElementName=MySelf}" 
+                                ToolTip="{Binding TheText, ElementName=MySelf}"
+                                IsEditable="True" 
+                                ItemsSource="{Binding TheSource, ElementName=MySelf}"
+                                MaxWidth="120" MinWidth="80" HorizontalAlignment="Left" 
+                            Grid.Row="2" Grid.Column="1" />
+            <Button Content="▼" Click="DownButton_Click" Margin="2,1" IsEnabled="{Binding IsOpen, ElementName=ThePopup, Converter={StaticResource InvBoolConverter}}"/>
+        </StackPanel>
+        <Popup x:Name="ThePopup" PlacementTarget="{Binding ElementName=cbCombo}" StaysOpen="False"
+                               Closed="ThePopup_Closed" >
+            <Border BorderThickness="1" >
+                <ListBox ItemsSource="{Binding ItemsSet, ElementName=MySelf}" MinWidth="150">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox Content="" IsChecked="{Binding IsSelected}" />
+                                <ComboBox MinWidth="100"
+                                        VerticalContentAlignment="Center"
+                                        Text="{Binding Name}"
+                                        IsEditable="{Binding IsEditable, ElementName=MySelf}" 
+                                        ItemsSource="{Binding TheSource, ElementName=MySelf}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Border>
+        </Popup>
+    </Grid>
+</UserControl>

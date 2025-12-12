@@ -408,6 +408,29 @@ namespace QA40xPlot.Actions
 			return avenoise / Math.Sqrt(binSize);   // ? i think
 		}
 
+		private (int,double) CalculateAttenuation(double voltage, BaseViewModel bvm, 
+			int[] frqtest, LeftRightFrequencySeries LRGains)
+		{
+			// to figure out attenuation use the first gen voltage
+			var voltx = voltage.ToString();
+			var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
+			var genVolt = bvm.ToGenVoltage(voltx, frqtest, GEN_INPUT, gains);   // input voltage for request
+			// ********************************************************************
+			// Determine input level for attenuation
+			// we know that all settings of the QA430 have defined gain so that
+			// we can calculate the required attenuation up front and then vary the driving voltage
+			// to keep constant output voltage no matter configuration
+			// ********************************************************************
+			var genOutL = ToGenOutVolts(genVolt, frqtest, LRGains.Left);   // output voltage for request left channel
+			var genOutR = ToGenOutVolts(genVolt, frqtest, LRGains.Right);   // output voltage for request right channel
+			var genOut = Math.Max(genOutL, genOutR);    // use both channels max value to get attenuation value
+			double amplifierOutputVoltagedBV = QaLibrary.ConvertVoltage(genOut, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+
+			// Get input voltage based on desired output voltage
+			var attenuation = QaLibrary.DetermineAttenuation(amplifierOutputVoltagedBV);
+			return (attenuation, genVolt);
+		}
+
 		public async Task<bool> RunAcquisition()
 		{
 			var freqVm = MyVModel;          // the active viewmodel
@@ -438,11 +461,7 @@ namespace QA40xPlot.Actions
 				var model = Qa430Usb.Singleton?.QAModel;
 				if (model != null)
 				{
-					model.SetOpampConfig("Config6a");
-					model.UseFixedRails = true;
-					model.LoadOption = (short)QA430Model.LoadOptions.Open;
-					// now that the QA430 relays are set, wait a bit...
-					await model.WaitForQA430Relays();
+					await model.PrepareDefault();
 				}
 			}
 
@@ -450,36 +469,18 @@ namespace QA40xPlot.Actions
 			if (LRGains == null)
 				return false;
 
-			var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
 			int[] frqtest = [ToBinNumber(startFreq, LRGains), ToBinNumber(endFreq, LRGains)];
 			double[] stepBinFrequencies = [];
 			double binSize = 0;
 			// here they are in the format of the generator test...
-			var voltValues = vm.Voltsets.SelectedValues(true).ToList();
+			var voltValues = SelectItemList.ParseList(vm.VoltSummary, 0).Where(x => x.IsSelected).ToList();
+			if(voltValues.Count == 0)
+			{
+				await showMessage("No generator voltages specified!", 200);
+				return false;
+			}
 			try
 			{
-				// to figure out attenuation use the first gen voltage
-				var voltx = voltValues.First().ToString();
-				var genVolt = vm.ToGenVoltage(voltx, frqtest, GEN_INPUT, gains);   // input voltage for request
-				page.Definition.GeneratorVoltage = genVolt;   // set the generator voltage in the definition
-															  // ********************************************************************
-															  // Determine input level for attenuation
-															  // we know that all settings of the QA430 have defined gain so that
-															  // we can calculate the required attenuation up front and then vary the driving voltage
-															  // to keep constant output voltage no matter configuration
-															  // ********************************************************************
-				var genOut = ToGenOutVolts(genVolt, frqtest, gains);   // output voltage for request
-				double amplifierOutputVoltagedBV = QaLibrary.ConvertVoltage(genOut, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-
-				// Get input voltage based on desired output voltage
-				var attenuation = QaLibrary.DetermineAttenuation(amplifierOutputVoltagedBV);
-				await showMessage($"Setting attenuation to {attenuation:0}", 200);
-
-				// Set the new input range
-				MyVModel.Attenuation = attenuation;   // visible display
-				vm.Attenuation = attenuation;         // my setting
-				await QaComm.SetInputRange(attenuation);
-
 				// Check if cancel button pressed
 				if (CanToken.IsCancellationRequested)
 					return false;
@@ -502,7 +503,7 @@ namespace QA40xPlot.Actions
 				// ********************************************************************  
 				// Load a settings we want since we're done autoscaling
 				// ********************************************************************  
-				if (true != await QaComm.InitializeDevice(vm.SampleRateVal, vm.FftSizeVal, vm.WindowingMethod, attenuation))
+				if (true != await QaComm.InitializeDevice(vm.SampleRateVal, vm.FftSizeVal, vm.WindowingMethod, 42))
 					return false;
 			}
 			catch (Exception ex)
@@ -514,62 +515,50 @@ namespace QA40xPlot.Actions
 			// now do the measurement stuff
 			try
 			{
-				var variables = new List<AcquireStep>()
-				{
-					new AcquireStep() { Cfg = "Config6b", Load = QA430Model.LoadOptions.Open, Gain = 1, Distgain=101, SupplyP = 15, SupplyN = 15 }    // unity 16b with 101 dist gain
-				};
+				// enumerate the sweeps we are going to do
+				var step = new AcquireStep() { Cfg = "Config6b", Load = QA430Model.LoadOptions.Open, Gain = 1, Distgain = 101, SupplyP = 15, SupplyN = 15 };    // unity 16b with 101 dist gain
 				if (!vm.HasQA430)
 				{
-					var u = variables[0];
-					u.Distgain = 1;
-					variables[0] = u;
+					step.Distgain = 1;
 				}
+				var variables = new List<AcquireStep>() { step };
 
 				QA430Model? model430 = vm.HasQA430 ? Qa430Usb.Singleton?.QAModel : null;
-
-				if (vm.VaryLoad && model430 != null)
+				if (model430 != null)
 				{
-					bool[] useOption = freqVm.Loadsets.Select(x => x.IsSelected).ToArray();
-					variables = model430.ExpandLoadOptions(variables, useOption) ?? variables;
-				}
-
-				if (vm.VaryGain && model430 != null)
-				{
-					bool[] useOption = freqVm.Gainsets.Select(x => x.IsSelected).ToArray();
-					variables = model430.ExpandGainOptions(variables, useOption) ?? variables;
-				}
-
-				if (vm.VarySupply && model430 != null)
-				{
-					var voltages = vm.Supplysets.SelectedNames(true);
-					List<(double, double)> supplies = new();
-					// parse the entries
-					foreach (var voltage in voltages)
+					if (vm.VaryLoad)
 					{
-						var avolt = voltage.Split(['|', '_', '*']);
-						double voltp = 15;
-						if (avolt.Length > 0)
-							voltp = ToD(avolt[0], 15);
-						var voltn = voltp;
-						if (avolt.Length > 1)
-							voltn = ToD(avolt[1], 15);
-						supplies.Add((voltp, voltn));
+						variables = model430.ExpandLoadOptions(variables, freqVm.LoadSummary) ?? variables;
 					}
-					variables = model430.ExpandSupplyOptions(variables, supplies) ?? variables;
+
+					if (vm.VaryGain)
+					{
+						variables = model430.ExpandGainOptions(variables, freqVm.GainSummary) ?? variables;
+					}
+
+					if (vm.VarySupply)
+					{
+						variables = model430.ExpandSupplyOptions(variables, freqVm.SupplySummary) ?? variables;
+					}
 				}
 
 				// now expand the generator voltage options
 				{
-					var vnew = new List<AcquireStep>();
-					for (int i = 0; i < variables.Count; i++)
+					var voltSet = SelectItemList.ParseList(freqVm.VoltSummary, 0).Where(x => x.IsSelected).ToList();
+					if(voltSet.Count == 0)
 					{
-						foreach (var v in voltValues)
-						{
-							var vl = variables[i];
-							vl.GenVolt = v;
-							vl.GenVoltFmt = (vm.IsGenPower ? MathUtil.FormatPower(v) : MathUtil.FormatVoltage(v));
-							vnew.Add(vl);
-						}
+						await showMessage("No generator voltages specified!", 200);
+						return false;
+					}
+					var vnew = new List<AcquireStep>();
+					foreach (var v in voltValues)
+					{
+						var vval = MathUtil.ToDouble(v.Name, 0.1);
+						var vnewlist = variables.Select(x => { 
+							x.GenVolt = vval;
+							x.GenVoltFmt = (vm.IsGenPower ? MathUtil.FormatPower(vval) : MathUtil.FormatVoltage(vval));
+							return x; }).ToList();
+						vnew.AddRange(vnewlist);
 					}
 					variables = vnew;
 				}
@@ -608,18 +597,18 @@ namespace QA40xPlot.Actions
 						await model.WaitForQA430Relays();
 					}
 					// sweeping generator voltage as well
-					var genVolt = vm.ToGenVoltage(myConfig.GenVolt.ToString(), frqtest, GEN_INPUT, gains);   // input voltage for request
-					page.Definition.GeneratorVoltage = genVolt;   // set the generator voltage in the definition
-					var genOut = ToGenOutVolts(genVolt, frqtest, gains);   // output voltage for request
-					double amplifierOutputVoltagedBV = QaLibrary.ConvertVoltage(genOut, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-
-					// Get input voltage based on desired output voltage
-					var attenuation = QaLibrary.DetermineAttenuation(amplifierOutputVoltagedBV);
+					var attenset = CalculateAttenuation(myConfig.GenVolt, vm, frqtest, LRGains);
+					var attenuation = attenset.Item1;
+					var genVolt = attenset.Item2;
+					page.Definition.GeneratorVoltage = genVolt;
 
 					// Set the new input range
+					if(attenuation != QaComm.GetInputRange())
+					{
+						await QaComm.SetInputRange(attenuation);
+					}
 					MyVModel.Attenuation = attenuation;   // visible display
 					vm.Attenuation = attenuation;         // my setting
-					await QaComm.SetInputRange(attenuation);
 
 					// ********************************************************************
 					// Do noise floor measurement
@@ -887,7 +876,7 @@ namespace QA40xPlot.Actions
 				plot.MarkerSize = markerSize;
 				plot.LegendText = legendText;
 				plot.LinePattern = linePattern;
-				MyVModel.LegendInfo.Add(new MarkerItem(linePattern, plot.Color, legendText, colorIndex));
+				MyVModel.LegendInfo.Add(new MarkerItem(linePattern, plot.Color, legendText, colorIndex, plot, swpPlot));
 			}
 
 			// which columns are we displaying? left, right or both
@@ -971,7 +960,5 @@ namespace QA40xPlot.Actions
 				}
 			}
 		}
-
-
 	}
 }

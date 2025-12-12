@@ -184,7 +184,7 @@ namespace QA40xPlot.ViewModels
 
 		public static void UpdateVoltages()
 		{
-			MyVModel.RaisePropertyChanged("VoltageDisplay");
+			MyVModel.RaisePropertyChanged("VoltSummary");
 		}
 
 		// the property change is used to trigger repaints of the graph
@@ -480,7 +480,13 @@ namespace QA40xPlot.ViewModels
 			ToShowdB = ShowPercent ? Visibility.Collapsed : Visibility.Visible;
 			ToShowRange = ShowPercent ? Visibility.Visible : Visibility.Collapsed;
 			// make a few things happen to synch the gui
-			Task.Delay(1000).ContinueWith(t => { MyAction?.UpdateGraph(true); });
+			Task.Delay(1000).ContinueWith(_ =>
+			{
+				Application.Current.Dispatcher.Invoke(() =>
+				{
+					MyAction?.UpdateGraph(true);
+				});
+			});
 		}
 	}
 }

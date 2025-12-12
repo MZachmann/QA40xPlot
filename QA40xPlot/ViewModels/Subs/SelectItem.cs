@@ -6,6 +6,7 @@ namespace QA40xPlot.ViewModels
 	public class SelectItemList : ObservableCollection<SelectItem>
 	{
 		static public readonly char Delimit = ';';
+		static public readonly char NoUse = '~';
 
 		/// <summary>
 		/// convert a list of selectable items to a single string
@@ -13,13 +14,18 @@ namespace QA40xPlot.ViewModels
 		/// </summary>
 		/// <param name="ifnone"></param>
 		/// <returns></returns>
-		public string ParseableList(string ifnone)
+		public string ParseableList(string ifnone, bool isEditable = true)
 		{
 			if (!this.Any())
 			{
 				this.Add(new SelectItem(true, ifnone));
 			}
-			var jn = this.Select(x => (x.IsSelected ? "+" : "") + x.Name);
+			var alist = this.Where(x => x.Name.Length > 0);
+			if(!isEditable)
+			{
+				alist = alist.Where(x => x.IsSelected);
+			}
+			var jn = alist.Select(x => (x.IsSelected ? "" : NoUse) + x.Name);
 			return string.Join(Delimit, jn);
 		}
 
@@ -40,15 +46,15 @@ namespace QA40xPlot.ViewModels
 				{
 					if (u[i].Length > 0)
 					{
-						if ('+' == u[i][0])
-							vout.Add(new SelectItem(true, u[i].Substring(1)));
+						if (SelectItemList.NoUse == u[i][0])
+							vout.Add(new SelectItem(false, u[i].Substring(1)));
 						else
-							vout.Add(new SelectItem(false, u[i]));
+							vout.Add(new SelectItem(true, u[i]));
 					}
 				}
 				for (; i < minNumItems; i++)
 				{
-					vout.Add(new SelectItem(false, i.ToString()));
+					vout.Add(new SelectItem(true, string.Empty));
 				}
 			}
 			return vout;

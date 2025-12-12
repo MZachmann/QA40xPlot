@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using ScottPlot;
+using System.Collections.ObjectModel;
 
 namespace QA40xPlot.Data
 {
@@ -17,6 +18,9 @@ namespace QA40xPlot.Data
 		internal ScottPlot.Color TheColor { get; set; }
 		internal string Label { get; set; }
 		internal int ColorIdx { get; set; }
+		internal bool IsShown { get; set; }
+		internal ScottPlot.Plottables.SignalXY? Signal { get; set; }
+		internal Views.PlotControl? ThePlot { get; set; }
 
 		internal MarkerItem()
 		{
@@ -24,14 +28,20 @@ namespace QA40xPlot.Data
 			TheColor = ScottPlot.Colors.Black;
 			Label = string.Empty;
 			ColorIdx = 0;
+			IsShown = true;
+			Signal = null;
+			ThePlot = null;
 		}
 
-		internal MarkerItem(ScottPlot.LinePattern pattern, ScottPlot.Color color, string label, int idx)
+		internal MarkerItem(ScottPlot.LinePattern pattern, ScottPlot.Color color, string label, int idx, ScottPlot.Plottables.SignalXY? signal = null, Views.PlotControl? thePlot = null)
 		{
 			ThePattern = pattern;
 			TheColor = color;
 			Label = label;
 			ColorIdx = idx;
+			IsShown = true;
+			Signal = signal;
+			ThePlot = thePlot;
 		}
 	}
 }

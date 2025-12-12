@@ -33,67 +33,27 @@
                         </Grid.RowDefinitions>
                         <!-- do this strange StackPanel thing because dark mode messes up the checkbox alignments -->
                         <StackPanel Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center" >
-                            <CheckBox Content="Load" IsChecked="{Binding VaryLoad}" ToolTip="Default open" Margin="0,0,10,0" />
+                            <CheckBox Content="_Load" IsChecked="{Binding VaryLoad}" ToolTip="Default open" Margin="0,0,10,0" />
                         </StackPanel>
-                        <Button x:Name="LoadButton" Content="{Binding LoadSummary}" ToolTip="{Binding LoadSummary}"
-                                Width="120" Click="LoadButton_Click" HorizontalAlignment="Left" 
-                                Grid.Row="0" Grid.Column="1" />
-                        <Popup x:Name="LoadPopup" PlacementTarget="{Binding ElementName=LoadButton}" StaysOpen="False"
-                               Closed="LoadPopup_Closed" Grid.Row="0" Grid.Column="1" >
-                            <Border BorderThickness="1" >
-                                <ListBox ItemsSource="{Binding Loadsets}">
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected}" />
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
-                            </Border>
-                        </Popup>
+                        <views:ComboDrop TheText="{Binding LoadSummary}" TheSource="{Binding QaLoads}" 
+                                         IsEditable="False"
+                                         Grid.Row="0" Grid.Column="1" 
+                                         />
                         <StackPanel Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center" >
                             <CheckBox Content="Gain" IsChecked="{Binding VaryGain}" ToolTip="Default 1"  Margin="0,0,10,0" />
                         </StackPanel>
-                        <Button x:Name="GainButton" Content="{Binding GainSummary}" ToolTip="{Binding GainSummary}"
-                                HorizontalAlignment="Left"
-                                Width="120" Click="GainButton_Click" Grid.Row="1" Grid.Column="1"/>
-                        <Popup x:Name="GainPopup" PlacementTarget="{Binding ElementName=GainButton}" StaysOpen="False"
-                             Closed="GainPopup_Closed" >
-                            <Border BorderThickness="1" >
-                                <ListBox ItemsSource="{Binding Gainsets}">
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected}" />
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
-                            </Border>
-                        </Popup>
+                        <views:ComboDrop TheText="{Binding GainSummary}" TheSource="{Binding QaGains}" 
+                                         IsEditable="False"
+                                         Grid.Row="1" Grid.Column="1" 
+                                         />
                         <StackPanel Grid.Row="2" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center">
                             <CheckBox Content="Supply" IsChecked="{Binding VarySupply}" Margin="0,0,10,0" 
                                       ToolTip="{Binding SupplyTip}" />
                         </StackPanel>
-                        <Button x:Name="cbSupply" Content="{Binding SupplyDisplay}" ToolTip="{Binding SupplyDisplay}"
-                                Margin="0,2,10,2"
-                                Width="120" Click="SupplyButton_Click" HorizontalAlignment="Left" 
-                                Grid.Row="2" Grid.Column="1" />
-                        <Popup x:Name="SupplyPopup" PlacementTarget="{Binding ElementName=cbSupply}" StaysOpen="False"
-                               Closed="SupplyPopup_Closed" >
-                            <Border BorderThickness="1" >
-                                <ListBox ItemsSource="{Binding Supplysets}" MinWidth="150">
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Orientation="Horizontal">
-                                                <CheckBox Content="" IsChecked="{Binding IsSelected}" />
-                                                <ComboBox MinWidth="100"
-                                                  VerticalContentAlignment="Center"
-                                                  Text="{Binding Name}"
-                                                  IsEditable="True" ItemsSource="{Binding DataContext.GenVoltages, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
-                            </Border>
-                        </Popup>
+                        <views:ComboDrop TheText="{Binding SupplySummary}" TheSource="{Binding GenVoltages}" 
+                                         IsEditable="True"
+                                         Grid.Row="2" Grid.Column="1" 
+                                         />
                         <Label Content="V" Grid.Row="2" Grid.Column="2" />
                     </Grid>
                 </Expander>
@@ -120,28 +80,10 @@
                         </ComboBox>
                         <Label Content="{Binding GenAmpDescript, Mode=OneWay}" Target="{Binding ElementName=cbVolt}" 
                            HorizontalAlignment="Right" VerticalAlignment="Center"  Grid.Column="0" Grid.Row="1" />
-                        <Button x:Name="cbVolt" Content="{Binding VoltageDisplay}" ToolTip="{Binding VoltageDisplay}"
-                                Margin="0,2,10,2"
-                                Width="120" Click="VoltButton_Click" HorizontalAlignment="Left" 
-                                Grid.Row="1" Grid.Column="1" />
-                            <Popup x:Name="VoltPopup" PlacementTarget="{Binding ElementName=cbVolt}" StaysOpen="False"
-                               Closed="VoltPopup_Closed" >
-                            <Border BorderThickness="1" >
-                                <ListBox ItemsSource="{Binding Voltsets}" MinWidth="150">
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Orientation="Horizontal">
-                                                <CheckBox Content="" IsChecked="{Binding IsSelected}" />
-                                                <ComboBox MinWidth="100"
-                                                  VerticalContentAlignment="Center"
-                                                  Text="{Binding Name}"
-                                                  IsEditable="True" ItemsSource="{Binding DataContext.GenVoltages, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
-                            </Border>
-                        </Popup>
+                        <views:ComboDrop TheText="{Binding VoltSummary}" TheSource="{Binding GenVoltages}" 
+                                        IsEditable="True"
+                                        Grid.Row="1" Grid.Column="1" 
+                                        />
                         <Button BorderThickness="0,0,0,1" Command="{Binding ShowMenuCommand}" Grid.Row="1" Grid.Column="2" 
                                 CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
                                 Margin="5,0,5,0" MinWidth="20"

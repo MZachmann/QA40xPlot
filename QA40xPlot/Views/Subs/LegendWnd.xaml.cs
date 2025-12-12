@@ -1,9 +1,11 @@
-﻿using QA40xPlot.Libraries;
+﻿using QA40xPlot.Data;
+using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using QA40xPlot.ViewModels.Subs;
 using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Media;
 
 namespace QA40xPlot.Views
@@ -79,6 +81,22 @@ namespace QA40xPlot.Views
 				_MovableWnd.OnWindMouseMove(sender, e);
 		}
 
+		private static void DoIsChecked(MarkerItem mark, bool isChecked)
+		{
+			mark.IsShown = isChecked;
+			if(mark.Signal != null)
+
+			{
+				mark.Signal.IsVisible = isChecked;
+				if(mark.ThePlot != null)
+				{
+					mark.ThePlot.Refresh();
+				}
+			}
+			// update viewable line segment
+
+		}
+
 		private void PopulateLegends()
 		{
 			var baseview = DataContext as BaseViewModel;
@@ -98,6 +116,21 @@ namespace QA40xPlot.Views
 				};
 				var clr = PlotUtil.ScottToMedia(marker.TheColor);
 				var stkArray = PlotUtil.ScottToMedia(marker.ThePattern);
+				// Create a binding object
+				var bx = new CheckBox()
+				{
+					Width = 20,
+					Height = 20,
+					BorderBrush = Brushes.Gray,
+					BorderThickness = new Thickness(1),
+					Margin = new Thickness(0, 0, 0, 0),
+					VerticalAlignment = VerticalAlignment.Center,
+					IsChecked = marker.IsShown,
+					IsEnabled = marker.ThePlot != null
+				};
+				bx.Checked += (s,e) => DoIsChecked(marker, true);
+				bx.Unchecked += (s, e) => DoIsChecked(marker, false);
+				kid.Children.Add(bx);
 				var lne = new System.Windows.Shapes.Line()
 				{
 					Stroke = new System.Windows.Media.SolidColorBrush(clr),
@@ -133,11 +166,9 @@ namespace QA40xPlot.Views
 				var st = kid as StackPanel;
 				// bump each textbox to be same width
 				if (st != null)
-					((TextBox)st.Children[1]).Width = maxSize;
+					((TextBox)st.Children[2]).Width = maxSize;
 			}
 			// now make the panel at most 10xn
-			//maxSize += 50;  // add line length
-			//LegendWrapPanel.MaxWidth = maxSize + (maxSize * (int)(info.Count / 10));
 			LegendWrapPanel.MaxHeight = isSmall ? 165 : 250; // gives us 9 per column
 		}
 	}

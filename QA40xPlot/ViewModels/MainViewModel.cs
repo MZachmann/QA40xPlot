@@ -19,8 +19,8 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public List<string> PageNames { get; } = new List<string>
 		{
-			"Spectrum",	"Intermodulation","Scope", "ThdFreq",
-			"ThdAmp", "Response", "Opamp.Freq", "Opamp.Amp",
+			"Spectrum",	"Intermodulation","Scope", "ThdFreq", "Opamp.Freq",
+			"ThdAmp", "Response", "Opamp.Amp",
 			"Settings", "Impedance", "Crosstalk", "Gain",
 		};
 		[JsonIgnore]

@@ -68,22 +68,21 @@
                         <MenuItem Header="_Intermodulation" Command="{Binding SetPlotPage}" CommandParameter="Intermodulation" />
                         <MenuItem Header="Sco_pe" Command="{Binding SetPlotPage}" CommandParameter="Scope" />
                         <MenuItem Header="THD vs _Frequency" Command="{Binding SetPlotPage}" CommandParameter="ThdFreq" />
+                        <MenuItem Header="THD vs Frequency II" Command="{Binding SetPlotPage}" CommandParameter="Opamp.Freq" />
                         <MenuItem Header="THD vs _Amplitude" Command="{Binding SetPlotPage}" CommandParameter="ThdAmp" />
                         <MenuItem Header="Frequency _Response" Command="{Binding SetPlotPage}" CommandParameter="Response" />
                         <MenuItem Header="S_ettings" Command="{Binding SetPlotPage}" CommandParameter="Settings" />
                         <!--<MenuItem Header="I_mpedance" Command="{Binding SetPlotPage}" CommandParameter="Response" />
                     <MenuItem Header="_Crosstalk" Command="{Binding SetPlotPage}" CommandParameter="Response" />
                     <MenuItem Header="_Gain" Command="{Binding SetPlotPage}" CommandParameter="Response" />-->
-                        <MenuItem Header="Opamp vs Frequency" Command="{Binding SetPlotPage}" 
-                          CommandParameter="Opamp.Freq"
-                          Visibility="{Binding ShowQA430, Converter={StaticResource BoolVisConverter}}"
-                          />
                         <MenuItem Header="Opamp vs Amplitude" Command="{Binding SetPlotPage}"
                           CommandParameter="Opamp.Amp"
                           Visibility="{Binding ShowQA430, Converter={StaticResource BoolVisConverter}}"
                           />
                     </MenuItem>
                     <MenuItem Header="_Command">
+                        <MenuItem Header="Show _QA430" Click="OnQA430" Margin="4,2,4,2" 
+                                  Visibility="{Binding ShowQA430, Converter={StaticResource BoolVisConverter}}"/>
                         <MenuItem Header="_Help" Click="OnHelp" />
                         <MenuItem Header="_Photo" Command="{Binding DoPhoto}" />
                         <MenuItem Header="_Export Data" Command="{Binding DoExport}" />
@@ -129,6 +128,11 @@
                     <views:ThdFreqPlotPage  />
                 </Grid>
             </TabItem>
+            <TabItem Header="THD vs Frequency II" Name="freqsweep"  MaxWidth="{Binding MaxTab}" >
+                <Grid Background="{Binding Background, Mode=OneWay}">
+                    <views:FreqSweepPlotPage  />
+                </Grid>
+            </TabItem>
             <TabItem Header="THD vs Amplitude" Name="tva" MaxWidth="{Binding MaxTab}">
                 <Grid Background="{Binding Background, Mode=OneWay}">
                     <views:ThdAmpPlotPage  />
@@ -137,12 +141,6 @@
             <TabItem Header="{Binding FreqRespHdr}" Name="freqresp"  MaxWidth="{Binding MaxTab}" >
                 <Grid Background="{Binding Background, Mode=OneWay}">
                     <views:FreqRespPlotPage  />
-                </Grid>
-            </TabItem>
-            <TabItem Header="Opamp.Freq" Name="freqsweep"  MaxWidth="{Binding MaxTab}"
-                     Visibility="{Binding ShowQA430, Converter={StaticResource BoolVisConverter}}" >
-                <Grid Background="{Binding Background, Mode=OneWay}">
-                    <views:FreqSweepPlotPage  />
                 </Grid>
             </TabItem>
             <TabItem Header="Opamp.Amp" Name="ampsweep"  MaxWidth="{Binding MaxTab}"

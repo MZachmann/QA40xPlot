@@ -995,7 +995,8 @@ namespace QA40xPlot.ViewModels
 			if (changed == null)
 				return;
 			var md = InputManager.Current.PrimaryMouseDevice;
-			changed.Invoke(this, new MouseEventArgs(md, Environment.TickCount));
+			if(md != null)
+				changed.Invoke(this, new MouseEventArgs(md, Environment.TickCount));
 		}
 
 		/// <summary>

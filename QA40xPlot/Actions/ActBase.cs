@@ -225,7 +225,13 @@ namespace QA40xPlot.Actions
 			bvm.HasSave = true; // set the save flag
 			if (!bvm.KeepMiniPlots)
 			{
-				_ = Task.Delay(1000).ContinueWith(x => bvm.ShowMiniPlots = false); // disable mini plots after a second
+				await Task.Delay(100).ContinueWith(_ =>
+				{
+					Application.Current.Dispatcher.Invoke(() =>
+					{
+						bvm.ShowMiniPlots = false;
+					});
+				});
 			}
 			FrequencyHistory.Clear();   // empty averaging history
 		}
