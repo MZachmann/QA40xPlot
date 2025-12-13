@@ -264,6 +264,17 @@ namespace QA40xPlot.Actions
 			return QaLibrary.GetBinOfFrequency(dFreq, (lrGain?.Df ?? 1));
 		}
 
+		// what to use for gain calculations at the start of an action
+		private static uint GainFftSize(uint testFftSize)
+		{
+			return Math.Min(65535, Math.Max(32768, testFftSize));
+		}
+		// ensure we've got at least 24Khz upper bound
+		private static uint GainSampleRate(uint testSampleRate)
+		{
+			return Math.Max(48000, testSampleRate);
+		}
+
 		protected async Task<LeftRightFrequencySeries?> MeasureNoiseFreq(BaseViewModel bvm, uint averages, CancellationToken ct, bool setRange = false)
 		{
 			bvm.GeneratorVoltage = "off"; // no generator voltage during noise measurement
@@ -332,8 +343,8 @@ namespace QA40xPlot.Actions
 		protected static async Task<LeftRightFrequencySeries?> DetermineGainAtFreq(BaseViewModel bvm, double dfreq, int average = 1)
 		{
 			// initialize very quick run
-			uint fftsize = 65536;
-			uint sampleRate = 96000;
+			uint fftsize = GainFftSize(bvm.FftSizeVal);
+			uint sampleRate = GainSampleRate(bvm.SampleRateVal);
 			// flattop windowing gives us the best fundamental value accuracy even if not bin center...
 			if (true != await QaComm.InitializeDevice(sampleRate, fftsize, "FlatTop", QaLibrary.DEVICE_MAX_ATTENUATION))
 				return null;
@@ -403,8 +414,8 @@ namespace QA40xPlot.Actions
 
 		protected static async Task<LeftRightFrequencySeries?> SubGainCurve(BaseViewModel bvm, bool inits, int average, double genV, int atten)
 		{
-			uint fftsize = 65536;
-			uint sampleRate = 96000;
+			uint fftsize = GainFftSize(bvm.FftSizeVal);
+			uint sampleRate = GainSampleRate(bvm.SampleRateVal);
 			string swindow = "Hann";        // we need a reasonable windowing no matter user request
 			bvm.Attenuation = atten;
 			await QaComm.SetInputRange(atten);
@@ -493,11 +504,11 @@ namespace QA40xPlot.Actions
 		protected static async Task<LeftRightFrequencySeries?> DetermineGainCurve(BaseViewModel bvm, bool inits, int average = 1)
 		{
 			// initialize very quick run, use 192K so valid up to 20KHz
-			uint fftsize = 65536;
-			uint sampleRate = 96000;
+			uint fftsize = GainFftSize(bvm.FftSizeVal);
+			uint sampleRate = GainSampleRate(bvm.SampleRateVal);
 			string swindow = "Hann";        // we need a reasonable windowing no matter user request
 			bvm.Attenuation = QaLibrary.DEVICE_MAX_ATTENUATION; // try this out
-			if (true != await QaComm.InitializeDevice(sampleRate, fftsize, swindow, (int)bvm.Attenuation))
+			if (true != await QaComm.InitializeDevice(sampleRate, fftsize, swindow, (int)42))
 				return null;
 			// try at 0.01 volt generator and 42dB attenuation
 			var lrfs = await SubGainCurve(bvm, inits, average, 0.01, (int)bvm.Attenuation);

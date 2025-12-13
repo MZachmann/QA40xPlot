@@ -37,5 +37,5 @@ namespace QA40xPlot.Views
 			FreqSweepViewModel.UpdateSupplies();
 		}
 
-	}
+    }
 }

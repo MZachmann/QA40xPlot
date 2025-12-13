@@ -1,4 +1,5 @@
-﻿using QA40xPlot.BareMetal;
+﻿using OpenTK.Compute.OpenCL;
+using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.QA430;
@@ -91,7 +92,7 @@ namespace QA40xPlot.Actions
 
 		private double[] ColumnToArray(FreqSweepColumn col)
 		{
-			return new double[] { col.Freq, col.Mag, col.Phase, col.THD, col.THDN, col.Noise, col.GenVolts };
+			return new double[] { col.Freq, col.Mag, col.Phase, col.THD, col.THDN, col.Noise, col.GenVolts, col.D2, col.D3, col.D4, col.D5, col.D6P };
 		}
 
 		private FreqSweepColumn ArrayToColumn(double[] rawData, uint startIdx)
@@ -104,6 +105,11 @@ namespace QA40xPlot.Actions
 			col.THDN = rawData[startIdx + 4];
 			col.Noise = rawData[startIdx + 5];
 			col.GenVolts = rawData[startIdx + 6];
+			col.D2 = rawData[startIdx + 7];
+			col.D3 = rawData[startIdx + 8];
+			col.D4 = rawData[startIdx + 9];
+			col.D5 = rawData[startIdx + 10];
+			col.D6P = rawData[startIdx + 11];
 			return col;
 		}
 
@@ -237,6 +243,31 @@ namespace QA40xPlot.Actions
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.Noise));
 					minY = Math.Min(minY, arsteps.Min(x => x.Noise));
+				}
+				if (specVm.ShowD2)
+				{
+					maxY = Math.Max(maxY, arsteps.Max(x => x.D2));
+					minY = Math.Min(minY, arsteps.Min(x => x.D2));
+				}
+				if (specVm.ShowD3)
+				{
+					maxY = Math.Max(maxY, arsteps.Max(x => x.D3));
+					minY = Math.Min(minY, arsteps.Min(x => x.D3));
+				}
+				if (specVm.ShowD4)
+				{
+					maxY = Math.Max(maxY, arsteps.Max(x => x.D4));
+					minY = Math.Min(minY, arsteps.Min(x => x.D4));
+				}
+				if (specVm.ShowD5)
+				{
+					maxY = Math.Max(maxY, arsteps.Max(x => x.D5));
+					minY = Math.Min(minY, arsteps.Min(x => x.D5));
+				}
+				if (specVm.ShowD6)
+				{
+					maxY = Math.Max(maxY, arsteps.Max(x => x.D6P));
+					minY = Math.Min(minY, arsteps.Min(x => x.D6P));
 				}
 				rrc.Y = minY;      // min magnitude will be min value shown
 				rrc.Height = maxY - minY;      // max voltage absolute
@@ -466,7 +497,7 @@ namespace QA40xPlot.Actions
 				}
 			}
 
-			await CalculateGainCurve(MyVModel);
+			await CalculateGainCurve(vm);
 			if (LRGains == null)
 				return false;
 
@@ -623,8 +654,8 @@ namespace QA40xPlot.Actions
 					{
 						// if attenuation has changed wait 13 cycles for sure...
 						// so noise stabilizes
-						int ncycles = Math.Max(4, (int)(2.5 * vm.SampleRateVal / vm.FftSizeVal));
-						for (int i = 0; i < ncycles; i++)
+						var nstart = DateTime.Now;
+						while ((DateTime.Now - nstart).TotalMilliseconds < 3200)
 						{
 							await MeasureNoise(MyVModel, CanToken.Token);
 						}
@@ -640,7 +671,7 @@ namespace QA40xPlot.Actions
 							page.NoiseFloor = noisy.Item1;
 							var ndbv = 20 * Math.Log10(page.NoiseFloor.Left);
 							Debug.WriteLine($"at {iii} left Noise is {page.NoiseFloor.Left}V or {ndbv}dBV");
-							iij = (Math.Abs(lastndbv - ndbv) < 0.24) ? iij + 1 : 0;
+							iij = (Math.Abs((lastndbv - ndbv)/ndbv) < .005) ? iij + 1 : 0;
 							if (iij > (newAtten ? 2 : 1))
 								break;
 							iii++;
@@ -748,11 +779,11 @@ namespace QA40xPlot.Actions
 			FreqSweepViewModel vm = msr.ViewModel;
 
 			var lrfs = msr.FreqRslt;    // frequency response
-			var maxScan = msr.FreqRslt.Df * msr.FreqRslt.Left.Length;
-			var maxf = Math.Min(ViewSettings.NoiseBandwidth, maxScan);  // opamps use 80KHz bandwidth, audio uses 20KHz
+			var maxf = .95 * msr.FreqRslt.Df * msr.FreqRslt.Left.Length;	// skip the end-gunk
+			var maxScan = Math.Min(ViewSettings.NoiseBandwidth, maxf);  // opamps use 80KHz bandwidth, audio uses 20KHz
 
-			LeftRightPair thds = QaCompute.GetThdDb(vm.WindowingMethod, lrfs, dFreq, 20.0, maxScan);
-			LeftRightPair thdN = QaCompute.GetThdnDb(vm.WindowingMethod, lrfs, dFreq, 20.0, maxf, ViewSettings.NoiseWeight);
+			LeftRightPair thds = QaCompute.GetThdDb(vm.WindowingMethod, lrfs, dFreq, 20.0, maxf);
+			LeftRightPair thdN = QaCompute.GetThdnDb(vm.WindowingMethod, lrfs, dFreq, 20.0, maxScan, ViewSettings.NoiseWeight);
 
 			var floor = msr.NoiseFloor;
 			switch (ViewSettings.NoiseWeight)
@@ -773,10 +804,27 @@ namespace QA40xPlot.Actions
 			{
 				bool bl = step == left;     // stepping left?
 				step.Freq = dFreq;
-				step.Mag = QaMath.MagAtFreq((bl ? msr.FreqRslt.Left : msr.FreqRslt.Right), msr.FreqRslt.Df, dFreq);
+				var frqsr = bl ? msr.FreqRslt.Left : msr.FreqRslt.Right;
+				step.Mag = QaMath.MagAtFreq(frqsr, msr.FreqRslt.Df, dFreq);
 				step.THD = step.Mag * Math.Pow(10, (bl ? thds.Left : thds.Right) / 20); // in volts from dB relative to mag
 				step.THDN = step.Mag * Math.Pow(10, (bl ? thdN.Left : thdN.Right) / 20); // in volts from dB relative to mag
 				step.Phase = 0;
+				step.D2 = (maxf > (2 * dFreq)) ? QaMath.MagAtFreq(frqsr, msr.FreqRslt.Df, 2 * dFreq) : 1e-10;
+				step.D3 = (maxf > (3 * dFreq)) ? QaMath.MagAtFreq(frqsr, msr.FreqRslt.Df, 3 * dFreq) : step.D2;
+				step.D4 = (maxf > (4 * dFreq)) ? QaMath.MagAtFreq(frqsr, msr.FreqRslt.Df, 4 * dFreq) : step.D3;
+				step.D5 = (maxf > (5 * dFreq)) ? QaMath.MagAtFreq(frqsr, msr.FreqRslt.Df, 5 * dFreq) : step.D4;
+				step.D6P = 0;
+				if (maxf > (6 * dFreq))
+				{
+					for (int i = 6; i < 10; i++)
+					{
+						step.D6P += (maxf > (i * dFreq)) ? QaMath.MagAtFreq(frqsr, msr.FreqRslt.Df, i * dFreq) : 0;
+					}
+				}
+				else
+				{
+					step.D6P = step.D5;
+				}
 				if (!bl)
 				{
 					if (lfrsNoise == null)
@@ -948,6 +996,21 @@ namespace QA40xPlot.Actions
 					colorNum++;
 					if (freqVm.ShowNoise)
 						AddPlot(freq, colArray.Select(x => FormVal(x.Noise, x.Mag)).ToList(), colorNum, prefix + "Noise" + subsuffix, lp);
+					colorNum++;
+					if (freqVm.ShowD2)
+						AddPlot(freq, colArray.Select(x => FormVal(x.D2, x.Mag)).ToList(), colorNum, prefix + "D2" + subsuffix, lp);
+					colorNum++;
+					if (freqVm.ShowD3)
+						AddPlot(freq, colArray.Select(x => FormVal(x.D3, x.Mag)).ToList(), colorNum, prefix + "D3" + subsuffix, lp);
+					colorNum++;
+					if (freqVm.ShowD4)
+						AddPlot(freq, colArray.Select(x => FormVal(x.D4, x.Mag)).ToList(), colorNum, prefix + "D4" + subsuffix, lp);
+					colorNum++;
+					if (freqVm.ShowD5)
+						AddPlot(freq, colArray.Select(x => FormVal(x.D5, x.Mag)).ToList(), colorNum, prefix + "D5" + subsuffix, lp);
+					colorNum++;
+					if (freqVm.ShowD6)
+						AddPlot(freq, colArray.Select(x => FormVal(x.D6P, x.Mag)).ToList(), colorNum, prefix + "D6+" + subsuffix, lp);
 				}
 				suffix = ".R.";          // second pass iff there are both channels
 				lp = isMain ? LinePattern.DenselyDashed : LinePattern.Dotted;

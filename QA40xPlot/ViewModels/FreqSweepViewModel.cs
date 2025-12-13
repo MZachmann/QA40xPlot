@@ -38,6 +38,11 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand DoUpdateLoad { get => new RelayCommand(UpdateLoad); }
 		[JsonIgnore]
 		public RelayCommand DoUpdateGain { get => new RelayCommand(UpdateGain); }
+		[JsonIgnore]
+		public RelayCommand SelectAll { get; } = new RelayCommand(DoSelectAll);
+		[JsonIgnore]
+		public RelayCommand SelectNone { get; } = new RelayCommand(DoSelectNone);
+
 		private static FreqSweepViewModel MyVModel { get => ViewSettings.Singleton.FreqVm; }
 
 		#region Setters and Getters
@@ -144,6 +149,36 @@ namespace QA40xPlot.ViewModels
 			get => _ShowNoise;
 			set => SetProperty(ref _ShowNoise, value);
 		}
+		private bool _ShowD2;
+		public bool ShowD2
+		{
+			get => _ShowD2;
+			set => SetProperty(ref _ShowD2, value);
+		}
+		private bool _ShowD3;
+		public bool ShowD3
+		{
+			get => _ShowD3;
+			set => SetProperty(ref _ShowD3, value);
+		}
+		private bool _ShowD4;
+		public bool ShowD4
+		{
+			get => _ShowD4;
+			set => SetProperty(ref _ShowD4, value);
+		}
+		private bool _ShowD5;
+		public bool ShowD5
+		{
+			get => _ShowD5;
+			set => SetProperty(ref _ShowD5, value);
+		}
+		private bool _ShowD6;
+		public bool ShowD6
+		{
+			get => _ShowD6;
+			set => SetProperty(ref _ShowD6, value);
+		}
 
 		#endregion
 
@@ -223,6 +258,11 @@ namespace QA40xPlot.ViewModels
 				case "ShowPhase":
 				case "ShowNoise":
 				case "ShowPoints":
+				case "ShowD2":
+				case "ShowD3":
+				case "ShowD4":
+				case "ShowD5":
+				case "ShowD6":
 				case "ShowThickLines":
 					MyAction?.UpdateGraph(false);
 					break;
@@ -262,6 +302,30 @@ namespace QA40xPlot.ViewModels
 				if (fvm != null)
 					fvm.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd; ;
 			}
+		}
+
+		private static void DoSelectAll()
+		{
+			MyVModel?.DoSelection(true);
+		}
+
+		private static void DoSelectNone()
+		{
+			MyVModel?.DoSelection(false);
+		}
+
+		private void DoSelection(bool isOn)
+		{
+			ShowTHD = isOn;
+			ShowTHDN = isOn;
+			ShowMagnitude = isOn;
+			ShowPhase = isOn;
+			ShowNoise = isOn;
+			ShowD2 = isOn;
+			ShowD3 = isOn;
+			ShowD4 = isOn;
+			ShowD5 = isOn;
+			ShowD6 = isOn;
 		}
 
 		// this always uses the 'global' format so others work too

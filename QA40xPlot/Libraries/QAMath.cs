@@ -49,7 +49,7 @@ namespace QA40xPlot.Libraries
 		{
 			var bin = (int)QaLibrary.GetBinOfFrequency(dFreq, df);
 			if (bin >= pts.Length)
-				return 0;
+				return 1e-10;
 			var ba = pts[bin];
 			if (bin > 0)
 				ba = Math.Max(ba, pts[bin - 1]);
