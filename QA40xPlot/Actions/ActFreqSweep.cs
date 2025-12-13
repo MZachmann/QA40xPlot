@@ -6,6 +6,7 @@ using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
+using System.Diagnostics;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
 
@@ -479,17 +480,17 @@ namespace QA40xPlot.Actions
 				await showMessage("No generator voltages specified!", 200);
 				return false;
 			}
+			// ********************************************************************
+			// Calculate frequency steps and init device
+			// ********************************************************************
 			try
 			{
 				// Check if cancel button pressed
 				if (CanToken.IsCancellationRequested)
 					return false;
 
-				// ********************************************************************
 				// Calculate frequency steps to do
-				// ********************************************************************
 				binSize = QaLibrary.CalcBinSize(vm.SampleRateVal, vm.FftSizeVal);
-				// Generate a list of frequencies
 				var stepFrequencies = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(
 					ToD(vm.StartFreq, 10), ToD(vm.EndFreq, 10000), vm.StepsOctave);
 				var maxBinFreq = vm.SampleRateVal / 4;  // nyquist over 2 since we're looking at distortion
@@ -551,13 +552,14 @@ namespace QA40xPlot.Actions
 						return false;
 					}
 					var vnew = new List<AcquireStep>();
-					foreach (var v in voltValues)
+					foreach (var v in voltSet)
 					{
 						var vval = MathUtil.ToDouble(v.Name, 0.1);
-						var vnewlist = variables.Select(x => { 
-							x.GenVolt = vval;
-							x.GenVoltFmt = (vm.IsGenPower ? MathUtil.FormatPower(vval) : MathUtil.FormatVoltage(vval));
-							return x; }).ToList();
+						var vnewlist = variables.Select(x => {
+							var ux = new AcquireStep(x);
+							ux.GenVolt = vval;
+							ux.GenVoltFmt = (vm.IsGenPower ? MathUtil.FormatPower(vval) : MathUtil.FormatVoltage(vval));
+							return ux; }).ToList();
 						vnew.AddRange(vnewlist);
 					}
 					variables = vnew;
@@ -567,6 +569,7 @@ namespace QA40xPlot.Actions
 
 				string lastCfg = string.Empty;
 				page.SweepSteps.Steps = variables.ToArray();
+				//await Task.Delay(5000);
 				// ********************************************************************
 				// loop through the variables being changed
 				// they are config name, load, gain, supply voltage
@@ -598,6 +601,7 @@ namespace QA40xPlot.Actions
 					}
 					// sweeping generator voltage as well
 					var attenset = CalculateAttenuation(myConfig.GenVolt, vm, frqtest, LRGains);
+					bool newAtten = (attenset.Item1 != MyVModel.Attenuation);
 					var attenuation = attenset.Item1;
 					var genVolt = attenset.Item2;
 					page.Definition.GeneratorVoltage = genVolt;
@@ -614,13 +618,35 @@ namespace QA40xPlot.Actions
 					// Do noise floor measurement
 					// ********************************************************************
 					// do this with the specified opamp configuration
-					var noisy = await MeasureNoise(MyVModel, CanToken.Token);
-					noisy.Item1.Divby(myConfig.Distgain);
-					noisy.Item2.Divby(myConfig.Distgain);
-					noisy.Item3.Divby(myConfig.Distgain);
-					page.NoiseFloor = noisy.Item1;
-					page.NoiseFloorA = noisy.Item2;
-					page.NoiseFloorC = noisy.Item3;
+					// wait for the noise to stabilize
+					if (newAtten || myConfig.Equals(variables[0]))
+					{
+						// if attenuation has changed wait 13 cycles for sure...
+						// so noise stabilizes
+						int ncycles = Math.Max(4, (int)(2.5 * vm.SampleRateVal / vm.FftSizeVal));
+						for (int i = 0; i < ncycles; i++)
+						{
+							await MeasureNoise(MyVModel, CanToken.Token);
+						}
+					}
+					{
+						//wait up to another 10 cycles for noise to stabilize
+						double lastndbv = 1000;
+						int iii = 0;
+						int iij = 0;
+						while (true && iii < 10)
+						{
+							var noisy = await MeasureNoise(MyVModel, CanToken.Token);
+							page.NoiseFloor = noisy.Item1;
+							var ndbv = 20 * Math.Log10(page.NoiseFloor.Left);
+							Debug.WriteLine($"at {iii} left Noise is {page.NoiseFloor.Left}V or {ndbv}dBV");
+							iij = (Math.Abs(lastndbv - ndbv) < 0.24) ? iij + 1 : 0;
+							if (iij > (newAtten ? 2 : 1))
+								break;
+							iii++;
+							lastndbv = ndbv;
+						}
+					}
 
 					if (CanToken.IsCancellationRequested)
 						return false;

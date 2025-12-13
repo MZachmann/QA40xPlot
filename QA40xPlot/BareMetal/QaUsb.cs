@@ -298,8 +298,8 @@ namespace QA40x.BareMetal
 			await vm.SetProgressMessage(msg, delay);
 		}
 
-		private static int _LastInputRange = 0;
-		private static int _LastOutputRange = 0;
+		private static int _LastInputRange = 100;
+		private static int _LastOutputRange = 100;
 		/// <summary>
 		/// Provides an async method for doign the DAC/ADC streaming. You can submit separate buffers for the left and right channels.
 		/// When the acquisition is finished, the AcqResult return value will contain the Left and Right values captured by the ADC
@@ -641,14 +641,14 @@ namespace QA40x.BareMetal
 						var iny = r.Right[i];
 						if (loff == 0 && Math.Abs(inx - dcoffsetL) > ldmax)
 						{
-							Debug.WriteLine($"Detect left {inx} at {i}");
+							//Debug.WriteLine($"Detect left {inx} at {i}");
 							loff = i;
 							if (roff != 0)
 								break;
 						}
 						if (roff == 0 && Math.Abs(iny - dcoffsetR) > rdmax)
 						{
-							Debug.WriteLine($"Detect right {iny} at {i}");
+							//Debug.WriteLine($"Detect right {iny} at {i}");
 							roff = i;
 							if (loff != 0)
 								break;
@@ -713,7 +713,7 @@ namespace QA40x.BareMetal
 						roff = loff;
 					}
 
-					Debug.WriteLine($"Prebuf={preBuf} Delay offset: {loff}, {roff}  DC offset: {dcoffsetL:G3},{dcoffsetR:G3}");
+					//Debug.WriteLine($"Prebuf={preBuf} Delay offset: {loff}, {roff}  DC offset: {dcoffsetL:G3},{dcoffsetR:G3}");
 					//loff = preBuf;
 					//roff = preBuf;
 				}

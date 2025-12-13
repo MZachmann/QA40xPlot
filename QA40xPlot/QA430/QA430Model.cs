@@ -541,19 +541,22 @@ namespace QA40xPlot.QA430
 			List<AcquireStep> newSteps = new List<AcquireStep>();
 			foreach (var item in items)
 			{
-				object? value = 0;
-				var vname = item.Name.TrimEnd('Ω').TrimEnd();
-				if (vname != "Open")
-					vname = "R" + vname;
-				Enum.TryParse(typeof(LoadOptions), vname, true,out value);
+				var vname = item.Name;
+				if (vname.Contains("Open", StringComparison.InvariantCultureIgnoreCase))
+					vname = "Open";
+				else
+				{
+					vname = "R" + vname.TrimEnd('Ω').Trim();
+				}
+				object? value = null;
+				Enum.TryParse(typeof(LoadOptions), vname, true, out value);
 				if(value == null)
 					continue;
-				LoadOptions ldoopt = (LoadOptions)value;
 				var newlist = srcSteps.Select(s =>
 				{
-					var stp = new AcquireStep(s);
-					stp.Load = ldoopt;
-					return stp;
+					var sp = new AcquireStep(s);
+					sp.Load = (LoadOptions)value;
+					return sp;
 				}).ToList();
 				newSteps.AddRange(newlist);
 			}
@@ -577,7 +580,7 @@ namespace QA40xPlot.QA430
 		public List<AcquireStep> ExpandGainOptions(List<AcquireStep> srcSteps, string gainOpts)
 		{
 			var gainSet = SelectItemList.ParseList(gainOpts, 0).Where(x => x.IsSelected).ToList();        // convert to a list of items
-			if ((gainSet == null || gainSet.Count == 0))
+			if (gainSet == null || gainSet.Count == 0)
 			{
 				return srcSteps;
 			}
@@ -605,11 +608,15 @@ namespace QA40xPlot.QA430
 
 		public List<AcquireStep> ExpandSupplyOptions(List<AcquireStep> srcSteps, string supplyOpts)
 		{
-			var supplySet = SelectItemList.ParseList(supplyOpts, 0);
-
+			var supplySet = SelectItemList.ParseList(supplyOpts, 0).Where(x => x.IsSelected).ToList();
+			if(supplySet == null || supplySet.Count == 0)
+			{
+				return srcSteps;
+			}
 			List<(double, double)> supplies = new();
 			// parse the entries
-			foreach (var voltage in supplySet.SelectedNames())
+			var names = supplySet.Select(x => x.Name).ToList();
+			foreach (var voltage in names)
 			{
 				var avolt = voltage.Split(['|', '_', '*']);
 				double voltp = 15;

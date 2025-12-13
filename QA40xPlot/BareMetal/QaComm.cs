@@ -99,7 +99,7 @@ namespace QA40xPlot.BareMetal
 		{
 			bool rslt = false;
 			rslt = await MyIoDevice.InitializeDevice(sampleRate, fftsize, Windowing, attenuation);
-			return rslt;
+ 			return rslt;
 		}
 
 		public static async Task<LeftRightSeries> DoAcquisitions(uint averages, CancellationToken ct, bool getFreq = true)

@@ -21,7 +21,7 @@ namespace QA40xPlot.ViewModels
 				this.Add(new SelectItem(true, ifnone));
 			}
 			var alist = this.Where(x => x.Name.Length > 0);
-			if(!isEditable)
+			if (!isEditable)
 			{
 				alist = alist.Where(x => x.IsSelected);
 			}
@@ -58,33 +58,6 @@ namespace QA40xPlot.ViewModels
 				}
 			}
 			return vout;
-		}
-
-		/// <summary>
-		/// find all selected items in the list
-		/// if required==true then autoselect the first if necessary
-		/// </summary>
-		/// <param name="required"></param>
-		/// <returns>list of selected names</returns>
-		public List<String> SelectedNames(bool required = false)
-		{
-			var outs = this.Where(x => x.IsSelected).Select(x => x.Name).ToList();
-			if (required && !outs.Any())
-			{
-				outs = new List<string> { this.First().Name };
-			}
-			return outs;
-		}
-
-		/// <summary>
-		/// find all selected items in the list
-		/// if required==true then autoselect the first if necessary
-		/// </summary>
-		/// <param name="required"></param>
-		/// <returns>list of selected values</returns>
-		public List<double> SelectedValues(bool required = false)
-		{
-			return this.SelectedNames(required).Select(x => MathUtil.ToDouble(x, 1e-6)).ToList();
 		}
 	}
 

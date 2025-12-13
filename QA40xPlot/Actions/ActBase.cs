@@ -273,7 +273,7 @@ namespace QA40xPlot.Actions
 			// ********************************************************************
 			// Do noise floor measurement with source off
 			// ********************************************************************
-			await showMessage($"Determining noise floor.");
+			await showMessage($"Determining noise floor.", 40);
 			System.Diagnostics.Debug.WriteLine("***-------------Measuring noise-------------.");
 			WaveGenerator.SetEnabled(false);
 			if (setRange)

@@ -13,12 +13,13 @@ namespace QA40xPlot.ViewModels
 {
 	public class SettingsViewModel : BaseViewModel
 	{
-		public static List<String> UsbBufferSizes { get => new List<string>() { "2048", "4096", "8192", "16384", "32768", "65536" }; }
-		public static List<String> RelayUsageList { get => new List<string>() { "Never", "OnFinish", "OnExit" }; }
-		public static List<String> NoiseBandList { get => new List<string>() { "20000", "50000", "80000", "100000" }; }
-		public static List<String> NoiseWeightList { get => new List<string>() { "Z", "A", "C" }; }
-		public static List<String> EchoTypes { get => new List<string>() { "QA40x", "WinDevice", "Both" }; }
-		public static List<String> EchoChannels { get => new List<string>() { "None", "Left", "Right", "L+R" }; }
+		public static List<String> UsbBufferSizes { get; } = new List<string>() { "2048", "4096", "8192", "16384", "32768", "65536" };
+		public static List<String> RelayUsageList { get; } = new List<string>() { "Never", "OnFinish", "OnExit" };
+		public static List<String> NoiseBandList { get; } = new List<string>() { "20000", "50000", "80000", "100000" };
+		public static List<String> NoiseRefreshList { get; } = new List<string>() { "0", "15", "45", "150" };
+		public static List<String> NoiseWeightList { get; } = new List<string>() { "Z", "A", "C" };
+		public static List<String> EchoTypes { get; } = new List<string>() { "QA40x", "WinDevice", "Both" };
+		public static List<String> EchoChannels { get; } = new List<string>() { "None", "Left", "Right", "L+R" };
 		public const int EchoChannelLeft = 1;   // in list order
 		public const int EchoChannelRight = 2;
 		[JsonIgnore]
@@ -301,6 +302,12 @@ namespace QA40xPlot.ViewModels
 		{
 			get { return _NoiseBandwidthStr; }
 			set { SetProperty(ref _NoiseBandwidthStr, value); }
+		}
+		private string _NoiseRefreshStr = "15";	// seconds between noise refreshes
+		public string NoiseRefreshStr
+		{
+			get { return _NoiseRefreshStr; }
+			set { SetProperty(ref _NoiseRefreshStr, value); }
 		}
 
 		// if the user has an external gain/attenuator, this is the gain value in power reduction or increase

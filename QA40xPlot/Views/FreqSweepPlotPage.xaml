@@ -78,7 +78,7 @@
                                SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVoltsFull}"
                                IsEnabled="{Binding IsNotRunning}">
                         </ComboBox>
-                        <Label Content="{Binding GenAmpDescript, Mode=OneWay}" Target="{Binding ElementName=cbVolt}" 
+                        <Label Content="{Binding GenAmpDescript, Mode=OneWay}" 
                            HorizontalAlignment="Right" VerticalAlignment="Center"  Grid.Column="0" Grid.Row="1" />
                         <views:ComboDrop TheText="{Binding VoltSummary}" TheSource="{Binding GenVoltages}" 
                                         IsEditable="True"

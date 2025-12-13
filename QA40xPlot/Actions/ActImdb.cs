@@ -309,7 +309,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="ct">Cancellation token</param>
 		/// <returns>result. false if cancelled</returns>
-		async Task<bool> RunAcquisition(MyDataTab msr, CancellationToken ct)
+		async Task<bool> RunAcquisition(MyDataTab msr, bool doNoise, CancellationToken ct)
 		{
 			// Setup
 			ImdViewModel vm = msr.ViewModel;
@@ -335,7 +335,7 @@ namespace QA40xPlot.Actions
 				// do the noise floor acquisition and math
 				// note measurenoise uses the existing init setup
 				// except InputRange (attenuation) which is push/pop-ed
-				if (msr.NoiseFloor.Left == 0)
+				if (msr.NoiseFloor.Left == 0 || doNoise)
 				{
 					var noisy = await MeasureNoise(MyVModel, ct);
 					msr.NoiseFloor = noisy.Item1;
@@ -922,7 +922,7 @@ namespace QA40xPlot.Actions
 			}
 
 			// do the actual measurements
-			var rslt = await RunAcquisition(NextPage, ct.Token);
+			var rslt = await RunAcquisition(NextPage, true, ct.Token);
 			if (rslt)
 				rslt = await PostProcess(NextPage, ct.Token);
 
@@ -934,11 +934,19 @@ namespace QA40xPlot.Actions
 			}
 			MyVModel.LinkAbout(PageData.Definition);  // ensure we're linked right during replays
 
+			var loopTime = DateTime.Now;
 			while (rslt && !ct.IsCancellationRequested)
 			{
+				// update the view model with latest settings
 				if (PageData.ViewModel != null)
-					MyVModel.CopyPropertiesTo(PageData.ViewModel);  // update the view model with latest settings
-				rslt = await RunAcquisition(PageData, ct.Token);
+					MyVModel.CopyPropertiesTo(PageData.ViewModel);
+				// have it recalculate the noise floor now possibly
+				bool redoNoise = (DateTime.Now - loopTime).TotalSeconds > ViewSettings.NoiseRefresh;
+				if (redoNoise)
+				{
+					loopTime = DateTime.Now;
+				}
+				rslt = await RunAcquisition(PageData, redoNoise, ct.Token);
 				if (rslt)
 				{
 					rslt = await PostProcess(PageData, ct.Token);
