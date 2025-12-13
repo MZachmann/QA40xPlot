@@ -3,12 +3,11 @@ using Microsoft.Win32;
 using Newtonsoft.Json;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
-using ScottPlot.Colormaps;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -30,7 +29,18 @@ namespace QA40xPlot.ViewModels
 
 		private void DoSetPlotPage(object? parameter)
 		{
-			PlotPageType = parameter as string ?? "Spectrum";
+			// if we don't clear focus we get a COM exception
+			// as any focused text box tries to set the Text field i think
+			// this only happens with menus since clicking a tab button loses the focus
+			System.Windows.Input.Keyboard.ClearFocus();
+			// let the focus lose happen then continue
+			Task.Delay(100).ContinueWith(_ =>
+			{
+				Application.Current.Dispatcher.Invoke(() =>
+				{
+					PlotPageType = parameter as string ?? "Spectrum";
+				}); 
+			});
 		}
 
 		private bool _ShowTabs = true;

@@ -66,7 +66,7 @@ namespace QA40xPlot.Actions
 						var dref = GraphUtil.GetDbrReference(bvm, dRefs);
 						var bot = GraphUtil.ValueToLogPlot(bvm, bounds.Y, dref);
 						bot = Math.Pow(10, Math.Max(-9, Math.Floor(bot)));  // nearest power of 10
-						var top = Math.Floor(GraphUtil.ValueToLogPlot(bvm, xp, dref));
+						var top = Math.Ceiling(GraphUtil.ValueToLogPlot(bvm, xp, dref));
 						top = Math.Pow(10, Math.Min(3, top));
 						bvm.RangeTop = top.ToString("0.##########");
 						bvm.RangeBottom = bot.ToString("0.##########");
@@ -76,7 +76,7 @@ namespace QA40xPlot.Actions
 					{
 						var dref = GraphUtil.GetDbrReference(bvm, dRefs);
 						var bot = GraphUtil.ValueToLogPlot(bvm, bounds.Y, dref);
-						bvm.RangeBottomdB = bot.ToString("0");
+						bvm.RangeBottomdB = Math.Floor(bot).ToString("0");
 						var top = GraphUtil.ValueToLogPlot(bvm, bounds.Y + bounds.Height, dref);
 						bvm.RangeTopdB = Math.Ceiling(top).ToString("0");
 					}

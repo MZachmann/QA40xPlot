@@ -396,7 +396,7 @@ namespace QA40xPlot.ViewModels
 		{
 			SaveFileDialog saveFileDialog = new SaveFileDialog
 			{
-				FileName = String.Format("QaOpamp{0}", FileAddon()), // Default file name
+				FileName = String.Format("QaFswp{0}", FileAddon()), // Default file name
 				DefaultExt = ".plt", // Default file extension
 				Filter = PlotFileFilter // Filter files by extension
 			};
