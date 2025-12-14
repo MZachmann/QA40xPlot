@@ -149,6 +149,12 @@ namespace QA40xPlot.ViewModels
 			get => _ShowNoise;
 			set => SetProperty(ref _ShowNoise, value);
 		}
+		private bool _ShowNoiseFloor;
+		public bool ShowNoiseFloor
+		{
+			get => _ShowNoiseFloor;
+			set => SetProperty(ref _ShowNoiseFloor, value);
+		}
 		private bool _ShowD2;
 		public bool ShowD2
 		{
@@ -257,6 +263,7 @@ namespace QA40xPlot.ViewModels
 				case "ShowMagnitude":
 				case "ShowPhase":
 				case "ShowNoise":
+				case "ShowNoiseFloor":
 				case "ShowPoints":
 				case "ShowD2":
 				case "ShowD3":
@@ -321,6 +328,7 @@ namespace QA40xPlot.ViewModels
 			ShowMagnitude = isOn;
 			ShowPhase = isOn;
 			ShowNoise = isOn;
+			ShowNoiseFloor = isOn;
 			ShowD2 = isOn;
 			ShowD3 = isOn;
 			ShowD4 = isOn;
@@ -352,6 +360,18 @@ namespace QA40xPlot.ViewModels
 				sout += "THD: " + FormatValue(column.THD, column.Mag) + Environment.NewLine;
 			if (vm.ShowNoise)
 				sout += "Noise: " + FormatValue(column.Noise, column.Mag) + Environment.NewLine;
+			if (vm.ShowNoiseFloor)
+				sout += "Floor: " + FormatValue(column.NoiseFloor, column.Mag) + Environment.NewLine;
+			if (vm.ShowD2)
+				sout += "D2: " + FormatValue(column.D2, column.Mag) + Environment.NewLine;
+			if (vm.ShowD3)
+				sout += "D3: " + FormatValue(column.D3, column.Mag) + Environment.NewLine;
+			if (vm.ShowD4)
+				sout += "D4: " + FormatValue(column.D4, column.Mag) + Environment.NewLine;
+			if (vm.ShowD5)
+				sout += "D5: " + FormatValue(column.D5, column.Mag) + Environment.NewLine;
+			if (vm.ShowD6)
+				sout += "D6+: " + FormatValue(column.D6P, column.Mag) + Environment.NewLine;
 			return sout;
 		}
 

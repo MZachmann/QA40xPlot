@@ -267,7 +267,7 @@ namespace QA40xPlot.Actions
 		// what to use for gain calculations at the start of an action
 		private static uint GainFftSize(uint testFftSize)
 		{
-			return Math.Min(65535, Math.Max(32768, testFftSize));
+			return Math.Min(65536, Math.Max(32768, testFftSize));
 		}
 		// ensure we've got at least 24Khz upper bound
 		private static uint GainSampleRate(uint testSampleRate)

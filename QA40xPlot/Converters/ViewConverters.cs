@@ -322,44 +322,6 @@ namespace QA40xPlot.Converters
 			return value; // default to volts
 		}
 
-		/// <summary>
-		/// Given an input voltage format, get a display format converter
-		/// </summary>
-		/// <param name="value">the data value</param>
-		/// <param name="genFormat">the entry format</param>
-		/// <returns>a converted double that is ready to become text</returns>
-		public static double UnformatValue(double value, string genFormat)
-		{
-			switch (genFormat)
-			{
-				// power formats
-				case "mW":    // the generator has 18dBV output, the input has 32dBV maximum
-					return value / 1000;
-				case "μW":
-					return value / 1000000;
-				case "W":
-					return value;
-				case "dBW":
-					return Math.Pow(10, value / 10);
-				case "dBm":
-					return Math.Pow(10, value / 10) / 1000;
-				// voltage formats
-				case "mV":
-					return value / 1000;
-				case "μV":
-					return value / 1000000;
-				case "dBV":
-					return Math.Pow(10, value / 20);
-				case "dBmV":
-					return Math.Pow(10, value / 20) / 1000;
-				case "dBu":
-					return Math.Pow(10, value / 20) * 0.775;
-				case "dBFS":
-					return Math.Pow(10, (value + 18) / 20);
-			}
-			return value; // default to volts
-		}
-
 		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
 		{
 			var ampnew = string.Empty;
@@ -396,7 +358,7 @@ namespace QA40xPlot.Converters
 				var ampUnit = ViewSettings.Singleton.MainVm.CurrentView?.GenVoltageUnits;            // unit of measure as string
 				if (ampUnit != null)
 				{
-					var ampD = UnformatValue(ampvalue, ampUnit); // convert to volts or watts
+					var ampD = MathUtil.UnformatValue(ampvalue, ampUnit); // convert to volts or watts
 					ampnew = ampD.ToString(); // format the value to 3 significant digits
 				}
 			}

@@ -168,7 +168,7 @@
             <ComboBox IsEditable="True"  Grid.Row="20" Grid.Column="1" MinWidth="80" Text="{Binding NoiseRefreshStr}" 
                   ItemsSource="{Binding NoiseRefreshList}" />
             <TextBlock TextWrapping="Wrap" MaxWidth="600" Grid.Row="20" Grid.Column="4"
-                   Text="Set the time between noise floor recalculations." 
+                   Text="Set the time between noise floor recalculations. 0 == never" 
                    HorizontalAlignment="Left" VerticalAlignment="Center"
                    />
             <Label VerticalAlignment="Center" Content="Sec" Grid.Row="20" Grid.Column="2" HorizontalAlignment="Left" />

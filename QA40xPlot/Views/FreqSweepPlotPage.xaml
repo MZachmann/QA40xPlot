@@ -165,13 +165,14 @@
                                 Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right"
                                 Command="{Binding SelectNone}" />
                         <CheckBox Content="Noise Density" IsChecked="{Binding ShowNoise}" Grid.Row="1" Grid.Column="0"  />
-                        <CheckBox Content="THD" IsChecked="{Binding ShowTHD}" Grid.Row="2" Grid.Column="0"  />
-                        <CheckBox Content="THD+N" IsChecked="{Binding ShowTHDN}" Grid.Row="2" Grid.Column="1"  />
-                        <CheckBox Content="D2" IsChecked="{Binding ShowD2}" Grid.Row="3" Grid.Column="0"  />
-                        <CheckBox Content="D3" IsChecked="{Binding ShowD3}" Grid.Row="3" Grid.Column="1"  />
-                        <CheckBox Content="D4" IsChecked="{Binding ShowD4}" Grid.Row="4"  Grid.Column="0" />
-                        <CheckBox Content="D5" IsChecked="{Binding ShowD5}" Grid.Row="4" Grid.Column="1" />
-                        <CheckBox Content="D6+" IsChecked="{Binding ShowD6}" Grid.Row="5" Grid.Column="0" />
+                        <CheckBox Content="Noise Floor" IsChecked="{Binding ShowNoiseFloor}" Grid.Row="2" Grid.Column="0"  />
+                        <CheckBox Content="THD" IsChecked="{Binding ShowTHD}" Grid.Row="3" Grid.Column="0"  />
+                        <CheckBox Content="THD+N" IsChecked="{Binding ShowTHDN}" Grid.Row="3" Grid.Column="1"  />
+                        <CheckBox Content="D2" IsChecked="{Binding ShowD2}" Grid.Row="4" Grid.Column="0"  />
+                        <CheckBox Content="D3" IsChecked="{Binding ShowD3}" Grid.Row="4" Grid.Column="1"  />
+                        <CheckBox Content="D4" IsChecked="{Binding ShowD4}" Grid.Row="5"  Grid.Column="0" />
+                        <CheckBox Content="D5" IsChecked="{Binding ShowD5}" Grid.Row="5" Grid.Column="1" />
+                        <CheckBox Content="D6+" IsChecked="{Binding ShowD6}" Grid.Row="6" Grid.Column="0" />
                     </Grid>
             </Expander>
 

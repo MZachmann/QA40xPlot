@@ -113,41 +113,41 @@ namespace QA40xPlot.QA430
 		private readonly Task RefreshTask;
 		private bool RefreshTaskCancel = false;
 
-		static readonly QA430Config C1 = new QA430Config("Config1", OpampNegInputs.GndTo4p99, OpampPosInputs.Analyzer,
+		static readonly QA430Config C1 = new ("Config1", OpampNegInputs.GndTo4p99, OpampPosInputs.Analyzer,
 					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, 0, 0);
-		static readonly QA430Config C2a = new QA430Config("Config2a", OpampNegInputs.Open, OpampPosInputs.Analyzer,
+		static readonly QA430Config C2a = new ("Config2a", OpampNegInputs.Open, OpampPosInputs.Analyzer,
 					OpampPosNegConnects.Short, OpampFeedbacks.Short, 0, 0);
-		static readonly QA430Config C2b = new QA430Config("Config2b", OpampNegInputs.GndTo499, OpampPosInputs.Analyzer,
+		static readonly QA430Config C2b = new ("Config2b", OpampNegInputs.GndTo499, OpampPosInputs.Analyzer,
 					OpampPosNegConnects.Short, OpampFeedbacks.R4p99k, 0, 0);
-		static readonly QA430Config C2c = new QA430Config("Config2", OpampNegInputs.GndTo4p99, OpampPosInputs.Analyzer,
+		static readonly QA430Config C2c = new ("Config2", OpampNegInputs.GndTo4p99, OpampPosInputs.Analyzer,
 					OpampPosNegConnects.Short, OpampFeedbacks.R4p99k, 0, 0);    // note the Config2 name
-		static readonly QA430Config C3a = new QA430Config("Config3a", OpampNegInputs.GndTo4p99, OpampPosInputs.Gnd,
+		static readonly QA430Config C3a = new ("Config3a", OpampNegInputs.GndTo4p99, OpampPosInputs.Gnd,
 					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, 0, 0);
-		static readonly QA430Config C3b = new QA430Config("Config3b", OpampNegInputs.GndTo499, OpampPosInputs.Gnd,
+		static readonly QA430Config C3b = new ("Config3b", OpampNegInputs.GndTo499, OpampPosInputs.Gnd,
 					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, 0, 0);
-		static readonly QA430Config C3c = new QA430Config("Config3c", OpampNegInputs.Open, OpampPosInputs.Gnd,
+		static readonly QA430Config C3c = new ("Config3c", OpampNegInputs.Open, OpampPosInputs.Gnd,
 					OpampPosNegConnects.Open, OpampFeedbacks.Short, 0, 0);
-		static readonly QA430Config C4a = new QA430Config("Config4a", OpampNegInputs.GndTo499, OpampPosInputs.Analyzer,
+		static readonly QA430Config C4a = new ("Config4a", OpampNegInputs.GndTo499, OpampPosInputs.Analyzer,
 					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, 10, 10);
-		static readonly QA430Config C4b = new QA430Config("Config4b", OpampNegInputs.GndTo499, OpampPosInputs.Analyzer,
+		static readonly QA430Config C4b = new ("Config4b", OpampNegInputs.GndTo499, OpampPosInputs.Analyzer,
 					OpampPosNegConnects.R49p9, OpampFeedbacks.R4p99k, 10, 110);
-		static readonly QA430Config C5a = new QA430Config("Config5a", OpampNegInputs.AnalyzerTo499, OpampPosInputs.Gnd,
+		static readonly QA430Config C5a = new ("Config5a", OpampNegInputs.AnalyzerTo499, OpampPosInputs.Gnd,
 					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, -10, 10);
-		static readonly QA430Config C5b = new QA430Config("Config5b", OpampNegInputs.AnalyzerTo499, OpampPosInputs.Gnd,
+		static readonly QA430Config C5b = new ("Config5b", OpampNegInputs.AnalyzerTo499, OpampPosInputs.Gnd,
 					OpampPosNegConnects.R49p9, OpampFeedbacks.R4p99k, -10, 110);
-		static readonly QA430Config C6a = new QA430Config("Config6a", OpampNegInputs.Open, OpampPosInputs.Analyzer,
+		static readonly QA430Config C6a = new ("Config6a", OpampNegInputs.Open, OpampPosInputs.Analyzer,
 					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, 1, 1);
-		static readonly QA430Config C6b = new QA430Config("Config6b", OpampNegInputs.Open, OpampPosInputs.Analyzer,
+		static readonly QA430Config C6b = new ("Config6b", OpampNegInputs.Open, OpampPosInputs.Analyzer,
 					OpampPosNegConnects.R49p9, OpampFeedbacks.R4p99k, 1, 101);
-		static readonly QA430Config C7a = new QA430Config("Config7a", OpampNegInputs.AnalyzerTo4p99k, OpampPosInputs.Gnd,
+		static readonly QA430Config C7a = new ("Config7a", OpampNegInputs.AnalyzerTo4p99k, OpampPosInputs.Gnd,
 					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, -1, 1);
-		static readonly QA430Config C7b = new QA430Config("Config7b", OpampNegInputs.AnalyzerTo4p99k, OpampPosInputs.Gnd,
+		static readonly QA430Config C7b = new ("Config7b", OpampNegInputs.AnalyzerTo4p99k, OpampPosInputs.Gnd,
 					OpampPosNegConnects.R49p9, OpampFeedbacks.R4p99k, -1, 101);
-		static readonly QA430Config C8a = new QA430Config("Config8a", OpampNegInputs.Open, OpampPosInputs.Analyzer,
+		static readonly QA430Config C8a = new ("Config8a", OpampNegInputs.Open, OpampPosInputs.Analyzer,
 					OpampPosNegConnects.Open, OpampFeedbacks.Short, 0, 0);
-		static readonly QA430Config C8b = new QA430Config("Config8b", OpampNegInputs.Open, OpampPosInputs.AnalyzerTo100k,
+		static readonly QA430Config C8b = new ("Config8b", OpampNegInputs.Open, OpampPosInputs.AnalyzerTo100k,
 					OpampPosNegConnects.Open, OpampFeedbacks.Short, 0, 0);
-		QA430Config[] AllConfigs = new QA430Config[] { C1, C2a, C2b, C2c, C3a, C3b, C3c, C4a, C4b, C5a, C5b, C6a, C6b, C7a, C7b, C8a, C8b };
+		static readonly QA430Config[] AllConfigs = new [] { C1, C2a, C2b, C2c, C3a, C3b, C3c, C4a, C4b, C5a, C5b, C6a, C6b, C7a, C7b, C8a, C8b };
 
 		#region Properties
 

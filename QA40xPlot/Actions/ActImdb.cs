@@ -941,12 +941,13 @@ namespace QA40xPlot.Actions
 				if (PageData.ViewModel != null)
 					MyVModel.CopyPropertiesTo(PageData.ViewModel);
 				// have it recalculate the noise floor now possibly
-				bool redoNoise = (DateTime.Now - loopTime).TotalSeconds > ViewSettings.NoiseRefresh;
+				bool redoNoise = (ViewSettings.NoiseRefresh > 0) &&
+					(DateTime.Now - loopTime).TotalSeconds > ViewSettings.NoiseRefresh;
+				rslt = await RunAcquisition(PageData, redoNoise, ct.Token);
 				if (redoNoise)
 				{
 					loopTime = DateTime.Now;
 				}
-				rslt = await RunAcquisition(PageData, redoNoise, ct.Token);
 				if (rslt)
 				{
 					rslt = await PostProcess(PageData, ct.Token);

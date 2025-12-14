@@ -303,7 +303,7 @@ namespace QA40xPlot.ViewModels
 			get { return _NoiseBandwidthStr; }
 			set { SetProperty(ref _NoiseBandwidthStr, value); }
 		}
-		private string _NoiseRefreshStr = "15";	// seconds between noise refreshes
+		private string _NoiseRefreshStr = "0";	// seconds between noise refreshes
 		public string NoiseRefreshStr
 		{
 			get { return _NoiseRefreshStr; }

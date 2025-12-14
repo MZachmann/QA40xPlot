@@ -82,6 +82,9 @@ namespace QA40xPlot.ViewModels
 		public string GenAmpUnits { get => (IsGenPower ? "W" : "V"); }
 		[JsonIgnore]
 		public string DsHeading { get => DataInfo.Heading; }
+		[JsonIgnore]
+		public List<string> HiddenLines { get; set; } = new();  // lines we hide
+
 
 		[JsonIgnore]
 		private ObservableCollection<DataDescript> _OtherSetList = new();

@@ -69,8 +69,8 @@
                   Text="{Binding PosRailVoltage, UpdateSourceTrigger=LostFocus}"/>
                 <Label Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" Content="Neg Rail" ></Label>
                 <ComboBox Grid.Row="8" Grid.Column="1" IsEditable="True"
-                  ItemsSource="{Binding NegRailVoltages, UpdateSourceTrigger=LostFocus}" 
-                  Text="{Binding NegRailVoltage}"/>
+                  ItemsSource="{Binding NegRailVoltages}" 
+                  Text="{Binding NegRailVoltage, UpdateSourceTrigger=LostFocus}"/>
                 <CheckBox Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="2"
                   Content="Enable Power" IsChecked="{Binding EnableSupply}" />
                 <!--Spacer-->

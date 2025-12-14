@@ -5,7 +5,6 @@ using QA40xPlot.ViewModels.Subs;
 using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Media;
 
 namespace QA40xPlot.Views
@@ -85,11 +84,18 @@ namespace QA40xPlot.Views
 		{
 			mark.IsShown = isChecked;
 			if(mark.Signal != null)
-
 			{
 				mark.Signal.IsVisible = isChecked;
 				if(mark.ThePlot != null)
 				{
+					var bvm = mark.ThePlot.DataContext as BaseViewModel;
+					if(bvm != null)
+					{
+						if (isChecked)
+							bvm.HiddenLines.Remove(mark.Label);
+						else
+							bvm.HiddenLines.Add(mark.Label);
+					}
 					mark.ThePlot.Refresh();
 				}
 			}

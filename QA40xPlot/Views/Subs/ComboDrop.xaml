@@ -15,7 +15,7 @@
                                 ItemsSource="{Binding TheSource, ElementName=MySelf}"
                                 MaxWidth="120" MinWidth="80" HorizontalAlignment="Left" 
                             Grid.Row="2" Grid.Column="1" />
-            <Button Content="▼" Click="DownButton_Click" Margin="2,1" IsEnabled="{Binding IsOpen, ElementName=ThePopup, Converter={StaticResource InvBoolConverter}}"/>
+            <Button Content="▽" Click="DownButton_Click" Margin="2,1" IsEnabled="{Binding IsOpen, ElementName=ThePopup, Converter={StaticResource InvBoolConverter}}"/>
         </StackPanel>
         <Popup x:Name="ThePopup" PlacementTarget="{Binding ElementName=cbCombo}" StaysOpen="False"
                                Closed="ThePopup_Closed" >

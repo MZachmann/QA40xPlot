@@ -33,13 +33,13 @@ namespace QA40xPlot.Data
 			ThePlot = null;
 		}
 
-		internal MarkerItem(ScottPlot.LinePattern pattern, ScottPlot.Color color, string label, int idx, ScottPlot.Plottables.SignalXY? signal = null, Views.PlotControl? thePlot = null)
+		internal MarkerItem(ScottPlot.LinePattern pattern, ScottPlot.Color color, string label, int idx, ScottPlot.Plottables.SignalXY? signal = null, Views.PlotControl? thePlot = null, bool doShown = true)
 		{
 			ThePattern = pattern;
 			TheColor = color;
 			Label = label;
 			ColorIdx = idx;
-			IsShown = true;
+			IsShown = doShown;
 			Signal = signal;
 			ThePlot = thePlot;
 		}

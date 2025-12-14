@@ -67,8 +67,8 @@
                         <MenuItem Header="_Spectrum" Command="{Binding SetPlotPage}" CommandParameter="Spectrum" />
                         <MenuItem Header="_Intermodulation" Command="{Binding SetPlotPage}" CommandParameter="Intermodulation" />
                         <MenuItem Header="Sco_pe" Command="{Binding SetPlotPage}" CommandParameter="Scope" />
-                        <MenuItem Header="THD vs _Frequency" Command="{Binding SetPlotPage}" CommandParameter="ThdFreq" />
-                        <MenuItem Header="THD vs Frequency II" Command="{Binding SetPlotPage}" CommandParameter="Opamp.Freq" />
+                        <MenuItem Header="THD vs _Frequency" Command="{Binding SetPlotPage}" CommandParameter="ThdFreq" Visibility="Collapsed" />
+                        <MenuItem Header="THD vs _Frequency" Command="{Binding SetPlotPage}" CommandParameter="Opamp.Freq" />
                         <MenuItem Header="THD vs _Amplitude" Command="{Binding SetPlotPage}" CommandParameter="ThdAmp" />
                         <MenuItem Header="Frequency _Response" Command="{Binding SetPlotPage}" CommandParameter="Response" />
                         <MenuItem Header="S_ettings" Command="{Binding SetPlotPage}" CommandParameter="Settings" />
@@ -123,12 +123,12 @@
                     <views:ScopePlotPage  />
                 </Grid>
             </TabItem>
-            <TabItem Header="THD vs Frequency" Name="tvf" MaxWidth="{Binding MaxTab}">
+            <TabItem Header="THD vs Frequency" Name="tvf" MaxWidth="{Binding MaxTab}" Visibility="Collapsed">
                 <Grid Background="{Binding Background, Mode=OneWay}">
                     <views:ThdFreqPlotPage  />
                 </Grid>
             </TabItem>
-            <TabItem Header="THD vs Frequency II" Name="freqsweep"  MaxWidth="{Binding MaxTab}" >
+            <TabItem Header="THD vs Frequency" Name="freqsweep"  MaxWidth="{Binding MaxTab}" >
                 <Grid Background="{Binding Background, Mode=OneWay}">
                     <views:FreqSweepPlotPage  />
                 </Grid>

@@ -92,7 +92,7 @@ namespace QA40xPlot.Actions
 
 		private double[] ColumnToArray(FreqSweepColumn col)
 		{
-			return new double[] { col.Freq, col.Mag, col.Phase, col.THD, col.THDN, col.Noise, col.GenVolts, col.D2, col.D3, col.D4, col.D5, col.D6P };
+			return new double[] { col.Freq, col.Mag, col.Phase, col.THD, col.THDN, col.Noise, col.NoiseFloor, col.GenVolts, col.D2, col.D3, col.D4, col.D5, col.D6P };
 		}
 
 		private FreqSweepColumn ArrayToColumn(double[] rawData, uint startIdx)
@@ -104,12 +104,13 @@ namespace QA40xPlot.Actions
 			col.THD = rawData[startIdx + 3];
 			col.THDN = rawData[startIdx + 4];
 			col.Noise = rawData[startIdx + 5];
-			col.GenVolts = rawData[startIdx + 6];
-			col.D2 = rawData[startIdx + 7];
-			col.D3 = rawData[startIdx + 8];
-			col.D4 = rawData[startIdx + 9];
-			col.D5 = rawData[startIdx + 10];
-			col.D6P = rawData[startIdx + 11];
+			col.NoiseFloor = rawData[startIdx + 6];
+			col.GenVolts = rawData[startIdx + 7];
+			col.D2 = rawData[startIdx + 8];
+			col.D3 = rawData[startIdx + 9];
+			col.D4 = rawData[startIdx + 10];
+			col.D5 = rawData[startIdx + 11];
+			col.D6P = rawData[startIdx + 12];
 			return col;
 		}
 
@@ -243,6 +244,11 @@ namespace QA40xPlot.Actions
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.Noise));
 					minY = Math.Min(minY, arsteps.Min(x => x.Noise));
+				}
+				if (specVm.ShowNoiseFloor)
+				{
+					maxY = Math.Max(maxY, arsteps.Max(x => x.NoiseFloor));
+					minY = Math.Min(minY, arsteps.Min(x => x.NoiseFloor));
 				}
 				if (specVm.ShowD2)
 				{
@@ -588,11 +594,13 @@ namespace QA40xPlot.Actions
 						var vval = MathUtil.ToDouble(v.Name, 0.1);
 						var vnewlist = variables.Select(x => {
 							var ux = new AcquireStep(x);
-							ux.GenVolt = vval;
-							ux.GenVoltFmt = (vm.IsGenPower ? MathUtil.FormatPower(vval) : MathUtil.FormatVoltage(vval));
+							var ampD = MathUtil.UnformatValue(vval, vm.GenVoltUnits); // convert to m,u,volts or watts
+							ux.GenVolt = ampD;
+							ux.GenVoltFmt = (vm.IsGenPower ? MathUtil.FormatPower(ampD) : MathUtil.FormatVoltage(ampD));
 							return ux; }).ToList();
 						vnew.AddRange(vnewlist);
 					}
+
 					variables = vnew;
 				}
 
@@ -827,16 +835,14 @@ namespace QA40xPlot.Actions
 				}
 				if (!bl)
 				{
-					if (lfrsNoise == null)
-						step.Noise = floor.Right / dmult; // noise floor
-					else
+					step.NoiseFloor = floor.Right / dmult; // noise floor
+					if (lfrsNoise != null)
 						step.Noise = GetNoiseSmooth(lfrsNoise.Right, lfrsNoise.Df, dFreq) / dmult; // noise density smoothed
 				}
 				else
 				{
-					if (lfrsNoise == null)
-						step.Noise = floor.Left / dmult; // noise floor
-					else
+					step.NoiseFloor = floor.Left / dmult; // noise floor
+					if (lfrsNoise != null)
 						step.Noise = GetNoiseSmooth(lfrsNoise.Left, lfrsNoise.Df, dFreq) / dmult; // noise density smoothed
 				}
 
@@ -950,7 +956,8 @@ namespace QA40xPlot.Actions
 				plot.MarkerSize = markerSize;
 				plot.LegendText = legendText;
 				plot.LinePattern = linePattern;
-				MyVModel.LegendInfo.Add(new MarkerItem(linePattern, plot.Color, legendText, colorIndex, plot, swpPlot));
+				plot.IsVisible = !MyVModel.HiddenLines.Contains(legendText);
+				MyVModel.LegendInfo.Add(new MarkerItem(linePattern, plot.Color, legendText, colorIndex, plot, swpPlot, plot.IsVisible));
 			}
 
 			// which columns are we displaying? left, right or both
@@ -996,6 +1003,9 @@ namespace QA40xPlot.Actions
 					colorNum++;
 					if (freqVm.ShowNoise)
 						AddPlot(freq, colArray.Select(x => FormVal(x.Noise, x.Mag)).ToList(), colorNum, prefix + "Noise" + subsuffix, lp);
+					colorNum++;
+					if (freqVm.ShowNoiseFloor)
+						AddPlot(freq, colArray.Select(x => FormVal(x.NoiseFloor, x.Mag)).ToList(), colorNum, prefix + "Floor" + subsuffix, lp);
 					colorNum++;
 					if (freqVm.ShowD2)
 						AddPlot(freq, colArray.Select(x => FormVal(x.D2, x.Mag)).ToList(), colorNum, prefix + "D2" + subsuffix, lp);

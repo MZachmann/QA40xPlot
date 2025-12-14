@@ -23,7 +23,6 @@ namespace QA40xPlot.ViewModels
 
 		// when this is saved it shows the current settings
 		private string _SupplySummary = string.Empty;
-		// the value is set only when we load a configuration so parse it
 		public string SupplySummary
 		{
 			get => _SupplySummary;
@@ -31,8 +30,7 @@ namespace QA40xPlot.ViewModels
 		}
 
 		// when this is saved it shows the current settings
-		private string _VoltSummary = string.Empty;
-		// the value is set only when we load a configuration so parse it
+		private string _VoltSummary = "0.1";
 		public string VoltSummary
 		{
 			get => _VoltSummary;
@@ -41,7 +39,6 @@ namespace QA40xPlot.ViewModels
 
 		// when this is saved it shows the current settings
 		private string _LoadSummary = string.Empty;
-		// the value is set only when we load a configuration so parse it
 		public string LoadSummary
 		{
 			get => _LoadSummary;
@@ -50,7 +47,6 @@ namespace QA40xPlot.ViewModels
 
 		// when this is saved it shows the current settings
 		private string _GainSummary = string.Empty;
-		// the value is set only when we load a configuration so parse it
 		public string GainSummary
 		{
 			get => _GainSummary;
