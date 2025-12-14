@@ -43,7 +43,7 @@ namespace QA40xPlot.ViewModels
 			});
 		}
 
-		private bool _ShowTabs = true;
+		private bool _ShowTabs = false;
 		public bool ShowTabs
 		{
 			get => _ShowTabs;
@@ -54,6 +54,13 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
+		private bool _IsButtonShown = true;
+		public bool IsButtonShown
+		{
+			get => _IsButtonShown;
+			set => SetProperty(ref _IsButtonShown, value);
+		}
+
 		[JsonIgnore]
 		public RelayCommand DoExport { get => new RelayCommand(OnExport); }
 		[JsonIgnore]
@@ -62,6 +69,8 @@ namespace QA40xPlot.ViewModels
 		public AsyncRelayCommand DoSaveDfltCfg { get => new AsyncRelayCommand(OnSaveDfltCfg); }
 		[JsonIgnore]
 		public RelayCommand DoLoadCfg { get => new RelayCommand(OnLoadCfg); }
+		[JsonIgnore]
+		public RelayCommand<string?> ShowButtons { get => new RelayCommand<string?>(DoShowButtons); }
 		[JsonIgnore]
 		public AsyncRelayCommand DoPhoto { get => new AsyncRelayCommand(OnPhoto); }
 
@@ -173,7 +182,7 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _CurrentPaletteRect, value);
 		}
 
-		private string _GuiStyle = "Tabs";
+		private string _GuiStyle = "Menus";
 		public string GuiStyle
 		{
 			get { return _GuiStyle; }
@@ -480,6 +489,11 @@ namespace QA40xPlot.ViewModels
 				string filename = saveFileDialog.FileName;
 				SaveToSettings(filename);
 			}
+		}
+
+		private void DoShowButtons(string? parameter)
+		{
+			IsButtonShown = (parameter=="1");
 		}
 
 		private void OnLoadCfg()

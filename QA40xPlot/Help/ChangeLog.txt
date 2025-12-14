@@ -3,7 +3,21 @@
 This changelog shows the changes made for each version
 --------------------------------------------
 v 1.2.01
-- 
+- add Save Configuration as Default command to menu
+- add Settings page accelerator
+- fix startup internal harmonic issue
+- allow option to refresh noise floor value periodically
+- add Dn columns to new THD vs Freq
+- remove old THD vs Freq and use new Opamp version
+- fix COM exceptions in menu mode
+- add Quick Page buttons
+- totally change noise detection in THD vs Freq for startup issues
+- repair initial value for Input Range to force relay delay
+- switch to Menus as default setting
+- add checkbox switch to plot legends for line display
+- build ComboDrop control for brevity and future
+- change gain test initializations and fft size/rate
+- repair fittodata off-by-one
 v 1.2.00
 - add option to replace the tabbed gui with menus
 - improve app esthetics by changing plot boundaries

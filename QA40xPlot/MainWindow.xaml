@@ -59,7 +59,7 @@
                 </Button>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="0"
-                       Margin="10,0,40,0" Background="Transparent"
+                       Margin="10,0,15,0" 
                        Visibility="{Binding ShowTabs, Converter={StaticResource BoolNotVisConverter}}"
                         >
                 <Menu VerticalAlignment="Center" Background="Transparent">
@@ -67,14 +67,10 @@
                         <MenuItem Header="_Spectrum" Command="{Binding SetPlotPage}" CommandParameter="Spectrum" />
                         <MenuItem Header="_Intermodulation" Command="{Binding SetPlotPage}" CommandParameter="Intermodulation" />
                         <MenuItem Header="Sco_pe" Command="{Binding SetPlotPage}" CommandParameter="Scope" />
-                        <MenuItem Header="THD vs _Frequency" Command="{Binding SetPlotPage}" CommandParameter="ThdFreq" Visibility="Collapsed" />
                         <MenuItem Header="THD vs _Frequency" Command="{Binding SetPlotPage}" CommandParameter="Opamp.Freq" />
                         <MenuItem Header="THD vs _Amplitude" Command="{Binding SetPlotPage}" CommandParameter="ThdAmp" />
                         <MenuItem Header="Frequency _Response" Command="{Binding SetPlotPage}" CommandParameter="Response" />
                         <MenuItem Header="S_ettings" Command="{Binding SetPlotPage}" CommandParameter="Settings" />
-                        <!--<MenuItem Header="I_mpedance" Command="{Binding SetPlotPage}" CommandParameter="Response" />
-                    <MenuItem Header="_Crosstalk" Command="{Binding SetPlotPage}" CommandParameter="Response" />
-                    <MenuItem Header="_Gain" Command="{Binding SetPlotPage}" CommandParameter="Response" />-->
                         <MenuItem Header="Opamp vs Amplitude" Command="{Binding SetPlotPage}"
                           CommandParameter="Opamp.Amp"
                           Visibility="{Binding ShowQA430, Converter={StaticResource BoolVisConverter}}"
@@ -90,12 +86,8 @@
                         <MenuItem Header="_Load Configuration" Command="{Binding DoLoadCfg}" />
                         <MenuItem Header="Save Configuration as _Default" Command="{Binding DoSaveDfltCfg}" />
                     </MenuItem>
-                    <!--<MenuItem Header="_Results">
-                        <MenuItem Header="Sa_ve Test Result"/>
-                        <MenuItem Header="Load _Test Result"/>
-                        <MenuItem Header="Get Test _Result"/>
-                    </MenuItem>-->
                 </Menu>
+                <views:ToggleBar Margin="15,0,0,0" VerticalAlignment="Center" />
             </StackPanel>
             <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3">
                 <Rectangle Fill="#40888888"  Width="2" />

@@ -1,0 +1,51 @@
+﻿<UserControl x:Class="QA40xPlot.Views.ToggleBar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:QA40xPlot.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+     <StackPanel>
+        <Button Content="&#x25B6;" Width="30" Padding="0,5" 
+            ToolTip="Show the page buttons" 
+                BorderBrush="Transparent" Background="Transparent"
+                Command="{Binding ShowButtons}" CommandParameter="1"
+                Visibility="{Binding IsButtonShown, Converter={StaticResource BoolNotVisConverter} }" 
+                />
+        <StackPanel Visibility="{Binding IsButtonShown, Converter={StaticResource BoolVisConverter} }"
+                Orientation="Horizontal" >
+            <Button Content="S" Width="30" Padding="0,5" ToolTip="Spectrum" 
+                    BorderBrush="Transparent" Background="Transparent"
+                IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=Spectrum}"
+                Command="{Binding SetPlotPage}" CommandParameter="Spectrum" />
+            <Button Content="I" Width="30" Padding="0,5" ToolTip="Intermodulation Distortion" 
+                    BorderBrush="Transparent" Background="Transparent"
+                IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=Intermodulation}"
+                Command="{Binding SetPlotPage}" CommandParameter="Intermodulation" />
+            <Button Content="O" Width="30" Padding="0,5" ToolTip="Oscilloscope" 
+                    BorderBrush="Transparent" Background="Transparent"
+                        IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=Scope}"
+                        Command="{Binding SetPlotPage}" CommandParameter="Scope" />
+            <Button Content="F" Width="30" Padding="0,5" ToolTip="THD vs Frequency" 
+                    BorderBrush="Transparent" Background="Transparent"
+                        IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=Opamp.Freq}"
+                        Command="{Binding SetPlotPage}" CommandParameter="Opamp.Freq" />
+            <Button Content="A" Width="30" Padding="0,5" ToolTip="THD vs Amplitude" 
+                    BorderBrush="Transparent" Background="Transparent"
+                        IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=ThdAmp}"
+                        Command="{Binding SetPlotPage}" CommandParameter="ThdAmp" />
+            <Button Content="R" Width="30" Padding="0,5" ToolTip="Frequency Response" 
+                    BorderBrush="Transparent" Background="Transparent"
+                        IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=Response}"
+                        Command="{Binding SetPlotPage}" CommandParameter="Response" />
+            <Button Content="&#x26ed;" Width="30" Padding="0,5" ToolTip="Settings" 
+                    BorderBrush="Transparent" Background="Transparent"
+                        IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=Settings}"
+                        Command="{Binding SetPlotPage}" CommandParameter="Settings" />
+            <Button Content="&#x25C0;" Width="30" Padding="0,5" ToolTip="Hide the page buttons" 
+                Command="{Binding ShowButtons}" CommandParameter="0"
+                BorderBrush="Transparent" Background="Transparent" />
+        </StackPanel>
+    </StackPanel>
+</UserControl>

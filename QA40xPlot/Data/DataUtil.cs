@@ -31,7 +31,7 @@
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <typeparam name="U"></typeparam>
-		/// <param name="tabs"></param>
+		/// <param name="tabs">a list of data tabs</param>
 		/// <returns></returns>
 		public static List<U> FindShownInfo<T, U>(List<DataTab<T>> tabs)
 		{
