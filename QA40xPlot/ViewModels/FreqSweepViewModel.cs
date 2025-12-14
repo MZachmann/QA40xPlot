@@ -326,7 +326,7 @@ namespace QA40xPlot.ViewModels
 			ShowTHD = isOn;
 			ShowTHDN = isOn;
 			ShowMagnitude = isOn;
-			ShowPhase = isOn;
+			//ShowPhase = isOn;	// not yet implemented so don't enable it
 			ShowNoise = isOn;
 			ShowNoiseFloor = isOn;
 			ShowD2 = isOn;

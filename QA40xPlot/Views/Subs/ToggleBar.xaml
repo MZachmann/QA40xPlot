@@ -7,7 +7,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
      <StackPanel>
-        <Button Content="&#x25B6;" Width="30" Padding="0,5" 
+        <Button Content="&#x2771;&#x2771;" Width="30" Padding="0,5" 
             ToolTip="Show the page buttons" 
                 BorderBrush="Transparent" Background="Transparent"
                 Command="{Binding ShowButtons}" CommandParameter="1"
@@ -43,7 +43,7 @@
                     BorderBrush="Transparent" Background="Transparent"
                         IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=Settings}"
                         Command="{Binding SetPlotPage}" CommandParameter="Settings" />
-            <Button Content="&#x25C0;" Width="30" Padding="0,5" ToolTip="Hide the page buttons" 
+            <Button Content="&#x2770;&#x2770;" Width="30" Padding="0,5" ToolTip="Hide the page buttons" 
                 Command="{Binding ShowButtons}" CommandParameter="0"
                 BorderBrush="Transparent" Background="Transparent" />
         </StackPanel>
