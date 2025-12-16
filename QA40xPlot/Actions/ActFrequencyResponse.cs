@@ -721,8 +721,8 @@ namespace QA40xPlot.Actions
 			}
 			else
 			{
-				var window = QaMath.GetWindowType(vm.WindowingMethod);    // best?
-																		  // Left channel
+				// best?
+				var window = QaMath.GetWindowType(vm.WindowingMethod);
 				double[] lftF = window.Apply(lfrs.TimeRslt.Left, true);
 				leftFft = FFT.Forward(lftF);
 
@@ -730,15 +730,15 @@ namespace QA40xPlot.Actions
 				rightFft = FFT.Forward(rgtF);
 			}
 
+			var lrfs = new LeftRightFrequencySeries();
+			lrfs.Df = QaLibrary.CalcBinSize(vm.SampleRateVal, vm.FftSizeVal); // frequency step size
 			leftFft = leftFft.Take(flength).ToArray();
 			rightFft = rightFft.Take(flength).ToArray();
-			var lrfs = new LeftRightFrequencySeries();
 			// set the freq values because ?
 			lrfs.Left = leftFft.Select(x => x.Magnitude).ToArray();
 			lrfs.Right = rightFft.Select(x => x.Magnitude).ToArray();
-			lrfs.Df = QaLibrary.CalcBinSize(vm.SampleRateVal, vm.FftSizeVal); // frequency step size
-			lfrs.FreqRslt = lrfs;
 			await showProgress(100, 50);
+			lfrs.FreqRslt = lrfs;
 
 			return (lfrs, leftFft, rightFft);
 		}

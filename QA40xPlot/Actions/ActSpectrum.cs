@@ -357,13 +357,17 @@ namespace QA40xPlot.Actions
 				return;
 
 			LeftRightFrequencySeries? fseries;
-			if (vm.Gen1Waveform != "Chirp")
+			if (vm.Gen1Waveform != "Chirp" && vm.Gen1Waveform != "RiaaChirp")
 			{
 				fseries = QaMath.CalculateSpectrum(page.TimeRslt, vm.WindowingMethod);  // do the fft and calculate the frequency response
 			}
 			else
 			{
+				// if riaa chirp we want to compare to chirp
+				var oldn = vm.Gen1Waveform;
+				vm.Gen1Waveform = "Chirp";
 				var wave = BuildWave(page, page.Definition.GeneratorVoltage);
+				vm.Gen1Waveform = oldn;
 				fseries = QaMath.CalculateChirpFreq(vm.WindowingMethod, page.TimeRslt, wave.ToArray(), page.Definition.GeneratorVoltage, vm.SampleRateVal, vm.FftSizeVal);   // normalize the result for flat response
 			}
 
