@@ -1,5 +1,4 @@
-﻿using OpenTK.Compute.OpenCL;
-using QA40xPlot.BareMetal;
+﻿using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.QA430;
@@ -36,14 +35,14 @@ namespace QA40xPlot.Actions
 		private static FreqSweepViewModel MyVModel { get => ViewSettings.Singleton.FreqVm; }
 		CancellationTokenSource CanToken;                                 // Measurement cancelation token
 
-		private List<FreqSweepLine>? FrequencyLines(MyDataTab page)
+		private List<SweepLine>? FrequencyLines(MyDataTab page)
 		{
-			return (List<FreqSweepLine>?)page.GetProperty("Left");
+			return (List<SweepLine>?)page.GetProperty("Left");
 		}
 
-		private List<FreqSweepLine>? FrequencyLinesRight(MyDataTab page)
+		private List<SweepLine>? FrequencyLinesRight(MyDataTab page)
 		{
-			return (List<FreqSweepLine>?)page.GetProperty("Right");
+			return (List<SweepLine>?)page.GetProperty("Right");
 		}
 
 		/// <summary>
@@ -90,14 +89,14 @@ namespace QA40xPlot.Actions
 				myPlot.Title(title);
 		}
 
-		private double[] ColumnToArray(FreqSweepColumn col)
+		private double[] ColumnToArray(SweepColumn col)
 		{
 			return new double[] { col.Freq, col.Mag, col.Phase, col.THD, col.THDN, col.Noise, col.NoiseFloor, col.GenVolts, col.D2, col.D3, col.D4, col.D5, col.D6P };
 		}
 
-		private FreqSweepColumn ArrayToColumn(double[] rawData, uint startIdx)
+		private SweepColumn ArrayToColumn(double[] rawData, uint startIdx)
 		{
-			FreqSweepColumn col = new();
+			SweepColumn col = new();
 			col.Freq = rawData[startIdx];
 			col.Mag = rawData[startIdx + 1];
 			col.Phase = rawData[startIdx + 2];
@@ -114,20 +113,20 @@ namespace QA40xPlot.Actions
 			return col;
 		}
 
-		private List<FreqSweepLine> RawToColumns(AcquireStep[] steps, double[] raw)
+		private List<SweepLine> RawToColumns(AcquireStep[] steps, double[] raw)
 		{
 			if (raw.Length == 0)
 				return [];
-			List<FreqSweepColumn> left = new();
+			List<SweepColumn> left = new();
 			// make columns from the raw data
 			int i;
-			for (i = 0; i < raw.Length; i += FreqSweepColumn.FreqSweepColumnCount)
+			for (i = 0; i < raw.Length; i += SweepColumn.SweepColumnCount)
 			{
 				var col = ArrayToColumn(raw, (uint)i);
 				left.Add(col);
 			}
 			// convert into freqsweeplines
-			List<FreqSweepLine> lines = new();
+			List<SweepLine> lines = new();
 			// line lengths
 			var maxF = left.Max(x => x.Freq);   // maximum frequency
 			int linelength = 0;
@@ -146,7 +145,7 @@ namespace QA40xPlot.Actions
 			bool showVolt = 1 < steps.Select(x => x.GenVolt).Distinct().Count();    // more than one voltage, show them
 			for (i = 0; i < numLines; i++)
 			{
-				var line = new FreqSweepLine();
+				var line = new SweepLine();
 				line.Label = steps[i].ToSuffix(showVolt, MyVModel.HasQA430);
 				line.Columns = left.Skip(i * linelength).Take(linelength).ToArray();
 				lines.Add(line);
@@ -170,7 +169,7 @@ namespace QA40xPlot.Actions
 		/// <param name="x"></param>
 		/// <param name="left"></param>
 		/// <param name="right"></param>
-		private void AddColumn(MyDataTab page, double x, FreqSweepColumn left, FreqSweepColumn right)
+		private void AddColumn(MyDataTab page, double x, SweepColumn left, SweepColumn right)
 		{
 			page.Sweep.X = page.Sweep.X.Append(x).ToArray();
 			page.Sweep.RawLeft = page.Sweep.RawLeft.Concat(ColumnToArray(left)).ToArray();
@@ -188,7 +187,7 @@ namespace QA40xPlot.Actions
 
 				var specVm = MyVModel;     // current settings
 
-				List<FreqSweepColumn> steps = new();
+				List<SweepColumn> steps = new();
 				if (specVm.ShowLeft)
 				{
 					var a1 = FrequencyLines(PageData);
@@ -207,7 +206,7 @@ namespace QA40xPlot.Actions
 							steps.AddRange(x.Columns);
 						}
 				}
-				var seen = DataUtil.FindShownInfo<FreqSweepViewModel, List<FreqSweepLine>>(OtherTabs);
+				var seen = DataUtil.FindShownInfo<FreqSweepViewModel, List<SweepLine>>(OtherTabs);
 				foreach (var s in seen)
 				{
 					if (s != null)
@@ -285,11 +284,11 @@ namespace QA40xPlot.Actions
 			return rrc;
 		}
 
-		private List<FreqSweepDot> LookupColumn(MyDataTab page, double freq)
+		private List<SweepDot> LookupColumn(MyDataTab page, double freq)
 		{
 			var vm = MyVModel;
 			var allLines = FrequencyLines(page);
-			List<FreqSweepDot> dots = new();
+			List<SweepDot> dots = new();
 			if (allLines == null || allLines.Count == 0)
 			{
 				return dots;
@@ -305,7 +304,7 @@ namespace QA40xPlot.Actions
 				// last line isn't long enough yet
 				if (line.Columns.Length < bin)
 					break;
-				var dot = new FreqSweepDot();
+				var dot = new SweepDot();
 				dot.Label = line.Label;
 				dot.Column = line.Columns[bin];
 				dots.Add(dot);
@@ -315,7 +314,7 @@ namespace QA40xPlot.Actions
 
 		// for a given frequency, lookup the left and right columns
 		// this is used by the cursor display
-		public FreqSweepDot[] LookupX(double freq)
+		public SweepDot[] LookupX(double freq)
 		{
 			var vm = MyVModel;
 			var allLines = LookupColumn(PageData, freq); // lookup the columns
@@ -772,7 +771,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="ct">Cancellation token</param>
 		/// <returns>result. false if cancelled</returns>
-		private (FreqSweepColumn?, FreqSweepColumn?) CalculateColumn(MyDataTab msr, double dFreq,
+		private (SweepColumn?, SweepColumn?) CalculateColumn(MyDataTab msr, double dFreq,
 			CancellationToken ct, AcquireStep acqConfig, LeftRightFrequencySeries? lfrsNoise)
 		{
 			if (msr.FreqRslt == null)
@@ -781,9 +780,9 @@ namespace QA40xPlot.Actions
 			}
 
 			// left and right channels summary info to fill in
-			var left = new FreqSweepColumn();
-			var right = new FreqSweepColumn();
-			FreqSweepColumn[] steps = [left, right];
+			var left = new SweepColumn();
+			var right = new SweepColumn();
+			SweepColumn[] steps = [left, right];
 			FreqSweepViewModel vm = msr.ViewModel;
 
 			var lrfs = msr.FreqRslt;    // frequency response
@@ -961,9 +960,9 @@ namespace QA40xPlot.Actions
 			}
 
 			// which columns are we displaying? left, right or both
-			List<FreqSweepLine>[] lineGroup;
-			List<FreqSweepLine>? leftCol = FrequencyLines(page);
-			List<FreqSweepLine>? rightCol = FrequencyLinesRight(page);
+			List<SweepLine>[] lineGroup;
+			List<SweepLine>? leftCol = FrequencyLines(page);
+			List<SweepLine>? rightCol = FrequencyLinesRight(page);
 			if (showLeft && showRight && leftCol != null && rightCol != null)
 			{
 				lineGroup = [leftCol, rightCol];

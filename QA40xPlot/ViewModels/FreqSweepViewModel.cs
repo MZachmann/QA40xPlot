@@ -344,7 +344,7 @@ namespace QA40xPlot.ViewModels
 			return GraphUtil.PrettyPrint(x, vm.PlotFormat);
 		}
 
-		private static string FormatCursor(FreqSweepDot dot)
+		private static string FormatCursor(SweepDot dot)
 		{
 			var vm = MyVModel;
 			var column = dot.Column;

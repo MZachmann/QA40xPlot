@@ -1,21 +1,21 @@
 ﻿namespace QA40xPlot.Data
 {
-	public class FreqSweepLine
+	public class SweepLine
 	{
 		public string Label { get; set; } = "";
-		public FreqSweepColumn[] Columns { get; set; } = [];
+		public SweepColumn[] Columns { get; set; } = [];
 	}
 
-	public class FreqSweepDot
+	public class SweepDot
 	{
 		public string Label { get; set; } = "";
-		public FreqSweepColumn Column { get; set; } = new();
+		public SweepColumn Column { get; set; } = new();
 	}
 
 	// helper for thd sweeps
-	public class FreqSweepColumn
+	public class SweepColumn
 	{
-		public const int FreqSweepColumnCount = 13;
+		public const int SweepColumnCount = 13;
 		// readings
 		public double Mag { get; set; }
 		public double Phase { get; set; }
@@ -32,11 +32,11 @@
 		public double GenVolts { get; set; }
 		public double Freq { get; set; }
 
-		public FreqSweepColumn()
+		public SweepColumn()
 		{
 		}
 
-		public FreqSweepColumn(object o)
+		public SweepColumn(object o)
 		{
 
 		}
