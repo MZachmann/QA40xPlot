@@ -57,6 +57,13 @@ public class FreqRespViewModel : BaseViewModel
 		get { return _IsChirp; }
 		set { SetProperty(ref _IsChirp, value); RaisePropertyChanged("IsNotChirp"); }
 	}
+	// use riaa preemphasis on the signal
+	private bool _IsRiaa = false;
+	public bool IsRiaa
+	{
+		get { return _IsRiaa; }
+		set { SetProperty(ref _IsRiaa, value); RaisePropertyChanged("IsNotChirp"); }
+	}
 
 	private string _ZReference = string.Empty;
 	public string ZReference

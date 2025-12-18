@@ -408,9 +408,9 @@ namespace QA40xPlot.Actions
 		{
 			var vm = page.ViewModel;
 			var v1 = page.Definition.GeneratorVoltage;
-			WaveGenerator.SetEnabled(true);          // enable the generator
-			WaveGenerator.SetGen1(dFreq, v1, true);          // send a sine wave
-			return WaveGenerator.Generate((uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
+			WaveGenerator.SetEnabled(true, true);          // enable the generator
+			WaveGenerator.SetGen1(true, dFreq, v1, true);          // send a sine wave
+			return WaveGenerator.Generate(true, (uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
 		}
 
 
@@ -500,7 +500,7 @@ namespace QA40xPlot.Actions
 			//QaLibrary.PlotMiniFftGraph(fftPlot, noisy.FreqRslt, vm.ShowLeft, vm.ShowRight);
 			//QaLibrary.PlotMiniTimeGraph(timePlot, noisy.TimeRslt, testFrequency, vm.ShowLeft, vm.ShowRight);
 
-			WaveGenerator.SetEnabled(true);  // turn on the generator
+			WaveGenerator.SetEnabled(true, true);  // turn on the generator
 											 // ********************************************************************
 											 // Step through the list of voltages
 											 // ********************************************************************

@@ -150,6 +150,12 @@
     <None Update="Help\ChangeLog.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Help\Compensation\Riaa_qa.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Help\Compensation\Riaa_qa_inverse.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Help\DACSupport.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

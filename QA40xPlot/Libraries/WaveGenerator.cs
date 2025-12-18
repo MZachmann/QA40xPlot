@@ -1,10 +1,19 @@
 ﻿using QA40xPlot.Data;
 using QA40xPlot.ViewModels;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace QA40xPlot.Libraries
 {
 	public class WaveGenerator
 	{
+		public static WaveGenerator LeftWaves = new WaveGenerator();
+		public static WaveGenerator RightWaves = new WaveGenerator();
+		public static WaveGenerator TheWave(bool isLeft)
+		{
+			return isLeft ? LeftWaves : RightWaves;
+		}
+
 		public GenWaveform GenParams { get; private set; }
 		public GenWaveform Gen2Params { get; private set; }
 		public bool IsEnabled { get; set; }
@@ -13,8 +22,6 @@ namespace QA40xPlot.Libraries
 			get => GenParams.Channels;
 			set => GenParams.Channels = value;
 		}
-
-		public static WaveGenerator Singleton = new WaveGenerator();
 
 		public WaveGenerator()
 		{
@@ -52,40 +59,56 @@ namespace QA40xPlot.Libraries
 			gwf.Channels = channels;
 		}
 
-		public static void SetGen2(double freq, double volts, bool ison, string name = "Sine")
+		public static void SetGen2(bool isLeft, double freq, double volts, bool ison, string name = "Sine")
 		{
-			SetParams(Singleton.Gen2Params, freq, volts, ison);
-			Singleton.Gen2Params.Name = name;
+			var single = TheWave(isLeft);
+			SetParams(single.Gen2Params, freq, volts, ison);
+			single.Gen2Params.Name = name;
 		}
 
-		public static void SetGen1(double freq, double volts, bool ison, string name = "Sine")
+		public static void SetGen1(bool isLeft, double freq, double volts, bool ison, string name = "Sine")
 		{
-			SetParams(Singleton.GenParams, freq, volts, ison);
-			Singleton.GenParams.Name = name;
+			var single = TheWave(isLeft);
+			SetParams(single.GenParams, freq, volts, ison);
+			single.GenParams.Name = name;
 		}
 
-		public static void SetChannels(WaveChannels channels)
+		public static void SetChannels(bool isLeft, WaveChannels channels)
 		{
-			Singleton.Channels = channels;
+			var single = TheWave(isLeft);
+			single.Channels = channels;
 		}
 
-		public static void SetEnabled(bool ison)
+		public static void SetEnabled(bool isLeft, bool ison)
 		{
-			Singleton.IsEnabled = ison;
+			var single = TheWave(isLeft);
+			single.IsEnabled = ison;
 		}
 
-		public static void Clear()
+		public static void Clear(bool isLeft)
 		{
-			var vw = Singleton;
+			var single = TheWave(isLeft);
+			var vw = single;
 			vw.IsEnabled = false;
 			vw.GenParams.Enabled = false;
 			vw.Gen2Params.Enabled = false;
 		}
 
-		public static (double[], double[]) GeneratePair(uint sampleRate, uint sampleSize)
+		public static (double[], double[]) GenerateBoth(uint sampleRate, uint sampleSize)
 		{
-			var dx = Generate(sampleRate, sampleSize);
-			var how = Singleton.Channels;
+			var dx = Generate(true, sampleRate, sampleSize);
+			// if no right generator - duplicate
+			if (!TheWave(false).IsEnabled)
+				return (dx, dx);
+			var dy = Generate(false, sampleRate, sampleSize);
+			return (dx, dy);
+		}
+
+		public static (double[], double[]) GeneratePair(bool isLeft, uint sampleRate, uint sampleSize)
+		{
+			var single = TheWave(isLeft);
+			var dx = Generate(isLeft, sampleRate, sampleSize);
+			var how = single.Channels;
 			double[] blank = [];
 			if (how != WaveChannels.Both)
 			{
@@ -109,9 +132,10 @@ namespace QA40xPlot.Libraries
 			}
 		}
 
-		public static double[] Generate(uint sampleRate, uint sampleSize)
+		public static double[] Generate(bool isLeft, uint sampleRate, uint sampleSize)
 		{
-			var vw = Singleton;
+			var single = TheWave(isLeft);
+			var vw = single;
 			var waveSample = new GenWaveSample()
 			{
 				SampleRate = (int)sampleRate,

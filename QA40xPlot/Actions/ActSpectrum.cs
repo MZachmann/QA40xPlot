@@ -157,19 +157,19 @@ namespace QA40xPlot.Actions
 		{
 			var vm = page.ViewModel;
 			var freq = vm.NearestBinFreq(vm.Gen1Frequency);
-			WaveGenerator.SetEnabled(true);          // enable the generator
+			WaveGenerator.SetEnabled(true, true);          // enable the generator
 			bool buse = force ? true : vm.UseGenerator;
 			double[] distout = [];
 			// do distortion addon first so wavegenerator is set up on exit (?)
 			if (buse && ViewSettings.AddonDistortion > 0 && vm.Gen1Waveform == "Sine")
 			{
-				WaveGenerator.SetGen1(2 * freq, volts * ViewSettings.AddonDistortion / 100, buse, "Sine");          // send a sine wave
-				WaveGenerator.SetGen2(0, 0, false);          // just a sine wave
-				distout = WaveGenerator.Generate((uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
+				WaveGenerator.SetGen1(true, 2 * freq, volts * ViewSettings.AddonDistortion / 100, buse, "Sine");          // send a sine wave
+				WaveGenerator.SetGen2(true, 0, 0, false);          // just a sine wave
+				distout = WaveGenerator.Generate(true, (uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
 			}
-			WaveGenerator.SetGen1(freq, volts, buse, vm.Gen1Waveform);          // send a sine wave
-			WaveGenerator.SetGen2(0, 0, false);          // just a sine wave
-			var dout = WaveGenerator.Generate((uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
+			WaveGenerator.SetGen1(true, freq, volts, buse, vm.Gen1Waveform);          // send a sine wave
+			WaveGenerator.SetGen2(true, 0, 0, false);          // just a sine wave
+			var dout = WaveGenerator.Generate(true, (uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
 			if (distout.Length > 0)
 			{
 				// add the distortion to the sine wave

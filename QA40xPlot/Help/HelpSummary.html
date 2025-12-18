@@ -565,6 +565,8 @@ Along the top right of the screen are a few command buttons. If this becomes too
         Use Chirp - turn this on to use a chirp signal for the sweep. This is a more efficient way to sweep a frequency range. It suffers from
         reduced distortion and gain accuracy but gains almost continuous frequency coverage in a single packet. When using chirp, the right channel is used as reference if active.
     </li>
+    <li>
+        RIAA Premphasis - the left channel output (only) has RIAA preemphasis applied, for use as an input signal to phono preamps during testing. The (max) signal level at highest frequency is approximately the selected voltage. The signal level is about 40-45 dB less at low frequencies.</li>
 </ul>
 <h1 style="color:green">Impedance Test</h1>
 <p>This does a frequency sweep and at each point calculates the effective impedance of the DUT. Data is stored as a complex value. The impedance is calculated by using a known resistor in a simple series circuit with the DUT. The reference signal goes to the right channel and the split signal goes to the left channel.</p>
@@ -588,11 +590,14 @@ Along the top right of the screen are a few command buttons. If this becomes too
     <li>
         Use Chirp - see above.
     </li>
+    <li>
+        RIAA Premphasis - the left channel output (only) has RIAA preemphasis applied, for use as an input signal to phono preamps during testing. The (max) signal level at 40KHz is approximately the selected voltage. The signal level is approximately 40-45 dB less at low frequencies.</li>
 </ul>
 <h3>Connections are:</h3>
 <ul>
-    <li> the QA40x right channel input to the DUT input port and generator output.</li>
-    <li> the QA40x left channel input to the DUT output port.</li>
+    <li> the QA40x right channel output to the QA40x right channel input</li>
+    <li> the QA40x left channel output to the DUT input</li>
+    <li> the QA40x left channel input to the DUT output</li>
 </ul>
 <h1 style="color:green">Crosstalk Test</h1>
 <p>
@@ -607,8 +612,8 @@ Along the top right of the screen are a few command buttons. If this becomes too
 </ul>
 <h3>Connections are:</h3>
 <ul>
-    <li> the QA40x right channel output to the DUT right input.</li>
     <li> the QA40x left channel output to the DUT left input.</li>
+    <li> the QA40x right channel output to the DUT right input</li>
     <li> the QA40x right channel input to the DUT right output.</li>
     <li> the QA40x left channel input to the DUT left output.</li>
 </ul>

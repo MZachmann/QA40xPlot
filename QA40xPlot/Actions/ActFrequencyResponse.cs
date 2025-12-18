@@ -389,15 +389,19 @@ namespace QA40xPlot.Actions
 
 			LeftRightSeries lfrs = new();
 			FrequencyHistory.Clear();
+			var dset = WaveGenerator.GenerateBoth(msr.SampleRateVal, msr.FftSizeVal);
+			var dataLeft = dset.Item1;
+			var dataRight = dset.Item2;
 			for (int i = 0; i < msr.Averages - 1; i++)
 			{
-				lfrs = await QaComm.DoAcquisitions(1, ct.Token, true);
+				lfrs = await QaComm.DoAcquireUser(1, ct.Token, dataLeft, dataRight, true);
+					//.DoAcquisitions(1, ct.Token, true);
 				if (lfrs == null || lfrs.TimeRslt == null || lfrs.FreqRslt == null)
 					return new();
 				FrequencyHistory.Add(lfrs.FreqRslt);
 			}
 			{
-				lfrs = await QaComm.DoAcquisitions(1, ct.Token, true);
+				lfrs = await QaComm.DoAcquireUser(1, ct.Token, dataLeft, dataRight, true);
 				if (lfrs == null || lfrs.TimeRslt == null || lfrs.FreqRslt == null)
 					return new();
 				lfrs.FreqRslt = CalculateAverages(lfrs.FreqRslt, msr.Averages);
@@ -620,9 +624,8 @@ namespace QA40xPlot.Actions
 			if (ct.IsCancellationRequested)
 				return false;
 
-			WaveGenerator.SetEnabled(true);     // enable the generator
-			WaveGenerator.SetGen2(0, 0, false); // disable the second wave
-
+			WaveGenerator.SetEnabled(true, true);     // enable the generator
+			WaveGenerator.SetGen2(true, 0, 0, false); // disable the second wave
 			var ttype = vm.GetTestingType(vm.TestType);
 			var genVolt = QaLibrary.ConvertVoltage(voltagedBV, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
 
@@ -637,10 +640,22 @@ namespace QA40xPlot.Actions
 					if (ct.IsCancellationRequested)
 						break;
 					var dfreq = stepBinFrequencies[steps];
-					if (dfreq > 0)
-						WaveGenerator.SetGen1(dfreq, genVolt, true);
+					if(vm.IsRiaa && (ttype != TestingType.Crosstalk))
+					{
+						var gv = genVolt;
+						var gvmax = RiaaTransform.Fvalue(stepBinFrequencies.Last());
+						gv = gv * RiaaTransform.Fvalue(dfreq) / gvmax;
+						// enable both generators here with one riaa preemph
+						WaveGenerator.SetGen1(true, dfreq, gv, true);
+						WaveGenerator.SetGen1(false, dfreq, genVolt, true);
+						WaveGenerator.SetEnabled(false, true);	// enable second generator
+					}
+					else if (dfreq > 0)
+					{
+						WaveGenerator.SetGen1(true, dfreq, genVolt, true);
+					}
 					else
-						WaveGenerator.SetGen1(1000, genVolt, false);
+						WaveGenerator.SetGen1(true, 1000, genVolt, false);
 					if (ttype == TestingType.Crosstalk)
 					{
 						// each one adds a step so carefully....
@@ -648,15 +663,15 @@ namespace QA40xPlot.Actions
 						// here GainRight = the response right channel, GainLeft = left channel response
 						var exData = page.GainData; // save the data
 						var exFreq = page.GainFrequencies; // save the frequencies
-						WaveGenerator.SetChannels(WaveChannels.Left); // crosstalk is both channels
+						WaveGenerator.SetChannels(true, WaveChannels.Left); // crosstalk is both channels
 						await RunStep(page, TestingType.Response, dfreq, genVolt);      // get gain of both channels
 						var gainRight = page.GainRight.Last() / Math.Max(1e-10, page.GainLeft.Last());	// signal was sent on left channel
 
 						page.GainData = exData; // new list of complex data
 						page.GainFrequencies = exFreq; // new list of frequencies
-						WaveGenerator.SetChannels(WaveChannels.Right); // crosstalk is both channels
+						WaveGenerator.SetChannels(true, WaveChannels.Right); // crosstalk is both channels
 						await RunStep(page, TestingType.Response, dfreq, genVolt);      // get gain of both channels
-						WaveGenerator.SetChannels(WaveChannels.Both); // crosstalk is both channels
+						WaveGenerator.SetChannels(true, WaveChannels.Both); // crosstalk is both channels
 						var gainLeft = page.GainLeft.Last() / Math.Max(1e-10, page.GainRight.Last());	// signal was sent on right channel
 						// merge the data and update the GainData Property
 						var idxread = page.GainLeft.Length - 1;
@@ -697,8 +712,15 @@ namespace QA40xPlot.Actions
 			var endf = ToD(vm.EndFreq) * 3;
 			endf = Math.Min(endf, vm.SampleRateVal / 2);
 			var genv = QaLibrary.ConvertVoltage(voltagedBV, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
-			var chirpy = Chirps.ChirpVpPair((int)vm.FftSizeVal, vm.SampleRateVal, genv, startf, endf, 0.8, WaveGenerator.Singleton.Channels);
-			LeftRightSeries lfrs = await QaComm.DoAcquireUser(1, ct.Token, chirpy.Item1, chirpy.Item2, false);
+			var chirpy = Chirps.ChirpVpPair((int)vm.FftSizeVal, vm.SampleRateVal, genv, startf, endf, 0.8, WaveGenerator.TheWave(true).Channels);
+			var uc = chirpy.Item1;
+			if(vm.IsRiaa)
+			{
+				// time domain filtering to riaa preemphasis
+				var bq = BiquadBuilder.BuildRiaaBiquad(vm.SampleRateVal, true);
+				uc = chirpy.Item1.Select(x => bq.Process(x)).ToArray();
+			}
+			LeftRightSeries lfrs = await QaComm.DoAcquireUser(1, ct.Token, uc, chirpy.Item2, false);
 			if (lfrs?.TimeRslt == null)
 				return (null, [], []);
 			page.TimeRslt = lfrs.TimeRslt;
@@ -711,7 +733,7 @@ namespace QA40xPlot.Actions
 			var flength = lfrs.TimeRslt.Left.Length / 2;        // we want half this since freq is symmetric
 
 			var ttype = vm.GetTestingType(vm.TestType);
-			var chans = WaveGenerator.Singleton.Channels;
+			var chans = WaveGenerator.TheWave(true).Channels;
 			var useChirp = (chans == WaveChannels.Left || chans == WaveChannels.Both) ? chirpy.Item1 : chirpy.Item2; // use the left or right channel chirp
 			if (ttype == TestingType.Response)
 			{
@@ -880,7 +902,7 @@ namespace QA40xPlot.Actions
 				page.GainData = ([],[]); // new list of complex data
 				page.GainFrequencies = []; // new list of frequencies
 				// left->right crosstalk
-				WaveGenerator.SetChannels(WaveChannels.Left); // left channel on
+				WaveGenerator.SetChannels(true, WaveChannels.Left); // left channel on
 				didRun = await DoChirpTest(page, voltagedBV, TestingType.Response);
 				if (perOctave > 0)
 				{
@@ -895,7 +917,7 @@ namespace QA40xPlot.Actions
 					// right->left crosstalk
 					page.GainData = ([], []); // new list of complex data
 					page.GainFrequencies = []; // new list of frequencies
-					WaveGenerator.SetChannels(WaveChannels.Right); // right channel on
+					WaveGenerator.SetChannels(true, WaveChannels.Right); // right channel on
 					didRun = await DoChirpTest(page, voltagedBV, TestingType.Response);
 					if (!ct.IsCancellationRequested)
 					{
@@ -911,7 +933,7 @@ namespace QA40xPlot.Actions
 						page.GainData = (gainLeft, gainRight);
 					}
 				}
-				WaveGenerator.SetChannels(WaveChannels.Both); // back to default both
+				WaveGenerator.SetChannels(true, WaveChannels.Both); // back to default both
 			}
 
 			UpdateGraph(false);

@@ -208,7 +208,8 @@ namespace QA40xPlot.Actions
 			}
 			bvm.IsRunning = true;
 			bvm.ShowMiniPlots = bvm.KeepMiniPlots; // enable mini plots for the duration of the action
-			WaveGenerator.Clear();  // disable both generators and the WaveGenerator itself
+			WaveGenerator.Clear(true);  // disable both generators and the WaveGenerator itself
+			WaveGenerator.Clear(false);  // disable both generators and the WaveGenerator itself
 			FrequencyHistory.Clear();
 			return true;
 		}
@@ -216,7 +217,8 @@ namespace QA40xPlot.Actions
 		public async Task EndAction(BaseViewModel bvm)
 		{
 			// Turn the generator off
-			WaveGenerator.SetEnabled(false);
+			WaveGenerator.SetEnabled(true, false);	// left
+			WaveGenerator.SetEnabled(false, false);	// right
 			if (ViewSettings.Singleton.SettingsVm.RelayUsage == "OnFinish")
 				await QaComm.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION);  // set max attenuation while idle...
 																			   // detach from usb port
@@ -283,7 +285,8 @@ namespace QA40xPlot.Actions
 			// ********************************************************************
 			await showMessage($"Determining noise floor.", 40);
 			System.Diagnostics.Debug.WriteLine("***-------------Measuring noise-------------.");
-			WaveGenerator.SetEnabled(false);
+			WaveGenerator.SetEnabled(true, false);
+			WaveGenerator.SetEnabled(false, false);
 			if (setRange)
 				await QaComm.SetInputRange(0); // and a small range for better noise...
 			LeftRightSeries lrfs = new();
@@ -350,12 +353,11 @@ namespace QA40xPlot.Actions
 			var generatorV = 0.01;          // random low test value
 											// we must have this in the bin center here
 			dfreq = QaLibrary.GetNearestBinFrequency(dfreq, sampleRate, fftsize);
-			WaveGenerator.SetGen1(dfreq, generatorV, true); // send a sine wave
-			WaveGenerator.SetEnabled(true);                 // enable generator
+			WaveGenerator.SetGen1(true, dfreq, generatorV, true); // send a sine wave
+			WaveGenerator.SetEnabled(true, true);                 // enable generator
 			bvm.GeneratorVoltage = MathUtil.FormatVoltage(generatorV); // update the viewmodel so we can show it on-screen
 			var ct = new CancellationTokenSource();
 			// do two and average them
-			//await QaComm.DoAcquisitions(1, ct.Token);        // Do a single acquisition to settle stuff
 			LeftRightSeries acqData = await QaComm.DoAcquisitions(1, ct.Token);        // Do a single acquisition
 			if (acqData == null || acqData.FreqRslt == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
 				return null;

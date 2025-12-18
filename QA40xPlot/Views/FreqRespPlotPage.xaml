@@ -90,7 +90,10 @@
                                 Visibility="{Binding IsChirp, Converter={StaticResource BoolVisConverter}}"
                                    VerticalAlignment="Center"  />
                         </Grid>
-                        <CheckBox Content="_Use Chirp" IsChecked="{Binding IsChirp}" HorizontalAlignment="Center"  />
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                        <CheckBox Content="_Use Chirp" IsChecked="{Binding IsChirp}" HorizontalAlignment="Left"   />
+                            <CheckBox Content="_RIAA Preemphasis" IsChecked="{Binding IsRiaa}" HorizontalAlignment="Left" />
+                        </StackPanel>
                     </StackPanel>
                 </Expander>
 

@@ -10,6 +10,7 @@ v 1.2.2
 - add RIAA frequency deemphasis code
 - change 'show miniplots' action to hide/show
 - alter defaults to use auto-attenuation and enable generators
+- add riaa compensation files
 v 1.2.1
 - add Save Configuration as Default command to menu
 - add Settings page accelerator

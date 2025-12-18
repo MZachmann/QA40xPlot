@@ -153,20 +153,20 @@ namespace QA40xPlot.Actions
 			var freq2 = vm.NearestBinFreq(vm.Gen2Frequency);
 			var v2 = volts / vm.GenDivisor;
 			var v1 = volts;
-			WaveGenerator.SetEnabled(true); // turn on the generator
+			WaveGenerator.SetEnabled(true, true); // turn on the generator
 
 			// do distortion addon first so wavegenerator is set up on exit (?)
 			double[] distout = []; // empty array
 			if (vm.UseGenerator && vm.UseGenerator2 && ViewSettings.AddonDistortion > 0)
 			{
-				WaveGenerator.SetGen1(freq2 - freq, v1 * ViewSettings.AddonDistortion / 100, true);          // send a sine wave
-				WaveGenerator.SetGen2(freq2 + freq, v1 * ViewSettings.AddonDistortion / 100, true);          // just a sine wave
-				distout = WaveGenerator.Generate((uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
+				WaveGenerator.SetGen1(true, freq2 - freq, v1 * ViewSettings.AddonDistortion / 100, true);          // send a sine wave
+				WaveGenerator.SetGen2(true, freq2 + freq, v1 * ViewSettings.AddonDistortion / 100, true);          // just a sine wave
+				distout = WaveGenerator.Generate(true, (uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
 			}
 
 			// now regular stuff
-			WaveGenerator.SetGen1(freq, v1, vm.UseGenerator);          // send a sine wave
-			WaveGenerator.SetGen2(freq2, v2, vm.UseGenerator2);          // send a sine wave
+			WaveGenerator.SetGen1(true, freq, v1, vm.UseGenerator);          // send a sine wave
+			WaveGenerator.SetGen2(true, freq2, v2, vm.UseGenerator2);          // send a sine wave
 			var vsee1 = MathUtil.FormatVoltage(v1);
 			var vsee2 = MathUtil.FormatVoltage(v2);
 			string vout = "";
@@ -188,7 +188,7 @@ namespace QA40xPlot.Actions
 			}
 			MyVModel.GeneratorVoltage = vout; // set the generator voltage in the viewmodel
 
-			var dout = WaveGenerator.Generate((uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
+			var dout = WaveGenerator.Generate(true, (uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
 			if (distout.Length > 0)
 			{
 				// add the distortion to the sine wave

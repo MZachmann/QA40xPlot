@@ -692,7 +692,7 @@ namespace QA40xPlot.Actions
 					var noiseRslt = await MeasureNoiseFreq(MyVModel, 4, CanToken.Token);    // get noise averaged 4 times
 
 					// enable generator
-					WaveGenerator.SetEnabled(true);
+					WaveGenerator.SetEnabled(true, true);
 					// ********************************************************************
 					// Step through the list of frequencies
 					// ********************************************************************
@@ -705,8 +705,8 @@ namespace QA40xPlot.Actions
 						await showMessage($"Measuring {freqy:0.#} Hz at {genVolt:G3} V.");
 						await showProgress(100 * (f + 1) / stepBinFrequencies.Length);
 
-						WaveGenerator.SetGen1(freqy, genScaleVolt, true);             // send a sine wave
-						WaveGenerator.SetGen2(0, 0, false);            // send a sine wave
+						WaveGenerator.SetGen1(true, freqy, genScaleVolt, true);             // send a sine wave
+						WaveGenerator.SetGen2(true, 0, 0, false);            // send a sine wave
 						LeftRightSeries lrfs;
 
 						FrequencyHistory.Clear();
