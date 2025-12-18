@@ -113,7 +113,7 @@
             <views:ScopeInfo x:Name="Info2"
                   VerticalAlignment="Top" HorizontalAlignment="Left" Margin="60,220,0,0" />
             <views:TabAbout x:Name="TAbout"  Visibility="Hidden"
-                  VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,50,34,0" />
+                  VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,180,34,0" />
         </Grid>
         <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
             <StackPanel Orientation="Vertical">

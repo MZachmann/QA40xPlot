@@ -207,7 +207,7 @@ namespace QA40xPlot.Actions
 				return false;
 			}
 			bvm.IsRunning = true;
-			bvm.ShowMiniPlots = true; // enable mini plots for the duration of the action
+			bvm.ShowMiniPlots = bvm.KeepMiniPlots; // enable mini plots for the duration of the action
 			WaveGenerator.Clear();  // disable both generators and the WaveGenerator itself
 			FrequencyHistory.Clear();
 			return true;
@@ -223,16 +223,13 @@ namespace QA40xPlot.Actions
 																			   //QaComm.Close(false);
 			bvm.IsRunning = false;
 			bvm.HasSave = true; // set the save flag
-			if (!bvm.KeepMiniPlots)
+			await Task.Delay(100).ContinueWith(_ =>
 			{
-				await Task.Delay(100).ContinueWith(_ =>
+				Application.Current.Dispatcher.Invoke(() =>
 				{
-					Application.Current.Dispatcher.Invoke(() =>
-					{
-						bvm.ShowMiniPlots = false;
-					});
+					bvm.ShowMiniPlots = false;
 				});
-			}
+			});
 			FrequencyHistory.Clear();   // empty averaging history
 		}
 

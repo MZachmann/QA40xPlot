@@ -53,7 +53,7 @@ namespace QA40xPlot.ViewModels
 			get => DoAutoAttn ? "#1800f000" : "Transparent";
 		}
 
-		private bool _DoAutoAttn = false;
+		private bool _DoAutoAttn = true;
 		public bool DoAutoAttn
 		{
 			get { return _DoAutoAttn; }
@@ -387,7 +387,7 @@ namespace QA40xPlot.ViewModels
 			Gen1Waveform = "Sine";
 			Gen1Voltage = "0.1";
 			Gen1Frequency = "1000";
-			UseGenerator = false;
+			UseGenerator = true;
 
 			Attenuation = 42;
 

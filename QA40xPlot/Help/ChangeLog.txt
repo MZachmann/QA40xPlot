@@ -8,7 +8,9 @@ v 1.2.2
 - simplify tab info dialog to remove unused left/right stuff
 - add RIAAChirp waveform for riaa preemphasis
 - add RIAA frequency deemphasis code
-v 1.2.01
+- change 'show miniplots' action to hide/show
+- alter defaults to use auto-attenuation and enable generators
+v 1.2.1
 - add Save Configuration as Default command to menu
 - add Settings page accelerator
 - fix startup internal harmonic issue

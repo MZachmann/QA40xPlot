@@ -411,7 +411,7 @@ namespace QA40xPlot.ViewModels
 				SetProperty(ref _GraphEndX, value);
 		}
 
-		private bool _KeepMiniPlots = false;
+		private bool _KeepMiniPlots = true;
 		public bool KeepMiniPlots
 		{
 			get => _KeepMiniPlots;

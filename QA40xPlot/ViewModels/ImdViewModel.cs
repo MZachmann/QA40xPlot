@@ -56,7 +56,7 @@ namespace QA40xPlot.ViewModels
 		{
 			get => DoAutoAttn ? "#1800f000" : "Transparent";
 		}
-		private bool _DoAutoAttn = false;
+		private bool _DoAutoAttn = true;
 		public bool DoAutoAttn
 		{
 			get { return _DoAutoAttn; }
@@ -526,15 +526,15 @@ namespace QA40xPlot.ViewModels
 			ShowPowerMarkers = false;
 
 			Gen1Voltage = "0.1";
-			Gen2Voltage = "0.1";
-			Gen2Frequency = "20000";
-			Gen1Frequency = "19000";
-			UseGenerator = false;
-			UseGenerator2 = false;
+			Gen2Voltage = "0.025";
+			Gen2Frequency = "8000";
+			Gen1Frequency = "250";
+			UseGenerator = true;
+			UseGenerator2 = true;
 
 			Attenuation = 42;
 
-			IntermodType = "Custom";
+			IntermodType = IntermodTypes[2];	// DIN
 			IsImdCustom = true;
 
 			PlotFormat = "dBV";
@@ -547,6 +547,7 @@ namespace QA40xPlot.ViewModels
 			{
 				Application.Current.Dispatcher.Invoke(() =>
 				{
+					SetImType();
 					MyAction?.UpdateGraph(true);
 				});
 			});

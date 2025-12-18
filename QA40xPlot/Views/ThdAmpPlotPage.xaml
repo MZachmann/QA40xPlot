@@ -95,7 +95,7 @@
         <Grid Grid.Column="1">
             <views:PlotControl x:Name="WpfPlot1"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch"  />
             <views:TabAbout x:Name="TAbout" 
-                  VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,50,54,0" />
+                  VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,180,34,0" />
             <views:MiniShow x:Name="MiniShow" Visibility="{Binding ShowMiniPlots, Converter={StaticResource BoolVisConverter}}" 
                             VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,80,64,0" />
             <views:LegendWnd x:Name="LegendWindow" Visibility="{Binding ShowLegend, Converter={StaticResource BoolVisConverter}}"

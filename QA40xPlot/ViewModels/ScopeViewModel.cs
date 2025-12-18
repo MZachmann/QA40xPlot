@@ -67,7 +67,7 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _Gen2Waveform, value);
 		}
 
-		private bool _DoAutoAttn = false;
+		private bool _DoAutoAttn = true;
 		public bool DoAutoAttn
 		{
 			get { return _DoAutoAttn; }

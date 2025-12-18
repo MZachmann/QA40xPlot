@@ -78,7 +78,7 @@
             <views:ThdChannelInfo x:Name="Info2" 
                   VerticalAlignment="Top" HorizontalAlignment="Left" Margin="60,330,0,0" />
             <views:TabAbout x:Name="TAbout" 
-                  VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,70,34,0" />
+                  VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,180,34,0" />
             <views:LegendWnd x:Name="LegendWindow" Visibility="{Binding ShowLegend, Converter={StaticResource BoolVisConverter}}"
                     VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,70,40,0" />
         </Grid>
