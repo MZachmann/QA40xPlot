@@ -73,6 +73,8 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand<string?> ShowButtons { get => new RelayCommand<string?>(DoShowButtons); }
 		[JsonIgnore]
 		public AsyncRelayCommand DoPhoto { get => new AsyncRelayCommand(OnPhoto); }
+		[JsonIgnore]
+		public RelayCommand DoSaveWave { get => new RelayCommand(OnSaveWave); }
 
 		#region Setters and Getters
 		private System.Windows.Media.SolidColorBrush _Background =
@@ -494,6 +496,36 @@ namespace QA40xPlot.ViewModels
 		private void DoShowButtons(string? parameter)
 		{
 			IsButtonShown = (parameter=="1");
+		}
+
+		private void OnSaveWave()
+		{
+			Microsoft.Win32.SaveFileDialog saveFileDialog = new Microsoft.Win32.SaveFileDialog
+			{
+				FileName = string.Empty, // Default file name
+				DefaultExt = ".wav", // Default file extension
+				Filter = "Wave files|*.wav|All files|*.*"  // Filter files by extension
+			};
+
+			// Show save file dialog box
+			bool? result = saveFileDialog.ShowDialog();
+			if(result == true) 
+			{
+				var u = WaveGenerator.TheWave(true);  // the left wave generator
+				// let's use the current view model
+				if(CurrentView != null)
+				{
+					var vm = CurrentView;
+					WaveGenerator.SetEnabled(true, true);
+					var data1 = WaveGenerator.Generate(true, vm.SampleRateVal, vm.FftSizeVal);
+					// normalize to int32 values
+					var umax = Int32.MaxValue / data1.Max(Math.Abs);
+					var data = data1.Select(x => x * umax).ToArray();
+					WaveGenerator.WriteWaveFile(saveFileDialog.FileName, vm.SampleRateVal, vm.FftSizeVal, data);
+				}
+			}
+
+
 		}
 
 		private void OnLoadCfg()

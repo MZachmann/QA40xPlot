@@ -169,6 +169,7 @@ namespace QA40xPlot.Actions
 			}
 			WaveGenerator.SetGen1(true, freq, volts, buse, vm.Gen1Waveform);          // send a sine wave
 			WaveGenerator.SetGen2(true, 0, 0, false);          // just a sine wave
+			WaveGenerator.SetWaveFile(true, vm.GenWavFile);
 			var dout = WaveGenerator.Generate(true, (uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
 			if (distout.Length > 0)
 			{
@@ -293,9 +294,10 @@ namespace QA40xPlot.Actions
 			// auto attenuation?
 			if (vm.DoAutoAttn && LRGains != null)
 			{
-				var wave = BuildWave(NextPage, ToD(vm.Gen1Voltage, 1e-3), true);   // build a wave to evaluate the peak values
-																				   // get the peak voltages then fake an rms math div by 2*sqrt(2) = 2.828
-																				   // since I assume that's the hardware math
+				// build a wave to evaluate the peak values
+				var wave = BuildWave(NextPage, ToD(vm.Gen1Voltage, 1e-3), true);
+				// get the peak voltages then fake an rms math div by 2*sqrt(2) = 2.828
+				// since I assume that's the hardware math
 				var waveVOut = (wave.Max() - wave.Min()) / (2 * Math.Sqrt(2));
 				waveVOut = Math.Max(waveVOut, ToD(vm.Gen1Voltage, 1e-6)); // ensure we have a minimum voltage
 				var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;

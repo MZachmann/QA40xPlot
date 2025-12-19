@@ -92,7 +92,8 @@
                         </Grid>
                         <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                         <CheckBox Content="_Use Chirp" IsChecked="{Binding IsChirp}" HorizontalAlignment="Left"   />
-                            <CheckBox Content="_RIAA Preemphasis" IsChecked="{Binding IsRiaa}" HorizontalAlignment="Left" />
+                            <CheckBox Content="_RIAA Preemphasis" IsChecked="{Binding IsRiaa}" 
+                                      HorizontalAlignment="Left" ToolTip="Use RIAA Preemphasis on the QA40x left channel output." />
                         </StackPanel>
                     </StackPanel>
                 </Expander>

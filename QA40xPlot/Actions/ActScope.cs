@@ -179,6 +179,7 @@ namespace QA40xPlot.Actions
 			var v1 = ToD(vm.Gen1Voltage, 1e-5);
 			WaveGenerator.SetGen1(true, freq, volts, force ? true : vm.UseGenerator1, vm.Gen1Waveform);          // send a sine wave
 			WaveGenerator.SetGen2(true, freq2, volts * v2 / v1, vm.UseGenerator2, vm.Gen2Waveform);          // send a sine wave
+			WaveGenerator.SetWaveFile(true, vm.GenWavFile);
 			var vsee1 = MathUtil.FormatVoltage(volts);
 			var vsee2 = MathUtil.FormatVoltage(volts * v2 / v1);
 			string vout = "";

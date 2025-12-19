@@ -44,6 +44,8 @@ namespace QA40xPlot.ViewModels
 		public AsyncRelayCommand DoGetTab { get => new AsyncRelayCommand(GetItTab); }
 		[JsonIgnore]
 		public RelayCommand DoSaveTab { get => new RelayCommand(SaveItTab); }
+		[JsonIgnore]
+		public RelayCommand DoWaveSelect { get => new RelayCommand(WaveSelect); }
 
 		#region Setters and Getters
 
@@ -106,6 +108,13 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _Gen2Voltage;
 			set => SetProperty(ref _Gen2Voltage, value);
+		}
+
+		private string _GenWavFile = string.Empty;
+		public string GenWavFile
+		{
+			get => _GenWavFile;
+			set => SetProperty(ref _GenWavFile, value);
 		}
 
 		private bool _ShowMarkers = false;
@@ -247,6 +256,14 @@ namespace QA40xPlot.ViewModels
 			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, false);
 		}
 
+		private void WaveSelect()
+		{
+			var vu = WaveGenerator.FindWaveFileName(GenWavFile);
+			if (vu != null && vu.Length > 0)
+			{
+				GenWavFile = vu;
+			}
+		}
 
 		private static string FileAddon()
 		{

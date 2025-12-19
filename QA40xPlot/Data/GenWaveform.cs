@@ -15,6 +15,7 @@
 		public double FreqEnd { get; set; }
 		public double Voltage { get; set; }
 		public bool Enabled { get; set; }
+		public string WaveFile { get; set; } = string.Empty;
 		public WaveChannels Channels { get; set; } = WaveChannels.Both; // which channel is this waveform on
 	}
 

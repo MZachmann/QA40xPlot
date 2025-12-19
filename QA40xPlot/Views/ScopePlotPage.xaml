@@ -6,6 +6,7 @@
              xmlns:views="clr-namespace:QA40xPlot.Views"
              xmlns:vm="clr-namespace:QA40xPlot.ViewModels"
              xmlns:local="clr-namespace:QA40xPlot"
+             d:Background="AliceBlue"
              mc:Ignorable="d" 
              d:DesignHeight="750" d:DesignWidth="800">
     <Grid Height="Auto" Width="Auto">
@@ -32,6 +33,7 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
@@ -47,20 +49,37 @@
                               VerticalContentAlignment="Center"
                               SelectedValue="{Binding Gen1Waveform}" ItemsSource="{Binding Waveforms}">
                             </ComboBox>
-                            <Label Content="Fre_quency" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="3" Grid.Column="0" Target="{Binding ElementName=cbFreq}"  />
-                            <ComboBox x:Name="cbFreq" Grid.Column="1" Grid.Row="3"   
+                            <Label Content="Wav_e File" Target="{Binding ElementName=cbWName}"  
+                            Visibility="{Binding Gen1Waveform, Converter={StaticResource EnumVisConverter}, ConverterParameter=WaveFile}"
+                               HorizontalAlignment="Right" VerticalAlignment="Center" 
+                               Grid.Row="3" Grid.Column="0" ToolTip="Select a WAV file."  />
+                            <TextBox x:Name="cbWName"  Grid.Column="1" Grid.Row="3" MaxWidth="120"
+                            Visibility="{Binding Gen1Waveform, Converter={StaticResource EnumVisConverter}, ConverterParameter=WaveFile}"
+                              VerticalContentAlignment="Center"
+                              Text="{Binding GenWavFile}" >
+                            </TextBox>
+                            <Button Visibility="{Binding Gen1Waveform, Converter={StaticResource EnumVisConverter}, ConverterParameter=WaveFile}"
+                                Content="𝅘𝅥𝅮" MinWidth="20"
+                                Grid.Row="3" Grid.Column="2" Command="{Binding DoWaveSelect}" />
+                            <Label Content="Fre_quency" VerticalAlignment="Center" 
+                            Visibility="{Binding Gen1Waveform, Converter={StaticResource EnumNotVisConverter}, ConverterParameter=WaveFile}"
+                                   Grid.Row="4" Grid.Column="0" Target="{Binding ElementName=cbFreq}" Grid.ColumnSpan="2" Margin="8,0,80,0"  />
+                            <ComboBox x:Name="cbFreq" Grid.Column="1" Grid.Row="4"   
+                            Visibility="{Binding Gen1Waveform, Converter={StaticResource EnumNotVisConverter}, ConverterParameter=WaveFile}"
                               VerticalContentAlignment="Center"
                                IsEditable="True" Text="{Binding Gen1Frequency}" ItemsSource="{Binding GenFrequencies}" MinWidth="80" >
                             </ComboBox>
-                            <Label Content="Hz" Grid.Row="3" Grid.Column="2" VerticalAlignment="Center" />
-                            <Label Content="{Binding GenAmpDescript}" Target="{Binding ElementName=cbVolt}" HorizontalAlignment="Right" VerticalAlignment="Center"  Grid.Row="4" Grid.Column="0" />
-                            <ComboBox x:Name="cbVolt" Grid.Column="1" Grid.Row="4"   
+                            <Label Content="Hz" Grid.Row="4" 
+                            Visibility="{Binding Gen1Waveform, Converter={StaticResource EnumNotVisConverter}, ConverterParameter=WaveFile}"
+                                   Grid.Column="2" VerticalAlignment="Center" />
+                            <Label Content="{Binding GenAmpDescript}" Target="{Binding ElementName=cbVolt}" HorizontalAlignment="Right" VerticalAlignment="Center"  Grid.Row="5" Grid.Column="0" />
+                            <ComboBox x:Name="cbVolt" Grid.Column="1" Grid.Row="5"   
                               VerticalContentAlignment="Center"
                               Text="{Binding Gen1Voltage, Converter={StaticResource VoltUnitConverter}}"
                               IsEditable="True" ItemsSource="{Binding GenVoltages}">
                             </ComboBox>
                             <Button BorderThickness="0,0,0,1" Command="{Binding ShowMenuCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
-                            Content="{Binding GenVoltageUnits}" VerticalAlignment="Center"  Grid.Row="4" Grid.Column="2">
+                            Content="{Binding GenVoltageUnits}" VerticalAlignment="Center"  Grid.Row="5" Grid.Column="2">
                             </Button>
                         </Grid>
                         <Grid>
@@ -79,7 +98,7 @@
                             <Label Content="_Waveform" Target="{Binding ElementName=cbWave2}"  HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="1" Grid.Column="0" ToolTip="{Binding DutInfo}"  />
                             <ComboBox x:Name="cbWave2"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1"   
                               VerticalContentAlignment="Center"
-                              SelectedValue="{Binding Gen2Waveform}" ItemsSource="{Binding Waveforms}">
+                              SelectedValue="{Binding Gen2Waveform}" ItemsSource="{Binding WaveformsNC}">
                             </ComboBox>
                             <Label Content="Fre_quency" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="2" Grid.Column="0" Target="{Binding ElementName=cb2Freq}"  />
                             <ComboBox x:Name="cb2Freq" Grid.Column="1" Grid.Row="2"   

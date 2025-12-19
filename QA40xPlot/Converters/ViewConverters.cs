@@ -50,6 +50,24 @@ namespace QA40xPlot.Converters
 		}
 	}
 
+	public class EnumNotVisibilityConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			var tobl = value.ToString()?.Equals(parameter.ToString()) == true;
+			if (tobl is bool boolValue)
+			{
+				return boolValue ? Visibility.Collapsed : Visibility.Visible;
+			}
+			return Visibility.Collapsed;
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			return Binding.DoNothing;
+		}
+	}
+
 	// so things can be enabled with the inverse condition
 	public class InverseBooleanConverter : IValueConverter
 	{

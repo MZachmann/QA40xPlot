@@ -1,5 +1,4 @@
-﻿
-    <UserControl x:Class="QA40xPlot.Views.SpectrumPlotPage"
+﻿<UserControl x:Class="QA40xPlot.Views.SpectrumPlotPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -8,6 +7,7 @@
              xmlns:vm="clr-namespace:QA40xPlot.ViewModels"
              xmlns:local="clr-namespace:QA40xPlot" 
              d:DataContext="{d:DesignInstance Type=vm:SpectrumViewModel}"
+                 d:Background="AliceBlue"
              mc:Ignorable="d" 
              d:DesignHeight="750" d:DesignWidth="800" >
     <Grid Height="Auto" Width="Auto">
@@ -32,6 +32,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
@@ -48,19 +49,36 @@
                               VerticalContentAlignment="Center"
                               SelectedValue="{Binding Gen1Waveform}" ItemsSource="{Binding Waveforms}">
                         </ComboBox>
-                        <Label Content="Fre_quency" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="2" Grid.Column="0" Target="{Binding ElementName=cbFreq}" />
-                        <ComboBox x:Name="cbFreq" Grid.Column="1" Grid.Row="2"   
+                        <Label Content="Wav_e File" Target="{Binding ElementName=cbWName}"  
+                            Visibility="{Binding Gen1Waveform, Converter={StaticResource EnumVisConverter}, ConverterParameter=WaveFile}"
+                               HorizontalAlignment="Right" VerticalAlignment="Center" 
+                               Grid.Row="2" Grid.Column="0" ToolTip="Select a WAV file."  />
+                        <TextBox x:Name="cbWName"  Grid.Column="1" Grid.Row="2" MaxWidth="120"
+                            Visibility="{Binding Gen1Waveform, Converter={StaticResource EnumVisConverter}, ConverterParameter=WaveFile}"
+                              VerticalContentAlignment="Center"
+                              Text="{Binding GenWavFile}" >
+                        </TextBox>
+                        <Button Visibility="{Binding Gen1Waveform, Converter={StaticResource EnumVisConverter}, ConverterParameter=WaveFile}"
+                                Content="𝅘𝅥𝅮" MinWidth="20"
+                                Grid.Row="2" Grid.Column="2" Command="{Binding DoWaveSelect}" />
+                        <Label Content="Fre_quency" HorizontalAlignment="Right" VerticalAlignment="Center" 
+                            Visibility="{Binding Gen1Waveform, Converter={StaticResource EnumNotVisConverter}, ConverterParameter=WaveFile}"
+                               Grid.Row="3" Grid.Column="0" Target="{Binding ElementName=cbFreq}" />
+                        <ComboBox x:Name="cbFreq" Grid.Column="1" Grid.Row="3"   
+                            Visibility="{Binding Gen1Waveform, Converter={StaticResource EnumNotVisConverter}, ConverterParameter=WaveFile}"
                               VerticalContentAlignment="Center"
                                IsEditable="True" Text="{Binding Gen1Frequency}" ItemsSource="{Binding GenFrequencies}" MinWidth="80"/>
-                        <Label Content="Hz" VerticalAlignment="Center" Grid.Row="2" Grid.Column="2" />
-                        <Label Content="{Binding GenAmpDescript, Mode=OneWay}"  Target="{Binding ElementName=cbVolt}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="3" Grid.Column="0"  />
-                        <ComboBox x:Name="cbVolt" Grid.Column="1" Grid.Row="3"   
+                        <Label Content="Hz" VerticalAlignment="Center" 
+                            Visibility="{Binding Gen1Waveform, Converter={StaticResource EnumNotVisConverter}, ConverterParameter=WaveFile}"
+                               Grid.Row="3" Grid.Column="2" />
+                        <Label Content="{Binding GenAmpDescript, Mode=OneWay}"  Target="{Binding ElementName=cbVolt}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="4" Grid.Column="0"  />
+                        <ComboBox x:Name="cbVolt" Grid.Column="1" Grid.Row="4"   
                               VerticalContentAlignment="Center"
                               Text="{Binding Gen1Voltage, Converter={StaticResource VoltUnitConverter}}"
                               IsEditable="True" ItemsSource="{Binding GenVoltages}">
                         </ComboBox>
                         <Button BorderThickness="0,0,0,1" Command="{Binding ShowMenuCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
-                            Content="{Binding GenVoltageUnits}" VerticalAlignment="Center"  Grid.Row="3" Grid.Column="2">
+                            Content="{Binding GenVoltageUnits}" VerticalAlignment="Center"  Grid.Row="4" Grid.Column="2">
                         </Button>
                     </Grid>
                 </Expander>

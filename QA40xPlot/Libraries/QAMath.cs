@@ -1,6 +1,7 @@
 ﻿using FftSharp;
 using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
+using System.Diagnostics;
 using System.Numerics;
 using System.Windows;
 
@@ -263,6 +264,7 @@ namespace QA40xPlot.Libraries
 					chirp3 = chirp3.Select(x => bq.Process(x)).ToArray();
 					return chirp3;
 				default:
+					Debug.Assert(false, "Invalid waveform type");
 					break;
 			}
 			return [];

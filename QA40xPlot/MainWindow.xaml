@@ -85,6 +85,7 @@
                         <MenuItem Header="_Save Configuration" Command="{Binding DoSaveCfg}" />
                         <MenuItem Header="_Load Configuration" Command="{Binding DoLoadCfg}" />
                         <MenuItem Header="Save Configuration as _Default" Command="{Binding DoSaveDfltCfg}" />
+                        <!--<MenuItem Header="_Save Generator" Command="{Binding DoSaveWave}" />-->
                     </MenuItem>
                 </Menu>
                 <views:ToggleBar Margin="15,0,0,0" VerticalAlignment="Center" />

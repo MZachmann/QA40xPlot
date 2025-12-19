@@ -1,8 +1,8 @@
-﻿using QA40xPlot.Data;
+﻿using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
+using QA40xPlot.Data;
 using QA40xPlot.ViewModels;
-using System.Collections.Generic;
-using System.Diagnostics;
-
+using System.Windows;
 namespace QA40xPlot.Libraries
 {
 	public class WaveGenerator
@@ -32,6 +32,7 @@ namespace QA40xPlot.Libraries
 				FreqEnd = 20000,
 				Voltage = 0.5,
 				Enabled = false,
+				WaveFile = string.Empty,
 			};
 			Gen2Params = new GenWaveform()
 			{
@@ -39,7 +40,8 @@ namespace QA40xPlot.Libraries
 				Frequency = 1000,
 				FreqEnd = 20000,
 				Voltage = 0.5,
-				Enabled = false
+				Enabled = false,
+				WaveFile = string.Empty,
 			};
 		}
 
@@ -57,6 +59,7 @@ namespace QA40xPlot.Libraries
 			gwf.Frequency = freq;
 			gwf.Enabled = ison;
 			gwf.Channels = channels;
+			gwf.WaveFile = string.Empty;
 		}
 
 		public static void SetGen2(bool isLeft, double freq, double volts, bool ison, string name = "Sine")
@@ -71,6 +74,12 @@ namespace QA40xPlot.Libraries
 			var single = TheWave(isLeft);
 			SetParams(single.GenParams, freq, volts, ison);
 			single.GenParams.Name = name;
+		}
+
+		public static void SetWaveFile(bool isLeft, string fileName)
+		{
+			var single = TheWave(isLeft);
+			single.GenParams.WaveFile = fileName;
 		}
 
 		public static void SetChannels(bool isLeft, WaveChannels channels)
@@ -154,7 +163,14 @@ namespace QA40xPlot.Libraries
 					waves = [vw.Gen2Params];
 				//Debug.Assert(waves.Min(x=>x.Voltage) > 0, "Voltage is zero");
 				//Debug.Assert(waves.Min(x=>x.Frequency) > 0, "Frequency is zero");
-				wave = QaMath.CalculateWaveform(waves, waveSample);
+				if(vw.GenParams.Name == "WaveFile")
+				{
+					wave = ReadWaveFile(vw.GenParams.WaveFile, sampleRate, sampleSize, vw.GenParams.Voltage);
+				}
+				else
+				{
+					wave = QaMath.CalculateWaveform(waves, waveSample);
+				}
 			}
 			else
 			{
@@ -162,5 +178,139 @@ namespace QA40xPlot.Libraries
 			}
 			return wave;
 		}
+
+		public static string FindWaveFileName(string initial)
+		{
+			Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
+			{
+				FileName = initial, // Default file name
+				DefaultExt = ".wav", // Default file extension
+				Filter = "Wave files|*.wav|All files|*.*"  // Filter files by extension
+			};
+
+			// Show save file dialog box
+			bool? result = openFileDialog.ShowDialog();
+
+			// Process save file dialog box results
+			if (result == true )
+			{
+				// open document
+				return openFileDialog.FileName;
+			}
+			return string.Empty;
+		}
+
+		public struct WaveCache
+		{
+			string name;
+			uint samplerate;
+			uint samplesize;
+			double[] sampledata;
+
+			public double[]? GetCache(string wave, uint rate, uint sizes)
+			{
+				if(wave == name && rate == samplerate && sizes == samplesize)
+				{
+					return sampledata;
+				}
+				name = wave;
+				samplerate = rate; 
+				samplesize = sizes;
+				return null;
+			}
+			public void SetCache(double[] newdata)
+			{
+				sampledata = newdata;
+			}
+
+		}
+
+		// read a wave file and return the first channel contents as a double array
+		private static double[] CreateWaveArray(string waveName, uint sampleRate, uint sampleSize)
+		{
+			double[] outdata = [];
+			try
+			{
+				List<float> outstream = new();
+				using (var wavFileReader = new WaveFileReader(waveName))
+				{
+					var resampler = new WdlResamplingSampleProvider(wavFileReader.ToSampleProvider(), (int)sampleRate);
+					var monoSource = resampler.ToMono(1, 0);    // ignore right channel if there is one
+					{
+						float[] dataOutput = new float[1024];
+						while (true)
+						{
+							int dataRead = monoSource.Read(dataOutput, 0, dataOutput.Length);
+							if (dataRead == 0)
+								break;
+							if(dataRead == dataOutput.Length)
+								outstream.AddRange(dataOutput);
+							else
+								outstream.AddRange(dataOutput.Take(dataRead));
+						}
+
+						outdata = outstream.Select(x => (double)x).ToArray(); // This is raw PCM data
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, "Wave loader error:", MessageBoxButton.OK, MessageBoxImage.Information);
+			}
+			// if undersize, zero-pad to longer
+			if (outdata.Length < sampleSize)
+			{
+				var u = outdata.ToList();
+				u = u.Concat(new double[sampleSize - outdata.Length]).ToList();
+				outdata = u.ToArray();
+			}
+			// shrink if oversize
+			if (outdata.Length > sampleSize)
+			{
+				outdata = outdata.Take((int)sampleSize).ToArray();
+			}
+			return outdata;
+		}
+
+		public static WaveCache _waveCache;
+
+		public static double[] ReadWaveFile(string waveName, uint sampleRate, uint sampleSize, double vMax = 1.0)
+		{
+			double[] outdata = [0];
+			var otd = _waveCache.GetCache(waveName, sampleRate, sampleSize);
+			if (otd != null)
+				outdata = otd;
+			else
+			{
+				outdata = CreateWaveArray(waveName, sampleRate, sampleSize);
+				_waveCache.SetCache(outdata);
+			}
+
+			// scale to the output RMS voltage
+			var mx = vMax * Math.Sqrt(2) / Math.Max(0.01, outdata.Max(Math.Abs));
+			var vout = outdata.Select(x => x * mx).ToArray();
+			return vout;
+		}
+
+		public static void WriteWaveFile(string waveName, uint sampleRate, uint sampleSize, double[] waveData)
+		{
+			try
+			{
+				List<float> outstream = new();
+				WaveFormat waveFormat = new WaveFormat((int)sampleRate, 32, 1);
+				using (var wavFileWriter = new WaveFileWriter(waveName, waveFormat))
+				{
+					var ada = waveData.Select(x => (Int32)x).ToArray();
+					byte[] byteArray = new byte[ada.Length * sizeof(Int32)];
+					Buffer.BlockCopy(ada, 0, byteArray, 0, byteArray.Length);
+					wavFileWriter.Write(byteArray, 0, byteArray.Length);
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, "Wave loader error:", MessageBoxButton.OK, MessageBoxImage.Information);
+			}
+		}
 	}
+
 }

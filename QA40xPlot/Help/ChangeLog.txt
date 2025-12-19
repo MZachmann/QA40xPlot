@@ -3,6 +3,7 @@
 This changelog shows the changes made for each version
 --------------------------------------------
 v 1.2.2
+- add Custom generator option to use wav file (spectrum, scope)
 - fix All On button to not enable Phase
 - change expander icon on quick page
 - simplify tab info dialog to remove unused left/right stuff

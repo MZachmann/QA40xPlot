@@ -8,6 +8,7 @@
         <convert:BoolToVisibilityConverter x:Key="BoolVisConverter"/>
         <convert:BoolToNotVisibilityConverter x:Key="BoolNotVisConverter"/>
         <convert:EnumToVisibilityConverter x:Key="EnumVisConverter"/>
+        <convert:EnumNotVisibilityConverter x:Key="EnumNotVisConverter"/>
         <convert:StringToVisibilityConverter x:Key="StringVisConverter"/>
         <convert:VoltUnitConverter x:Key="VoltUnitConverter" />
         <convert:VoltDbvFormatter x:Key="VoltDbvFormatter" />
