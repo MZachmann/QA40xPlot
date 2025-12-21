@@ -468,7 +468,7 @@ namespace QA40xPlot.Actions
 				if (ct.IsCancellationRequested)
 					return false;
 
-				WaveGenerator.SetEnabled(true, true); // enable generator
+				WaveContainer.SetMono(); // enable generator
 												// ********************************************************************
 												// Step through the list of frequencies
 												// ********************************************************************

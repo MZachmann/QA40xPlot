@@ -220,7 +220,7 @@ namespace QA40xPlot.Libraries
 			double[] wave = new double[samples.SampleSize];
 			foreach (var f in freqs)
 			{
-				var theta = Enumerable.Range(0, samples.SampleSize).Select(x => 2 * Math.PI * f * x / samples.SampleRate);
+				var theta = Enumerable.Range(0, (int)samples.SampleSize).Select(x => 2 * Math.PI * f * x / samples.SampleRate);
 				var thetav = theta.Select(f => dvamp * Math.Sin(f)).ToList();
 				for (int i = 0; i < samples.SampleSize; i++)
 				{
@@ -242,7 +242,7 @@ namespace QA40xPlot.Libraries
 												   // we always put frequencies in the bin so they don't leak into other bins when we sample them
 			var freq = QaLibrary.GetNearestBinFrequency(gw.Frequency, (uint)samples.SampleRate, (uint)samples.SampleSize);
 			// frequency vector
-			var theta = Enumerable.Range(0, samples.SampleSize).Select(x => 2 * Math.PI * freq * x / samples.SampleRate);
+			var theta = Enumerable.Range(0, (int)samples.SampleSize).Select(x => 2 * Math.PI * freq * x / samples.SampleRate);
 			var totalth = theta.Max();
 			// now evaluate
 			switch (gw.Name)
@@ -346,38 +346,5 @@ namespace QA40xPlot.Libraries
 			return u;
 		}
 
-		// given a left-right time series it finds the voltage at freq for both channels
-		public static System.Numerics.Complex CalculateDualGain(double fundamentalFreq, LeftRightSeries measuredSeries)
-		{
-			var measuredTimeSeries = measuredSeries.TimeRslt;
-			if (measuredTimeSeries == null)
-				return Complex.Zero;
-
-			var m2 = Math.Sqrt(2);
-			// Left channel
-			// we do manual FFT here because we may as well and do flattop for precision
-			var window = new FftSharp.Windows.FlatTop();
-			double[] windowed_measured = window.Apply(measuredTimeSeries.Left, true);   // true == normalized by # elements
-			System.Numerics.Complex[] spectrum_measured = FFT.Forward(windowed_measured);
-
-			double[] windowed_ref = window.Apply(measuredTimeSeries.Right, true);
-			System.Numerics.Complex[] spectrum_ref = FFT.Forward(windowed_ref);
-
-			System.Numerics.Complex u = new();
-			try
-			{
-				var nca = (int)(0.01 + 1 / measuredTimeSeries.dt);      // total time in tics = sample rate
-				var fundamentalBin = QaLibrary.GetBinOfFrequency(fundamentalFreq, (uint)nca, (uint)measuredTimeSeries.Left.Length);
-				double left = spectrum_measured[fundamentalBin].Magnitude * m2;
-				double right = spectrum_ref[fundamentalBin].Magnitude * m2;
-				u = new Complex(left, right);   // pack it in stupidly
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
-			}
-
-			return u;
-		}
 	}
 }

@@ -21,8 +21,8 @@
 
 	public class GenWaveSample
 	{
-		public int SampleRate { get; set; }
-		public int SampleSize { get; set; }
+		public uint SampleRate { get; set; }
+		public uint SampleSize { get; set; }
 	}
 
 }

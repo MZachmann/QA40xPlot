@@ -2,26 +2,81 @@
 using NAudio.Wave.SampleProviders;
 using QA40xPlot.Data;
 using QA40xPlot.ViewModels;
+using System.Diagnostics;
 using System.Windows;
 namespace QA40xPlot.Libraries
 {
-	public class WaveGenerator
+	public class WaveContainer
 	{
-		public static WaveGenerator LeftWaves = new WaveGenerator();
-		public static WaveGenerator RightWaves = new WaveGenerator();
+		public static WaveContainer Singleton = new WaveContainer();
+
+		public WaveGenerator LeftWaveGen = new WaveGenerator();
+		public WaveGenerator RightWaveGen = new WaveGenerator();
+
+		public WaveChannels Channels = WaveChannels.Left;
+
+		public static WaveGenerator LeftWave { get => Singleton.LeftWaveGen; }
+		public static WaveGenerator RightWave { get => Singleton.RightWaveGen; }
 		public static WaveGenerator TheWave(bool isLeft)
 		{
-			return isLeft ? LeftWaves : RightWaves;
+			return isLeft ? LeftWave : RightWave;
 		}
 
+		public static void SetChannels(WaveChannels channels)
+		{
+			WaveContainer.Singleton.Channels = channels;
+		}
+
+		public static void SetOff()
+		{
+			SetChannels(WaveChannels.Neither);
+		}
+
+		public static void SetMono()
+		{
+			SetChannels(WaveChannels.Left);
+		}
+
+		public static void SetStereo()
+		{
+			SetChannels(WaveChannels.Both);
+		}
+
+		// this determines which channels become output
+		public static bool IsStereo()
+		{
+			return WaveContainer.Singleton.Channels == WaveChannels.Both;
+		}
+
+		/// <summary>
+		/// this determines if the first generator is enabled in
+		/// each of the WaveGenerator pair. This assumes no second oscillator (scope)
+		/// </summary>
+		/// <param name="bLeft">enable left</param>
+		/// <param name="bRight">enable right</param>
+		public static void SetEnabled(bool bLeft, bool bRight)
+		{
+			Singleton.LeftWaveGen.GenParams.Enabled = bLeft;
+			Singleton.RightWaveGen.GenParams.Enabled = bRight;
+		}
+
+		/// <summary>
+		/// read the enabled states
+		/// </summary>
+		/// <returns></returns>
+		//public static (bool,bool) GetEnabled()
+		//{
+		//	var ab = Singleton.LeftWaveGen.GenParams.Enabled;
+		//	var bb = Singleton.RightWaveGen.GenParams.Enabled;
+		//	return (ab, bb);
+		//}
+
+	}
+
+	public class WaveGenerator
+	{
 		public GenWaveform GenParams { get; private set; }
 		public GenWaveform Gen2Params { get; private set; }
-		public bool IsEnabled { get; set; }
-		public WaveChannels Channels
-		{
-			get => GenParams.Channels;
-			set => GenParams.Channels = value;
-		}
 
 		public WaveGenerator()
 		{
@@ -64,95 +119,75 @@ namespace QA40xPlot.Libraries
 
 		public static void SetGen2(bool isLeft, double freq, double volts, bool ison, string name = "Sine")
 		{
-			var single = TheWave(isLeft);
+			var single = WaveContainer.TheWave(isLeft);
 			SetParams(single.Gen2Params, freq, volts, ison);
 			single.Gen2Params.Name = name;
 		}
 
 		public static void SetGen1(bool isLeft, double freq, double volts, bool ison, string name = "Sine")
 		{
-			var single = TheWave(isLeft);
+			var single = WaveContainer.TheWave(isLeft);
 			SetParams(single.GenParams, freq, volts, ison);
 			single.GenParams.Name = name;
 		}
 
 		public static void SetWaveFile(bool isLeft, string fileName)
 		{
-			var single = TheWave(isLeft);
+			var single = WaveContainer.TheWave(isLeft);
 			single.GenParams.WaveFile = fileName;
-		}
-
-		public static void SetChannels(bool isLeft, WaveChannels channels)
-		{
-			var single = TheWave(isLeft);
-			single.Channels = channels;
-		}
-
-		public static void SetEnabled(bool isLeft, bool ison)
-		{
-			var single = TheWave(isLeft);
-			single.IsEnabled = ison;
 		}
 
 		public static void Clear(bool isLeft)
 		{
-			var single = TheWave(isLeft);
-			var vw = single;
-			vw.IsEnabled = false;
+			var vw = WaveContainer.TheWave(isLeft);
+			// turn off both waveforms
 			vw.GenParams.Enabled = false;
 			vw.Gen2Params.Enabled = false;
 		}
 
 		public static (double[], double[]) GenerateBoth(uint sampleRate, uint sampleSize)
 		{
-			var dx = Generate(true, sampleRate, sampleSize);
-			// if no right generator - duplicate
-			if (!TheWave(false).IsEnabled)
-				return (dx, dx);
-			var dy = Generate(false, sampleRate, sampleSize);
-			return (dx, dy);
-		}
-
-		public static (double[], double[]) GeneratePair(bool isLeft, uint sampleRate, uint sampleSize)
-		{
-			var single = TheWave(isLeft);
-			var dx = Generate(isLeft, sampleRate, sampleSize);
-			var how = single.Channels;
-			double[] blank = [];
-			if (how != WaveChannels.Both)
+			var channels = WaveContainer.Singleton.Channels;
+			switch(channels)
 			{
-				// if debug distortion is enabled, set the crosstalk channel to Addon%
-				blank = new double[sampleSize];
-				if (ViewSettings.AddonDistortion > 0)
-				{
-					blank = dx.Select(x => x * ViewSettings.AddonDistortion / 100).ToArray();
-				}
-			}
-			switch (how)
-			{
-				case WaveChannels.Left:
-					return (dx, blank);
-				case WaveChannels.Right:
-					return (blank, dx);
-				case WaveChannels.Both:
-					return (dx, dx);
-				default: // WaveChannels.Neither
+				case WaveChannels.Neither:
+					var blank = new double[sampleSize];
 					return (blank, blank);
+				case WaveChannels.Left:
+					{
+						var dx = Generate(true, sampleRate, sampleSize);
+						return (dx, dx);
+					}
+				case WaveChannels.Right:
+					{
+						var dx = Generate(false, sampleRate, sampleSize);
+						return (dx, dx);
+					}
+				case WaveChannels.Both:
+					{
+						var dx = Generate(true, sampleRate, sampleSize);
+						var dy = Generate(false, sampleRate, sampleSize);
+						return (dx, dy);
+					}
+				default:
+					break;
 			}
+			var black = new double[sampleSize];
+			return (black, black);
 		}
 
 		public static double[] Generate(bool isLeft, uint sampleRate, uint sampleSize)
 		{
-			var single = TheWave(isLeft);
+			var single = WaveContainer.TheWave(isLeft);
 			var vw = single;
 			var waveSample = new GenWaveSample()
 			{
-				SampleRate = (int)sampleRate,
-				SampleSize = (int)sampleSize
+				SampleRate = sampleRate,
+				SampleSize = sampleSize
 			};
 
 			double[] wave;
-			if (vw.IsEnabled && (vw.GenParams.Enabled || vw.Gen2Params.Enabled))
+			if (vw.GenParams.Enabled || vw.Gen2Params.Enabled)
 			{
 				GenWaveform[] waves = [];
 				if (vw.GenParams.Enabled && vw.Gen2Params.Enabled)

@@ -218,16 +218,8 @@ namespace QA40xPlot.Data
 			}
 			set
 			{
-				if(value.Item1 == null || value.Item2 == null)
-				{
-					Sweep.RawLeft = [];
-					Sweep.RawRight = [];
-				}
-				else
-				{
-					Sweep.RawLeft = value.Item1;
-					Sweep.RawRight = value.Item2;
-				}
+				Sweep.RawLeft = value.Item1 ?? [];
+				Sweep.RawRight = value.Item2 ?? [];
 			}
 		}
 

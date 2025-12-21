@@ -62,33 +62,6 @@ namespace QA40xPlot.BareMetal
 			return inverseFilter;
 		}
 
-		public static (double[], double[]) ChirpVpPair(int totalBufferLength, double fs, double amplitudeVrms, double f1 = 20, double f2 = 20000, double pct = 0.6, WaveChannels channels = WaveChannels.Both)
-		{
-			var chirps = ChirpVp(totalBufferLength, fs, amplitudeVrms, f1, f2, pct);
-			double[] blank = [];
-			if (channels != WaveChannels.Both)
-			{
-				blank = new double[chirps.Length];
-				if (ViewSettings.AddonDistortion > 0)
-				{
-					// add crosstalk distortion to the chirp
-					blank = chirps.Select(x => x * ViewSettings.AddonDistortion / 100).ToArray();
-				}
-			}
-			switch (channels)
-			{
-				case WaveChannels.Both:
-					return (chirps, chirps);
-				case WaveChannels.Left:
-					return (chirps, blank);
-				case WaveChannels.Right:
-					return (blank, chirps);
-				default:
-					break;
-			}
-			return (blank, blank);
-		}
-
 		/// <summary>
 		/// creates a chirp signal and an inverse filter
 		/// </summary> 
@@ -99,7 +72,7 @@ namespace QA40xPlot.BareMetal
 		/// <param name="f2">end freq</param>
 		/// <param name="pct">amount of buffer to fill with signal 1.0 == all</param>
 		/// <returns>(chirp,inverse)</returns>
-		public static double[] ChirpVp(int totalBufferLength, double fs, double amplitudeVrms, double f1 = 20, double f2 = 20000, double pct = 0.6)
+		public static double[] ChirpVp(uint totalBufferLength, double fs, double amplitudeVrms, double f1 = 20, double f2 = 20000, double pct = 0.6)
 		{
 			// Calculate the length of the chirp in samples
 			int chirpLengthSamples = (int)(totalBufferLength * pct);
@@ -118,7 +91,7 @@ namespace QA40xPlot.BareMetal
 			double[] chirpSignal = t.Select(time => vpk * Math.Sin((2 * Math.PI * f1 * T / R) * (Math.Exp(time * R / T) - 1))).ToArray();
 
 			// Calculate the required padding length
-			int padding = totalBufferLength - chirpSignal.Length;
+			int padding = (int)totalBufferLength - chirpSignal.Length;
 
 			// Pad the chirp signal with zeros to fit the total buffer length
 			double[] paddedChirp = chirpSignal.Concat(new double[padding]).ToArray();
@@ -143,13 +116,11 @@ namespace QA40xPlot.BareMetal
 
 			if (rdata.leftData != null)
 			{
-				double[] lftWdw = window.Apply(rdata.leftData, true);
-				var lFft = FFT.Forward(lftWdw);
 				// so x / chirpFft will be 1 with a gain of 1
 				// hence multiply the expected rms voltage to get fft value
-				var lfftX = lFft.Select(x => x.Magnitude).ToArray();
+				double[] lftWdw = window.Apply(rdata.leftData, true);
+				var lFft = FFT.Forward(lftWdw);
 				lFft = lFft.Select((x, index) => cmax * x / chirpFft[index]).ToArray();
-				var lfftY = lFft.Select(x => x.Magnitude).ToArray();
 				leftFft = lFft.Take(lFft.Length / 2).ToArray();
 			}
 

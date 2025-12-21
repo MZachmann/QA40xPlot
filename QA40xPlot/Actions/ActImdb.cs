@@ -153,7 +153,7 @@ namespace QA40xPlot.Actions
 			var freq2 = vm.NearestBinFreq(vm.Gen2Frequency);
 			var v2 = volts / vm.GenDivisor;
 			var v1 = volts;
-			WaveGenerator.SetEnabled(true, true); // turn on the generator
+			WaveContainer.SetMono(); // turn on the generator
 
 			// do distortion addon first so wavegenerator is set up on exit (?)
 			double[] distout = []; // empty array

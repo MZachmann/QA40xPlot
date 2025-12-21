@@ -270,7 +270,7 @@ namespace QA40xPlot.BareMetal
 				return new LeftRightSeries();
 			var ffts = GetFftSize();
 			var srate = GetSampleRate();
-			var datapt = WaveGenerator.GeneratePair(true, srate, ffts);
+			var datapt = WaveGenerator.GenerateBoth(srate, ffts);
 			var lrfs = await DoAcquireUser(averages, ct, datapt.Item1, datapt.Item2, getFreq);
 			Debug.WriteLine($"Acquire at SampleRate={GetSampleRate()}, FftSize={GetFftSize()}, Windowing={GetWindowing()}, Attenuation={GetInputRange()}`");
 

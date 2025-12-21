@@ -692,7 +692,7 @@ namespace QA40xPlot.Actions
 					var noiseRslt = await MeasureNoiseFreq(MyVModel, 4, CanToken.Token);    // get noise averaged 4 times
 
 					// enable generator
-					WaveGenerator.SetEnabled(true, true);
+					WaveContainer.SetMono();
 					// ********************************************************************
 					// Step through the list of frequencies
 					// ********************************************************************

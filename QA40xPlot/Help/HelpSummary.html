@@ -45,6 +45,13 @@
     .auto-style14 {
         width: 251px;
     }
+    .auto-style15 {
+        width: 354px;
+        height: 41px;
+    }
+    .auto-style16 {
+        height: 41px;
+    }
 </style>
 <h3>The QA40xPlot application consists of 9 different audio tests that use a QA402 or QA403 audio analyzer from <a href="http://quantasylum.com">QuantAsylum</a>.<br /><br /></h3>
 <p> External Audio&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a href="File:../Help/ExternalAudio.html">How to use external signal generators and what to expect.</a></p>
@@ -229,7 +236,7 @@ Along the top right of the screen are a few command buttons. If this becomes too
 
 <h1 style="color:red">Test Descriptions</h1>
 <h1 style="color:green">Spectrum Test</h1>
-<p>This test sends a single sine wave out from the generator and plots the received frequency spectral data (value vs frequency). For a Sine wave this produces a skinny spike at the sine frequency surrounded by background noise and (usually harmonic) distortion spikes.</p>
+<p>This test sends a single waveform out from the generator and plots the received frequency spectral data (value vs frequency). For a Sine wave this produces a skinny spike at the sine frequency surrounded by background noise and (usually harmonic) distortion spikes.</p>
 <h2>Options</h2>
 <table>
     <thead>
@@ -257,11 +264,14 @@ Along the top right of the screen are a few command buttons. If this becomes too
         </tr>
         <tr>
             <td class="auto-style6"></td>
-            <td>The Set DUT option lets you program an output value rather than just the generator setting</td>
+            <td>The Set DUT option lets you program an output value rather than just the generator setting<br />
+                The RiaaChirp waveform is a chirp using RIAA preemphasis for testing phono preamps<br />
+                The WaveFile generator option lets you use any .WAV file as the source wave This file is resampled to match your FFT settings and scaled to match the amplitude setting. </td>
         </tr>
         <tr>
             <td class="auto-style6">Sampling</td>
-            <td>We recommend 48K or 96K Rate and 64K or 128K Size. 1 or 2 Averages.</td>
+            <td>We recommend 48K or 96K Rate and 64K or 128K Size. 3 or 4 Averages. The larger the FFT size the more accurate low frequency results<br />
+                will be. Faster rates increase the maximum frequency that can be measured.</td>
         </tr>
     </tbody>
 </table>
@@ -280,7 +290,8 @@ Along the top right of the screen are a few command buttons. If this becomes too
         </tr>
         <tr>
             <td class="auto-style7"></td>
-            <td>On selection or typing of a value the window will refit.</td>
+            <td>On selection or typing of a value the window will refit. Selecting dBR adds options for determining the reference value.<br />
+                Click the Pin button to copy the current axis values to the settings.</td>
         </tr>
         <tr>
             <td class="auto-style7">Summary Data</td>
@@ -294,12 +305,12 @@ Along the top right of the screen are a few command buttons. If this becomes too
             </td>
         </tr>
         <tr>
-            <td class="auto-style7">Harmonic Markers</td>
-            <td>This will automatically mark the harmonics (and fundamental)</td>
+            <td class="auto-style15">Harmonic Markers</td>
+            <td class="auto-style16">This will automatically mark the harmonics (and fundamental)</td>
         </tr>
         <tr>
             <td class="auto-style7">Power Markers</td>
-            <td>This will check 50Hz and 60Hz peaks, then mark the ones that seem like your power peaks.</td>
+            <td>This will mark 50Hz or 60Hz power line (and harmonics) peaks. Power line frequency is set in Settings.</td>
         </tr>
         <tr>
             <td class="auto-style7">% - Data Summary</td>
@@ -601,7 +612,9 @@ Along the top right of the screen are a few command buttons. If this becomes too
 </ul>
 <h1 style="color:green">Crosstalk Test</h1>
 <p>
-    This does a traditional crosstalk analysis of the two input channels vs frequency. Here retain the left and right channels through. QA40xPlot turns the left and
+    This does a traditional crosstalk analysis of the two input channels vs frequency. Connect the left and right channels through the stereo device under test.</p>
+<p>
+    &nbsp;QA40xPlot turns the left and
     right channels on/off during the test.
 </p>
 <h2>Options</h2>

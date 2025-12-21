@@ -177,6 +177,7 @@ namespace QA40xPlot.Actions
 			var freq2 = ToD(vm.Gen2Frequency, 0);
 			var v2 = ToD(vm.Gen2Voltage, 1e-5);
 			var v1 = ToD(vm.Gen1Voltage, 1e-5);
+			WaveContainer.SetMono(); // turn on the generator
 			WaveGenerator.SetGen1(true, freq, volts, force ? true : vm.UseGenerator1, vm.Gen1Waveform);          // send a sine wave
 			WaveGenerator.SetGen2(true, freq2, volts * v2 / v1, vm.UseGenerator2, vm.Gen2Waveform);          // send a sine wave
 			WaveGenerator.SetWaveFile(true, vm.GenWavFile);
@@ -200,7 +201,6 @@ namespace QA40xPlot.Actions
 				vout = "off"; // no output
 			}
 			MyVModel.GeneratorVoltage = vout; // set the generator voltage in the viewmodel
-			WaveGenerator.SetEnabled(true, true); // turn on the generator
 			return WaveGenerator.Generate(true, (uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
 		}
 

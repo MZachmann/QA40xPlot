@@ -42,7 +42,7 @@ namespace QA40xPlot.ViewModels
 		public static string AutoRangeDescript { get => "When the test is started a safe Attenuation value is calculated based on a test at 42."; }
 		public static string TabInfoTip { get => "Click to set line colors and edit plot headings"; }
 		public static string SummaryDataTip { get => "Click to see a box with summary test statistics"; }
-		public static string MiniPlotsTip { get => "Click to show the mini plots persistently"; }
+		public static string MiniPlotsTip { get => "Click to show the mini plots during the sweep."; }
 		public static string ShowLegendTip { get => "Click on to show or off to hide the legend."; }
 		public static string PinGraphTip { get => "Click to pin the current graph range"; }
 		public static List<string> ChannelList { get => new List<string> { "Left", "Right" }; }

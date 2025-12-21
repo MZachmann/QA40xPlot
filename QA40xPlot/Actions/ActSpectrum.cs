@@ -157,7 +157,7 @@ namespace QA40xPlot.Actions
 		{
 			var vm = page.ViewModel;
 			var freq = vm.NearestBinFreq(vm.Gen1Frequency);
-			WaveGenerator.SetEnabled(true, true);          // enable the generator
+			WaveContainer.SetMono();          // enable the generator
 			bool buse = force ? true : vm.UseGenerator;
 			double[] distout = [];
 			// do distortion addon first so wavegenerator is set up on exit (?)

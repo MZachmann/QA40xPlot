@@ -511,12 +511,11 @@ namespace QA40xPlot.ViewModels
 			bool? result = saveFileDialog.ShowDialog();
 			if(result == true) 
 			{
-				var u = WaveGenerator.TheWave(true);  // the left wave generator
+				var u = WaveContainer.TheWave(true);  // the left wave generator
 				// let's use the current view model
 				if(CurrentView != null)
 				{
 					var vm = CurrentView;
-					WaveGenerator.SetEnabled(true, true);
 					var data1 = WaveGenerator.Generate(true, vm.SampleRateVal, vm.FftSizeVal);
 					// normalize to int32 values
 					var umax = Int32.MaxValue / data1.Max(Math.Abs);
@@ -524,8 +523,6 @@ namespace QA40xPlot.ViewModels
 					WaveGenerator.WriteWaveFile(saveFileDialog.FileName, vm.SampleRateVal, vm.FftSizeVal, data);
 				}
 			}
-
-
 		}
 
 		private void OnLoadCfg()

@@ -217,8 +217,6 @@ namespace QA40xPlot.Actions
 		public async Task EndAction(BaseViewModel bvm)
 		{
 			// Turn the generator off
-			WaveGenerator.SetEnabled(true, false);	// left
-			WaveGenerator.SetEnabled(false, false);	// right
 			if (ViewSettings.Singleton.SettingsVm.RelayUsage == "OnFinish")
 				await QaComm.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION);  // set max attenuation while idle...
 																			   // detach from usb port
@@ -285,8 +283,7 @@ namespace QA40xPlot.Actions
 			// ********************************************************************
 			await showMessage($"Determining noise floor.", 40);
 			System.Diagnostics.Debug.WriteLine("***-------------Measuring noise-------------.");
-			WaveGenerator.SetEnabled(true, false);
-			WaveGenerator.SetEnabled(false, false);
+			WaveContainer.SetOff();
 			if (setRange)
 				await QaComm.SetInputRange(0); // and a small range for better noise...
 			LeftRightSeries lrfs = new();
@@ -353,8 +350,8 @@ namespace QA40xPlot.Actions
 			var generatorV = 0.01;          // random low test value
 											// we must have this in the bin center here
 			dfreq = QaLibrary.GetNearestBinFrequency(dfreq, sampleRate, fftsize);
+			WaveContainer.SetMono();                 // enable generator
 			WaveGenerator.SetGen1(true, dfreq, generatorV, true); // send a sine wave
-			WaveGenerator.SetEnabled(true, true);                 // enable generator
 			bvm.GeneratorVoltage = MathUtil.FormatVoltage(generatorV); // update the viewmodel so we can show it on-screen
 			var ct = new CancellationTokenSource();
 			// do two and average them
@@ -423,7 +420,7 @@ namespace QA40xPlot.Actions
 				// the simplest thing here is to do a chirp at a low value...
 				var generatorV = genV;          // testing at .01 has more noise
 												// so use 0.1V as reasonable when possible
-				var chirpy = Chirps.ChirpVp((int)fftsize, sampleRate, generatorV, 6, 24000);
+				var chirpy = Chirps.ChirpVp(fftsize, sampleRate, generatorV, 6, 24000);
 				var ct = new CancellationTokenSource();
 				// get the data
 				// now do the frequency transformation

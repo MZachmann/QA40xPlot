@@ -3,15 +3,17 @@
 This changelog shows the changes made for each version
 --------------------------------------------
 v 1.2.2
-- add Custom generator option to use wav file (spectrum, scope)
-- fix All On button to not enable Phase
-- change expander icon on quick page
+- add WaveFile generator option to use wav file (spectrum, scope)
+- add RIAAChirp generator waveform for riaa preemphasis
+- fix All On button to not enable Phase in sweep
+- change expander icon for quick page buttons hiding
 - simplify tab info dialog to remove unused left/right stuff
-- add RIAAChirp waveform for riaa preemphasis
 - add RIAA frequency deemphasis code
-- change 'show miniplots' action to hide/show
+- change 'show miniplots' action to mean hide/show during sweeps
 - alter defaults to use auto-attenuation and enable generators
 - add riaa compensation files
+- add biquad explanation to AudioMath.pdf
+- some improvements to the online help
 v 1.2.1
 - add Save Configuration as Default command to menu
 - add Settings page accelerator

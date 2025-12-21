@@ -55,7 +55,6 @@ namespace QA40xPlot.Actions
 			MyVModel.ForceGraphUpdate(); // force a graph update
 		}
 
-
 		public void DoCancel()
 		{
 			ct.Cancel();
@@ -140,20 +139,6 @@ namespace QA40xPlot.Actions
 				await showMessage("No frequency result");
 			}
 			return false;
-		}
-
-		static void BuildFrequencies(MyDataTab page)
-		{
-			var vm = page.ViewModel;
-			if (vm == null)
-				return;
-
-			LeftRightFrequencySeries? fseries;
-			fseries = QaMath.CalculateSpectrum(page.TimeRslt, vm.WindowingMethod);  // do the fft and calculate the frequency response
-			if (fseries != null)
-			{
-				page.SetProperty("FFT", fseries); // set the frequency response
-			}
 		}
 
 		private static void AddMicCorrection(MyDataTab page)
@@ -624,8 +609,9 @@ namespace QA40xPlot.Actions
 			if (ct.IsCancellationRequested)
 				return false;
 
-			WaveGenerator.SetEnabled(true, true);     // enable the generator
-			WaveGenerator.SetGen2(true, 0, 0, false); // disable the second wave
+			WaveContainer.SetMono();     // enable the generator
+			WaveGenerator.SetGen2(true, 1000, 0, false); // disable the second wave left
+			WaveGenerator.SetGen2(false, 1000, 0, false); // disable the second wave right
 			var ttype = vm.GetTestingType(vm.TestType);
 			var genVolt = QaLibrary.ConvertVoltage(voltagedBV, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
 
@@ -640,22 +626,25 @@ namespace QA40xPlot.Actions
 					if (ct.IsCancellationRequested)
 						break;
 					var dfreq = stepBinFrequencies[steps];
+					// crosstalk doesn't support riaa preemph
 					if(vm.IsRiaa && (ttype != TestingType.Crosstalk))
 					{
 						var gv = genVolt;
+						// scale to max unity gain at highest freq
 						var gvmax = RiaaTransform.Fvalue(stepBinFrequencies.Last());
 						gv = gv * RiaaTransform.Fvalue(dfreq) / gvmax;
 						// enable both generators here with one riaa preemph
 						WaveGenerator.SetGen1(true, dfreq, gv, true);
 						WaveGenerator.SetGen1(false, dfreq, genVolt, true);
-						WaveGenerator.SetEnabled(false, true);	// enable second generator
-					}
-					else if (dfreq > 0)
-					{
-						WaveGenerator.SetGen1(true, dfreq, genVolt, true);
+						WaveContainer.SetStereo();	// use both channels of generator
 					}
 					else
-						WaveGenerator.SetGen1(true, 1000, genVolt, false);
+					{	// not riaa
+						var dfq = (dfreq > 0 ? dfreq : 1000);
+						WaveGenerator.SetGen1(true, dfq, genVolt, true);	// left
+						WaveGenerator.SetGen1(false, dfq, genVolt, true);   // right, for crosstalk
+						WaveContainer.SetMono();  // use one channel of generator by default
+					}
 					if (ttype == TestingType.Crosstalk)
 					{
 						// each one adds a step so carefully....
@@ -663,16 +652,16 @@ namespace QA40xPlot.Actions
 						// here GainRight = the response right channel, GainLeft = left channel response
 						var exData = page.GainData; // save the data
 						var exFreq = page.GainFrequencies; // save the frequencies
-						WaveGenerator.SetChannels(true, WaveChannels.Left); // crosstalk is both channels
+						WaveContainer.SetStereo();      // use both channels
+						WaveContainer.SetEnabled(false, true);
 						await RunStep(page, TestingType.Response, dfreq, genVolt);      // get gain of both channels
-						var gainRight = page.GainRight.Last() / Math.Max(1e-10, page.GainLeft.Last());	// signal was sent on left channel
+						var gainLeft = page.GainLeft.Last() / Math.Max(1e-10, page.GainRight.Last());	// signal was sent on left channel
 
 						page.GainData = exData; // new list of complex data
 						page.GainFrequencies = exFreq; // new list of frequencies
-						WaveGenerator.SetChannels(true, WaveChannels.Right); // crosstalk is both channels
+						WaveContainer.SetEnabled(true, false);
 						await RunStep(page, TestingType.Response, dfreq, genVolt);      // get gain of both channels
-						WaveGenerator.SetChannels(true, WaveChannels.Both); // crosstalk is both channels
-						var gainLeft = page.GainLeft.Last() / Math.Max(1e-10, page.GainRight.Last());	// signal was sent on right channel
+						var gainRight = page.GainRight.Last() / Math.Max(1e-10, page.GainLeft.Last());	// signal was sent on right channel
 						// merge the data and update the GainData Property
 						var idxread = page.GainLeft.Length - 1;
 						page.GainData.Item1[idxread] = gainLeft; // set the gain data to the new crosstalk gain
@@ -700,10 +689,11 @@ namespace QA40xPlot.Actions
 			{
 				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
 			}
+			WaveContainer.SetMono(); // usual default
 			return true;
 		}
 
-		private async Task<(LeftRightSeries?, Complex[], Complex[])> RunChirpAcquire(MyDataTab page, double voltagedBV)
+		private async Task<(LeftRightSeries?, Complex[], Complex[])> RunChirpAcquire(MyDataTab page, double voltagedBV, WaveChannels channels)
 		{
 			var vm = page.ViewModel;
 			await showProgress(0, 50);
@@ -712,15 +702,18 @@ namespace QA40xPlot.Actions
 			var endf = ToD(vm.EndFreq) * 3;
 			endf = Math.Min(endf, vm.SampleRateVal / 2);
 			var genv = QaLibrary.ConvertVoltage(voltagedBV, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
-			var chirpy = Chirps.ChirpVpPair((int)vm.FftSizeVal, vm.SampleRateVal, genv, startf, endf, 0.8, WaveGenerator.TheWave(true).Channels);
-			var uc = chirpy.Item1;
+			var chirpy = Chirps.ChirpVp(vm.FftSizeVal, vm.SampleRateVal, genv, startf, endf, 0.8);
+			var ucLeft = chirpy;
 			if(vm.IsRiaa)
 			{
 				// time domain filtering to riaa preemphasis
 				var bq = BiquadBuilder.BuildRiaaBiquad(vm.SampleRateVal, true);
-				uc = chirpy.Item1.Select(x => bq.Process(x)).ToArray();
+				ucLeft = chirpy.Select(x => bq.Process(x)).ToArray();
 			}
-			LeftRightSeries lfrs = await QaComm.DoAcquireUser(1, ct.Token, uc, chirpy.Item2, false);
+			var blank = new double[chirpy.Length];
+			var ucRight = (channels == WaveChannels.Both || channels == WaveChannels.Right) ? chirpy : blank;
+			ucLeft = (channels == WaveChannels.Both || channels == WaveChannels.Left) ? ucLeft : blank;
+			LeftRightSeries lfrs = await QaComm.DoAcquireUser(1, ct.Token, ucLeft, ucRight, false);
 			if (lfrs?.TimeRslt == null)
 				return (null, [], []);
 			page.TimeRslt = lfrs.TimeRslt;
@@ -733,11 +726,10 @@ namespace QA40xPlot.Actions
 			var flength = lfrs.TimeRslt.Left.Length / 2;        // we want half this since freq is symmetric
 
 			var ttype = vm.GetTestingType(vm.TestType);
-			var chans = WaveGenerator.TheWave(true).Channels;
-			var useChirp = (chans == WaveChannels.Left || chans == WaveChannels.Both) ? chirpy.Item1 : chirpy.Item2; // use the left or right channel chirp
+			var chans = WaveContainer.Singleton.Channels;
 			if (ttype == TestingType.Response)
 			{
-				var lft = Chirps.NormalizeChirpCplx(vm.WindowingMethod, useChirp, genv, (lfrs.TimeRslt.Left, lfrs.TimeRslt.Right));
+				var lft = Chirps.NormalizeChirpCplx(vm.WindowingMethod, chirpy, genv, (lfrs.TimeRslt.Left, lfrs.TimeRslt.Right));
 				leftFft = lft.Item1;
 				rightFft = lft.Item2;
 			}
@@ -765,13 +757,13 @@ namespace QA40xPlot.Actions
 			return (lfrs, leftFft, rightFft);
 		}
 
-		public async Task<bool> DoChirpTest(MyDataTab page, double voltagedBV, TestingType ttype)
+		public async Task<bool> DoChirpTest(MyDataTab page, double voltagedBV, TestingType ttype, WaveChannels channels)
 		{
 			var vm = page.ViewModel;
 			try
 			{
 				// manually average the complex data here
-				var rca = await RunChirpAcquire(page, voltagedBV);
+				var rca = await RunChirpAcquire(page, voltagedBV, channels);
 				LeftRightSeries lfrs = rca.Item1 ?? new();
 				var leftFft = rca.Item2;
 				var rightFft = rca.Item3;
@@ -781,7 +773,7 @@ namespace QA40xPlot.Actions
 					lfrs.FreqRslt.Right = lfrs.FreqRslt.Right.Select(x => x * x).ToArray(); // sum of squares
 					for (int i = 1; i < vm.Averages; i++)
 					{
-						rca = await RunChirpAcquire(page, voltagedBV);
+						rca = await RunChirpAcquire(page, voltagedBV, channels);
 						if (rca.Item1 != null && rca.Item1.FreqRslt != null)
 						{
 							lfrs.FreqRslt.Left = lfrs.FreqRslt.Left.Zip(rca.Item1.FreqRslt.Left, (x, y) => x + y * y).ToArray();
@@ -888,7 +880,7 @@ namespace QA40xPlot.Actions
 			var ttype = vm.GetTestingType(vm.TestType);
 			if (ttype != TestingType.Crosstalk)
 			{
-				didRun = await DoChirpTest(page, voltagedBV, ttype);
+				didRun = await DoChirpTest(page, voltagedBV, ttype, WaveChannels.Both);
 				if(perOctave > 0)
 				{
 					// smooth the curve?
@@ -901,39 +893,35 @@ namespace QA40xPlot.Actions
 			{
 				page.GainData = ([],[]); // new list of complex data
 				page.GainFrequencies = []; // new list of frequencies
-				// left->right crosstalk
-				WaveGenerator.SetChannels(true, WaveChannels.Left); // left channel on
-				didRun = await DoChirpTest(page, voltagedBV, TestingType.Response);
+										   // left->right crosstalk
+				didRun = await DoChirpTest(page, voltagedBV, TestingType.Response, WaveChannels.Right);
 				if (perOctave > 0)
 				{
 					// smooth the curve?
-					gainLeft = MathUtil.SmoothAverage(page.GainLeft, perOctave);
-					gainRight = MathUtil.SmoothAverage(page.GainRight, perOctave);
-					page.GainData = (gainLeft, gainRight);
+					var gl = MathUtil.SmoothAverage(page.GainLeft, perOctave);
+					var gr = MathUtil.SmoothAverage(page.GainRight, perOctave);
+					page.GainData = (gl, gr);
 				}
-				gainRight = page.GainRight.Zip(page.GainLeft, (x, y) => x / Math.Max(1e-10, y)).ToArray();
+				gainLeft = page.GainLeft.Zip(page.GainRight, (x, y) => x / Math.Max(1e-10, y)).ToArray();
 				if (!ct.IsCancellationRequested)
 				{
 					// right->left crosstalk
 					page.GainData = ([], []); // new list of complex data
 					page.GainFrequencies = []; // new list of frequencies
-					WaveGenerator.SetChannels(true, WaveChannels.Right); // right channel on
-					didRun = await DoChirpTest(page, voltagedBV, TestingType.Response);
+					didRun = await DoChirpTest(page, voltagedBV, TestingType.Response, WaveChannels.Left);
 					if (!ct.IsCancellationRequested)
 					{
 						if (perOctave > 0)
 						{
 							// smooth the curve?
-							gainLeft = MathUtil.SmoothAverage(page.GainLeft, perOctave);
-							gainRight = MathUtil.SmoothAverage(page.GainRight, perOctave);
-							page.GainData = (gainLeft, gainRight);
+							var gl = MathUtil.SmoothAverage(page.GainLeft, perOctave);
+							var gr = MathUtil.SmoothAverage(page.GainRight, perOctave);
+							page.GainData = (gl, gr);
 						}
-						gainLeft = page.GainLeft.Zip(page.GainRight, (x, y) => x / Math.Max(1e-10, y)).ToArray();
-						gainRight = page.GainRight;
+						gainRight = page.GainRight.Zip(page.GainLeft, (x, y) => x / Math.Max(1e-10, y)).ToArray();
 						page.GainData = (gainLeft, gainRight);
 					}
 				}
-				WaveGenerator.SetChannels(true, WaveChannels.Both); // back to default both
 			}
 
 			UpdateGraph(false);
@@ -944,11 +932,33 @@ namespace QA40xPlot.Actions
 			return true;
 		}
 
+		// given a left-right time series it finds the voltage at freq for both channels
+		public static System.Numerics.Complex CalculateResponseAt(double fundamentalFreq, LeftRightSeries measuredSeries)
+		{
+			System.Numerics.Complex u = new Complex(1, 1);
+			var measuredFreqSeries = measuredSeries.FreqRslt;
+			if (measuredFreqSeries == null )
+				return u;
+
+			try
+			{
+				double left = QaMath.MagAtFreq(measuredFreqSeries.Left, measuredFreqSeries.Df, fundamentalFreq);
+				double right = QaMath.MagAtFreq(measuredFreqSeries.Right, measuredFreqSeries.Df, fundamentalFreq);
+				u = new Complex(left, right);   // pack it in stupidly
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
+			}
+			return u;
+		}
+
+
 		private Complex CalculateGain(double dFreq, LeftRightSeries data, bool showBoth)
 		{
 			Complex gain = new();
 			if (showBoth)
-				gain = QaMath.CalculateDualGain(dFreq, data);
+				gain = CalculateResponseAt(dFreq, data);
 			else
 				gain = QaMath.CalculateGainPhase(dFreq, data);
 			return gain;
@@ -1019,12 +1029,6 @@ namespace QA40xPlot.Actions
 			UpdatePlotTitle();
 			myPlot.XLabel("Frequency (Hz)");
 			frqrsPlot.Refresh();
-		}
-
-		private Complex ToImpedance(Complex z)
-		{
-			var xtest = z / ((new Complex(1, 0)) - z);  // do the math
-			return xtest;
 		}
 
 		/// <summary>
@@ -1201,305 +1205,7 @@ namespace QA40xPlot.Actions
 				}
 			}
 
-			PlotBandwidthLines();
 			frqrsPlot.Refresh();
-		}
-
-		private void PlotBandwidthLines()
-		{
-			// Plot
-			//if (GraphSettings.GraphType == E_FrequencyResponseGraphType.DBV)   
-			PlotDbVBandwidthLines();
-			//else 
-			//    PlotGainBandwidthLines();
-		}
-
-		void PlotDbVBandwidthLines()
-		{
-			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
-			FreqRespViewModel frqrsVm = MyVModel;
-
-			// Remove old lines
-			myPlot.Remove<VerticalLine>();
-			myPlot.Remove<Arrow>();
-			myPlot.Remove<Text>();
-
-			if (PageData != null && PageData.FreqRslt != null && PageData.TimeRslt.Left.Length > 0)
-			{
-				BandwidthData bandwidthData3dB = new BandwidthData();
-				BandwidthData bandwidthData1dB = new BandwidthData();
-				if (PageData.ViewModel.LeftChannel)
-				{
-					bandwidthData3dB.Left = CalculateBandwidth(-3, PageData.FreqRslt.Left, PageData.FreqRslt.Df);
-					bandwidthData1dB.Left = CalculateBandwidth(-1, PageData.FreqRslt.Left, PageData.FreqRslt.Df);
-				}
-
-				if (PageData.ViewModel.RightChannel)
-				{
-					bandwidthData3dB.Right = CalculateBandwidth(-3, PageData.FreqRslt.Right, PageData.FreqRslt.Df);
-					bandwidthData1dB.Right = CalculateBandwidth(-1, PageData.FreqRslt.Right, PageData.FreqRslt.Df);
-				}
-
-				// Draw bandwidth lines
-				float lineWidth = frqrsVm.ShowThickLines ? _Thickness : 1;
-
-				if (frqrsVm.ShowLeft && frqrsVm.LeftChannel)
-				{
-					if (frqrsVm.Show3dBBandwidth_L)
-					{
-						DrawBandwithLines(3, bandwidthData3dB.Left, 0);
-					}
-
-					if (frqrsVm.Show1dBBandwidth_L)
-					{
-						DrawBandwithLines(1, bandwidthData1dB.Left, 1);
-					}
-				}
-
-				if (frqrsVm.ShowRight && frqrsVm.RightChannel)
-				{
-					if (frqrsVm.Show3dBBandwidth_R)
-					{
-						DrawBandwithLines(3, bandwidthData3dB.Right, 2);
-					}
-
-					if (frqrsVm.Show1dBBandwidth_R)
-					{
-						DrawBandwithLines(1, bandwidthData3dB.Right, 3);
-					}
-				}
-			}
-		}
-
-		void PlotGainBandwidthLines()
-		{
-			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
-			FreqRespViewModel frqrsVm = MyVModel;
-
-			// Remove old lines
-			myPlot.Remove<VerticalLine>();
-			myPlot.Remove<Arrow>();
-			myPlot.Remove<Text>();
-
-			// GAIN
-			if (PageData != null && PageData.GainLeft != null)
-			{
-				// Gain BW
-				//if (PageData.ViewModel.LeftChannel)
-				//{
-				//	var gainBW3dB = CalculateBandwidth(-3, PageData.GainData.Select(x => x.Magnitude).ToArray(), PageData.FreqRslt?.Df ?? 1);        // Volts is gain
-
-				//	var gainBW1dB = CalculateBandwidth(-1, PageData.GainData.Select(x => x.Magnitude).ToArray(), PageData.FreqRslt?.Df ?? 1);
-
-				//	// Draw bandwidth lines
-				//	var colors = new GraphColors();
-				//	float lineWidth = frqrsVm.ShowThickLines ? _Thickness : 1;
-
-				//	if (frqrsVm.ShowLeft && frqrsVm.LeftChannel)
-				//	{
-				//		if (frqrsVm.Show3dBBandwidth_L)
-				//		{
-				//			DrawBandwithLines(3, gainBW3dB, 0);
-				//		}
-
-				//		if (frqrsVm.Show1dBBandwidth_L)
-				//		{
-				//			DrawBandwithLines(1, gainBW1dB, 1);
-				//		}
-				//	}
-				//}
-			}
-		}
-
-
-		class BandwidthChannelData
-		{
-			public double LowestAmplitudeVolt = 0;
-			public double LowestAmplitudeFreq = 0;
-
-			public double HighestAmplitudeVolt = 0;
-			public double HighestAmplitudeFreq = 0;
-
-			public double LowerFreq = 0;
-			public double LowerFreqAmplitudeVolt = 0;
-
-			public double UpperFreq = 0;
-			public double UpperFreqAmplitudeVolt = 0;
-
-			public double Bandwidth = 0;
-		}
-
-		class BandwidthData
-		{
-			public BandwidthChannelData Left;
-			public BandwidthChannelData Right;
-
-			public BandwidthData()
-			{
-				Left = new BandwidthChannelData();
-				Right = new BandwidthChannelData();
-			}
-		}
-
-		/// <summary>
-		/// Calculate bandwidth from equally spaced data.
-		/// </summary>
-		/// <param name="dB"></param>
-		/// <param name="data"></param>
-		/// <param name="frequencyResolution"></param>
-		/// <returns></returns>
-		BandwidthChannelData CalculateBandwidth(double dB, double[] data, double frequencyResolution)
-		{
-			BandwidthChannelData bandwidthData = new BandwidthChannelData();
-
-			if (data == null)
-				return bandwidthData;
-
-			var gainValue = Math.Pow(10, dB / 20);
-
-			bandwidthData.LowestAmplitudeVolt = data.Skip(1).Min(); // Skip dc
-			var lowestAmplitude_left_index = data.ToList().IndexOf(bandwidthData.LowestAmplitudeVolt);
-			bandwidthData.LowestAmplitudeFreq = frequencyResolution * (lowestAmplitude_left_index + 1);
-
-			// Get highest amplitude
-			//bandwidthData.HighestAmplitudeVolt = data.Skip((int)(5 / frequencyResolution)).Max();      // Skip first 5 Hz for now.
-			bandwidthData.HighestAmplitudeVolt = data.Skip(1).Max();      // Skip dc.
-			var highestAmplitude_left_index = data.ToList().IndexOf(bandwidthData.HighestAmplitudeVolt);
-			bandwidthData.HighestAmplitudeFreq = frequencyResolution * highestAmplitude_left_index;
-
-			// Get lower frequency
-			//var lowerFreq_left = data.Select((Value, Index) => new { Value, Index }).Where(f => f.Value <= (bandwidthData.HighestAmplitudeVolt * gainValue) && f.Index < highestAmplitude_left_index).LastOrDefault();
-			var lowerFreq_left = data.Select((Value, Index) => new { Value, Index })
-				.Where(f => f.Index < highestAmplitude_left_index)
-				.Select(n => new { n.Value, n.Index, delta = Math.Abs(n.Value - (bandwidthData.HighestAmplitudeVolt * gainValue)) })
-				.OrderBy(p => p.delta)
-				.FirstOrDefault();
-
-			if (lowerFreq_left != default)
-			{
-				double lowerFreq_left_index = lowerFreq_left.Index;
-				bandwidthData.LowerFreqAmplitudeVolt = lowerFreq_left.Value;
-				double lowerFreq_left_amplitude_dBV = 20 * Math.Log10(lowerFreq_left.Value);
-				bandwidthData.LowerFreq = (lowerFreq_left_index + 1) * frequencyResolution;
-			}
-			else
-				bandwidthData.LowerFreq = 1;
-
-			// Get upper frequency
-			//var upperFreq_left = data.Select((Value, Index) => new { Value, Index }).Where(f => f.Value <= bandwidthData.HighestAmplitudeVolt * gainValue && f.Index > highestAmplitude_left_index).FirstOrDefault();
-			var upperFreq_left = data.Select((Value, Index) => new { Value, Index })
-				.Where(f => f.Index > highestAmplitude_left_index)
-				.Select(n => new { n.Value, n.Index, delta = Math.Abs(n.Value - (bandwidthData.HighestAmplitudeVolt * gainValue)) })
-				.OrderBy(p => p.delta)
-				.FirstOrDefault();
-
-			if (upperFreq_left != default)
-			{
-				double upperFreq_left_index = upperFreq_left.Index;
-				bandwidthData.UpperFreqAmplitudeVolt = upperFreq_left.Value;
-				double upperFreq_left_amplitude_dBV = 20 * Math.Log10(upperFreq_left.Value);
-				bandwidthData.UpperFreq = upperFreq_left_index * frequencyResolution;
-			}
-			else
-				bandwidthData.UpperFreq = 100000;
-
-			bandwidthData.Bandwidth = bandwidthData.UpperFreq - bandwidthData.LowerFreq;
-
-			return bandwidthData;
-		}
-
-		private string AutoUnitText(double value, string unit, int decimals, int milliDecimals = 0)
-		{
-			bool isNegative = value < 0;
-			string newString = string.Empty;
-
-			value = Math.Abs(value);
-
-			if (value < 1)
-				newString = ((int)(value * 1000)).ToString("0." + new string('0', milliDecimals)) + " m" + unit;
-			else if (value < 1000)
-				newString = value.ToString("0." + new string('0', decimals)) + " " + unit;
-			else
-				newString = (value / 1000).ToString("0." + new string('0', decimals)) + " k" + unit;
-
-			return (isNegative ? "-" : "") + newString;
-		}
-
-		void DrawBandwithLines(int gain, BandwidthChannelData channelData, int colorRange)
-		{
-			var frqrsVm = MyVModel;
-
-			var colors = new GraphColors();
-			float lineWidth = frqrsVm.ShowThickLines ? _Thickness : 1;
-
-			// Low frequency vertical line
-			var lowerFreq_dBV_left = Math.Log10(channelData.LowerFreq);
-			AddVerticalLine(lowerFreq_dBV_left, 20 * Math.Log10(channelData.LowerFreqAmplitudeVolt), colors.GetColor(colorRange, 2), lineWidth);
-
-			// High frequency vertical line
-			var upperFreq_dBV_left = Math.Log10(channelData.UpperFreq);
-			AddVerticalLine(upperFreq_dBV_left, 20 * Math.Log10(channelData.UpperFreqAmplitudeVolt), colors.GetColor(colorRange, 2), lineWidth);
-
-			// Bandwidht arrow
-			AddArrow(lowerFreq_dBV_left, 20 * Math.Log10(channelData.LowerFreqAmplitudeVolt), upperFreq_dBV_left, 20 * Math.Log10(channelData.LowerFreqAmplitudeVolt), colors.GetColor(colorRange, 4), lineWidth);
-
-			// Bandwitdh text
-			var lowerFreq = Math.Log10(channelData.LowerFreq);
-			var upperFreq = Math.Log10(channelData.UpperFreq);
-
-			var bwText = $"B{gain:0}: {channelData.Bandwidth:0 Hz}";
-			if (channelData.Bandwidth > 1000)
-				bwText = $"B{gain:0}: {(channelData.Bandwidth / 1000):0.00# kHz}";
-			if (channelData.UpperFreq > 96000)
-				bwText = $"B{gain:0}: > 96 kHz";
-			AddText(bwText, (lowerFreq + ((upperFreq - lowerFreq) / 2)), 20 * Math.Log10(channelData.LowerFreqAmplitudeVolt), colors.GetColor(colorRange, 8), -35, -10);
-
-			// Low frequency text
-			var bwLowF = $"{channelData.LowerFreq:0 Hz}";
-			if (channelData.LowerFreq > 1000)
-				bwLowF = $"{(channelData.LowerFreq / 1000):0.00# kHz}";
-			AddText(bwLowF, lowerFreq_dBV_left, frqrsPlot.ThePlot.Axes.GetLimits().Bottom, colors.GetColor(colorRange, 8), -20, -30);
-
-			// High frequency text         
-			var bwHighF = $"{channelData.UpperFreq:0 Hz}";
-			if (channelData.UpperFreq > 1000)
-				bwHighF = $"{(channelData.UpperFreq / 1000):0.00# kHz}";
-			AddText(bwHighF, upperFreq_dBV_left, frqrsPlot.ThePlot.Axes.GetLimits().Bottom, colors.GetColor(colorRange, 8), -20, -30);
-		}
-
-
-		void AddVerticalLine(double x, double maximum, ScottPlot.Color color, float lineWidth)
-		{
-			var line = frqrsPlot.ThePlot.Add.VerticalLine(x);
-			line.Maximum = maximum;
-			line.Color = color;
-			line.LineWidth = lineWidth;
-			line.LinePattern = LinePattern.DenselyDashed;
-		}
-
-		void AddArrow(double x1, double y1, double x2, double y2, ScottPlot.Color color, float lineWidth)
-		{
-			Coordinates arrowTip = new Coordinates(x1, y1);
-			Coordinates arrowBase = new Coordinates(x2, y2);
-			var arrow = frqrsPlot.ThePlot.Add.Arrow(arrowTip, arrowBase);
-			arrow.ArrowStyle.LineWidth = lineWidth;
-			arrow.ArrowStyle.ArrowheadLength = 12;
-			arrow.ArrowStyle.ArrowheadWidth = 8;
-			arrow.ArrowShape = new ScottPlot.ArrowShapes.DoubleLine();
-			arrow.ArrowLineColor = color;
-		}
-
-		void AddText(string text, double x, double y, ScottPlot.Color backgroundColor, int offsetX, int offsetY)
-		{
-			var txt = frqrsPlot.ThePlot.Add.Text(text, x, y);
-			txt.LabelFontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
-			txt.LabelBorderColor = Colors.Black;
-			txt.LabelBorderWidth = 1;
-			txt.LabelPadding = 2;
-			txt.LabelBold = false;
-			txt.LabelBackgroundColor = backgroundColor;
-			txt.OffsetX = offsetX;
-			txt.OffsetY = offsetY;
 		}
 	}
 }
