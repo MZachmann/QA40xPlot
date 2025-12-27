@@ -534,7 +534,7 @@ namespace QA40xPlot.QA430
 
 		public List<AcquireStep> ExpandLoadOptions(List<AcquireStep> srcSteps, string whom)
 		{
-			var items = SelectItemList.ParseList(whom, 0).Where(x => x.IsSelected).ToList();
+			var items = SelectItemList.ParseList(whom).Where(x => x.IsSelected).ToList();
 			if(items == null || items.Count == 0)
 				return srcSteps;    // nothing selected
 
@@ -579,7 +579,7 @@ namespace QA40xPlot.QA430
 
 		public List<AcquireStep> ExpandGainOptions(List<AcquireStep> srcSteps, string gainOpts)
 		{
-			var gainSet = SelectItemList.ParseList(gainOpts, 0).Where(x => x.IsSelected).ToList();        // convert to a list of items
+			var gainSet = SelectItemList.ParseList(gainOpts).Where(x => x.IsSelected).ToList();        // convert to a list of items
 			if (gainSet == null || gainSet.Count == 0)
 			{
 				return srcSteps;
@@ -608,7 +608,7 @@ namespace QA40xPlot.QA430
 
 		public List<AcquireStep> ExpandSupplyOptions(List<AcquireStep> srcSteps, string supplyOpts)
 		{
-			var supplySet = SelectItemList.ParseList(supplyOpts, 0).Where(x => x.IsSelected).ToList();
+			var supplySet = SelectItemList.ParseList(supplyOpts).Where(x => x.IsSelected).ToList();
 			if(supplySet == null || supplySet.Count == 0)
 			{
 				return srcSteps;

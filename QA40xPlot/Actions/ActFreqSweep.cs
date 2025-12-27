@@ -490,7 +490,7 @@ namespace QA40xPlot.Actions
 			double[] stepBinFrequencies = [];
 			double binSize = 0;
 			// here they are in the format of the generator test...
-			var voltValues = SelectItemList.ParseList(vm.VoltSummary, 0).Where(x => x.IsSelected).ToList();
+			var voltValues = SelectItemList.ParseList(vm.VoltSummary).Where(x => x.IsSelected).ToList();
 			if(voltValues.Count == 0)
 			{
 				await showMessage("No generator voltages specified!", 200);
@@ -561,7 +561,7 @@ namespace QA40xPlot.Actions
 
 				// now expand the generator voltage options
 				{
-					var voltSet = SelectItemList.ParseList(freqVm.VoltSummary, 0).Where(x => x.IsSelected).ToList();
+					var voltSet = SelectItemList.ParseList(freqVm.VoltSummary).Where(x => x.IsSelected).ToList();
 					if(voltSet.Count == 0)
 					{
 						await showMessage("No generator voltages specified!", 200);

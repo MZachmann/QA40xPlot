@@ -93,22 +93,17 @@ namespace QA40xPlot.Views
 
 		private void DownButton_Click(object sender, RoutedEventArgs e)
 		{
-			var minCount = 4;
-			if(!IsEditable)
-			{
-				minCount = TheSource.Count;
-			}
-			ItemsSet = SelectItemList.ParseList(TheText, minCount);
+			ItemsSet = SelectItemList.ParseList(TheText);
 			ThePopup.IsOpen = !ThePopup.IsOpen;
 		}
 
 		private void ThePopup_Closed(object sender, EventArgs e)
 		{
-			if(!IsEditable)
+			if (!IsEditable)
 			{
-				for(int i = 0; i < ItemsSet.Count; i++)
+				for (int i = 0; i < ItemsSet.Count; i++)
 				{
-					if(!ItemsSet[i].IsSelected)
+					if (!ItemsSet[i].IsSelected)
 					{
 						ItemsSet[i].Name = string.Empty;
 					}
@@ -140,5 +135,54 @@ namespace QA40xPlot.Views
 		}
 		#endregion
 
+		private void DoAddRow_Click(object sender, RoutedEventArgs e)
+		{
+			//ItemsSet.Add(new SelectItem(true, string.Empty, (uint)ItemsSet.Count));
+			// let the item highlight?
+			try
+			{
+				var rowIndex = (sender as Button)?.Tag.ToString();
+				if (rowIndex != null)
+				{
+					var rows = Int32.Parse(rowIndex);
+					if (ItemsSet.Count > rows && rows >= 0)
+						ItemsSet.Insert(rows+1, new SelectItem(true, string.Empty, 0));
+				}
+				uint i = 0;
+				foreach (var u in ItemsSet)
+				{
+					u.Index = i++;
+				}
+			}
+			catch (Exception)
+			{
+				// ignore
+			}
+		}
+		private void DoRemoveRow_Click(object sender, RoutedEventArgs e)
+		{
+			if (ItemsSet.Count <= 1)
+				return;
+			// let the item highlight?
+			try
+			{
+				var rowIndex = (sender as Button)?.Tag.ToString();
+				if (rowIndex != null)
+				{
+					var rows = Int32.Parse(rowIndex);
+					if (ItemsSet.Count > rows && rows >= 0 && ItemsSet.Count > 1)
+						ItemsSet.RemoveAt(rows);
+				}
+				uint i = 0;
+				foreach (var u in ItemsSet)
+				{
+					u.Index = i++;
+				}
+			}
+			catch (Exception)
+			{
+				// ignore
+			}
+		}
 	}
 }

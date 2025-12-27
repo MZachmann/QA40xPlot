@@ -14,6 +14,8 @@ v 1.2.2
 - add riaa compensation files
 - add biquad explanation to AudioMath.pdf
 - some improvements to the online help
+- place attenuation options in all tests
+- add add/delete entries buttons to combodrop lists
 v 1.2.1
 - add Save Configuration as Default command to menu
 - add Settings page accelerator

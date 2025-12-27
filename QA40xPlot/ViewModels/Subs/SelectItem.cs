@@ -18,7 +18,7 @@ namespace QA40xPlot.ViewModels
 		{
 			if (!this.Any())
 			{
-				this.Add(new SelectItem(true, ifnone));
+				this.Add(new SelectItem(true, ifnone, 0));
 			}
 			var alist = this.Where(x => x.Name.Length > 0);
 			if (!isEditable)
@@ -34,28 +34,28 @@ namespace QA40xPlot.ViewModels
 		/// </summary>
 		/// <param name="pList"></param>
 		/// <returns></returns>
-		static public SelectItemList ParseList(string pList, int minNumItems)
+		static public SelectItemList ParseList(string pList)
 		{
 			var vout = new SelectItemList();
 			var u = pList.Split(SelectItemList.Delimit, StringSplitOptions.RemoveEmptyEntries);
 			if (u.Length > 0)
 			{
 				var tl = u.Length;      // # of entries to parse
-				int i = 0;
-				for (; i < tl; i++)
+				uint i = 0;
+				for (i = 0; i < tl; i++)
 				{
 					if (u[i].Length > 0)
 					{
 						if (SelectItemList.NoUse == u[i][0])
-							vout.Add(new SelectItem(false, u[i].Substring(1)));
+							vout.Add(new SelectItem(false, u[i].Substring(1), i));
 						else
-							vout.Add(new SelectItem(true, u[i]));
+							vout.Add(new SelectItem(true, u[i], i));
 					}
 				}
-				for (; i < minNumItems; i++)
-				{
-					vout.Add(new SelectItem(true, string.Empty));
-				}
+			}
+			else
+			{
+				vout.Add(new SelectItem(true, string.Empty, 0));
 			}
 			return vout;
 		}
@@ -81,10 +81,18 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _Name, value);
 		}
 
-		internal SelectItem(bool isSel, string name)
+		private uint _Index = 0;
+		public uint Index
+		{
+			get => _Index;
+			set => SetProperty(ref _Index, value);
+		}
+
+		internal SelectItem(bool isSel, string name, uint index)
 		{
 			IsSelected = isSel;
 			Name = name;
+			Index = index;
 		}
 	}
 }

@@ -20,16 +20,23 @@
         <Popup x:Name="ThePopup" PlacementTarget="{Binding ElementName=cbCombo}" StaysOpen="False"
                                Closed="ThePopup_Closed" >
             <Border BorderThickness="1" >
-                <ListBox ItemsSource="{Binding ItemsSet, ElementName=MySelf}" MinWidth="150">
+                <ListBox x:Name="MyList" ItemsSource="{Binding ItemsSet, ElementName=MySelf}" MinWidth="150">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <CheckBox Content="" IsChecked="{Binding IsSelected}" />
+                                <CheckBox Content="" IsChecked="{Binding IsSelected}" VerticalAlignment="Center" />
                                 <ComboBox MinWidth="100"
                                         VerticalContentAlignment="Center"
                                         Text="{Binding Name}"
+                                        ToolTip="Clearing the text will remove the entry."
                                         IsEditable="{Binding IsEditable, ElementName=MySelf}" 
                                         ItemsSource="{Binding TheSource, ElementName=MySelf}"/>
+                                <Button Content="+" Tag="{Binding Index}" MinWidth="20" Background="Transparent"
+                                        ToolTip="Add a new entry after this one"
+                                        BorderThickness="0" Click="DoAddRow_Click" Margin="5,0,0,0" />
+                                <Button Content="-" Tag="{Binding Index}" MinWidth="20" Background="Transparent" 
+                                        ToolTip="Remove this entry"
+                                        BorderThickness="0" Click="DoRemoveRow_Click"  />
                             </StackPanel>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
