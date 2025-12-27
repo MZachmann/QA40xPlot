@@ -485,12 +485,15 @@ namespace QA40xPlot.Actions
 			await QaComm.SetWindowing(vm.WindowingMethod);
 			// set the input range to 0dB for low noise
 			// this only applies for the noise measurement
-			await QaComm.SetInputRange(0);
+			var oldAtten = vm.Attenuation;
+			thdAmp.Attenuation = vm.DoAutoAttn ? 0 : (int)vm.Attenuation;
+			await QaComm.SetInputRange((int)thdAmp.Attenuation);
 
 			// ********************************************************************
 			// Do noise floor measurement
 			// ********************************************************************
-			var noisy = await MeasureNoise(MyVModel, ct.Token);
+			var noisy = await MeasureNoise(vm, ct.Token);
+			vm.Attenuation = oldAtten;
 			page.NoiseFloor = noisy.Item1;
 			page.NoiseFloorA = noisy.Item2;
 			page.NoiseFloorC = noisy.Item3;
@@ -509,6 +512,10 @@ namespace QA40xPlot.Actions
 				var voutLdbv = QaLibrary.ConvertVoltage(stepOutLVoltages[i], E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 				var voutRdbv = QaLibrary.ConvertVoltage(stepOutRVoltages[i], E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 				var attenuate = QaLibrary.DetermineAttenuation(Math.Max(voutLdbv, voutRdbv));
+				if(! vm.DoAutoAttn)
+				{
+					attenuate = (int)vm.Attenuation;
+				}
 				await showMessage($"Measuring step {i + 1} at {stepInVoltages[i]:0.###}V with attenuation {attenuate}.");
 				await showProgress(100 * (i + 1) / (stepInVoltages.Length));
 

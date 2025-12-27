@@ -27,8 +27,6 @@ namespace QA40xPlot.ViewModels
 		private ThdChannelInfo actInfoLeft { get; set; }
 		private ThdChannelInfo actInfoRight { get; set; }
 		[JsonIgnore]
-		public RelayCommand<object> SetAttenuate { get => new RelayCommand<object>(SetAtten); }
-		[JsonIgnore]
 		public RelayCommand DoStart { get => new RelayCommand(StartIt); }
 		[JsonIgnore]
 		public RelayCommand DoStop { get => new RelayCommand(StopIt); }
@@ -48,19 +46,6 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand DoWaveSelect { get => new RelayCommand(WaveSelect); }
 
 		#region Setters and Getters
-
-		[JsonIgnore]
-		public string AttenColor
-		{
-			get => DoAutoAttn ? "#1800f000" : "Transparent";
-		}
-
-		private bool _DoAutoAttn = true;
-		public bool DoAutoAttn
-		{
-			get { return _DoAutoAttn; }
-			set { if (SetProperty(ref _DoAutoAttn, value)) RaisePropertyChanged("AttenColor"); }
-		}
 
 		private string _Gen1Waveform = string.Empty;
 		public string Gen1Waveform
@@ -232,13 +217,6 @@ namespace QA40xPlot.ViewModels
 			MyVModel.LinkAbout(MyAction.PageData.Definition);
 			actPlot = plot;
 			ShowInfos();
-		}
-
-		private static void SetAtten(object? parameter)
-		{
-			var vm = MyVModel;
-			var atten = MathUtil.ToDouble(parameter?.ToString() ?? string.Empty, vm.Attenuation);
-			vm.Attenuation = atten;
 		}
 
 		private static void StartIt()

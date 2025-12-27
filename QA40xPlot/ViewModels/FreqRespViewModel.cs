@@ -40,8 +40,6 @@ public class FreqRespViewModel : BaseViewModel
 
 	[JsonIgnore]
 	private static FreqRespViewModel MyVModel { get => ViewSettings.Singleton.FreqRespVm; }
-	[JsonIgnore]
-	public bool IsNotChirp { get => !_IsChirp; }
 
 	#region Setters and Getters
 	private bool _UseMUseMicCorrection = false;
@@ -55,14 +53,14 @@ public class FreqRespViewModel : BaseViewModel
 	public bool IsChirp
 	{
 		get { return _IsChirp; }
-		set { SetProperty(ref _IsChirp, value); RaisePropertyChanged("IsNotChirp"); }
+		set { SetProperty(ref _IsChirp, value); }
 	}
 	// use riaa preemphasis on the signal
 	private bool _IsRiaa = false;
 	public bool IsRiaa
 	{
 		get { return _IsRiaa; }
-		set { SetProperty(ref _IsRiaa, value); RaisePropertyChanged("IsNotChirp"); }
+		set { SetProperty(ref _IsRiaa, value); }
 	}
 
 	private string _ZReference = string.Empty;

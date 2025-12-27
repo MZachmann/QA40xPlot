@@ -40,6 +40,7 @@ namespace QA40xPlot.ViewModels
 		public static string DutInfo { get => "DUT = Device Under Test"; }
 		public static string DutDescript { get => "Input Voltage = DUT Input(Generator Output), Output Voltage = DUT Output(QA40x Input)"; }
 		public static string AutoRangeDescript { get => "When the test is started a safe Attenuation value is calculated based on a test at 42."; }
+		public static string AutoRangeNoDescript { get => "Attenuation is dynamically set to a safe value as needed."; }
 		public static string TabInfoTip { get => "Click to set line colors and edit plot headings"; }
 		public static string SummaryDataTip { get => "Click to see a box with summary test statistics"; }
 		public static string MiniPlotsTip { get => "Click to show the mini plots during the sweep."; }
@@ -64,6 +65,8 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand<object> ShowMenuCommand { get => new RelayCommand<object>(ShowMenu); }
 		[JsonIgnore]
 		public RelayCommand<object> SetGenVolts { get => new RelayCommand<object>(DoGenVolts); }
+		[JsonIgnore]
+		public RelayCommand<object> SetAttenuate { get => new RelayCommand<object>(SetAtten); }
 		#endregion
 
 		#region Output Setters and Getters
@@ -314,9 +317,24 @@ namespace QA40xPlot.ViewModels
 				SetProperty(ref _GeneratorVoltageUnits, value);
 			}
 		}
+
+		[JsonIgnore]
+		public string AttenColor
+		{
+			get => DoAutoAttn ? "#1800f000" : "Transparent";
+		}
 		#endregion
 
 		#region Setters and Getters
+		private bool _DoAutoAttn = true;
+		public bool DoAutoAttn
+		{
+			get { return _DoAutoAttn; }
+			set { if (SetProperty(ref _DoAutoAttn, value)) 
+					RaisePropertyChanged("AttenColor"); 
+				}
+		}
+
 		private bool _ShowLegend = true;
 		public bool ShowLegend
 		{
@@ -419,6 +437,13 @@ namespace QA40xPlot.ViewModels
 			set { SetProperty(ref _KeepMiniPlots, value); ShowMiniPlots = value; }
 		}
 
+		private bool _ExpandAtten = true;       // expand the generator section?
+		public bool ExpandAtten
+		{
+			get => _ExpandAtten;
+			set => SetProperty(ref _ExpandAtten, value);
+		}
+
 		private bool _ExpandGenerator = true;       // expand the generator section?
 		public bool ExpandGenerator
 		{
@@ -513,7 +538,9 @@ namespace QA40xPlot.ViewModels
 		public string PlotFormat
 		{
 			get => _PlotFormat;
-			set { SetProperty(ref _PlotFormat, value); RaisePropertyChanged("GraphUnit"); }
+			set { if( SetProperty(ref _PlotFormat, value))
+					RaisePropertyChanged("GraphUnit"); 
+				}
 		}
 
 		private string _SampleRate = string.Empty;
@@ -554,11 +581,43 @@ namespace QA40xPlot.ViewModels
 			get => _ShowRight;
 			set => SetProperty(ref _ShowRight, value);
 		}
+		private string _GenDirection = string.Empty;
+		public string GenDirection
+		{
+			get => _GenDirection;
+			set
+			{
+				if (SetProperty(ref _GenDirection, value))
+				{
+					RaisePropertyChanged("GenAmpDescript");
+					RaisePropertyChanged("GenAmpUnits");
+					if (IsGenPower == FindDirection(GenVoltageUnits))
+						GenVoltageUnits = AlterDirection(GenVoltageUnits);
+					if (IsGenPower == FindDirection(GenVoltUnits))
+						GenVoltUnits = AlterDirection(GenVoltUnits);
+				}
+			}
+		}
+
+		private double _Attenuation;
+		public double Attenuation
+		{
+			get => _Attenuation;
+			set => SetProperty(ref _Attenuation, value);
+		}
+		#endregion
+
 
 		// return true if this is a voltage value
 		public static bool FindDirection(string genFormat)
 		{
 			return genFormat.Contains('V');
+		}
+
+		private void SetAtten(object? parameter)
+		{
+			var atten = MathUtil.ToDouble(parameter?.ToString() ?? string.Empty, Attenuation);
+			Attenuation = atten;
 		}
 
 		/// <summary>
@@ -598,33 +657,6 @@ namespace QA40xPlot.ViewModels
 			}
 			return "W"; // default to volts
 		}
-
-		private string _GenDirection = string.Empty;
-		public string GenDirection
-		{
-			get => _GenDirection;
-			set
-			{
-				if (SetProperty(ref _GenDirection, value))
-				{
-					RaisePropertyChanged("GenAmpDescript");
-					RaisePropertyChanged("GenAmpUnits");
-					if (IsGenPower == FindDirection(GenVoltageUnits))
-						GenVoltageUnits = AlterDirection(GenVoltageUnits);
-					if (IsGenPower == FindDirection(GenVoltUnits))
-						GenVoltUnits = AlterDirection(GenVoltUnits);
-				}
-			}
-		}
-
-		private double _Attenuation;
-		public double Attenuation
-		{
-			get => _Attenuation;
-			set => SetProperty(ref _Attenuation, value);
-		}
-		#endregion
-
 
 		private static void GetGenUnits()
 		{

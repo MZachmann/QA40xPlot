@@ -237,6 +237,10 @@ namespace QA40xPlot.Actions
 				genv = Math.Max(genv, msr.ToGenVoltage(msr.Gen1Voltage, frqtest, GEN_OUTPUT, LRGains.Right));    // output v
 				var vdbv = QaLibrary.ConvertVoltage(genv, E_VoltageUnit.Volt, E_VoltageUnit.dBV);   // out dbv
 				var attenuation = QaLibrary.DetermineAttenuation(vdbv);
+				if(! msr.DoAutoAttn)
+				{
+					attenuation = (int)msr.Attenuation;
+				}
 				msr.Attenuation = attenuation;
 				vmFreq.Attenuation = msr.Attenuation; // display on-screen
 			}

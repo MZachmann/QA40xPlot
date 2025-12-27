@@ -435,12 +435,16 @@ namespace QA40xPlot.Actions
 			await QaComm.SetWindowing(vm.WindowingMethod);
 			// set the input range to 0dB for low noise
 			// this only applies for the noise measurement
-			await QaComm.SetInputRange(0);
+			var oldAtten = vm.Attenuation;
+			vm.Attenuation = vm.DoAutoAttn ? 0 : (int)vm.Attenuation;	// display it
+			await QaComm.SetInputRange((int)vm.Attenuation);
 
 			// ********************************************************************
 			// Do noise floor measurement
 			// ********************************************************************
-			var noisy = await MeasureNoise(MyVModel, ct.Token);
+			var noisy = await MeasureNoise(vm, ct.Token);
+			thdAmp.Attenuation = oldAtten;
+
 			page.NoiseFloor = noisy.Item1;
 			page.NoiseFloorA = noisy.Item2;
 			page.NoiseFloorC = noisy.Item3;

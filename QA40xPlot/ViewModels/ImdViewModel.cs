@@ -29,8 +29,6 @@ namespace QA40xPlot.ViewModels
 		private ImdChannelInfo actInfoLeft { get; set; }
 		private ImdChannelInfo actInfoRight { get; set; }
 		[JsonIgnore]
-		public RelayCommand<object> SetAttenuate { get => new RelayCommand<object>(SetAtten); }
-		[JsonIgnore]
 		public RelayCommand DoStart { get => new RelayCommand(StartIt); }
 		[JsonIgnore]
 		public RelayCommand DoStop { get => new RelayCommand(StopIt); }
@@ -50,18 +48,6 @@ namespace QA40xPlot.ViewModels
 		private static ImdViewModel MyVModel { get => ViewSettings.Singleton.ImdVm; }
 
 		#region Setters and Getters
-
-		[JsonIgnore]
-		public string AttenColor
-		{
-			get => DoAutoAttn ? "#1800f000" : "Transparent";
-		}
-		private bool _DoAutoAttn = true;
-		public bool DoAutoAttn
-		{
-			get { return _DoAutoAttn; }
-			set { if (SetProperty(ref _DoAutoAttn, value)) RaisePropertyChanged("AttenColor"); }
-		}
 
 		private string _Gen1Frequency = string.Empty;
 		public string Gen1Frequency
@@ -241,14 +227,6 @@ namespace QA40xPlot.ViewModels
 				OtherSetList.Remove(fat);
 				MyAction.DeleteTab(id);
 			}
-		}
-
-
-		private static void SetAtten(object? parameter)
-		{
-			var vm = ViewSettings.Singleton.ImdVm;
-			var atten = MathUtil.ToDouble(parameter?.ToString() ?? string.Empty, vm.Attenuation);
-			vm.Attenuation = atten;
 		}
 
 		private static void StartIt()

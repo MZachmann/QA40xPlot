@@ -441,6 +441,10 @@ namespace QA40xPlot.Actions
 
 			// Get input voltage based on desired output voltage
 			var attenuation = QaLibrary.DetermineAttenuation(amplifierOutputVoltagedBV);
+			if(!bvm.DoAutoAttn)
+			{
+				attenuation = (int)bvm.Attenuation;
+			}
 			return (attenuation, genVolt);
 		}
 

@@ -17,6 +17,7 @@
         <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
             <StackPanel Margin="0,1,1,0">
                 <views:StartStop />
+                <views:Attenuator AttnAtStart="False" />
                 <Expander Header="—— Generator" IsExpanded="{Binding ExpandGenerator}"  >
                     <Grid>
                         <Grid.ColumnDefinitions>

@@ -503,8 +503,9 @@ namespace QA40xPlot.Actions
 			uint fftsize = GainFftSize(bvm.FftSizeVal);
 			uint sampleRate = GainSampleRate(bvm.SampleRateVal);
 			string swindow = "Hann";        // we need a reasonable windowing no matter user request
+			var oldAtten = bvm.Attenuation;
 			bvm.Attenuation = QaLibrary.DEVICE_MAX_ATTENUATION; // try this out
-			if (true != await QaComm.InitializeDevice(sampleRate, fftsize, swindow, (int)42))
+			if (true != await QaComm.InitializeDevice(sampleRate, fftsize, swindow, (int)bvm.Attenuation))
 				return null;
 			// try at 0.01 volt generator and 42dB attenuation
 			var lrfs = await SubGainCurve(bvm, inits, average, 0.01, (int)bvm.Attenuation);
@@ -526,6 +527,7 @@ namespace QA40xPlot.Actions
 				var attenuation = QaLibrary.DetermineAttenuation(ampdBV);
 				lrfs = await SubGainCurve(bvm, inits, average, gvolt, attenuation);
 			}
+			bvm.Attenuation = oldAtten;
 			return lrfs;
 		}
 	}

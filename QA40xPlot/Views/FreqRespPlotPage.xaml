@@ -17,6 +17,7 @@
         <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
             <StackPanel Margin="0,1,1,0">
                 <views:StartStop />
+                <views:Attenuator AttnAtStart="False"  />
                 <views:GroupHeader Header="Testing" />
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -74,9 +75,12 @@
                                 VerticalContentAlignment="Center"
                                 Grid.Row="1"  ItemsSource="{Binding EndFrequencies}"  />
                             <Label Content="Hz" Grid.Column="2" Grid.Row="1" VerticalAlignment="Center"  />
-                            <Label Content="Steps / _Octave" Target="{Binding ElementName=cbStO, Path=ValueTextBox}"  HorizontalAlignment="Right" VerticalAlignment="Center"  Grid.Column="0" Grid.Row="2"  />
-                            <views:UpDownControl IsEnabled="{Binding IsNotChirp}"  x:Name="cbStO"  VerticalAlignment="Center" 
-                                             Value="{Binding StepsOctave}" Minimum="1" Grid.Column="1" Grid.Row="2"  />
+                            <Label Content="Steps / _Octave" 
+                                   Visibility="{Binding IsChirp, Converter={StaticResource BoolNotVisConverter}}" 
+                                   Target="{Binding ElementName=cbStO, Path=ValueTextBox}"  HorizontalAlignment="Right" VerticalAlignment="Center"  Grid.Column="0" Grid.Row="2"  />
+                            <views:UpDownControl Visibility="{Binding IsChirp, Converter={StaticResource BoolNotVisConverter}}" 
+                                        x:Name="cbStO"  VerticalAlignment="Center" 
+                                        Value="{Binding StepsOctave}" Minimum="1" Grid.Column="1" Grid.Row="2"  />
                             <Label Content="_Smoothing" Target="{Binding ElementName=cbSM}"  HorizontalAlignment="Right" 
                                VerticalAlignment="Center"  Grid.Column="0" Grid.Row="3"
                                    Visibility="{Binding IsChirp, Converter={StaticResource BoolVisConverter}}"
@@ -92,7 +96,7 @@
                         </Grid>
                         <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                         <CheckBox Content="_Use Chirp" IsChecked="{Binding IsChirp}" HorizontalAlignment="Left"   />
-                            <CheckBox Content="_RIAA Preemphasis" IsChecked="{Binding IsRiaa}" 
+                         <CheckBox Content="_RIAA Preemphasis" IsChecked="{Binding IsRiaa}" 
                                       HorizontalAlignment="Left" ToolTip="Use RIAA Preemphasis on the QA40x left channel output." />
                         </StackPanel>
                     </StackPanel>
