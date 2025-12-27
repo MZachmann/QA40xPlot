@@ -16,6 +16,7 @@ v 1.2.2
 - some improvements to the online help
 - place attenuation options in all tests
 - add add/delete entries buttons to combodrop lists
+- rename tab info to test info in each page
 v 1.2.1
 - add Save Configuration as Default command to menu
 - add Settings page accelerator

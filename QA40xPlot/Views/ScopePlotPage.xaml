@@ -221,7 +221,7 @@
                         </Grid.RowDefinitions>
                         <CheckBox Content="Summary Data" ToolTip="{Binding SummaryDataTip}"
                               IsChecked="{Binding ShowSummary}" Grid.Row="0"  />
-                        <CheckBox Content="Tab Info" ToolTip="{Binding TabInfoTip}"
+                        <CheckBox Content="Test Info" ToolTip="{Binding TabInfoTip}"
                               IsChecked="{Binding ShowTabInfo}" Grid.Row="1"  />
                     </Grid>
                 </Expander>

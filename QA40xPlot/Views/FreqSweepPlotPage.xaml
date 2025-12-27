@@ -189,7 +189,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                        <CheckBox Content="Tab Info" ToolTip="{Binding TabInfoTip}"
+                        <CheckBox Content="Test Info" ToolTip="{Binding TabInfoTip}"
                                   IsChecked="{Binding ShowTabInfo}" Grid.Row="0" Grid.Column="0"  />
                         <CheckBox Content="Mini-Plots" ToolTip="{Binding MiniPlotsTip}"
                                   IsChecked="{Binding KeepMiniPlots}" Grid.Row="1" Grid.Column="0"  />

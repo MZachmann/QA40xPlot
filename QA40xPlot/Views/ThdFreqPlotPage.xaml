@@ -127,7 +127,7 @@
                         <CheckBox Content="D5" IsChecked="{Binding ShowD5}" Grid.Row="3" Grid.Column="1" />
                         <CheckBox Content="D6+" IsChecked="{Binding ShowD6}" Grid.Row="4" Grid.Column="0" />
                         <CheckBox Content="Noise Floor" IsChecked="{Binding ShowNoiseFloor}" Grid.Row="5" Grid.Column="0"  />
-                        <CheckBox Content="Tab Info" ToolTip="{Binding TabInfoTip}"
+                        <CheckBox Content="Test Info" ToolTip="{Binding TabInfoTip}"
                               IsChecked="{Binding ShowTabInfo}" Grid.Row="6" Grid.Column="0"  />
                         <CheckBox Content="Mini-Plots" ToolTip="{Binding MiniPlotsTip}"
                               IsChecked="{Binding KeepMiniPlots}" Grid.Row="7" Grid.Column="0"  />
