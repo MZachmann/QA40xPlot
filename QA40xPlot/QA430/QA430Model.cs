@@ -618,7 +618,7 @@ namespace QA40xPlot.QA430
 			var names = supplySet.Select(x => x.Name).ToList();
 			foreach (var voltage in names)
 			{
-				var avolt = voltage.Split(['|', '_', '*']);
+				var avolt = voltage.Split(['|', '_', ':']);
 				double voltp = 15;
 				if (avolt.Length > 0)
 					voltp = MathUtil.ToDouble(avolt[0], 15);

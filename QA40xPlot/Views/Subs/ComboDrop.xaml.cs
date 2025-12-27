@@ -83,9 +83,12 @@ namespace QA40xPlot.Views
 			set => SetValue(IsEditableProperty, value);
 		}
 
+		public ComboBox ValueComboBox { get; }
+
 		public ComboDrop()
 		{
 			InitializeComponent();
+			ValueComboBox = cbCombo;
 		}
 
 		private void DownButton_Click(object sender, RoutedEventArgs e)

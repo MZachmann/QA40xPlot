@@ -17,7 +17,7 @@ namespace QA40xPlot.ViewModels
 		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 		public static List<String> StartVoltages { get => new List<string> { "0.0001", "0.0002", "0.0005", "0.001", "0.002", "0.005", "0.01", "0.02", "0.05", "0.1", "0.2", "0.5" }; }
 		public static List<String> EndVoltages { get => new List<string> { "1", "2", "5", "10", "20", "50", "100", "200" }; }
-		private static AmpSweepViewModel MyVModel { get => ViewSettings.Singleton.AmpSweepVm; }
+		private static AmpSweepViewModel MyVModel { get => ViewSettings.Singleton.AmpVm; }
 
 		private ActAmpSweep MyAction { get => actSweep; }
 		private ActAmpSweep actSweep { get; set; }
@@ -37,11 +37,6 @@ namespace QA40xPlot.ViewModels
 		public AsyncRelayCommand DoGetTab { get => new AsyncRelayCommand(GetItTab); }
 		[JsonIgnore]
 		public RelayCommand DoSaveTab { get => new RelayCommand(SaveItTab); }
-		[JsonIgnore]
-		public RelayCommand DoUpdateLoad { get => new RelayCommand(UpdateLoad); }
-		[JsonIgnore]
-		public RelayCommand DoUpdateGain { get => new RelayCommand(UpdateGain); }
-
 
 		#region Setters and Getters
 		private bool _VaryLoad = false;
@@ -172,21 +167,6 @@ namespace QA40xPlot.ViewModels
 		}
 		#endregion
 
-		public static void UpdateGain()
-		{
-			MyVModel.RaisePropertyChanged("GainSummary");
-		}
-
-		public static void UpdateLoad()
-		{
-			MyVModel.RaisePropertyChanged("LoadSummary");
-		}
-
-		public static void UpdateVoltages()
-		{
-			MyVModel.RaisePropertyChanged("VoltSummary");
-		}
-
 		// the property change is used to trigger repaints of the graph
 		private void CheckPropertyChanged(object? sender, PropertyChangedEventArgs e)
 		{
@@ -244,6 +224,7 @@ namespace QA40xPlot.ViewModels
 					MyAction?.UpdateGraph(false);
 					break;
 				default:
+					OpampPropertyChanged(sender, e);
 					break;
 			}
 		}
@@ -269,13 +250,13 @@ namespace QA40xPlot.ViewModels
 				return;
 			}
 			// Implement the logic to start the measurement process
-			var vm = ViewSettings.Singleton.AmpSweepVm;
+			var vm = ViewSettings.Singleton.AmpVm;
 			vm.actSweep?.DoMeasurement();
 		}
 
 		private static void StopIt()
 		{
-			var vm = ViewSettings.Singleton.AmpSweepVm;
+			var vm = ViewSettings.Singleton.AmpVm;
 			vm.actSweep?.DoCancel();
 		}
 
@@ -362,7 +343,7 @@ namespace QA40xPlot.ViewModels
 		// here's the tracker event handler
 		private static void DoMouseTracked(object sender, MouseEventArgs e)
 		{
-			var thdAmpVm = ViewSettings.Singleton.AmpSweepVm;
+			var thdAmpVm = ViewSettings.Singleton.AmpVm;
 			thdAmpVm.DoMouse(sender, e);
 		}
 
@@ -374,8 +355,7 @@ namespace QA40xPlot.ViewModels
 			return GraphUtil.PrettyPrint(x, vm.PlotFormat);
 		}
 
-
-		private static string FormatCursor(ThdColumn column)
+		private static string FormatCursor(SweepColumn column)
 		{
 			var vm = MyVModel;
 			string sout = "Mag: " + FormatValue(column.Mag, column.Mag) + Environment.NewLine;

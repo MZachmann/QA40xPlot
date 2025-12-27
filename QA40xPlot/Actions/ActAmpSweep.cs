@@ -1,6 +1,7 @@
 ﻿using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
+using QA40xPlot.QA430;
 using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
@@ -14,7 +15,7 @@ namespace QA40xPlot.Actions
 
 	using MyDataTab = DataTab<AmpSweepViewModel>;
 
-	public partial class ActAmpSweep : ActBase
+	public partial class ActAmpSweep : ActOpamp
 	{
 		private readonly Views.PlotControl thdPlot;
 		private readonly Views.PlotControl fftPlot;
@@ -25,7 +26,7 @@ namespace QA40xPlot.Actions
 
 		private float _Thickness = 2.0f;
 
-		private static AmpSweepViewModel MyVModel { get => ViewSettings.Singleton.AmpSweepVm; }
+		private static AmpSweepViewModel MyVModel { get => ViewSettings.Singleton.AmpVm; }
 		CancellationTokenSource ct;                                  // Measurement cancelation token
 
 		/// <summary>
@@ -56,8 +57,6 @@ namespace QA40xPlot.Actions
 			MyVModel.ForceGraphUpdate(); // force a graph update
 		}
 
-
-
 		public void DoCancel()
 		{
 			ct.Cancel();
@@ -74,47 +73,53 @@ namespace QA40xPlot.Actions
 				myPlot.Title(title);
 		}
 
-		private double[] ColumnToArray(ThdColumn col)
-		{
-			return new double[] { col.Freq, col.Mag, col.THD, col.Noise, col.D2, col.D3, col.D4, col.D5, col.D6P, col.GenVolts, col.THDN };
-		}
-
-		private ThdColumn ArrayToColumn(double[] rawData, uint startIdx)
-		{
-			ThdColumn col = new();
-			col.Freq = rawData[startIdx];
-			col.Mag = rawData[startIdx + 1];
-			col.THD = rawData[startIdx + 2];
-			col.Noise = rawData[startIdx + 3];
-			col.D2 = rawData[startIdx + 4];
-			col.D3 = rawData[startIdx + 5];
-			col.D4 = rawData[startIdx + 6];
-			col.D5 = rawData[startIdx + 7];
-			col.D6P = rawData[startIdx + 8];
-			col.GenVolts = rawData[startIdx + 9];
-			col.THDN = rawData[startIdx + 10];
-			return col;
-		}
-
-		private ThdColumn[] RawToColumn(double[] raw)
+		private List<SweepLine> RawToColumns(AcquireStep[] steps, double[] raw)
 		{
 			if (raw.Length == 0)
 				return [];
-			List<ThdColumn> left = new();
-			for (int i = 0; i < raw.Length; i += ThdColumn.ThdColumnCount)
+			List<SweepColumn> left = new();
+			// make columns from the raw data
+			int i;
+			for (i = 0; i < raw.Length; i += SweepColumn.SweepColumnCount)
 			{
 				var col = ArrayToColumn(raw, (uint)i);
 				left.Add(col);
 			}
-			return left.ToArray();
+			// convert into freqsweeplines
+			List<SweepLine> lines = new();
+			// line lengths
+			var maxF = left.Max(x => x.GenVolts);   // maximum voltage
+			int linelength = 0;
+			for (i = 0; i < left.Count; i++)
+			{
+				if (left[i].GenVolts >= maxF)
+				{
+					linelength = i + 1;
+					break;
+				}
+			}
+			if (linelength == 0)
+				return lines;
+			// now create list of lines
+			var numLines = (left.Count + linelength - 1) / linelength;  // round up
+			bool showVolt = 1 < steps.Select(x => x.GenVolt).Distinct().Count();    // more than one voltage, show them
+			for (i = 0; i < numLines; i++)
+			{
+				var line = new SweepLine();
+				line.Label = steps[i].ToSuffix(showVolt, MyVModel.HasQA430);
+				line.Columns = left.Skip(i * linelength).Take(linelength).ToArray();
+				lines.Add(line);
+			}
+
+			return lines;
 		}
 
 		// convert the raw data into columns of data
-		private void RawToThdColumns(MyDataTab page)
+		private void RawToAmpSweepColumns(MyDataTab page)
 		{
-			var u = RawToColumn(page.Sweep.RawLeft);
-			var v = RawToColumn(page.Sweep.RawRight);
+			var u = RawToColumns(page.SweepSteps.Steps, page.Sweep.RawLeft);
 			page.SetProperty("Left", u);
+			var v = RawToColumns(page.SweepSteps.Steps, page.Sweep.RawRight);
 			page.SetProperty("Right", v);
 		}
 
@@ -124,7 +129,7 @@ namespace QA40xPlot.Actions
 		/// <param name="x"></param>
 		/// <param name="left"></param>
 		/// <param name="right"></param>
-		private void AddColumn(MyDataTab page, double x, ThdColumn left, ThdColumn right)
+		private void AddColumn(MyDataTab page, double x, SweepColumn left, SweepColumn right)
 		{
 			page.Sweep.X = page.Sweep.X.Append(x).ToArray();
 			page.Sweep.RawLeft = page.Sweep.RawLeft.Concat(ColumnToArray(left)).ToArray();
@@ -148,20 +153,20 @@ namespace QA40xPlot.Actions
 
 				var specVm = MyVModel;     // current settings
 
-				List<ThdColumn[]> steps = new();
+				List<SweepColumn[]> steps = new();
 				if (vm.ShowLeft)
 				{
 					var a1 = PageData.GetProperty("Left");
 					if (a1 != null)
-						steps.Add((ThdColumn[])a1);
+						steps.Add((SweepColumn[])a1);
 				}
 				if (specVm.ShowRight)
 				{
 					var a1 = PageData.GetProperty("Right");
 					if (a1 != null)
-						steps.Add((ThdColumn[])a1);
+						steps.Add((SweepColumn[])a1);
 				}
-				var seen = DataUtil.FindShownInfo<AmpSweepViewModel, ThdColumn[]>(OtherTabs);
+				var seen = DataUtil.FindShownInfo<AmpSweepViewModel, SweepColumn[]>(OtherTabs);
 				foreach (var s in seen)
 				{
 					if (s != null)
@@ -209,13 +214,13 @@ namespace QA40xPlot.Actions
 		/// <param name="page"></param>
 		/// <param name="x">genV value</param>
 		/// <returns></returns>
-		private (ThdColumn, ThdColumn) LookupColumn(MyDataTab page, double xValue)
+		private (SweepColumn, SweepColumn) LookupColumn(MyDataTab page, double xValue)
 		{
 			var vm = MyVModel;
 			var vf = page.Sweep.X;
 			if (vf.Length == 0)
 			{
-				return (new ThdColumn(), new ThdColumn());
+				return (new SweepColumn(), new SweepColumn());
 			}
 			// find nearest amplitude (both left and right will be identical here if scanned)
 			var bin = vf.Count(x => x < xValue) - 1;    // find first freq less than me
@@ -226,15 +231,15 @@ namespace QA40xPlot.Actions
 			{
 				bin++;
 			}
-			ThdColumn? mf1 = new ThdColumn();
-			ThdColumn? mf2 = new ThdColumn();
+			SweepColumn? mf1 = new SweepColumn();
+			SweepColumn? mf2 = new SweepColumn();
 			var u = page.GetProperty("Left");
 			if (u != null)
-				mf1 = ((ThdColumn[])u)[bin];    // get the left channel
+				mf1 = ((SweepColumn[])u)[bin];    // get the left channel
 			u = page.GetProperty("Right");
 
 			if (u != null)
-				mf2 = ((ThdColumn[])u)[bin];    // get the left channel
+				mf2 = ((SweepColumn[])u)[bin];    // get the left channel
 			return (mf1, mf2);
 		}
 
@@ -243,10 +248,10 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="freq"></param>
 		/// <returns></returns>
-		public ThdColumn[] LookupX(double freq)
+		public SweepColumn[] LookupX(double freq)
 		{
 			var vm = MyVModel;
-			List<ThdColumn> myset = new();
+			List<SweepColumn> myset = new();
 			// freq here is going to be in the units of the X value so we have to undo that
 			// convert to the input voltage
 			var gains = (ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right) ?? [1.0];
@@ -301,7 +306,7 @@ namespace QA40xPlot.Actions
 			var page = Util.LoadFile<AmpSweepViewModel>(PageData, fileName);
 			if (page != null)
 			{
-				RawToThdColumns(page);
+				RawToAmpSweepColumns(page);
 				await FinishLoad(page, doLoad, fileName);
 			}
 		}
@@ -526,7 +531,7 @@ namespace QA40xPlot.Actions
 					AddColumn(page, generatorVoltageV, work.Item1, work.Item2);
 
 				MyVModel.LinkAbout(PageData.Definition);
-				RawToThdColumns(page);
+				RawToAmpSweepColumns(page);
 				UpdateGraph(false);
 
 				// Check if cancel button pressed
@@ -594,7 +599,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="ct">Cancellation token</param>
 		/// <returns>result. false if cancelled</returns>
-		private (ThdColumn?, ThdColumn?) CalculateColumn(MyDataTab msr, double dFreq, double dVolts, CancellationToken ct)
+		private (SweepColumn?, SweepColumn?) CalculateColumn(MyDataTab msr, double dFreq, double dVolts, CancellationToken ct)
 		{
 			if (msr.FreqRslt == null)
 			{
@@ -602,9 +607,9 @@ namespace QA40xPlot.Actions
 			}
 
 			// left and right channels summary info to fill in
-			var left = new ThdColumn();
-			var right = new ThdColumn();
-			ThdColumn[] steps = [left, right];
+			var left = new SweepColumn();
+			var right = new SweepColumn();
+			SweepColumn[] steps = [left, right];
 			AmpSweepViewModel vm = msr.ViewModel;
 
 			var lrfs = msr.FreqRslt;    // frequency response
@@ -713,8 +718,8 @@ namespace QA40xPlot.Actions
 		private void PlotValues(MyDataTab page, int measurementNr, bool isMain)
 		{
 			var thdAmp = MyVModel;
-			ThdColumn[] leftCol = page.GetProperty("Left") as ThdColumn[] ?? [];
-			ThdColumn[] rightCol = page.GetProperty("Right") as ThdColumn[] ?? [];
+			SweepColumn[] leftCol = page.GetProperty("Left") as SweepColumn[] ?? [];
+			SweepColumn[] rightCol = page.GetProperty("Right") as SweepColumn[] ?? [];
 			if (leftCol.Length == 0)
 				return;
 
@@ -753,7 +758,7 @@ namespace QA40xPlot.Actions
 
 			// which columns are we displaying? left, right or both
 			// which columns are we displaying? left, right or both
-			List<ThdColumn[]> columns;
+			List<SweepColumn[]> columns;
 			if (showLeft && showRight)
 			{
 				columns = [leftCol, rightCol];

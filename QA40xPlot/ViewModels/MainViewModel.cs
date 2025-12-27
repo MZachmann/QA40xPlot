@@ -576,6 +576,10 @@ namespace QA40xPlot.ViewModels
 					CurrentView = ViewSettings.Singleton.FreqVm;
 					CurrentView.RaisePropertyChanged("CheckQA430");  // on new window refresh the list
 					break;
+				case "ampsweep":   // qa430 opamp tab
+					CurrentView = ViewSettings.Singleton.AmpVm;
+					CurrentView.RaisePropertyChanged("CheckQA430");  // on new window refresh the list
+					break;
 				case "settings":
 					CurrentView = ViewSettings.Singleton.SettingsVm;
 					CurrentView.RaisePropertyChanged("EchoNames");  // on new window refresh the list

@@ -70,7 +70,7 @@ namespace QA40xPlot
 			}
 			else
 			{
-				fload = " - no default config";
+				fload = " - default configuration";
 			}
 			InitializeComponent();
 			var vm = ViewSettings.Singleton.MainVm;

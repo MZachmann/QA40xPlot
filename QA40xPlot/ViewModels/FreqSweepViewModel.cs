@@ -35,10 +35,6 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public RelayCommand DoSaveTab { get => new RelayCommand(SaveItTab); }
 		[JsonIgnore]
-		public RelayCommand DoUpdateLoad { get => new RelayCommand(UpdateLoad); }
-		[JsonIgnore]
-		public RelayCommand DoUpdateGain { get => new RelayCommand(UpdateGain); }
-		[JsonIgnore]
 		public RelayCommand SelectAll { get; } = new RelayCommand(DoSelectAll);
 		[JsonIgnore]
 		public RelayCommand SelectNone { get; } = new RelayCommand(DoSelectNone);
@@ -64,7 +60,7 @@ namespace QA40xPlot.ViewModels
 		public bool VarySupply
 		{
 			get => _VarySupply;
-			set => SetProperty(ref _VarySupply, value);
+			set { SetProperty(ref _VarySupply, value); RaisePropertyChanged("SupplySummary"); }
 		}
 
 		private string _GenVoltage = string.Empty;
@@ -188,12 +184,6 @@ namespace QA40xPlot.ViewModels
 
 		#endregion
 
-		private void CheckQA430()
-		{
-			var vm = ViewSettings.Singleton.FreqVm;
-			vm.HasQA430 = QA430Model.BeginQA430Op();
-		}
-
 		private static void StartIt()
 		{
 			// Implement the logic to start the measurement process
@@ -219,10 +209,6 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
-				case "CheckQA430":
-					CheckQA430();
-					RaisePropertyChanged("HasQA430");
-					break;
 				case "DSPlotColors":
 					MyAction?.UpdateGraph(false);
 					break;
@@ -274,6 +260,7 @@ namespace QA40xPlot.ViewModels
 					MyAction?.UpdateGraph(false);
 					break;
 				default:
+					OpampPropertyChanged(sender, e);
 					break;
 			}
 		}
@@ -383,26 +370,6 @@ namespace QA40xPlot.ViewModels
 		private static async Task GetItTab()
 		{
 			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, false);
-		}
-
-		public static void UpdateGain()
-		{
-			MyVModel.RaisePropertyChanged("GainSummary");
-		}
-
-		public static void UpdateLoad()
-		{
-			MyVModel.RaisePropertyChanged("LoadSummary");
-		}
-
-		public static void UpdateVoltages()
-		{
-			MyVModel.RaisePropertyChanged("VoltSummary");
-		}
-
-		public static void UpdateSupplies()
-		{
-			MyVModel.RaisePropertyChanged("SupplySummary");
 		}
 
 		private static string FileAddon()

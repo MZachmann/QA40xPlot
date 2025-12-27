@@ -17,60 +17,7 @@
         <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
             <StackPanel Margin="0,1,1,0">
                 <views:StartStop />
-                <Expander Header="—— Variables" IsExpanded="{Binding ExpandVars}"  >
-                    <Grid >
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="{Binding LeftWidth}" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" MinWidth="10" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        <CheckBox Content="Load" IsChecked="{Binding VaryLoad}" VerticalAlignment="Center" HorizontalAlignment="Right"
-                                  Grid.Row="0" Grid.Column="0" Margin="0,0,10,0" />
-                        <Button x:Name="LoadButton" Content="{Binding LoadSummary}" ToolTip="{Binding LoadSummary}"
-                                Margin="0,2,0,2" Width="120" Grid.Row="0" Grid.Column="1" 
-                                Click="LoadButton_Click" HorizontalAlignment="Left" />
-                        <Popup x:Name="LoadPopup" PlacementTarget="{Binding ElementName=LoadButton}" StaysOpen="False"
-                               Closed="LoadPopup_Closed" >
-                            <Border BorderThickness="1" >
-                                <ListBox ItemsSource="{Binding Loadsets}">
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected}" />
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
-                            </Border>
-                        </Popup>
-                        <CheckBox Content="Gain" IsChecked="{Binding VaryGain}" VerticalAlignment="Center" HorizontalAlignment="Right"
-                                  Grid.Row="1" Grid.Column="0" Margin="0,0,10,0"  />
-                        <Button x:Name="GainButton" Content="{Binding GainSummary}" ToolTip="{Binding GainSummary}"
-                                 Margin="0,2,0,2"
-                                Width="120" Click="GainButton_Click" Grid.Row="1" Grid.Column="1"/>
-                        <Popup x:Name="GainPopup" PlacementTarget="{Binding ElementName=GainButton}" StaysOpen="False"
-                             Closed="GainPopup_Closed" >
-                            <Border BorderThickness="1" >
-                                <ListBox ItemsSource="{Binding Gainsets}">
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected}" />
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
-                            </Border>
-                        </Popup>
-                        <CheckBox Content="Supply" IsChecked="{Binding VarySupply}" VerticalAlignment="Center" Margin="0,0,10,0" HorizontalAlignment="Right"
-                                  Grid.Row="2" Grid.Column="0" ToolTip="{Binding SupplyTip}" />
-                        <TextBox  Margin="0,2,0,2" Text="asdf" ToolTip="asdf" Width="120" VerticalAlignment="Center" Grid.Row="2" Grid.Column="1" />
-                    </Grid>
-                </Expander>
+                <views:Intro430 />
                 <Expander Header="—— Generator" IsExpanded="{Binding ExpandGenerator}"  >
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -129,9 +76,13 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <Label Content="_Test Frequency" Target="{Binding ElementName=cbTF}"  HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Column="0" Grid.Row="0"  />
-                        <ComboBox IsEditable="True" x:Name="cbTF" Text="{Binding TestFreq}" Grid.Column="1" Grid.Row="0" ItemsSource="{Binding StartFrequencies}" 
+                        <views:ComboDrop x:Name="cbTF" TheText="{Binding FreqSummary}" TheSource="{Binding StartFrequencies}" 
+                                        IsEditable="True"
+                                        Grid.Row="0" Grid.Column="1" 
+                                        />
+                        <!--<ComboBox IsEditable="True" x:Name="cbTF" Text="{Binding TestFreq}" Grid.Column="1" Grid.Row="0" ItemsSource="{Binding StartFrequencies}" 
                               VerticalContentAlignment="Center"
-                              />
+                              />-->
                         <Label Content="Hz" Grid.Column="2" Grid.Row="0" VerticalAlignment="Center"  />
                     </Grid>
                 </Expander>

@@ -1,4 +1,6 @@
 ﻿using Newtonsoft.Json;
+using QA40xPlot.QA430;
+using System.ComponentModel;
 
 namespace QA40xPlot.ViewModels
 {
@@ -14,7 +16,7 @@ namespace QA40xPlot.ViewModels
 			"1", "-1", "10", "-10"
 		};
 		[JsonIgnore]
-		public string SupplyTip { get => "Enter supply values. May use | to delimit +-. Default 15V"; }
+		public string SupplyTip { get => "Default 15V or (list of) values. Delimit + - with '|' (optional)"; }
 
 		// simple ask if we have a qa430. don't bother raising property change
 		// this is set when the start button is pushed
@@ -22,7 +24,7 @@ namespace QA40xPlot.ViewModels
 		public bool HasQA430 { get; set; }
 
 		// when this is saved it shows the current settings
-		private string _SupplySummary = string.Empty;
+		private string _SupplySummary = "15";
 		public string SupplySummary
 		{
 			get => _SupplySummary;
@@ -37,8 +39,15 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _VoltSummary, value);
 		}
 
+		private string _FreqSummary = "1000";
+		public string FreqSummary
+		{
+			get => _FreqSummary;
+			set => SetProperty(ref _FreqSummary, value);
+		}
+
 		// when this is saved it shows the current settings
-		private string _LoadSummary = string.Empty;
+		private string _LoadSummary = "Open";
 		public string LoadSummary
 		{
 			get => _LoadSummary;
@@ -46,11 +55,28 @@ namespace QA40xPlot.ViewModels
 		}
 
 		// when this is saved it shows the current settings
-		private string _GainSummary = string.Empty;
+		private string _GainSummary = "1";
 		public string GainSummary
 		{
 			get => _GainSummary;
 			set => SetProperty(ref _GainSummary, value);
+		}
+
+		public static void CheckQA430(OpampViewModel ovm)
+		{
+			ovm.HasQA430 = QA430Model.BeginQA430Op();
+		}
+
+		// the property change is used to trigger repaints of the graph
+		protected void OpampPropertyChanged(object? sender, PropertyChangedEventArgs e)
+		{
+			switch (e.PropertyName)
+			{
+				case "CheckQA430":
+					CheckQA430(this);
+					RaisePropertyChanged("HasQA430");
+					break;
+			}
 		}
 	}
 }
