@@ -11,11 +11,11 @@ using System.Numerics;
 using System.Windows;
 using System.Windows.Input;
 
-
 public class FreqRespViewModel : BaseViewModel
 {
 	public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 	public static List<String> Smoothings { get => new List<string> { "0","0.001","0.01", "0.05", "0.1", "0.25" }; }
+	public static List<String> PhaseList { get => new List<string> { "360", "180", "90", "0", "-90", "-180", "-360" }; }
 	public static List<String> TestTypes { get => new List<string> { "Response", "Impedance", "Gain", "Crosstalk" }; }
 
 	private ActFrequencyResponse MyAction { get => actFreq; }
@@ -124,6 +124,28 @@ public class FreqRespViewModel : BaseViewModel
 	{
 		get => _LeftChannel; set => SetProperty(ref _LeftChannel, value);
 	}
+
+	private bool _ExpandPhaseAxis = true;       // expand the XAxis section?
+	public bool ExpandPhaseAxis
+	{
+		get => _ExpandPhaseAxis;
+		set => SetProperty(ref _ExpandPhaseAxis, value);
+	}
+
+	private string _PhaseBottom = "-180";
+	public string PhaseBottom
+	{
+		get { return _PhaseBottom; }
+		set => SetProperty(ref _PhaseBottom, value);
+	}
+
+	private string _PhaseTop = "180";
+	public string PhaseTop
+	{
+		get { return _PhaseTop; }
+		set => SetProperty(ref _PhaseTop, value);
+	}
+
 
 	private bool _ShowPoints;
 	public bool ShowPoints
@@ -243,6 +265,8 @@ public class FreqRespViewModel : BaseViewModel
 			case "RangeBottom":
 			case "RangeTopdB":
 			case "RangeTop":
+			case "PhaseTop":
+			case "PhaseBottom":
 				MyAction?.UpdateGraph(true);
 				break;
 			case "ShowRight":

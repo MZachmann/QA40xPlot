@@ -135,6 +135,14 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ToShowRange, value);
 		}
 
+		private Visibility _ToShowPhase = Visibility.Visible;
+		[JsonIgnore]
+		public Visibility ToShowPhase
+		{
+			get => _ToShowPhase;
+			set => SetProperty(ref _ToShowPhase, value);
+		}
+
 		private Visibility _ToShowAverages = Visibility.Visible;
 		[JsonIgnore]
 		public Visibility ToShowAverages

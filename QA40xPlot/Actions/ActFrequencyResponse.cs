@@ -43,6 +43,7 @@ namespace QA40xPlot.Actions
 			QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -2, 2);
 
 			ct = new CancellationTokenSource();
+			MyVModel.ShowMiniPlots = false;
 			PageData = new(MyVModel, new LeftRightTimeSeries());
 			UpdateGraph(true);
 		}
@@ -75,7 +76,15 @@ namespace QA40xPlot.Actions
 		{
 			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
 			var vm = MyVModel;
-			PinGraphRanges(myPlot, vm, who);
+			if(who != "PH")
+				PinGraphRanges(myPlot, vm, who);
+			else
+			{
+				var u = myPlot.Axes.Right.Min;
+				var w = myPlot.Axes.Right.Max;
+				vm.PhaseBottom = u.ToString("0");
+				vm.PhaseTop = w.ToString("0");
+			}
 		}
 
 		public bool SaveToFile(string fileName)
@@ -350,20 +359,14 @@ namespace QA40xPlot.Actions
 					}
 					break;
 				case TestingType.Gain:
-					//var gld = PageData.GainData.ToArray();
-					//db.LeftData = FFT.Magnitude(gld).ToList();
-					//db.PhaseData = FFT.Phase(gld).ToList();
 					db.LeftData = PageData.GainReal.Zip(PageData.GainImag, (x, y) => Math.Sqrt(x * x + y * y)).ToList();
 					db.PhaseData = PageData.GainReal.Zip(PageData.GainImag, (x, y) => Math.Atan2(y, x)).ToList();
 					break;
 				case TestingType.Impedance:
 					{
 						double rref = ToD(MyVModel.ZReference, 8);
-						//db.LeftData = PageData.GainData.Select(x => rref * ToImpedance(x).Magnitude).ToList();
 						db.LeftData = PageData.GainReal.Zip(PageData.GainImag, (x, y) => rref * MathUtil.ToImpedanceMag(x, y)).ToList();
-						//// YValues = gainY.Select(x => rref * x.Magnitude/(1-x.Magnitude)).ToArray();
 						db.PhaseData = PageData.GainReal.Zip(PageData.GainImag, (x, y) => MathUtil.ToImpedancePhase(x, y)).ToList();
-						//db.PhaseData = PageData.GainData.Select(x => ToImpedance(x).Phase).ToList();
 					}
 					break;
 			}
@@ -384,7 +387,6 @@ namespace QA40xPlot.Actions
 			for (int i = 0; i < msr.Averages - 1; i++)
 			{
 				lfrs = await QaComm.DoAcquireUser(1, ct.Token, dataLeft, dataRight, true);
-					//.DoAcquisitions(1, ct.Token, true);
 				if (lfrs == null || lfrs.TimeRslt == null || lfrs.FreqRslt == null)
 					return new();
 				FrequencyHistory.Add(lfrs.FreqRslt);
@@ -401,6 +403,44 @@ namespace QA40xPlot.Actions
 			var ga = CalculateGain(showfreq, lfrs, ttype == TestingType.Response); // gain,phase or gain1,gain2
 			return ga;
 		}
+
+		public Rect GetPhaseBounds()
+		{
+			// here we want to show what's visible so use freqVm for visibility
+			var vm = PageData.ViewModel;
+			var freqVm = MyVModel;
+			var vmr = PageData.GainFrequencies; // test data
+			var ttype = freqVm.GetTestingType(freqVm.TestType);
+			var gainReal = PageData.GainReal;
+			var gainImag = PageData.GainImag;
+
+			if (vmr == null || vmr.Length == 0 || gainReal == null || gainImag == null)
+				return Rect.Empty;
+
+			Rect rrc = new Rect(0, 0, 0, 0);
+
+			rrc.X = vmr.Min();
+			rrc.Width = vmr.Max() - rrc.X;
+			if (ttype == TestingType.Response || ttype == TestingType.Crosstalk)
+			{
+			}
+			else if (ttype == TestingType.Gain)
+			{
+				var phaseValues = MathUtil.ToCplxPhase(gainReal, gainImag).Select(x => 180 * x / Math.PI).ToArray();
+				var phases = Regularize(phaseValues);
+				rrc.Y = phases.Min();
+				rrc.Height = phases.Max() - rrc.Y;
+			}
+			else if (ttype == TestingType.Impedance)
+			{
+				var phaseValues = MathUtil.ToImpedancePhase(gainReal, gainImag).Select(x => 180 * x / Math.PI).ToArray(); ;
+				var phases = Regularize(phaseValues);
+				rrc.Y = phases.Min();
+				rrc.Height = phases.Max() - rrc.Y;
+			}
+			return rrc;
+		}
+
 
 		public override Rect GetDataBounds()
 		{
@@ -524,11 +564,20 @@ namespace QA40xPlot.Actions
 		/// <param name="bvm">the view model</param>
 		/// <param name="parameter">not used</param>
 		/// <param name="dRefs">list of data points from fft</param>
-		public void FitToData(BaseViewModel bvm, object? parameter, double[]? dRefs)
+		public void FitToData(FreqRespViewModel bvm, object? parameter, double[]? dRefs)
 		{
-			var bounds = GetDataBounds();
+			if(parameter == null)
+			{
+				return;
+			}
+			var bounds = (parameter.ToString() != "PH") ? GetDataBounds() : GetPhaseBounds();
 			switch (parameter)
 			{
+				case "PH":  // X magnitude
+							// calculate the bounds here. X is provided in input or output volts/power
+					bvm.PhaseTop = Math.Floor(bounds.Bottom).ToString("G0");
+					bvm.PhaseBottom = Math.Ceiling(bounds.Top).ToString("G0");
+					break;
 				case "XF":  // X frequency
 					bvm.GraphStartX = bounds.Left.ToString("0");
 					bvm.GraphEndX = bounds.Right.ToString("0");
@@ -1004,7 +1053,7 @@ namespace QA40xPlot.Actions
 
 			myPlot.Axes.SetLimitsX(Math.Log10(ToD(frqrsVm.GraphStartX, 20.0)), Math.Log10(ToD(frqrsVm.GraphEndX, 20000)), myPlot.Axes.Bottom);
 			myPlot.Axes.SetLimitsY(ToD(frqrsVm.RangeBottomdB, -20), ToD(frqrsVm.RangeTopdB, 180), myPlot.Axes.Left);
-			myPlot.Axes.SetLimitsY(-360, 360, myPlot.Axes.Right);
+			myPlot.Axes.SetLimitsY(ToD(frqrsVm.PhaseBottom, 20.0), ToD(frqrsVm.PhaseTop, 20.0), myPlot.Axes.Right);
 
 			var ttype = frqrsVm.GetTestingType(frqrsVm.TestType);
 			switch (ttype)
@@ -1012,22 +1061,26 @@ namespace QA40xPlot.Actions
 				case TestingType.Response:
 					myPlot.YLabel(GraphUtil.GetFormatTitle(frqrsVm.PlotFormat));
 					myPlot.Axes.Right.Label.Text = string.Empty;
+					frqrsVm.ToShowPhase = Visibility.Collapsed;
 					break;
 				case TestingType.Gain:
 					PlotUtil.AddPhaseFreqRule(myPlot);
 					PlotUtil.AddPhasePlot(myPlot);
 					myPlot.YLabel("dB");
 					myPlot.Axes.Right.Label.Text = "Phase (Deg)";
+					frqrsVm.ToShowPhase = Visibility.Visible;
 					break;
 				case TestingType.Impedance:
 					PlotUtil.AddPhaseFreqRule(myPlot);
 					PlotUtil.AddPhasePlot(myPlot);
 					myPlot.YLabel("|Z| Ohms");
 					myPlot.Axes.Right.Label.Text = "Phase (Deg)";
+					frqrsVm.ToShowPhase = Visibility.Visible;
 					break;
 				case TestingType.Crosstalk:
 					myPlot.YLabel("dB");
 					myPlot.Axes.Right.Label.Text = string.Empty;
+					frqrsVm.ToShowPhase = Visibility.Collapsed;
 					break;
 			}
 			UpdatePlotTitle();

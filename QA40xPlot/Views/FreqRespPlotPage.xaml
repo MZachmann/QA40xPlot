@@ -147,6 +147,7 @@
             <StackPanel Orientation="Vertical">
                 <views:YAxisDb></views:YAxisDb>
                 <views:YAxisNoDb></views:YAxisNoDb>
+                <views:PhaseAxis></views:PhaseAxis>
                 <Expander Header="—— X Axis"  IsExpanded="{Binding ExpandXAxis}" >
                     <Grid>
                         <Grid.ColumnDefinitions>

@@ -62,6 +62,7 @@ namespace QA40xPlot.Actions
 			QaLibrary.InitMiniFftPlot(fftPlot, ToD(vm.StartFreq, 10),
 				ToD(vm.EndFreq, 20000), -150, 20);
 			QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -1, 1);
+			vm.ShowMiniPlots = false;
 
 			UpdateGraph(true);
 		}

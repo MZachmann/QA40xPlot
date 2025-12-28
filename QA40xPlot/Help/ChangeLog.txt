@@ -3,6 +3,7 @@
 This changelog shows the changes made for each version
 --------------------------------------------
 v 1.2.2
+- add phase axis settings on frequency response test
 - add WaveFile generator option to use wav file (spectrum, scope)
 - add RIAAChirp generator waveform for riaa preemphasis
 - fix All On button to not enable Phase in sweep
