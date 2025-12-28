@@ -346,5 +346,64 @@ namespace QA40xPlot.Libraries
 			return u;
 		}
 
+
+		/// <summary>
+		/// find time delay between left and right
+		/// </summary>
+		/// <param name="lrts">the time series</param>
+		/// <returns>L to R time delay in seconds, possibly negative</returns>
+		public static double CalculateTimeDelay(LeftRightTimeSeries lrts)
+		{
+			if (lrts == null)
+				return 0;
+
+			var left = lrts.Left;
+			var right = lrts.Right;
+			if (left == null || right == null || left.Length == 0 || right.Length == 0)
+				return 0;
+
+			try
+			{
+				// FFT of both signals - must be power of 2 length
+				System.Numerics.Complex[] specL = FFT.Forward(left);
+				System.Numerics.Complex[] specR = FFT.Forward(right);
+				int n = specL.Length;
+
+				// cross-spectrum = specL * conj(specR)
+				Complex[] cross = specL.Zip(specR, (a, b) => a * Complex.Conjugate(b)).ToArray();
+
+				// inverse FFT -> cross-correlation (circular). Real part contains correlation values.
+				FFT.Inverse(cross);
+
+
+				// find index of maximum magnitude (use real part magnitude)
+				var crossplus = cross.Select(c => Math.Abs(c.Real)).ToArray();
+				double maxVal = double.MinValue;
+				int maxIdx = 0;
+				for (int i = 0; i < n; i++)
+				{
+					double mag = crossplus[i];
+					if (mag > maxVal)
+					{
+						maxVal = mag;
+						maxIdx = i;
+					}
+				}
+
+				// convert index to lag (account for wrap-around)
+				int lag = maxIdx;
+				if (maxIdx > n / 2)
+					lag = maxIdx - n;
+
+				// time delay = lag * dt
+				double delay = lag * lrts.dt;
+				return delay;
+			}
+			catch (Exception)
+			{
+				// on failure return 0 (consistent with existing code patterns)
+				return 0;
+			}
+		}
 	}
 }

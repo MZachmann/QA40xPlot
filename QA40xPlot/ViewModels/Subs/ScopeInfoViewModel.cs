@@ -102,6 +102,13 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _PtPVolts, value);
 		}
 
+		private double _TsDelay = 0;
+		public double TsDelay
+		{
+			get => _TsDelay;
+			set => SetProperty(ref _TsDelay, value);
+		}
+
 		public ScopeInfoViewModel()
 		{
 		}

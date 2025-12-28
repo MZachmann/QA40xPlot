@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:QA40xPlot"
              xmlns:views ="clr-namespace:QA40xPlot.Views"
+            MouseDown="OnWindMouseDown" MouseUp="OnWindMouseUp" MouseMove="OnWindMouseMove"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="200" Background="{Binding ThemeBackground}">
     <Border BorderBrush="{Binding BorderColor}" BorderThickness="1">
@@ -17,6 +18,8 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -42,6 +45,9 @@
                        Content="{Binding PtPVolts, Converter={StaticResource VoltFormatter}}"/>
                 <Label Padding="2,2" Grid.Row="3" Grid.Column="2" ToolTip="Peak to peak amplitude"
                        Content="{Binding PtPVolts, Converter={StaticResource VoltDbvFormatter}}" />
+                <Label Padding="2,2" Grid.Row="4" Grid.Column="0" Content="Delay:"/>
+                <Label Padding="2,2" Grid.Row="4" Grid.Column="1" ToolTip="Delay from left to right channel"
+                       Content="{Binding TsDelay, Converter={StaticResource TimeFormatter}}"/>
             </Grid>
                 <!--<Rectangle HorizontalAlignment="Stretch" Height="3" Fill="DarkGreen" />
                 <Grid>

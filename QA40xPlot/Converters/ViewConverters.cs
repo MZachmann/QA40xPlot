@@ -250,6 +250,47 @@ namespace QA40xPlot.Converters
 			}
 			return rslt;
 		}
+		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			return Binding.DoNothing;
+		}
+	}
+
+		public class TimeFormatter : IValueConverter
+		{
+			public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+			{
+				if (value == null || value == DependencyProperty.UnsetValue)
+					return string.Empty;
+				// three arguments are:
+				// voltage, reference voltage, usepercent
+				string rslt = string.Empty;
+				{
+					double dv = (double)value;
+					var adv = Math.Abs(dv);
+					if (adv >= 100)
+					{
+						rslt = dv.ToString("0.#") + " S";
+					}
+					else if (adv >= .099)
+					{
+						rslt = dv.ToString("0.###") + " S";
+					}
+					else if (adv >= 1e-4)
+					{
+						rslt = (1000 * dv).ToString("G3") + " mS";
+					}
+					else if (adv >= 1e-7)
+					{
+						rslt = (1000000 * dv).ToString("G3") + " μS";
+					}
+					else
+					{
+						rslt = (1e9 * dv).ToString("G3") + " nS";
+					}
+				}
+				return rslt;
+			}
 
 		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
 		{

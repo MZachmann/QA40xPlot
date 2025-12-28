@@ -565,6 +565,7 @@ namespace QA40xPlot.Actions
 			vm.MaxVolts = timeData.Max(); // set the max Volts
 			vm.MinVolts = timeData.Min(); // set the min Volts
 			vm.PtPVolts = vm.MaxVolts - vm.MinVolts; // set the peak to peak Volts
+			vm.TsDelay = QaMath.CalculateTimeDelay(PageData.TimeRslt); // set the time delay
 			vm.PlotFormat = MyVModel.PlotFormat;
 		}
 
@@ -576,6 +577,7 @@ namespace QA40xPlot.Actions
 				return;
 			var vm = ViewSettings.Singleton.ScopeInfoLeft;
 			FillChannelInfo(vm, timeData.Left);
+			vm.TsDelay = -vm.TsDelay; // left is negative delay
 			vm = ViewSettings.Singleton.ScopeInfoRight;
 			FillChannelInfo(vm, timeData.Right);
 		}

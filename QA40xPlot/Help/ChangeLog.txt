@@ -18,6 +18,7 @@ v 1.2.2
 - place attenuation options in all tests
 - add add/delete entries buttons to combodrop lists
 - rename tab info to test info in each page
+- add time delay statistic in oscilloscope test data summary
 v 1.2.1
 - add Save Configuration as Default command to menu
 - add Settings page accelerator
