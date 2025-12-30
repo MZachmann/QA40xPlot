@@ -10,7 +10,8 @@
     <Grid>
         <ScottPlot:WpfPlot x:Name="TheWpfPlot" Margin="5,10,5,5" />
         <Label Content="{Binding DsHeading}" HorizontalAlignment="Right" 
-                   FontSize="16" 
-                   VerticalAlignment="Top" Margin="0,22,0,0"  />
+                   FontSize="16" x:Name="MyLabel"
+                   Visibility="Visible"
+                   VerticalAlignment="Top" Margin="0,22,40,0"  />
     </Grid>
 </UserControl>

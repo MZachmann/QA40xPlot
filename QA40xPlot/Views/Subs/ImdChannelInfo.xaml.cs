@@ -1,6 +1,5 @@
-﻿using QA40xPlot.ViewModels;
-using QA40xPlot.ViewModels.Subs;
-using System.Text.Json.Serialization;
+﻿using Newtonsoft.Json;
+using QA40xPlot.ViewModels;
 using System.Windows.Controls;
 using System.Windows.Input;
 

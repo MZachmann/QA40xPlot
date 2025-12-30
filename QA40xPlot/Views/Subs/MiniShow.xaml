@@ -6,6 +6,8 @@
              xmlns:local="clr-namespace:QA40xPlot.Views"
              mc:Ignorable="d" 
              Background="{Binding ThemeBackground}"
+            MouseDown="OnWindMouseDown" MouseUp="OnWindMouseUp" MouseMove="OnWindMouseMove"
+             Loaded="Minishow_Loaded"
              d:DesignHeight="750" d:DesignWidth="450">
     <Border BorderBrush="LightGreen" BorderThickness="1">
         <StackPanel Orientation="Vertical">

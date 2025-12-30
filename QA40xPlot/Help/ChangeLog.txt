@@ -2,7 +2,13 @@
 --------------------------------------------
 This changelog shows the changes made for each version
 --------------------------------------------
-v 1.2.2
+v 1.2.3 1/1/2026
+- add dates to changelog v tags
+- nearly finish implementing thd vs amplitude update
+- replace test with new one
+- support dual generator even with wave file in scope test
+- make the miniplots movable
+v 1.2.2 12/28/2025
 - add phase axis settings on frequency response test
 - add WaveFile generator option to use wav file (spectrum, scope)
 - add RIAAChirp generator waveform for riaa preemphasis
@@ -19,7 +25,7 @@ v 1.2.2
 - add add/delete entries buttons to combodrop lists
 - rename tab info to test info in each page
 - add time delay statistic in oscilloscope test data summary
-v 1.2.1
+v 1.2.1 12/18/2025
 - add Save Configuration as Default command to menu
 - add Settings page accelerator
 - fix startup internal harmonic issue
@@ -35,17 +41,17 @@ v 1.2.1
 - build ComboDrop control for brevity and future
 - change gain test initializations and fft size/rate
 - repair fittodata off-by-one
-v 1.2.00
+v 1.2.00 12/8/2025
 - add option to replace the tabbed gui with menus
 - improve app esthetics by changing plot boundaries
 - retain current page selection in configuration
-v 1.1.47
+v 1.1.47 12/6/2025
 - change the smoothing algorithm to center it
 - add a smoothing option to the frequency response chirp tests
 - truncate chirped high frequency noisy part
 - add expanders to cursor section
 - fix measured impedance phase math
-v 1.1.46
+v 1.1.46 12/5/2025
 - serious refactor of the graph Y-axis format support
 - addition of dBr options to the Y-axis format choices
 - remove distortion component from SNR math
@@ -55,7 +61,7 @@ v 1.1.46
 -   don't fit unviewed plot lines in sweeps
 -   fully support dBr in most tests
 - partial implementation of dBr for discrete sweeps
-v 1.1.45
+v 1.1.45 11/20/2025
 - support multiple file select for GET operation
 - don't invert color when mouseover color boxes
 - refactor frequency response tab for code readability
@@ -63,53 +69,53 @@ v 1.1.45
 - improve graph background default colors
 - repair averages accelerator
 - implement units for frequency response test
-v 1.1.44
+v 1.1.44 11/17/2025
 - switch from scottplot scatter to signalxy plots for massive graph drawing speedup
 - remove graph-limiting from spectrum and imd plots
 - early support for offset in frequency response
-v 1.1.43
+v 1.1.43 11/15/2025
 - improve pixel tracking in the on-screen markers
 - make bin-indexing consistent
 - add scrollbars to right columns in tabs
-v 1.1.42
+v 1.1.42 11/13/2025
 - add noise bandwidth setting for thd+n and noise floor measurements
 - change default bandwidth to 20KHz for most tests
 - do a second gain curve for higher accuracy auto-attenuation in sweeps
 - support non-qa430 use of opamp.freq test
 - add right channel display to opamp test
-v 1.1.41
+v 1.1.41 11/11/2025
 - add index display to the Palette display
 - show palette indices in the legend tooltips
 - make tab headings narrower when using themes
 - support |and _ for pos/neg supply delimiters in opamp test
 - support multiple voltage opamp sweep
 - support generator direction in opamp sweep
-v 1.1.40
+v 1.1.40 11/7/2025
 - replace the stock legend with a movable cleaner legend
 - add a "ShowLegend" option to the tests
 - add a Setting to enable the QA430 gui
 - begin opamp amplitude sweep
-v 1.1.39
+v 1.1.39 11/4/2025
 - add Offset options to tab info
 - change distortion/noise bandwidth to 1/2 octave
 - improve tab info dialog box layout
 - fixup palette choices for multitests
-v 1.1.38
+v 1.1.38 11/2/2025
 - Opamp test
  - get cursor display correct
  - add palette edit button and scrollbar
-v 1.1.37
+v 1.1.37 11/1/2025
 - updates to Opamp test for better variance selection
 - fixup configuration to load Opamp variables
-v 1.1.36
+v 1.1.36 10/30/2025
 - better reflect the line color to data box for gotten data
 - calculate amplitude sweep noise floor using 0 attenuator instead of 6
 - early pass implementing opamp sweep tests
 - add option to change attenuator safety margin
-v 1.1.35
+v 1.1.35 10/27/2025
 - fix the fail to load window rect
 - add click-to-image for qa430 config
-v 1.1.34
+v 1.1.34 10/17/2025
 - add the 4 sense outputs to QA430 info
 v 1.1.33
 - add qa430 visual selector

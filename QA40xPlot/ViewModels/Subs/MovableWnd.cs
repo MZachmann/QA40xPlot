@@ -2,7 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace QA40xPlot.ViewModels.Subs
+namespace QA40xPlot.ViewModels
 {
 	internal class MovableWnd
 	{

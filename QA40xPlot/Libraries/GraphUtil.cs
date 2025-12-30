@@ -267,13 +267,6 @@ namespace QA40xPlot.Libraries
 							frqIndex -= 1;  // closer to the prior bin
 						}
 						var mga = refX[frqIndex];
-						//if( refFreq.Length > 100)
-						//{
-						//	// fine frequency array, check neighbors
-						//	for (int i = -2; i < 3; i++)
-						//		if ((i > 0 && i < refX.Length) && (mga < refX[i]))
-						//			mga = refX[i];
-						//}
 						return mga;
 					}
 				case 2:     // value - use negative since we divide by it

@@ -585,14 +585,15 @@ Along the top right of the screen are a few command buttons. If this becomes too
 <ul>
     <li>
         Use Chirp - turn this on to use a chirp signal for the sweep. This is a more efficient way to sweep a frequency range. It suffers from
-        reduced distortion and gain accuracy but gains almost continuous frequency coverage in a single packet.
+        slightly reduced accuracy but gains almost continuous frequency coverage in a single packet.
     </li>
 </ul>
-<h3>Connections are:</h3>
+<h3>Connections are: </h3>
+<p>Assume the dut is two terminals, like a speaker connection. Black and Red.</p>
 <ul>
-    <li>DUT terminal A to ground</li>
-    <li>DUT terminal B to reference resistor terminal A and QA40x Left Input</li>
-    <li>reference resistor terminal B and generator output to QA40x Right Input</li>
+    <li>QA40x Left output to reference resistor terminal B and QA40x Right Input</li>
+    <li>DUT Red/Out terminal to reference resistor terminal A and QA40x Left Input</li>
+    <li>DUT Black/Gnd terminal to ground</li>
 </ul>
 <h1 style="color:green">Gain Test</h1>
 <p>This does a traditional Bode Plot of Gain and Phase vs frequency. Here the right channel is used as a reference channel. </p>
@@ -606,9 +607,9 @@ Along the top right of the screen are a few command buttons. If this becomes too
 </ul>
 <h3>Connections are:</h3>
 <ul>
-    <li> the QA40x right channel output to the QA40x right channel input</li>
+    <li> the QA40x left or right channel output to the QA40x right channel input - left is mildly preferred</li>
     <li> the QA40x left channel output to the DUT input</li>
-    <li> the QA40x left channel input to the DUT output</li>
+    <li> the DUT output to the QA40x left channel input</li>
 </ul>
 <h1 style="color:green">Crosstalk Test</h1>
 <p>
@@ -627,9 +628,10 @@ Along the top right of the screen are a few command buttons. If this becomes too
 <ul>
     <li> the QA40x left channel output to the DUT left input.</li>
     <li> the QA40x right channel output to the DUT right input</li>
-    <li> the QA40x right channel input to the DUT right output.</li>
-    <li> the QA40x left channel input to the DUT left output.</li>
+    <li> the DUT left output to the QA40x left channel input.</li>
+    <li> the DUT right output to the QA40x right channel input.</li>
 </ul>
-<br />
+<p>
+    Cables may be balanced or unbalanced but it&#39;s best if left and right are the same type.</p>
 <br />
 <br />

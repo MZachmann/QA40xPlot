@@ -161,7 +161,6 @@ namespace QA40xPlot.Libraries
 						page.FreqRslt = jsonObject.FreqRslt; // set the frequency result
 					page.Definition.IsOnL = true;
 					page.Definition.IsOnR = false;
-
 				}
 			}
 			catch (Exception ex)

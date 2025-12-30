@@ -1,5 +1,8 @@
-﻿using QA40xPlot.Data;
+﻿using Newtonsoft.Json;
+using QA40xPlot.Data;
+using QA40xPlot.ViewModels;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace QA40xPlot.Views
 {
@@ -8,6 +11,9 @@ namespace QA40xPlot.Views
 	/// </summary>
 	public partial class TabAbout : UserControl
 	{
+		[JsonIgnore]
+		private MovableWnd _MovableWnd = new MovableWnd();
+
 		public TabAbout()
 		{
 			InitializeComponent();
@@ -17,5 +23,21 @@ namespace QA40xPlot.Views
 		{
 			this.DataContext = dataDef;
 		}
+
+		private void OnWindMouseDown(object sender, MouseButtonEventArgs e)
+		{
+			_MovableWnd.OnWindMouseDown(sender, e);
+		}
+
+		private void OnWindMouseUp(object sender, MouseButtonEventArgs e)
+		{
+			_MovableWnd.OnWindMouseUp(sender, e);
+		}
+
+		private void OnWindMouseMove(object sender, MouseEventArgs e)
+		{
+			_MovableWnd.OnWindMouseMove(sender, e);
+		}
+
 	}
 }

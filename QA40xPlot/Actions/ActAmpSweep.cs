@@ -3,6 +3,7 @@ using OpenTK.Compute.OpenCL;
 using QA40xPlot.BareMetal;
 using QA40xPlot.Converters;
 using QA40xPlot.Data;
+using QA40xPlot.Extensions;
 using QA40xPlot.Libraries;
 using QA40xPlot.QA430;
 using QA40xPlot.ViewModels;
@@ -12,6 +13,7 @@ using ScottPlot.Colormaps;
 using ScottPlot.Plottables;
 using ScottPlot.WPF;
 using System.Data;
+using System.Diagnostics.Eventing.Reader;
 using System.Net.Http;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
@@ -233,17 +235,18 @@ namespace QA40xPlot.Actions
 		private List<SweepDot> LookupColumn(MyDataTab page, double xValue)
 		{
 			var vm = MyVModel;
-			var allLines = FrequencyLines(page);
+			var xvalues = page.Sweep.X;
 			List<SweepDot> dots = new();
-			if (allLines == null || allLines.Count == 0)
+			if (xvalues == null || xvalues.Length == 0)
 			{
 				return dots;
 			}
 			// find nearest amplitude (both left and right will be identical here if scanned)
-			var bin = allLines[0].Columns.Count(x => x.GenVolts <= xValue) - 1;    // find first voltage less than me
-			if (bin == -1)
-				bin = 0;
-			var matchVolt = allLines[0].Columns[bin].GenVolts;  // the actual voltage we want
+			var bin = xvalues.CountWhile(x => x <= xValue);    // find # of voltages <= me
+			if (bin == xvalues.Length)
+				bin = xvalues.Distinct().Count()-1;
+			var matchVolt = xvalues[bin];  // the actual voltage we want
+			var allLines = FrequencyLines(page) ?? new();
 			var allMatch = allLines.Where(x => x.Columns.Length > bin && Math.Abs(x.Columns[bin].GenVolts - matchVolt) < 0.0001).ToArray();
 			foreach (var line in allMatch)
 			{
@@ -261,14 +264,27 @@ namespace QA40xPlot.Actions
 		/// <summary>
 		/// find the column by X coordinate where X is formatted inputv
 		/// </summary>
-		/// <param name="volts"></param>
+		/// <param name="freq"></param>
 		/// <returns></returns>
 		// for a given frequency, lookup the left and right columns
 		// this is used by the cursor display
 		public SweepDot[] LookupX(double volts)
 		{
+			if(LRGains == null || LRGains.Left.Length == 0 || LRGains.Right.Length == 0)
+				return [];
 			var vm = MyVModel;
-			var allLines = LookupColumn(PageData, volts); // lookup the columns
+			var myVolts = volts;
+			var genType = ToDirection(vm.GenDirection);
+			if(genType != E_GeneratorDirection.INPUT_VOLTAGE)
+			{
+				// found this as output
+				var myFreq = PageData.SweepSteps.Steps[0].GenFrequency;	// first frequency?
+				var gains = (ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right) ?? [1.0];
+				var bin = QaLibrary.GetBinOfFrequency(myFreq, vm.SampleRateVal, vm.FftSizeVal);
+				var x = vm.ToGenVoltage(volts.ToString(), [bin], GEN_INPUT, gains);
+				myVolts = x;
+			}
+			var aline = LookupColumn(PageData, myVolts); // lookup the columns
 			if (OtherTabs.Count > 0)
 			{
 				int tabCnt = 1;
@@ -276,17 +292,17 @@ namespace QA40xPlot.Actions
 				{
 					if (!o.Definition.IsOnL)
 						continue;
-					var all2 = LookupColumn(o, volts); // lookup the columns
+					var all2 = LookupColumn(o, myVolts); // lookup the columns
 					var tabChr = tabCnt + ".";
 					foreach (var ail in all2)
 					{
 						ail.Label = tabChr + ail.Label;
 					}
-					allLines.AddRange(all2);
+					aline.AddRange(all2);
 					tabCnt++;
 				}
 			}
-			return allLines.ToArray();
+			return aline.ToArray();
 		}
 
 		public void PinGraphRange(string who)
@@ -484,7 +500,7 @@ namespace QA40xPlot.Actions
 						{
 							var ux = new AcquireStep(x);
 							ux.GenFrequency = tFreq;
-							ux.GenXFmt = MathUtil.FormatFrequency(tFreq);
+							ux.GenXFmt = MathUtil.FormatFrequency(Math.Round(vval));
 							return ux;
 						}).ToList();
 						vnew.AddRange(vnewlist);
@@ -635,7 +651,7 @@ namespace QA40xPlot.Actions
 						{
 							work.Item1.GenVolts = stepInVoltages[i];
 							work.Item2.GenVolts = stepInVoltages[i];
-							AddColumn(page, myConfig.GenFrequency, work.Item1, work.Item2);
+							AddColumn(page, stepInVoltages[i], work.Item1, work.Item2);
 						}
 
 						MyVModel.LinkAbout(PageData.Definition);
