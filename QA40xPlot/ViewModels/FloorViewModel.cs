@@ -56,6 +56,13 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
+		public static string FileAddon()
+		{
+			DateTime now = DateTime.Now;
+			string formattedDate = $"_{now:yyMMdd_HHmmss}";
+			return formattedDate;
+		}
+
 		#region INotifyPropertyChanged
 		public event PropertyChangedEventHandler? PropertyChanged;
 

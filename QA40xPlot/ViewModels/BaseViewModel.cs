@@ -607,8 +607,8 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		private double _Attenuation;
-		public double Attenuation
+		private int _Attenuation;
+		public int Attenuation
 		{
 			get => _Attenuation;
 			set => SetProperty(ref _Attenuation, value);
@@ -624,7 +624,7 @@ namespace QA40xPlot.ViewModels
 
 		private void SetAtten(object? parameter)
 		{
-			var atten = MathUtil.ToDouble(parameter?.ToString() ?? string.Empty, Attenuation);
+			var atten = MathUtil.ToInt(parameter?.ToString() ?? string.Empty, Attenuation);
 			Attenuation = atten;
 		}
 

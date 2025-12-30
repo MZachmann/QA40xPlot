@@ -356,13 +356,6 @@ public class FreqRespViewModel : BaseViewModel
 	}
 
 
-	private static string FileAddon()
-	{
-		DateTime now = DateTime.Now;
-		string formattedDate = $"{now:yyyy-MM-dd_HH-mm-ss}";
-		return formattedDate;
-	}
-
 	private static void SaveItTab()
 	{
 		string prefix = "QaFile";

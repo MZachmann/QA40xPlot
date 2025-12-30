@@ -90,53 +90,12 @@ namespace QA40xPlot.Actions
 				myPlot.Title(title);
 		}
 
-		private List<SweepLine> RawToColumns(AcquireStep[] steps, double[] raw)
-		{
-			if (raw.Length == 0)
-				return [];
-			List<SweepColumn> left = new();
-			// make columns from the raw data
-			int i;
-			for (i = 0; i < raw.Length; i += SweepColumn.SweepColumnCount)
-			{
-				var col = ArrayToColumn(raw, (uint)i);
-				left.Add(col);
-			}
-			// convert into freqsweeplines
-			List<SweepLine> lines = new();
-			// line lengths
-			var maxF = left.Max(x => x.Freq);   // maximum frequency
-			int linelength = 0;
-			for (i = 0; i < left.Count; i++)
-			{
-				if (left[i].Freq >= maxF)
-				{
-					linelength = i + 1;
-					break;
-				}
-			}
-			if (linelength == 0)
-				return lines;
-			// now create list of lines
-			var numLines = (left.Count + linelength - 1) / linelength;  // round up
-			bool showVolt = 1 < steps.Select(x => x.GenVolt).Distinct().Count();    // more than one voltage, show them
-			for (i = 0; i < numLines; i++)
-			{
-				var line = new SweepLine();
-				line.Label = steps[i].ToSuffix(showVolt, MyVModel.HasQA430);
-				line.Columns = left.Skip(i * linelength).Take(linelength).ToArray();
-				lines.Add(line);
-			}
-
-			return lines;
-		}
-
 		// convert the raw data into columns of data
 		private void RawToFreqSweepColumns(MyDataTab page)
 		{
-			var u = RawToColumns(page.SweepSteps.Steps, page.Sweep.RawLeft);
+			var u = RawToColumns(page.SweepSteps.Steps, page.Sweep.RawLeft, MyVModel.HasQA430, true);
 			page.SetProperty("Left", u);
-			var v = RawToColumns(page.SweepSteps.Steps, page.Sweep.RawRight);
+			var v = RawToColumns(page.SweepSteps.Steps, page.Sweep.RawRight, MyVModel.HasQA430, true);
 			page.SetProperty("Right", v);
 		}
 
@@ -410,18 +369,6 @@ namespace QA40xPlot.Actions
 			await showMessage("Finished");
 		}
 
-		// input noises is uniform frequency based on fft
-		public static double GetNoiseSmooth(double[] noises, double binSize, double dFreq)
-		{
-			var bin = QaLibrary.GetBinOfFrequency(dFreq, binSize);  // which frequency bin
-			var bincnt = dFreq / (20 * binSize);  // #bins == +-1/10 of an octave
-			bincnt = Math.Min(10, bincnt);     // limit to 100 bins
-			var minbin = Math.Max(0, (int)(bin - bincnt));
-			var maxbin = Math.Min(noises.Length - 1, (int)(bin + bincnt));
-			var avenoise = noises.Skip(minbin).Take(maxbin - minbin).Average(x => x); // average noise within these bins
-			return avenoise / Math.Sqrt(binSize);   // ? i think
-		}
-
 		private (int,double) CalculateAttenuation(double voltage, BaseViewModel bvm, 
 			int[] frqtest, LeftRightFrequencySeries LRGains)
 		{
@@ -502,27 +449,8 @@ namespace QA40xPlot.Actions
 			// ********************************************************************
 			try
 			{
-				// Check if cancel button pressed
-				if (CanToken.IsCancellationRequested)
-					return false;
-
-				// Calculate frequency steps to do
-				binSize = QaLibrary.CalcBinSize(vm.SampleRateVal, vm.FftSizeVal);
-				var stepFrequencies = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(
-					ToD(vm.StartFreq, 10), ToD(vm.EndFreq, 10000), vm.StepsOctave);
-				var maxBinFreq = vm.SampleRateVal / 4;  // nyquist over 2 since we're looking at distortion
-														// Translate the generated list to bin center frequencies
-				stepBinFrequencies = QaLibrary.TranslateToBinFrequencies(stepFrequencies, vm.SampleRateVal, vm.FftSizeVal);
-				stepBinFrequencies = stepBinFrequencies.Where(x => x >= 1 && x < maxBinFreq)                // Filter out values that are out of range 
-					.GroupBy(x => x)                                                                    // Filter out duplicates
-					.Select(y => y.First())
-					.ToArray();
-
-				// ********************************************************************  
-				// Load a settings we want since we're done autoscaling
-				// ********************************************************************  
-				if (true != await QaComm.InitializeDevice(vm.SampleRateVal, vm.FftSizeVal, vm.WindowingMethod, 42))
-					return false;
+			if (true != await QaComm.InitializeDevice(vm.SampleRateVal, vm.FftSizeVal, vm.WindowingMethod, (int)vm.Attenuation))
+				return false;
 			}
 			catch (Exception ex)
 			{
@@ -530,57 +458,45 @@ namespace QA40xPlot.Actions
 				return false;
 			}
 
+			// Check if cancel button pressed
+			if (CanToken.IsCancellationRequested)
+					return false;
+
+			// Calculate frequency steps to do
+			binSize = QaLibrary.CalcBinSize(vm.SampleRateVal, vm.FftSizeVal);
+			var stepFrequencies = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(
+				ToD(vm.StartFreq, 10), ToD(vm.EndFreq, 10000), vm.StepsOctave);
+			var maxBinFreq = vm.SampleRateVal / 4;  // nyquist over 2 since we're looking at distortion
+													// Translate the generated list to bin center frequencies
+			stepBinFrequencies = QaLibrary.TranslateToBinFrequencies(stepFrequencies, vm.SampleRateVal, vm.FftSizeVal);
+			stepBinFrequencies = stepBinFrequencies.Where(x => x >= 1 && x < maxBinFreq)                // Filter out values that are out of range 
+				.GroupBy(x => x)                                                                    // Filter out duplicates
+				.Select(y => y.First())
+				.ToArray();
+
+			bool longRest = true;
+
 			// now do the measurement stuff
 			try
 			{
-				// enumerate the sweeps we are going to do
-				var step = new AcquireStep() { Cfg = "Config6b", Load = QA430Model.LoadOptions.Open, Gain = 1, Distgain = 101, SupplyP = 15, SupplyN = 15 };    // unity 16b with 101 dist gain
-				if (!vm.HasQA430)
-				{
-					step.Distgain = 1;
-				}
-				var variables = new List<AcquireStep>() { step };
-
-				QA430Model? model430 = vm.HasQA430 ? Qa430Usb.Singleton?.QAModel : null;
-				if (model430 != null)
-				{
-					if (vm.VaryLoad)
-					{
-						variables = model430.ExpandLoadOptions(variables, freqVm.LoadSummary) ?? variables;
-					}
-
-					if (vm.VaryGain)
-					{
-						variables = model430.ExpandGainOptions(variables, freqVm.GainSummary) ?? variables;
-					}
-
-					if (vm.VarySupply)
-					{
-						variables = model430.ExpandSupplyOptions(variables, freqVm.SupplySummary) ?? variables;
-					}
-				}
+				// get all qa430 variable combinations
+				var variables = OpampViewModel.EnumerateVariables(freqVm);
 
 				// now expand the generator voltage options
 				{
-					var voltSet = SelectItemList.ParseList(freqVm.VoltSummary).Where(x => x.IsSelected).ToList();
-					if(voltSet.Count == 0)
-					{
-						await showMessage("No generator voltages specified!", 200);
-						return false;
-					}
 					var vnew = new List<AcquireStep>();
-					foreach (var v in voltSet)
+					foreach (var v in voltValues)
 					{
-						var vval = MathUtil.ToDouble(v.Name, 0.1);
+						var vval = ToD(v.Name, 0.1);
 						var vnewlist = variables.Select(x => {
 							var ux = new AcquireStep(x);
 							var ampD = MathUtil.UnformatValue(vval, vm.GenVoltUnits); // convert to m,u,volts or watts
 							ux.GenVolt = ampD;
-							ux.GenVoltFmt = (vm.IsGenPower ? MathUtil.FormatPower(ampD) : MathUtil.FormatVoltage(ampD));
+							ux.GenXFmt = (vm.IsGenPower ? MathUtil.FormatPower(ampD) : MathUtil.FormatVoltage(ampD));
 							return ux; }).ToList();
 						vnew.AddRange(vnewlist);
 					}
-
+					// now vnew is the full list of steps with voltages swept
 					variables = vnew;
 				}
 
@@ -588,41 +504,20 @@ namespace QA40xPlot.Actions
 
 				string lastCfg = string.Empty;
 				page.SweepSteps.Steps = variables.ToArray();
-				//await Task.Delay(5000);
+
 				// ********************************************************************
 				// loop through the variables being changed
 				// they are config name, load, gain, supply voltage
 				// ********************************************************************
 				foreach (var myConfig in variables) // sweep the different configurations
 				{
-					QA430Model? model = vm.HasQA430 ? Qa430Usb.Singleton?.QAModel : null;
-					if (model != null)
-					{
-						if (myConfig.Cfg != lastCfg && myConfig.Cfg.Length > 0)
-						{
-							model.SetOpampConfig(myConfig.Cfg);
-							lastCfg = myConfig.Cfg;
-						}
-						if (vm.VaryLoad)
-							model.LoadOption = (short)myConfig.Load;
-						else
-							model.LoadOption = (short)QA430Model.LoadOptions.Open;
-						if (vm.VarySupply && myConfig.SupplyP < 15)
-						{
-							model.NegRailVoltage = (-myConfig.SupplyN).ToString();
-							model.PosRailVoltage = myConfig.SupplyP.ToString();
-							model.UseFixedRails = false;
-						}
-						else
-							model.UseFixedRails = true;
-						// now that the QA430 relays are set, wait a bit...
-						await model.WaitForQA430Relays();
-					}
+					lastCfg = await vm.ExecuteModel(myConfig, lastCfg);	// update the qa430 if needed
 					// sweeping generator voltage as well
 					var attenset = CalculateAttenuation(myConfig.GenVolt, vm, frqtest, LRGains);
-					bool newAtten = (attenset.Item1 != MyVModel.Attenuation);
 					var attenuation = attenset.Item1;
 					var genVolt = attenset.Item2;
+
+					bool newAtten = (attenuation != MyVModel.Attenuation);
 					page.Definition.GeneratorVoltage = genVolt;
 
 					// Set the new input range
@@ -638,22 +533,23 @@ namespace QA40xPlot.Actions
 					// ********************************************************************
 					// do this with the specified opamp configuration
 					// wait for the noise to stabilize
-					if (newAtten || myConfig.Equals(variables[0]))
+					//if (newAtten || myConfig.Equals(variables[0]))
+					if (longRest)
 					{
-						// if attenuation has changed wait 13 cycles for sure...
-						// so noise stabilizes
+						// so noise stabilizes which takes quite a while at first
 						var nstart = DateTime.Now;
 						while ((DateTime.Now - nstart).TotalMilliseconds < 3200)
 						{
 							await MeasureNoise(MyVModel, CanToken.Token);
 						}
+						longRest = false;
 					}
 					{
 						//wait up to another 10 cycles for noise to stabilize
 						double lastndbv = 1000;
 						int iii = 0;
 						int iij = 0;
-						while (true && iii < 10)
+						while (iii < (longRest ? 10 : 2))
 						{
 							var noisy = await MeasureNoise(MyVModel, CanToken.Token);
 							page.NoiseFloor = noisy.Item1;
@@ -688,42 +584,45 @@ namespace QA40xPlot.Actions
 
 						WaveGenerator.SetGen1(true, freqy, genScaleVolt, true);             // send a sine wave
 						WaveGenerator.SetGen2(true, 0, 0, false);            // send a sine wave
-						LeftRightSeries lrfs;
+						LeftRightSeries lrs;
 
 						FrequencyHistory.Clear();
 						for (int ik = 0; ik < (vm.Averages - 1); ik++)
 						{
-							lrfs = await QaComm.DoAcquisitions(1, CanToken.Token, true);
-							if (lrfs == null || lrfs.TimeRslt == null || lrfs.FreqRslt == null)
+							lrs = await QaComm.DoAcquisitions(1, CanToken.Token, true);
+							if (lrs == null || lrs.TimeRslt == null || lrs.FreqRslt == null)
 								break;
-							FrequencyHistory.Add(lrfs.FreqRslt);
+							FrequencyHistory.Add(lrs.FreqRslt);
 						}
 						// now FrequencyHistory has n-1 samples
 						{
-							lrfs = await QaComm.DoAcquisitions(1, CanToken.Token, true);
-							if (lrfs == null || lrfs.TimeRslt == null || lrfs.FreqRslt == null)
+							lrs = await QaComm.DoAcquisitions(1, CanToken.Token, true);
+							if (lrs == null || lrs.TimeRslt == null || lrs.FreqRslt == null)
 								break;
-							lrfs.FreqRslt = CalculateAverages(lrfs.FreqRslt, vm.Averages);
+							lrs.FreqRslt = CalculateAverages(lrs.FreqRslt, vm.Averages);
 						}
 						if (CanToken.IsCancellationRequested)
 							break;
 
-						page.TimeRslt = lrfs.TimeRslt ?? new();
-						page.FreqRslt = lrfs.FreqRslt;
+						page.TimeRslt = lrs.TimeRslt ?? new();
+						page.FreqRslt = lrs.FreqRslt;
 
 						int fundamentalBin = QaLibrary.GetBinOfFrequency(stepBinFrequencies[f], binSize);
-						if (page.TimeRslt.Left.Length == 0 || lrfs.FreqRslt == null || fundamentalBin >= lrfs.FreqRslt.Left.Length)               // Check in bin within range
+						if (page.TimeRslt.Left.Length == 0 || lrs.FreqRslt == null || fundamentalBin >= lrs.FreqRslt.Left.Length)               // Check in bin within range
 							break;
 
 						// Plot the mini graphs
-						QaLibrary.PlotMiniFftGraph(fftPlot, lrfs.FreqRslt, vm.LeftChannel && vm.ShowLeft, vm.RightChannel && vm.ShowRight);
-						QaLibrary.PlotMiniTimeGraph(timePlot, lrfs.TimeRslt, freqy, vm.LeftChannel && vm.ShowLeft, vm.RightChannel && vm.ShowRight);
+						QaLibrary.PlotMiniFftGraph(fftPlot, lrs.FreqRslt, vm.LeftChannel && vm.ShowLeft, vm.RightChannel && vm.ShowRight);
+						QaLibrary.PlotMiniTimeGraph(timePlot, lrs.TimeRslt, freqy, vm.LeftChannel && vm.ShowLeft, vm.RightChannel && vm.ShowRight);
 
 						// even with multiple configurations
 						// this will keep stacking up stuff while frequency array shows min...max,min...max,...
-						var work = CalculateColumn(page, freqy, CanToken.Token, myConfig, noiseRslt); // do the math for the columns
+						var flr = GetNoiseFloor(page);
+						var work = CalculateColumn(page.FreqRslt, freqVm, flr, freqy, CanToken.Token, myConfig, noiseRslt); // do the math for the columns
 						if (work.Item1 != null && work.Item2 != null)
 						{
+							work.Item1.GenVolts = genVolt;
+							work.Item2.GenVolts = genVolt;
 							AddColumn(page, freqy, work.Item1, work.Item2);
 						}
 
@@ -747,6 +646,24 @@ namespace QA40xPlot.Actions
 			return !CanToken.IsCancellationRequested;
 		}
 
+		public static LeftRightPair GetNoiseFloor(MyDataTab msr)
+		{
+			LeftRightPair floor = msr.NoiseFloor;
+			switch (ViewSettings.NoiseWeight)
+			{
+				case "A":
+					floor = msr.NoiseFloorA;
+					break;
+				case "C":
+					floor = msr.NoiseFloorC;
+					break;
+				default:
+					break;
+			}
+			return floor;
+		}
+
+#if false
 		/// <summary>
 		/// do post processing, just a bunch of easy math and moving stuff into viewmodels
 		/// </summary>
@@ -833,6 +750,7 @@ namespace QA40xPlot.Actions
 
 			return (left, right);
 		}
+#endif
 
 		/// <summary>
 		/// do post processing, just a bunch of easy math and moving stuff into viewmodels
@@ -957,10 +875,11 @@ namespace QA40xPlot.Actions
 				lineGroup = (rightCol != null) ? [rightCol] : [];
 			}
 
-			string suffix = ".";
+			string tosuffix = MyVModel.HasQA430 ? "." : "";
+			string suffix = string.Empty;
 			var lp = isMain ? LinePattern.Solid : LinePattern.Dashed;
 			if (showRight && showLeft)
-				suffix = ".L.";
+				suffix = ".L" + tosuffix;
 
 			// for each list of lines (left and right)
 			var prefix = (measurementNr == 0) ? string.Empty : (measurementNr + ".");
@@ -1002,7 +921,7 @@ namespace QA40xPlot.Actions
 					if (freqVm.ShowD6)
 						AddPlot(freq, colArray.Select(x => FormVal(x.D6P, x.Mag)).ToList(), colorNum, prefix + "D6+" + subsuffix, lp);
 				}
-				suffix = ".R.";          // second pass iff there are both channels
+				suffix = ".R" + tosuffix;          // second pass iff there are both channels
 				lp = isMain ? LinePattern.DenselyDashed : LinePattern.Dotted;
 			}
 			swpPlot.Refresh();

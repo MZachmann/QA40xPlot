@@ -34,35 +34,10 @@ namespace QA40xPlot.ViewModels
 		public AsyncRelayCommand DoGetTab { get => new AsyncRelayCommand(GetItTab); }
 		[JsonIgnore]
 		public RelayCommand DoSaveTab { get => new RelayCommand(SaveItTab); }
-		[JsonIgnore]
-		public RelayCommand SelectAll { get; } = new RelayCommand(DoSelectAll);
-		[JsonIgnore]
-		public RelayCommand SelectNone { get; } = new RelayCommand(DoSelectNone);
 
 		private static FreqSweepViewModel MyVModel { get => ViewSettings.Singleton.FreqVm; }
 
 		#region Setters and Getters
-		private bool _VaryLoad = false;
-		public bool VaryLoad
-		{
-			get => _VaryLoad;
-			set { SetProperty(ref _VaryLoad, value); RaisePropertyChanged("LoadSummary"); }
-		}
-
-		private bool _VaryGain = false;
-		public bool VaryGain
-		{
-			get => _VaryGain;
-			set { SetProperty(ref _VaryGain, value); RaisePropertyChanged("GainSummary"); }
-		}
-
-		private bool _VarySupply = false;
-		public bool VarySupply
-		{
-			get => _VarySupply;
-			set { SetProperty(ref _VarySupply, value); RaisePropertyChanged("SupplySummary"); }
-		}
-
 		private string _GenVoltage = string.Empty;
 		public string GenVoltage
 		{
@@ -113,73 +88,6 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _ShowPercent;
 			set => SetProperty(ref _ShowPercent, value);
-		}
-
-		private bool _ShowTHD;
-		public bool ShowTHD
-		{
-			get => _ShowTHD;
-			set => SetProperty(ref _ShowTHD, value);
-		}
-		private bool _ShowTHDN;
-		public bool ShowTHDN
-		{
-			get => _ShowTHDN;
-			set => SetProperty(ref _ShowTHDN, value);
-		}
-		private bool _ShowMagnitude;
-		public bool ShowMagnitude
-		{
-			get => _ShowMagnitude;
-			set => SetProperty(ref _ShowMagnitude, value);
-		}
-		private bool _ShowPhase;
-		public bool ShowPhase
-		{
-			get => _ShowPhase;
-			set => SetProperty(ref _ShowPhase, value);
-		}
-		private bool _ShowNoise;
-		public bool ShowNoise
-		{
-			get => _ShowNoise;
-			set => SetProperty(ref _ShowNoise, value);
-		}
-		private bool _ShowNoiseFloor;
-		public bool ShowNoiseFloor
-		{
-			get => _ShowNoiseFloor;
-			set => SetProperty(ref _ShowNoiseFloor, value);
-		}
-		private bool _ShowD2;
-		public bool ShowD2
-		{
-			get => _ShowD2;
-			set => SetProperty(ref _ShowD2, value);
-		}
-		private bool _ShowD3;
-		public bool ShowD3
-		{
-			get => _ShowD3;
-			set => SetProperty(ref _ShowD3, value);
-		}
-		private bool _ShowD4;
-		public bool ShowD4
-		{
-			get => _ShowD4;
-			set => SetProperty(ref _ShowD4, value);
-		}
-		private bool _ShowD5;
-		public bool ShowD5
-		{
-			get => _ShowD5;
-			set => SetProperty(ref _ShowD5, value);
-		}
-		private bool _ShowD6;
-		public bool ShowD6
-		{
-			get => _ShowD6;
-			set => SetProperty(ref _ShowD6, value);
 		}
 
 		#endregion
@@ -298,31 +206,6 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		private static void DoSelectAll()
-		{
-			MyVModel?.DoSelection(true);
-		}
-
-		private static void DoSelectNone()
-		{
-			MyVModel?.DoSelection(false);
-		}
-
-		private void DoSelection(bool isOn)
-		{
-			ShowTHD = isOn;
-			ShowTHDN = isOn;
-			ShowMagnitude = isOn;
-			//ShowPhase = isOn;	// not yet implemented so don't enable it
-			ShowNoise = isOn;
-			ShowNoiseFloor = isOn;
-			ShowD2 = isOn;
-			ShowD3 = isOn;
-			ShowD4 = isOn;
-			ShowD5 = isOn;
-			ShowD6 = isOn;
-		}
-
 		// this always uses the 'global' format so others work too
 		private static string FormatValue(double d1, double dMax)
 		{
@@ -370,13 +253,6 @@ namespace QA40xPlot.ViewModels
 		private static async Task GetItTab()
 		{
 			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, false);
-		}
-
-		private static string FileAddon()
-		{
-			DateTime now = DateTime.Now;
-			string formattedDate = $"{now:yyyy-MM-dd_HH-mm-ss}";
-			return formattedDate;
 		}
 
 		private static void SaveItTab()

@@ -160,18 +160,25 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <CheckBox Content="Magnitude" IsChecked="{Binding ShowMagnitude}" Grid.Row="0"  />
-                        <CheckBox Content="THD" IsChecked="{Binding ShowTHD}" Grid.Row="1" Grid.Column="0"  />
-                        <CheckBox Content="THD+N" IsChecked="{Binding ShowTHDN}" Grid.Row="1" Grid.Column="1"  />
-                        <CheckBox Content="D2" IsChecked="{Binding ShowD2}" Grid.Row="2" Grid.Column="0"  />
-                        <CheckBox Content="D3" IsChecked="{Binding ShowD3}" Grid.Row="2" Grid.Column="1"  />
-                        <CheckBox Content="D4" IsChecked="{Binding ShowD4}" Grid.Row="3"  Grid.Column="0" />
-                        <CheckBox Content="D5" IsChecked="{Binding ShowD5}" Grid.Row="3" Grid.Column="1" />
-                        <CheckBox Content="D6+" IsChecked="{Binding ShowD6}" Grid.Row="4" Grid.Column="0" />
-                        <CheckBox Content="Noise Floor" IsChecked="{Binding ShowNoiseFloor}" Grid.Row="5" Grid.Column="0"  />
-                        <CheckBox Content="Test Info" ToolTip="{Binding TabInfoTip}"
-                              IsChecked="{Binding ShowTabInfo}" Grid.Row="6" Grid.Column="0"  />
-                        <CheckBox Content="Mini-Plots" ToolTip="{Binding MiniPlotsTip}"
-                              IsChecked="{Binding KeepMiniPlots}" Grid.Row="7" Grid.Column="0"  />
+                        <Button Content="&#x2714;" Width="26" Height="16" 
+                                Padding="0,-4,0,0"
+                                VerticalContentAlignment="Top" FontSize="12" BorderBrush="Gray"
+                                Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right"
+                                Command="{Binding SelectAll}"  />
+                        <Button Content="&#x2610;" Width="26" Height="16"
+                                Padding="0,-4,0,0"
+                                VerticalAlignment="Center" FontSize="12" BorderBrush="Gray"
+                                Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right"
+                                Command="{Binding SelectNone}" />
+                        <CheckBox Content="Noise Density" IsChecked="{Binding ShowNoise}" Grid.Row="1" Grid.Column="0"  />
+                        <CheckBox Content="Noise Floor" IsChecked="{Binding ShowNoiseFloor}" Grid.Row="2" Grid.Column="0"  />
+                        <CheckBox Content="THD" IsChecked="{Binding ShowTHD}" Grid.Row="3" Grid.Column="0"  />
+                        <CheckBox Content="THD+N" IsChecked="{Binding ShowTHDN}" Grid.Row="3" Grid.Column="1"  />
+                        <CheckBox Content="D2" IsChecked="{Binding ShowD2}" Grid.Row="4" Grid.Column="0"  />
+                        <CheckBox Content="D3" IsChecked="{Binding ShowD3}" Grid.Row="4" Grid.Column="1"  />
+                        <CheckBox Content="D4" IsChecked="{Binding ShowD4}" Grid.Row="5"  Grid.Column="0" />
+                        <CheckBox Content="D5" IsChecked="{Binding ShowD5}" Grid.Row="5" Grid.Column="1" />
+                        <CheckBox Content="D6+" IsChecked="{Binding ShowD6}" Grid.Row="6" Grid.Column="0" />
                     </Grid>
                 </Expander>
 
@@ -184,13 +191,20 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="0"  />
-                        <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="1"  />
+                        <CheckBox Content="Test Info" ToolTip="{Binding TabInfoTip}"
+                                  IsChecked="{Binding ShowTabInfo}" Grid.Row="0" Grid.Column="0"  />
+                        <CheckBox Content="Mini-Plots" ToolTip="{Binding MiniPlotsTip}"
+                                  IsChecked="{Binding KeepMiniPlots}" Grid.Row="1" Grid.Column="0"  />
                         <CheckBox Content="Legend" ToolTip="{Binding ShowLegendTip}"
-                            IsChecked="{Binding ShowLegend}" Grid.Row="2" Grid.Column="0"  />
+                                IsChecked="{Binding ShowLegend}" Grid.Row="2" Grid.Column="0"  />
                         <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="3"  />
                         <CheckBox Content="Data Points" IsChecked="{Binding ShowPoints}" Grid.Row="4"  />
+                        <CheckBox Content="Left Channel" IsChecked="{Binding ShowLeft}" Grid.Row="5"  />
+                        <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="6"  />
+                        <Button  Content="Edit Palette" Command="{Binding EditPaletteCommand}" Margin="12, 2" Grid.Row="7"></Button>
                     </Grid>
                 </Expander>
                 <views:CursorExpander Head="Generator:" />

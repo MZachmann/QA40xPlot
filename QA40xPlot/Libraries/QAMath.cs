@@ -1,6 +1,7 @@
 ﻿using FftSharp;
 using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
+using ScottPlot;
 using System.Diagnostics;
 using System.Numerics;
 using System.Windows;
@@ -236,6 +237,10 @@ namespace QA40xPlot.Libraries
 			if (gw.Name == "Multitone")
 			{
 				return MakeMultitone(gw, samples);
+			}
+			if(gw.Name == "WaveFile")
+			{
+				return WaveGenerator.ReadWaveFile(gw.WaveFile, (uint)samples.SampleRate, (uint)samples.SampleSize, gw.Voltage);
 			}
 
 			var dvamp = gw.Voltage * Math.Sqrt(2); // rms voltage -> peak voltage

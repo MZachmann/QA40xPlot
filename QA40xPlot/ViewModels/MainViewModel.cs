@@ -18,8 +18,8 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public List<string> PageNames { get; } = new List<string>
 		{
-			"Spectrum",	"Intermodulation","Scope", "ThdFreq", "Opamp.Freq",
-			"ThdAmp", "Response", "Opamp.Amp",
+			"Spectrum",	"Intermodulation","Scope", "ThdFreq", "ThdAmp", "Opamp.Freq",
+			"Opamp.Amp", "Response",
 			"Settings", "Impedance", "Crosstalk", "Gain",
 		};
 		[JsonIgnore]
@@ -245,13 +245,6 @@ namespace QA40xPlot.ViewModels
 		{
 		}
 
-		private static string FileAddon()
-		{
-			DateTime now = DateTime.Now;
-			string formattedDate = $"{now:yyyy-MM-dd_HH-mm-ss}";
-			return formattedDate;
-		}
-
 		public static void SaveToPng(Window wnd, string filename)
 		{
 			var pngData = GraphUtil.CopyAsBitmap(wnd);
@@ -273,10 +266,10 @@ namespace QA40xPlot.ViewModels
 				// Get the width and height of the main window
 				if (wndw?.WindowState == WindowState.Normal)
 				{
-					double windowWidth = wndw.Width;
-					double windowHeight = wndw.Height;
-					double Xoffset = wndw.Left;
-					double Yoffset = wndw.Top;
+					var windowWidth = (int)wndw.Width;
+					var windowHeight = (int)wndw.Height;
+					var Xoffset = (int)wndw.Left;
+					var Yoffset = (int)wndw.Top;
 					var r = new Rect(Xoffset, Yoffset, windowWidth, windowHeight);
 					rs = r.ToString();
 				}

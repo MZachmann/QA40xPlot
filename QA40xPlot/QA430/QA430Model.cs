@@ -44,8 +44,9 @@ namespace QA40xPlot.QA430
 		public int Distgain;    // distortion gain for use by app
 		public double SupplyP;  // supply positive voltage
 		public double SupplyN;  // supply negative voltage
-		public double GenVolt { get; set; } // generator voltage
-		public string GenVoltFmt { get; set; } // generator voltage formatted
+		public double GenVolt { get; set; } // generator voltage (freq sweep)
+		public string GenXFmt { get; set; } // format the swept value
+		public double GenFrequency { get; set; } // generator frequency (amp sweep)
 
 		public AcquireStep(AcquireStep asIn)
 		{
@@ -56,7 +57,8 @@ namespace QA40xPlot.QA430
 			SupplyP = asIn.SupplyP;
 			SupplyN = asIn.SupplyN;
 			GenVolt = asIn.GenVolt;
-			GenVoltFmt = asIn.GenVoltFmt;
+			GenXFmt = asIn.GenXFmt;
+			GenFrequency = asIn.GenFrequency;
 		}
 
 		public string ToSuffix(bool addVolt, bool hasQa430)
@@ -70,11 +72,11 @@ namespace QA40xPlot.QA430
 				else
 					sout = $"{aload};+{SupplyP}|-{SupplyN}VDC;Gain={Gain}";
 				if (addVolt)
-					sout = sout + ";@" + GenVoltFmt;
+					sout = sout + ";@" + GenXFmt;
 			}
 			else
 			{
-				sout = "@" + GenVoltFmt;
+				sout = "@" + GenXFmt;
 			}
 			return sout;
 		}

@@ -159,7 +159,7 @@ namespace QA40xPlot.Libraries
 		/// </summary>
 		/// <param name="dBV">The maximum level in dBV</param>
 		/// <returns>The attenuation in dB</returns>
-		public static int DetermineAttenuation(double dBV)
+		public static int   DetermineAttenuation(double dBV)
 		{
 			var gain = MathUtil.ToDouble(ViewSettings.ExternalGain, 0);
 			if (gain != 0.0)

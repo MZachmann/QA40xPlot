@@ -33,8 +33,8 @@
                         Command="{Binding SetPlotPage}" CommandParameter="Opamp.Freq" />
             <Button Content="A" Width="30" Padding="0,5" ToolTip="THD vs Amplitude" 
                     BorderBrush="Transparent" Background="Transparent"
-                        IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=ThdAmp}"
-                        Command="{Binding SetPlotPage}" CommandParameter="ThdAmp" />
+                        IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=Opamp.Amp}"
+                        Command="{Binding SetPlotPage}" CommandParameter="Opamp.Amp" />
             <Button Content="R" Width="30" Padding="0,5" ToolTip="Frequency Response" 
                     BorderBrush="Transparent" Background="Transparent"
                         IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=Response}"

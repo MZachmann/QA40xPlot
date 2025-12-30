@@ -68,13 +68,13 @@
                         <MenuItem Header="_Intermodulation" Command="{Binding SetPlotPage}" CommandParameter="Intermodulation" />
                         <MenuItem Header="Sco_pe" Command="{Binding SetPlotPage}" CommandParameter="Scope" />
                         <MenuItem Header="THD vs _Frequency" Command="{Binding SetPlotPage}" CommandParameter="Opamp.Freq" />
-                        <MenuItem Header="THD vs _Amplitude" Command="{Binding SetPlotPage}" CommandParameter="ThdAmp" />
+                        <MenuItem Header="THD vs _Amplitude" Command="{Binding SetPlotPage}" CommandParameter="Opamp.Amp" />
                         <MenuItem Header="Frequency _Response" Command="{Binding SetPlotPage}" CommandParameter="Response" />
                         <MenuItem Header="S_ettings" Command="{Binding SetPlotPage}" CommandParameter="Settings" />
-                        <MenuItem Header="Opamp vs Amplitude" Command="{Binding SetPlotPage}"
+                        <!--<MenuItem Header="Opamp vs Amplitude" Command="{Binding SetPlotPage}"
                           CommandParameter="Opamp.Amp"
                           Visibility="{Binding ShowQA430, Converter={StaticResource BoolVisConverter}}"
-                          />
+                          />-->
                     </MenuItem>
                     <MenuItem Header="_Command">
                         <MenuItem Header="Show _QA430" Click="OnQA430"
@@ -121,25 +121,24 @@
                     <views:ThdFreqPlotPage  />
                 </Grid>
             </TabItem>
+            <TabItem Header="THD vs Amplitude" Name="tva" MaxWidth="{Binding MaxTab}" Visibility="Collapsed">
+                <Grid Background="{Binding Background, Mode=OneWay}">
+                    <views:ThdAmpPlotPage  />
+                </Grid>
+            </TabItem>
             <TabItem Header="THD vs Frequency" Name="freqsweep"  MaxWidth="{Binding MaxTab}" >
                 <Grid Background="{Binding Background, Mode=OneWay}">
                     <views:FreqSweepPlotPage  />
                 </Grid>
             </TabItem>
-            <TabItem Header="THD vs Amplitude" Name="tva" MaxWidth="{Binding MaxTab}">
+            <TabItem Header="THD vs Amplitude" Name="ampsweep" MaxWidth="{Binding MaxTab}">
                 <Grid Background="{Binding Background, Mode=OneWay}">
-                    <views:ThdAmpPlotPage  />
+                    <views:AmpSweepPlotPage  />
                 </Grid>
             </TabItem>
             <TabItem Header="{Binding FreqRespHdr}" Name="freqresp"  MaxWidth="{Binding MaxTab}" >
                 <Grid Background="{Binding Background, Mode=OneWay}">
                     <views:FreqRespPlotPage  />
-                </Grid>
-            </TabItem>
-            <TabItem Header="Opamp.Amp" Name="ampsweep"  MaxWidth="{Binding MaxTab}"
-                     Visibility="Collapsed" >
-                <Grid Background="{Binding Background, Mode=OneWay}">
-                    <views:AmpSweepPlotPage  />
                 </Grid>
             </TabItem>
             <TabItem Header="Settings" Name="settings"  MaxWidth="{Binding MaxTab}">

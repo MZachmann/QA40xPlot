@@ -267,13 +267,6 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		private static string FileAddon()
-		{
-			DateTime now = DateTime.Now;
-			string formattedDate = $"{now:yyyy-MM-dd_HH-mm-ss}";
-			return formattedDate;
-		}
-
 		private static async Task LoadIt()
 		{
 			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, true);

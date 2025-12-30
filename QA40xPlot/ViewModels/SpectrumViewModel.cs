@@ -242,13 +242,6 @@ namespace QA40xPlot.ViewModels
 			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, false);
 		}
 
-		private static string FileAddon()
-		{
-			DateTime now = DateTime.Now;
-			string formattedDate = $"{now:yyyy-MM-dd_HH-mm-ss}";
-			return formattedDate;
-		}
-
 		private void WaveSelect()
 		{
 			var vu = WaveGenerator.FindWaveFileName(GenWavFile);

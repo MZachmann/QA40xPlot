@@ -39,27 +39,6 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand DoSaveTab { get => new RelayCommand(SaveItTab); }
 
 		#region Setters and Getters
-		private bool _VaryLoad = false;
-		public bool VaryLoad
-		{
-			get => _VaryLoad;
-			set { SetProperty(ref _VaryLoad, value); RaisePropertyChanged("LoadSummary"); }
-		}
-
-		private bool _VaryGain = false;
-		public bool VaryGain
-		{
-			get => _VaryGain;
-			set { SetProperty(ref _VaryGain, value); RaisePropertyChanged("GainSummary"); }
-		}
-
-		private bool _VarySupply = false;
-		public bool VarySupply
-		{
-			get => _VarySupply;
-			set => SetProperty(ref _VarySupply, value);
-		}
-
 		private string _StartVoltage = string.Empty;         // type of alert
 		public string StartVoltage
 		{
@@ -111,60 +90,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowPercent, value);
 		}
 
-		private bool _ShowTHD;
-		public bool ShowTHD
-		{
-			get => _ShowTHD;
-			set => SetProperty(ref _ShowTHD, value);
-		}
-		private bool _ShowTHDN;
-		public bool ShowTHDN
-		{
-			get => _ShowTHDN;
-			set => SetProperty(ref _ShowTHDN, value);
-		}
-		private bool _ShowMagnitude;
-		public bool ShowMagnitude
-		{
-			get => _ShowMagnitude;
-			set => SetProperty(ref _ShowMagnitude, value);
-		}
-		private bool _ShowD2;
-		public bool ShowD2
-		{
-			get => _ShowD2;
-			set => SetProperty(ref _ShowD2, value);
-		}
-		private bool _ShowD3;
-		public bool ShowD3
-		{
-			get => _ShowD3;
-			set => SetProperty(ref _ShowD3, value);
-		}
-		private bool _ShowD4;
-		public bool ShowD4
-		{
-			get => _ShowD4;
-			set => SetProperty(ref _ShowD4, value);
-		}
-		private bool _ShowD5;
-		public bool ShowD5
-		{
-			get => _ShowD5;
-			set => SetProperty(ref _ShowD5, value);
-		}
-		private bool _ShowD6;
-		public bool ShowD6
-		{
-			get => _ShowD6;
-			set => SetProperty(ref _ShowD6, value);
-		}
-		private bool _ShowNoiseFloor;
-		public bool ShowNoiseFloor
-		{
-			get => _ShowNoiseFloor;
-			set => SetProperty(ref _ShowNoiseFloor, value);
-		}
 		#endregion
 
 		// the property change is used to trigger repaints of the graph
@@ -244,11 +169,11 @@ namespace QA40xPlot.ViewModels
 		private static void StartIt()
 		{
 			var nowHave = QA430Model.BeginQA430Op();
-			if (!nowHave)
-			{
-				MessageBox.Show("QA-430 device not connected.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
-				return;
-			}
+			//if (!nowHave)
+			//{
+			//	MessageBox.Show("QA-430 device not connected.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+			//	return;
+			//}
 			// Implement the logic to start the measurement process
 			var vm = ViewSettings.Singleton.AmpVm;
 			vm.actSweep?.DoMeasurement();
@@ -290,14 +215,6 @@ namespace QA40xPlot.ViewModels
 		private static async Task GetItTab()
 		{
 			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, false);
-		}
-
-
-		private static string FileAddon()
-		{
-			DateTime now = DateTime.Now;
-			string formattedDate = $"{now:yyyy-MM-dd_HH-mm-ss}";
-			return formattedDate;
 		}
 
 		private void SaveItTab()
@@ -392,12 +309,12 @@ namespace QA40xPlot.ViewModels
 			var zv = MyAction.LookupX(FreqValue);
 			if (zv.Length > 0)
 			{
-				FreqShow = MathUtil.FormatLogger(zv[0].GenVolts);
+				FreqShow = MathUtil.FormatLogger(zv[0].Column.GenVolts);
 				foreach (var item in zv)
 				{
 					if (item != null)
 					{
-						ZValue += FormatCursor(item);
+						ZValue += FormatCursor(item.Column);
 						ZValue += "------------" + Environment.NewLine;
 					}
 				}

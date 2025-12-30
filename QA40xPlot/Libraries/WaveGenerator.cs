@@ -196,16 +196,7 @@ namespace QA40xPlot.Libraries
 					waves = [vw.GenParams];
 				else
 					waves = [vw.Gen2Params];
-				//Debug.Assert(waves.Min(x=>x.Voltage) > 0, "Voltage is zero");
-				//Debug.Assert(waves.Min(x=>x.Frequency) > 0, "Frequency is zero");
-				if(vw.GenParams.Name == "WaveFile")
-				{
-					wave = ReadWaveFile(vw.GenParams.WaveFile, sampleRate, sampleSize, vw.GenParams.Voltage);
-				}
-				else
-				{
-					wave = QaMath.CalculateWaveform(waves, waveSample);
-				}
+				wave = QaMath.CalculateWaveform(waves, waveSample);
 			}
 			else
 			{

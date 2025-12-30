@@ -1,12 +1,19 @@
-﻿using Newtonsoft.Json;
+﻿using CommunityToolkit.Mvvm.Input;
+using Newtonsoft.Json;
 using QA40xPlot.QA430;
 using System.ComponentModel;
+using System.Windows.Media.Media3D;
 
 namespace QA40xPlot.ViewModels
 {
 	// this add some stuff used by all the opamp tests
 	public abstract class OpampViewModel : BaseViewModel
 	{
+		[JsonIgnore]
+		public RelayCommand SelectAll { get => new RelayCommand(DoSelectAll); }
+		[JsonIgnore]
+		public RelayCommand SelectNone { get => new RelayCommand(DoSelectNone); }
+
 		public static List<string> QaLoads { get; } = new List<string>()
 		{
 			"Open", "2000 Ω", "604 Ω", "470 Ω"
@@ -61,6 +68,94 @@ namespace QA40xPlot.ViewModels
 			get => _GainSummary;
 			set => SetProperty(ref _GainSummary, value);
 		}
+		private bool _VaryLoad = false;
+		public bool VaryLoad
+		{
+			get => _VaryLoad;
+			set { SetProperty(ref _VaryLoad, value); RaisePropertyChanged("LoadSummary"); }
+		}
+
+		private bool _VaryGain = false;
+		public bool VaryGain
+		{
+			get => _VaryGain;
+			set { SetProperty(ref _VaryGain, value); RaisePropertyChanged("GainSummary"); }
+		}
+
+		private bool _VarySupply = false;
+		public bool VarySupply
+		{
+			get => _VarySupply;
+			set { SetProperty(ref _VarySupply, value); RaisePropertyChanged("SupplySummary"); }
+		}
+
+		private bool _ShowTHD;
+		public bool ShowTHD
+		{
+			get => _ShowTHD;
+			set => SetProperty(ref _ShowTHD, value);
+		}
+		private bool _ShowTHDN;
+		public bool ShowTHDN
+		{
+			get => _ShowTHDN;
+			set => SetProperty(ref _ShowTHDN, value);
+		}
+		private bool _ShowMagnitude;
+		public bool ShowMagnitude
+		{
+			get => _ShowMagnitude;
+			set => SetProperty(ref _ShowMagnitude, value);
+		}
+		private bool _ShowPhase;
+		public bool ShowPhase
+		{
+			get => _ShowPhase;
+			set => SetProperty(ref _ShowPhase, value);
+		}
+		private bool _ShowNoise;
+		public bool ShowNoise
+		{
+			get => _ShowNoise;
+			set => SetProperty(ref _ShowNoise, value);
+		}
+		private bool _ShowNoiseFloor;
+		public bool ShowNoiseFloor
+		{
+			get => _ShowNoiseFloor;
+			set => SetProperty(ref _ShowNoiseFloor, value);
+		}
+		private bool _ShowD2;
+		public bool ShowD2
+		{
+			get => _ShowD2;
+			set => SetProperty(ref _ShowD2, value);
+		}
+		private bool _ShowD3;
+		public bool ShowD3
+		{
+			get => _ShowD3;
+			set => SetProperty(ref _ShowD3, value);
+		}
+		private bool _ShowD4;
+		public bool ShowD4
+		{
+			get => _ShowD4;
+			set => SetProperty(ref _ShowD4, value);
+		}
+		private bool _ShowD5;
+		public bool ShowD5
+		{
+			get => _ShowD5;
+			set => SetProperty(ref _ShowD5, value);
+		}
+		private bool _ShowD6;
+		public bool ShowD6
+		{
+			get => _ShowD6;
+			set => SetProperty(ref _ShowD6, value);
+		}
+
 
 		public static void CheckQA430(OpampViewModel ovm)
 		{
@@ -77,6 +172,100 @@ namespace QA40xPlot.ViewModels
 					RaisePropertyChanged("HasQA430");
 					break;
 			}
+		}
+
+		// create variale list based on qa430 settings
+		public static List<AcquireStep> EnumerateVariables(OpampViewModel vm)
+		{
+			var variables = new List<AcquireStep>();
+			// now do the measurement stuff
+			try
+			{
+				// enumerate the sweeps we are going to do
+				var step = new AcquireStep() { Cfg = "Config6b", Load = QA430Model.LoadOptions.Open, Gain = 1, Distgain = 101, SupplyP = 15, SupplyN = 15 };    // unity 16b with 101 dist gain
+				if (!vm.HasQA430)
+				{
+					step.Distgain = 1;
+				}
+				variables.Add(step);
+
+				QA430Model? model430 = vm.HasQA430 ? Qa430Usb.Singleton?.QAModel : null;
+				if (model430 != null)
+				{
+					if (vm.VaryLoad)
+					{
+						variables = model430.ExpandLoadOptions(variables, vm.LoadSummary) ?? variables;
+					}
+
+					if (vm.VaryGain)
+					{
+						variables = model430.ExpandGainOptions(variables, vm.GainSummary) ?? variables;
+					}
+
+					if (vm.VarySupply)
+					{
+						variables = model430.ExpandSupplyOptions(variables, vm.SupplySummary) ?? variables;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine("EnumerateVariables exception: " + ex.Message);
+			}
+			return variables;
+		}
+
+		public async Task<string> ExecuteModel(AcquireStep myConfig, string lastCfg)
+		{
+			QA430Model? model = HasQA430 ? Qa430Usb.Singleton?.QAModel : null;
+			if (model != null)
+			{
+				if (myConfig.Cfg != lastCfg && myConfig.Cfg.Length > 0)
+				{
+					model.SetOpampConfig(myConfig.Cfg);
+					lastCfg = myConfig.Cfg;
+				}
+				if (VaryLoad)
+					model.LoadOption = (short)myConfig.Load;
+				else
+					model.LoadOption = (short)QA430Model.LoadOptions.Open;
+				if (VarySupply && myConfig.SupplyP < 15)
+				{
+					model.NegRailVoltage = (-myConfig.SupplyN).ToString();
+					model.PosRailVoltage = myConfig.SupplyP.ToString();
+					model.UseFixedRails = false;
+				}
+				else
+					model.UseFixedRails = true;
+				// now that the QA430 relays are set, wait a bit...
+				await model.WaitForQA430Relays();
+			}
+			return lastCfg;
+		}
+
+		protected void DoSelectAll()
+		{
+			DoSelection(true);
+		}
+
+		protected void DoSelectNone()
+		{
+			DoSelection(false);
+		}
+
+		protected void DoSelection(bool isOn)
+		{
+			ShowTHD = isOn;
+			ShowTHDN = isOn;
+			ShowMagnitude = isOn;
+			//ShowPhase = isOn;	// not yet implemented so don't enable it
+			ShowNoise = isOn;
+			ShowNoiseFloor = isOn;
+			ShowD2 = isOn;
+			ShowD3 = isOn;
+			ShowD4 = isOn;
+			ShowD5 = isOn;
+			ShowD6 = isOn;
 		}
 	}
 }
