@@ -684,11 +684,11 @@ namespace QA40xPlot.Actions
 					{
 						var gv = genVolt;
 						// scale to max unity gain at highest freq
-						var gvmax = RiaaTransform.Fvalue(stepBinFrequencies.Last());
-						gv = gv * RiaaTransform.Fvalue(dfreq) / gvmax;
+						var gvmax = RiaaTransform.Fvalue3(stepBinFrequencies.Last());
+						gv = gv * RiaaTransform.Fvalue3(dfreq) / gvmax;
 						// enable both generators here with one riaa preemph
 						WaveGenerator.SetGen1(true, dfreq, gv, true);
-						WaveGenerator.SetGen1(false, dfreq, genVolt, true);
+						WaveGenerator.SetGen1(false, dfreq, (ttype != TestingType.Gain) ? gv : genVolt, true);
 						WaveContainer.SetStereo();	// use both channels of generator
 					}
 					else
@@ -760,11 +760,15 @@ namespace QA40xPlot.Actions
 			if(vm.IsRiaa)
 			{
 				// time domain filtering to riaa preemphasis
-				var bq = BiquadBuilder.BuildRiaaBiquad(vm.SampleRateVal, true);
+				var bq = BiquadBuilder.BuildRiaaBiquad(vm.SampleRateVal, false);
 				ucLeft = chirpy.Select(x => bq.Process(x)).ToArray();
 			}
 			var blank = new double[chirpy.Length];
 			var ucRight = (channels == WaveChannels.Both || channels == WaveChannels.Right) ? chirpy : blank;
+			if(vm.GetTestingType(vm.TestType) == TestingType.Response)
+			{
+				ucRight = (channels == WaveChannels.Both || channels == WaveChannels.Right) ? ucLeft : blank;
+			}
 			ucLeft = (channels == WaveChannels.Both || channels == WaveChannels.Left) ? ucLeft : blank;
 			LeftRightSeries lfrs = await QaComm.DoAcquireUser(1, ct.Token, ucLeft, ucRight, false);
 			if (lfrs?.TimeRslt == null)

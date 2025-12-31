@@ -265,7 +265,7 @@ namespace QA40xPlot.Libraries
 					return chirpTwo;
 				case "RiaaChirp":
 					var chirp3 = Chirps.ChirpVp(samples.SampleSize, samples.SampleRate, gw.Voltage, 20, 20000, 0.8);
-					var bq = BiquadBuilder.BuildRiaaBiquad((uint)samples.SampleRate, true);
+					var bq = BiquadBuilder.BuildRiaaBiquad((uint)samples.SampleRate, false);
 					chirp3 = chirp3.Select(x => bq.Process(x)).ToArray();
 					return chirp3;
 				default:

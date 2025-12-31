@@ -63,6 +63,18 @@ namespace QA40xPlot.Libraries
 
 		// apply the transform to a frequency via complex math
 		// but return the magnitude since we don't really have a passive network
+		public static double Fvalue3(double freq)
+		{
+			var f1 = new Complex(1, x1 * freq);
+			var f2 = new Complex(1, x2 * freq);
+			var f3 = new Complex(1, x3 * freq);
+			var f4 = new Complex(1, 0); // high frequency wall
+			var udiv = ((f1 * f3) / (f2 * f4)).Magnitude;
+			return udiv;
+		}
+
+		// apply the transform to a frequency via complex math
+		// but return the magnitude since we don't really have a passive network
 		public static double Fvalue(double freq)
 		{
 			var f1 = new Complex(1, x1 * freq);
@@ -101,7 +113,7 @@ namespace QA40xPlot.Libraries
 		{
 			_Df = df;
 			_SampleSize = sampleSize;
-			_RiaaFilter = Enumerable.Range(0, (int)sampleSize / 2).Select((x, i) => RiaaTransform.Fvalue(i * df)).ToArray();
+			_RiaaFilter = Enumerable.Range(0, (int)sampleSize / 2).Select((x, i) => RiaaTransform.Fvalue3(i * df)).ToArray();
 			var at1000 = _RiaaFilter.Max();	// maximum gain of 1
 			_RiaaFilter = _RiaaFilter.Select(x => x / at1000).ToArray();
 		}
