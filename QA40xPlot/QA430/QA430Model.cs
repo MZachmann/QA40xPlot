@@ -100,6 +100,7 @@ namespace QA40xPlot.QA430
 		// current sense enable
 		// supply enable
 		public static List<string> DistortionConfigs { get; } = ["Config6b", "Config7b", "Config4b", "Config5b"];
+		public static List<string> LowDistortionConfigs { get; } = ["Config6a", "Config7a", "Config4a", "Config5a"];
 
 		// choice names for combo boxes
 		public static List<string> NegInputs { get; } = new() { "Signal + 499 Ω", "Gnd + 4.99 Ω", "Open", "Signal + 4.99K Ω", "Gnd + 499 Ω" };
@@ -565,10 +566,11 @@ namespace QA40xPlot.QA430
 			return newSteps;
 		}
 
-		private QA430Config? GainToConfig(int gainValue)
+		private QA430Config? GainToConfig(int gainValue, bool useHighDistortion)
 		{
 			QA430Model? model430 = Qa430Usb.Singleton?.QAModel;
-			foreach(var config in DistortionConfigs)
+			var configSet = useHighDistortion ? DistortionConfigs : LowDistortionConfigs;
+			foreach (var config in configSet)
 			{
 				QA430Config? cfg = model430?.FindOpampConfig(config);
 				if(cfg?.CfgGain == gainValue)
@@ -579,7 +581,7 @@ namespace QA40xPlot.QA430
 			return model430?.FindOpampConfig("Config6b"); // default
 		}
 
-		public List<AcquireStep> ExpandGainOptions(List<AcquireStep> srcSteps, string gainOpts)
+		public List<AcquireStep> ExpandGainOptions(List<AcquireStep> srcSteps, string gainOpts, bool useHigh)
 		{
 			var gainSet = SelectItemList.ParseList(gainOpts).Where(x => x.IsSelected).ToList();        // convert to a list of items
 			if (gainSet == null || gainSet.Count == 0)
@@ -590,7 +592,7 @@ namespace QA40xPlot.QA430
 			foreach(var opt in gainSet)
 			{
 				var gain = MathUtil.ToDouble(opt.Name, -150);
-				var cfg = GainToConfig((int)gain);
+				var cfg = GainToConfig((int)gain, useHigh);
 				if (cfg == null)
 					continue;
 				foreach (var step in srcSteps)

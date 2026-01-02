@@ -17,47 +17,7 @@
             <StackPanel Margin="0,1,1,0">
                 <views:StartStop />
                 <views:Attenuator AttnAtStart="False"  />
-                <Expander Header="—— Variables" IsExpanded="{Binding ExpandVars}" Visibility="{Binding HasQA430, Converter={StaticResource BoolVisConverter}}"  >
-                    <Grid >
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="{Binding LeftWidth}" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" MinWidth="10" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        <!-- do this strange StackPanel thing because dark mode messes up the checkbox alignments -->
-                        <StackPanel Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center" >
-                            <CheckBox Content="_Load" IsChecked="{Binding VaryLoad}" ToolTip="Default Open if unchecked" Margin="0,0,10,0" />
-                        </StackPanel>
-                        <views:ComboDrop TheText="{Binding LoadSummary}" TheSource="{Binding QaLoads}" 
-                                         IsEditable="False"
-                                         Grid.Row="0" Grid.Column="1" 
-                                         />
-                        <StackPanel Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center" >
-                            <CheckBox Content="Gain" IsChecked="{Binding VaryGain}" ToolTip="Default 1 if unchecked"  Margin="0,0,10,0" />
-                        </StackPanel>
-                        <views:ComboDrop TheText="{Binding GainSummary}" TheSource="{Binding QaGains}" 
-                                         IsEditable="False"
-                                         Grid.Row="1" Grid.Column="1" 
-                                         />
-                        <StackPanel Grid.Row="2" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <CheckBox Content="Supply" IsChecked="{Binding VarySupply}" Margin="0,0,10,0" 
-                                      ToolTip="{Binding SupplyTip}" />
-                        </StackPanel>
-                        <views:ComboDrop TheText="{Binding SupplySummary}" TheSource="{Binding GenVoltages}" 
-                                         IsEditable="True"
-                                         Grid.Row="2" Grid.Column="1" 
-                                         />
-                        <Label Content="V" Grid.Row="2" Grid.Column="2" />
-                    </Grid>
-                </Expander>
+                <views:Intro430 />
                 <Expander Header="—— Generator" IsExpanded="{Binding ExpandGenerator}"  >
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -82,7 +42,7 @@
                         <Label Content="{Binding GenAmpDescript, Mode=OneWay}" Target="{Binding ElementName=cbTV, Path=ValueComboBox}" 
                            HorizontalAlignment="Right" VerticalAlignment="Center"  Grid.Column="0" Grid.Row="1" />
                         <views:ComboDrop TheText="{Binding VoltSummary}" TheSource="{Binding GenVoltages}" 
-                                        IsEditable="True" x:Name="cbTV"
+                                        IsEditable="True" x:Name="cbTV"  TheTitle="{Binding GenAmpDescript, Mode=OneWay}"
                                         Grid.Row="1" Grid.Column="1" 
                                         />
                         <Button BorderThickness="0,0,0,1" Command="{Binding ShowMenuCommand}" Grid.Row="1" Grid.Column="2" 

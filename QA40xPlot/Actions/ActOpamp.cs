@@ -56,8 +56,7 @@ namespace QA40xPlot.Actions
 			for (i = 0; i < columns.Count; i++)
 			{
 				var c = columns[i];
-				var cd = line.Columns.Append(c);
-				line.Columns = cd.ToArray();
+				line.Columns = line.Columns.Append(c).ToArray();
 				if (i < (columns.Count - 1))
 				{
 					var useC = isFreq ? (columns[i + 1].Freq <= c.Freq) : (columns[i + 1].GenVolts <= c.GenVolts);
@@ -84,6 +83,46 @@ namespace QA40xPlot.Actions
 			return new double[] { col.Freq, col.Mag, col.Phase, col.THD, col.THDN, col.Noise, col.NoiseFloor, col.GenVolts, col.D2, col.D3, col.D4, col.D5, col.D6P };
 		}
 
+		// here the gain is 1/actual gain if we're converting back
+		protected void ApplyGain(SweepColumn col, double gain)
+		{
+			col.THD *= gain;
+			col.THDN *= gain;
+			col.Noise *= gain;
+			col.NoiseFloor *= gain;
+			col.D2 *= gain;
+			col.D3 *= gain;
+			col.D4 *= gain;
+			col.D5 *= gain;
+			col.D6P *= gain;
+		}
+
+		protected SweepColumn DeembedColumns(SweepColumn left, SweepColumn right, double DistGain)
+		{
+			SweepColumn cout = new(left);
+			ApplyGain(cout, DistGain);   // reverse out gain application
+			if (cout.THD > right.THD)
+				cout.THD = Math.Sqrt((cout.THD * cout.THD) - (right.THD * right.THD));
+			if(cout.THDN > right.THDN)
+				cout.THDN = Math.Sqrt((cout.THDN * cout.THDN) - (right.THDN * right.THDN));
+			if(cout.Noise > right.Noise)
+				cout.Noise = Math.Sqrt((cout.Noise * cout.Noise) - (right.Noise * right.Noise));
+			if(cout.NoiseFloor > right.NoiseFloor)
+				cout.NoiseFloor = Math.Sqrt((cout.NoiseFloor * cout.NoiseFloor) - (right.NoiseFloor * right.NoiseFloor));
+			if(cout.D2 > right.D2)
+				cout.D2 = Math.Sqrt((cout.D2 * cout.D2) - (right.D2 * right.D2));
+			if(cout.D3 > right.D3)
+				cout.D3 = Math.Sqrt((cout.D3 * cout.D3) - (right.D3 * right.D3));
+			if(cout.D4 > right.D4)
+				cout.D4 = Math.Sqrt((cout.D4 * cout.D4) - (right.D4 * right.D4));
+			if(cout.D5 > right.D5)
+				cout.D5 = Math.Sqrt((cout.D5 * cout.D5) - (right.D5 * right.D5));
+			if(cout.D6P > right.D6P)
+				cout.D6P = Math.Sqrt((cout.D6P * cout.D6P) - (right.D6P * right.D6P));
+			ApplyGain(cout, 1 / DistGain);   // put gain back
+			return cout;
+		}
+
 		/// <summary>
 		/// do post processing, just a bunch of easy math and moving stuff into viewmodels
 		/// </summary>
@@ -104,9 +143,10 @@ namespace QA40xPlot.Actions
 
 			var maxf = .95 * lfrs.Df * lfrs.Left.Length;    // skip the end-gunk
 			var maxScan = Math.Min(ViewSettings.NoiseBandwidth, maxf);  // opamps use 80KHz bandwidth, audio uses 20KHz
+			var minScan = (ViewSettings.NoiseBandwidth > 20000) ? 30 : 20;	// ??
 
-			LeftRightPair thds = QaCompute.GetThdDb(bvm.WindowingMethod, lfrs, dFreq, 20.0, maxf);
-			LeftRightPair thdN = QaCompute.GetThdnDb(bvm.WindowingMethod, lfrs, dFreq, 20.0, maxScan, ViewSettings.NoiseWeight);
+			LeftRightPair thds = QaCompute.GetThdDb(bvm.WindowingMethod, lfrs, dFreq, lfrs.Df, maxf);	// use all available data
+			LeftRightPair thdN = QaCompute.GetThdnDb(bvm.WindowingMethod, lfrs, dFreq, minScan, maxScan, ViewSettings.NoiseWeight);
 
 			var floor = noiseFloor;
 			double dmult = acqConfig.Distgain;
@@ -138,20 +178,22 @@ namespace QA40xPlot.Actions
 				}
 				if (!bl)
 				{
-					step.NoiseFloor = floor.Right / dmult; // noise floor
+					step.NoiseFloor = floor.Right; // noise floor
 					if (lfrsNoise != null)
-						step.Noise = GetNoiseSmooth(lfrsNoise.Right, lfrsNoise.Df, dFreq) / dmult; // noise density smoothed
+						step.Noise = GetNoiseSmooth(lfrsNoise.Right, lfrsNoise.Df, dFreq); // noise density smoothed
 				}
 				else
 				{
-					step.NoiseFloor = floor.Left / dmult; // noise floor
+					step.NoiseFloor = floor.Left; // noise floor
 					if (lfrsNoise != null)
-						step.Noise = GetNoiseSmooth(lfrsNoise.Left, lfrsNoise.Df, dFreq) / dmult; // noise density smoothed
+						step.Noise = GetNoiseSmooth(lfrsNoise.Left, lfrsNoise.Df, dFreq); // noise density smoothed
 				}
 
 				// divide by the amount of distortion gain since that is a voltage gain
-				step.THD /= dmult;
-				step.THDN /= dmult;
+				if(dmult != 1.0)
+				{
+					ApplyGain(step, 1 / dmult);
+				}
 			}
 
 			return (left, right);

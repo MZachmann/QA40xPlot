@@ -16,7 +16,7 @@ namespace QA40xPlot.ViewModels
 		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 		public static List<String> StartVoltages { get => new List<string> { "0.0001", "0.0002", "0.0005", "0.001", "0.002", "0.005", "0.01", "0.02", "0.05", "0.1", "0.2", "0.5" }; }
 		public static List<String> EndVoltages { get => new List<string> { "1", "2", "5", "10", "20", "50", "100", "200" }; }
-		private static ThdAmpViewModel MyVModel { get => ViewSettings.Singleton.ThdAmp; }
+		private static ThdAmpViewModel MyVModel { get => new(); }
 
 		private ActThdAmplitude MyAction { get => actThd; }
 		private ActThdAmplitude actThd { get; set; }
@@ -218,14 +218,14 @@ namespace QA40xPlot.ViewModels
 		private static void StartIt()
 		{
 			// Implement the logic to start the measurement process
-			var vm = ViewSettings.Singleton.ThdAmp;
-			vm.actThd?.DoMeasurement();
+			//var vm = ViewSettings.Singleton.ThdAmp;
+			//vm.actThd?.DoMeasurement();
 		}
 
 		private static void StopIt()
 		{
-			var vm = ViewSettings.Singleton.ThdAmp;
-			vm.actThd?.DoCancel();
+			//var vm = ViewSettings.Singleton.ThdAmp;
+			//vm.actThd?.DoCancel();
 		}
 
 		private void ShowInfos()
@@ -304,8 +304,8 @@ namespace QA40xPlot.ViewModels
 		// here's the tracker event handler
 		private static void DoMouseTracked(object sender, MouseEventArgs e)
 		{
-			var thdAmpVm = ViewSettings.Singleton.ThdAmp;
-			thdAmpVm.DoMouse(sender, e);
+			//var thdAmpVm = ViewSettings.Singleton.ThdAmp;
+			//thdAmpVm.DoMouse(sender, e);
 		}
 
 		// this always uses the 'global' format so others work too

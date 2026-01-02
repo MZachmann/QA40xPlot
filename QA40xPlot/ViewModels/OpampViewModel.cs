@@ -30,6 +30,22 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public bool HasQA430 { get; set; }
 
+		//we're not using those so don't save it... always false iow
+		private bool _DeembedDistortion = false;
+		[JsonIgnore]
+		public bool DeembedDistortion
+		{
+			get => _DeembedDistortion;
+			set => SetProperty(ref _DeembedDistortion, value);
+		}
+
+		private bool _UseHighDistortion = true;
+		public bool UseHighDistortion
+		{
+			get => _UseHighDistortion;
+			set => SetProperty(ref _UseHighDistortion, value);
+		}
+
 		// when this is saved it shows the current settings
 		private string _SupplySummary = "15";
 		public string SupplySummary
@@ -67,26 +83,6 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _GainSummary;
 			set => SetProperty(ref _GainSummary, value);
-		}
-		private bool _VaryLoad = false;
-		public bool VaryLoad
-		{
-			get => _VaryLoad;
-			set { SetProperty(ref _VaryLoad, value); RaisePropertyChanged("LoadSummary"); }
-		}
-
-		private bool _VaryGain = false;
-		public bool VaryGain
-		{
-			get => _VaryGain;
-			set { SetProperty(ref _VaryGain, value); RaisePropertyChanged("GainSummary"); }
-		}
-
-		private bool _VarySupply = false;
-		public bool VarySupply
-		{
-			get => _VarySupply;
-			set { SetProperty(ref _VarySupply, value); RaisePropertyChanged("SupplySummary"); }
 		}
 
 		private bool _ShowTHD;
@@ -182,30 +178,19 @@ namespace QA40xPlot.ViewModels
 			try
 			{
 				// enumerate the sweeps we are going to do
-				var step = new AcquireStep() { Cfg = "Config6b", Load = QA430Model.LoadOptions.Open, Gain = 1, Distgain = 101, SupplyP = 15, SupplyN = 15 };    // unity 16b with 101 dist gain
-				if (!vm.HasQA430)
+				var step = new AcquireStep() { Cfg = "Config6b", Load = QA430Model.LoadOptions.Open, Gain = 1, Distgain = 101, SupplyP = 15, SupplyN = 15 };    // unity 6b with 101 dist gain
+				if(!vm.HasQA430 || !vm.UseHighDistortion)
 				{
-					step.Distgain = 1;
+					step = new AcquireStep() { Cfg = "Config6a", Load = QA430Model.LoadOptions.Open, Gain = 1, Distgain = 1, SupplyP = 15, SupplyN = 15 };    // unity 6a with 1 dist gain
 				}
 				variables.Add(step);
 
 				QA430Model? model430 = vm.HasQA430 ? Qa430Usb.Singleton?.QAModel : null;
 				if (model430 != null)
 				{
-					if (vm.VaryLoad)
-					{
-						variables = model430.ExpandLoadOptions(variables, vm.LoadSummary) ?? variables;
-					}
-
-					if (vm.VaryGain)
-					{
-						variables = model430.ExpandGainOptions(variables, vm.GainSummary) ?? variables;
-					}
-
-					if (vm.VarySupply)
-					{
-						variables = model430.ExpandSupplyOptions(variables, vm.SupplySummary) ?? variables;
-					}
+					variables = model430.ExpandLoadOptions(variables, vm.LoadSummary) ?? variables;
+					variables = model430.ExpandGainOptions(variables, vm.GainSummary, vm.UseHighDistortion) ?? variables;
+					variables = model430.ExpandSupplyOptions(variables, vm.SupplySummary) ?? variables;
 				}
 			}
 			catch (Exception ex)
@@ -225,11 +210,8 @@ namespace QA40xPlot.ViewModels
 					model.SetOpampConfig(myConfig.Cfg);
 					lastCfg = myConfig.Cfg;
 				}
-				if (VaryLoad)
-					model.LoadOption = (short)myConfig.Load;
-				else
-					model.LoadOption = (short)QA430Model.LoadOptions.Open;
-				if (VarySupply && myConfig.SupplyP < 15)
+				model.LoadOption = (short)myConfig.Load;
+				if (myConfig.SupplyP < 15)
 				{
 					model.NegRailVoltage = (-myConfig.SupplyN).ToString();
 					model.PosRailVoltage = myConfig.SupplyP.ToString();

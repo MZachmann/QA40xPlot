@@ -19,8 +19,13 @@
         </StackPanel>
         <Popup x:Name="ThePopup" PlacementTarget="{Binding ElementName=cbCombo}" StaysOpen="False"
                                Closed="ThePopup_Closed" >
-            <Border BorderThickness="1" >
-                <ListBox x:Name="MyList" ItemsSource="{Binding ItemsSet, ElementName=MySelf}" MinWidth="150">
+            <Border BorderThickness="1" Background="{Binding ThemeBackground}" >
+                <StackPanel Orientation="Vertical" >
+                    <Button Content="{Binding TheTitle, ElementName=MySelf}"  Click="ClosePopup"
+                            Background="Transparent" BorderThickness="0" 
+                            ToolTip="Click here or outside the popup to close it"
+                           VerticalAlignment="Center" HorizontalAlignment="Stretch" />
+                    <ListBox x:Name="MyList" ItemsSource="{Binding ItemsSet, ElementName=MySelf}" MinWidth="150">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
@@ -41,6 +46,7 @@
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
+                </StackPanel>
             </Border>
         </Popup>
     </Grid>

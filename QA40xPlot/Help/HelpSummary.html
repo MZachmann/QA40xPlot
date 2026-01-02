@@ -82,27 +82,27 @@
         </tr>
         <tr>
             <td class="auto-style1"><strong>THD vs Frequency</strong></td>
-            <td>Capture the spectrum created by a sine wave swept at multiple frequencies. Plot distortion vs frequency.</td>
+            <td>Plot distortion components vs frequency. Capture the spectrum created by a sine wave swept at multiple frequencies.</td>
         </tr>
         <tr>
             <td class="auto-style1"><strong>THD vs Amplitude</strong></td>
-            <td>Capture the spectrums created by a sine wave at the test frequency swept at multiple amplitudes. Plot distortion vs amplitude.</td>
+            <td>Plot distortion components vs amplitude. Capture the spectrums created by a sine wave at the test frequency swept at multiple amplitudes.</td>
         </tr>
         <tr>
             <td class="auto-style1"><strong>Response</strong></td>
-            <td>Capture the spectrums created by a sine wave swept at multiple frequencies. Plot output vs frequency.</td>
+            <td>Plot output level vs frequency. Capture the spectrums created by a sine wave swept at multiple frequencies. </td>
         </tr>
         <tr>
             <td class="auto-style1"><strong>Impedance</strong></td>
-            <td>Plot the impedance of the DUT at multiple swept frequencies. See below for more information on how to connect the dut.</td>
+            <td>Plot the complex impedance of the DUT vs frequency. See below for more information on how to connect the dut.</td>
         </tr>
         <tr>
             <td class="auto-style1"><strong>Gain</strong></td>
-            <td>Plot the gain and phase of the DUT at multiple swept frequencies.</td>
+            <td>Plot the gain and phase of the DUT vs frequency. See below for connection info.</td>
         </tr>
         <tr>
             <td class="auto-style1"><strong>Crosstalk</strong></td>
-            <td>Measure and plot the interchannel crosstalk by turning left/right signal on/off during the test.</td>
+            <td>Measure and plot the interchannel crosstalk by turning left/right signal on/off during the test. See below for connection info.</td>
         </tr>
     </tbody>
 </table>
@@ -225,7 +225,7 @@ Along the top right of the screen are a few command buttons. If this becomes too
 <p>All 3 response tests (Response, Gain, Impedance) use a single generator voltage just like the THD vs Frequency test.</p>
 <p>For tests that are sinusoidal (spectrum, thd vs frequency/amplitude) the gain is calculated at the fundamental frequency. For tests over a frequency range the gain is calculated using two frequencies or a chirp range.</p>
 <h1>Cursor</h1>
-<p>All of the tests support a <strong>cursor</strong>. As you move your mouse in the plot a small box in the lower right shows the nearest data point. Some charts have a visual on-screen point, some don&#39;t.</p>
+<p>All of the tests support a <strong>cursor</strong>. As you move your mouse in the plot a small box in the lower right shows the nearest data values. Some charts have a visual on-screen point, some don&#39;t.</p>
 
 <h1 style="color:red">Settings</h1>
 <h1>The global Settings tab</h1>
@@ -271,7 +271,7 @@ Along the top right of the screen are a few command buttons. If this becomes too
         <tr>
             <td class="auto-style6">Sampling</td>
             <td>We recommend 48K or 96K Rate and 64K or 128K Size. 3 or 4 Averages. The larger the FFT size the more accurate low frequency results<br />
-                will be. Faster rates increase the maximum frequency that can be measured.</td>
+                will be. Faster rates increase the maximum frequency that can be measured (=rate/2).</td>
         </tr>
     </tbody>
 </table>
@@ -574,10 +574,10 @@ Along the top right of the screen are a few command buttons. If this becomes too
 <ul>
     <li>
         Use Chirp - turn this on to use a chirp signal for the sweep. This is a more efficient way to sweep a frequency range. It suffers from
-        reduced distortion and gain accuracy but gains almost continuous frequency coverage in a single packet. When using chirp, the right channel is used as reference if active.
+        reduced accuracy but gains almost continuous frequency coverage in a single packet.
     </li>
     <li>
-        RIAA Premphasis - the left channel output (only) has RIAA preemphasis applied, for use as an input signal to phono preamps during testing. The (max) signal level at highest frequency is approximately the selected voltage. The signal level is about 40-45 dB less at low frequencies.</li>
+        RIAA Premphasis - both channels of output have RIAA preemphasis applied, for use as an input signal to phono preamps during testing. The (max) signal level at highest frequency is approximately the selected voltage. The signal level is about 40-45 dB less at low frequencies.</li>
 </ul>
 <h1 style="color:green">Impedance Test</h1>
 <p>This does a frequency sweep and at each point calculates the effective impedance of the DUT. Data is stored as a complex value. The impedance is calculated by using a known resistor in a simple series circuit with the DUT. The reference signal goes to the right channel and the split signal goes to the left channel.</p>
@@ -600,8 +600,7 @@ Along the top right of the screen are a few command buttons. If this becomes too
 <h2>Options</h2>
 <ul>
     <li>
-        Use Chirp - see above.
-    </li>
+        Use Chirp - see above.</li>
     <li>
         RIAA Premphasis - the left channel output (only) has RIAA preemphasis applied, for use as an input signal to phono preamps during testing. The (max) signal level at 40KHz is approximately the selected voltage. The signal level is approximately 40-45 dB less at low frequencies.</li>
 </ul>

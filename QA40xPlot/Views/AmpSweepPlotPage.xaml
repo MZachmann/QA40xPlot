@@ -17,9 +17,9 @@
         <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
             <StackPanel Margin="0,1,1,0">
                 <views:StartStop />
-                <views:Intro430 />
                 <views:Attenuator AttnAtStart="False"  />
-                <Expander Header="—— Generator" IsExpanded="{Binding ExpandGenerator}"  >
+                 <views:Intro430 />
+               <Expander Header="—— Generator" IsExpanded="{Binding ExpandGenerator}"  >
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" MinWidth="{Binding LeftWidth}" />
@@ -76,9 +76,9 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <Label Content="_Test Frequency" Target="{Binding ElementName=cbTF}"  HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Column="0" Grid.Row="0"  />
+                        <Label Content="_Frequency" Target="{Binding ElementName=cbTF, Path=ValueComboBox}"  HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Column="0" Grid.Row="0"  />
                         <views:ComboDrop x:Name="cbTF" TheText="{Binding FreqSummary}" TheSource="{Binding StartFrequencies}" 
-                                        IsEditable="True"
+                                        IsEditable="True"  TheTitle="Frequency"
                                         Grid.Row="0" Grid.Column="1" 
                                         />
                         <!--<ComboBox IsEditable="True" x:Name="cbTF" Text="{Binding TestFreq}" Grid.Column="1" Grid.Row="0" ItemsSource="{Binding StartFrequencies}" 

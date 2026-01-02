@@ -9,7 +9,7 @@ namespace QA40xPlot.ViewModels
 			return obj.GetType().GetProperty(propertyName) != null;
 		}
 
-		public static void CopyPropertiesTo<T>(this T source, object destination)
+		public static void CopyPropertiesTo<T>(this T source, object destination, List<string>? excludeList = null)
 		{
 			if (source == null || destination == null)
 				throw new ArgumentNullException("Source or/and Destination Objects are null");
@@ -21,6 +21,8 @@ namespace QA40xPlot.ViewModels
 			var props = (PropertyInfo[])properties.Clone();
 			foreach (PropertyInfo property in props)
 			{
+				if(excludeList != null && excludeList.Contains(property.Name))
+					continue;
 				if (property.CanRead && property.CanWrite)
 				{
 					object? value = property.GetValue(source);

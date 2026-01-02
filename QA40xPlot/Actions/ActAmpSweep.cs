@@ -1,19 +1,12 @@
-﻿using Newtonsoft.Json.Linq;
-using OpenTK.Compute.OpenCL;
-using QA40xPlot.BareMetal;
-using QA40xPlot.Converters;
+﻿using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Extensions;
 using QA40xPlot.Libraries;
 using QA40xPlot.QA430;
 using QA40xPlot.ViewModels;
-using QA40xPlot.Views;
 using ScottPlot;
-using ScottPlot.Colormaps;
 using ScottPlot.Plottables;
-using ScottPlot.WPF;
 using System.Data;
-using System.Diagnostics.Eventing.Reader;
 using System.Net.Http;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
@@ -651,6 +644,10 @@ namespace QA40xPlot.Actions
 						{
 							work.Item1.GenVolts = stepInVoltages[i];
 							work.Item2.GenVolts = stepInVoltages[i];
+							if(vm.DeembedDistortion)
+							{
+								work.Item1 = DeembedColumns(work.Item1, work.Item2, myConfig.Distgain);
+							}
 							AddColumn(page, stepInVoltages[i], work.Item1, work.Item2);
 						}
 
@@ -847,6 +844,8 @@ namespace QA40xPlot.Actions
 			var lp = isMain ? LinePattern.Solid : LinePattern.Dashed;
 			if (showRight && showLeft)
 				suffix = ".L" + tosuffix;
+			else
+				suffix = tosuffix;
 
 			// for each list of lines (left and right)
 			var ttype = ToDirection(freqVm.GenDirection);

@@ -12,11 +12,11 @@ namespace QA40xPlot.Views
 		public ThdAmpPlotPage()
 		{
 			InitializeComponent();
-			var vm = ViewModels.ViewSettings.Singleton.ThdAmp;
-			this.DataContext = vm;
-			LegendWindow.SetDataContext(vm);
-			vm.SetAction(this.WpfPlot1, this.MiniShow.WpfPlot2, this.MiniShow.WpfPlot3, this.TAbout);
-			this.AmpLoad.DataContext = ViewSettings.Singleton.SettingsVm;
+			//var vm = ViewModels.ViewSettings.Singleton.ThdAmp;
+			//this.DataContext = vm;
+			//LegendWindow.SetDataContext(vm);
+			//vm.SetAction(this.WpfPlot1, this.MiniShow.WpfPlot2, this.MiniShow.WpfPlot3, this.TAbout);
+			//this.AmpLoad.DataContext = ViewSettings.Singleton.SettingsVm;
 
 		}
 	}

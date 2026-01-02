@@ -25,7 +25,7 @@ namespace QA40xPlot.Actions
 
 		private float _Thickness = 2.0f;
 
-		private static ThdAmpViewModel MyVModel { get => ViewSettings.Singleton.ThdAmp; }
+		private static ThdAmpViewModel MyVModel { get => new(); }
 		CancellationTokenSource ct;                                  // Measurement cancelation token
 
 		/// <summary>

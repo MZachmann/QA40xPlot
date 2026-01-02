@@ -333,7 +333,7 @@ namespace QA40xPlot.ViewModels
 
 		public AmpSweepViewModel()
 		{
-			Name = "ThdAmp";
+			Name = "AmpSweep";
 			PropertyChanged += CheckPropertyChanged;
 			MouseTracked += DoMouseTracked;
 

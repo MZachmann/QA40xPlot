@@ -559,12 +559,12 @@ namespace QA40xPlot.ViewModels
 				case "freqresp":
 					CurrentView = ViewSettings.Singleton.FreqRespVm;
 					break;
-				case "tvf":
-					CurrentView = ViewSettings.Singleton.ThdFreq;
-					break;
-				case "tva":
-					CurrentView = ViewSettings.Singleton.ThdAmp;
-					break;
+				//case "tvf":
+				//	CurrentView = ViewSettings.Singleton.ThdFreq;
+				//	break;
+				//case "tva":
+				//	CurrentView = ViewSettings.Singleton.ThdAmp;
+				//	break;
 				case "freqsweep":   // qa430 opamp tab
 					CurrentView = ViewSettings.Singleton.FreqVm;
 					CurrentView.RaisePropertyChanged("CheckQA430");  // on new window refresh the list

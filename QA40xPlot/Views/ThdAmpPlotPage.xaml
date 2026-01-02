@@ -75,7 +75,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <Label Content="_Test Frequency" Target="{Binding ElementName=cbTF}"  HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Column="0" Grid.Row="0"  />
+                        <Label Content="_Frequency" Target="{Binding ElementName=cbTF}"  HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Column="0" Grid.Row="0"  />
                         <ComboBox IsEditable="True" x:Name="cbTF" Text="{Binding TestFreq}" Grid.Column="1" Grid.Row="0" ItemsSource="{Binding StartFrequencies}" 
                               VerticalContentAlignment="Center"
                               />

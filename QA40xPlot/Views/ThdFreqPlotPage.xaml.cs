@@ -30,11 +30,11 @@ namespace QA40xPlot.Views
 		public ThdFreqPlotPage()
 		{
 			InitializeComponent();
-			var vm = ViewModels.ViewSettings.Singleton.ThdFreq;
-			DataContext = vm;
-			LegendWindow.SetDataContext(vm);
-			vm.SetAction(WpfPlot1, MiniShow.WpfPlot2, MiniShow.WpfPlot3, TAbout);
-			AmpLoad.DataContext = ViewSettings.Singleton.SettingsVm;
+			//var vm = ViewModels.ViewSettings.Singleton.ThdFreq;
+			//DataContext = vm;
+			//LegendWindow.SetDataContext(vm);
+			//vm.SetAction(WpfPlot1, MiniShow.WpfPlot2, MiniShow.WpfPlot3, TAbout);
+			//AmpLoad.DataContext = ViewSettings.Singleton.SettingsVm;
 		}
 
 	}

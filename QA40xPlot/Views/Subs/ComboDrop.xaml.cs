@@ -11,6 +11,17 @@ namespace QA40xPlot.Views
 	public partial class ComboDrop : UserControl
 	{
 		#region Dependency Properties
+
+		// DependencyProperty registration for TheTitle
+		public static readonly DependencyProperty TheTitleProperty =
+			DependencyProperty.Register(
+				nameof(TheTitle),
+				typeof(string),
+				typeof(ComboDrop),
+				new FrameworkPropertyMetadata(
+					default(string),
+					FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+
 		// DependencyProperty registration for TheText
 		public static readonly DependencyProperty TheTextProperty =
 			DependencyProperty.Register(
@@ -55,6 +66,13 @@ namespace QA40xPlot.Views
 					FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
 					OnIsEditableChanged));
 		#endregion
+		// CLR wrapper for TheText
+		public string TheTitle
+		{
+			get => (string)GetValue(TheTitleProperty);
+			set => SetValue(TheTitleProperty, value);
+		}
+
 		// CLR wrapper for TheText
 		public string TheText
 		{
@@ -184,5 +202,10 @@ namespace QA40xPlot.Views
 				// ignore
 			}
 		}
-	}
+
+		private void ClosePopup(object sender, RoutedEventArgs e)
+		{
+			ThePopup.IsOpen = false;
+		}
+    }
 }

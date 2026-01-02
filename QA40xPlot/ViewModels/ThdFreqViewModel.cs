@@ -33,7 +33,7 @@ namespace QA40xPlot.ViewModels
 		public AsyncRelayCommand DoGetTab { get => new AsyncRelayCommand(GetItTab); }
 		[JsonIgnore]
 		public RelayCommand DoSaveTab { get => new RelayCommand(SaveItTab); }
-		private static ThdFreqViewModel MyVModel { get => ViewSettings.Singleton.ThdFreq; }
+		private static ThdFreqViewModel MyVModel { get => new(); }
 
 		#region Setters and Getters
 
@@ -149,14 +149,14 @@ namespace QA40xPlot.ViewModels
 		private static void StartIt()
 		{
 			// Implement the logic to start the measurement process
-			var vm = ViewSettings.Singleton.ThdFreq;
-			vm.actThd?.DoMeasurement();
+			//var vm = ViewSettings.Singleton.ThdFreq;
+			//vm.actThd?.DoMeasurement();
 		}
 
 		private static void StopIt()
 		{
-			var vm = ViewSettings.Singleton.ThdFreq;
-			vm.actThd?.DoCancel();
+			//var vm = ViewSettings.Singleton.ThdFreq;
+			//vm.actThd?.DoCancel();
 		}
 
 		// the property change is used to trigger repaints of the graph
@@ -331,8 +331,8 @@ namespace QA40xPlot.ViewModels
 		// here's the tracker event handler
 		private static void DoMouseTracked(object sender, MouseEventArgs e)
 		{
-			var thdFreqVm = ViewSettings.Singleton.ThdFreq;
-			thdFreqVm.DoMouse(sender, e);
+			//var thdFreqVm = ViewSettings.Singleton.ThdFreq;
+			//thdFreqVm.DoMouse(sender, e);
 		}
 
 		private void DoMouse(object sender, MouseEventArgs e)

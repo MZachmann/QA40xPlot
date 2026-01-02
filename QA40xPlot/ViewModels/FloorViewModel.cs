@@ -56,6 +56,14 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
+		// for serialization
+		private int _Version = 1;
+		public int Version
+		{
+			get => _Version;
+			set => SetProperty(ref _Version, value);
+		}
+
 		public static string FileAddon()
 		{
 			DateTime now = DateTime.Now;

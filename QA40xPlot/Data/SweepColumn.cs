@@ -1,4 +1,6 @@
-﻿namespace QA40xPlot.Data
+﻿using QA40xPlot.ViewModels;
+
+namespace QA40xPlot.Data
 {
 	public class SweepLine
 	{
@@ -35,10 +37,9 @@
 		public SweepColumn()
 		{
 		}
-
-		public SweepColumn(object o)
+		public SweepColumn(SweepColumn src)
 		{
-
+			src.CopyPropertiesTo<SweepColumn>(this);
 		}
 	}
 }

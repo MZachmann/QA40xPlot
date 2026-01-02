@@ -623,6 +623,10 @@ namespace QA40xPlot.Actions
 						{
 							work.Item1.GenVolts = genVolt;
 							work.Item2.GenVolts = genVolt;
+							if (vm.DeembedDistortion)
+							{
+								work.Item1 = DeembedColumns(work.Item1, work.Item2, myConfig.Distgain);
+							}
 							AddColumn(page, freqy, work.Item1, work.Item2);
 						}
 
@@ -662,95 +666,6 @@ namespace QA40xPlot.Actions
 			}
 			return floor;
 		}
-
-#if false
-		/// <summary>
-		/// do post processing, just a bunch of easy math and moving stuff into viewmodels
-		/// </summary>
-		/// <param name="ct">Cancellation token</param>
-		/// <returns>result. false if cancelled</returns>
-		private (SweepColumn?, SweepColumn?) CalculateColumn(MyDataTab msr, double dFreq,
-			CancellationToken ct, AcquireStep acqConfig, LeftRightFrequencySeries? lfrsNoise)
-		{
-			if (msr.FreqRslt == null)
-			{
-				return (null, null);
-			}
-
-			// left and right channels summary info to fill in
-			var left = new SweepColumn();
-			var right = new SweepColumn();
-			SweepColumn[] steps = [left, right];
-			FreqSweepViewModel vm = msr.ViewModel;
-
-			var lrfs = msr.FreqRslt;    // frequency response
-			var maxf = .95 * msr.FreqRslt.Df * msr.FreqRslt.Left.Length;	// skip the end-gunk
-			var maxScan = Math.Min(ViewSettings.NoiseBandwidth, maxf);  // opamps use 80KHz bandwidth, audio uses 20KHz
-
-			LeftRightPair thds = QaCompute.GetThdDb(vm.WindowingMethod, lrfs, dFreq, 20.0, maxf);
-			LeftRightPair thdN = QaCompute.GetThdnDb(vm.WindowingMethod, lrfs, dFreq, 20.0, maxScan, ViewSettings.NoiseWeight);
-
-			var floor = msr.NoiseFloor;
-			switch (ViewSettings.NoiseWeight)
-			{
-				case "A":
-					floor = msr.NoiseFloorA;
-					break;
-				case "C":
-					floor = msr.NoiseFloorC;
-					break;
-				default:
-					break;
-			}
-
-			double dmult = acqConfig.Distgain;
-			// here steps just counts left then right
-			foreach (var step in steps)
-			{
-				bool bl = step == left;     // stepping left?
-				step.Freq = dFreq;
-				var frqsr = bl ? msr.FreqRslt.Left : msr.FreqRslt.Right;
-				step.Mag = QaMath.MagAtFreq(frqsr, msr.FreqRslt.Df, dFreq);
-				step.THD = step.Mag * Math.Pow(10, (bl ? thds.Left : thds.Right) / 20); // in volts from dB relative to mag
-				step.THDN = step.Mag * Math.Pow(10, (bl ? thdN.Left : thdN.Right) / 20); // in volts from dB relative to mag
-				step.Phase = 0;
-				step.D2 = (maxf > (2 * dFreq)) ? QaMath.MagAtFreq(frqsr, msr.FreqRslt.Df, 2 * dFreq) : 1e-10;
-				step.D3 = (maxf > (3 * dFreq)) ? QaMath.MagAtFreq(frqsr, msr.FreqRslt.Df, 3 * dFreq) : step.D2;
-				step.D4 = (maxf > (4 * dFreq)) ? QaMath.MagAtFreq(frqsr, msr.FreqRslt.Df, 4 * dFreq) : step.D3;
-				step.D5 = (maxf > (5 * dFreq)) ? QaMath.MagAtFreq(frqsr, msr.FreqRslt.Df, 5 * dFreq) : step.D4;
-				step.D6P = 0;
-				if (maxf > (6 * dFreq))
-				{
-					for (int i = 6; i < 10; i++)
-					{
-						step.D6P += (maxf > (i * dFreq)) ? QaMath.MagAtFreq(frqsr, msr.FreqRslt.Df, i * dFreq) : 0;
-					}
-				}
-				else
-				{
-					step.D6P = step.D5;
-				}
-				if (!bl)
-				{
-					step.NoiseFloor = floor.Right / dmult; // noise floor
-					if (lfrsNoise != null)
-						step.Noise = GetNoiseSmooth(lfrsNoise.Right, lfrsNoise.Df, dFreq) / dmult; // noise density smoothed
-				}
-				else
-				{
-					step.NoiseFloor = floor.Left / dmult; // noise floor
-					if (lfrsNoise != null)
-						step.Noise = GetNoiseSmooth(lfrsNoise.Left, lfrsNoise.Df, dFreq) / dmult; // noise density smoothed
-				}
-
-				// divide by the amount of distortion gain since that is a voltage gain
-				step.THD /= dmult;
-				step.THDN /= dmult;
-			}
-
-			return (left, right);
-		}
-#endif
 
 		/// <summary>
 		/// do post processing, just a bunch of easy math and moving stuff into viewmodels
@@ -880,6 +795,8 @@ namespace QA40xPlot.Actions
 			var lp = isMain ? LinePattern.Solid : LinePattern.Dashed;
 			if (showRight && showLeft)
 				suffix = ".L" + tosuffix;
+			else
+				suffix = tosuffix;
 
 			// for each list of lines (left and right)
 			var prefix = (measurementNr == 0) ? string.Empty : (measurementNr + ".");

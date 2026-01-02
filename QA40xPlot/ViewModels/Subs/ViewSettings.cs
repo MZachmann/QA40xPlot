@@ -13,8 +13,8 @@ namespace QA40xPlot.ViewModels
 		public Dictionary<string, string> Product { get { return _ProductTitle; } private set {; } }
 		public SpectrumViewModel SpectrumVm { get; private set; }
 		public ImdViewModel ImdVm { get; private set; }
-		public ThdFreqViewModel ThdFreq { get; private set; }
-		public ThdAmpViewModel ThdAmp { get; private set; }
+		//public ThdFreqViewModel ThdFreq { get; private set; }
+		//public ThdAmpViewModel ThdAmp { get; private set; }
 		public FreqRespViewModel FreqRespVm { get; private set; }
 		public FreqSweepViewModel FreqVm { get; private set; }
 		public AmpSweepViewModel AmpVm { get; private set; }
@@ -69,10 +69,11 @@ namespace QA40xPlot.ViewModels
 
 		public void GetSettingsFrom(Dictionary<string, Dictionary<string, object>> vws)
 		{
+			// here the object name must be the same as the string used to store it
 			Util.GetPropertiesFrom(vws, "SpectrumVm", SpectrumVm);
 			Util.GetPropertiesFrom(vws, "ImdVm", ImdVm);
-			Util.GetPropertiesFrom(vws, "ThdAmp", ThdAmp);
-			Util.GetPropertiesFrom(vws, "ThdFreq", ThdFreq);
+			//Util.GetPropertiesFrom(vws, "ThdAmp", ThdAmp);
+			//Util.GetPropertiesFrom(vws, "ThdFreq", ThdFreq);
 			Util.GetPropertiesFrom(vws, "FreqRespVm", FreqRespVm);
 			Util.GetPropertiesFrom(vws, "ScopeVm", ScopeVm);
 			Util.GetPropertiesFrom(vws, "FreqVm", FreqVm);
@@ -93,8 +94,8 @@ namespace QA40xPlot.ViewModels
 			ImdChannelRight = new ImdChannelViewModel();
 			SpectrumVm = new SpectrumViewModel();
 			ImdVm = new ImdViewModel();
-			ThdAmp = new ThdAmpViewModel();
-			ThdFreq = new ThdFreqViewModel();
+			//ThdAmp = new ThdAmpViewModel();
+			//ThdFreq = new ThdFreqViewModel();
 			FreqRespVm = new FreqRespViewModel();
 			ScopeVm = new ScopeViewModel();
 			FreqVm = new FreqSweepViewModel();

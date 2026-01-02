@@ -12,6 +12,16 @@ namespace QA40xPlot.Libraries
 {
 	public static class Util
 	{
+		public enum CompressType
+		{
+			Unknown,
+			Zip,
+			Gzip
+		}
+
+		// ZIP files start with the bytes: 50 4B 03 04 (PK..)
+		private static readonly byte[] ZipSignature = { 0x50, 0x4B, 0x03, 0x04 };
+		private static readonly byte[] GzipSignature = { 0x1F, 0x8B };
 		private static string _CompensationFile = string.Empty; // mic compensation file, if any
 		private static LeftRightFrequencySeries? _MicCompensation = null; // mic compensation data, if any
 		private static DateTime? _LastCompEdit = null; // last time the mic compensation file was edited
@@ -80,7 +90,7 @@ namespace QA40xPlot.Libraries
 		/// </summary>
 		/// <param name="fileName">full path name</param>
 		/// <returns>a datatab with no frequency info</returns>
-		public static DataTab<Model>? LoadFile<Model>(DataTab<Model> model, string fileName)
+		public static DataTab<Model>? LoadFile<Model>(DataTab<Model> model, string fileName) where Model : BaseViewModel
 		{
 			// a new DataTab
 			var page = new DataTab<Model>(model.ViewModel, new LeftRightTimeSeries());
@@ -91,12 +101,13 @@ namespace QA40xPlot.Libraries
 				// unzip?
 				if (fileName.Contains(".zip"))
 				{
-					// Read the JSON file into a string
-					jsonContent = UncompressZipFileToText(fileName);
-					if(jsonContent.Length == 0)
-					{
+					// Read the JSON file into a string. So check for
+					// file compression type then uncompress accordingly
+					var ctype = IdentifyCompression(fileName);
+					if (ctype == CompressType.Zip)
+						jsonContent = UncompressZipFileToText(fileName);
+					else if (ctype == CompressType.Gzip)
 						jsonContent = UncompressGzipFileToText(fileName);
-					}
 				}
 				else
 				{
@@ -158,7 +169,16 @@ namespace QA40xPlot.Libraries
 					page.SweepSteps = jsonObject.SweepSteps;
 					page.Sweep = jsonObject.Sweep;
 					if (page.ViewModel != null)
-						jsonObject.ViewModel.CopyPropertiesTo(page.ViewModel);
+					{
+						// copy all but name
+						var srcMod = jsonObject.ViewModel as Model;
+						var destMod = page.ViewModel;
+						if(srcMod != null && destMod != null)
+						{
+							destMod.LoadViewFrom(srcMod);
+							//jsonObject.ViewModel.CopyPropertiesTo(page.ViewModel, ["Name"]);
+						}
+					}
 					page.Definition.Id = id; // keep the same id
 					page.Definition.FileName = fileName; // re-set the filename
 					if (jsonObject.FreqRslt != null)
@@ -231,6 +251,45 @@ namespace QA40xPlot.Libraries
 			return fpath;
 		}
 
+		private static bool IsThisFile(string filePath, byte[] signature)
+		{
+			try
+			{
+				// Check file signature first
+				using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+				{
+					if (fs.Length < signature.Length)
+						return false;
+
+					byte[] buffer = new byte[signature.Length];
+					fs.ReadExactly(buffer);
+
+					for (int i = 0; i < signature.Length; i++)
+					{
+						if (buffer[i] != signature[i])
+							return false;
+					}
+				}
+			}
+			catch
+			{
+				return false; // Any error means it's not a valid ZIP
+			}
+			return true;
+		}
+
+		/// <summary>
+		/// Checks if the file is a ZIP by signature 
+		/// </summary>
+		private static CompressType IdentifyCompression(string filePath)
+		{
+			if( IsThisFile(filePath, ZipSignature))
+				return CompressType.Zip;
+			if (IsThisFile(filePath, GzipSignature))
+				return CompressType.Gzip;
+			return CompressType.Unknown;
+		}
+
 		static string UncompressZipFileToText(string filePath)
 		{
 			try
@@ -264,6 +323,12 @@ namespace QA40xPlot.Libraries
 			return string.Empty;
 		}
 
+		/// <summary>
+		/// uncompress a gzip file to text
+		/// this takes care of the historical zip/gzip confusion
+		/// </summary>
+		/// <param name="filePath"></param>
+		/// <returns></returns>
 		static string UncompressGzipFileToText(string filePath)
 		{
 			try

@@ -5,48 +5,50 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:QA40xPlot.Views"
              xmlns:views="clr-namespace:QA40xPlot.Views"
+             d:Background="AliceBlue"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Expander Header="—— Variables" IsExpanded="{Binding ExpandVars}" 
               Visibility="{Binding HasQA430, Converter={StaticResource BoolVisConverter}}"  >
-            <Grid >
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="{Binding LeftWidth}" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" MinWidth="10" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <!-- do this strange StackPanel thing because dark mode messes up the checkbox alignments -->
-                <StackPanel Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center" >
-                    <CheckBox Content="_Load" IsChecked="{Binding VaryLoad}" ToolTip="Default open if unchecked" Margin="0,0,10,0" />
-                </StackPanel>
-                <views:ComboDrop TheText="{Binding LoadSummary}" TheSource="{Binding QaLoads}" 
-                                         IsEditable="False"
-                                         Grid.Row="0" Grid.Column="1" 
+        <Grid >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="{Binding LeftWidth}" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" MinWidth="10" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <!-- do this strange StackPanel thing because dark mode messes up the checkbox alignments -->
+            <Label Content="_Load" HorizontalAlignment="Right" Grid.Row="0" Grid.Column="0" 
+                   Target="{Binding ElementName=CmLoad, Path=ValueComboBox}" VerticalAlignment="Center" />
+            <views:ComboDrop TheText="{Binding LoadSummary}" TheSource="{Binding QaLoads}" TheTitle="Load"
+                                         IsEditable="False" Grid.Column="1" x:Name="CmLoad"
                                          />
-                <StackPanel Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center" >
-                    <CheckBox Content="_Gain" IsChecked="{Binding VaryGain}" ToolTip="Default 1 if unchecked"  Margin="0,0,10,0" />
-                </StackPanel>
-                <views:ComboDrop TheText="{Binding GainSummary}" TheSource="{Binding QaGains}" 
-                                         IsEditable="False"
+            <Label Content="_Gain" HorizontalAlignment="Right" Grid.Row="1" Grid.Column="0" 
+                   Target="{Binding ElementName=CmGain, Path=ValueComboBox}" VerticalAlignment="Center" />
+            <views:ComboDrop TheText="{Binding GainSummary}" TheSource="{Binding QaGains}" TheTitle="Gain"
+                                         IsEditable="False" x:Name="CmGain"
                                          Grid.Row="1" Grid.Column="1" 
                                          />
-                <StackPanel Grid.Row="2" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <CheckBox Content="_Supply" IsChecked="{Binding VarySupply}" Margin="0,0,10,0" 
-                                      ToolTip="{Binding SupplyTip}" />
-                </StackPanel>
-                <views:ComboDrop TheText="{Binding SupplySummary}" TheSource="{Binding GenVoltages}" 
-                                         IsEditable="True"
+            <Label Content="_Supply" HorizontalAlignment="Right" Grid.Row="2" Grid.Column="0" 
+                   Target="{Binding ElementName=CmSupply, Path=ValueComboBox}" VerticalAlignment="Center" />
+            <views:ComboDrop TheText="{Binding SupplySummary}" TheSource="{Binding GenVoltages}" TheTitle="Supply"
+                                         IsEditable="True" x:Name="CmSupply"
                                          Grid.Row="2" Grid.Column="1" 
                                          />
-                <Label Content="V" Grid.Row="2" Grid.Column="2" />
-            </Grid>
-        </Expander>
+            <Label Content="V" Grid.Row="2" Grid.Column="2" />
+            <CheckBox Content="Use Distortion Gain" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Right"
+                      IsChecked="{Binding UseHighDistortion}" ToolTip="Use the configurations with distortion gain." Margin="0,0,10,0" />
+            <CheckBox Content="Deembed Source Distortion" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Right"
+                      Visibility="Collapsed"
+                      IsChecked="{Binding DeembedDistortion}" ToolTip="Subtract the measured generator distortion." Margin="0,0,10,0" />
+
+        </Grid>
+    </Expander>
 </UserControl>

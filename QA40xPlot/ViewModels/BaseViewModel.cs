@@ -607,8 +607,8 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		private int _Attenuation;
-		public int Attenuation
+		private double _Attenuation;
+		public double Attenuation
 		{
 			get => _Attenuation;
 			set => SetProperty(ref _Attenuation, value);
@@ -624,8 +624,14 @@ namespace QA40xPlot.ViewModels
 
 		private void SetAtten(object? parameter)
 		{
-			var atten = MathUtil.ToInt(parameter?.ToString() ?? string.Empty, Attenuation);
-			Attenuation = atten;
+			var atten = MathUtil.ToDouble(parameter?.ToString() ?? string.Empty, Attenuation);
+			Attenuation = Math.Round(atten);
+		}
+
+		// override this to deal with version issues with viewmodels
+		public void LoadViewFrom<Model>(Model model) where Model : BaseViewModel
+		{
+			model.CopyPropertiesTo<Model>(this, ["Name", "Version"]);
 		}
 
 		/// <summary>
