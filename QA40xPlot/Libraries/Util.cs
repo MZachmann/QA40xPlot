@@ -92,7 +92,11 @@ namespace QA40xPlot.Libraries
 				if (fileName.Contains(".zip"))
 				{
 					// Read the JSON file into a string
-					jsonContent = UncompressFileToText(fileName);
+					jsonContent = UncompressZipFileToText(fileName);
+					if(jsonContent.Length == 0)
+					{
+						jsonContent = UncompressGzipFileToText(fileName);
+					}
 				}
 				else
 				{
@@ -227,33 +231,86 @@ namespace QA40xPlot.Libraries
 			return fpath;
 		}
 
-		static string UncompressFileToText(string filePath)
+		static string UncompressZipFileToText(string filePath)
 		{
-			using (FileStream compressedFileStream = new FileStream(filePath, FileMode.Open))
-			using (GZipStream decompressionStream = new GZipStream(compressedFileStream, CompressionMode.Decompress))
-			using (StreamReader reader = new StreamReader(decompressionStream, Encoding.UTF8))
+			try
 			{
-				return reader.ReadToEnd();
+				// Open the ZIP archive for reading
+				using (ZipArchive archive = ZipFile.OpenRead(filePath))
+				{
+					var fname = Path.GetFileName(filePath);
+					// remove zip suffix
+					var fbegin = fname.Substring(0, fname.LastIndexOf('.'));
+					// Find the specific file inside the ZIP
+					ZipArchiveEntry? entry = archive.GetEntry(fbegin);
+
+					if (entry == null)
+					{
+						return string.Empty;
+					}
+
+					// Read the file content into a string
+					using (StreamReader reader = new StreamReader(entry.Open()))
+					{
+						string fileContent = reader.ReadToEnd();
+						return fileContent;
+					}
+				}
 			}
+			catch (Exception )
+			{
+				//Console.WriteLine($"I/O Error: {ex.Message}");
+			}
+			return string.Empty;
 		}
 
+		static string UncompressGzipFileToText(string filePath)
+		{
+			try
+			{
+				using (FileStream compressedFileStream = new FileStream(filePath, FileMode.Open))
+				using (GZipStream decompressionStream = new GZipStream(compressedFileStream, CompressionMode.Decompress))
+				using (StreamReader reader = new StreamReader(decompressionStream, Encoding.UTF8))
+				{
+					return reader.ReadToEnd();
+				}
+			}
+			catch (Exception )
+			{
+				//MessageBox.Show(ex.Message, "File load error", MessageBoxButton.OK, MessageBoxImage.Information);
+			}
+			return string.Empty;
+		}
+
+		/// <summary>
+		/// compress a string into a Zip file
+		/// </summary>
+		/// <param name="text"></param>
+		/// <param name="filePath"></param>
 		public static void CompressTextToFile(string text, string filePath)
 		{
-			byte[] textBytes = Encoding.UTF8.GetBytes(text);
-			using (FileStream fileStream = new FileStream(filePath, FileMode.Create))
-			using (GZipStream gzipStream = new GZipStream(fileStream, CompressionMode.Compress))
+			try
 			{
-				gzipStream.Write(textBytes, 0, textBytes.Length);
-			}
-		}
+				var fname = Path.GetFileName(filePath);
+				var fbegin = fname.Substring(0, fname.LastIndexOf('.'));    // remove zip suffix
 
-		public static void CompressFile(string sourceFilePath, string destinationFilePath)
-		{
-			using (FileStream sourceFileStream = new FileStream(sourceFilePath, FileMode.Open, FileAccess.Read))
-			using (FileStream destinationFileStream = new FileStream(destinationFilePath, FileMode.Create, FileAccess.Write))
-			using (GZipStream compressionStream = new GZipStream(destinationFileStream, CompressionMode.Compress))
+				// Create or overwrite the ZIP file
+				using (FileStream zipToOpen = new FileStream(filePath, FileMode.Create))
+				using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Create))
+				{
+					// Create a new entry (file) inside the ZIP
+					ZipArchiveEntry entry = archive.CreateEntry(fbegin);
+
+					// Write the string content into the entry
+					using (StreamWriter writer = new StreamWriter(entry.Open(), Encoding.UTF8))
+					{
+						writer.Write(text);
+					}
+				}
+			}
+			catch(Exception ex)
 			{
-				sourceFileStream.CopyTo(compressionStream);
+				MessageBox.Show(ex.Message, "File save error", MessageBoxButton.OK, MessageBoxImage.Information);
 			}
 		}
 
