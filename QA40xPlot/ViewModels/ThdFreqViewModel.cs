@@ -372,7 +372,7 @@ namespace QA40xPlot.ViewModels
 
 		public ThdFreqViewModel()
 		{
-			Name = "ThdFreq";
+			_Name = "ThdFreq";
 			PropertyChanged += CheckPropertyChanged;
 			MouseTracked += DoMouseTracked;
 

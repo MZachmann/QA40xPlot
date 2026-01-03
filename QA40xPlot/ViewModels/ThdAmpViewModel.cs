@@ -378,7 +378,7 @@ namespace QA40xPlot.ViewModels
 
 		public ThdAmpViewModel()
 		{
-			Name = "ThdAmp";
+			_Name = "ThdAmp";
 			PropertyChanged += CheckPropertyChanged;
 			MouseTracked += DoMouseTracked;
 

@@ -309,7 +309,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="ct">Cancellation token</param>
 		/// <returns>result. false if cancelled</returns>
-		async Task<bool> RunAcquisition(MyDataTab msr, bool doNoise, CancellationToken ct)
+		async Task<bool> RunAcquisition(MyDataTab msr, bool doNoise, int iteration, CancellationToken ct)
 		{
 			// Setup
 			ImdViewModel vm = msr.ViewModel;
@@ -357,8 +357,9 @@ namespace QA40xPlot.Actions
 				// Measure once
 				// ********************************************************************
 				// now do the step measurement
-				await showMessage($"Measuring spectrum.");
 				await showProgress(0);
+
+				await showMessage($"{iteration:0} Measuring spectrum with input of {genVolt:G3}V.");
 
 				var wave = BuildWave(msr, genVolt);   // also update the waveform variables
 				lrfs = await QaComm.DoAcquireUser(1, ct, wave, wave, false);
@@ -895,7 +896,7 @@ namespace QA40xPlot.Actions
 			{
 				await CalculateGainCurve(MyVModel);
 			}
-
+			int iteration = 1;
 			// calculate the required attenuation
 			if (vm.DoAutoAttn && LRGains != null)
 			{
@@ -922,7 +923,7 @@ namespace QA40xPlot.Actions
 			}
 
 			// do the actual measurements
-			var rslt = await RunAcquisition(NextPage, true, ct.Token);
+			var rslt = await RunAcquisition(NextPage, true, iteration++, ct.Token);
 			if (rslt)
 				rslt = await PostProcess(NextPage, ct.Token);
 
@@ -943,7 +944,7 @@ namespace QA40xPlot.Actions
 				// have it recalculate the noise floor now possibly
 				bool redoNoise = (ViewSettings.NoiseRefresh > 0) &&
 					(DateTime.Now - loopTime).TotalSeconds > ViewSettings.NoiseRefresh;
-				rslt = await RunAcquisition(PageData, redoNoise, ct.Token);
+				rslt = await RunAcquisition(PageData, redoNoise, iteration++, ct.Token);
 				if (redoNoise)
 				{
 					loopTime = DateTime.Now;

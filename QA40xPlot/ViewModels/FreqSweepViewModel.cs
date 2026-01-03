@@ -340,7 +340,7 @@ namespace QA40xPlot.ViewModels
 
 		public FreqSweepViewModel()
 		{
-			Name = "FreqSweep";
+			_Name = "FreqSweep";
 			PropertyChanged += CheckPropertyChanged;
 			MouseTracked += DoMouseTracked;
 

@@ -37,6 +37,7 @@
             </Grid>
             <Label Content="Description" />
             <TextBox Text="{Binding Description}" Height="200" AcceptsReturn="True" TextWrapping="Wrap"  />
+            <Button Content="Copy to all tests" Command="{Binding DoCopyToAll}" HorizontalAlignment="Center" Margin="0,5,0,0" />
         </StackPanel>
     </Border>
 </UserControl>

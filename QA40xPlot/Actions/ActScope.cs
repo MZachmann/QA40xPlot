@@ -294,7 +294,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="ct">Cancellation token</param>
 		/// <returns>result. false if cancelled</returns>
-		async Task<bool> RunAcquisition(MyDataTab msr, CancellationToken ct)
+		async Task<bool> RunAcquisition(MyDataTab msr, int iteration, CancellationToken ct)
 		{
 			// Setup
 			ScopeViewModel thd = msr.ViewModel;
@@ -351,7 +351,7 @@ namespace QA40xPlot.Actions
 				// Measure once
 				// ********************************************************************
 				// now do the step measurement
-				await showMessage($"Measuring spectrum with input of {genVolt:G3}V.");
+				await showMessage($"{iteration:0} Measuring waveform with input of {genVolt:G3}V.");
 
 				var wave = BuildWave(msr, genVolt);   // also update the waveform variables
 				lrfs = await QaComm.DoAcquireUser(msr.ViewModel.Averages, ct, wave, wave, false);
@@ -527,10 +527,11 @@ namespace QA40xPlot.Actions
 				vm.Attenuation = scopeVm.Attenuation;   // update the scopeVm to update the gui, then this for the steps
 			}
 
+			int iteration = 1;
 			// do the actual measurements
 			var rslt = true;
 			await showProgress(0);
-			rslt = await RunAcquisition(NextPage, ct.Token);
+			rslt = await RunAcquisition(NextPage, iteration++, ct.Token);
 			if (rslt)
 				rslt = await PostProcess(NextPage, ct.Token);
 
@@ -546,7 +547,7 @@ namespace QA40xPlot.Actions
 			{
 				if (PageData.ViewModel != null)
 					MyVModel.CopyPropertiesTo(PageData.ViewModel);  // update the view model with latest settings
-				rslt = await RunAcquisition(PageData, ct.Token);
+				rslt = await RunAcquisition(PageData, iteration++, ct.Token);
 				if (rslt)
 				{
 					rslt = await PostProcess(PageData, ct.Token);

@@ -312,7 +312,7 @@ namespace QA40xPlot.Actions
 			// run a measurement and get time data
 			// and frequency data
 
-			var rslt = await RunAcquisition(NextPage, true, ct.Token);
+			var rslt = await RunAcquisition(NextPage, true, 0, ct.Token);
 			if (rslt)
 				rslt = await PostProcess(NextPage, ct.Token);
 
@@ -325,6 +325,7 @@ namespace QA40xPlot.Actions
 			MyVModel.LinkAbout(PageData.Definition);    // ensure we're linked right during replays
 
 			var loopTime = DateTime.Now;
+			int iteration = 1;
 			while (rslt && !ct.IsCancellationRequested)
 			{
 				// update the view model with latest settings
@@ -335,7 +336,7 @@ namespace QA40xPlot.Actions
 				bool redoNoise = (ViewSettings.NoiseRefresh > 0) && 
 					(DateTime.Now - loopTime).TotalSeconds > ViewSettings.NoiseRefresh;
 				// acquire data
-				rslt = await RunAcquisition(PageData, redoNoise, ct.Token);
+				rslt = await RunAcquisition(PageData, redoNoise, iteration++, ct.Token);
 				if (redoNoise)
 				{
 					loopTime = DateTime.Now;
@@ -386,7 +387,7 @@ namespace QA40xPlot.Actions
 		/// <param name="msr">the datatab we're using</param>
 		/// <param name="ct"></param>
 		/// <returns></returns>
-		async Task<bool> RunAcquisition(MyDataTab msr, bool doNoise, CancellationToken ct)
+		async Task<bool> RunAcquisition(MyDataTab msr, bool doNoise, int iteration, CancellationToken ct)
 		{
 			SpectrumViewModel vm = msr.ViewModel; // cached model
 
@@ -407,7 +408,6 @@ namespace QA40xPlot.Actions
 				return false;
 
 			LeftRightSeries lrfs = new();
-
 			try
 			{
 				// Check if cancel button pressed
@@ -448,7 +448,7 @@ namespace QA40xPlot.Actions
 				// measure once
 				// ********************************************************************
 				// now do the step measurement
-				await showMessage($"Measuring spectrum with input of {genVolt:G3}V.");
+				await showMessage($"{iteration:0} Measuring spectrum with input of {genVolt:G3}V.");
 				await showProgress(80);
 
 				var wave = BuildWave(msr, genVolt);   // also update the waveform variables

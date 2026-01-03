@@ -528,11 +528,10 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowTabInfo, value);
 		}
 
-		private string _Name = string.Empty;         // name of the test
+		protected string _Name = string.Empty;         // name of the test
 		public string Name
 		{
 			get => _Name;
-			set => SetProperty(ref _Name, value);
 		}
 		private bool _ShowSummary = false;
 		public bool ShowSummary
@@ -631,6 +630,12 @@ namespace QA40xPlot.ViewModels
 		public void LoadViewFrom<Model>(Model model) where Model : BaseViewModel
 		{
 			model.CopyPropertiesTo<Model>(this, ["Name", "Version"]);
+		}
+
+		public void CopyDescript(BaseViewModel vm, DataDescript desc)
+		{
+			// copy the datadescript stuff into the viewmodel base
+			desc.CopyOnlyPropertiesTo(vm.DataInfo, ["Name", "Heading", "Description"]);
 		}
 
 		/// <summary>
@@ -840,13 +845,13 @@ namespace QA40xPlot.ViewModels
 			return y;
 		}
 
-		public bool IsValidLoadModel(string name)
+		public virtual bool IsValidLoadModel(string? name, int version)
 		{
 			var synonym = new List<string> { "Spectrum", "Intermodulation", "Scope" };
 
 			if (name == Name)
 				return true;
-			if (synonym.Contains(name) && synonym.Contains(Name))
+			if (synonym.Contains(name ?? "0") && synonym.Contains(Name))
 				return true;
 			return false;
 		}

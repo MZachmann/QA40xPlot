@@ -370,7 +370,7 @@ namespace QA40xPlot.ViewModels
 
 		public SettingsViewModel()
 		{
-			Name = "Settings";
+			_Name = "Settings";
 			_AmplifierLoad = "8";
 			_UsbBufferSize = "16384";
 			_SaveOnExit = "False";

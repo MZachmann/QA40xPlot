@@ -325,6 +325,12 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
+		// the old saved amp sweeps are just not compatible at all
+		public override bool IsValidLoadModel(string? name, int version)
+		{
+			return base.IsValidLoadModel(name, version) && (version > 1);
+		}
+
 		~AmpSweepViewModel()
 		{
 			PropertyChanged -= CheckPropertyChanged;
@@ -333,7 +339,8 @@ namespace QA40xPlot.ViewModels
 
 		public AmpSweepViewModel()
 		{
-			Name = "AmpSweep";
+			_Name = "AmpSweep";
+			_Version = 2;
 			PropertyChanged += CheckPropertyChanged;
 			MouseTracked += DoMouseTracked;
 

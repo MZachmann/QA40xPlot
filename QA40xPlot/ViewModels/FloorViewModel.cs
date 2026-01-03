@@ -56,12 +56,11 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		// for serialization
-		private int _Version = 1;
+		// for serialization, we can read the version but never set it
+		protected int _Version = 1;
 		public int Version
 		{
 			get => _Version;
-			set => SetProperty(ref _Version, value);
 		}
 
 		public static string FileAddon()

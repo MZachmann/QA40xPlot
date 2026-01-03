@@ -10,7 +10,7 @@ namespace QA40xPlot.ViewModels
 	public class ViewSettings
 	{
 		public static ViewSettings Singleton { get; private set; } = new ViewSettings();
-
+		private readonly List<BaseViewModel> ViewModelList = new();
 		private readonly Dictionary<string, string> _ProductTitle = new Dictionary<string, string>() { { "Name", "QA40xPlot" }, { "Version", "0.30" } };
 		public Dictionary<string, string> Product { get { return _ProductTitle; } private set {; } }
 		public SpectrumViewModel SpectrumVm { get; private set; }
@@ -24,8 +24,6 @@ namespace QA40xPlot.ViewModels
 		public MainViewModel MainVm { get; private set; }
 		public SettingsViewModel SettingsVm { get; private set; }
 		// these are output only and don't need serializing
-		[JsonIgnore]
-		public List<object> MyTabLibrary { get; private set; } = new List<object>();
 		[JsonIgnore]
 		public ScopeInfoViewModel ScopeInfoLeft { get; private set; }
 		[JsonIgnore]
@@ -68,15 +66,16 @@ namespace QA40xPlot.ViewModels
 		public static double NoiseBandwidth { get => MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.NoiseBandwidthStr, 20000); }
 		[JsonIgnore]
 		public static double NoiseRefresh { get => MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.NoiseRefreshStr, 200); }
-
+		
 		private bool IsValidVersion(Dictionary<string, Dictionary<string, object>> vws)
 		{
+			string[] validSet = { "0.20", "0.30" };
 			bool isValid = false;
 			try
 			{
 				var vers = vws["Product"]["Version"];
 				// for now require this specific product version
-				if (vers != null && vers.ToString() == Product["Version"])
+				if (vers != null && validSet.Contains(vers.ToString()))
 				{
 					isValid = true;
 				}
@@ -131,6 +130,23 @@ namespace QA40xPlot.ViewModels
 			FreqVm = new FreqSweepViewModel();
 			AmpVm = new AmpSweepViewModel();
 			TabDefs = new DataDescript();
+
+			// enumerate the Pages other than viewsettings
+			ViewModelList.Add(SpectrumVm);
+			ViewModelList.Add(ImdVm);
+			ViewModelList.Add(ScopeVm);
+			ViewModelList.Add(FreqVm);
+			ViewModelList.Add(AmpVm);
+			ViewModelList.Add(FreqRespVm);
+		}
+
+		public void CopyAboutToAll(DataDescript desc)
+		{
+			foreach(var vm in ViewModelList)
+			{
+				// copy the datadescript stuff into the viewmodel base
+				vm.CopyDescript(vm, desc);
+			}
 		}
 	}
 }

@@ -11,7 +11,7 @@ v 1.2.3 1/1/2026
 - use ZIP compression instead of Gzip for saved tests
 - after testing with box5 remove the fourth pole from RIAA emphasis/deemphasis
 - retain current graph settings when saving tests
-- force new default configuration
+- bump amp sweep data version # to 2
 v 1.2.2 12/28/2025
 - add phase axis settings on frequency response test
 - add WaveFile generator option to use wav file (spectrum, scope)

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using CommunityToolkit.Mvvm.Input;
+using Newtonsoft.Json;
 using QA40xPlot.Libraries;
 using QA40xPlot.QA430;
 using QA40xPlot.ViewModels;
@@ -11,6 +12,8 @@ namespace QA40xPlot.Data
 	// it contains a set of properties that do not persist
 	public class DataDescript : FloorViewModel
 	{
+		public RelayCommand DoCopyToAll { get => new RelayCommand(DoCopyAll);}
+
 		private string _Name = string.Empty;
 		public string Name
 		{
@@ -129,6 +132,16 @@ namespace QA40xPlot.Data
 		~DataDescript()
 		{
 			PropertyChanged -= ChangeDefinition;
+		}
+
+		private void DoCopyAll()
+		{
+			var vset = ViewSettings.Singleton;
+			if (vset != null)
+			{
+				// pick a random view model
+				ViewSettings.Singleton.CopyAboutToAll(this); ;
+			}
 		}
 
 		// when we change the definition in the tab, notify the main viewmodel

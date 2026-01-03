@@ -116,22 +116,25 @@ namespace QA40xPlot.Libraries
 				}
 				// check which viewmodel this was built for
 				bool isValid = false;
-				string x = string.Empty;
 				Dictionary<string, object>? oldTime = null;
 				// generic deserialize first....
+				string? viewName = string.Empty;
+				int viewVersion = 1;
 				{
 					var u = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(jsonContent); // untyped seriale
 					if (u == null)
 						return null;
-					x = u["ViewModel"]["Name"].ToString() ?? string.Empty;
-					var z = model.ViewModel as BaseViewModel;
-					isValid = z?.IsValidLoadModel(x ?? "") ?? false;
+					viewName = u["ViewModel"]["Name"]?.ToString();
+					var verstr = u["ViewModel"]["Version"]?.ToString();
+					viewVersion = MathUtil.ToInt(verstr, 1);
+					var z = model.ViewModel;
+					isValid = z?.IsValidLoadModel(viewName, viewVersion) ?? false;
 					if (u.ContainsKey("TimeRslt"))
 						oldTime = u["TimeRslt"];
 				}
 				if (!isValid)
 				{
-					MessageBox.Show($"This {x} file is not compatible with this tab.", "Incompatible file", MessageBoxButton.OK, MessageBoxImage.Warning);
+					MessageBox.Show($"This {viewName} file is not compatible with this tab.", "Incompatible file", MessageBoxButton.OK, MessageBoxImage.Warning);
 					return null;
 				}
 

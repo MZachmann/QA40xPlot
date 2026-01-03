@@ -363,7 +363,7 @@ namespace QA40xPlot.ViewModels
 
 		public ScopeViewModel()
 		{
-			Name = "Scope";
+			_Name = "Scope";
 			PropertyChanged += CheckPropertyChanged;
 			MouseTracked += DoMouseTracked;
 

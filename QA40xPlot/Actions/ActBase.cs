@@ -216,20 +216,14 @@ namespace QA40xPlot.Actions
 
 		public async Task EndAction(BaseViewModel bvm)
 		{
-			// Turn the generator off
-			if (ViewSettings.Singleton.SettingsVm.RelayUsage == "OnFinish")
-				await QaComm.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION);  // set max attenuation while idle...
-																			   // detach from usb port
-																			   //QaComm.Close(false);
 			bvm.IsRunning = false;
 			bvm.HasSave = true; // set the save flag
-			await Task.Delay(100).ContinueWith(_ =>
+			bvm.ShowMiniPlots = false;
+			// Turn the generator off
+			if (ViewSettings.Singleton.SettingsVm.RelayUsage == "OnFinish")
 			{
-				Application.Current.Dispatcher.Invoke(() =>
-				{
-					bvm.ShowMiniPlots = false;
-				});
-			});
+				await QaComm.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION);  // set max attenuation while idle...
+			}
 			FrequencyHistory.Clear();   // empty averaging history
 		}
 
