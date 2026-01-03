@@ -68,15 +68,13 @@ namespace QA40xPlot.QA430
 			if (hasQa430)
 			{
 				if (SupplyN == SupplyP)
-					sout = $"{aload};{SupplyP}VDC;Gain={Gain}";
+					sout = $".{aload};{SupplyP}VDC;Gain={Gain}";
 				else
-					sout = $"{aload};+{SupplyP}|-{SupplyN}VDC;Gain={Gain}";
-				if (addVolt)
-					sout = sout + ";@" + GenXFmt;
+					sout = $".{aload};+{SupplyP}|-{SupplyN}VDC;Gain={Gain}";
 			}
-			else
+			if (addVolt)
 			{
-				sout = "@" + GenXFmt;
+				sout += "@" + GenXFmt;
 			}
 			return sout;
 		}
@@ -375,6 +373,12 @@ namespace QA40xPlot.QA430
 		/// <returns>connected USB to QA430?</returns>
 		internal static bool BeginQA430Op()
 		{
+			if(!ViewSettings.Singleton.SettingsVm.EnableQA430)
+			{
+				// not wanted
+				Debug.WriteLine("QA430 not wanted by user");
+				return false;
+			}
 			var x = Qa430Usb.Singleton;
 			if (x.IsOpen())
 			{

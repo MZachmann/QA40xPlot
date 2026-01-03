@@ -8,22 +8,26 @@ namespace QA40xPlot.Actions
 {
 	public partial class ActOpamp : ActBase
 	{
-		protected static SweepColumn ArrayToColumn(double[] rawData, uint startIdx)
+		protected static SweepColumn ArrayToColumn(double[] rawData, uint startIdx, int columnCount)
 		{
 			SweepColumn col = new();
-			col.Freq = rawData[startIdx];
-			col.Mag = rawData[startIdx + 1];
-			col.Phase = rawData[startIdx + 2];
-			col.THD = rawData[startIdx + 3];
-			col.THDN = rawData[startIdx + 4];
-			col.Noise = rawData[startIdx + 5];
-			col.NoiseFloor = rawData[startIdx + 6];
-			col.GenVolts = rawData[startIdx + 7];
-			col.D2 = rawData[startIdx + 8];
-			col.D3 = rawData[startIdx + 9];
-			col.D4 = rawData[startIdx + 10];
-			col.D5 = rawData[startIdx + 11];
-			col.D6P = rawData[startIdx + 12];
+			// v2 and up all have at least 13 columns
+			if(columnCount >= 13)
+			{
+				col.Freq = rawData[startIdx];
+				col.Mag = rawData[startIdx + 1];
+				col.Phase = rawData[startIdx + 2];
+				col.THD = rawData[startIdx + 3];
+				col.THDN = rawData[startIdx + 4];
+				col.Noise = rawData[startIdx + 5];
+				col.NoiseFloor = rawData[startIdx + 6];
+				col.GenVolts = rawData[startIdx + 7];
+				col.D2 = rawData[startIdx + 8];
+				col.D3 = rawData[startIdx + 9];
+				col.D4 = rawData[startIdx + 10];
+				col.D5 = rawData[startIdx + 11];
+				col.D6P = rawData[startIdx + 12];
+			}
 			return col;
 		}
 
@@ -35,16 +39,17 @@ namespace QA40xPlot.Actions
 		/// <param name="hasQa430"></param>
 		/// <param name="isFreq"></param>
 		/// <returns></returns>
-		protected static List<SweepLine> RawToColumns(AcquireStep[] steps, double[] raw, bool hasQa430, bool isFreq)
+		protected static List<SweepLine> RawToColumns(AcquireStep[] steps, double[] raw, int columnCount, bool isFreq)
 		{
-			if (raw.Length == 0)
+			if (raw.Length == 0 || steps.Length == 0)
 				return [];
+			bool showQa430 = steps[0].Cfg.Length > 0;
 			List<SweepColumn> columns = new();
 			// make columns from the raw data
 			int i;
-			for (i = 0; i < raw.Length; i += SweepColumn.SweepColumnCount)
+			for (i = 0; i < raw.Length; i += columnCount)
 			{
-				var col = ArrayToColumn(raw, (uint)i);
+				var col = ArrayToColumn(raw, (uint)i, columnCount);
 				columns.Add(col);
 			}
 			// convert into freqsweeplines
@@ -52,7 +57,7 @@ namespace QA40xPlot.Actions
 			List<SweepLine> lines = new();
 			var line = new SweepLine();
 			var stepNo = 0;
-			line.Label = steps[stepNo].ToSuffix(showX, hasQa430);
+			line.Label = steps[stepNo].ToSuffix(showX, showQa430);
 			for (i = 0; i < columns.Count; i++)
 			{
 				var c = columns[i];
@@ -63,7 +68,7 @@ namespace QA40xPlot.Actions
 					if (useC)
 					{
 						showX = true;    // more than one line
-						line.Label = steps[stepNo].ToSuffix(showX, hasQa430);
+						line.Label = steps[stepNo].ToSuffix(showX, showQa430);
 						lines = lines.Append(line).ToList();
 						line = new();
 						stepNo++;
@@ -72,7 +77,7 @@ namespace QA40xPlot.Actions
 			}
 			if (line.Columns.Length > 0)
 			{
-				line.Label = steps[stepNo].ToSuffix(showX, hasQa430);
+				line.Label = steps[stepNo].ToSuffix(showX, showQa430);
 				lines = lines.Append(line).ToList();
 			}
 			return lines;

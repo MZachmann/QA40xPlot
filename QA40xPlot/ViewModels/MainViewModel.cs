@@ -329,8 +329,9 @@ namespace QA40xPlot.ViewModels
 			File.WriteAllText(filename, jsonString);
 		}
 
-		public void LoadFromSettings(string filename)
+		public int LoadFromSettings(string filename)
 		{
+			int msg = 0;
 			try
 			{
 				var cfgData = ViewSettings.Singleton;
@@ -339,7 +340,14 @@ namespace QA40xPlot.ViewModels
 				// Deserialize the JSON string into an object
 				var jsonObject = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(jsonContent);
 				if (jsonObject != null)
-					ViewSettings.Singleton.GetSettingsFrom(jsonObject);
+				{
+					msg = ViewSettings.Singleton.GetSettingsFrom(jsonObject);
+					if(msg == 1)
+					{
+						MessageBox.Show($"The configuration file version is too low. Skipping {filename}", "Loader", MessageBoxButton.OK, MessageBoxImage.Information);
+						return msg;
+					}
+				}
 				var winRect = ViewSettings.Singleton.MainVm.CurrentWindowRect;
 				if (winRect.Length > 0)
 				{
@@ -357,8 +365,9 @@ namespace QA40xPlot.ViewModels
 			catch (Exception ex)
 			{
 				MessageBox.Show(ex.Message, "A load error occurred.", MessageBoxButton.OK, MessageBoxImage.Information);
+				msg = 2;
 			}
-
+			return msg;
 		}
 
 		public static void SaveToFrd(string filename)
@@ -527,10 +536,10 @@ namespace QA40xPlot.ViewModels
 				Filter = "Settings files|*.cfg|All files|*.*" // Filter files by extension
 			};
 
-			// Show save file dialog box
+			// Show open file dialog box
 			bool? result = openFileDialog.ShowDialog();
 
-			// Process save file dialog box results
+			// Process open file dialog box results
 			if (result == true)
 			{
 				// Save document

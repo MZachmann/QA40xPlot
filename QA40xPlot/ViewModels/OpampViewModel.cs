@@ -85,6 +85,15 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _GainSummary, value);
 		}
 
+		// this is version specific but needed for data parsing
+		public int _SweepColumnCount = 13;	// this never changes but can be set on loads
+		public int SweepColumnCount
+		{
+			get => _SweepColumnCount;
+			set => SetProperty(ref _SweepColumnCount, value);
+		}
+
+
 		private bool _ShowTHD;
 		public bool ShowTHD
 		{
@@ -179,7 +188,11 @@ namespace QA40xPlot.ViewModels
 			{
 				// enumerate the sweeps we are going to do
 				var step = new AcquireStep() { Cfg = "Config6b", Load = QA430Model.LoadOptions.Open, Gain = 1, Distgain = 101, SupplyP = 15, SupplyN = 15 };    // unity 6b with 101 dist gain
-				if(!vm.HasQA430 || !vm.UseHighDistortion)
+				if( !vm.HasQA430 )
+				{
+					step = new AcquireStep() { Cfg = "", Load = QA430Model.LoadOptions.Open, Gain = 1, Distgain = 1, SupplyP = 15, SupplyN = 15 };    // unity 6a with 1 dist gain
+				}
+				else if( !vm.UseHighDistortion)
 				{
 					step = new AcquireStep() { Cfg = "Config6a", Load = QA430Model.LoadOptions.Open, Gain = 1, Distgain = 1, SupplyP = 15, SupplyN = 15 };    // unity 6a with 1 dist gain
 				}

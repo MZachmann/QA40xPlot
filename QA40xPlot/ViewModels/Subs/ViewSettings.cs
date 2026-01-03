@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
+using System.Diagnostics;
+using System.Windows;
 
 // this aggregates the settings somewhere static, which does mean only one of each
 namespace QA40xPlot.ViewModels
@@ -9,7 +11,7 @@ namespace QA40xPlot.ViewModels
 	{
 		public static ViewSettings Singleton { get; private set; } = new ViewSettings();
 
-		private readonly Dictionary<string, string> _ProductTitle = new Dictionary<string, string>() { { "Name", "QA40xPlot" }, { "Version", "0.20" } };
+		private readonly Dictionary<string, string> _ProductTitle = new Dictionary<string, string>() { { "Name", "QA40xPlot" }, { "Version", "0.30" } };
 		public Dictionary<string, string> Product { get { return _ProductTitle; } private set {; } }
 		public SpectrumViewModel SpectrumVm { get; private set; }
 		public ImdViewModel ImdVm { get; private set; }
@@ -67,8 +69,35 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public static double NoiseRefresh { get => MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.NoiseRefreshStr, 200); }
 
-		public void GetSettingsFrom(Dictionary<string, Dictionary<string, object>> vws)
+		private bool IsValidVersion(Dictionary<string, Dictionary<string, object>> vws)
 		{
+			bool isValid = false;
+			try
+			{
+				var vers = vws["Product"]["Version"];
+				// for now require this specific product version
+				if (vers != null && vers.ToString() == Product["Version"])
+				{
+					isValid = true;
+				}
+			}
+			catch
+			{
+				Debug.WriteLine("Config version not found");
+			}
+			return isValid;
+		}
+
+		public int GetSettingsFrom(Dictionary<string, Dictionary<string, object>> vws)
+		{
+			int rslt = 0;
+			var useThis = IsValidVersion(vws);
+			if(!useThis)
+			{
+				rslt = 1;	// config mismatch
+				Debug.WriteLine("Config version mismatch, skipping");
+				return rslt;
+			}
 			// here the object name must be the same as the string used to store it
 			Util.GetPropertiesFrom(vws, "SpectrumVm", SpectrumVm);
 			Util.GetPropertiesFrom(vws, "ImdVm", ImdVm);
@@ -80,6 +109,7 @@ namespace QA40xPlot.ViewModels
 			Util.GetPropertiesFrom(vws, "AmpVm", AmpVm);
 			Util.GetPropertiesFrom(vws, "MainVm", MainVm);
 			Util.GetPropertiesFrom(vws, "SettingsVm", SettingsVm);  // this will update global settings last which makes sense
+			return rslt;
 		}
 
 		public ViewSettings()

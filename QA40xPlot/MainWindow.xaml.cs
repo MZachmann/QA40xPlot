@@ -59,19 +59,23 @@ namespace QA40xPlot
 
 		public MainWindow()
 		{
-			string fload = string.Empty;
+			string fload = " - default configuration";
 			var fdocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 			// look for a default config file before we paint the windows for theme setting...
 			string fpath = Util.GetDefaultConfigPath();
 			if (File.Exists(fpath))
 			{
-				ViewSettings.Singleton.MainVm.LoadFromSettings(fpath);
-				fload = " - with " + Path.GetRelativePath(fdocs, fpath);
+				var err = ViewSettings.Singleton.MainVm.LoadFromSettings(fpath);
+				if(err == 1)
+				{
+					MessageBox.Show("Please create a new default.", "Load Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+				}
+				else
+				{
+					fload = " - with " + Path.GetRelativePath(fdocs, fpath);
+				}
 			}
-			else
-			{
-				fload = " - default configuration";
-			}
+
 			InitializeComponent();
 			var vm = ViewSettings.Singleton.MainVm;
 			vm.ScreenDpi = TestGetDpi();

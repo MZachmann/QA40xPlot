@@ -93,9 +93,9 @@ namespace QA40xPlot.Actions
 		// convert the raw data into columns of data
 		private void RawToFreqSweepColumns(MyDataTab page)
 		{
-			var u = RawToColumns(page.SweepSteps.Steps, page.Sweep.RawLeft, MyVModel.HasQA430, true);
+			var u = RawToColumns(page.SweepSteps.Steps, page.Sweep.RawLeft, page.ViewModel.SweepColumnCount, true);
 			page.SetProperty("Left", u);
-			var v = RawToColumns(page.SweepSteps.Steps, page.Sweep.RawRight, MyVModel.HasQA430, true);
+			var v = RawToColumns(page.SweepSteps.Steps, page.Sweep.RawRight, page.ViewModel.SweepColumnCount, true);
 			page.SetProperty("Right", v);
 		}
 
