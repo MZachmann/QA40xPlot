@@ -161,31 +161,6 @@ public class FreqRespViewModel : BaseViewModel
 		set => SetProperty(ref _ShowPercent, value);
 	}
 
-	private bool _Show3dBBandwidth_L;
-	public bool Show3dBBandwidth_L
-	{
-		get => _Show3dBBandwidth_L;
-		set => SetProperty(ref _Show3dBBandwidth_L, value);
-	}
-	private bool _Show3dBBandwidth_R;
-	public bool Show3dBBandwidth_R
-	{
-		get => _Show3dBBandwidth_R;
-		set => SetProperty(ref _Show3dBBandwidth_R, value);
-	}
-
-	private bool _Show1dBBandwidth_L;
-	public bool Show1dBBandwidth_L
-	{
-		get => _Show1dBBandwidth_L;
-		set => SetProperty(ref _Show1dBBandwidth_L, value);
-	}
-	private bool _Show1dBBandwidth_R;
-	public bool Show1dBBandwidth_R
-	{
-		get => _Show1dBBandwidth_R;
-		set => SetProperty(ref _Show1dBBandwidth_R, value);
-	}
 	#endregion
 
 	public TestingType GetTestingType(string type)
@@ -496,10 +471,6 @@ public class FreqRespViewModel : BaseViewModel
 
 		Gen1Voltage = "0.1";
 		Smoothing = Smoothings[0];
-		Show3dBBandwidth_L = true;
-		Show3dBBandwidth_R = false;
-		Show1dBBandwidth_L = false;
-		Show1dBBandwidth_R = false;
 		ShowPoints = true;
 		TestType = TestTypes[0];    // this messes up if we start at impedance and set to impedance later so ??
 

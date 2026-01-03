@@ -71,10 +71,6 @@
                         <MenuItem Header="THD vs _Amplitude" Command="{Binding SetPlotPage}" CommandParameter="Opamp.Amp" />
                         <MenuItem Header="Frequency _Response" Command="{Binding SetPlotPage}" CommandParameter="Response" />
                         <MenuItem Header="S_ettings" Command="{Binding SetPlotPage}" CommandParameter="Settings" />
-                        <!--<MenuItem Header="Opamp vs Amplitude" Command="{Binding SetPlotPage}"
-                          CommandParameter="Opamp.Amp"
-                          Visibility="{Binding ShowQA430, Converter={StaticResource BoolVisConverter}}"
-                          />-->
                     </MenuItem>
                     <MenuItem Header="_Command">
                         <MenuItem Header="Show _QA430" Click="OnQA430"
@@ -114,16 +110,6 @@
             <TabItem Header="Scope" Name="scope" MaxWidth="{Binding MaxTab}">
                 <Grid Background="{Binding Background, Mode=OneWay}" >
                     <views:ScopePlotPage  />
-                </Grid>
-            </TabItem>
-            <TabItem Header="THD vs Frequency" Name="tvf" MaxWidth="{Binding MaxTab}" Visibility="Collapsed">
-                <Grid Background="{Binding Background, Mode=OneWay}">
-                    <views:ThdFreqPlotPage  />
-                </Grid>
-            </TabItem>
-            <TabItem Header="THD vs Amplitude" Name="tva" MaxWidth="{Binding MaxTab}" Visibility="Collapsed">
-                <Grid Background="{Binding Background, Mode=OneWay}">
-                    <views:ThdAmpPlotPage  />
                 </Grid>
             </TabItem>
             <TabItem Header="THD vs Frequency" Name="freqsweep"  MaxWidth="{Binding MaxTab}" >

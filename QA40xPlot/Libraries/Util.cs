@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using QA40xPlot.Data;
 using QA40xPlot.ViewModels;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
@@ -124,11 +125,24 @@ namespace QA40xPlot.Libraries
 					var u = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(jsonContent); // untyped seriale
 					if (u == null)
 						return null;
-					viewName = u["ViewModel"]["Name"]?.ToString();
-					var verstr = u["ViewModel"]["Version"]?.ToString();
-					viewVersion = MathUtil.ToInt(verstr, 1);
-					var z = model.ViewModel;
-					isValid = z?.IsValidLoadModel(viewName, viewVersion) ?? false;
+					if(u.ContainsKey("ViewModel"))
+					{
+						var myvm = u["ViewModel"];
+						if (myvm != null)
+						{
+							if(myvm.ContainsKey("Name"))
+								viewName = myvm["Name"]?.ToString();
+							if (myvm.ContainsKey("Version"))
+							{
+								var verstr = myvm["Version"]?.ToString();
+								viewVersion = MathUtil.ToInt(verstr, 1);
+							}
+							else
+								viewVersion = 1;
+							var z = model.ViewModel;
+							isValid = z?.IsValidLoadModel(viewName, viewVersion) ?? false;
+						}
+					}
 					if (u.ContainsKey("TimeRslt"))
 						oldTime = u["TimeRslt"];
 				}
@@ -198,24 +212,26 @@ namespace QA40xPlot.Libraries
 			return page;
 		}
 
-		// the graph settings may have been manually saved to the gui model
-		// so copy them back to the viewmodel before saving
-		public static void CopyGraphSettingsFromGui<Model>(DataTab<Model> page, Model gui) where Model : BaseViewModel
+		public static string ConvertToJson(object tcv)
 		{
-			var vm = page.ViewModel;
-			var vmGui = gui;
-			vm.RangeBottom = gui.RangeBottom;
-			vm.RangeBottomdB = gui.RangeBottomdB;
-			vm.RangeTop = gui.RangeTop;
-			vm.RangeTopdB = gui.RangeTopdB;
-			vm.GraphEndX = gui.GraphEndX;
-			vm.GraphStartX = gui.GraphStartX;
-			vm.PlotFormat = gui.PlotFormat;
-			vm.ShowThickLines = gui.ShowThickLines;
-			vm.ShowSummary = gui.ShowSummary;
-			vm.KeepMiniPlots = gui.KeepMiniPlots;
-			vm.ShowLeft = gui.ShowLeft;
-			vm.ShowRight = gui.ShowRight;
+			string jsonString = string.Empty;
+			try
+			{
+				using (var sw = new StringWriter())
+				using (var writer = new JsonTextWriter(sw))
+				{
+					writer.Formatting = Formatting.Indented; // Enable pretty-print
+					writer.Indentation = 1;                   // Number of tabs per indent level
+					var serializer = new JsonSerializer();
+					serializer.Serialize(writer, tcv);
+					jsonString = sw.ToString();
+				}
+			}
+			catch
+			{
+				Debug.WriteLine("Error converting to JSON.");
+			}
+			return jsonString;
 		}
 
 		public static bool SaveToFile<Model>(DataTab<Model> page, Model GuiModel, string fileName, bool saveFreq = false) where Model : BaseViewModel
@@ -238,8 +254,9 @@ namespace QA40xPlot.Libraries
 				}
 				// Serialize the object to a JSON string
 				// before we do this, copy the graph viewing stuff to the viewmodel
-				CopyGraphSettingsFromGui<Model>(page, GuiModel);
-				string jsonString = JsonConvert.SerializeObject(page, Formatting.Indented);
+				page.ViewModel.CopyGraphSettingsFromGui(GuiModel);
+				//string jsonString = JsonConvert.SerializeObject(page, Formatting.Indented);
+				string jsonString = ConvertToJson(page);
 				page.TimeSaver = null; // clear the time saver, we don't need it anymore
 				page.FreqSaver = null; // clear the frequency saver, we don't need it anymore
 

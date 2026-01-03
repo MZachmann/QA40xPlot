@@ -316,7 +316,6 @@ namespace QA40xPlot.ViewModels
 
 		private void ExecIm(int df1, int df2, int divisor)
 		{
-			var ax = IntermodType;
 			var tt = ToDirection(GenDirection);
 			if (tt == E_GeneratorDirection.OUTPUT_POWER)
 			{
@@ -328,7 +327,6 @@ namespace QA40xPlot.ViewModels
 			}
 			Gen1Frequency = df1.ToString();
 			Gen2Frequency = df2.ToString();
-			IntermodType = ax;
 		}
 
 		public double GetImDivisor()

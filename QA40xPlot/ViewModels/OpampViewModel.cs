@@ -86,11 +86,11 @@ namespace QA40xPlot.ViewModels
 		}
 
 		// this is version specific but needed for data parsing
-		public int _SweepColumnCount = 13;	// this never changes but can be set on loads
+		private int _SweepColumnCount = 13;	// this never changes but can be set on loads
 		public int SweepColumnCount
 		{
 			get => _SweepColumnCount;
-			set => SetProperty(ref _SweepColumnCount, value);
+			//set => SetProperty(ref _SweepColumnCount, value);
 		}
 
 

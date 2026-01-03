@@ -12,6 +12,7 @@ namespace QA40xPlot.Data
 	// it contains a set of properties that do not persist
 	public class DataDescript : FloorViewModel
 	{
+		[JsonIgnore]
 		public RelayCommand DoCopyToAll { get => new RelayCommand(DoCopyAll);}
 
 		private string _Name = string.Empty;
@@ -32,10 +33,13 @@ namespace QA40xPlot.Data
 			get => _Description;
 			set => SetProperty(ref _Description, value);
 		}
+
 		public string CreateDate { get; set; }  // Measurement date time
 		public bool Saved { get; set; }
 		public double GeneratorVoltage { get; set; } // the generator voltage, if any
 		private string _LeftColor = "Transparent"; // left color for the graph
+
+		[JsonIgnore]
 		public string LeftColor
 		{
 			get => _LeftColor;
@@ -46,6 +50,7 @@ namespace QA40xPlot.Data
 			}  // left color for the graph
 		}
 		private string _RightColor = "Transparent"; // left color for the graph
+		[JsonIgnore]
 		public string RightColor
 		{
 			get => _RightColor;

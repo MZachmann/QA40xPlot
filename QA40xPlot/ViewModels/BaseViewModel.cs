@@ -690,6 +690,25 @@ namespace QA40xPlot.ViewModels
 			RaisePropertyChanged("EndVoltage");
 		}
 
+		// the graph settings may have been intentionally changed in the gui model
+		// so copy them to the test's viewmodel before saving
+		public void CopyGraphSettingsFromGui(BaseViewModel gui)
+		{
+			RangeBottom = gui.RangeBottom;
+			RangeBottomdB = gui.RangeBottomdB;
+			RangeTop = gui.RangeTop;
+			RangeTopdB = gui.RangeTopdB;
+			GraphEndX = gui.GraphEndX;
+			GraphStartX = gui.GraphStartX;
+			PlotFormat = gui.PlotFormat;
+			ShowThickLines = gui.ShowThickLines;
+			ShowSummary = gui.ShowSummary;
+			KeepMiniPlots = gui.KeepMiniPlots;
+			ShowLeft = gui.ShowLeft;
+			ShowRight = gui.ShowRight;
+			ShowLegend = gui.ShowLegend;
+		}
+
 		public void UpdatePlotColors()
 		{
 			RaisePropertyChanged("DSPlotColors");

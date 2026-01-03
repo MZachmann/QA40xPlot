@@ -18,7 +18,7 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public List<string> PageNames { get; } = new List<string>
 		{
-			"Spectrum",	"Intermodulation","Scope", "ThdFreq", "ThdAmp", "Opamp.Freq",
+			"Spectrum",	"Intermodulation","Scope", "Opamp.Freq",
 			"Opamp.Amp", "Response",
 			"Settings", "Impedance", "Crosstalk", "Gain",
 		};
@@ -323,7 +323,8 @@ namespace QA40xPlot.ViewModels
 			ViewSettings.Singleton.MainVm.CurrentWindowState = Application.Current.MainWindow.WindowState.ToString();
 
 			// Serialize the object to a JSON string
-			string jsonString = JsonConvert.SerializeObject(cfgData, Formatting.Indented);
+			//string jsonString = JsonConvert.SerializeObject(cfgData, Formatting.Indented);
+			string jsonString = Util.ConvertToJson(cfgData);
 
 			// Write the JSON string to a file
 			File.WriteAllText(filename, jsonString);
@@ -568,17 +569,11 @@ namespace QA40xPlot.ViewModels
 				case "freqresp":
 					CurrentView = ViewSettings.Singleton.FreqRespVm;
 					break;
-				//case "tvf":
-				//	CurrentView = ViewSettings.Singleton.ThdFreq;
-				//	break;
-				//case "tva":
-				//	CurrentView = ViewSettings.Singleton.ThdAmp;
-				//	break;
-				case "freqsweep":   // qa430 opamp tab
+				case "freqsweep":   // qa430 opamp tab & freq sweep
 					CurrentView = ViewSettings.Singleton.FreqVm;
 					CurrentView.RaisePropertyChanged("CheckQA430");  // on new window refresh the list
 					break;
-				case "ampsweep":   // qa430 opamp tab
+				case "ampsweep":   // qa430 opamp tab & amp sweep
 					CurrentView = ViewSettings.Singleton.AmpVm;
 					CurrentView.RaisePropertyChanged("CheckQA430");  // on new window refresh the list
 					break;
