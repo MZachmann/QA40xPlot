@@ -347,7 +347,7 @@ namespace QA40xPlot.Actions
 
 		public bool SaveToFile(string fileName)
 		{
-			return Util.SaveToFile<ThdAmpViewModel>(PageData, fileName);
+			return Util.SaveToFile<ThdAmpViewModel>(PageData, MyVModel, fileName);
 		}
 
 		public override async Task LoadFromFile(string fileName, bool doLoad)

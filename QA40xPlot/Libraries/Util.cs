@@ -195,7 +195,27 @@ namespace QA40xPlot.Libraries
 			return page;
 		}
 
-		public static bool SaveToFile<Model>(DataTab<Model> page, string fileName, bool saveFreq = false)
+		// the graph settings may have been manually saved to the gui model
+		// so copy them back to the viewmodel before saving
+		public static void CopyGraphSettingsFromGui<Model>(DataTab<Model> page, Model gui) where Model : BaseViewModel
+		{
+			var vm = page.ViewModel;
+			var vmGui = gui;
+			vm.RangeBottom = gui.RangeBottom;
+			vm.RangeBottomdB = gui.RangeBottomdB;
+			vm.RangeTop = gui.RangeTop;
+			vm.RangeTopdB = gui.RangeTopdB;
+			vm.GraphEndX = gui.GraphEndX;
+			vm.GraphStartX = gui.GraphStartX;
+			vm.PlotFormat = gui.PlotFormat;
+			vm.ShowThickLines = gui.ShowThickLines;
+			vm.ShowSummary = gui.ShowSummary;
+			vm.KeepMiniPlots = gui.KeepMiniPlots;
+			vm.ShowLeft = gui.ShowLeft;
+			vm.ShowRight = gui.ShowRight;
+		}
+
+		public static bool SaveToFile<Model>(DataTab<Model> page, Model GuiModel, string fileName, bool saveFreq = false) where Model : BaseViewModel
 		{
 			if (page == null)
 				return false;
@@ -214,6 +234,8 @@ namespace QA40xPlot.Libraries
 					page.FreqSaver.FromSeries(page.FreqRslt);
 				}
 				// Serialize the object to a JSON string
+				// before we do this, copy the graph viewing stuff to the viewmodel
+				CopyGraphSettingsFromGui<Model>(page, GuiModel);
 				string jsonString = JsonConvert.SerializeObject(page, Formatting.Indented);
 				page.TimeSaver = null; // clear the time saver, we don't need it anymore
 				page.FreqSaver = null; // clear the frequency saver, we don't need it anymore

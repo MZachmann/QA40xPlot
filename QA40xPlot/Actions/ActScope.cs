@@ -106,7 +106,7 @@ namespace QA40xPlot.Actions
 
 		public bool SaveToFile(string fileName)
 		{
-			return Util.SaveToFile<ScopeViewModel>(PageData, fileName);
+			return Util.SaveToFile<ScopeViewModel>(PageData, MyVModel, fileName);
 		}
 
 		public override async Task LoadFromFile(string fileName, bool isMain)

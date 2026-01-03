@@ -91,7 +91,7 @@ namespace QA40xPlot.Actions
 
 		public bool SaveToFile(string fileName)
 		{
-			return Util.SaveToFile<SpectrumViewModel>(PageData, fileName, PageData.ViewModel.Averages > 1);
+			return Util.SaveToFile<SpectrumViewModel>(PageData, MyVModel, fileName, PageData.ViewModel.Averages > 1);
 		}
 
 		public override async Task LoadFromFile(string fileName, bool doLoad)

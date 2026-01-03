@@ -422,7 +422,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _rangeBottomdB, value);
 		}
 
-
 		private string _GraphStartX = string.Empty;         // type of alert
 		public string GraphStartX
 		{

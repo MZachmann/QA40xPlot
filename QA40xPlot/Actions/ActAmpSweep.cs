@@ -317,7 +317,7 @@ namespace QA40xPlot.Actions
 
 		public bool SaveToFile(string fileName)
 		{
-			return Util.SaveToFile<AmpSweepViewModel>(PageData, fileName);
+			return Util.SaveToFile<AmpSweepViewModel>(PageData, MyVModel, fileName);
 		}
 
 		public override async Task LoadFromFile(string fileName, bool doLoad)
@@ -362,6 +362,7 @@ namespace QA40xPlot.Actions
 				// relink to the new definition
 				MyVModel.LinkAbout(page.Definition);
 				MyVModel.HasSave = true;
+				MyVModel.ShowMiniPlots = false; // hide mini plots on load
 			}
 			else
 			{

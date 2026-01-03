@@ -19,7 +19,7 @@ namespace QA40xPlot.ViewModels
 			// since stuff is being loaded while we do this, and setting a property can cause side effects, so
 			// make a clone incase it changes so we don't crash...
 			var props = (PropertyInfo[])properties.Clone();
-			foreach (PropertyInfo property in props)
+			foreach (PropertyInfo property in properties)
 			{
 				if(excludeList != null && excludeList.Contains(property.Name))
 					continue;
