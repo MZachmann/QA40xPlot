@@ -12,6 +12,8 @@ v 1.2.3 1/1/2026
 - after testing with box5 remove the fourth pole from RIAA emphasis/deemphasis
 - retain current graph settings when saving tests
 - bump amp sweep data version # to 2
+- add copy to all tests button to test info dialog
+- add wave # to test message display
 v 1.2.2 12/28/2025
 - add phase axis settings on frequency response test
 - add WaveFile generator option to use wav file (spectrum, scope)
