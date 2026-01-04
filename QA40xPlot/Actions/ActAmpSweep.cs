@@ -268,12 +268,12 @@ namespace QA40xPlot.Actions
 			var vm = MyVModel;
 			var myVolts = volts;
 			var genType = ToDirection(vm.GenDirection);
-			if(genType != E_GeneratorDirection.INPUT_VOLTAGE)
+			if(genType != E_GeneratorDirection.INPUT_VOLTAGE && LRGains != null)
 			{
 				// found this as output
 				var myFreq = PageData.SweepSteps.Steps[0].GenFrequency;	// first frequency?
-				var gains = (ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right) ?? [1.0];
-				var bin = QaLibrary.GetBinOfFrequency(myFreq, vm.SampleRateVal, vm.FftSizeVal);
+				var gains = (ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right);
+				var bin = LRGains.ToBinNumber(myFreq);
 				var x = vm.ToGenVoltage(volts.ToString(), [bin], GEN_INPUT, gains);
 				myVolts = x;
 			}
@@ -415,7 +415,7 @@ namespace QA40xPlot.Actions
 			var stepVoltages = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(startV, endV, myVm.StepsOctave);
 			// now convert all of the step voltages to input voltages
 			var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
-			var binno = QaLibrary.GetBinOfFrequency(dFreq, myVm.SampleRateVal, myVm.FftSizeVal);
+			var binno = LRGains.ToBinNumber(dFreq);
 			var stepInVoltages = stepVoltages.Select(x => myVm.ToGenVoltage(x.ToString(), [binno], GEN_INPUT, gains)).ToArray();
 			// get output values for left and right so we can attenuate
 			var stepOutLVoltages = stepInVoltages.Select(x => ToGenOutVolts(x, [binno], LRGains.Left)).ToArray();

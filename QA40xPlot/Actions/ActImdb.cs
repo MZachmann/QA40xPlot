@@ -344,7 +344,7 @@ namespace QA40xPlot.Actions
 				}
 
 				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
-				int[] frqtest = [ToBinNumber(freq, LRGains)];
+				int[] frqtest = [LRGains.ToBinNumber(freq)];
 				var genVolt = vm.ToGenVoltage(vm.Gen1Voltage, frqtest, GEN_INPUT, gains);   // input voltage 1
 
 				msr.Definition.GeneratorVoltage = genVolt;  // used by the buildwave
@@ -900,8 +900,8 @@ namespace QA40xPlot.Actions
 			// calculate the required attenuation
 			if (vm.DoAutoAttn && LRGains != null)
 			{
-				int[] frqtest = [ToBinNumber(freq, LRGains)];
-				int[] frq2test = [ToBinNumber(freq2, LRGains)];
+				int[] frqtest = [LRGains.ToBinNumber(freq)];
+				int[] frq2test = [LRGains.ToBinNumber(freq2)];
 				var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
 
 				// find the two input voltages for our testing

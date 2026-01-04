@@ -237,7 +237,7 @@ namespace QA40xPlot.Actions
 			if (fmin < 20)
 				fmin = 20; // min frequency is 20Hz
 
-			int[] frqtest = [ToBinNumber(fmin, LRGains), ToBinNumber(fmax, LRGains)];
+			int[] frqtest = [LRGains.ToBinNumber(fmin), LRGains.ToBinNumber(fmax)];
 			{
 				// to get attenuation, use a frequency of zero (all)
 				// find the highest output voltage

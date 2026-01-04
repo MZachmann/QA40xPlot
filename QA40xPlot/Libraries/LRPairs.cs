@@ -167,6 +167,11 @@ namespace QA40xPlot.Libraries
 			Left = new double[0];
 			Right = new double[0];
 		}
+
+		public int ToBinNumber(double dFreq)
+		{
+			return QaLibrary.GetBinOfFrequency(dFreq, Df);
+		}
 	}
 
 	public class LeftRightSeries

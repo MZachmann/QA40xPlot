@@ -250,11 +250,6 @@ namespace QA40xPlot.Actions
 			return values.Skip(binmin).Take(bintrack).Max() / inputV;
 		}
 
-		protected static int ToBinNumber(double dFreq, LeftRightFrequencySeries? lrGain)
-		{
-			return QaLibrary.GetBinOfFrequency(dFreq, (lrGain?.Df ?? 1));
-		}
-
 		// what to use for gain calculations at the start of an action
 		private static uint GainFftSize(uint testFftSize)
 		{

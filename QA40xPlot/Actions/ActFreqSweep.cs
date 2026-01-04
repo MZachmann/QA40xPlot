@@ -435,7 +435,7 @@ namespace QA40xPlot.Actions
 			if (LRGains == null)
 				return false;
 
-			int[] frqtest = [ToBinNumber(startFreq, LRGains), ToBinNumber(endFreq, LRGains)];
+			int[] frqtest = [LRGains.ToBinNumber(startFreq), LRGains.ToBinNumber(endFreq)];
 			double[] stepBinFrequencies = [];
 			double binSize = 0;
 			// here they are in the format of the generator test...
