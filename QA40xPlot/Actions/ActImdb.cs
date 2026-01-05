@@ -344,7 +344,7 @@ namespace QA40xPlot.Actions
 				}
 
 				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
-				int[] frqtest = [LRGains.ToBinNumber(freq)];
+				int[] frqtest = [LRGains?.ToBinNumber(freq) ?? 100];
 				var genVolt = vm.ToGenVoltage(vm.Gen1Voltage, frqtest, GEN_INPUT, gains);   // input voltage 1
 
 				msr.Definition.GeneratorVoltage = genVolt;  // used by the buildwave

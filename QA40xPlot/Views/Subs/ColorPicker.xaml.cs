@@ -177,7 +177,7 @@ namespace QA40xPlot.Views
 			{
 				// Convert the slider value (0-100) to an opacity value (0-255)
 				var alphaVal = slider.Value; // 0...1
-				if (alphaVal < 99 || NowColor.Contains("#"))
+				if (NowColor != "Transparent" && (alphaVal < 99 || NowColor.Contains("#")))
 				{
 					var currentColor = PlotUtil.StrToColor(NowColor).WithAlpha(alphaVal / 100.0);
 					NowColor = PlotUtil.ColorToStr(currentColor); // Update the NowColor property

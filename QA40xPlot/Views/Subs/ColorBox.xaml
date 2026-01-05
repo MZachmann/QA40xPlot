@@ -7,7 +7,9 @@
              mc:Ignorable="d" 
              MinHeight="20" MinWidth="20"
              d:DesignHeight="450" d:DesignWidth="800">
-        <Button VerticalAlignment="Stretch" HorizontalAlignment="Stretch" 
-                Content=" " Style="{StaticResource NoHoverButtonStyle}"
+        <Button VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                Content="{Binding XColor, RelativeSource={RelativeSource AncestorType=local:ColorBox}}"
+                FontSize="14"
+                Style="{StaticResource NoHoverButtonStyle}" 
             Click="DoColor_Click" Background="{Binding Color, RelativeSource={RelativeSource AncestorType=local:ColorBox}}" />
 </UserControl>

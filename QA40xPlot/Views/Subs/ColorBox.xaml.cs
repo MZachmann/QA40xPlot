@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace QA40xPlot.Views
 {
@@ -45,6 +46,12 @@ namespace QA40xPlot.Views
 					"Red", FrameworkPropertyMetadataOptions.BindsTwoWayByDefault)
 			);
 
+		private string _XColor = "∅";
+		public string XColor
+		{
+			get => _XColor;
+			set { _XColor = value; RaisePropertyChanged("XColor"); }
+		}
 		// CLR wrapper for the dependency property
 		public string Color
 		{
@@ -55,7 +62,10 @@ namespace QA40xPlot.Views
 				var oldc = Color;
 				SetValue(ColorProperty, value);
 				if (oldc != Color)
+				{
+					XColor = (value == "Transparent") ? "∅" : string.Empty;
 					RaisePropertyChanged("Color");
+				}
 			}
 		}
 
