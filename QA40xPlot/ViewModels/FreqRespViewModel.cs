@@ -341,6 +341,8 @@ public class FreqRespViewModel : BaseViewModel
 			prefix = "QaImpedance";
 		else if (ttype == TestingType.Gain)
 			prefix = "QaGain";
+		else if (ttype == TestingType.Gain)
+			prefix = "QaCross";
 		SaveFileDialog saveFileDialog = new SaveFileDialog
 		{
 			FileName = prefix + FileAddon(),

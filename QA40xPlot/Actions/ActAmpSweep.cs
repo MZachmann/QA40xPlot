@@ -450,19 +450,23 @@ namespace QA40xPlot.Actions
 				}
 			}
 
-			await CalculateGainCurve(vm);
-			if (LRGains == null)
-				return false;
-
-			if (CanToken.IsCancellationRequested)
-				return false;
-
 			var freqValues = SelectItemList.ParseList(vm.FreqSummary).Where(x => x.IsSelected).ToList();
 			if (freqValues.Count == 0)
 			{
 				await showMessage("No frequencies were specified!", 200);
 				return false;
 			}
+
+			var fmin = freqValues.Min(x => ToD(x.Name, 1000));
+			var fmax = freqValues.Max(x => ToD(x.Name, 1000));
+
+			await CalculateGainCurve(vm, fmin, fmax);
+			if (LRGains == null)
+				return false;
+
+			if (CanToken.IsCancellationRequested)
+				return false;
+
 			// ********************************************************************
 			// Init device
 			// ********************************************************************

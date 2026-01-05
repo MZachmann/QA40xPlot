@@ -16,12 +16,12 @@
         </Grid.ColumnDefinitions>
         <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
             <StackPanel Margin="0,1,1,0">
-                <views:StartStop />
+                <views:StartStop ShowRun="False" />
                 <views:Attenuator AttnAtStart="False"  />
                 <views:GroupHeader Header="Testing" />
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"  MinWidth="{Binding LeftWidth}"  />
+                        <ColumnDefinition Width="Auto" MinWidth="{Binding LeftWidth}"  />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>

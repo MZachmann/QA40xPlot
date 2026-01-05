@@ -214,7 +214,7 @@ namespace QA40xPlot.Actions
 
 			// ********************************************************************
 			// Setup the device
-			if (ToD(msr.SampleRate, 0) == 0 || !FreqRespViewModel.FftSizes.Contains(msr.FftSize))
+			if (msr.SampleRateVal == 0 || !FreqRespViewModel.FftSizes.Contains(msr.FftSize))
 			{
 				MessageBox.Show("Invalid sample rate or fftsize settings", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 				return;
@@ -222,20 +222,16 @@ namespace QA40xPlot.Actions
 			var fftsize = msr.FftSizeVal;
 			var sampleRate = msr.SampleRateVal;
 
+			var fmin = ToD(msr.StartFreq, 1000);
+			var fmax = ToD(msr.EndFreq, 1000);
+
 			// calculate gain to autoattenuate
-			await CalculateGainCurve(MyVModel);
+			await CalculateGainCurve(MyVModel, fmin, fmax);
 			if (LRGains == null)
 			{
 				// cancelled?
 				return;
 			}
-
-			var fmin = ToD(msr.StartFreq);
-			var fmax = ToD(msr.EndFreq);
-			if (fmax > 10000)
-				fmax = 10000; // max frequency is 10kHz
-			if (fmin < 20)
-				fmin = 20; // min frequency is 20Hz
 
 			int[] frqtest = [LRGains.ToBinNumber(fmin), LRGains.ToBinNumber(fmax)];
 			{

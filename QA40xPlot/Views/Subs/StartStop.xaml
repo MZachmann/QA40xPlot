@@ -4,20 +4,17 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:QA40xPlot.Views"
-             mc:Ignorable="d" 
+             mc:Ignorable="d" x:Name="MyStartStop"
              d:DesignHeight="450" d:DesignWidth="800">
-    <StackPanel Margin="5,10,5,3">
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="15" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-            <Button Content="Start" IsEnabled="{Binding IsNotRunning}" FontSize="14" Command="{Binding DoStart}" Grid.Column="0" Grid.Row="0"  HorizontalAlignment="Right"></Button>
-            <Button Content="Stop" IsEnabled="{Binding IsRunning}" FontSize="14" Command="{Binding DoStop}" Grid.Column="2" Grid.Row="0" HorizontalAlignment="Left"></Button>
-        </Grid>
+    <StackPanel Margin="5,10,5,3" Orientation="Vertical">
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button Content="Run" IsEnabled="{Binding IsNotRunning}" Margin="0,0,10,0"
+                    Visibility="{Binding ShowRun, ElementName=MyStartStop, Converter={StaticResource BoolVisConverter}}"
+                    FontSize="14" Command="{Binding DoStart}"  HorizontalAlignment="Right"></Button>
+            <Button Content="Start" 
+                    IsEnabled="{Binding IsNotRunning}" FontSize="14" Command="{Binding DoStart}"  HorizontalAlignment="Right"></Button>
+            <Button Content="Stop" Margin="10,0,0,0"
+                    IsEnabled="{Binding IsRunning}" FontSize="14" Command="{Binding DoStop}"  HorizontalAlignment="Left"></Button>
+        </StackPanel>
     </StackPanel>
 </UserControl>

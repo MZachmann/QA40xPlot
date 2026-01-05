@@ -431,7 +431,7 @@ namespace QA40xPlot.Actions
 				}
 			}
 
-			await CalculateGainCurve(vm);
+			await CalculateGainCurve(vm, startFreq, endFreq);
 			if (LRGains == null)
 				return false;
 

@@ -377,12 +377,16 @@ namespace QA40xPlot.Actions
 			return lrfs;       // Return the gain information as a one element frequency series
 		}
 
-		protected async Task CalculateGainCurve(BaseViewModel bvm)
+		protected async Task CalculateGainCurve(BaseViewModel bvm, double fStart, double fEnd)
 		{
 			// show that we're autoing...
 			var atten = bvm.Attenuation;
 			await showMessage("Calculating DUT gain");
-			LRGains = await DetermineGainCurve(bvm, true, 1);
+			uint sampleRate = GainSampleRate(bvm.SampleRateVal);
+			// try at 0.01 volt generator and 42dB attenuation
+			var fnyqEnd = Math.Min(fEnd, sampleRate / 2);   // absolute nyquist maximum
+
+			LRGains = await DetermineGainCurve(bvm, true, fStart, fnyqEnd, 1);
 			bvm.Attenuation = atten; // restore the original value just in case bvm is also the local model
 									 // in general this gets reset immediately for the next test
 		}
@@ -397,7 +401,7 @@ namespace QA40xPlot.Actions
 			bvm.Attenuation = atten;    // restore the original value and button display
 		}
 
-		protected static async Task<LeftRightFrequencySeries?> SubGainCurve(BaseViewModel bvm, bool inits, int average, double genV, int atten)
+		protected static async Task<LeftRightFrequencySeries?> SubGainCurve(BaseViewModel bvm, bool inits, double fStart, double fEnd, int average, double genV, int atten)
 		{
 			uint fftsize = GainFftSize(bvm.FftSizeVal);
 			uint sampleRate = GainSampleRate(bvm.SampleRateVal);
@@ -409,7 +413,10 @@ namespace QA40xPlot.Actions
 				// the simplest thing here is to do a chirp at a low value...
 				var generatorV = genV;          // testing at .01 has more noise
 												// so use 0.1V as reasonable when possible
-				var chirpy = Chirps.ChirpVp(fftsize, sampleRate, generatorV, 6, 24000);
+												// to get valid data from start to end we need to extend the chirp range
+				var startf = fStart * 0.33;
+				var endf = Math.Min(sampleRate / 2, fEnd * 3);
+				var chirpy = Chirps.ChirpVp(fftsize, sampleRate, generatorV, startf, endf);
 				var ct = new CancellationTokenSource();
 				// get the data
 				// now do the frequency transformation
@@ -486,7 +493,7 @@ namespace QA40xPlot.Actions
 		/// <param name="inits"></param>
 		/// <param name="average"></param>
 		/// <returns></returns>
-		protected static async Task<LeftRightFrequencySeries?> DetermineGainCurve(BaseViewModel bvm, bool inits, int average = 1)
+		protected static async Task<LeftRightFrequencySeries?> DetermineGainCurve(BaseViewModel bvm, bool inits, double fStart, double fEnd, int average = 1)
 		{
 			// initialize very quick run, use 192K so valid up to 20KHz
 			uint fftsize = GainFftSize(bvm.FftSizeVal);
@@ -497,12 +504,14 @@ namespace QA40xPlot.Actions
 			if (true != await QaComm.InitializeDevice(sampleRate, fftsize, swindow, (int)bvm.Attenuation))
 				return null;
 			// try at 0.01 volt generator and 42dB attenuation
-			var lrfs = await SubGainCurve(bvm, inits, average, 0.01, (int)bvm.Attenuation);
+			var lrfs = await SubGainCurve(bvm, inits, fStart, fEnd, average, 0.01, (int)bvm.Attenuation);
 			// now do it again louder for better accuracy
 			if (lrfs == null)
 				return null;
-			var maxGain = Math.Max(0.01, lrfs.Left.Skip(10).Take((int)(20000 / lrfs.Df)).Max());
-			maxGain = Math.Max(maxGain, Math.Max(0.01, lrfs.Right.Skip(10).Take((int)(20000 / lrfs.Df)).Max()));
+			var binstart = lrfs.ToBinNumber(fStart);
+			var binend = lrfs.ToBinNumber(fEnd);
+			var maxGain = Math.Max(0.01, lrfs.Left.Skip(binstart).Take(binend-binstart).Max());
+			maxGain = Math.Max(maxGain, Math.Max( 0.01, lrfs.Right.Skip(binstart).Take(binend - binstart).Max() ));
 			if (maxGain <= 100)
 			{
 				// now try at 0.1V or greater if no gain
@@ -514,7 +523,7 @@ namespace QA40xPlot.Actions
 
 				// Get input voltage based on desired output voltage
 				var attenuation = QaLibrary.DetermineAttenuation(ampdBV);
-				lrfs = await SubGainCurve(bvm, inits, average, gvolt, attenuation);
+				lrfs = await SubGainCurve(bvm, inits, fStart, fEnd, average, gvolt, attenuation);
 			}
 			bvm.Attenuation = oldAtten;
 			return lrfs;
