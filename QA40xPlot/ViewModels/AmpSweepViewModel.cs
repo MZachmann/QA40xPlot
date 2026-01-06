@@ -24,9 +24,9 @@ namespace QA40xPlot.ViewModels
 		private PlotControl actPlot { get; set; }
 
 		[JsonIgnore]
-		public RelayCommand DoStart { get => new RelayCommand(StartIt); }
+		public override RelayCommand DoStart { get => new RelayCommand(StartIt); }
 		[JsonIgnore]
-		public RelayCommand DoStop { get => new RelayCommand(StopIt); }
+		public override RelayCommand DoStop { get => new RelayCommand(StopIt); }
 		[JsonIgnore]
 		public RelayCommand<object> DoViewToFit { get => new RelayCommand<object>(OnViewToFit); }
 		[JsonIgnore]
@@ -166,23 +166,16 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		private static void StartIt()
+		private void StartIt()
 		{
-			var nowHave = QA430Model.BeginQA430Op();
-			//if (!nowHave)
-			//{
-			//	MessageBox.Show("QA-430 device not connected.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
-			//	return;
-			//}
+			HasQA430 = QA430Model.BeginQA430Op();
 			// Implement the logic to start the measurement process
-			var vm = ViewSettings.Singleton.AmpVm;
-			vm.actSweep?.DoMeasurement();
+			actSweep?.DoMeasurement();
 		}
 
-		private static void StopIt()
+		private void StopIt()
 		{
-			var vm = ViewSettings.Singleton.AmpVm;
-			vm.actSweep?.DoCancel();
+			actSweep?.DoCancel();
 		}
 
 		private void ShowInfos()

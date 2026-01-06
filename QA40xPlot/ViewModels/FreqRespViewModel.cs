@@ -22,9 +22,9 @@ public class FreqRespViewModel : BaseViewModel
 	private PlotControl actPlot { get; set; }
 	private ActFrequencyResponse actFreq { get; set; }
 	[JsonIgnore]
-	public AsyncRelayCommand DoStart { get => new AsyncRelayCommand(StartIt); }
+	public override RelayCommand DoStart { get => new RelayCommand(StartIt); }
 	[JsonIgnore]
-	public RelayCommand DoStop { get => new RelayCommand(StopIt); }
+	public override RelayCommand DoStop { get => new RelayCommand(StopIt); }
 	[JsonIgnore]
 	public RelayCommand ToggleGenerator { get => new RelayCommand(StopIt); }
 	[JsonIgnore]
@@ -301,17 +301,15 @@ public class FreqRespViewModel : BaseViewModel
 		}
 	}
 
-	private static async Task StartIt()
+	private void StartIt()
 	{
 		// Implement the logic to start the measurement process
-		var vm = MyVModel;
-		await vm.actFreq.DoMeasurement();
+		actFreq?.DoMeasurement();
 	}
 
-	private static void StopIt()
+	private void StopIt()
 	{
-		var vm = MyVModel;
-		vm.actFreq.DoCancel();
+		actFreq?.DoCancel();
 	}
 
 	public DataBlob? GetFftData()

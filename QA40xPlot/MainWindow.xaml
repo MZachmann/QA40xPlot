@@ -9,6 +9,10 @@
         x:Name="MainWind"
         Title="Qa40xPlot" Height="800" Width="1600" Background="{Binding Background, Mode=OneWay}"
         ThemeMode="None">
+    <Window.InputBindings>
+        <KeyBinding Command="{Binding DoStart}" Key="{Binding StartKeyBinding}" />
+        <KeyBinding Command="{Binding DoStop}" Key="{Binding StopKeyBinding}" />
+    </Window.InputBindings>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

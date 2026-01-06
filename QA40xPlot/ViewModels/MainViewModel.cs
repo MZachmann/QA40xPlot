@@ -15,6 +15,7 @@ namespace QA40xPlot.ViewModels
 {
 	public class MainViewModel : FloorViewModel
 	{
+		#region ignorable
 		[JsonIgnore]
 		public List<string> PageNames { get; } = new List<string>
 		{
@@ -23,44 +24,16 @@ namespace QA40xPlot.ViewModels
 			"Settings", "Impedance", "Crosstalk", "Gain",
 		};
 		[JsonIgnore]
+		public List<string> FunctionKeys { get; } = new List<string>
+		{
+			"F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12"
+		};
+		[JsonIgnore]
 		public RelayCommand<object> SetPlotPage { get => new RelayCommand<object>(DoSetPlotPage); }
 		[JsonIgnore]
-		public DependencyObject? TabControlObject { get; set; } = null;
-
-		private void DoSetPlotPage(object? parameter)
-		{
-			// if we don't clear focus we get a COM exception
-			// as any focused text box tries to set the Text field i think
-			// this only happens with menus since clicking a tab button loses the focus
-			System.Windows.Input.Keyboard.ClearFocus();
-			// let the focus lose happen then continue
-			Task.Delay(100).ContinueWith(_ =>
-			{
-				Application.Current.Dispatcher.Invoke(() =>
-				{
-					PlotPageType = parameter as string ?? "Spectrum";
-				}); 
-			});
-		}
-
-		private bool _ShowTabs = false;
-		public bool ShowTabs
-		{
-			get => _ShowTabs;
-			set
-			{
-				if(SetProperty(ref _ShowTabs, value) && TabControlObject != null)
-					TabUtil.SetTabPanelVisibility(value, TabControlObject);
-			}
-		}
-
-		private bool _IsButtonShown = true;
-		public bool IsButtonShown
-		{
-			get => _IsButtonShown;
-			set => SetProperty(ref _IsButtonShown, value);
-		}
-
+		public RelayCommand<object> DoStart { get => new RelayCommand<object>(DoStartRun); }
+		[JsonIgnore]
+		public RelayCommand<object> DoStop { get => new RelayCommand<object>(DoStopRun); }
 		[JsonIgnore]
 		public RelayCommand DoExport { get => new RelayCommand(OnExport); }
 		[JsonIgnore]
@@ -76,7 +49,35 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public RelayCommand DoSaveWave { get => new RelayCommand(OnSaveWave); }
 
-		#region Setters and Getters
+		[JsonIgnore]
+		public DependencyObject? TabControlObject { get; set; } = null;
+		#endregion
+
+		private void DoSetPlotPage(object? parameter)
+		{
+			// if we don't clear focus we get a COM exception
+			// as any focused text box tries to set the Text field i think
+			// this only happens with menus since clicking a tab button loses the focus
+			try
+			{
+				System.Windows.Input.Keyboard.Focus(Application.Current?.MainWindow);
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex.ToString());
+			}
+
+			// let the focus lose happen then continue
+			Task.Delay(10).ContinueWith(_ =>
+			{
+				Application.Current?.Dispatcher.Invoke(() =>
+				{
+					PlotPageType = parameter as string ?? "Spectrum";
+				}); 
+			});
+		}
+
+		#region Ignored Setters
 		private System.Windows.Media.SolidColorBrush _Background =
 			(new BrushConverter().ConvertFrom("#dce4e4") as SolidColorBrush) ?? System.Windows.Media.Brushes.MintCream;
 		private System.Windows.Media.SolidColorBrush _GraphBackground =
@@ -184,6 +185,54 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _CurrentPaletteRect, value);
 		}
 
+		private int _PlotPageIndex = 0;
+		[JsonIgnore]
+		public int PlotPageIndex
+		{
+			get => _PlotPageIndex;
+			set
+			{
+				SetProperty(ref _PlotPageIndex, value);
+				// synchronize the page name if we are showing tabs
+				if (ShowTabs && value >= 0 && value < PageNames.Count)
+					_PlotPageType = PageNames[value];
+			}
+		}
+		#endregion
+
+		#region Setters and Getters
+		private bool _ShowTabs = false;
+		public bool ShowTabs
+		{
+			get => _ShowTabs;
+			set
+			{
+				if (SetProperty(ref _ShowTabs, value) && TabControlObject != null)
+					TabUtil.SetTabPanelVisibility(value, TabControlObject);
+			}
+		}
+
+		private bool _IsButtonShown = true;
+		public bool IsButtonShown
+		{
+			get => _IsButtonShown;
+			set => SetProperty(ref _IsButtonShown, value);
+		}
+
+		private string _StartKeyBinding = "F6";
+		public string StartKeyBinding
+		{
+			get => _StartKeyBinding;
+			set => SetProperty(ref _StartKeyBinding, value);
+		}
+
+		private string _StopKeyBinding = "F7";
+		public string StopKeyBinding
+		{
+			get => _StopKeyBinding;
+			set => SetProperty(ref _StopKeyBinding, value);
+		}
+
 		private string _GuiStyle = "Menus";
 		public string GuiStyle
 		{
@@ -199,23 +248,10 @@ namespace QA40xPlot.ViewModels
 		public string PlotPageType
 		{
 			get => _PlotPageType;
-			set {
-				SetProperty(ref _PlotPageType, value);
-				PlotPageIndex = PageNames.IndexOf(value);
-				}
-		}
-
-		private int _PlotPageIndex = 0;
-		[JsonIgnore]
-		public int PlotPageIndex
-		{
-			get => _PlotPageIndex;
 			set
 			{
-				SetProperty(ref _PlotPageIndex, value);
-				// synchronize the page name if we are showing tabs
-				if (ShowTabs && value >= 0 && value < PageNames.Count)
-					_PlotPageType = PageNames[value];
+				SetProperty(ref _PlotPageType, value);
+				PlotPageIndex = PageNames.IndexOf(value);
 			}
 		}
 
@@ -240,10 +276,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _CurrentColorRect, value);
 		}
 		#endregion
-
-		private static void StopIt()
-		{
-		}
 
 		public static void SaveToPng(Window wnd, string filename)
 		{
@@ -319,8 +351,8 @@ namespace QA40xPlot.ViewModels
 			// Ensure the current window size is captured
 			var windsize = GetWindowSize(Application.Current.MainWindow);
 			if (windsize.Length > 0)
-				ViewSettings.Singleton.MainVm.CurrentWindowRect = windsize;
-			ViewSettings.Singleton.MainVm.CurrentWindowState = Application.Current.MainWindow.WindowState.ToString();
+				CurrentWindowRect = windsize;
+			CurrentWindowState = Application.Current.MainWindow.WindowState.ToString();
 
 			// Serialize the object to a JSON string
 			//string jsonString = JsonConvert.SerializeObject(cfgData, Formatting.Indented);
@@ -585,6 +617,7 @@ namespace QA40xPlot.ViewModels
 			if (CurrentView != null)
 			{
 				CurrentView.ForceGraphUpdate();
+				Debug.WriteLine($"Switch to view {CurrentView.Name}");
 			}
 		}
 
@@ -606,6 +639,37 @@ namespace QA40xPlot.ViewModels
 			if (delay > 0)
 				await Task.Delay(delay);
 		}
+
+		private void DoStartRun(object? obj)
+		{
+			var view = ViewSettings.Singleton.MainVm.CurrentView;
+			if (view != null)
+			{
+				try
+				{
+					if (view.DoStart.CanExecute(null))
+						view.DoStart.Execute(null);
+				}
+				catch { }
+			}
+		}
+
+
+		private void DoStopRun(object? obj)
+		{
+			// paint the windows
+			var view = ViewSettings.Singleton.MainVm.CurrentView;
+			if (view != null)
+			{
+				try
+				{
+					if (view.DoStop.CanExecute(null))
+						view.DoStop.Execute(null);
+				}
+				catch { }
+			}
+		}
+
 
 		public MainViewModel()
 		{

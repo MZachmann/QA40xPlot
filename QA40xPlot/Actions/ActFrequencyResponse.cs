@@ -263,12 +263,8 @@ namespace QA40xPlot.Actions
 
 			try
 			{
-				// Check if cancel button pressed
-				if (ct.IsCancellationRequested)
-					return;
-
 				// If in continous mode we continue sweeping until cancellation requested.
-				NextPage.GainData = ([],[]); // new list of complex data
+				NextPage.GainData = ([], []); // new list of complex data
 				NextPage.GainFrequencies = [];
 
 				// ********************************************************************
@@ -282,20 +278,21 @@ namespace QA40xPlot.Actions
 					.Select(y => y.First())
 					.ToArray();
 
-				if (ct.IsCancellationRequested)
-					return;
-				if (msr.IsChirp)
-					await RunChirpTest(NextPage, voltagedBV);
-				else
-					await RunFreqTest(NextPage, stepBinFrequencies, voltagedBV);
-				AddMicCorrection(NextPage); // add mic correction if any
-				//var ttype = msr.GetTestingType(msr.TestType);
-				//NextPage.GainData = AddResponseOffset(NextPage.GainFrequencies, NextPage.GainData, NextPage.Definition, ttype);    // add offset correction if any
+				if (!ct.IsCancellationRequested)
+				{
+					if (msr.IsChirp)
+						await RunChirpTest(NextPage, voltagedBV);
+					else
+						await RunFreqTest(NextPage, stepBinFrequencies, voltagedBV);
+					AddMicCorrection(NextPage); // add mic correction if any
+												//var ttype = msr.GetTestingType(msr.TestType);
+												//NextPage.GainData = AddResponseOffset(NextPage.GainFrequencies, NextPage.GainData, NextPage.Definition, ttype);    // add offset correction if any
 
-				UpdateGraph(false);
-				if (!ReferenceEquals(PageData, NextPage))
-					PageData = NextPage;        // finally update the pagedata for display and processing
-				MyVModel.LinkAbout(PageData.Definition);  // ensure we're linked right during replays
+					UpdateGraph(false);
+					if (!ReferenceEquals(PageData, NextPage))
+						PageData = NextPage;        // finally update the pagedata for display and processing
+					MyVModel.LinkAbout(PageData.Definition);  // ensure we're linked right during replays
+				}
 
 				bool continuous = false;
 				while (continuous && !ct.IsCancellationRequested)
@@ -309,7 +306,7 @@ namespace QA40xPlot.Actions
 					else
 						await RunFreqTest(PageData, stepBinFrequencies, voltagedBV);
 					AddMicCorrection(PageData);     // add mic correction if any
-					// PageData.GainData = AddResponseOffset(PageData.GainFrequencies, PageData.GainData, PageData.Definition, ttype);    // add offset correction if any
+													// PageData.GainData = AddResponseOffset(PageData.GainFrequencies, PageData.GainData, PageData.Definition, ttype);    // add offset correction if any
 					UpdateGraph(false);
 				}
 			}

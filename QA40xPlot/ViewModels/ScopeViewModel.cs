@@ -27,9 +27,9 @@ namespace QA40xPlot.ViewModels
 		private ScopeInfo actInfoLeft { get; set; }
 		private ScopeInfo actInfoRight { get; set; }
 		[JsonIgnore]
-		public RelayCommand DoStart { get => new RelayCommand(StartIt); }
+		public override RelayCommand DoStart { get => new RelayCommand(StartIt); }
 		[JsonIgnore]
-		public RelayCommand DoStop { get => new RelayCommand(StopIt); }
+		public override RelayCommand DoStop { get => new RelayCommand(StopIt); }
 		[JsonIgnore]
 		public RelayCommand ToggleGenerator { get => new RelayCommand(StopIt); }
 		[JsonIgnore]
@@ -211,17 +211,15 @@ namespace QA40xPlot.ViewModels
 
 		}
 
-		private static void StartIt()
+		private void StartIt()
 		{
 			// Implement the logic to start the measurement process
-			var vm = ViewSettings.Singleton.ScopeVm;
-			vm.actScope?.DoMeasurement();
+			actScope?.DoMeasurement();
 		}
 
-		private static void StopIt()
+		private void StopIt()
 		{
-			var vm = ViewSettings.Singleton.ScopeVm;
-			vm.actScope?.DoCancel();
+			actScope?.DoCancel();
 		}
 
 		private static async Task LoadItTab()

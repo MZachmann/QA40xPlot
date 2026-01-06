@@ -21,9 +21,9 @@ namespace QA40xPlot.ViewModels
 		private ActFreqSweep actFreq { get; set; }
 
 		[JsonIgnore]
-		public RelayCommand DoStart { get => new RelayCommand(StartIt); }
+		public override RelayCommand DoStart { get => new RelayCommand(StartIt); }
 		[JsonIgnore]
-		public RelayCommand DoStop { get => new RelayCommand(StopIt); }
+		public override RelayCommand DoStop { get => new RelayCommand(StopIt); }
 		[JsonIgnore]
 		public RelayCommand<object> DoViewToFit { get => new RelayCommand<object>(OnViewToFit); }
 		[JsonIgnore]
@@ -92,24 +92,16 @@ namespace QA40xPlot.ViewModels
 
 		#endregion
 
-		private static void StartIt()
+		private void StartIt()
 		{
 			// Implement the logic to start the measurement process
-			var vm = ViewSettings.Singleton.FreqVm;
-			vm.HasQA430 = QA430Model.BeginQA430Op();
-			//if (!vm.HasQA430)
-			//{
-			//	MessageBox.Show("QA-430 device not connected.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
-			//	return;
-			//}
-
-			vm.actFreq?.DoMeasurement();
+			HasQA430 = QA430Model.BeginQA430Op();
+			actFreq?.DoMeasurement();
 		}
 
-		private static void StopIt()
+		private void StopIt()
 		{
-			var vm = ViewSettings.Singleton.FreqVm;
-			vm.actFreq?.DoCancel();
+			actFreq?.DoCancel();
 		}
 
 		// the property change is used to trigger repaints of the graph

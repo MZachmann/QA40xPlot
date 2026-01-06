@@ -343,6 +343,14 @@ namespace QA40xPlot.ViewModels
 				}
 		}
 
+		public virtual RelayCommand DoStop { get => new RelayCommand(NullFn); }
+		public virtual RelayCommand DoStart { get => new RelayCommand(NullFn); }
+
+		private void NullFn()
+		{
+			throw new NotImplementedException();
+		}
+
 		private bool _ShowLegend = true;
 		public bool ShowLegend
 		{
