@@ -158,7 +158,7 @@ namespace QA40xPlot.Actions
 			var vm = page.ViewModel;
 			var freq = vm.NearestBinFreq(vm.Gen1Frequency);
 			WaveContainer.SetMono();          // enable the generator
-			bool buse = force ? true : vm.UseGenerator;
+			bool buse = force ? true : vm.UseGenerator1;
 			double[] distout = [];
 			// do distortion addon first so wavegenerator is set up on exit (?)
 			if (buse && ViewSettings.AddonDistortion > 0 && vm.Gen1Waveform == "Sine")
@@ -295,13 +295,15 @@ namespace QA40xPlot.Actions
 			if (vm.DoAutoAttn && LRGains != null)
 			{
 				// build a wave to evaluate the peak values
-				var wave = BuildWave(NextPage, ToD(vm.Gen1Voltage, 1e-3), true);
+				// the amplitude whatever the entry was
+				var gvolt = GenVoltApplyUnit(vm.Gen1Voltage, vm.GenVoltageUnits, 1e-3);
+				var wave = BuildWave(NextPage, Math.Max(gvolt, 1e-3), true);
 				// get the peak voltages then fake an rms math div by 2*sqrt(2) = 2.828
 				// since I assume that's the hardware math
 				var waveVOut = (wave.Max() - wave.Min()) / (2 * Math.Sqrt(2));
-				waveVOut = Math.Max(waveVOut, ToD(vm.Gen1Voltage, 1e-6)); // ensure we have a minimum voltage
+				waveVOut = Math.Max(waveVOut, gvolt); // ensure we have a minimum voltage of at least sine==1
 				var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
-				var vinL = vm.ToGenVoltage(waveVOut.ToString(), [], GEN_INPUT, gains); // get gen1 input voltage
+				var vinL = vm.ToGenVoltage(waveVOut, [], GEN_INPUT, gains); // get gen1 input voltage
 				double voutL = ToGenOutVolts(vinL, [], LRGains.Left);   // what is that as output voltage?
 				double voutR = ToGenOutVolts(vinL, [], LRGains.Right);  // for both channels
 				var vdbv = QaLibrary.ConvertVoltage(Math.Max(voutL, voutR), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
@@ -428,7 +430,8 @@ namespace QA40xPlot.Actions
 						return false;
 				}
 				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
-				var genVolt = vm.ToGenVoltage(vm.Gen1Voltage, [], GEN_INPUT, gains);
+				var gvolt = GenVoltApplyUnit(vm.Gen1Voltage, vm.GenVoltageUnits, 1e-5);
+				var genVolt = vm.ToGenVoltage(gvolt, [], GEN_INPUT, gains);
 				if (genVolt > 5)
 				{
 					await showMessage($"Requesting input voltage of {genVolt} volts, check connection and settings");
@@ -439,10 +442,7 @@ namespace QA40xPlot.Actions
 					return false;
 
 				msr.Definition.GeneratorVoltage = genVolt; // save the generator voltage for serialization
-				if (vm.UseGenerator)
-					MyVModel.GeneratorVoltage = MathUtil.FormatVoltage(genVolt); // update the viewmodel so we can show it on-screen
-				else
-					MyVModel.GeneratorVoltage = "off";
+				MyVModel.GeneratorVoltage = vm.GetGenVoltLine(genVolt);
 
 				// ********************************************************************
 				// measure once

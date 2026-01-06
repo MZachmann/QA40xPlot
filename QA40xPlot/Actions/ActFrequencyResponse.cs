@@ -1,5 +1,6 @@
 ﻿using FftSharp;
 using QA40xPlot.BareMetal;
+using QA40xPlot.Converters;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
@@ -234,12 +235,13 @@ namespace QA40xPlot.Actions
 			}
 
 			int[] frqtest = [LRGains.ToBinNumber(fmin), LRGains.ToBinNumber(fmax)];
+			// get it with units applied
+			var gvolt = GenVoltApplyUnit(msr.Gen1Voltage, msr.GenVoltageUnits, 1e-9);
 			{
 				// to get attenuation, use a frequency of zero (all)
 				// find the highest output voltage
-
-				var genv = msr.ToGenVoltage(msr.Gen1Voltage, frqtest, GEN_OUTPUT, LRGains.Left);                  // output v
-				genv = Math.Max(genv, msr.ToGenVoltage(msr.Gen1Voltage, frqtest, GEN_OUTPUT, LRGains.Right));    // output v
+				var genv = msr.ToGenVoltage(gvolt, frqtest, GEN_OUTPUT, LRGains.Left);                  // output v
+				genv = Math.Max(genv, msr.ToGenVoltage(gvolt, frqtest, GEN_OUTPUT, LRGains.Right));    // output v
 				var vdbv = QaLibrary.ConvertVoltage(genv, E_VoltageUnit.Volt, E_VoltageUnit.dBV);   // out dbv
 				var attenuation = QaLibrary.DetermineAttenuation(vdbv);
 				if(! msr.DoAutoAttn)
@@ -249,12 +251,12 @@ namespace QA40xPlot.Actions
 				msr.Attenuation = attenuation;
 				vmFreq.Attenuation = msr.Attenuation; // display on-screen
 			}
-			// get voltages for generator
-			var genVolt = msr.ToGenVoltage(msr.Gen1Voltage, frqtest, GEN_INPUT, LRGains?.Left);
+			// get voltages for generator input based on GenDirection
+			var genVolt = msr.ToGenVoltage(gvolt, frqtest, GEN_INPUT, LRGains?.Left);
 			var voltagedBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);  // in dbv
 
 			NextPage.Definition.GeneratorVoltage = genVolt; // save the actual generator voltage
-			MyVModel.GeneratorVoltage = MathUtil.FormatVoltage(genVolt); // save the actual generator voltage for display
+			MyVModel.GeneratorVoltage = msr.GetGenVoltLine(genVolt); // save the actual generator voltage for display
 
 			if (true != await QaComm.InitializeDevice(sampleRate, fftsize, msr.WindowingMethod, (int)msr.Attenuation))
 			{

@@ -1,4 +1,5 @@
 ﻿using QA40xPlot.BareMetal;
+using QA40xPlot.Converters;
 using QA40xPlot.Data;
 using QA40xPlot.Extensions;
 using QA40xPlot.Libraries;
@@ -274,7 +275,7 @@ namespace QA40xPlot.Actions
 				var myFreq = PageData.SweepSteps.Steps[0].GenFrequency;	// first frequency?
 				var gains = (ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right);
 				var bin = LRGains.ToBinNumber(myFreq);
-				var x = vm.ToGenVoltage(volts.ToString(), [bin], GEN_INPUT, gains);
+				var x = vm.ToGenVoltage(volts, [bin], GEN_INPUT, gains);
 				myVolts = x;
 			}
 			var aline = LookupColumn(PageData, myVolts); // lookup the columns
@@ -410,13 +411,14 @@ namespace QA40xPlot.Actions
 			// specified voltages boundaries
 			if (LRGains == null || LRGains.Left.Length == 0 || LRGains.Right.Length == 0)
 				return ([], [], []);
-			var startV = ToD(myVm.StartVoltage, 1);
-			var endV = ToD(myVm.EndVoltage, 1);
+			var startV = GenVoltApplyUnit(myVm.StartVoltage, myVm.GenVoltageUnits, 1e-9);
+			var endV = GenVoltApplyUnit(myVm.EndVoltage, myVm.GenVoltageUnits, 1e-9);
 			var stepVoltages = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(startV, endV, myVm.StepsOctave);
 			// now convert all of the step voltages to input voltages
 			var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
 			var binno = LRGains.ToBinNumber(dFreq);
-			var stepInVoltages = stepVoltages.Select(x => myVm.ToGenVoltage(x.ToString(), [binno], GEN_INPUT, gains)).ToArray();
+			// do this last so Power correctly per-octaves
+			var stepInVoltages = stepVoltages.Select(x => myVm.ToGenVoltage(x, [binno], GEN_INPUT, gains)).ToArray();
 			// get output values for left and right so we can attenuate
 			var stepOutLVoltages = stepInVoltages.Select(x => ToGenOutVolts(x, [binno], LRGains.Left)).ToArray();
 			var stepOutRVoltages = stepInVoltages.Select(x => ToGenOutVolts(x, [binno], LRGains.Right)).ToArray();
@@ -585,7 +587,7 @@ namespace QA40xPlot.Actions
 						// Convert generator voltage from V to dBV
 						var generatorVoltageV = stepInVoltages[i];
 						page.Definition.GeneratorVoltage = generatorVoltageV;
-						MyVModel.GeneratorVoltage = MathUtil.FormatVoltage(generatorVoltageV);
+						MyVModel.GeneratorVoltage = vm.GetGenVoltLine(generatorVoltageV);
 
 						LeftRightSeries? lrfs = null;
 						try

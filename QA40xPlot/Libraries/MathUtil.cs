@@ -8,12 +8,13 @@ namespace QA40xPlot.Libraries
 	public interface MathUtil
 	{
 		/// <summary>
-		/// Given an input voltage format, get a display format converter
+		/// Given an input voltage value scale it for the unit to return a double
+		/// in units of volt or watt for math
 		/// </summary>
 		/// <param name="value">the data value</param>
 		/// <param name="genFormat">the entry format</param>
 		/// <returns>a converted double that is ready to become text</returns>
-		public static double UnformatValue(double value, string genFormat)
+		public static double MergeUnitValue(double value, string genFormat)
 		{
 			switch (genFormat)
 			{

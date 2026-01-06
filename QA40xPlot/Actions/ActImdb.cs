@@ -157,7 +157,7 @@ namespace QA40xPlot.Actions
 
 			// do distortion addon first so wavegenerator is set up on exit (?)
 			double[] distout = []; // empty array
-			if (vm.UseGenerator && vm.UseGenerator2 && ViewSettings.AddonDistortion > 0)
+			if (vm.UseGenerator1 && vm.UseGenerator2 && ViewSettings.AddonDistortion > 0)
 			{
 				WaveGenerator.SetGen1(true, freq2 - freq, v1 * ViewSettings.AddonDistortion / 100, true);          // send a sine wave
 				WaveGenerator.SetGen2(true, freq2 + freq, v1 * ViewSettings.AddonDistortion / 100, true);          // just a sine wave
@@ -165,16 +165,16 @@ namespace QA40xPlot.Actions
 			}
 
 			// now regular stuff
-			WaveGenerator.SetGen1(true, freq, v1, vm.UseGenerator);          // send a sine wave
+			WaveGenerator.SetGen1(true, freq, v1, vm.UseGenerator1);          // send a sine wave
 			WaveGenerator.SetGen2(true, freq2, v2, vm.UseGenerator2);          // send a sine wave
 			var vsee1 = MathUtil.FormatVoltage(v1);
 			var vsee2 = MathUtil.FormatVoltage(v2);
 			string vout = "";
-			if (vm.UseGenerator && vm.UseGenerator2)
+			if (vm.UseGenerator1 && vm.UseGenerator2)
 			{
 				vout = $"{vsee1}, {vsee2}";
 			}
-			else if (vm.UseGenerator)
+			else if (vm.UseGenerator1)
 			{
 				vout = vsee1;
 			}
@@ -345,7 +345,9 @@ namespace QA40xPlot.Actions
 
 				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
 				int[] frqtest = [LRGains?.ToBinNumber(freq) ?? 100];
-				var genVolt = vm.ToGenVoltage(vm.Gen1Voltage, frqtest, GEN_INPUT, gains);   // input voltage 1
+
+				var gvolt = GenVoltApplyUnit(vm.Gen1Voltage, vm.GenVoltageUnits, 1e-3);
+				var genVolt = vm.ToGenVoltage(gvolt, frqtest, GEN_INPUT, gains);   // input voltage 1
 
 				msr.Definition.GeneratorVoltage = genVolt;  // used by the buildwave
 
@@ -905,7 +907,9 @@ namespace QA40xPlot.Actions
 				var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
 
 				// find the two input voltages for our testing
-				var v1in = vm.ToGenVoltage(vm.Gen1Voltage, frqtest, GEN_INPUT, gains);  // get generator voltage
+
+				var gvolt = GenVoltApplyUnit(vm.Gen1Voltage, vm.GenVoltageUnits, 1e-3);
+				var v1in = vm.ToGenVoltage(gvolt, frqtest, GEN_INPUT, gains);  // get generator voltage
 				var v2in = v1in / vm.GenDivisor;  // get second input voltage
 												  // now find the output voltages for this input
 				var v1lout = ToGenOutVolts(v1in, frqtest, LRGains.Left);    // left channel output V

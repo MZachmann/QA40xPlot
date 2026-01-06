@@ -19,7 +19,7 @@
         <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
             <StackPanel Margin="0,1,1,0">
                 <views:StartStop />
-                <CheckBox Content="_Use Generator" IsChecked="{Binding UseGenerator}" 
+                <CheckBox Content="_Use Generator" IsChecked="{Binding UseGenerator1}" 
                       HorizontalAlignment="Center"  Margin="0,5,0,0" />
                 <views:Attenuator />
                 <Expander Header="—— Generator 1" IsExpanded="{Binding ExpandGenerator}" >
@@ -74,7 +74,7 @@
                         <Label Content="{Binding GenAmpDescript, Mode=OneWay}"  Target="{Binding ElementName=cbVolt}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="4" Grid.Column="0"  />
                         <ComboBox x:Name="cbVolt" Grid.Column="1" Grid.Row="4"   
                               VerticalContentAlignment="Center"
-                              Text="{Binding Gen1Voltage, Converter={StaticResource VoltUnitConverter}}"
+                              Text="{Binding Gen1Voltage}"
                               IsEditable="True" ItemsSource="{Binding GenVoltages}">
                         </ComboBox>
                         <Button BorderThickness="0,0,0,1" Command="{Binding ShowMenuCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}"

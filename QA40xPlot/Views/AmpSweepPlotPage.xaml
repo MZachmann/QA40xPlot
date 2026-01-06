@@ -44,7 +44,7 @@
                            HorizontalAlignment="Right" VerticalAlignment="Center" ContentStringFormat="Start {0}" Grid.Column="0" Grid.Row="1"   />
                         <ComboBox Grid.Column="1" Grid.Row="1"   x:Name="cbV1"
                               VerticalContentAlignment="Center"
-                              Text="{Binding StartVoltage, Converter={StaticResource VoltUnitConverter}}"
+                              Text="{Binding StartVoltage}"
                               IsEditable="True" ItemsSource="{Binding GenVoltages}">
                         </ComboBox>
                         <Button BorderThickness="0,0,0,1" Command="{Binding ShowMenuCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
@@ -53,7 +53,7 @@
                         <Label Content="{Binding GenAmpDescript, Mode=OneWay}" Target="{Binding ElementName=cbV2}" HorizontalAlignment="Right" VerticalAlignment="Center" ContentStringFormat="End {0}" Grid.Column="0" Grid.Row="2"   />
                         <ComboBox x:Name="cbV2" Grid.Column="1" Grid.Row="2"   
                               VerticalContentAlignment="Center"
-                              Text="{Binding EndVoltage, Converter={StaticResource VoltUnitConverter}}"
+                              Text="{Binding EndVoltage}"
                               IsEditable="True" ItemsSource="{Binding GenVoltages}">
                         </ComboBox>
                         <Button BorderThickness="0,0,0,1" Command="{Binding ShowMenuCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}"

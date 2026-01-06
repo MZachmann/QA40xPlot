@@ -48,7 +48,7 @@
                         <Button BorderThickness="0,0,0,1" Command="{Binding ShowMenuCommand}" Grid.Row="1" Grid.Column="2" 
                                 CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
                                 Margin="5,0,5,0" MinWidth="20"
-                                Content="{Binding GenVoltUnits}" VerticalAlignment="Center" />
+                                Content="{Binding GenVoltageUnits}" VerticalAlignment="Center" />
                     </Grid>
                 </Expander>
                 <Expander Header="—— Sweep" IsExpanded="{Binding ExpandSweep}"  >

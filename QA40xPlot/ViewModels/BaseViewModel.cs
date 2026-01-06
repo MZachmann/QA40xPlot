@@ -62,9 +62,9 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public RelayCommand EditPaletteCommand { get => new RelayCommand(EditPlotPalette); }
 		[JsonIgnore]
-		public RelayCommand<object> ShowMenuCommand { get => new RelayCommand<object>(ShowMenu); }
+		public RelayCommand<object> ShowMenuCommand { get => new RelayCommand<object>(ShowUnitMenu); }
 		[JsonIgnore]
-		public RelayCommand<object> SetGenVolts { get => new RelayCommand<object>(DoGenVolts); }
+		public RelayCommand<object> SetGenVolts { get => new RelayCommand<object>(DoGenVoltUnits); }
 		[JsonIgnore]
 		public RelayCommand<object> SetAttenuate { get => new RelayCommand<object>(SetAtten); }
 		#endregion
@@ -82,8 +82,6 @@ namespace QA40xPlot.ViewModels
 		public bool IsGenPower { get => (GenDirection == MeasureVoltsFull[2]); }
 		[JsonIgnore]
 		public string GenAmpDescript { get => (IsGenPower ? "Po_wer" : "_Voltage"); }
-		[JsonIgnore]
-		public string GenAmpUnits { get => (IsGenPower ? "W" : "V"); }
 		[JsonIgnore]
 		public string DsHeading { get => DataInfo.Heading; }
 		[JsonIgnore]
@@ -263,7 +261,6 @@ namespace QA40xPlot.ViewModels
 		/// for use by the unit converters
 		/// </summary>
 		private string _GenVoltageUnits = "V";
-		[JsonIgnore]
 		public string GenVoltageUnits
 		{
 			get { return _GenVoltageUnits; }
@@ -271,6 +268,20 @@ namespace QA40xPlot.ViewModels
 			{
 				SetProperty(ref _GenVoltageUnits, value);
 			}
+		}
+
+		private string _Gen1Voltage = string.Empty;         // type of alert
+		public string Gen1Voltage
+		{
+			get => _Gen1Voltage;
+			set => SetProperty(ref _Gen1Voltage, value);
+		}
+
+		private bool _UseGenerator1 = true;
+		public bool UseGenerator1
+		{
+			get => _UseGenerator1;
+			set => SetProperty(ref _UseGenerator1, value);
 		}
 
 		private int _LeftWidth; // the width of the left channel in units
@@ -383,17 +394,20 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		/// <summary>
-		/// for use by the unit converters, serialized
-		/// </summary>
-		private string _GenVoltUnits = "V";
-		public string GenVoltUnits
+		// the voltage with units, so 0.1mv ==> .0001
+		// where units is always GenVoltUnits
+		// use IsGenPower to determine which
+		public static double GenVoltApplyUnit(string volts, string uom, double defValue)
 		{
-			get { return _GenVoltUnits; }
-			set
-			{
-				SetProperty(ref _GenVoltUnits, value);
-			}
+			return Converters.VoltUnitConverter.MergeUnit(volts, uom, defValue);
+		}
+
+		// the scaled voltage converted to an entry
+		// where units is always GenVoltUnits
+		// use IsGenPower to determine which
+		public static double GenVoltUnApplyUnit(string volts, string uom, double defValue)
+		{
+			return Converters.VoltUnitConverter.RemoveUnit(volts, uom, defValue);
 		}
 
 		private bool _ShowThickLines;
@@ -604,11 +618,9 @@ namespace QA40xPlot.ViewModels
 				if (SetProperty(ref _GenDirection, value))
 				{
 					RaisePropertyChanged("GenAmpDescript");
-					RaisePropertyChanged("GenAmpUnits");
+					// FindDirection returns true if a voltage
 					if (IsGenPower == FindDirection(GenVoltageUnits))
 						GenVoltageUnits = AlterDirection(GenVoltageUnits);
-					if (IsGenPower == FindDirection(GenVoltUnits))
-						GenVoltUnits = AlterDirection(GenVoltUnits);
 				}
 			}
 		}
@@ -664,7 +676,7 @@ namespace QA40xPlot.ViewModels
 				case "W":
 					return "V";
 				case "dBW":
-					return "dbV";
+					return "dBV";
 				case "dBm":
 					return "dBmV";
 				// voltage formats
@@ -688,7 +700,7 @@ namespace QA40xPlot.ViewModels
 		{
 		}
 
-		public void SetGeneratorVolts(string volts)
+		public void SetGeneratorUnits(string volts)
 		{
 			GenVoltageUnits = volts;
 			RaisePropertyChanged("GenVoltage");
@@ -722,13 +734,13 @@ namespace QA40xPlot.ViewModels
 			RaisePropertyChanged("DSPlotColors");
 		}
 
-		public static void DoGenVolts(object? parameter)
+		public static void DoGenVoltUnits(object? parameter)
 		{
 			var mvm = ViewSettings.Singleton.MainVm.CurrentView; // the current viewmodel
 			if (parameter != null && mvm != null)
 			{
-				mvm.GenVoltUnits = parameter.ToString() ?? string.Empty;    // serialized value
-				mvm.SetGeneratorVolts(mvm.GenVoltUnits);    // do math...
+				var genVoltUnits = parameter.ToString() ?? string.Empty;    // serialized value
+				mvm.SetGeneratorUnits(genVoltUnits);    // do math...
 			}
 		}
 
@@ -786,43 +798,19 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		public static void ShowMenu(object? parameter)
+		public void ShowUnitMenu(object? parameter)
 		{
-			var mvm = ViewSettings.Singleton.MainVm.CurrentView; // the current viewmodel
-			if (parameter is Button button && mvm != null)
+			if (parameter is Button button)
 			{
 				button.ContextMenu = new ContextMenu(); // Clear any previous context menu
-				var dutDirection = BaseViewModel.ToDirection(mvm.GenDirection);
+				var dutDirection = BaseViewModel.ToDirection(GenDirection);
 				var unitList = (dutDirection == E_GeneratorDirection.OUTPUT_POWER) ? BaseViewModel.PowerUnits : BaseViewModel.VoltageUnits;
 				foreach (var unit in unitList)
 				{
 					MenuItem unitItem = new MenuItem
 					{
 						Header = unit,
-						Command = mvm.SetGenVolts, // set the unit of measure string
-						CommandParameter = unit
-					};
-					button.ContextMenu.Items.Add(unitItem);
-				}
-				button.ContextMenu.PlacementTarget = button;
-				button.ContextMenu.IsOpen = true;
-			}
-		}
-
-		public static void ShowVolts(object? parameter)
-		{
-			var mvm = ViewSettings.Singleton.MainVm.CurrentView; // the current viewmodel
-			if (parameter is Button button && mvm != null)
-			{
-				button.ContextMenu = new ContextMenu(); // Clear any previous context menu
-				var dutDirection = BaseViewModel.ToDirection(mvm.GenDirection);
-				var unitList = (dutDirection == E_GeneratorDirection.OUTPUT_POWER) ? BaseViewModel.PowerUnits : BaseViewModel.VoltageUnits;
-				foreach (var unit in unitList)
-				{
-					MenuItem unitItem = new MenuItem
-					{
-						Header = unit,
-						Command = mvm.SetGenVolts, // set the unit of measure string
+						Command = SetGenVolts, // set the unit of measure string
 						CommandParameter = unit
 					};
 					button.ContextMenu.Items.Add(unitItem);
@@ -923,24 +911,48 @@ namespace QA40xPlot.ViewModels
 		}
 
 		/// <summary>
-		/// convert a string value in the gui to an input or output voltage
-		/// based on the current generator direction
+		/// for getting a formatted line for the Globals status area
+		/// </summary>
+		/// <returns></returns>
+		public string GetGenVoltLine(double genVolt)
+		{
+			string gline = string.Empty;
+			string[] ignore = { "dBW", "dBV", "dBmV", "dBu", "dBFS", "dBm" };
+			if (UseGenerator1)
+			{
+				var vnone = MathUtil.FormatVoltage(genVolt); // update the viewmodel so we can show it on-screen
+				if (ignore.Contains(GenVoltageUnits))
+				{
+					var vstr = GenVoltUnApplyUnit(genVolt.ToString(), GenVoltageUnits, .001);
+					var vun = vstr.ToString("G3") + GenVoltageUnits;
+					gline = $"{vun} ({vnone})";
+				}
+				else
+					gline = vnone;
+			}
+			else
+				gline = "off";
+			return gline;
+		}
+
+		/// <summary>
+		/// given the value supplied for Voltage or Power in the gui 
+		/// find either the DUT input or DUT output voltage value
+		/// so it reverse-scales Voltage based on the gui selection for DUT then
+		/// it forward-scales by gain if we want output instead of input voltage levels
 		/// </summary>
 		/// <param name="amplitude">string amplitude with type depending on generator direction</param>
 		/// <param name="binNumber">frequency bin of interested or 0 for all</param>
 		/// <param name="isInput">dut input or dut output voltage</param>
 		/// <param name="lrGains">the gain calculations for one channel</param>
 		/// <returns></returns>
-		public double ToGenVoltage(string amplitude, int[] binNumber, bool isInput, double[]? lrGains)
+		public double ToGenVoltage(double amplitude, int[] binNumber, bool isInput, double[]? lrGains)
 		{
-			double defval = 1e-5; // default value for no gain or no input
 			var genType = ToDirection(GenDirection);
-			var vtest = MathUtil.ToDouble(amplitude, 4321);
-			if (vtest == 4321 || vtest == 0)
-				return defval;
 			if (lrGains == null || (genType == E_GeneratorDirection.INPUT_VOLTAGE && isInput))
 			{
-				return vtest;
+				// no scaling
+				return amplitude;
 			}
 			var maxGain = lrGains.Max();
 			if (lrGains.Length > 2)
@@ -964,35 +976,35 @@ namespace QA40xPlot.ViewModels
 					binmax = Math.Min(abin, binmax);  // limit this
 				}
 				maxGain = lrGains.Skip(binmin).Take(Math.Max(1, binmax - binmin)).Max();
-				var df = binNumber[0] / 20.0;
+				var df = binNumber[0] / 20.0;	// random guess at the frequency here
 				var idx = Array.IndexOf(lrGains, maxGain);
 				var dfrq = df * idx;
 				Debug.WriteLine($"Max Gain of {maxGain} at {dfrq}" + Environment.NewLine);
 			}
 
 			if (maxGain <= 0.0)
-				return vtest;
+				return amplitude;
 
 			switch (genType)
 			{
 				case E_GeneratorDirection.INPUT_VOLTAGE:
 					if (lrGains != null && !isInput)
 					{
-						vtest *= maxGain; // max expected DUT output voltage
+						amplitude *= maxGain; // max expected DUT output voltage
 					}
 					break;
 				case E_GeneratorDirection.OUTPUT_VOLTAGE:
 					if (lrGains != null && isInput)
-						vtest /= maxGain; // expected QA40x generator voltage
+						amplitude /= maxGain; // expected QA40x generator voltage
 					break;
 				case E_GeneratorDirection.OUTPUT_POWER:
 					// now vtest is actually power setting... so convert to voltage
-					vtest = Math.Sqrt(vtest * ViewSettings.AmplifierLoad);  // so sqrt(power * load) = output volts
+					amplitude = Math.Sqrt(amplitude * ViewSettings.AmplifierLoad);  // so sqrt(power * load) = output volts
 					if (lrGains != null && isInput)
-						vtest /= maxGain; // expected QA40x generator voltage
+						amplitude /= maxGain; // expected QA40x generator voltage
 					break;
 			}
-			return vtest;
+			return amplitude;
 		}
 
 		private DateTime _DownTime = DateTime.MinValue;

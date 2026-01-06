@@ -2,6 +2,7 @@
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using QA40xPlot.Actions;
+using QA40xPlot.Converters;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.Views;
@@ -61,13 +62,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _Gen1Frequency, value);
 		}
 
-		private string _Gen1Voltage = string.Empty;
-		public string Gen1Voltage
-		{
-			get => _Gen1Voltage;
-			set => SetProperty(ref _Gen1Voltage, value);
-		}
-
 		private string _GenWavFile = string.Empty;
 		public string GenWavFile
 		{
@@ -101,12 +95,6 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _InputRange;
 			set => SetProperty(ref _InputRange, value);
-		}
-		private bool _UseGenerator;
-		public bool UseGenerator
-		{
-			get => _UseGenerator;
-			set => SetProperty(ref _UseGenerator, value);
 		}
 		#endregion
 
@@ -374,7 +362,7 @@ namespace QA40xPlot.ViewModels
 			Gen1Waveform = "Sine";
 			Gen1Voltage = "0.1";
 			Gen1Frequency = "1000";
-			UseGenerator = true;
+			UseGenerator1 = true;
 
 			Attenuation = 42;
 

@@ -122,7 +122,7 @@
                            HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="1" Grid.Column="0"  />
                         <ComboBox x:Name="cbVolt" Grid.Column="1" Grid.Row="1"   
                               VerticalContentAlignment="Center"
-                              Text="{Binding Gen1Voltage, Converter={StaticResource VoltUnitConverter}}"
+                              Text="{Binding Gen1Voltage}"
                               IsEditable="True" ItemsSource="{Binding GenVoltages}">
                         </ComboBox>
                         <Button BorderThickness="0,0,0,1" Command="{Binding ShowMenuCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}"

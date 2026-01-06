@@ -341,7 +341,7 @@ namespace QA40xPlot.Actions
 			dfreq = QaLibrary.GetNearestBinFrequency(dfreq, sampleRate, fftsize);
 			WaveContainer.SetMono();                 // enable generator
 			WaveGenerator.SetGen1(true, dfreq, generatorV, true); // send a sine wave
-			bvm.GeneratorVoltage = MathUtil.FormatVoltage(generatorV); // update the viewmodel so we can show it on-screen
+			bvm.GeneratorVoltage = bvm.GetGenVoltLine(generatorV); // update the viewmodel so we can show it on-screen
 			var ct = new CancellationTokenSource();
 			// do two and average them
 			LeftRightSeries acqData = await QaComm.DoAcquisitions(1, ct.Token);        // Do a single acquisition

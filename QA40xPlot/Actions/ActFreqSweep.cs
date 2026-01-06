@@ -374,9 +374,8 @@ namespace QA40xPlot.Actions
 			int[] frqtest, LeftRightFrequencySeries LRGains)
 		{
 			// to figure out attenuation use the first gen voltage
-			var voltx = voltage.ToString();
 			var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
-			var genVolt = bvm.ToGenVoltage(voltx, frqtest, GEN_INPUT, gains);   // input voltage for request
+			var genVolt = bvm.ToGenVoltage(voltage, frqtest, GEN_INPUT, gains);   // input voltage for request
 			// ********************************************************************
 			// Determine input level for attenuation
 			// we know that all settings of the QA430 have defined gain so that
@@ -488,10 +487,9 @@ namespace QA40xPlot.Actions
 					var vnew = new List<AcquireStep>();
 					foreach (var v in voltValues)
 					{
-						var vval = ToD(v.Name, 0.1);
 						var vnewlist = variables.Select(x => {
 							var ux = new AcquireStep(x);
-							var ampD = MathUtil.UnformatValue(vval, vm.GenVoltUnits); // convert to m,u,volts or watts
+							var ampD = GenVoltApplyUnit(v.Name, vm.GenVoltageUnits, 1e-9);
 							ux.GenVolt = ampD;
 							ux.GenXFmt = (vm.IsGenPower ? MathUtil.FormatPower(ampD) : MathUtil.FormatVoltage(ampD));
 							return ux; }).ToList();
@@ -576,7 +574,7 @@ namespace QA40xPlot.Actions
 					// ********************************************************************
 					var genScaleVolt = genVolt / Math.Abs(myConfig.Gain);   // input voltage for request
 					page.Definition.GeneratorVoltage = genScaleVolt;   // set the generator voltage in the definition
-					MyVModel.GeneratorVoltage = MathUtil.FormatVoltage(genScaleVolt);
+					MyVModel.GeneratorVoltage = vm.GetGenVoltLine(genScaleVolt);
 					for (int f = 0; f < stepBinFrequencies.Length; f++)
 					{
 						var freqy = stepBinFrequencies[f];

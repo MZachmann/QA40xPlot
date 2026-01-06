@@ -106,13 +106,6 @@ public class FreqRespViewModel : BaseViewModel
 	[JsonIgnore]
 	public double SmoothingVal {  get => MathUtil.ToDouble(Smoothing,0);}
 
-	private string _Gen1Voltage = string.Empty;         // type of alert
-	public string Gen1Voltage
-	{
-		get => _Gen1Voltage;
-		set => SetProperty(ref _Gen1Voltage, value);
-	}
-
 	private bool _RightChannel;         // type of alert
 	public bool RightChannel
 	{

@@ -170,31 +170,41 @@ namespace QA40xPlot.Actions
 			UpdateGraph(true);
 		}
 
+		/// <summary>
+		/// create a wave
+		/// </summary>
+		/// <param name="page"></param>
+		/// <param name="volts">generator voltage</param>
+		/// <param name="force"></param>
+		/// <returns></returns>
 		private static double[] BuildWave(MyDataTab page, double volts, bool force = false)
 		{
 			var vm = page.ViewModel;
 			var freq = ToD(vm.Gen1Frequency, 0);
 			var freq2 = ToD(vm.Gen2Frequency, 0);
-			var v2 = ToD(vm.Gen2Voltage, 1e-5);
-			var v1 = ToD(vm.Gen1Voltage, 1e-5);
+			// gen1 and gen2 are essentially scale factors for volts
+			var v1 = GenVoltApplyUnit(vm.Gen1Voltage, vm.GenVoltageUnits, 1e-9);
+			var v2 = GenVoltApplyUnit(vm.Gen2Voltage, vm.GenVoltageUnits, 1e-9);
 			WaveContainer.SetMono(); // turn on the generator
 			WaveGenerator.SetGen1(true, freq, volts, force ? true : vm.UseGenerator1, vm.Gen1Waveform);          // send a sine wave
 			WaveGenerator.SetGen2(true, freq2, volts * v2 / v1, vm.UseGenerator2, vm.Gen2Waveform);          // send a sine wave
-			WaveGenerator.SetWaveFile(true, vm.GenWavFile);
+			WaveGenerator.SetWaveFile(true, vm.GenWavFile);	// in case we're using a wave file
 			var vsee1 = MathUtil.FormatVoltage(volts);
 			var vsee2 = MathUtil.FormatVoltage(volts * v2 / v1);
 			string vout = "";
 			if (vm.UseGenerator1 && vm.UseGenerator2)
 			{
-				vout = $"{vsee1}, {vsee2}";
+				var uv1 = vm.GetGenVoltLine(volts);
+				var uv2 = vm.GetGenVoltLine(volts * v2 / v1);
+				vout = uv1 + "," + uv2;
 			}
 			else if (vm.UseGenerator1)
 			{
-				vout = vsee1;
+				vout = vm.GetGenVoltLine(volts);
 			}
 			else if (vm.UseGenerator2)
 			{
-				vout = vsee2;
+				vout = vm.GetGenVoltLine(volts * v2 / v1);
 			}
 			else
 			{
@@ -337,8 +347,10 @@ namespace QA40xPlot.Actions
 				//}
 
 				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
-				var genVolt = thd.ToGenVoltage(thd.Gen1Voltage, [], GEN_INPUT, gains);
-				var genVolt2 = thd.ToGenVoltage(thd.Gen2Voltage, [], GEN_INPUT, gains);
+				var gv = GenVoltApplyUnit(thd.Gen1Voltage, thd.GenVoltageUnits, 1e-5);
+				var genVolt = thd.ToGenVoltage(gv, [], GEN_INPUT, gains);
+				gv = GenVoltApplyUnit(thd.Gen2Voltage, thd.GenVoltageUnits, 1e-5);
+				var genVolt2 = thd.ToGenVoltage(gv, [], GEN_INPUT, gains);
 				if (genVolt > 5)
 				{
 					await showMessage($"Requesting input voltage of {genVolt} volts, check connection and settings");
@@ -513,13 +525,13 @@ namespace QA40xPlot.Actions
 
 			if (scopeVm.DoAutoAttn && LRGains != null)
 			{
-				var maxv = ToD(scopeVm.Gen1Voltage, .001);
+				var maxv = GenVoltApplyUnit(scopeVm.Gen1Voltage, scopeVm.GenVoltageUnits, 1e-3);
 				var wave = BuildWave(NextPage, maxv, true);   // build a wave to evaluate the peak values
 															  // get the peak voltages then fake an rms math div by 2*sqrt(2) = 2.828
 															  // since I assume that's the hardware math
 				var waveVOut = (wave.Max() - wave.Min()) / 2.828;
 				var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
-				var vinL = scopeVm.ToGenVoltage(waveVOut.ToString(), [], GEN_INPUT, gains); // get gen1 input voltage
+				var vinL = scopeVm.ToGenVoltage(waveVOut, [], GEN_INPUT, gains); // get gen1 input voltage
 				double voutL = ToGenOutVolts(vinL, [], LRGains.Left);   // what is that as output voltage?
 				double voutR = ToGenOutVolts(vinL, [], LRGains.Right);  // for both channels
 				var vdbv = QaLibrary.ConvertVoltage(Math.Max(voutL, voutR), E_VoltageUnit.Volt, E_VoltageUnit.dBV);

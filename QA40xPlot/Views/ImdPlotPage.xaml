@@ -17,7 +17,7 @@
         <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
             <StackPanel Margin="0,1,1,0">
                 <views:StartStop />
-                <CheckBox Content="_Use Generator 1" IsChecked="{Binding UseGenerator}"  Margin="0,5,0,0" HorizontalAlignment="Center"></CheckBox>
+                <CheckBox Content="_Use Generator 1" IsChecked="{Binding UseGenerator1}"  Margin="0,5,0,0" HorizontalAlignment="Center"></CheckBox>
                 <CheckBox Content="Use Generator _2" IsChecked="{Binding UseGenerator2}" HorizontalAlignment="Center"></CheckBox>
                 <views:Attenuator />
                 <views:GroupHeader Header="Intermod Test" />
@@ -66,7 +66,7 @@
                             <Label Content="{Binding GenAmpDescript}" Target="{Binding ElementName=cbVolt}" HorizontalAlignment="Right" VerticalAlignment="Center"  Grid.Row="3" Grid.Column="0" />
                             <ComboBox x:Name="cbVolt" Grid.Column="1" Grid.Row="3"   
                               VerticalContentAlignment="Center"
-                              Text="{Binding Gen1Voltage, Converter={StaticResource VoltUnitConverter}}"
+                              Text="{Binding Gen1Voltage}"
                               IsEditable="True" ItemsSource="{Binding GenVoltages}">
                             </ComboBox>
                             <Button BorderThickness="0,0,0,1" Command="{Binding ShowMenuCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
@@ -95,7 +95,7 @@
                                Grid.Row="2" Grid.Column="0" Target="{Binding ElementName=cb2Volt}"  />
                             <ComboBox Grid.Column="1" Grid.Row="2" x:Name="cb2Volt"
                               IsEnabled="{Binding IsImdCustom}" VerticalContentAlignment="Center"
-                              Text="{Binding Gen2Voltage, Converter={StaticResource VoltUnitConverter}}"
+                              Text="{Binding Gen2Voltage}"
                               IsEditable="True" ItemsSource="{Binding GenVoltages}">
                             </ComboBox>
                             <Button BorderThickness="0,0,0,1" Command="{Binding ShowMenuCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}"

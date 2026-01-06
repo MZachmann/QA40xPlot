@@ -75,12 +75,6 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _Gen1Frequency, value);
 		}
 
-		private string _Gen1Voltage = string.Empty;
-		public string Gen1Voltage
-		{
-			get => _Gen1Voltage;
-			set => SetProperty(ref _Gen1Voltage, value);
-		}
 		private string _Gen2Frequency = string.Empty;
 		public string Gen2Frequency
 		{
@@ -115,12 +109,7 @@ namespace QA40xPlot.ViewModels
 			get => _InputRange;
 			set => SetProperty(ref _InputRange, value);
 		}
-		private bool _UseGenerator1;
-		public bool UseGenerator1
-		{
-			get => _UseGenerator1;
-			set => SetProperty(ref _UseGenerator1, value);
-		}
+
 		private bool _UseGenerator2;
 		public bool UseGenerator2
 		{
