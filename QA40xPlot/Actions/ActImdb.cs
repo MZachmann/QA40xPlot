@@ -346,7 +346,7 @@ namespace QA40xPlot.Actions
 				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
 				int[] frqtest = [LRGains?.ToBinNumber(freq) ?? 100];
 
-				var gvolt = GenVoltApplyUnit(vm.Gen1Voltage, vm.GenVoltageUnits, 1e-3);
+				var gvolt = GenVoltApplyUnit(vm.Gen1Voltage, vm.GenVoltageUnit, 1e-3);
 				var genVolt = vm.ToGenVoltage(gvolt, frqtest, GEN_INPUT, gains);   // input voltage 1
 
 				msr.Definition.GeneratorVoltage = genVolt;  // used by the buildwave
@@ -908,7 +908,7 @@ namespace QA40xPlot.Actions
 
 				// find the two input voltages for our testing
 
-				var gvolt = GenVoltApplyUnit(vm.Gen1Voltage, vm.GenVoltageUnits, 1e-3);
+				var gvolt = GenVoltApplyUnit(vm.Gen1Voltage, vm.GenVoltageUnit, 1e-3);
 				var v1in = vm.ToGenVoltage(gvolt, frqtest, GEN_INPUT, gains);  // get generator voltage
 				var v2in = v1in / vm.GenDivisor;  // get second input voltage
 												  // now find the output voltages for this input

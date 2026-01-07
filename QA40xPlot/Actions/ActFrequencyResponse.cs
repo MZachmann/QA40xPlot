@@ -4,6 +4,7 @@ using QA40xPlot.Converters;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
+using QA40xPlot.Views;
 using ScottPlot;
 using ScottPlot.AxisRules;
 using ScottPlot.Plottables;
@@ -43,7 +44,7 @@ namespace QA40xPlot.Actions
 			QaLibrary.InitMiniFftPlot(fftPlot, 10, 100000, -180, 20);
 			QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -2, 2);
 
-			ct = new CancellationTokenSource();
+			ct = new();
 			MyVModel.ShowMiniPlots = false;
 			PageData = new(MyVModel, new LeftRightTimeSeries());
 			UpdateGraph(true);
@@ -180,29 +181,76 @@ namespace QA40xPlot.Actions
 			}
 		}
 
+		public async Task RunMeasurement(bool runContinuously)
+		{
+			ct = new();
+			int index = 0;
+			if (runContinuously)
+			{
+				await DoMeasurement(index++);
+				while (!ct.IsCancellationRequested)
+				{
+					await DoMeasurement(index++);
+				}
+			}
+			else
+			{
+				await DoMeasurement(0);
+			}
+			MyVModel.HasExport = (PageData.GainFrequencies.Length > 0);
+		}
+
+		public void PrepGraph(MyDataTab page)
+		{
+			// we can't do mic correction here because it gums up the data permanently
+			// it should be applied at each data point or the chirp
+			if (!ct.IsCancellationRequested)
+			{
+				if (!ReferenceEquals(PageData, page))
+					PageData = page;        // finally update the pagedata for display and processing
+				MyVModel.LinkAbout(PageData.Definition);  // ensure we're linked right during replays
+				UpdateGraph(false);
+			}
+		}
+
 		/// <summary>
 		/// Start measurement button clicked
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		public async Task DoMeasurement()
+		public async Task DoMeasurement(int index)
+		{
+			if (index == 0)
+			{
+				await showProgress(0, 50);
+			}
+			await RunAcquisition(index);
+		}
+
+		/// <summary>
+		/// Start measurement button clicked
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		public async Task RunAcquisition(int index)
 		{
 			var vmFreq = MyVModel;
 			if (!await StartAction(vmFreq))
 				return;
-			if (vmFreq.IsChirp)
-				vmFreq.ShowMiniPlots = false; // don't show mini plots during chirp
-			await showProgress(0, 50);
+			if (!vmFreq.IsChirp)
+			{
+				// Show empty graphs
+				QaLibrary.InitMiniFftPlot(fftPlot, 10, 40000, -180, 20);
+				QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -2, 2);
+			}
+			else
+			{
+				vmFreq.ShowMiniPlots = false;
+			}
 
 			vmFreq.HasExport = false;
-			ct = new();
-			// Show empty graphs
-			QaLibrary.InitMiniFftPlot(fftPlot, 10, 40000, -180, 20);
-			QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -2, 2);
-
-			UpdateGraph(true);
-
-			frqrsPlot.ThePlot.Clear();
+			if(index == 0)
+				UpdateGraph(true);
 
 			// sweep data
 			LeftRightTimeSeries lrts = new();
@@ -227,7 +275,10 @@ namespace QA40xPlot.Actions
 			var fmax = ToD(msr.EndFreq, 1000);
 
 			// calculate gain to autoattenuate
-			await CalculateGainCurve(MyVModel, fmin, fmax);
+			if(index==0 || LRGains == null)
+			{
+				await CalculateGainCurve(MyVModel, fmin, fmax);
+			}
 			if (LRGains == null)
 			{
 				// cancelled?
@@ -236,7 +287,7 @@ namespace QA40xPlot.Actions
 
 			int[] frqtest = [LRGains.ToBinNumber(fmin), LRGains.ToBinNumber(fmax)];
 			// get it with units applied
-			var gvolt = GenVoltApplyUnit(msr.Gen1Voltage, msr.GenVoltageUnits, 1e-9);
+			var gvolt = GenVoltApplyUnit(msr.Gen1Voltage, msr.GenVoltageUnit, 1e-9);
 			{
 				// to get attenuation, use a frequency of zero (all)
 				// find the highest output voltage
@@ -244,7 +295,7 @@ namespace QA40xPlot.Actions
 				genv = Math.Max(genv, msr.ToGenVoltage(gvolt, frqtest, GEN_OUTPUT, LRGains.Right));    // output v
 				var vdbv = QaLibrary.ConvertVoltage(genv, E_VoltageUnit.Volt, E_VoltageUnit.dBV);   // out dbv
 				var attenuation = QaLibrary.DetermineAttenuation(vdbv);
-				if(! msr.DoAutoAttn)
+				if (!msr.DoAutoAttn)
 				{
 					attenuation = (int)msr.Attenuation;
 				}
@@ -283,33 +334,21 @@ namespace QA40xPlot.Actions
 				if (!ct.IsCancellationRequested)
 				{
 					if (msr.IsChirp)
-						await RunChirpTest(NextPage, voltagedBV);
-					else
-						await RunFreqTest(NextPage, stepBinFrequencies, voltagedBV);
-					AddMicCorrection(NextPage); // add mic correction if any
-												//var ttype = msr.GetTestingType(msr.TestType);
-												//NextPage.GainData = AddResponseOffset(NextPage.GainFrequencies, NextPage.GainData, NextPage.Definition, ttype);    // add offset correction if any
-
-					UpdateGraph(false);
-					if (!ReferenceEquals(PageData, NextPage))
-						PageData = NextPage;        // finally update the pagedata for display and processing
-					MyVModel.LinkAbout(PageData.Definition);  // ensure we're linked right during replays
-				}
-
-				bool continuous = false;
-				while (continuous && !ct.IsCancellationRequested)
-				{
-					if (ct.IsCancellationRequested)
-						break;
-					if (msr.IsChirp)
 					{
-						await RunChirpTest(PageData, voltagedBV);
+						await showProgress(98);
+						await RunChirpTest(NextPage, voltagedBV);
 					}
 					else
-						await RunFreqTest(PageData, stepBinFrequencies, voltagedBV);
-					AddMicCorrection(PageData);     // add mic correction if any
-													// PageData.GainData = AddResponseOffset(PageData.GainFrequencies, PageData.GainData, PageData.Definition, ttype);    // add offset correction if any
-					UpdateGraph(false);
+					{
+						// we have to clear since this does one step at atime
+						frqrsPlot.ThePlot.Clear();
+						await RunFreqTest(NextPage, stepBinFrequencies, voltagedBV);
+					}
+					AddMicCorrection(NextPage); // add mic correction if any
+					PrepGraph(NextPage);
+					var voltf = msr.GetGenVoltLine(genVolt);
+					await showMessage($"Measuring step {index + 1} at {voltf} with attenuation {msr.Attenuation}.");
+					await showProgress(100);
 				}
 			}
 			catch (Exception ex)
@@ -317,14 +356,9 @@ namespace QA40xPlot.Actions
 				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
 			}
 
-			// Show message
-			await showMessage($"Measurement finished!");
-
 			UpdateGraph(false);
 			PageData.TimeRslt = new();  // clear this before saving stuff
 			await EndAction(vmFreq);
-			await showMessage("Finished");
-			vmFreq.HasExport = (PageData.GainFrequencies.Length > 0);
 		}
 
 		// create a blob with F,Left,Right data for export
@@ -720,18 +754,18 @@ namespace QA40xPlot.Actions
 					{
 						await RunStep(page, ttype, dfreq, genVolt);
 					}
-					if (PageData.FreqRslt != null)
+					if (PageData.FreqRslt != null && !vm.IsChirp)
 					{
 						QaLibrary.PlotMiniFftGraph(fftPlot, PageData.FreqRslt, true, false);
 						QaLibrary.PlotMiniTimeGraph(timePlot, PageData.TimeRslt, dfreq, true, false);
 					}
 					page.GainFrequencies = page.GainFrequencies.Append(dfreq).ToArray();
-					UpdateGraph(false);
 					await showProgress(100 * (steps + 1) / stepBinFrequencies.Length, 100);
 					if (!vm.IsTracking)
 					{
 						vm.RaiseMouseTracked("track");
 					}
+					PrepGraph(page);
 				}
 			}
 			catch (Exception ex)
@@ -745,7 +779,6 @@ namespace QA40xPlot.Actions
 		private async Task<(LeftRightSeries?, Complex[], Complex[])> RunChirpAcquire(MyDataTab page, double voltagedBV, WaveChannels channels)
 		{
 			var vm = page.ViewModel;
-			await showProgress(0, 50);
 
 			var startf = ToD(vm.StartFreq) / 3;
 			var endf = ToD(vm.EndFreq) * 3;
@@ -772,7 +805,6 @@ namespace QA40xPlot.Actions
 			page.TimeRslt = lfrs.TimeRslt;
 			if (ct.IsCancellationRequested)
 				return (null, [], []);
-			await showProgress(50, 50);
 
 			Complex[] leftFft = [];
 			Complex[] rightFft = [];
@@ -804,7 +836,7 @@ namespace QA40xPlot.Actions
 			// set the freq values because ?
 			lrfs.Left = leftFft.Select(x => x.Magnitude).ToArray();
 			lrfs.Right = rightFft.Select(x => x.Magnitude).ToArray();
-			await showProgress(100, 50);
+
 			lfrs.FreqRslt = lrfs;
 
 			return (lfrs, leftFft, rightFft);

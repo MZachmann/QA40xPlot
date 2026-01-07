@@ -260,13 +260,13 @@ namespace QA40xPlot.ViewModels
 		/// <summary>
 		/// for use by the unit converters
 		/// </summary>
-		private string _GenVoltageUnits = "V";
-		public string GenVoltageUnits
+		private string _GenVoltageUnit = "V";
+		public string GenVoltageUnit
 		{
-			get { return _GenVoltageUnits; }
+			get { return _GenVoltageUnit; }
 			set
 			{
-				SetProperty(ref _GenVoltageUnits, value);
+				SetProperty(ref _GenVoltageUnit, value);
 			}
 		}
 
@@ -345,6 +345,19 @@ namespace QA40xPlot.ViewModels
 		}
 		#endregion
 
+		private void NullFn()
+		{
+			throw new NotImplementedException();
+		}
+
+		[JsonIgnore]
+		public virtual RelayCommand DoStop { get => new RelayCommand(NullFn); }
+		[JsonIgnore]
+		public virtual RelayCommand DoStart { get => new RelayCommand(NullFn); }
+		[JsonIgnore]
+		public virtual RelayCommand DoRun { get => new RelayCommand(NullFn); }
+
+
 		#region Setters and Getters
 		private bool _DoAutoAttn = true;
 		public bool DoAutoAttn
@@ -353,14 +366,6 @@ namespace QA40xPlot.ViewModels
 			set { if (SetProperty(ref _DoAutoAttn, value)) 
 					RaisePropertyChanged("AttenColor"); 
 				}
-		}
-
-		public virtual RelayCommand DoStop { get => new RelayCommand(NullFn); }
-		public virtual RelayCommand DoStart { get => new RelayCommand(NullFn); }
-
-		private void NullFn()
-		{
-			throw new NotImplementedException();
 		}
 
 		private bool _ShowLegend = true;
@@ -620,8 +625,8 @@ namespace QA40xPlot.ViewModels
 				{
 					RaisePropertyChanged("GenAmpDescript");
 					// FindDirection returns true if a voltage
-					if (IsGenPower == FindDirection(GenVoltageUnits))
-						GenVoltageUnits = AlterDirection(GenVoltageUnits);
+					if (IsGenPower == FindDirection(GenVoltageUnit))
+						GenVoltageUnit = AlterDirection(GenVoltageUnit);
 				}
 			}
 		}
@@ -703,7 +708,7 @@ namespace QA40xPlot.ViewModels
 
 		public void SetGeneratorUnits(string volts)
 		{
-			GenVoltageUnits = volts;
+			GenVoltageUnit = volts;
 			RaisePropertyChanged("GenVoltage");
 			RaisePropertyChanged("Gen1Voltage");
 			RaisePropertyChanged("Gen2Voltage");
@@ -921,11 +926,12 @@ namespace QA40xPlot.ViewModels
 			string[] ignore = { "dBW", "dBV", "dBmV", "dBu", "dBFS", "dBm" };
 			if (UseGenerator1)
 			{
-				var vnone = MathUtil.FormatVoltage(genVolt); // update the viewmodel so we can show it on-screen
-				if (ignore.Contains(GenVoltageUnits))
+				bool useSpacer = true;
+				var vnone = MathUtil.FormatVoltage(genVolt, useSpacer); // update the viewmodel so we can show it on-screen
+				if (ignore.Contains(GenVoltageUnit))
 				{
-					var vstr = GenVoltUnApplyUnit(genVolt.ToString(), GenVoltageUnits, .001);
-					var vun = vstr.ToString("G3") + GenVoltageUnits;
+					var vstr = GenVoltUnApplyUnit(genVolt.ToString(), GenVoltageUnit, .001);
+					var vun = vstr.ToString("G3") + (useSpacer ? " " : string.Empty) + GenVoltageUnit;
 					gline = $"{vun} ({vnone})";
 				}
 				else

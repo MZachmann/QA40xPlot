@@ -2,6 +2,7 @@
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using QA40xPlot.Actions;
+using QA40xPlot.Converters;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.Views;
@@ -302,16 +303,26 @@ namespace QA40xPlot.ViewModels
 		private void ExecIm(int df1, int df2, int divisor)
 		{
 			var tt = ToDirection(GenDirection);
-			if (tt == E_GeneratorDirection.OUTPUT_POWER)
+			Gen1Frequency = df1.ToString();
+			Gen2Frequency = df2.ToString();
+			if (tt != E_GeneratorDirection.OUTPUT_POWER && divisor == 1)
 			{
-				Gen2Voltage = (MathUtil.ToDouble(this.Gen1Voltage, 1e-5) / (divisor * divisor)).ToString();
+				Gen2Voltage = Gen1Voltage.ToString();	// clone it
 			}
 			else
 			{
-				Gen2Voltage = (MathUtil.ToDouble(this.Gen1Voltage, 1e-5) / divisor).ToString();
+				var gen1v = VoltUnitConverter.MergeUnit(Gen1Voltage, GenVoltageUnit, 1e-9);
+				var genv = 1e-9;
+				if (tt == E_GeneratorDirection.OUTPUT_POWER)
+				{
+					genv = gen1v / (divisor * divisor);
+				}
+				else
+				{
+					genv = gen1v / divisor;
+				}
+				Gen2Voltage = VoltUnitConverter.RemoveUnit(genv.ToString(), GenVoltageUnit, 1e-9).ToString("G3");
 			}
-			Gen1Frequency = df1.ToString();
-			Gen2Frequency = df2.ToString();
 		}
 
 		public double GetImDivisor()

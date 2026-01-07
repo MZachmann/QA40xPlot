@@ -45,8 +45,8 @@ namespace QA40xPlot.Data
 			get => _LeftColor;
 			set
 			{
-				SetProperty(ref _LeftColor, value);
-				RaisePropertyChanged("Repaint");
+				if(SetProperty(ref _LeftColor, value))
+					RaisePropertyChanged("Repaint");
 			}  // left color for the graph
 		}
 		private string _RightColor = "Transparent"; // left color for the graph
@@ -56,8 +56,8 @@ namespace QA40xPlot.Data
 			get => _RightColor;
 			set
 			{
-				SetProperty(ref _RightColor, value);  // left color for the graph
-				RaisePropertyChanged("Repaint");    // this will notify the main graph via special property
+				if(SetProperty(ref _RightColor, value))  // left color for the graph
+					RaisePropertyChanged("Repaint");    // this will notify the main graph via special property
 			}  // left color for the graph
 		}
 

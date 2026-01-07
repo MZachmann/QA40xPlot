@@ -16,7 +16,7 @@
         </Grid.ColumnDefinitions>
         <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
             <StackPanel Margin="0,1,1,0">
-                <views:StartStop ShowRun="False" />
+                <views:StartStop ShowRun="True" />
                 <views:Attenuator AttnAtStart="False"  />
                 <views:GroupHeader Header="Testing" />
                 <Grid>
@@ -125,9 +125,7 @@
                               Text="{Binding Gen1Voltage}"
                               IsEditable="True" ItemsSource="{Binding GenVoltages}">
                         </ComboBox>
-                        <Button BorderThickness="0,0,0,1" Command="{Binding ShowMenuCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
-                            Content="{Binding GenVoltageUnits}" VerticalAlignment="Center" MinWidth="30" Grid.Row="1" Grid.Column="2">
-                        </Button>
+                        <views:VoltButton Grid.Row="1" Grid.Column="2" />
                     </Grid>
                 </Expander>
                 <views:SamplingExp></views:SamplingExp>

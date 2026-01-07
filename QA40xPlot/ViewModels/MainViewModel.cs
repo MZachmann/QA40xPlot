@@ -30,6 +30,9 @@ namespace QA40xPlot.ViewModels
 		};
 		[JsonIgnore]
 		public RelayCommand<object> SetPlotPage { get => new RelayCommand<object>(DoSetPlotPage); }
+		// in case we're not in a view process the keys for run/start/stop here
+		[JsonIgnore]
+		public RelayCommand<object> DoRun { get => new RelayCommand<object>(DoRunRun); }
 		[JsonIgnore]
 		public RelayCommand<object> DoStart { get => new RelayCommand<object>(DoStartRun); }
 		[JsonIgnore]
@@ -218,6 +221,13 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _IsButtonShown;
 			set => SetProperty(ref _IsButtonShown, value);
+		}
+
+		private string _RunKeyBinding = "F5";
+		public string RunKeyBinding
+		{
+			get => _RunKeyBinding;
+			set => SetProperty(ref _RunKeyBinding, value);
 		}
 
 		private string _StartKeyBinding = "F6";
@@ -640,6 +650,21 @@ namespace QA40xPlot.ViewModels
 			if (delay > 0)
 				await Task.Delay(delay);
 		}
+
+		private void DoRunRun(object? obj)
+		{
+			var view = ViewSettings.Singleton.MainVm.CurrentView;
+			if (view != null)
+			{
+				try
+				{
+					if (view.DoRun.CanExecute(null))
+						view.DoRun.Execute(null);
+				}
+				catch { }
+			}
+		}
+
 
 		private void DoStartRun(object? obj)
 		{

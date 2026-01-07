@@ -489,7 +489,7 @@ namespace QA40xPlot.Actions
 					{
 						var vnewlist = variables.Select(x => {
 							var ux = new AcquireStep(x);
-							var ampD = GenVoltApplyUnit(v.Name, vm.GenVoltageUnits, 1e-9);
+							var ampD = GenVoltApplyUnit(v.Name, vm.GenVoltageUnit, 1e-9);
 							ux.GenVolt = ampD;
 							ux.GenXFmt = (vm.IsGenPower ? MathUtil.FormatPower(ampD) : MathUtil.FormatVoltage(ampD));
 							return ux; }).ToList();

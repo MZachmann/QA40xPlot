@@ -45,10 +45,7 @@
                                         IsEditable="True" x:Name="cbTV"  TheTitle="{Binding GenAmpDescript, Mode=OneWay}"
                                         Grid.Row="1" Grid.Column="1" 
                                         />
-                        <Button BorderThickness="0,0,0,1" Command="{Binding ShowMenuCommand}" Grid.Row="1" Grid.Column="2" 
-                                CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
-                                Margin="5,0,5,0" MinWidth="20"
-                                Content="{Binding GenVoltageUnits}" VerticalAlignment="Center" />
+                        <views:VoltButton Grid.Row="1" Grid.Column="2" />
                     </Grid>
                 </Expander>
                 <Expander Header="—— Sweep" IsExpanded="{Binding ExpandSweep}"  >

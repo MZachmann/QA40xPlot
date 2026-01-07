@@ -22,6 +22,8 @@ public class FreqRespViewModel : BaseViewModel
 	private PlotControl actPlot { get; set; }
 	private ActFrequencyResponse actFreq { get; set; }
 	[JsonIgnore]
+	public override RelayCommand DoRun { get => new RelayCommand(RunIt); }
+	[JsonIgnore]
 	public override RelayCommand DoStart { get => new RelayCommand(StartIt); }
 	[JsonIgnore]
 	public override RelayCommand DoStop { get => new RelayCommand(StopIt); }
@@ -294,10 +296,16 @@ public class FreqRespViewModel : BaseViewModel
 		}
 	}
 
+	private void RunIt()
+	{
+		// Implement the logic to start the measurement process
+		actFreq?.RunMeasurement(true);
+	}
+
 	private void StartIt()
 	{
 		// Implement the logic to start the measurement process
-		actFreq?.DoMeasurement();
+		actFreq?.RunMeasurement(false);
 	}
 
 	private void StopIt()

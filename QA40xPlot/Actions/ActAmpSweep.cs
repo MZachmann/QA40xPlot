@@ -411,8 +411,8 @@ namespace QA40xPlot.Actions
 			// specified voltages boundaries
 			if (LRGains == null || LRGains.Left.Length == 0 || LRGains.Right.Length == 0)
 				return ([], [], []);
-			var startV = GenVoltApplyUnit(myVm.StartVoltage, myVm.GenVoltageUnits, 1e-9);
-			var endV = GenVoltApplyUnit(myVm.EndVoltage, myVm.GenVoltageUnits, 1e-9);
+			var startV = GenVoltApplyUnit(myVm.StartVoltage, myVm.GenVoltageUnit, 1e-9);
+			var endV = GenVoltApplyUnit(myVm.EndVoltage, myVm.GenVoltageUnit, 1e-9);
 			var stepVoltages = QaLibrary.GetLinearSpacedLogarithmicValuesPerOctave(startV, endV, myVm.StepsOctave);
 			// now convert all of the step voltages to input voltages
 			var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;

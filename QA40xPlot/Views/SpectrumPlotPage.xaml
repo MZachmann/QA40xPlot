@@ -77,9 +77,7 @@
                               Text="{Binding Gen1Voltage}"
                               IsEditable="True" ItemsSource="{Binding GenVoltages}">
                         </ComboBox>
-                        <Button BorderThickness="0,0,0,1" Command="{Binding ShowMenuCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
-                            Content="{Binding GenVoltageUnits}" VerticalAlignment="Center"  Grid.Row="4" Grid.Column="2">
-                        </Button>
+                        <views:VoltButton Grid.Row="4" Grid.Column="2" />
                     </Grid>
                 </Expander>
                 <views:SamplingExp />

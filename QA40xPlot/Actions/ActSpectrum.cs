@@ -296,7 +296,7 @@ namespace QA40xPlot.Actions
 			{
 				// build a wave to evaluate the peak values
 				// the amplitude whatever the entry was
-				var gvolt = GenVoltApplyUnit(vm.Gen1Voltage, vm.GenVoltageUnits, 1e-3);
+				var gvolt = GenVoltApplyUnit(vm.Gen1Voltage, vm.GenVoltageUnit, 1e-3);
 				var wave = BuildWave(NextPage, Math.Max(gvolt, 1e-3), true);
 				// get the peak voltages then fake an rms math div by 2*sqrt(2) = 2.828
 				// since I assume that's the hardware math
@@ -430,7 +430,7 @@ namespace QA40xPlot.Actions
 						return false;
 				}
 				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
-				var gvolt = GenVoltApplyUnit(vm.Gen1Voltage, vm.GenVoltageUnits, 1e-5);
+				var gvolt = GenVoltApplyUnit(vm.Gen1Voltage, vm.GenVoltageUnit, 1e-5);
 				var genVolt = vm.ToGenVoltage(gvolt, [], GEN_INPUT, gains);
 				if (genVolt > 9)
 				{

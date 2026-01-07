@@ -183,8 +183,8 @@ namespace QA40xPlot.Actions
 			var freq = ToD(vm.Gen1Frequency, 0);
 			var freq2 = ToD(vm.Gen2Frequency, 0);
 			// gen1 and gen2 are essentially scale factors for volts
-			var v1 = GenVoltApplyUnit(vm.Gen1Voltage, vm.GenVoltageUnits, 1e-9);
-			var v2 = GenVoltApplyUnit(vm.Gen2Voltage, vm.GenVoltageUnits, 1e-9);
+			var v1 = GenVoltApplyUnit(vm.Gen1Voltage, vm.GenVoltageUnit, 1e-9);
+			var v2 = GenVoltApplyUnit(vm.Gen2Voltage, vm.GenVoltageUnit, 1e-9);
 			WaveContainer.SetMono(); // turn on the generator
 			WaveGenerator.SetGen1(true, freq, volts, force ? true : vm.UseGenerator1, vm.Gen1Waveform);          // send a sine wave
 			WaveGenerator.SetGen2(true, freq2, volts * v2 / v1, vm.UseGenerator2, vm.Gen2Waveform);          // send a sine wave
@@ -347,9 +347,9 @@ namespace QA40xPlot.Actions
 				//}
 
 				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
-				var gv = GenVoltApplyUnit(thd.Gen1Voltage, thd.GenVoltageUnits, 1e-5);
+				var gv = GenVoltApplyUnit(thd.Gen1Voltage, thd.GenVoltageUnit, 1e-5);
 				var genVolt = thd.ToGenVoltage(gv, [], GEN_INPUT, gains);
-				gv = GenVoltApplyUnit(thd.Gen2Voltage, thd.GenVoltageUnits, 1e-5);
+				gv = GenVoltApplyUnit(thd.Gen2Voltage, thd.GenVoltageUnit, 1e-5);
 				var genVolt2 = thd.ToGenVoltage(gv, [], GEN_INPUT, gains);
 				if (genVolt > 5)
 				{
@@ -364,7 +364,7 @@ namespace QA40xPlot.Actions
 				// ********************************************************************
 				// now do the step measurement
 				var voltf = thd.GetGenVoltLine(genVolt);
-				await showMessage($"{iteration:0} Measuring waveform with input of {genVolt}.");
+				await showMessage($"{iteration:0} Measuring waveform with input of {voltf}.");
 
 				var wave = BuildWave(msr, genVolt);   // also update the waveform variables
 				lrfs = await QaComm.DoAcquireUser(msr.ViewModel.Averages, ct, wave, wave, false);
@@ -526,7 +526,7 @@ namespace QA40xPlot.Actions
 
 			if (scopeVm.DoAutoAttn && LRGains != null)
 			{
-				var maxv = GenVoltApplyUnit(scopeVm.Gen1Voltage, scopeVm.GenVoltageUnits, 1e-3);
+				var maxv = GenVoltApplyUnit(scopeVm.Gen1Voltage, scopeVm.GenVoltageUnit, 1e-3);
 				var wave = BuildWave(NextPage, maxv, true);   // build a wave to evaluate the peak values
 															  // get the peak voltages then fake an rms math div by 2*sqrt(2) = 2.828
 															  // since I assume that's the hardware math

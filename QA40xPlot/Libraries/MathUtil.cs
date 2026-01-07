@@ -148,38 +148,39 @@ namespace QA40xPlot.Libraries
 		/// <summary>
 		/// <param name="val">value to format</param>
 		/// <returns>string with best suffix</returns>
-		public static string FormatUnits(double val, string units)
+		public static string FormatUnits(double val, string units, bool addSpace = false)
 		{
 			var sign = Math.Sign(val);
 			val = Math.Abs(val);
 			string rslt = string.Empty;
+			string spacer = addSpace ? " " : string.Empty;
 			if (val >= 1000000)
 			{
-				rslt = (val / 1000000).ToString("0.###") + "M" + units;
+				rslt = (val / 1000000).ToString("0.###") + spacer + "M" + units;
 			}
 			else if (val >= 1000)
 			{
-				rslt = (val / 1000).ToString("0.###") + "K" + units;
+				rslt = (val / 1000).ToString("0.###") + spacer + "K" + units;
 			}
 			else if (val >= 1)
 			{
-				rslt = val.ToString("0.###") + units;
+				rslt = val.ToString("0.###") + spacer + units;
 			}
 			else if (val >= 1e-3)
 			{
-				rslt = (1000 * val).ToString("G3") + "m" + units;
+				rslt = (1000 * val).ToString("G3") + spacer + "m" + units;
 			}
 			else if (val >= 1e-6)
 			{
-				rslt = (1000000 * val).ToString("G3") + "u" + units;
+				rslt = (1000000 * val).ToString("G3") + spacer + "u" + units;
 			}
 			else if(val > 0)
 			{
-				rslt = (1e9 * val).ToString("G3") + "n" + units;
+				rslt = (1e9 * val).ToString("G3") + spacer + "n" + units;
 			}
 			else
 			{
-				rslt = "0 " + units;
+				rslt = "0 " + spacer + units;
 			}
 			if (sign < 0)
 				rslt = "-" + rslt;
@@ -191,9 +192,9 @@ namespace QA40xPlot.Libraries
 		/// <summary>
 		/// <param name="val">value to format</param>
 		/// <returns>string with best suffix</returns>
-		public static string FormatVoltage(double val)
+		public static string FormatVoltage(double val, bool addSpacer = false)
 		{
-			return FormatUnits(val, "V");
+			return FormatUnits(val, "V", addSpacer);
 		}
 
 		/// <summary>
@@ -201,9 +202,9 @@ namespace QA40xPlot.Libraries
 		/// <summary>
 		/// <param name="val">value to format</param>
 		/// <returns>string with best suffix</returns>
-		public static string FormatPower(double val)
+		public static string FormatPower(double val, bool addSpacer = false)
 		{
-			return FormatUnits(val, "W");
+			return FormatUnits(val, "W", addSpacer);
 		}
 
 		/// <summary>
