@@ -547,7 +547,8 @@ namespace QA40xPlot.Actions
 							var voutRdbv = QaLibrary.ConvertVoltage(stepOutRVoltages[i], E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 							attenuate = QaLibrary.DetermineAttenuation(Math.Max(voutLdbv, voutRdbv));
 						}
-						await showMessage($"Measuring step {i + 1} at {stepInVoltages[i]:0.###}V with attenuation {attenuate}.");
+						var voltf = vm.GetGenVoltLine(stepInVoltages[i]);
+						await showMessage($"Measuring step {i + 1} at {voltf} with attenuation {attenuate}.");
 						await showProgress(100 * (i + 1) / (stepInVoltages.Length));
 						// Set the new input range
 						MyVModel.Attenuation = attenuate;   // visible display

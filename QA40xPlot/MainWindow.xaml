@@ -92,9 +92,9 @@
             </StackPanel>
             <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3">
                 <Rectangle Fill="#40888888"  Width="2" />
-                <Grid MaxWidth="400" >
+                <Grid MaxWidth="800" >
                    <Label VerticalAlignment="Center" Content="{Binding ProgressMessage}"/>
-                   <ProgressBar Opacity=".1" Background="Transparent"  Minimum="0" Maximum="100" MinHeight="25" Value="{Binding ProgressAmount}" />
+                   <ProgressBar MinWidth="600" Opacity=".1" Background="Transparent" Minimum="0" Maximum="100" MinHeight="25" Value="{Binding ProgressAmount}" />
                 </Grid>
             </StackPanel>
         </Grid>

@@ -383,9 +383,13 @@ namespace QA40xPlot.Actions
 			var atten = bvm.Attenuation;
 			await showMessage("Calculating DUT gain");
 			uint sampleRate = GainSampleRate(bvm.SampleRateVal);
-			// try at 0.01 volt generator and 42dB attenuation
+			// if the two are equal we don't have a curve, so...
+			if (fStart > fEnd/1.1)
+			{
+				fStart *= 0.9;
+				fEnd *= 1.1;
+			}
 			var fnyqEnd = Math.Min(fEnd, sampleRate / 2);   // absolute nyquist maximum
-
 			LRGains = await DetermineGainCurve(bvm, true, fStart, fnyqEnd, 1);
 			bvm.Attenuation = atten; // restore the original value just in case bvm is also the local model
 									 // in general this gets reset immediately for the next test

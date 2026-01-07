@@ -363,7 +363,8 @@ namespace QA40xPlot.Actions
 				// Measure once
 				// ********************************************************************
 				// now do the step measurement
-				await showMessage($"{iteration:0} Measuring waveform with input of {genVolt:G3}V.");
+				var voltf = thd.GetGenVoltLine(genVolt);
+				await showMessage($"{iteration:0} Measuring waveform with input of {genVolt}.");
 
 				var wave = BuildWave(msr, genVolt);   // also update the waveform variables
 				lrfs = await QaComm.DoAcquireUser(msr.ViewModel.Averages, ct, wave, wave, false);

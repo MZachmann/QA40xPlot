@@ -620,7 +620,8 @@ namespace QA40xPlot.Actions
 				List<Complex> readings = new();
 				for (int j = 0; j < vm.Averages; j++)
 				{
-					await showMessage(string.Format($"Checking + {dfreq:0} Hz at {genVolt:0.###}V"));   // need a delay to actually see it
+					var voltf = vm.GetGenVoltLine(genVolt);
+					await showMessage(string.Format($"Checking + {dfreq:0} Hz at {voltf}"));   // need a delay to actually see it
 					var ga = await GetGain(dfreq, vm, ttype);
 					readings.Add(ga);
 				}

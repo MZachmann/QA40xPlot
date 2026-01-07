@@ -40,10 +40,10 @@
                 <Label x:Name="EGain3" Content="dB" Grid.Row="2" Grid.Column="2"  Padding="2,0"
                     Visibility="{Binding ExternalGain, ConverterParameter=0, Converter={StaticResource StringVisConverter}}" />
                 <Label Content="Generator Volts: " Grid.Row="3" Grid.Column="0"  Padding="0" />
-                <Label Content="{Binding GeneratorVoltage}" HorizontalAlignment="Right"  Padding="2,0"  
-                       ToolTip="Current DUT input voltage" Grid.Row="3" Grid.Column="1" />
-                <Label Content="{Binding GeneratorVoltageUnits}" HorizontalAlignment="Left"  Padding="2,0"  
-                       Grid.Row="3" Grid.Column="2" />
+                <Label Content="{Binding GeneratorVoltage}" HorizontalAlignment="Left"  Padding="2,0"  
+                       ToolTip="Current DUT input voltage" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" />
+                <!--<Label Content="{Binding GeneratorVoltageUnits}" HorizontalAlignment="Left"  Padding="2,0"  
+                       Grid.Row="3" Grid.Column="2" />-->
                 <Label x:Name="Noises2" Content="Noise Weighting: " Grid.Row="4" Grid.Column="0"  Padding="0" 
                        Visibility="{Binding NoiseWeight, ConverterParameter=Z, Converter={StaticResource StringVisConverter}}" />
                 <Label x:Name="Noises" Content="{Binding NoiseWeight}" HorizontalAlignment="Right"  Padding="2,0"  

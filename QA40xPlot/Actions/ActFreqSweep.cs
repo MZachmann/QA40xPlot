@@ -578,7 +578,8 @@ namespace QA40xPlot.Actions
 					for (int f = 0; f < stepBinFrequencies.Length; f++)
 					{
 						var freqy = stepBinFrequencies[f];
-						await showMessage($"Measuring {freqy:0.#} Hz at {genVolt:G3} V.");
+						var voltf = vm.GetGenVoltLine(genScaleVolt);
+						await showMessage($"Measuring {freqy:0.#} Hz at {voltf}.");
 						await showProgress(100 * (f + 1) / stepBinFrequencies.Length);
 
 						WaveGenerator.SetGen1(true, freqy, genScaleVolt, true);             // send a sine wave

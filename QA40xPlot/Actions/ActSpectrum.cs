@@ -432,9 +432,10 @@ namespace QA40xPlot.Actions
 				var gains = ViewSettings.IsTestLeft ? LRGains?.Left : LRGains?.Right;
 				var gvolt = GenVoltApplyUnit(vm.Gen1Voltage, vm.GenVoltageUnits, 1e-5);
 				var genVolt = vm.ToGenVoltage(gvolt, [], GEN_INPUT, gains);
-				if (genVolt > 5)
+				if (genVolt > 9)
 				{
-					await showMessage($"Requesting input voltage of {genVolt} volts, check connection and settings");
+					var voltf = vm.GetGenVoltLine(genVolt);
+					await showMessage($"Requesting generator voltage of {voltf}, check connection and settings");
 					genVolt = 0.001;
 				}
 				// Check if cancel button pressed
@@ -448,7 +449,7 @@ namespace QA40xPlot.Actions
 				// measure once
 				// ********************************************************************
 				// now do the step measurement
-				await showMessage($"{iteration:0} Measuring spectrum with input of {genVolt:G3}V.");
+				await showMessage($"{iteration:0} Measuring spectrum with input of {MyVModel.GeneratorVoltage}.");
 				await showProgress(80);
 
 				var wave = BuildWave(msr, genVolt);   // also update the waveform variables

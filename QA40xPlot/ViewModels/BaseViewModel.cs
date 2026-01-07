@@ -310,16 +310,17 @@ namespace QA40xPlot.ViewModels
 			get { return _GeneratorVoltage; }
 			set
 			{
-				int i = 0;
-				// split units out here since this is just for display purposes
-				while (i < value.Length && (char.IsDigit(value[i]) || value[i] == '-' || value[i] == '.'))
-				{
-					i++;
-				}
-				if (i == 0)
-					i = value.Length;   // just a word, make that the value
-				SetProperty(ref _GeneratorVoltage, value.Substring(0, i));
-				GeneratorVoltageUnits = value.Substring(i).Trim(); // the rest is the units
+				SetProperty(ref _GeneratorVoltage, value);
+				//int i = 0;
+				//// split units out here since this is just for display purposes
+				//while (i < value.Length && (char.IsDigit(value[i]) || value[i] == '-' || value[i] == '.'))
+				//{
+				//	i++;
+				//}
+				//if (i == 0)
+				//	i = value.Length;   // just a word, make that the value
+				//SetProperty(ref _GeneratorVoltage, value.Substring(0, i));
+				//GeneratorVoltageUnits = value.Substring(i).Trim(); // the rest is the units
 			}
 		}
 

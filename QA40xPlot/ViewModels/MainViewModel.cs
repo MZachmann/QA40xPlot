@@ -126,7 +126,8 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public string ProgressMessage
 		{
-			get => _ProgressMessage; set => SetProperty(ref _ProgressMessage, value);
+			get => _ProgressMessage; 
+			set => SetProperty(ref _ProgressMessage, value);
 		}
 		private int _ProgressAmount = 0;         // type of alert
 		[JsonIgnore]
