@@ -2,7 +2,7 @@
 --------------------------------------------
 This changelog shows the changes made for each version
 --------------------------------------------
-v 1.2.4 1/7/2026
+v 1.2.4 1/13/2026
 - fixup selection of Transparent in color picker
 - improve gain curve frequency selection
 - add F6,F7 accelerators for start/stop
