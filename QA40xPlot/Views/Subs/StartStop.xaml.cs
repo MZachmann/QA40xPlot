@@ -9,6 +9,22 @@ namespace QA40xPlot.Views
 	public partial class StartStop : UserControl
 	{
 		/// <summary>
+		/// let us turn the Start button on or off
+		/// </summary>
+		public static readonly DependencyProperty ShowStartProperty =
+			DependencyProperty.Register(
+				nameof(ShowStart),
+				typeof(bool),
+				typeof(StartStop),
+				new PropertyMetadata(false));
+
+		public bool ShowStart
+		{
+			get => (bool)GetValue(ShowStartProperty);
+			set => SetValue(ShowStartProperty, value);
+		}
+
+		/// <summary>
 		/// let us turn the Run button on or off
 		/// </summary>
 		public static readonly DependencyProperty ShowRunProperty =
@@ -16,7 +32,7 @@ namespace QA40xPlot.Views
 				nameof(ShowRun),
 				typeof(bool),
 				typeof(StartStop),
-				new PropertyMetadata(false));
+				new PropertyMetadata(true));
 
 		public bool ShowRun
 		{

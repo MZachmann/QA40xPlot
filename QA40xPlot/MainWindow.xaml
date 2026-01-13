@@ -80,6 +80,7 @@
                     <MenuItem Header="_Command">
                         <MenuItem Header="Show _QA430" Click="OnQA430"
                                   Visibility="{Binding ShowQA430, Converter={StaticResource BoolVisConverter}}"/>
+                        <MenuItem Header="_Whats New" Click="OnWhatsNew" />
                         <MenuItem Header="_Help" Click="OnHelp" />
                         <MenuItem Header="_Photo" Command="{Binding DoPhoto}" />
                         <MenuItem Header="_Export Data" Command="{Binding DoExport}" />

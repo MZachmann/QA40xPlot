@@ -1,0 +1,33 @@
+﻿<head>
+    <style type="text/css">
+
+        p,h1,h2 {
+            font-family: Arial, Helvetica, sans-serif; /* Arial as primary */
+        }
+        p { font-size: 1rem}
+        h1 { font-size: 1.4rem;}
+        h2 { font-size: 1.2rem;}
+    </style>
+</head>
+<h1>v 1.2.4&nbsp;&nbsp;&nbsp;&nbsp; Jan 13, 2026</h1>
+<h2>Risk Summary</h2>
+<p>The gain curve math 
+    updates are problematic. QA40xPlot uses gain curves for auto-attenuation of 
+    IMD, Amplitude and Frequency sweeps, and Response. The unit of measure changes on amplitude (voltage) selection runs through every test and should work ok but now that they save/load with configuration there could be issues.</p><br />
+<h2>Fixup selection of Transparent in color picker</h2>
+<p>Transparent color is used as an indicator to use the default color from the color palette for these chart lines so it should be easy to select. This fixes requiring setting it twice to stick.</p>
+<h2>Improve gain curve frequency selection</h2>
+<p>The gain curve algorithm, which calculates required attenuation in sweep tests, did some band limiting out of the audio range that could cause issues when testing high frequency response. It now uses at least your specified frequency range for the gain curve test.</p>
+<h2>Add a continuous mode Run button to the Response/Gain/Crosstalk/Impedance tests</h2>
+<p>Particularly when using Chirp, which runs quickly, support repeating these tests, which allows for tuning circuits.</p>
+<h2>Swap Start to Run for spectrum, imd, and scope tests</h2>
+<p>This makes Run and Start more consistent for the tests. Run == run repeatedly whereas Start = run once</p>
+<h2>Add F5,F6,F7 accelerators for run/start/stop</h2>
+<p>Enable keyboard accelerators for run, start and stop. Use Function keys F5,F6,F7 to avoid conflicts with the left hand GUI panel choices.</p>
+<h2>Support saving and loading amplitude UOM</h2>
+<p>Untether the amplitude value from the Unit of Measure (maybe temporarily) to allow for saving the Unit.</p>
+<h2>Improve generator voltage messaging</h2>
+<p>Add a dBxx display in generator voltage to match Unit when user selects a logarithmic unit.</p>
+<h2>Upgrade esthetics of voltage unit button</h2>
+<p>Hopefully it is more obvious and esthetic.</p>
+<h2>Add Whats New file and menu option</h2>

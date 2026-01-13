@@ -160,6 +160,9 @@
     <None Update="Help\ExternalAudio.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Help\WhatsNew.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Help\HelpSummary.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

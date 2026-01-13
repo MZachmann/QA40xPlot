@@ -268,5 +268,20 @@ namespace QA40xPlot
 			}
 		}
 
+		private void OnWhatsNew(object sender, RoutedEventArgs e)
+		{
+			try
+			{
+				var filename = @"Help\WhatsNew.html";
+				var dir = System.AppDomain.CurrentDomain.BaseDirectory;
+				var uri = new Uri(dir + filename);
+				Process.Start(new ProcessStartInfo(dir + filename) { UseShellExecute = true });
+				e.Handled = true;
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
+			}
+		}
 	}
 }

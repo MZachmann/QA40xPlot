@@ -15,6 +15,7 @@
                     ToolTip="Run repeatedly (F5)"
                     FontSize="14" HorizontalAlignment="Right"></Button>
             <Button Content="Start" ToolTip="Start the test (F6)"
+                    Visibility="{Binding ShowStart, ElementName=MyStartStop, Converter={StaticResource BoolVisConverter}}"
                     IsEnabled="{Binding IsNotRunning}" FontSize="14" Command="{Binding DoStart}"  HorizontalAlignment="Right"></Button>
             <Button Content="Stop" Margin="10,0,0,0" ToolTip="Stop the test (F7)"
                     IsEnabled="{Binding IsRunning}" FontSize="14" Command="{Binding DoStop}"  HorizontalAlignment="Left"></Button>

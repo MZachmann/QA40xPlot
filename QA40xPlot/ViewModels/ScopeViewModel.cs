@@ -27,7 +27,7 @@ namespace QA40xPlot.ViewModels
 		private ScopeInfo actInfoLeft { get; set; }
 		private ScopeInfo actInfoRight { get; set; }
 		[JsonIgnore]
-		public override RelayCommand DoStart { get => new RelayCommand(StartIt); }
+		public override RelayCommand DoRun { get => new RelayCommand(StartIt); }
 		[JsonIgnore]
 		public override RelayCommand DoStop { get => new RelayCommand(StopIt); }
 		[JsonIgnore]

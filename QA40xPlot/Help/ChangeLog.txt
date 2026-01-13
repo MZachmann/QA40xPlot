@@ -6,10 +6,12 @@ v 1.2.4 1/7/2026
 - fixup selection of Transparent in color picker
 - improve gain curve frequency selection
 - add F6,F7 accelerators for start/stop
+- swap Start to Run for spectrum, imd, and scope tests
 - support untethered serializable UOM
 - improve generator voltage messaging
 - add a continuous run button to the Response/Gain/Crosstalk/Impedance tests
 - upgrade esthetics of voltage unit button
+- add Whats New file and button
 v 1.2.3 1/4/2026
 - add dates to changelog v tags
 - nearly finish implementing thd vs amplitude update
