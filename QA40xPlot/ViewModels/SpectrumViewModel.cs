@@ -298,8 +298,16 @@ namespace QA40xPlot.ViewModels
 			var xpos = cord.Item1;
 			var ypos = cord.Item2;
 			FreqValue = Math.Pow(10, xpos);
+			LookX = FreqValue;
+			LookY = ypos;	// cache these
+			UpdateMouseCursor(FreqValue, ypos);
+		}
 
-			var zv = MyAction.LookupXY(FreqValue, ypos, ShowRight && !ShowLeft);
+		public override void UpdateMouseCursor(double xpos, double ypos)
+		{
+			if (xpos <= 1)
+				return;
+			var zv = MyAction.LookupXY(xpos, ypos, ShowRight && !ShowLeft);
 			var valdBV = GraphUtil.ValueToPlot(this, zv.Item2, zv.Item3);
 			if (!GraphUtil.IsPlotFormatLog(PlotFormat))
 			{

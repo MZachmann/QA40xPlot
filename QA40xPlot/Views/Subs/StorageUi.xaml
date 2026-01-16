@@ -17,9 +17,9 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <Button Content="Get" IsEnabled="{Binding IsNotRunning}"  Command="{Binding DoGetTab}" Grid.Column="0" Grid.Row="0"  HorizontalAlignment="Center"></Button>
-            <Button Content="Load" IsEnabled="{Binding IsNotRunning}" Command="{Binding DoLoadTab}" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center"></Button>
-            <Button Content="Save" IsEnabled="{Binding HasSave}"    Command="{Binding DoSaveTab}" Grid.Column="2" Grid.Row="0"  HorizontalAlignment="Center"></Button>
+            <Button Content=" Get " IsEnabled="{Binding IsNotRunning}"  Command="{Binding DoGetTab}" Grid.Column="0" Grid.Row="0"  HorizontalAlignment="Center"></Button>
+            <Button Content=" Load " IsEnabled="{Binding IsNotRunning}" Command="{Binding DoLoadTab}" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center"></Button>
+            <Button Content=" Save " IsEnabled="{Binding HasSave}"    Command="{Binding DoSaveTab}" Grid.Column="2" Grid.Row="0"  HorizontalAlignment="Center"></Button>
         </Grid>
     </StackPanel>
 </UserControl>

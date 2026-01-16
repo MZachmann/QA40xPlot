@@ -777,9 +777,6 @@ namespace QA40xPlot.Actions
 					int bin = 0;
 					ScottPlot.Plot myPlot = fftPlot.ThePlot;
 					var pixel = myPlot.GetPixel(new Coordinates(Math.Log10(freq), posndBV));
-					var left = ViewSettings.Singleton.ChannelLeft;
-					var right = ViewSettings.Singleton.ChannelRight;
-
 					// get screen coords for some of the data
 					int abin = (int)(freq / fftdata.Df);       // apporoximate bin
 					var binmin = Math.Max(1, abin - 5);            // random....
@@ -952,6 +949,7 @@ namespace QA40xPlot.Actions
 			ReformatChannels(); // ensure the channels are formatted correctly
 			ViewSettings.Singleton.ChannelLeft.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd;
 			ViewSettings.Singleton.ChannelRight.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd;
+			thd.UpdateMouseCursor(thd.LookX, thd.LookY);
 
 			ShowPageInfo(PageData); // show the page info in the display
 			DrawPlotLines(resultNr);

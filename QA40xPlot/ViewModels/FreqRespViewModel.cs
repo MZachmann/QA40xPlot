@@ -387,16 +387,14 @@ public class FreqRespViewModel : BaseViewModel
 		freqVm.DoMouse(sender, e);
 	}
 
-	private void DoMouse(object sender, MouseEventArgs e)
+	public override void UpdateMouseCursor(double freq, double dbvV)
 	{
-		SetMouseTrack(e);
-		if (IsTracking)
-		{
-			var p = e.GetPosition(actPlot);
-			var cord = ConvertScottCoords(actPlot, p.X, p.Y);
-			FreqValue = Math.Pow(10, cord.Item1); // frequency
-		}
+		if (freq <= 0)
+			return;
+		FreqValue = freq;
 		var zv = MyAction.LookupX(FreqValue);
+		if (zv.Item1 <= 1)
+			return;
 		var ttype = GetTestingType(TestType);
 		FreqShow = zv.Item1.ToString("0.# Hz");
 		switch (ttype)
@@ -406,7 +404,7 @@ public class FreqRespViewModel : BaseViewModel
 				break;
 			case TestingType.Response:
 				{
-					ZValue = "Left: " + GraphUtil.PrettyPrint(zv.Item2, PlotFormat) + Environment.NewLine + 
+					ZValue = "Left: " + GraphUtil.PrettyPrint(zv.Item2, PlotFormat) + Environment.NewLine +
 						"Right: " + GraphUtil.PrettyPrint(zv.Item3, PlotFormat);
 				}
 				break;
@@ -437,11 +435,23 @@ public class FreqRespViewModel : BaseViewModel
 		}
 	}
 
+	private void DoMouse(object sender, MouseEventArgs e)
+	{
+		SetMouseTrack(e);
+		if (IsTracking)
+		{
+			var p = e.GetPosition(actPlot);
+			var cord = ConvertScottCoords(actPlot, p.X, p.Y);
+			FreqValue = Math.Pow(10, cord.Item1); // frequency
+			LookX = FreqValue;   // cache the frequency here
+		}
+		UpdateMouseCursor(FreqValue, 0);
+	}
+
 	~FreqRespViewModel()
 	{
 		PropertyChanged -= CheckPropertyChanged;
 		MouseTracked -= DoMouseTracked;
-
 	}
 
 	public FreqRespViewModel()

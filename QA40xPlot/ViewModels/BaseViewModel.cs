@@ -97,6 +97,12 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _OtherSetList, value);
 		}
 
+		// LookX, LookY are the last lookup values for mouse movement
+		[JsonIgnore]
+		public double LookX { get; set; }
+		[JsonIgnore]
+		public double LookY { get; set; }
+		
 		[JsonIgnore]
 		private UserControl? _MyWindow = null;
 		[JsonIgnore]
@@ -748,6 +754,18 @@ namespace QA40xPlot.ViewModels
 				var genVoltUnits = parameter.ToString() ?? string.Empty;    // serialized value
 				mvm.SetGeneratorUnits(genVoltUnits);    // do math...
 			}
+		}
+
+		/// <summary>
+		/// update the displayed cursor value
+		/// for calling outside of mouse move stuff
+		/// </summary>
+		/// <param name="freq">X value</param>
+		/// <param name="dbvV">Y value</param>
+		/// <exception cref="NotImplementedException"></exception>
+		public virtual void UpdateMouseCursor(double freq, double dbvV)
+		{
+			throw new NotImplementedException();
 		}
 
 		public void EditPlotPalette()

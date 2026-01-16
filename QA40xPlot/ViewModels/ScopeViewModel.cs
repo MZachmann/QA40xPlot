@@ -325,7 +325,15 @@ namespace QA40xPlot.ViewModels
 			var xpos = cord.Item1;
 			var ypos = cord.Item2;
 			FreqValue = xpos;
+			LookX = xpos;
+			LookY = ypos;
+			UpdateMouseCursor(xpos, ypos);
+		}
 
+		public override void UpdateMouseCursor(double xpos, double ypos)
+		{
+			if (xpos <= 1)
+				return;
 			var zv = MyAction.LookupXY(xpos, ypos, ShowRight && !ShowLeft);
 			// - this may be too slow, but for now....
 			if (MyMark != null)

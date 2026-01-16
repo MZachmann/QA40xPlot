@@ -5,6 +5,9 @@ using System.Diagnostics;
 
 namespace QA40xPlot.BareMetal
 {
+	/// <summary>
+	/// Low level methods for the QA40x with USB
+	/// </summary>
 	public class IODevUSB : IODevice
 	{
 		private static int _InvalidInt = 1232;

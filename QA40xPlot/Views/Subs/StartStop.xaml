@@ -9,15 +9,15 @@
 
     <StackPanel Margin="5,10,5,3" Orientation="Vertical">
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-            <Button Content="Run" IsEnabled="{Binding IsNotRunning}" Margin="0,0,10,0"
+            <Button Content=" Run " IsEnabled="{Binding IsNotRunning}" Margin="0,0,10,0"
                     Visibility="{Binding ShowRun, ElementName=MyStartStop, Converter={StaticResource BoolVisConverter}}"
                     Command="{Binding DoRun}" 
                     ToolTip="Run repeatedly (F5)"
                     FontSize="14" HorizontalAlignment="Right"></Button>
-            <Button Content="Start" ToolTip="Start the test (F6)"
+            <Button Content=" Start " ToolTip="Start the test (F6)"
                     Visibility="{Binding ShowStart, ElementName=MyStartStop, Converter={StaticResource BoolVisConverter}}"
                     IsEnabled="{Binding IsNotRunning}" FontSize="14" Command="{Binding DoStart}"  HorizontalAlignment="Right"></Button>
-            <Button Content="Stop" Margin="10,0,0,0" ToolTip="Stop the test (F7)"
+            <Button Content=" Stop " Margin="10,0,0,0" ToolTip="Stop the test (F7)"
                     IsEnabled="{Binding IsRunning}" FontSize="14" Command="{Binding DoStop}"  HorizontalAlignment="Left"></Button>
         </StackPanel>
     </StackPanel>

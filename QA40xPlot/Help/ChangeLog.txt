@@ -2,6 +2,10 @@
 --------------------------------------------
 This changelog shows the changes made for each version
 --------------------------------------------
+v 1.2.5 asdfasdf
+- add space to run/start/get... buttons
+- update mouse cursor in frequency response test when test runs
+-
 v 1.2.4 1/13/2026
 - fixup selection of Transparent in color picker
 - improve gain curve frequency selection

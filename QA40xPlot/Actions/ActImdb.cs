@@ -760,6 +760,8 @@ namespace QA40xPlot.Actions
 			ReformatChannels(); // ensure the channels are formatted correctly
 			ViewSettings.Singleton.ImdChannelLeft.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd;
 			ViewSettings.Singleton.ImdChannelRight.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd;
+			thd.UpdateMouseCursor(thd.LookX, thd.LookY);
+
 			ShowPageInfo(PageData);
 			DrawPlotLines(resultNr);
 			if (PageData.FreqRslt != null)

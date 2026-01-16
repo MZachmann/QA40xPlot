@@ -549,11 +549,12 @@ namespace QA40xPlot.Actions
 
 				var frsqVm = MyVModel;
 				var ttype = frsqVm.GetTestingType(frsqVm.TestType);
+				var myFreq = freqs[bin];
 				switch (ttype)
 				{
 					case TestingType.Crosstalk:
 						// send freq, gain, gain2
-						tup = ValueTuple.Create(freqs[bin], valuesRe[bin], valuesIm[bin]);
+						tup = ValueTuple.Create(myFreq, valuesRe[bin], valuesIm[bin]);
 						break;
 					case TestingType.Response:
 						// send freq, gain, gain2
@@ -562,7 +563,7 @@ namespace QA40xPlot.Actions
 							var fvi2 = GraphUtil.ValueToPlotFn(frsqVm, PageData.GainImag, PageData.GainFrequencies);
 							var fl = fvi(valuesRe[bin]);
 							var fr = fvi2(valuesIm[bin]);
-							tup = ValueTuple.Create(freqs[bin], fl, fr);
+							tup = ValueTuple.Create(myFreq, fl, fr);
 						}
 						break;
 					case TestingType.Impedance:
@@ -571,7 +572,7 @@ namespace QA40xPlot.Actions
 							var impval = MathUtil.ToImpedanceMag(valuesRe[bin], valuesIm[bin]);
 							var ohms = rref * impval;
 							impval = MathUtil.ToImpedancePhase(valuesRe[bin], valuesIm[bin]);
-							tup = ValueTuple.Create(freqs[bin], ohms, 180 * impval / Math.PI);
+							tup = ValueTuple.Create(myFreq, ohms, 180 * impval / Math.PI);
 						}
 						break;
 					case TestingType.Gain:
@@ -579,7 +580,7 @@ namespace QA40xPlot.Actions
 							// send freq, gain, phasedeg
 							var mag = MathUtil.ToCplxMag(valuesRe[bin], valuesIm[bin]);
 							var phas = MathUtil.ToCplxPhase(valuesRe[bin], valuesIm[bin]);
-							tup = ValueTuple.Create(freqs[bin], mag, 180 * phas / Math.PI);
+							tup = ValueTuple.Create(myFreq, mag, 180 * phas / Math.PI);
 						}
 						break;
 				}
@@ -1284,6 +1285,7 @@ namespace QA40xPlot.Actions
 				InitializePlot();
 			}
 
+			frqsrVm.UpdateMouseCursor(frqsrVm.LookX, 0);
 			PlotValues(PageData, resultNr++, true);  // frqsrVm.GraphType);
 			if (OtherTabs.Count > 0)
 			{

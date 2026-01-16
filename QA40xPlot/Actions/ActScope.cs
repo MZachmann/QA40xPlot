@@ -606,6 +606,7 @@ namespace QA40xPlot.Actions
 			{
 				InitializeMagnitudePlot();
 			}
+			thd.UpdateMouseCursor(thd.LookX, thd.LookY);
 			DrawPlotLines(resultNr); // draw the lines 
 		}
 
