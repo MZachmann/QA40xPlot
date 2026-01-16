@@ -1,6 +1,8 @@
 ﻿using FftSharp;
 using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
+using QA40xPlot.Extensions;
+using QA40xPlot.ViewModels;
 using ScottPlot;
 using System.Diagnostics;
 using System.Numerics;
@@ -63,6 +65,30 @@ namespace QA40xPlot.Libraries
 				ba = Math.Max(ba, pts[bin + 2]);
 			return ba;
 		}
+
+		public static LeftRightTimeSeries CalculateResidual(LeftRightTimeSeries lrts)
+		{
+			LeftRightTimeSeries lrOut = new();
+			lrOut.dt = lrts.dt;
+			if (lrts.Left == null || lrts.Left.Length == 0)
+				return lrOut;
+
+			var lrfCplx = QaMath.CalculateComplexSpectrum(lrts, "");    // get the full fft unwindowed
+																		// find the fundamental/largest value
+			double fundamental = 0.0;
+
+			var data = ViewSettings.IsTestLeft ? lrfCplx.Left : lrfCplx.Right;
+			var rldata = data.Take(data.Length / 2).Select(x => x.Magnitude).ToArray();
+			var largest = rldata.Max();
+			var who = rldata.CountWhile(x => x < largest);
+			// got index of the largest one
+			fundamental = who * lrfCplx.Df;
+
+			lrOut.Left = FftSharp.Filter.BandStop(lrts.Left, (int)(0.1 + 1 / lrts.dt), fundamental / 2, fundamental * 1.5);
+			lrOut.Right = FftSharp.Filter.BandStop(lrts.Right, (int)(0.1 + 1 / lrts.dt), fundamental / 2, fundamental * 1.5);
+			return lrOut;
+		}
+
 
 		/// <summary>
 		/// get the snr from a leftright series
@@ -182,6 +208,44 @@ namespace QA40xPlot.Libraries
 				fs.Df = QaLibrary.CalcBinSize(sampleRate, sampleSize);
 			}
 			return fs;
+		}
+
+		/// <summary>
+		/// set windowing to "" for none
+		/// </summary>
+		/// <param name="lrfs"></param>
+		/// <param name="windowing"></param>
+		/// <returns></returns>
+		public static LeftRightFreqComplexSeries CalculateComplexSpectrum(LeftRightTimeSeries lrfs, string windowing)
+		{
+			LeftRightFreqComplexSeries lfs = new();
+			try
+			{
+				var timeSeries = lrfs;
+				// Left channel
+				// only take half of the data since it's symmetric so length of freq data = 1/2 length of time data
+				if(windowing.Length > 0)
+				{
+					var window = GetWindowType(windowing);
+					double[] wdwLeft = window.Apply(timeSeries.Left, false);
+					lfs.Left = FFT.Forward(wdwLeft);
+					double[] wdwRight = window.Apply(timeSeries.Right, false);
+					lfs.Right = FFT.Forward(wdwRight);
+				}
+				else
+				{
+					lfs.Left = FFT.Forward(timeSeries.Left);
+					lfs.Right = FFT.Forward(timeSeries.Right);
+				}
+
+				var nca2 = (int)(0.01 + 1 / timeSeries.dt);      // total time in tics = sample rate
+				lfs.Df = nca2 / (double)timeSeries.Left.Length; // ???
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
+			}
+			return lfs;
 		}
 
 		public static LeftRightFrequencySeries CalculateSpectrum(LeftRightTimeSeries lrfs, string windowing)

@@ -136,6 +136,9 @@ namespace QA40xPlot.ViewModels
 				case "DsName":
 					MyAction?.UpdatePlotTitle();
 					break;
+				case "ShowResiduals":
+					MyAction?.DoShowResiduals(ShowResiduals);
+					break;
 				case "ShowTabInfo":
 				case "ShowSummary":
 					ShowInfos();

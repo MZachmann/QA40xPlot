@@ -170,6 +170,71 @@ namespace QA40xPlot.Actions
 			UpdateGraph(true);
 		}
 
+		public void DoShowResiduals(bool isShown)
+		{
+			if (isShown)
+			{
+				bool showFirst = false;
+				if (!HasResidualPlot())
+				{
+					AddResidualPlot();
+					showFirst = true;
+				}
+				if (HasResidualPlot())
+				{
+					UpdateResidualPlot(PageData.TimeRslt, showFirst);
+				}
+			}
+			else
+			{
+				if (HasResidualPlot())
+				{
+					RemoveResidualPlot();
+				}
+			}
+		}
+
+		public bool HasResidualPlot()
+		{
+			return OtherTabs.Any(x => x.Definition.Name == "Residual");
+		}
+
+		public void RemoveResidualPlot()
+		{
+			var pages = OtherTabs.Where(x => x.Definition.Name == "Residual");
+			if (pages.Count() > 0)
+			{
+				var pageId = pages.First().Id;
+				MyVModel.DoDeleteIt(pageId.ToString());
+			}
+		}
+
+		public void UpdateResidualPlot(LeftRightTimeSeries source, bool isChanged)
+		{
+			var lrts = QaMath.CalculateResidual(source);
+			var pages = OtherTabs.Where(x => x.Definition.Name == "Residual");
+			if(pages.Count() > 0)
+			{
+				var page = pages.First();
+				page.TimeRslt = lrts;
+			}	
+		}
+
+		public void AddResidualPlot()
+		{
+			var lrts = QaMath.CalculateResidual(PageData.TimeRslt);
+			var page = new DataTab<ScopeViewModel>(MyVModel, lrts);
+			page.Definition.FileName = "Residual";
+			page.Definition.Name = "Residual";
+			page.Definition.IsOnL = true;
+			page.Definition.IsOnR = false;
+			page.Definition.LeftColor = "Transparent";
+			page.Definition.RightColor = "Transparent";
+			OtherTabs.Add(page); // add the new one
+								 //var oss = new OtherSet(page.Definition.Name, page.Show, page.Id);
+			MyVModel.OtherSetList.Add(page.Definition);
+		}
+
 		/// <summary>
 		/// create a wave
 		/// </summary>
@@ -400,6 +465,7 @@ namespace QA40xPlot.Actions
 					thd.RaiseMouseTracked("track");
 				}
 				MyVModel.HasExport = true;
+				DoShowResiduals(MyVModel.ShowResiduals);
 			}
 			catch (Exception ex)
 			{

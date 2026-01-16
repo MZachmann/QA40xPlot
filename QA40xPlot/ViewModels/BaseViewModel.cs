@@ -562,6 +562,13 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowTabInfo, value);
 		}
 
+		private bool _ShowResiduals = false;
+		public bool ShowResiduals
+		{
+			get => _ShowResiduals;
+			set => SetProperty(ref _ShowResiduals, value);
+		}
+
 		protected string _Name = string.Empty;         // name of the test
 		public string Name
 		{

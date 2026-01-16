@@ -219,6 +219,8 @@
                               IsChecked="{Binding ShowSummary}" Grid.Row="0"  />
                         <CheckBox Content="Test Info" ToolTip="{Binding TabInfoTip}"
                               IsChecked="{Binding ShowTabInfo}" Grid.Row="1"  />
+                        <CheckBox Content="Residual Plot" ToolTip="{Binding TabInfoTip}"
+                              IsChecked="{Binding ShowResiduals}" Grid.Row="2"  />
                     </Grid>
                 </Expander>
 

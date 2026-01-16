@@ -86,6 +86,7 @@ namespace QA40xPlot.Libraries
 			}
 			return lrfs; // return the loaded mic compensation data
 		}
+
 		/// <summary>
 		/// Load a file into a DataTab
 		/// </summary>

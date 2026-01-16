@@ -1,5 +1,7 @@
-﻿/// Historical LeftRight pair classes and conversion utilities
+﻿
+using System.Numerics;
 
+/// Historical LeftRight pair classes and conversion utilities
 namespace QA40xPlot.Libraries
 {
 	public static class ConvertUtil
@@ -148,6 +150,29 @@ namespace QA40xPlot.Libraries
 			dt = 0.0;
 			Left = new double[0];
 			Right = new double[0];
+		}
+	}
+
+	public class LeftRightFreqComplexSeries
+	{
+		/// <summary>
+		/// df is the frequency spacing of FFT bins
+		/// </summary>
+		public double Df { get; set; }
+		public Complex[] Left { get; set; }
+		public Complex[] Right { get; set; }
+
+		// this is only invoked with real data during an acquisition, so ignore the init
+		public LeftRightFreqComplexSeries()
+		{
+			Df = 1.0;
+			Left = new Complex[0];
+			Right = new Complex[0];
+		}
+
+		public int ToBinNumber(double dFreq)
+		{
+			return QaLibrary.GetBinOfFrequency(dFreq, Df);
 		}
 	}
 
