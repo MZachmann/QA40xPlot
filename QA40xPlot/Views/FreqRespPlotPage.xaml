@@ -116,7 +116,7 @@
                         <Label Content="Set _DUT" Target="{Binding ElementName=cbDUT}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="0" Grid.Column="0" ToolTip="{Binding DutInfo}"  />
                         <ComboBox ToolTip="{Binding DutDescript}" x:Name="cbDUT"  Grid.Column="1" 
                               Grid.Row="0"   Grid.ColumnSpan="2"
-                              IsEnabled="{Binding IsNotRunning}"
+                              IsEnabled="{Binding MainVm.IsNotRunning}"
                           SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVoltsFull}"/>
                         <Label Content="{Binding GenAmpDescript}" Target="{Binding ElementName=cbVolt}"
                            HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="1" Grid.Column="0"  />

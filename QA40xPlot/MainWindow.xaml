@@ -69,13 +69,13 @@
                         >
                 <Menu VerticalAlignment="Center" Background="Transparent">
                     <MenuItem Header="_Page" >
-                        <MenuItem Header="_Spectrum" Command="{Binding SetPlotPage}" CommandParameter="Spectrum" />
-                        <MenuItem Header="_Intermodulation" Command="{Binding SetPlotPage}" CommandParameter="Intermodulation" />
-                        <MenuItem Header="Sco_pe" Command="{Binding SetPlotPage}" CommandParameter="Scope" />
-                        <MenuItem Header="THD vs _Frequency" Command="{Binding SetPlotPage}" CommandParameter="Opamp.Freq" />
-                        <MenuItem Header="THD vs _Amplitude" Command="{Binding SetPlotPage}" CommandParameter="Opamp.Amp" />
-                        <MenuItem Header="Frequency _Response" Command="{Binding SetPlotPage}" CommandParameter="Response" />
-                        <MenuItem Header="S_ettings" Command="{Binding SetPlotPage}" CommandParameter="Settings" />
+                        <MenuItem Header="_Spectrum" Command="{Binding SetPlotPage}" CommandParameter="spectrum" />
+                        <MenuItem Header="_Intermodulation" Command="{Binding SetPlotPage}" CommandParameter="intermod" />
+                        <MenuItem Header="Sco_pe" Command="{Binding SetPlotPage}" CommandParameter="scope" />
+                        <MenuItem Header="THD vs _Frequency" Command="{Binding SetPlotPage}" CommandParameter="freqsweep" />
+                        <MenuItem Header="THD vs _Amplitude" Command="{Binding SetPlotPage}" CommandParameter="ampsweep" />
+                        <MenuItem Header="Frequency _Response" Command="{Binding SetPlotPage}" CommandParameter="freqresp" />
+                        <MenuItem Header="S_ettings" Command="{Binding SetPlotPage}" CommandParameter="settings" />
                     </MenuItem>
                     <MenuItem Header="_Command">
                         <MenuItem Header="Show _QA430" Click="OnQA430"
@@ -100,10 +100,12 @@
                 </Grid>
             </StackPanel>
         </Grid>
-        <TabControl Grid.Row="2" SelectionChanged="OnNewTab"
-                    SelectedIndex="{Binding PlotPageIndex, Mode=TwoWay}"
+        <!--SelectionChanged="OnNewTab"-->
+        <TabControl Grid.Row="2" 
+                    SelectedValuePath="Name"
+                    SelectedValue="{Binding PlotPageType, Mode=TwoWay}"
                     SizeChanged="DoTabSizeChanged" x:Name="TheTabs" >
-            <TabItem Header="Spectrum" Name="spectrum"  MaxWidth="{Binding MaxTab}" >
+            <TabItem Header="Spectrum" Name="spectrum"  MaxWidth="{Binding MaxTab}">
                 <Grid Background="{Binding Background, Mode=OneWay}" >
                     <views:SpectrumPlotPage  />
                 </Grid>
@@ -123,7 +125,7 @@
                     <views:FreqSweepPlotPage  />
                 </Grid>
             </TabItem>
-            <TabItem Header="THD vs Amplitude" Name="ampsweep" MaxWidth="{Binding MaxTab}">
+            <TabItem Header="THD vs Amplitude" Name="ampsweep" MaxWidth="{Binding MaxTab}" >
                 <Grid Background="{Binding Background, Mode=OneWay}">
                     <views:AmpSweepPlotPage  />
                 </Grid>
@@ -133,7 +135,7 @@
                     <views:FreqRespPlotPage  />
                 </Grid>
             </TabItem>
-            <TabItem Header="Settings" Name="settings"  MaxWidth="{Binding MaxTab}">
+            <TabItem Header="Settings" Name="settings"  MaxWidth="{Binding MaxTab}" >
                 <Grid Background="{Binding Background, Mode=OneWay}">
                     <views:SettingsPage  />
                 </Grid>

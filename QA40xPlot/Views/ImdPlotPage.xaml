@@ -55,7 +55,7 @@
                             <ComboBox ToolTip="{Binding DutDescript}" x:Name="cbDUT"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" 
                               VerticalContentAlignment="Center"
                               SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVoltsFull}"
-                                  IsEnabled="{Binding IsNotRunning}" >
+                                  IsEnabled="{Binding MainVm.IsNotRunning}" >
                             </ComboBox>
                             <Label Content="Generator 1" Grid.Row="1" Grid.Column="0"   />
                             <Label Content="Fre_quency" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="2" Grid.Column="0" Target="{Binding ElementName=cbFreq}"  />

@@ -41,7 +41,7 @@
                             <ComboBox ToolTip="{Binding DutDescript}" x:Name="cbDUT"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0"   
                               VerticalContentAlignment="Center"
                               SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVoltsFull}"
-                                  IsEnabled="{Binding IsNotRunning}" >
+                                  IsEnabled="{Binding MainVm.IsNotRunning}" >
                             </ComboBox>
                             <Label Content="Generator 1" Grid.Row="1" Grid.Column="0"   />
                             <Label Content="_Waveform" Target="{Binding ElementName=cbWave}"  HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="2" Grid.Column="0" ToolTip="{Binding DutInfo}"  />
@@ -224,7 +224,7 @@
                               IsChecked="{Binding ShowTabInfo}" Grid.Row="1"  />
                         <CheckBox Content="Legend" ToolTip="{Binding ShowLegendTip}"
                                 IsChecked="{Binding ShowLegend}" Grid.Row="2"   />
-                        <CheckBox Content="Residual Plot" ToolTip="{Binding TabInfoTip}"
+                        <CheckBox Content="Residual Plot" ToolTip="Add the residual display to the Get list and show it."
                               IsChecked="{Binding ShowResiduals}" Grid.Row="3"  />
                     </Grid>
                 </Expander>

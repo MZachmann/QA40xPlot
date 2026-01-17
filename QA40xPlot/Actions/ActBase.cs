@@ -196,7 +196,7 @@ namespace QA40xPlot.Actions
 		/// <returns>true if all good</returns>
 		public async Task<bool> StartAction(BaseViewModel bvm)
 		{
-			if (bvm.IsRunning)
+			if (bvm.MainVm.IsRunning)
 			{
 				MessageBox.Show("Device is already running");
 				return false;
@@ -206,7 +206,7 @@ namespace QA40xPlot.Actions
 				MessageBox.Show("Unable to connect to the device.");
 				return false;
 			}
-			bvm.IsRunning = true;
+			bvm.MainVm.IsRunning = true;
 			bvm.ShowMiniPlots = bvm.KeepMiniPlots; // enable mini plots for the duration of the action
 			WaveGenerator.Clear(true);  // disable both generators and the WaveGenerator itself
 			WaveGenerator.Clear(false);  // disable both generators and the WaveGenerator itself
@@ -216,7 +216,7 @@ namespace QA40xPlot.Actions
 
 		public async Task EndAction(BaseViewModel bvm)
 		{
-			bvm.IsRunning = false;
+			bvm.MainVm.IsRunning = false;
 			bvm.HasSave = true; // set the save flag
 			bvm.ShowMiniPlots = false;
 			// Turn the generator off

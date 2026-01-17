@@ -185,21 +185,6 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public uint SampleRateVal { get => MathUtil.ToUint(SampleRate); }
 
-		private bool _IsRunning = false;         // type of alert
-		[JsonIgnore]
-		public bool IsRunning
-		{
-			get { return _IsRunning; }
-			set { SetProperty(ref _IsRunning, value); IsNotRunning = !value; }
-		}
-		private bool _IsNotRunning = true;         // type of alert
-		[JsonIgnore]
-		public bool IsNotRunning
-		{
-			get { return _IsNotRunning; }
-			private set { SetProperty(ref _IsNotRunning, value); }
-		}
-
 		private string _XPos = string.Empty;
 		[JsonIgnore]
 		public string XPos

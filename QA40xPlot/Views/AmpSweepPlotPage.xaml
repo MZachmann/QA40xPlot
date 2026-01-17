@@ -38,7 +38,7 @@
                         <ComboBox  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0"  SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVoltsFull}"
                               VerticalContentAlignment="Center"
                                ToolTip="{Binding DutDescript}" x:Name="cbDUT" 
-                               IsEnabled="{Binding IsNotRunning}" >
+                               IsEnabled="{Binding MainVm.IsNotRunning}" >
                         </ComboBox>
                         <Label Content="{Binding GenAmpDescript, Mode=OneWay}" Target="{Binding ElementName=cbV1}" 
                            HorizontalAlignment="Right" VerticalAlignment="Center" ContentStringFormat="Start {0}" Grid.Column="0" Grid.Row="1"   />

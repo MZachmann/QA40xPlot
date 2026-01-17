@@ -320,7 +320,7 @@ namespace QA40xPlot.ViewModels
 		{
 			SetMouseTrack(e);
 			// it's too laggy while it's running....
-			if (IsRunning || !IsTracking)
+			if (MainVm.IsRunning || !IsTracking)
 				return;
 
 			var p = e.GetPosition(actPlot);

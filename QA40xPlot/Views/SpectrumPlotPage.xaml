@@ -41,7 +41,7 @@
                         <ComboBox ToolTip="{Binding DutDescript}" x:Name="cbDUT"  Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" 
                             SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVoltsFull}"
                               VerticalContentAlignment="Center"
-                              IsEnabled="{Binding IsNotRunning}" >
+                              IsEnabled="{Binding MainVm.IsNotRunning}" >
                         </ComboBox>
                         <Label Content="_Waveform" Target="{Binding ElementName=cbWave}"  
                            HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="1" Grid.Column="0" ToolTip="{Binding DutInfo}"  />

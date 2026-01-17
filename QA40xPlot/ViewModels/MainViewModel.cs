@@ -6,6 +6,7 @@ using QA40xPlot.Libraries;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection.Metadata;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -19,9 +20,9 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public List<string> PageNames { get; } = new List<string>
 		{
-			"Spectrum",	"Intermodulation","Scope", "Opamp.Freq",
-			"Opamp.Amp", "Response",
-			"Settings", "Impedance", "Crosstalk", "Gain",
+			"spectrum",	"intermod","scope", "freqsweep",
+			"ampsweep", "freqresp",
+			"settings",
 		};
 		[JsonIgnore]
 		public List<string> FunctionKeys { get; } = new List<string>
@@ -53,7 +54,7 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand DoSaveWave { get => new RelayCommand(OnSaveWave); }
 
 		[JsonIgnore]
-		public DependencyObject? TabControlObject { get; set; } = null;
+		public TabControl? TabControlObject { get; set; } = null;
 		#endregion
 
 		private void DoSetPlotPage(object? parameter)
@@ -75,7 +76,7 @@ namespace QA40xPlot.ViewModels
 			{
 				Application.Current?.Dispatcher.Invoke(() =>
 				{
-					PlotPageType = parameter as string ?? "Spectrum";
+					PlotPageType = parameter as string ?? "spectrum";
 				}); 
 			});
 		}
@@ -189,19 +190,21 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _CurrentPaletteRect, value);
 		}
 
-		private int _PlotPageIndex = 0;
+		private bool _IsRunning = false;         // type of alert
 		[JsonIgnore]
-		public int PlotPageIndex
+		public bool IsRunning
 		{
-			get => _PlotPageIndex;
-			set
-			{
-				SetProperty(ref _PlotPageIndex, value);
-				// synchronize the page name if we are showing tabs
-				if (ShowTabs && value >= 0 && value < PageNames.Count)
-					_PlotPageType = PageNames[value];
-			}
+			get { return _IsRunning; }
+			set { SetProperty(ref _IsRunning, value); IsNotRunning = !value; }
 		}
+		private bool _IsNotRunning = true;         // type of alert
+		[JsonIgnore]
+		public bool IsNotRunning
+		{
+			get { return _IsNotRunning; }
+			private set { SetProperty(ref _IsNotRunning, value); }
+		}
+
 		#endregion
 
 		#region Setters and Getters
@@ -255,14 +258,38 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		private string _PlotPageType = "Spectrum";
+		private string _PlotPageType = "spectrum";
 		public string PlotPageType
 		{
 			get => _PlotPageType;
 			set
 			{
-				SetProperty(ref _PlotPageType, value);
-				PlotPageIndex = PageNames.IndexOf(value);
+				bool isrun = false;
+				if (IsRunning)
+				{
+					isrun = true;
+					Application.Current?.Dispatcher.Invoke(() =>
+					{
+						MessageBox.Show("Please stop the test before switching pages", "Page Switch", MessageBoxButton.OK, MessageBoxImage.Warning);
+					});
+				}
+				if (isrun && TabControlObject != null)
+				{
+					if(TabControlObject.SelectedIndex != PageNames.IndexOf(_PlotPageType))
+					{
+						Task.Delay(200).ContinueWith(_ =>
+						{
+							Application.Current?.Dispatcher.Invoke(() =>
+							{
+								TabControlObject.SelectedIndex = PageNames.IndexOf(_PlotPageType);
+							});
+						});
+					}
+				}
+				else
+				{
+					SetProperty(ref _PlotPageType, value);
+				}
 			}
 		}
 

@@ -6,6 +6,7 @@
              xmlns:local="clr-namespace:QA40xPlot.Views"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+    <!--This is the bar with the single letter commands for pages-->
      <StackPanel>
         <Button Content="&#x2771;&#x2771;" Width="30" Padding="0,5" 
             ToolTip="Show the page buttons" 
@@ -17,32 +18,32 @@
                 Orientation="Horizontal" >
             <Button Content="S" Width="30" Padding="0,5" ToolTip="Spectrum" 
                     BorderBrush="Transparent" Background="Transparent"
-                IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=Spectrum}"
-                Command="{Binding SetPlotPage}" CommandParameter="Spectrum" />
+                IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=spectrum}"
+                Command="{Binding SetPlotPage}" CommandParameter="spectrum" />
             <Button Content="I" Width="30" Padding="0,5" ToolTip="Intermodulation Distortion" 
                     BorderBrush="Transparent" Background="Transparent"
-                IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=Intermodulation}"
-                Command="{Binding SetPlotPage}" CommandParameter="Intermodulation" />
+                IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=intermod}"
+                Command="{Binding SetPlotPage}" CommandParameter="intermod" />
             <Button Content="O" Width="30" Padding="0,5" ToolTip="Oscilloscope" 
                     BorderBrush="Transparent" Background="Transparent"
-                        IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=Scope}"
-                        Command="{Binding SetPlotPage}" CommandParameter="Scope" />
+                        IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=scope}"
+                        Command="{Binding SetPlotPage}" CommandParameter="scope" />
             <Button Content="F" Width="30" Padding="0,5" ToolTip="THD vs Frequency" 
                     BorderBrush="Transparent" Background="Transparent"
-                        IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=Opamp.Freq}"
-                        Command="{Binding SetPlotPage}" CommandParameter="Opamp.Freq" />
+                        IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=freqsweep}"
+                        Command="{Binding SetPlotPage}" CommandParameter="freqsweep" />
             <Button Content="A" Width="30" Padding="0,5" ToolTip="THD vs Amplitude" 
                     BorderBrush="Transparent" Background="Transparent"
-                        IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=Opamp.Amp}"
-                        Command="{Binding SetPlotPage}" CommandParameter="Opamp.Amp" />
+                        IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=ampsweep}"
+                        Command="{Binding SetPlotPage}" CommandParameter="ampsweep" />
             <Button Content="R" Width="30" Padding="0,5" ToolTip="Frequency Response" 
                     BorderBrush="Transparent" Background="Transparent"
-                        IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=Response}"
-                        Command="{Binding SetPlotPage}" CommandParameter="Response" />
+                        IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=freqresp}"
+                        Command="{Binding SetPlotPage}" CommandParameter="freqresp" />
             <Button Content="&#x26ed;" Width="30" Padding="0,5" ToolTip="Settings" 
                     BorderBrush="Transparent" Background="Transparent"
-                        IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=Settings}"
-                        Command="{Binding SetPlotPage}" CommandParameter="Settings" />
+                        IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=settings}"
+                        Command="{Binding SetPlotPage}" CommandParameter="settings" />
             <Button Content="&#x2770;&#x2770;" Width="30" Padding="0,5" ToolTip="Hide the page buttons" 
                 Command="{Binding ShowButtons}" CommandParameter="0"
                 BorderBrush="Transparent" Background="Transparent" />
