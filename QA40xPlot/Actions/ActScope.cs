@@ -1,4 +1,5 @@
-﻿using QA40xPlot.BareMetal;
+﻿using NAudio.Gui;
+using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
@@ -40,8 +41,12 @@ namespace QA40xPlot.Actions
 		// here param is the id of the tab to remove from the othertab list
 		public void DeleteTab(int id)
 		{
+			var resId = HasResidualPlot();
 			OtherTabs.RemoveAll(item => item.Id == id);
 			MyVModel.ForceGraphUpdate(); // force a graph update
+			// if user manually removed the residuals turn off the checkbox last
+			if (resId != 0)
+				MyVModel.ShowResiduals = false;
 		}
 
 
@@ -175,28 +180,40 @@ namespace QA40xPlot.Actions
 			if (isShown)
 			{
 				bool showFirst = false;
-				if (!HasResidualPlot())
+				if (0 == HasResidualPlot())
 				{
 					AddResidualPlot();
 					showFirst = true;
 				}
-				if (HasResidualPlot())
+				if (0 != HasResidualPlot())
 				{
 					UpdateResidualPlot(PageData.TimeRslt, showFirst);
 				}
+				if (showFirst)
+					UpdateGraph(false);
 			}
 			else
 			{
-				if (HasResidualPlot())
+				if (0 != HasResidualPlot())
 				{
 					RemoveResidualPlot();
 				}
 			}
 		}
 
-		public bool HasResidualPlot()
+		/// <summary>
+		/// return the id of the residual plot datapage
+		/// </summary>
+		/// <returns></returns>
+		public int HasResidualPlot()
 		{
-			return OtherTabs.Any(x => x.Definition.Name == "Residual");
+			int pageId = 0;
+			var pages = OtherTabs.Where(x => x.Definition.Name == "Residual");
+			if (pages.Count() > 0)
+			{
+				pageId = pages.First().Id;
+			}
+			return pageId;
 		}
 
 		public void RemoveResidualPlot()
@@ -528,6 +545,9 @@ namespace QA40xPlot.Actions
 				pLeft.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, measurementNr * 2);
 				pLeft.MarkerSize = markerSize;
 				pLeft.LegendText = isMain ? "Left" : ClipName(page.Definition.Name) + ".L";
+				pLeft.IsVisible = !MyVModel.HiddenLines.Contains(pLeft.LegendText);
+				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, pLeft.Color, pLeft.LegendText,
+					measurementNr * 2, pLeft, timePlot, pLeft.IsVisible));
 			}
 
 			if (useRight)
@@ -537,6 +557,9 @@ namespace QA40xPlot.Actions
 				pRight.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, measurementNr * 2 + 1);
 				pRight.MarkerSize = markerSize;
 				pRight.LegendText = isMain ? "Right" : ClipName(page.Definition.Name) + ".R";
+				pRight.IsVisible = !MyVModel.HiddenLines.Contains(pRight.LegendText);
+				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, pRight.Color, pRight.LegendText,
+					measurementNr * 2 + 1, pRight, timePlot, pRight.IsVisible));
 			}
 
 			timePlot.Refresh();
@@ -680,6 +703,7 @@ namespace QA40xPlot.Actions
 		{
 
 			timePlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
+			MyVModel.LegendInfo.Clear();
 			PlotValues(PageData, resultNr++, true);
 			if (OtherTabs.Count > 0)
 			{

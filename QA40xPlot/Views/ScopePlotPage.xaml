@@ -129,6 +129,8 @@
                   VerticalAlignment="Top" HorizontalAlignment="Left" Margin="60,220,0,0" />
             <views:TabAbout x:Name="TAbout"  Visibility="Hidden"
                   VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,180,34,0" />
+            <views:LegendWnd x:Name="LegendWindow" Visibility="{Binding ShowLegend, Converter={StaticResource BoolVisConverter}}"
+                VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,70,40,0" />
         </Grid>
         <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
             <StackPanel Orientation="Vertical">
@@ -214,13 +216,16 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <CheckBox Content="Summary Data" ToolTip="{Binding SummaryDataTip}"
                               IsChecked="{Binding ShowSummary}" Grid.Row="0"  />
                         <CheckBox Content="Test Info" ToolTip="{Binding TabInfoTip}"
                               IsChecked="{Binding ShowTabInfo}" Grid.Row="1"  />
+                        <CheckBox Content="Legend" ToolTip="{Binding ShowLegendTip}"
+                                IsChecked="{Binding ShowLegend}" Grid.Row="2"   />
                         <CheckBox Content="Residual Plot" ToolTip="{Binding TabInfoTip}"
-                              IsChecked="{Binding ShowResiduals}" Grid.Row="2"  />
+                              IsChecked="{Binding ShowResiduals}" Grid.Row="3"  />
                     </Grid>
                 </Expander>
 
