@@ -203,8 +203,7 @@ namespace QA40xPlot.Actions
 				{
 					UpdateResidualPlot(PageData.TimeRslt, showFirst);
 				}
-				if (showFirst)
-					UpdateGraph(false);
+				UpdateGraph(false);
 			}
 			else
 			{
@@ -244,7 +243,7 @@ namespace QA40xPlot.Actions
 		{
 			var vm = MyVModel;
 			var freq = vm.UseGenerator1 ? ToD(vm.Gen1Frequency, 0) : 0.0;
-			var lrts = QaMath.CalculateResidual(source, freq);
+			var lrts = QaMath.CalculateResidual(source, freq, vm.ResidualScaleValue, vm.ResidualHarm);
 			var pages = OtherTabs.Where(x => x.Definition.Name == "Residual");
 			if(pages.Count() > 0)
 			{
@@ -257,7 +256,7 @@ namespace QA40xPlot.Actions
 		{
 			var vm = MyVModel;
 			var freq = vm.UseGenerator1 ? ToD(vm.Gen1Frequency, 0) : 0.0;
-			var lrts = QaMath.CalculateResidual(PageData.TimeRslt, freq);
+			var lrts = QaMath.CalculateResidual(PageData.TimeRslt, freq, vm.ResidualScaleValue, vm.ResidualHarm);
 			var page = new DataTab<ScopeViewModel>(MyVModel, lrts);
 			page.Definition.FileName = "Residual";
 			page.Definition.Name = "Residual";

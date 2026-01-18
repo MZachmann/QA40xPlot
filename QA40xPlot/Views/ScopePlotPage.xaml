@@ -217,6 +217,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <CheckBox Content="Summary Data" ToolTip="{Binding SummaryDataTip}"
                               IsChecked="{Binding ShowSummary}" Grid.Row="0"  />
@@ -226,7 +227,28 @@
                                 IsChecked="{Binding ShowLegend}" Grid.Row="2"   />
                         <CheckBox Content="Residual Plot" ToolTip="Add the residual display to the Get list and show it."
                               IsChecked="{Binding ShowResiduals}" Grid.Row="3"  />
+                        <Grid Grid.Row="4" Margin="10,0,0,0" Visibility="{Binding ShowResiduals, Converter={StaticResource BoolVisConverter}}" >
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Scale:" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="0" Grid.Column="0" />
+                            <ComboBox  VerticalContentAlignment="Center" 
+                                       Grid.Row="0" Grid.Column="1"
+                               IsEditable="True" Text="{Binding ResidualScale}" ItemsSource="{Binding DbrSelect}" MinWidth="60" >
+                            </ComboBox>
+                            <Label Content=" dB" VerticalAlignment="Center" Grid.Row="0" Grid.Column="2"  />
+                            <Label Content="Harmonics:" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="1" Grid.Column="0" />
+                            <views:UpDownControl VerticalAlignment="Center" 
+                             ToolTip="Set to >0 for just N harmonics."
+                              Value="{Binding ResidualHarm}" Minimum="0" Maximum="7" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" />
                     </Grid>
+                  </Grid>
                 </Expander>
 
                 <Expander Header="—— Options"  IsExpanded="{Binding ExpandGraphOptions}" >

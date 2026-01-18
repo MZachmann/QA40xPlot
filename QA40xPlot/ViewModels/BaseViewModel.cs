@@ -57,6 +57,7 @@ namespace QA40xPlot.ViewModels
 		public static List<string> VoltageUnits { get => new List<string>() { "mV", "μV", "V", "dBV", "dBmV", "dBu", "dBFS" }; }
 		public static List<string> DbrTypes { get => new List<string>() { "Max", "@Frq", "Add" }; }
 		public static List<string> DbrUnits { get => new List<string>() { "", "Hz", "dBV" }; }
+		public static List<string> DbrSelect { get => new List<string>() { "0", "6", "20", "30", "40", "60", "80", "100" }; }
 		[JsonIgnore]
 		public RelayCommand DoGetGenUnits { get => new RelayCommand(GetGenUnits); }
 		[JsonIgnore]
@@ -102,7 +103,7 @@ namespace QA40xPlot.ViewModels
 		public double LookX { get; set; }
 		[JsonIgnore]
 		public double LookY { get; set; }
-		
+
 		[JsonIgnore]
 		private UserControl? _MyWindow = null;
 		[JsonIgnore]
@@ -354,9 +355,9 @@ namespace QA40xPlot.ViewModels
 		public bool DoAutoAttn
 		{
 			get { return _DoAutoAttn; }
-			set { if (SetProperty(ref _DoAutoAttn, value)) 
-					RaisePropertyChanged("AttenColor"); 
-				}
+			set { if (SetProperty(ref _DoAutoAttn, value))
+					RaisePropertyChanged("AttenColor");
+			}
 		}
 
 		private bool _ShowLegend = true;
@@ -552,6 +553,41 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _ShowResiduals;
 			set => SetProperty(ref _ShowResiduals, value);
+		}
+
+		[JsonIgnore]
+		public double ResidualScaleValue { get
+			{
+				var dscale = MathUtil.ToDouble(ResidualScale, 0);
+				dscale = (dscale == 0) ? 1.0 : Math.Pow(10, dscale / 20);
+				return dscale;
+			}
+		}
+
+		private string _ResidualScale = "0";
+		public string ResidualScale
+		{
+			get => _ResidualScale;
+			set
+			{
+				if (SetProperty(ref _ResidualScale, value))
+				{
+					RaisePropertyChanged("ShowResiduals");
+				}
+			}
+		}
+
+		private int _ResidualHarm = 0;
+		public int ResidualHarm
+		{
+			get => _ResidualHarm;
+			set
+			{
+				if (SetProperty(ref _ResidualHarm, value))
+				{
+					RaisePropertyChanged("ShowResiduals");
+				}
+			}
 		}
 
 		protected string _Name = string.Empty;         // name of the test

@@ -71,8 +71,9 @@ namespace QA40xPlot.Libraries
 		/// </summary>
 		/// <param name="lrts">time series data</param>
 		/// <param name="fund">fundamental frequency or zero</param>
+		/// <param name="numHarmonics">number of harmonics or zero</param>
 		/// <returns></returns>
-		public static LeftRightTimeSeries CalculateResidual(LeftRightTimeSeries lrts, double fund)
+		public static LeftRightTimeSeries CalculateResidual(LeftRightTimeSeries lrts, double fund, double scale, int numHarmonics)
 		{
 			LeftRightTimeSeries lrOut = new();
 			lrOut.dt = lrts.dt;
@@ -95,8 +96,21 @@ namespace QA40xPlot.Libraries
 
 			var octave = 0.16;
 			var df = (int)(0.1 + 1 / lrts.dt);
-			lrOut.Left = FftSharp.Filter.BandStop(lrts.Left, df, fundamental * (1-octave), fundamental * ( 1 + octave));
-			lrOut.Right = FftSharp.Filter.BandStop(lrts.Right, df, fundamental * (1 - octave), fundamental * (1 + octave));
+			if(numHarmonics == 0)
+			{
+				lrOut.Left = FftSharp.Filter.BandStop(lrts.Left, df, fundamental * (1 - octave), fundamental * (1 + octave));
+				lrOut.Right = FftSharp.Filter.BandStop(lrts.Right, df, fundamental * (1 - octave), fundamental * (1 + octave));
+			}
+			else
+			{
+				lrOut.Left = FftSharp.Filter.BandPass(lrts.Left, df, fundamental * (2 - octave), fundamental * (numHarmonics + 1 + octave));
+				lrOut.Right = FftSharp.Filter.BandPass(lrts.Right, df, fundamental * (2 - octave), fundamental * (numHarmonics + 1 + octave));
+			}
+			if (scale != 1.0)
+			{
+				lrOut.Left = lrOut.Left.Select(x => x * scale).ToArray();
+				lrOut.Right = lrOut.Right.Select(x => x * scale).ToArray();
+			}
 			return lrOut;
 		}
 

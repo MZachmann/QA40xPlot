@@ -137,7 +137,7 @@ namespace QA40xPlot.ViewModels
 					MyAction?.UpdatePlotTitle();
 					break;
 				case "ShowResiduals":
-					MyAction?.DoShowResiduals(ShowResiduals);
+					ChangeResidualScale();
 					break;
 				case "ShowTabInfo":
 				case "ShowSummary":
@@ -222,6 +222,11 @@ namespace QA40xPlot.ViewModels
 		private static async Task GetItTab()
 		{
 			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, false);
+		}
+
+		private void ChangeResidualScale()
+		{
+			MyAction?.DoShowResiduals(ShowResiduals);
 		}
 
 		private void WaveSelect()
