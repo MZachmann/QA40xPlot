@@ -8,6 +8,7 @@ v 1.2.5 1/18/2026
 - add WhatsNew file to the delivery
 - add a Residual display option to the Scope test
 - don't allow page switching during a run
+- improve scope Fit and PinToRange to support 5 digit (smaller) values
 v 1.2.4 1/13/2026
 - fixup selection of Transparent in color picker
 - improve gain curve frequency selection

@@ -66,26 +66,37 @@ namespace QA40xPlot.Libraries
 			return ba;
 		}
 
-		public static LeftRightTimeSeries CalculateResidual(LeftRightTimeSeries lrts)
+		/// <summary>
+		/// calculate the residual after removing the fundamental
+		/// </summary>
+		/// <param name="lrts">time series data</param>
+		/// <param name="fund">fundamental frequency or zero</param>
+		/// <returns></returns>
+		public static LeftRightTimeSeries CalculateResidual(LeftRightTimeSeries lrts, double fund)
 		{
 			LeftRightTimeSeries lrOut = new();
 			lrOut.dt = lrts.dt;
 			if (lrts.Left == null || lrts.Left.Length == 0)
 				return lrOut;
 
-			var lrfCplx = QaMath.CalculateComplexSpectrum(lrts, "");    // get the full fft unwindowed
-																		// find the fundamental/largest value
-			double fundamental = 0.0;
+			double fundamental = fund;
+			if (fund <= 2)
+			{
+				var lrfCplx = QaMath.CalculateComplexSpectrum(lrts, "");    // get the full fft unwindowed
+																			// find the fundamental/largest value
 
-			var data = ViewSettings.IsTestLeft ? lrfCplx.Left : lrfCplx.Right;
-			var rldata = data.Take(data.Length / 2).Select(x => x.Magnitude).ToArray();
-			var largest = rldata.Max();
-			var who = rldata.CountWhile(x => x < largest);
-			// got index of the largest one
-			fundamental = who * lrfCplx.Df;
+				var data = ViewSettings.IsTestLeft ? lrfCplx.Left : lrfCplx.Right;
+				var rldata = data.Take(data.Length / 2).Select(x => x.Magnitude).ToArray();
+				var largest = rldata.Max();
+				var who = rldata.CountWhile(x => x < largest);
+				// got index of the largest one
+				fundamental = who * lrfCplx.Df;
+			}
 
-			lrOut.Left = FftSharp.Filter.BandStop(lrts.Left, (int)(0.1 + 1 / lrts.dt), fundamental / 2, fundamental * 1.5);
-			lrOut.Right = FftSharp.Filter.BandStop(lrts.Right, (int)(0.1 + 1 / lrts.dt), fundamental / 2, fundamental * 1.5);
+			var octave = 0.16;
+			var df = (int)(0.1 + 1 / lrts.dt);
+			lrOut.Left = FftSharp.Filter.BandStop(lrts.Left, df, fundamental * (1-octave), fundamental * ( 1 + octave));
+			lrOut.Right = FftSharp.Filter.BandStop(lrts.Right, df, fundamental * (1 - octave), fundamental * (1 + octave));
 			return lrOut;
 		}
 

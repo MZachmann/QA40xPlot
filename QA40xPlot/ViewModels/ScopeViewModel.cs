@@ -298,8 +298,16 @@ namespace QA40xPlot.ViewModels
 					this.GraphEndX = bounds.Right.ToString("0.###");
 					break;
 				case "YM":  // Y magnitude
-					this.RangeBottom = (bounds.Y).ToString("0.###");
-					this.RangeTop = (bounds.Height + bounds.Y).ToString("0.###");
+					if(Math.Abs(bounds.Height) > 1e-2)
+					{
+						this.RangeBottom = (bounds.Y).ToString("0.###");
+						this.RangeTop = (bounds.Height + bounds.Y).ToString("0.###");
+					}
+					else
+					{
+						this.RangeBottom = (bounds.Y).ToString("0.#####");
+						this.RangeTop = (bounds.Height + bounds.Y).ToString("0.#####");
+					}
 					break;
 				default:
 					break;

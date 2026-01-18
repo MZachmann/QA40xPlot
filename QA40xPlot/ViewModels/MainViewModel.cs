@@ -76,7 +76,9 @@ namespace QA40xPlot.ViewModels
 			{
 				Application.Current?.Dispatcher.Invoke(() =>
 				{
-					PlotPageType = parameter as string ?? "spectrum";
+					var newType = parameter as string ?? "spectrum";
+					if( PageNames.Contains(newType))
+						PlotPageType = newType;
 				}); 
 			});
 		}

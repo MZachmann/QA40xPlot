@@ -90,18 +90,32 @@ namespace QA40xPlot.Actions
 			if (who == "XT")
 			{
 				myPlot = timePlot.ThePlot;
+				var myAxis = myPlot.Axes.Bottom;
+
 				// setting start seems to reset max...
-				var minx = myPlot.Axes.Bottom.Min.ToString("0.##");
-				vm.GraphEndX = myPlot.Axes.Bottom.Max.ToString("0.##");
-				vm.GraphStartX = minx;
+				var minx = myAxis.Min;
+				var maxx = myAxis.Max;
+				vm.GraphEndX = maxx.ToString("0.###");
+				vm.GraphStartX = minx.ToString("0.###");
 			}
 			else if (who == "YM")
 			{
 				myPlot = timePlot.ThePlot;
+				var myAxis = myPlot.Axes.Left;
+				var minx = myAxis.Min;
+				var maxx = myAxis.Max;
 				// setting start seems to reset max...
-				var minx = myPlot.Axes.Left.Min.ToString("0.##");
-				vm.RangeTop = myPlot.Axes.Left.Max.ToString("0.##");
-				vm.RangeBottom = minx;
+				if (maxx > 0.01)
+				{
+					vm.RangeTop = maxx.ToString("0.###");
+					vm.RangeBottom = minx.ToString("0.###");
+				}
+				else
+				{
+					// if we set rangebottom first it adjust axis max so...
+					vm.RangeTop = maxx.ToString("0.#####");
+					vm.RangeBottom = minx.ToString("0.#####");
+				}
 			}
 			else
 			{
@@ -228,7 +242,9 @@ namespace QA40xPlot.Actions
 
 		public void UpdateResidualPlot(LeftRightTimeSeries source, bool isChanged)
 		{
-			var lrts = QaMath.CalculateResidual(source);
+			var vm = MyVModel;
+			var freq = vm.UseGenerator1 ? ToD(vm.Gen1Frequency, 0) : 0.0;
+			var lrts = QaMath.CalculateResidual(source, freq);
 			var pages = OtherTabs.Where(x => x.Definition.Name == "Residual");
 			if(pages.Count() > 0)
 			{
@@ -239,7 +255,9 @@ namespace QA40xPlot.Actions
 
 		public void AddResidualPlot()
 		{
-			var lrts = QaMath.CalculateResidual(PageData.TimeRslt);
+			var vm = MyVModel;
+			var freq = vm.UseGenerator1 ? ToD(vm.Gen1Frequency, 0) : 0.0;
+			var lrts = QaMath.CalculateResidual(PageData.TimeRslt, freq);
 			var page = new DataTab<ScopeViewModel>(MyVModel, lrts);
 			page.Definition.FileName = "Residual";
 			page.Definition.Name = "Residual";
