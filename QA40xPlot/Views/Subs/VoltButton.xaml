@@ -11,6 +11,6 @@
                                 Background="{Binding BkgColor, ElementName=MyVButton}"
                                 BorderBrush="{Binding BrdrColor, ElementName=MyVButton}" 
                             MinWidth="20"
-                            Content="{Binding GenVoltageUnit}" VerticalAlignment="Center"  Grid.Row="4" Grid.Column="2">
+                            Content="{Binding GenVoltageUnit, Mode=TwoWay}" VerticalAlignment="Center"  Grid.Row="4" Grid.Column="2">
     </Button>
 </UserControl>

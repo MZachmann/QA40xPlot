@@ -104,6 +104,7 @@
         <TabControl Grid.Row="2" 
                     SelectedValuePath="Name"
                     SelectedValue="{Binding PlotPageType, Mode=TwoWay}"
+                    SelectionChanged="OnNewTab"
                     SizeChanged="DoTabSizeChanged" x:Name="TheTabs" >
             <TabItem Header="Spectrum" Name="spectrum"  MaxWidth="{Binding MaxTab}">
                 <Grid Background="{Binding Background, Mode=OneWay}" >
