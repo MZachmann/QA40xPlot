@@ -91,6 +91,8 @@ namespace QA40xPlot.BareMetal
 
 		public uint GetSampleRate() { return _SampleRate; }
 
+		public ValueTask<double> GetDCVolts() { return new ValueTask<Double>(_UsbApi.ReadRegister(17) / 1000.0); }
+
 		public OutputSources GetOutputSource() { return _OutputSource; }
 
 		public string GetWindowing() { return _Windowing; }

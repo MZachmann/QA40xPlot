@@ -108,6 +108,12 @@ namespace QA40xPlot.Libraries
 			await Put(string.Format("/Settings/OutputSource/{0}", source.ToString()));
 		}
 
+		static public ValueTask<double> GetDCVolts()
+		{
+			return new ValueTask<double>(5.0);
+			//await Get("/Meter/DC", "Value");
+		}
+
 		static public async Task SetInputRange(int maxInputDbv, bool roundToNearest = false)
 		{
 			if (roundToNearest)

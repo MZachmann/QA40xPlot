@@ -246,7 +246,7 @@
                             <Label Content="Harmonics:" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="1" Grid.Column="0" />
                             <views:UpDownControl VerticalAlignment="Center" 
                              ToolTip="Set to >0 for just N harmonics."
-                              Value="{Binding ResidualHarm}" Minimum="0" Maximum="7" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" />
+                              Value="{Binding ResidualHarm}" Minimum="0" Maximum="40" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" />
                     </Grid>
                   </Grid>
                 </Expander>

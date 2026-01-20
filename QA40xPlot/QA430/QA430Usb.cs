@@ -21,7 +21,7 @@ namespace QA40xPlot.QA430
 	{
 		public QA430Model QAModel { get; } = new();
 		object ReadRegLock = new object();
-		readonly int RegReadWriteTimeout = 20;
+		readonly int RegReadWriteTimeout = 100;
 		private static Qa430Usb _Usb430 = new();      // our local Usb controller
 		public static Qa430Usb Singleton { get { return _Usb430; } }
 

@@ -18,6 +18,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -32,37 +33,41 @@
                 <Label Content="Attenuation: " Grid.Row="1" Grid.Column="0"  Padding="0" />
                 <Label Content="{Binding Attenuation}" HorizontalAlignment="Right"  Padding="2,0"  
                        ToolTip="Current attenuation value" Grid.Row="1" Grid.Column="1" />
+                <Label Content="DC Supply: " Grid.Row="2" Grid.Column="0"  Padding="0" />
+                <Label Content="{Binding MainVm.DCSupplyVoltage}" HorizontalAlignment="Right"  Padding="2,0"  
+                       ToolTip="Current attenuation value" Grid.Row="2" Grid.Column="1" />
+                <Label Content="V" Grid.Row="2" Grid.Column="2"  Padding="2,0" />
                 <Label Content="dB" Grid.Row="1" Grid.Column="2"  Padding="2,0" />
-                <Label x:Name="EGain2" Content="External Gain: " Grid.Row="2" Grid.Column="0"  Padding="0"
+                <Label x:Name="EGain2" Content="External Gain: " Grid.Row="3" Grid.Column="0"  Padding="0"
                     Visibility="{Binding ExternalGain, ConverterParameter=0, Converter={StaticResource StringVisConverter}}" />
-                <Label x:Name="EGain" Content="{Binding ExternalGain}" HorizontalAlignment="Right"  Padding="2,0"  ToolTip="Change this value in Settings" Grid.Row="2" Grid.Column="1" 
+                <Label x:Name="EGain" Content="{Binding ExternalGain}" HorizontalAlignment="Right"  Padding="2,0"  ToolTip="Change this value in Settings" Grid.Row="3" Grid.Column="1" 
                                 Visibility="{Binding ExternalGain, ConverterParameter=0, Converter={StaticResource StringVisConverter}}" />
-                <Label x:Name="EGain3" Content="dB" Grid.Row="2" Grid.Column="2"  Padding="2,0"
+                <Label x:Name="EGain3" Content="dB" Grid.Row="3" Grid.Column="2"  Padding="2,0"
                     Visibility="{Binding ExternalGain, ConverterParameter=0, Converter={StaticResource StringVisConverter}}" />
-                <Label Content="Generator Volts: " Grid.Row="3" Grid.Column="0"  Padding="0" />
+                <Label Content="Generator Volts: " Grid.Row="4" Grid.Column="0"  Padding="0" />
                 <Label Content="{Binding GeneratorVoltage}" HorizontalAlignment="Left"  Padding="2,0"  
-                       ToolTip="Current DUT input voltage" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" />
+                       ToolTip="Current DUT input voltage" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" />
                 <!--<Label Content="{Binding GeneratorVoltageUnits}" HorizontalAlignment="Left"  Padding="2,0"  
                        Grid.Row="3" Grid.Column="2" />-->
-                <Label x:Name="Noises2" Content="Noise Weighting: " Grid.Row="4" Grid.Column="0"  Padding="0" 
+                <Label x:Name="Noises2" Content="Noise Weighting: " Grid.Row="5" Grid.Column="0"  Padding="0" 
                        Visibility="{Binding NoiseWeight, ConverterParameter=Z, Converter={StaticResource StringVisConverter}}" />
                 <Label x:Name="Noises" Content="{Binding NoiseWeight}" HorizontalAlignment="Right"  Padding="2,0"  
-                       ToolTip="Weighting method for noise analysis" Grid.Row="4" Grid.Column="1"  
+                       ToolTip="Weighting method for noise analysis" Grid.Row="5" Grid.Column="1"  
                        Visibility="{Binding NoiseWeight, ConverterParameter=Z, Converter={StaticResource StringVisConverter}}" />
                 <Label x:Name="Noiseband" Content="Noise Bandwidth" HorizontalAlignment="Right"  Padding="2,0"  
-                       Grid.Row="5" Grid.Column="0"
+                       Grid.Row="6" Grid.Column="0"
                        Visibility="{Binding NoiseBandwidthStr, ConverterParameter=20000, Converter={StaticResource StringVisConverter}}" />
                 <Label x:Name="Noiseband2" Content="{Binding NoiseBandwidthStr}" HorizontalAlignment="Right"  Padding="2,0"  
-                       ToolTip="Bandwidth for noise analyses" Grid.Row="5" Grid.Column="1"
+                       ToolTip="Bandwidth for noise analyses" Grid.Row="6" Grid.Column="1"
                         Visibility="{Binding NoiseBandwidthStr, ConverterParameter=20000, Converter={StaticResource StringVisConverter}}" />
                 <Label x:Name="Noiseband3" Content="Hz" HorizontalAlignment="Left" Padding="2,0"
-                      Grid.Row="5" Grid.Column="2"
+                      Grid.Row="6" Grid.Column="2"
                         Visibility="{Binding NoiseBandwidthStr, ConverterParameter=20000, Converter={StaticResource StringVisConverter}}" />
-                <Label x:Name="SoundDevice2" Content="Sound Device: " Grid.Row="6" Grid.Column="0"  Padding="0"
+                <Label x:Name="SoundDevice2" Content="Sound Device: " Grid.Row="7" Grid.Column="0"  Padding="0"
                        ToolTip="Name of Windows Sound echo device"
                        Visibility="{Binding UseExternalEcho, Converter={StaticResource BoolVisConverter}}"/>
                 <Label x:Name="SoundDevice" Content="{Binding EchoName}" HorizontalAlignment="Left"  Padding="2,0"  
-                       Grid.Row="7" Grid.Column="1" MaxWidth="80"  
+                       Grid.Row="8" Grid.Column="1" MaxWidth="80"  
                        Grid.ColumnSpan="2"
                        ToolTip="{Binding EchoName}"
                        Visibility="{Binding UseExternalEcho, Converter={StaticResource BoolVisConverter}}" />

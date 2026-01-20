@@ -2,6 +2,9 @@
 --------------------------------------------
 This changelog shows the changes made for each version
 --------------------------------------------
+v 1.2.6 asdfasdf
+- get the dc supply voltage
+- add a QA40x readme on ports
 v 1.2.5 1/18/2026
 - add space to run/start/get... buttons
 - update mouse cursor in frequency response test when test runs
@@ -9,6 +12,7 @@ v 1.2.5 1/18/2026
 - add a Residual display option to the Scope test
 - don't allow page switching during a run
 - improve scope Fit and PinToRange to support 5 digit (smaller) values
+- add options to scope Residual Plot (1.2.5.4)
 v 1.2.4 1/13/2026
 - fixup selection of Transparent in color picker
 - improve gain curve frequency selection

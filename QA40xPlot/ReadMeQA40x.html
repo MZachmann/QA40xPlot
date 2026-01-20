@@ -1,0 +1,81 @@
+﻿<style>
+    body {
+        font-family: 'Arial', sans-serif;
+    }
+</style>
+<h2>
+    Registers</h2>
+<p>
+    The QA40x has 5 registers used for command/control
+. </p>
+<p>
+    These are:</p>
+<table>
+    <tr>
+        <th>Writable Register</th>
+        <th>Description</th>
+        <th>Details</th>
+    </tr>
+    <tr>
+        <td>0</td>
+        <td>Read/write test register</td>
+        <td>Whatever is written to this register is also readable as verification.</td>
+    </tr>
+    <tr>
+        <td>5</td>
+        <td>Attenuation Value</td>
+        <td>Range:Value = 0:0, 6:1, 12:2, 18:3, 24:4, 30:5, 36:6, 42:7</td>
+    </tr>
+    <tr>
+        <td>6</td>
+        <td>Generator Output Max</td>
+        <td>Range:Value = 18:3, 8:2, -2:1, -12:0</td>
+    </tr>
+    <tr>
+        <td>8</td>
+        <td>Start or Stop streaming</td>
+        <td>Start:5   Stop:0</td>
+    </tr>
+    <tr>
+        <td>9</td>
+        <td>Sample Rate</td>
+        <td>Rate:Value = 48000:0, 96000:1, 192000:2, 384000:3</td>
+    </tr>
+    <tr>
+        <td>13</td>
+        <td>Read calibration data</td>
+        <td>Value = 16 starts calibration data read from register 25</td>
+    </tr>
+    <tr>
+        <td>16</td>
+        <td>Line Frequency?</td>
+        <td>This reads 60 here</td>
+    </tr>
+    <tr>
+        <td>17</td>
+        <td>USB DC Voltage</td>
+        <td>Read the dc voltage in mv</td>
+    </tr>
+    <tr>
+        <td>18</td>
+        <td>?? 810</td>
+    </tr>
+    <tr>
+        <td>19</td>
+        <td>?? 4626</td>
+    </tr>
+    <tr>
+        <td>21</td>
+        <td>?? 1048</td>
+    </tr>
+    <tr>
+        <td>22</td>
+        <td>?? 250</td>
+    </tr>
+    <tr>
+        <td>25</td>
+        <td>Calibration data</td>
+        <td>Read the bytes of calibration data after sending 0x10 to reg 13</td>
+    </tr>
+</table>
+

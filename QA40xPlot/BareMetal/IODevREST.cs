@@ -52,6 +52,11 @@ namespace QA40xPlot.BareMetal
 			return new ValueTask<bool>(QaREST.IsServerRunning());
 		}
 
+		public ValueTask<double> GetDCVolts()
+		{
+			return Qa40x.GetDCVolts();
+		}
+
 		public async ValueTask SetFftSize(uint range)
 		{
 			_FftSize = range;

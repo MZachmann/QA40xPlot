@@ -207,6 +207,14 @@ namespace QA40xPlot.ViewModels
 			private set { SetProperty(ref _IsNotRunning, value); }
 		}
 
+		private double _DCSupplyVoltage = 0.0;         // dc voltage from instrument
+		[JsonIgnore]
+		public double DCSupplyVoltage
+		{
+			get { return _DCSupplyVoltage; }
+			set { SetProperty(ref _DCSupplyVoltage, value); }
+		}
+
 		#endregion
 
 		#region Setters and Getters

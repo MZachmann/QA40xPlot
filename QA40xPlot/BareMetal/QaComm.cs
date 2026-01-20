@@ -1,4 +1,5 @@
 ﻿using QA40xPlot.Libraries;
+using QA40xPlot.ViewModels;
 using System.Diagnostics;
 
 namespace QA40xPlot.BareMetal
@@ -44,6 +45,10 @@ namespace QA40xPlot.BareMetal
 		public static async ValueTask SetOutputRange(int range)
 		{
 			await MyIoDevice.SetOutputRange(range);
+		}
+		public static async ValueTask<double> GetDCVoltage()
+		{
+			return await MyIoDevice.GetDCVolts();
 		}
 		public static async ValueTask SetFftSize(uint range)
 		{
@@ -99,6 +104,10 @@ namespace QA40xPlot.BareMetal
 		{
 			bool rslt = false;
 			rslt = await MyIoDevice.InitializeDevice(sampleRate, fftsize, Windowing, attenuation);
+			if (rslt)
+			{
+				ViewSettings.Singleton.MainVm.DCSupplyVoltage = await MyIoDevice.GetDCVolts();
+			}
  			return rslt;
 		}
 

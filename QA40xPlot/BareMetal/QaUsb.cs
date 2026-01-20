@@ -77,7 +77,7 @@ namespace QA40x.BareMetal
 		/// it will drop to zero, and then return to 1 when not busy
 		static SemaphoreSlim AcqSemaphore = new SemaphoreSlim(1);
 
-		readonly int RegReadWriteTimeout = 20;
+		readonly int RegReadWriteTimeout = 100;
 		readonly int MainI2SReadWriteTimeout = 1000; // per baremetal
 
 		public byte[] CalData { get; private set; } = []; // readonly
@@ -190,6 +190,19 @@ namespace QA40x.BareMetal
 				}
 
 				WriteRegister(0, val);
+
+				//uint[] regRead = new uint[0];
+				//for(int i=0; i<25; i++)
+				//{
+				//	try
+				//	{
+				//		regRead = regRead.Append(ReadRegister((byte)i)).ToArray();
+				//	}
+				//	catch
+				//	{
+				//		regRead.Append((uint)1234);
+				//	}
+				//}
 
 				if (ReadRegister(0) == val)
 					return true;
