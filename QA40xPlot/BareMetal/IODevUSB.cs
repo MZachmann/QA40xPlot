@@ -93,6 +93,10 @@ namespace QA40xPlot.BareMetal
 
 		public ValueTask<double> GetDCVolts() { return new ValueTask<Double>(_UsbApi.ReadRegister(17) / 1000.0); }
 
+		public ValueTask<double> GetDCAmps() { return new ValueTask<Double>(_UsbApi.ReadRegister(18) ); }
+		
+		public ValueTask<double> GetTemperature() { return new ValueTask<Double>(_UsbApi.ReadRegister(22) / 10.0); }
+
 		public OutputSources GetOutputSource() { return _OutputSource; }
 
 		public string GetWindowing() { return _Windowing; }

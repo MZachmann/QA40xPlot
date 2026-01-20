@@ -207,12 +207,28 @@ namespace QA40xPlot.ViewModels
 			private set { SetProperty(ref _IsNotRunning, value); }
 		}
 
+		private double _DCSupplyCurrent = 0.0;         // dc Current from instrument
+		[JsonIgnore]
+		public double DCSupplyCurrent
+		{
+			get { return _DCSupplyCurrent; }
+			set { SetProperty(ref _DCSupplyCurrent, value); }
+		}
+
 		private double _DCSupplyVoltage = 0.0;         // dc voltage from instrument
 		[JsonIgnore]
 		public double DCSupplyVoltage
 		{
 			get { return _DCSupplyVoltage; }
 			set { SetProperty(ref _DCSupplyVoltage, value); }
+		}
+
+		private double _Temperature = 0.0;         // dc voltage from instrument
+		[JsonIgnore]
+		public double Temperature
+		{
+			get { return _Temperature; }
+			set { SetProperty(ref _Temperature, value); }
 		}
 
 		#endregion

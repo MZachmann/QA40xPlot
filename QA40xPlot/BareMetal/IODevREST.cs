@@ -57,6 +57,16 @@ namespace QA40xPlot.BareMetal
 			return Qa40x.GetDCVolts();
 		}
 
+		public ValueTask<double> GetTemperature()
+		{
+			return Qa40x.GetTemperature();
+		}
+
+		public ValueTask<double> GetDCAmps()
+		{
+			return Qa40x.GetDCAmps();
+		}
+
 		public async ValueTask SetFftSize(uint range)
 		{
 			_FftSize = range;

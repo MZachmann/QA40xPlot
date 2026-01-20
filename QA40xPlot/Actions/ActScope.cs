@@ -242,7 +242,7 @@ namespace QA40xPlot.Actions
 		public void UpdateResidualPlot(LeftRightTimeSeries source, bool isChanged)
 		{
 			var vm = MyVModel;
-			var freq = vm.UseGenerator1 ? ToD(vm.Gen1Frequency, 0) : 0.0;
+			var freq = vm.UseGenerator1 ? vm.NearestBinFreq(ToD(vm.Gen1Frequency, 0)) : 0.0;
 			var lrts = QaMath.CalculateResidual(source, freq, vm.ResidualScaleValue, vm.ResidualHarm);
 			var pages = OtherTabs.Where(x => x.Definition.Name == "Residual");
 			if(pages.Count() > 0)
@@ -255,7 +255,7 @@ namespace QA40xPlot.Actions
 		public void AddResidualPlot()
 		{
 			var vm = MyVModel;
-			var freq = vm.UseGenerator1 ? ToD(vm.Gen1Frequency, 0) : 0.0;
+			var freq = vm.UseGenerator1 ? vm.NearestBinFreq(ToD(vm.Gen1Frequency, 0)) : 0.0;
 			var lrts = QaMath.CalculateResidual(PageData.TimeRslt, freq, vm.ResidualScaleValue, vm.ResidualHarm);
 			var page = new DataTab<ScopeViewModel>(MyVModel, lrts);
 			page.Definition.FileName = "Residual";
@@ -279,8 +279,8 @@ namespace QA40xPlot.Actions
 		private static double[] BuildWave(MyDataTab page, double volts, bool force = false)
 		{
 			var vm = page.ViewModel;
-			var freq = ToD(vm.Gen1Frequency, 0);
-			var freq2 = ToD(vm.Gen2Frequency, 0);
+			var freq = vm.NearestBinFreq(ToD(vm.Gen1Frequency, 0));
+			var freq2 = vm.NearestBinFreq(ToD(vm.Gen2Frequency, 0));
 			// gen1 and gen2 are essentially scale factors for volts
 			var v1 = GenVoltApplyUnit(vm.Gen1Voltage, vm.GenVoltageUnit, 1e-9);
 			var v2 = GenVoltApplyUnit(vm.Gen2Voltage, vm.GenVoltageUnit, 1e-9);
@@ -408,8 +408,7 @@ namespace QA40xPlot.Actions
 			// Setup
 			ScopeViewModel thd = msr.ViewModel;
 
-			var freq = ToD(thd.Gen1Frequency, 1000);
-			var freq2 = ToD(thd.Gen2Frequency, 1000);
+			var freq = ToD(thd.Gen1Frequency, 0);
 			var sampleRate = thd.SampleRateVal;
 			if (freq == 0 || sampleRate == 0 || !BaseViewModel.FftSizes.Contains(thd.FftSize))
 			{

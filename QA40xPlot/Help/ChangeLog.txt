@@ -3,8 +3,10 @@
 This changelog shows the changes made for each version
 --------------------------------------------
 v 1.2.6 asdfasdf
-- get the dc supply voltage
 - add a QA40x readme on ports
+- read the dc supply voltage, dc current, and temperature on device init
+- put them all upper-right updating on each measurement
+- have scope use bin-center frequencies
 v 1.2.5 1/18/2026
 - add space to run/start/get... buttons
 - update mouse cursor in frequency response test when test runs

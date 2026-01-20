@@ -26,6 +26,12 @@ namespace QA40xPlot.BareMetal
 		public ValueTask<bool> IsOpen();
 		public ValueTask<bool> Open();
 		public ValueTask Close(bool onExit);
+
+		// internal register stuff
+		public ValueTask<double> GetDCVolts();
+		public ValueTask<double> GetDCAmps();
+		public ValueTask<double> GetTemperature();
+
 		// properties. getters are not async every since we cache this stuff.
 		public int GetInputRange();
 		public int GetOutputRange();
@@ -33,7 +39,6 @@ namespace QA40xPlot.BareMetal
 		public uint GetFftSize();
 		public string GetWindowing();
 		public OutputSources GetOutputSource();
-		public ValueTask<double> GetDCVolts();
 
 		public ValueTask SetInputRange(int range);
 		public ValueTask SetOutputRange(int range);

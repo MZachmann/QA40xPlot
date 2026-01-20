@@ -50,6 +50,14 @@ namespace QA40xPlot.BareMetal
 		{
 			return await MyIoDevice.GetDCVolts();
 		}
+		public static async ValueTask<double> GetDCCurrent()
+		{
+			return await MyIoDevice.GetDCAmps();
+		}
+		public static async ValueTask<double> GetTemperature()
+		{
+			return await MyIoDevice.GetTemperature();
+		}
 		public static async ValueTask SetFftSize(uint range)
 		{
 			await MyIoDevice.SetFftSize(range);
@@ -106,9 +114,11 @@ namespace QA40xPlot.BareMetal
 			rslt = await MyIoDevice.InitializeDevice(sampleRate, fftsize, Windowing, attenuation);
 			if (rslt)
 			{
+				ViewSettings.Singleton.MainVm.Temperature = await MyIoDevice.GetTemperature();
 				ViewSettings.Singleton.MainVm.DCSupplyVoltage = await MyIoDevice.GetDCVolts();
+				ViewSettings.Singleton.MainVm.DCSupplyCurrent = await MyIoDevice.GetDCAmps();
 			}
- 			return rslt;
+			return rslt;
 		}
 
 		public static async Task<LeftRightSeries> DoAcquisitions(uint averages, CancellationToken ct, bool getFreq = true)

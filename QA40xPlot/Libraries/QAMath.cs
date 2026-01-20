@@ -4,6 +4,7 @@ using QA40xPlot.Data;
 using QA40xPlot.Extensions;
 using QA40xPlot.ViewModels;
 using ScottPlot;
+using System;
 using System.Diagnostics;
 using System.Numerics;
 using System.Windows;
@@ -81,36 +82,52 @@ namespace QA40xPlot.Libraries
 				return lrOut;
 
 			double fundamental = fund;
+			int bin = 0;
 			if (fund <= 2)
 			{
-				var lrfCplx = QaMath.CalculateComplexSpectrum(lrts, "");    // get the full fft unwindowed
-																			// find the fundamental/largest value
-
-				var data = ViewSettings.IsTestLeft ? lrfCplx.Left : lrfCplx.Right;
-				var rldata = data.Take(data.Length / 2).Select(x => x.Magnitude).ToArray();
-				var largest = rldata.Max();
-				var who = rldata.CountWhile(x => x < largest);
-				// got index of the largest one
-				fundamental = who * lrfCplx.Df;
+				// if the caller wants us to determine the fundamental
+				// get the full fft unwindowed
+				var lrfs = QaMath.CalculateSpectrum(lrts, "");
+				// find the fundamental/largest value
+				var data = ViewSettings.IsTestLeft ? lrfs.Left : lrfs.Right;
+				var largest = data.Max();
+				bin = data.CountWhile(x => x < largest);
+				// got frequency of the largest one
+				fundamental = bin * lrfs.Df;
 			}
 
+			// 1/6 octave seems enough with Hann and the built-in generator
 			var octave = 0.16;
-			var df = (int)(0.1 + 1 / lrts.dt);
+			var srate = (int)(0.1 + 1 / lrts.dt);
 			if(numHarmonics == 0)
 			{
-				lrOut.Left = FftSharp.Filter.BandStop(lrts.Left, df, fundamental * (1 - octave), fundamental * (1 + octave));
-				lrOut.Right = FftSharp.Filter.BandStop(lrts.Right, df, fundamental * (1 - octave), fundamental * (1 + octave));
+				//var lrcs = QaMath.CalculateComplexSpectrum(lrts, "");
+				//// notch out the fundamental and return the rest
+				//var theta = lrcs.Left[bin].Phase;
+				//var mag = lrcs.Left[bin].Magnitude;
+				//var thetaset = Enumerable.Range(0, lrcs.Left.Length).Select(x => 2 * Math.PI * fundamental * x / srate + theta);
+				//lrOut.Left = lrts.Left.Zip(thetaset, (x,y) => mag*Math.Cos(y)).ToArray();
+				// remove end gunk
+				//var window = QaMath.GetWindowType("Tukey");    // best?
+				//double[] lrtLeft = window.Apply(lrts.Left, false);  // the input signal
+				//double[] lrtRight = window.Apply(lrts.Right, false);  // the input signal
+
+				lrOut.Left = FftSharp.Filter.BandStop(lrts.Left, srate, fundamental * (1 - octave), fundamental * (1 + octave));
+				lrOut.Right = FftSharp.Filter.BandStop(lrts.Right, srate, fundamental * (1 - octave), fundamental * (1 + octave));
 			}
 			else
 			{
-				lrOut.Left = FftSharp.Filter.BandPass(lrts.Left, df, fundamental * (2 - octave), fundamental * (numHarmonics + 1 + octave));
-				lrOut.Right = FftSharp.Filter.BandPass(lrts.Right, df, fundamental * (2 - octave), fundamental * (numHarmonics + 1 + octave));
+				// only keep between 2nd harmonic and 1+nth harmonic inclusive
+				lrOut.Left = FftSharp.Filter.BandPass(lrts.Left, srate, fundamental * (2 - octave), fundamental * (numHarmonics + 1 + octave));
+				lrOut.Right = FftSharp.Filter.BandPass(lrts.Right, srate, fundamental * (2 - octave), fundamental * (numHarmonics + 1 + octave));
 			}
 			if (scale != 1.0)
 			{
+				// rescale at user request
 				lrOut.Left = lrOut.Left.Select(x => x * scale).ToArray();
 				lrOut.Right = lrOut.Right.Select(x => x * scale).ToArray();
 			}
+
 			return lrOut;
 		}
 
@@ -262,6 +279,10 @@ namespace QA40xPlot.Libraries
 					lfs.Left = FFT.Forward(timeSeries.Left);
 					lfs.Right = FFT.Forward(timeSeries.Right);
 				}
+				// normalize the values to amplitude
+				var leng = lfs.Left.Length;
+				lfs.Left = lfs.Left.Select(x => 2 * x / leng).ToArray();
+				lfs.Right = lfs.Right.Select(x => 2 * x / leng).ToArray();
 
 				var nca2 = (int)(0.01 + 1 / timeSeries.dt);      // total time in tics = sample rate
 				lfs.Df = nca2 / (double)timeSeries.Left.Length; // ???

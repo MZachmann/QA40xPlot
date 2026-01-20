@@ -15,6 +15,13 @@ namespace QA40xPlot.Libraries
 
 	public enum Weighting { None, AWeighting, User }
 
+	public class Qa40xRegisters
+	{
+		double DCVoltage { get; set; }
+		double DCCurrent { get; set; }
+		double Temperature { get; set; }
+	}
+
 	public class Qa40x
 	{
 		static HttpClient Client = new HttpClient();
@@ -108,9 +115,21 @@ namespace QA40xPlot.Libraries
 			await Put(string.Format("/Settings/OutputSource/{0}", source.ToString()));
 		}
 
+		static public ValueTask<double> GetTemperature()
+		{
+			return new ValueTask<double>(20.0);
+			//await Get("/Meter/DC", "Value");
+		}
+
 		static public ValueTask<double> GetDCVolts()
 		{
 			return new ValueTask<double>(5.0);
+			//await Get("/Meter/DC", "Value");
+		}
+
+		static public ValueTask<double> GetDCAmps()
+		{
+			return new ValueTask<double>(0.8);
 			//await Get("/Meter/DC", "Value");
 		}
 
