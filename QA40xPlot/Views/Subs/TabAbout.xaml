@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:QA40xPlot.Views"
             MouseDown="OnWindMouseDown" MouseUp="OnWindMouseUp" MouseMove="OnWindMouseMove"
-             mc:Ignorable="d" 
+             mc:Ignorable="d" x:Name="MyTabAbout"
              Background="{Binding ThemeBackground}"
              d:DesignHeight="450" d:DesignWidth="150">
     <Border BorderBrush="LightGreen" BorderThickness="1">
@@ -14,30 +14,30 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Label Content="Test Information" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" 
+                <Label Content="Test Information" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" 
                        HorizontalAlignment="Center" VerticalContentAlignment="Center" />
-                <Label Content="Name" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="1" Grid.Column="0" />
-                <TextBox Text="{Binding Name}" VerticalContentAlignment="Center" MinWidth="120" Grid.Row="1" Grid.Column="1" />
-                <Label Content="Heading" VerticalAlignment="Center" HorizontalAlignment="Right" Grid.Row="2" Grid.Column="0"/>
-                <TextBox Text="{Binding Heading}" VerticalContentAlignment="Center"  MinWidth="180" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"/>
+                <Label Content="{Binding FileName}" VerticalContentAlignment="Center" HorizontalAlignment="Center"
+                    Visibility="{Binding AllowCopy, Converter={StaticResource BoolNotVisConverter}, ElementName=MyTabAbout}"
+                         Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" />
+                <Label Content="Name" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="2" Grid.Column="0" />
+                <TextBox Text="{Binding Name}" VerticalContentAlignment="Center" 
+                         MinWidth="120" Grid.Row="2" Grid.Column="1" />
+                <Label Content="Heading" VerticalAlignment="Center" HorizontalAlignment="Right" Grid.Row="3" Grid.Column="0"/>
+                <TextBox Text="{Binding Heading}" VerticalContentAlignment="Center"  MinWidth="180" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2"/>
             </Grid>
             <Label Content="Description" />
             <TextBox Text="{Binding Description}" Height="200" AcceptsReturn="True" TextWrapping="Wrap"  />
-            <Button Content="Copy to all tests" Command="{Binding DoCopyToAll}" HorizontalAlignment="Center" Margin="0,5,0,0" />
+            <Button Content="Copy to all tests" Command="{Binding DoCopyToAll}" 
+                    ToolTip="Duplicate these entries to all the tests"
+                    Visibility="{Binding AllowCopy, Converter={StaticResource BoolVisConverter}, ElementName=MyTabAbout}"
+                    HorizontalAlignment="Center" Margin="0,5,0,0" />
         </StackPanel>
     </Border>
 </UserControl>

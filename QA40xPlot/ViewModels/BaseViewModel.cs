@@ -72,7 +72,7 @@ namespace QA40xPlot.ViewModels
 
 		#region Output Setters and Getters
 		[JsonIgnore]
-		protected TabAbout actAbout { get; set; } = new();
+		protected TabAbout actAbout { get; set; } = new(true);
 		[JsonIgnore]
 		public DataDescript DataInfo { get; set; } = new(); // set when we set the datapage via linkabout
 		[JsonIgnore]
@@ -874,6 +874,28 @@ namespace QA40xPlot.ViewModels
 
 		// here param is the id of the tab to remove from the othertab list
 		public virtual void DoDeleteIt(string param) { }
+
+		// here param is the id of the tab to remove from the othertab list
+		public virtual void DoEditIt(string param)
+		{
+			var id = MathUtil.ToInt(param, -1);
+			var fat = OtherSetList.FirstOrDefault(x => x.Id == id);
+			if (fat != null)
+			{
+				var tba = new TabAbout(false);
+				tba.SetDataContext(fat);
+				Window window = new Window
+				{
+					Title = "Edit displayed information",
+					Content = tba,
+					SizeToContent = SizeToContent.WidthAndHeight,
+					ResizeMode = ResizeMode.CanResize
+				};
+
+				window.ShowDialog();
+				ForceGraphUpdate();
+			}
+		}
 
 		/// <summary>
 		/// Convert direction string to a direction type

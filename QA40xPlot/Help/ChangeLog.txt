@@ -7,6 +7,7 @@ v 1.2.6 asdfasdf
 - read the dc supply voltage, dc current, and temperature on device init
 - put them all upper-right updating on each measurement
 - have scope use bin-center frequencies
+- add ability to edit Gotten plot name
 v 1.2.5 1/18/2026
 - add space to run/start/get... buttons
 - update mouse cursor in frequency response test when test runs

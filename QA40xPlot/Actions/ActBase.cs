@@ -5,6 +5,7 @@ using QA40xPlot.ViewModels;
 using System;
 using System.Data;
 using System.Diagnostics;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Numerics;
 using System.Windows;

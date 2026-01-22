@@ -10,23 +10,38 @@
             <ListBox ItemsSource="{Binding OtherSetList}" >
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Orientation="Vertical" >
-                            <Label Content="{Binding Name}" ToolTip="{Binding FileName}"  MaxWidth="100" Margin="0" Padding="2" HorizontalAlignment="Left"/>
-                            <StackPanel Orientation="Horizontal">
-                                <CheckBox Click="ForceRepaint" ToolTip="Show the left trace" MinWidth="35" CommandParameter="{Binding Id}" Content="L" IsChecked="{Binding IsOnL}" />
-                                <local:ColorBox Color="{Binding LeftColor}" ToolTip="Click to set the left color. Transparent==Use Default" Width="20" Margin="0,0,6,0"  />
-                                <Label Content="    " Margin="0" Padding="0" />
-                                <CheckBox Click="ForceRepaint" ToolTip="Show the right trace" MinWidth="35" CommandParameter="{Binding Id}" Content="R" IsChecked="{Binding IsOnR}"  />
-                                <local:ColorBox Color="{Binding RightColor}" ToolTip="Click to set the right color. Transparent==Use Default" Margin="0,0,6,0"  Width="20"/>
-                                <Button Click="OnClick" CommandParameter="{Binding Id}" Content="" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets">
-                                    <Button.ToolTip>
-                                        <ToolTip FontFamily="Arial" >
-                                            Remove this entry
-                                        </ToolTip>
-                                    </Button.ToolTip>
-                                </Button>
-                            </StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                            <Label Content="{Binding Name}" ToolTip="{Binding FileName}"  
+                                   Grid.Row="0" Grid.Column="0"
+                                   MaxWidth="100" Margin="0" Padding="2" HorizontalAlignment="Left"/>
+                        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="1">
+                            <Button Click="OnEdit" CommandParameter="{Binding Id}" ToolTip="Edit" >
+                                <Button.Content>
+                                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE70F;" FontSize="11"/>
+                                </Button.Content>
+                             </Button>
+                            <Button Click="OnRemove" CommandParameter="{Binding Id}" ToolTip="Remove this entry" Margin="4,0,0,0" >
+                                <Button.Content>
+                                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE74D;" FontSize="11"/>
+                                </Button.Content>
+                            </Button>
                         </StackPanel>
+                        <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,4,0,0">
+                            <CheckBox Click="ForceRepaint" ToolTip="Show the left trace" MinWidth="35" CommandParameter="{Binding Id}" Content="L" IsChecked="{Binding IsOnL}" />
+                            <local:ColorBox Color="{Binding LeftColor}" ToolTip="Click to set the left color. Transparent==Use Default" Width="20" Margin="0,0,6,0"  />
+                            <Label Content="    " Margin="0" Padding="0" />
+                            <CheckBox Click="ForceRepaint" ToolTip="Show the right trace" MinWidth="35" CommandParameter="{Binding Id}" Content="R" IsChecked="{Binding IsOnR}"  />
+                            <local:ColorBox Color="{Binding RightColor}" ToolTip="Click to set the right color. Transparent==Use Default" Margin="0,0,6,0"  Width="20"/>
+                        </StackPanel>
+                    </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>

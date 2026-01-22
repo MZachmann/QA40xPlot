@@ -14,7 +14,7 @@ namespace QA40xPlot.Views
 			InitializeComponent();
 		}
 
-		private void OnClick(object sender, RoutedEventArgs e)
+		private void OnRemove(object sender, RoutedEventArgs e)
 		{
 			var btu = sender as Button;
 			if (btu != null)
@@ -22,6 +22,17 @@ namespace QA40xPlot.Views
 				var ids = btu.CommandParameter.ToString() ?? "";
 				var myVm = ViewSettings.Singleton.MainVm.CurrentView;
 				myVm?.DoDeleteIt(ids);
+			}
+		}
+
+		private void OnEdit(object sender, RoutedEventArgs e)
+		{
+			var btu = sender as Button;
+			if (btu != null)
+			{
+				var ids = btu.CommandParameter.ToString() ?? "";
+				var myVm = ViewSettings.Singleton.MainVm.CurrentView;
+				myVm?.DoEditIt(ids);
 			}
 		}
 

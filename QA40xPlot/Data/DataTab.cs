@@ -4,6 +4,7 @@ using QA40xPlot.Libraries;
 using QA40xPlot.QA430;
 using QA40xPlot.ViewModels;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Numerics;
 
 namespace QA40xPlot.Data
@@ -14,6 +15,8 @@ namespace QA40xPlot.Data
 	{
 		[JsonIgnore]
 		public RelayCommand DoCopyToAll { get => new RelayCommand(DoCopyAll);}
+		[JsonIgnore]
+		public RelayCommand DoUpdateSource { get => new RelayCommand(UpdateSource); }
 
 		private string _Name = string.Empty;
 		public string Name
@@ -146,6 +149,46 @@ namespace QA40xPlot.Data
 			{
 				// pick a random view model
 				ViewSettings.Singleton.CopyAboutToAll(this); ;
+			}
+		}
+
+		// if we have edited part of the header info, save it to the file
+		private void UpdateSource()
+		{
+			string didok = "";
+			try
+			{
+				// read the existing file
+				var ftext = Util.LoadFileText(FileName);
+				if (ftext.Length > 0)
+				{
+					// convert it into a big dictionary
+					var dict = Util.Deserialize(ftext);
+					// find the DataDefinition
+					if (dict?.ContainsKey("Definition") ?? false)
+					{
+						// update the DataDefinition fields we edits
+						var defn = dict["Definition"];
+						defn["Name"] = this.Name;
+						defn["Heading"] = this.Heading;
+						defn["Description"] = this.Description;
+						// resave it back to the source file
+						string jsonString = Util.ConvertToJson(dict);
+						Util.CompressTextToFile(jsonString, FileName); // zip it
+					}
+					else
+					{
+						didok = $"Invalid file format {FileName}";
+					}
+				}
+				else
+					didok = $"Unable to read file {FileName}";
+				if (didok.Length > 0)
+					Debug.WriteLine(didok);
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex.Message);
 			}
 		}
 

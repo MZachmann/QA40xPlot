@@ -30,9 +30,10 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <StackPanel Orientation="Horizontal" Grid.Column="2" Grid.Row="0" >
+            <StackPanel Orientation="Horizontal" Grid.Column="2" Grid.Row="0"
+                 Visibility="{Binding ShowTabs, Converter={StaticResource BoolNotVisConverter}}" >
                 <Rectangle Fill="#40888888"  Width="2" />
-                <Label Content="USBDC: " VerticalAlignment="Center"  />
+                <Label Content="USB: " VerticalAlignment="Center"  />
                 <Label Content="{Binding DCSupplyVoltage}" HorizontalAlignment="Right" Padding="0" VerticalAlignment="Center" />
                 <Label Content="V, " VerticalAlignment="Center" Padding="0"  />
                 <Label Content="{Binding DCSupplyCurrent}" HorizontalAlignment="Right" Padding="0" VerticalAlignment="Center"  />

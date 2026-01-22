@@ -5,6 +5,7 @@ using QA40xPlot.ViewModels;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Net.Http.Json;
 using System.Reflection;
 using System.Text;
 using System.Windows;
@@ -87,19 +88,12 @@ namespace QA40xPlot.Libraries
 			return lrfs; // return the loaded mic compensation data
 		}
 
-		/// <summary>
-		/// Load a file into a DataTab
-		/// </summary>
-		/// <param name="fileName">full path name</param>
-		/// <returns>a datatab with no frequency info</returns>
-		public static DataTab<Model>? LoadFile<Model>(DataTab<Model> model, string fileName) where Model : BaseViewModel
+		// read a possibly compressed file
+		public static string LoadFileText(string fileName)
 		{
-			// a new DataTab
-			var page = new DataTab<Model>(model.ViewModel, new LeftRightTimeSeries());
-			page.Definition.FileName = fileName;
+			string jsonContent = string.Empty;
 			try
 			{
-				string jsonContent = string.Empty;
 				// unzip?
 				if (fileName.Contains(".zip"))
 				{
@@ -116,6 +110,48 @@ namespace QA40xPlot.Libraries
 					// Read the JSON file into a string
 					jsonContent = File.ReadAllText(fileName);
 				}
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex.Message);
+			}
+			return jsonContent;
+		}
+
+		/// <summary>
+		/// part of the load process needs this simple json deserialize
+		/// into a dictionary of dictionaries of string->object
+		/// </summary>
+		/// <param name="jsonText"></param>
+		/// <returns></returns>
+		public static Dictionary<string, Dictionary<string, object>>? Deserialize(string jsonText)
+		{
+			try
+			{
+				// generic deserialize first....
+				var u = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(jsonText);
+				return u;
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex.Message);
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// Load a file into a DataTab
+		/// </summary>
+		/// <param name="fileName">full path name</param>
+		/// <returns>a datatab with no frequency info</returns>
+		public static DataTab<Model>? LoadFile<Model>(DataTab<Model> model, string fileName) where Model : BaseViewModel
+		{
+			// a new DataTab
+			var page = new DataTab<Model>(model.ViewModel, new LeftRightTimeSeries());
+			page.Definition.FileName = fileName;
+			try
+			{
+				var jsonContent = LoadFileText(fileName);
 				// check which viewmodel this was built for
 				bool isValid = false;
 				Dictionary<string, object>? oldTime = null;
@@ -123,12 +159,12 @@ namespace QA40xPlot.Libraries
 				string? viewName = string.Empty;
 				int viewVersion = 1;
 				{
-					var u = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(jsonContent); // untyped seriale
-					if (u == null)
+					var dict = Deserialize(jsonContent);
+					if (dict == null)
 						return null;
-					if(u.ContainsKey("ViewModel"))
+					if(dict.ContainsKey("ViewModel"))
 					{
-						var myvm = u["ViewModel"];
+						var myvm = dict["ViewModel"];
 						if (myvm != null)
 						{
 							if(myvm.ContainsKey("Name"))
@@ -144,8 +180,8 @@ namespace QA40xPlot.Libraries
 							isValid = z?.IsValidLoadModel(viewName, viewVersion) ?? false;
 						}
 					}
-					if (u.ContainsKey("TimeRslt"))
-						oldTime = u["TimeRslt"];
+					if (dict.ContainsKey("TimeRslt"))
+						oldTime = dict["TimeRslt"];
 				}
 				if (!isValid)
 				{
