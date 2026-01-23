@@ -29,7 +29,7 @@
                 <Label Padding="2,2" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" ToolTip="The total channel RMS voltage"
                        Content="{Binding TotalV, Converter={StaticResource VoltFormatter}}" />
                 <Label Padding="2,2" Grid.Row="1" Grid.Column="2" HorizontalAlignment="Center" ToolTip="The total channel power"
-                       Content="{Binding TotalW, Converter={StaticResource DoubleIntlConverter}, ConverterParameter=3}" ContentStringFormat= "{}{0}W"/>
+                       Content="{Binding TotalW, Converter={StaticResource WattFormatter}}" />
             </Grid>
             <Rectangle HorizontalAlignment="Stretch" Height="3" Fill="DarkGreen" />
             <Grid>

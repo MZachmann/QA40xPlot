@@ -456,14 +456,14 @@ namespace QA40xPlot.Actions
 			else if (ttype == TestingType.Gain)
 			{
 				var phaseValues = MathUtil.ToCplxPhase(gainReal, gainImag).Select(x => 180 * x / Math.PI).ToArray();
-				var phases = Regularize(phaseValues);
+				var phases = UnWrap(phaseValues);
 				rrc.Y = phases.Min();
 				rrc.Height = phases.Max() - rrc.Y;
 			}
 			else if (ttype == TestingType.Impedance)
 			{
 				var phaseValues = MathUtil.ToImpedancePhase(gainReal, gainImag).Select(x => 180 * x / Math.PI).ToArray(); ;
-				var phases = Regularize(phaseValues);
+				var phases = UnWrap(phaseValues);
 				rrc.Y = phases.Min();
 				rrc.Height = phases.Max() - rrc.Y;
 			}
@@ -1124,18 +1124,34 @@ namespace QA40xPlot.Actions
 		/// <summary>
 		/// unwrap the phase data
 		/// </summary>
-		/// <param name="phaseData"></param>
+		/// <param name="phaseData">in degrees</param>
 		/// <returns></returns>
-		private double[] Regularize(double[] phaseData)
+		private double[] UnWrap(double[] phaseData)
 		{
-			var allPos = phaseData.Select(x => (x >= 0) ? x : x + 360);
-			var deltain = phaseData.Select((x, index) => Math.Abs(x - phaseData[((index == 0) ? 1 : index) - 1])).Sum();
-			var deltaPos = allPos.Select((x, index) => Math.Abs(x - phaseData[((index == 0) ? 1 : index) - 1])).Sum();
-			if (deltain > deltaPos)
+			double[] outPhase = new double[phaseData.Length];
+			outPhase[0] = phaseData[0];
+			// make it as continuous as possible
+			for(int i=1; i<phaseData.Length; i++)
 			{
-				return allPos.ToArray();
+				// place the next phase value near this one
+				outPhase[i] = phaseData[i];
+				var dot = outPhase[i] - outPhase[i-1];
+				while(Math.Abs(dot) > 180)
+				{
+					outPhase[i] += (dot < 0) ? 360 : -360;
+					dot = outPhase[i] - outPhase[i - 1];
+				}
 			}
-			return phaseData;
+			// center it at +-180 if possible
+			if(outPhase.Min() >= 0 && outPhase.Max() > 180)
+			{
+				outPhase = outPhase.Select(x => x-360).ToArray();
+			}
+			else if (outPhase.Min() < -180 && outPhase.Max() <= 0)
+			{
+				outPhase = outPhase.Select(x => x + 360).ToArray();
+			}
+			return outPhase;
 		}
 
 
@@ -1221,7 +1237,7 @@ namespace QA40xPlot.Actions
 								// change to an impedance set of limits
 								var myrule = ((MaximumBoundary)rule);
 								var oldlimit = myrule.Limits;
-								AxisLimits axs = new AxisLimits(oldlimit.Left, oldlimit.Right, -360, 360);
+								AxisLimits axs = new AxisLimits(oldlimit.Left, oldlimit.Right, -3600, 3600);
 								myrule.Limits = axs;
 							}
 						}
@@ -1248,7 +1264,7 @@ namespace QA40xPlot.Actions
 				var phases = phaseValues;
 				if (ttype == TestingType.Gain || ttype == TestingType.Impedance)
 				{
-					phases = Regularize(phaseValues);
+					phases = UnWrap(phaseValues);
 					plot = myPlot.Add.SignalXY(logFreqX.Skip(skipped).ToArray(), phases.Skip(skipped).ToArray());
 					plot.Axes.YAxis = myPlot.Axes.Right;
 					plot.LegendText = "Phase (Deg)";
@@ -1258,7 +1274,7 @@ namespace QA40xPlot.Actions
 					plot = myPlot.Add.SignalXY(logFreqX.Skip(skipped).ToArray(), phases.Skip(skipped).ToArray());
 					plot.LegendText = "Right";
 				}
-				else
+				else // it's crosstalk
 				{
 					plot = myPlot.Add.SignalXY(logFreqX.Skip(skipped).ToArray(), phases.Skip(skipped).ToArray());
 					plot.LegendText = "Right dB";

@@ -21,7 +21,7 @@
             <Label Content="{Binding FreqShow}" Grid.Row="0" Grid.Column="1" IsEnabled="{Binding IsTracking}" Width="70" />
             <TextBox Text="{Binding ZValue}" Grid.Row="1" Grid.Column="0" 
                      Grid.ColumnSpan="2" TextWrapping="Wrap" IsReadOnly="True"
-                     Width="120" HorizontalAlignment="Left" />
+                     Width="140" HorizontalAlignment="Left" />
         </Grid>
     </Expander>
 </UserControl>

@@ -5,6 +5,7 @@
         <convert:EnumNotBooleanConverter x:Key="EnumNotBoolConverter"/>
         <convert:VtoPctConverter x:Key="VToPctConverter"/>
         <convert:VoltFormatter x:Key="VoltFormatter"/>
+        <convert:WattFormatter x:Key="WattFormatter"/>
         <convert:TimeFormatter x:Key="TimeFormatter"/>
         <convert:BoolToVisibilityConverter x:Key="BoolVisConverter"/>
         <convert:BoolToNotVisibilityConverter x:Key="BoolNotVisConverter"/>

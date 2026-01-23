@@ -184,7 +184,7 @@ namespace QA40xPlot.Libraries
 			}
 			if (sign < 0)
 				rslt = "-" + rslt;
-			return rslt;
+			return rslt.TrimStart();
 		}
 
 		/// <summary>

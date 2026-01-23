@@ -141,7 +141,6 @@ public class FreqRespViewModel : BaseViewModel
 		set => SetProperty(ref _PhaseTop, value);
 	}
 
-
 	private bool _ShowPoints;
 	public bool ShowPoints
 	{
