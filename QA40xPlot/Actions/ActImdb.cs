@@ -20,7 +20,7 @@ namespace QA40xPlot.Actions
 	{
 		public MyDataTab PageData { get; private set; } // Data used in this form instance
 		private List<MyDataTab> OtherTabs { get; set; } = new List<MyDataTab>(); // Other tabs in the document
-		private readonly Views.PlotControl fftPlot;
+		private readonly Views.PlotControl imdPlot;
 
 		private float _Thickness = 2.0f;
 		private static ImdViewModel MyVModel { get => ViewSettings.Singleton.ImdVm; }
@@ -32,7 +32,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		public ActImd(Views.PlotControl graphFft)
 		{
-			fftPlot = graphFft;
+			imdPlot = graphFft;
 			ct = new CancellationTokenSource();
 			PageData = new(MyVModel, new LeftRightTimeSeries());
 			UpdateGraph(true);
@@ -82,7 +82,7 @@ namespace QA40xPlot.Actions
 
 		public void PinGraphRange(string who)
 		{
-			ScottPlot.Plot myPlot = fftPlot.ThePlot;
+			ScottPlot.Plot myPlot = imdPlot.ThePlot;
 			var vm = MyVModel;
 			PinGraphRanges(myPlot, vm, who);
 		}
@@ -234,7 +234,7 @@ namespace QA40xPlot.Actions
 				if (fftdata != null && ffs != null && ffs.Length > 0 && freq < fftdata.Df * ffs.Length)
 				{
 					int bin = 0;
-					ScottPlot.Plot myPlot = fftPlot.ThePlot;
+					ScottPlot.Plot myPlot = imdPlot.ThePlot;
 					var pixel = myPlot.GetPixel(new Coordinates(Math.Log10(freq), posndBV));
 					var left = ViewSettings.Singleton.ImdChannelLeft;
 					var right = ViewSettings.Singleton.ImdChannelRight;
@@ -494,7 +494,7 @@ namespace QA40xPlot.Actions
 		{
 			var vm = page.ViewModel;
 
-			ScottPlot.Plot myPlot = fftPlot.ThePlot;
+			ScottPlot.Plot myPlot = imdPlot.ThePlot;
 			var sampleRate = vm.SampleRateVal;
 			var fftsize = vm.FftSizeVal;
 			int bin = (int)QaLibrary.GetBinOfFrequency(frequency, sampleRate, fftsize);        // Calculate bin of the harmonic frequency
@@ -523,7 +523,7 @@ namespace QA40xPlot.Actions
 		private void ShowHarmonicMarkers(MyDataTab page)
 		{
 			var vm = page.ViewModel;
-			ScottPlot.Plot myPlot = fftPlot.ThePlot;
+			ScottPlot.Plot myPlot = imdPlot.ThePlot;
 			if (vm.ShowMarkers)
 			{
 				ImdChannelViewModel? thdView = null;
@@ -557,7 +557,7 @@ namespace QA40xPlot.Actions
 				return;
 
 			List<double> freqchecks = new List<double> { 50, 60, 100, 120, 180, 150 };
-			ScottPlot.Plot myPlot = fftPlot.ThePlot;
+			ScottPlot.Plot myPlot = imdPlot.ThePlot;
 			if (vm.ShowPowerMarkers)
 			{
 				var sampleRate = vm.SampleRateVal;
@@ -628,8 +628,8 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void ClearPlot()
 		{
-			fftPlot.ThePlot.Clear();
-			fftPlot.Refresh();
+			imdPlot.ThePlot.Clear();
+			imdPlot.Refresh();
 		}
 
 		string GetTheTitle(ScottPlot.Plot myPlot)
@@ -653,7 +653,7 @@ namespace QA40xPlot.Actions
 			if (page == null)
 				return;
 
-			ScottPlot.Plot myPlot = fftPlot.ThePlot;
+			ScottPlot.Plot myPlot = imdPlot.ThePlot;
 
 			var specVm = MyVModel;
 			bool useLeft;
@@ -696,7 +696,7 @@ namespace QA40xPlot.Actions
 				plotLeft.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, measurementNr * 2);
 				plotLeft.MarkerSize = 1;
 				plotLeft.LegendText = isMain ? "Left" : ClipName(page.Definition.Name) + ".L";
-				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotLeft.Color, plotLeft.LegendText, measurementNr * 2, plotLeft, fftPlot));
+				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotLeft.Color, plotLeft.LegendText, measurementNr * 2, plotLeft, imdPlot));
 			}
 
 			if (useRight)
@@ -712,10 +712,10 @@ namespace QA40xPlot.Actions
 				plotRight.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, measurementNr * 2 + 1);
 				plotRight.MarkerSize = 1;
 				plotRight.LegendText = isMain ? "Right" : ClipName(page.Definition.Name) + ".R";
-				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotRight.Color, plotRight.LegendText, measurementNr * 2 + 1, plotRight, fftPlot));
+				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotRight.Color, plotRight.LegendText, measurementNr * 2 + 1, plotRight, imdPlot));
 			}
 
-			fftPlot.Refresh();
+			imdPlot.Refresh();
 		}
 
 		public void ReformatChannels()
@@ -741,7 +741,7 @@ namespace QA40xPlot.Actions
 
 		public void UpdateGraph(bool settingsChanged)
 		{
-			fftPlot.ThePlot.Remove<Marker>();             // Remove all current lines
+			imdPlot.ThePlot.Remove<Marker>();             // Remove all current lines
 			int resultNr = 0;
 			ImdViewModel thd = MyVModel;
 
@@ -773,7 +773,7 @@ namespace QA40xPlot.Actions
 
 		public int DrawPlotLines(int resultNr)
 		{
-			fftPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
+			imdPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
 			MyVModel.LegendInfo.Clear();
 			PlotValues(PageData, resultNr++, true);
 			if (OtherTabs.Count > 0)
@@ -785,7 +785,7 @@ namespace QA40xPlot.Actions
 					resultNr++;     // keep consistent coloring
 				}
 			}
-			fftPlot.Refresh();
+			imdPlot.Refresh();
 			return resultNr;
 		}
 
@@ -970,7 +970,7 @@ namespace QA40xPlot.Actions
 		public void UpdatePlotTitle()
 		{
 			var thdFreq = MyVModel;
-			ScottPlot.Plot myPlot = fftPlot.ThePlot;
+			ScottPlot.Plot myPlot = imdPlot.ThePlot;
 			var title = GetTheTitle(myPlot);
 			myPlot.Title(title);
 			if (PageData.Definition.Name.Length > 0)
@@ -983,7 +983,7 @@ namespace QA40xPlot.Actions
 		void InitializeMagnitudePlot(string plotFormat = "dBV")
 		{
 			var imdVm = MyVModel;
-			ScottPlot.Plot myPlot = fftPlot.ThePlot;
+			ScottPlot.Plot myPlot = imdPlot.ThePlot;
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
 			myPlot.Axes.SetLimitsX(Math.Log10(ToD(imdVm.GraphStartX, 20)),
@@ -995,7 +995,7 @@ namespace QA40xPlot.Actions
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
 
-			fftPlot.Refresh();
+			imdPlot.Refresh();
 		}
 
 		/// <summary>
@@ -1003,7 +1003,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void InitializefftPlot(string plotFormat = "%")
 		{
-			ScottPlot.Plot myPlot = fftPlot.ThePlot;
+			ScottPlot.Plot myPlot = imdPlot.ThePlot;
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
 			ImdViewModel imdVm = MyVModel;
@@ -1013,7 +1013,7 @@ namespace QA40xPlot.Actions
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
 
 			UpdatePlotTitle();
-			fftPlot.Refresh();
+			imdPlot.Refresh();
 		}
 
 		private void CalculateHarmonics(MyDataTab page, ImdChannelViewModel left, ImdChannelViewModel right)

@@ -249,14 +249,20 @@ namespace QA40xPlot.Data
 		[JsonIgnore]
 		public LeftRightFrequencySeries? FreqRslt
 		{
-			get { return GetProperty<LeftRightFrequencySeries>("FFT"); }
+			get { return GetProperty<LeftRightFrequencySeries?>("FFT"); }
 			set { SetProperty("FFT", value); }
 		}
 		[JsonIgnore]
 		public LeftRightFrequencySeries? NoiseRslt
 		{
-			get { return GetProperty<LeftRightFrequencySeries>("Noise"); }
+			get { return GetProperty<LeftRightFrequencySeries?>("Noise"); }
 			set { SetProperty("Noise", value); }
+		}
+		[JsonIgnore]
+		public double[]? DelayRslt
+		{
+			get { return GetProperty<double[]?>("Delay"); }
+			set { SetProperty("Delay", value); }
 		}
 		[JsonIgnore]
 		public double[] GainLeft { get => Sweep.RawLeft ?? []; }

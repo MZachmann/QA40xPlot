@@ -141,6 +141,13 @@ public class FreqRespViewModel : BaseViewModel
 		set => SetProperty(ref _PhaseTop, value);
 	}
 
+	private bool _ShowGroupDelay = false;
+	public bool ShowGroupDelay
+	{
+		get => _ShowGroupDelay;
+		set => SetProperty(ref _ShowGroupDelay, value);
+	}
+
 	private bool _ShowPoints;
 	public bool ShowPoints
 	{
@@ -236,6 +243,7 @@ public class FreqRespViewModel : BaseViewModel
 			case "RangeTop":
 			case "PhaseTop":
 			case "PhaseBottom":
+			case "ShowGroupDelay":
 				MyAction?.UpdateGraph(true);
 				break;
 			case "ShowRight":
@@ -378,6 +386,7 @@ public class FreqRespViewModel : BaseViewModel
 		if (freq <= 0)
 			return;
 		FreqValue = freq;
+		// return (freq, real, imag, group_delay)
 		var zv = MyAction.LookupX(FreqValue);
 		if (zv.Item1 <= 1)
 			return;
@@ -398,6 +407,10 @@ public class FreqRespViewModel : BaseViewModel
 				{
 
 					ZValue = "Z: " + MathUtil.FormatUnits(zv.Item2, "|Z|") + ", " + MathUtil.FormatPhase(zv.Item3);
+					if(zv.Item4 != 0.0)
+					{
+						ZValue += Environment.NewLine + "GDelay:" + MathUtil.FormatUnits(zv.Item4 / 1000, "S");
+					}
 					var x = Complex.FromPolarCoordinates(zv.Item2, Math.PI * zv.Item3 / 180);
 					ZValue += Environment.NewLine + "X: " + MathUtil.FormatUnits(x.Real, "R") + ", " + MathUtil.FormatUnits(x.Imaginary, "I");
 					var res = MathUtil.FormatResistance(x.Real);
@@ -417,6 +430,10 @@ public class FreqRespViewModel : BaseViewModel
 				break;
 			case TestingType.Gain:
 				ZValue = "G: " + (20 * Math.Log10(zv.Item2)).ToString("0.## dB") + Environment.NewLine + "  " + zv.Item3.ToString("0.## Deg");
+				if (zv.Item4 != 0.0)
+				{
+					ZValue += Environment.NewLine + "GDelay:" + MathUtil.FormatUnits(zv.Item4/1000, "S");
+				}
 				break;
 		}
 	}

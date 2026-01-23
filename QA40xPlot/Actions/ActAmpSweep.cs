@@ -686,6 +686,7 @@ namespace QA40xPlot.Actions
 
 			PageData.TimeRslt = new();
 			PageData.FreqRslt = null;
+			PageData.DelayRslt = null;
 
 			// Show message
 			await showMessage(CanToken.IsCancellationRequested ? $"Measurement cancelled!" : $"Measurement finished!");

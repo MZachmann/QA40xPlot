@@ -2,7 +2,7 @@
 --------------------------------------------
 This changelog shows the changes made for each version
 --------------------------------------------
-v 1.2.6 asdfasdf
+v 1.2.6 1/25/26
 - add a QA40x readme on ports
 - read the dc supply voltage, dc current, and temperature on device init
 - put them all upper-right updating on each measurement
@@ -10,6 +10,8 @@ v 1.2.6 asdfasdf
 - add ability to edit Gotten plot name
 - add a default data folder setting
 - finally fix phase upwrapping
+- add early group delay display
+- try out second Y axis for group delay
 v 1.2.5 1/18/2026
 - add space to run/start/get... buttons
 - update mouse cursor in frequency response test when test runs

@@ -1,5 +1,6 @@
 ﻿using QA40xPlot.ViewModels;
 using ScottPlot;
+using System.Windows;
 
 namespace QA40xPlot.Libraries
 {
@@ -15,7 +16,7 @@ namespace QA40xPlot.Libraries
 			myPlot.ShowLegend();
 		}
 
-		private static void SetupMagTics(ScottPlot.Plot myPlot)
+		public static ScottPlot.TickGenerators.NumericAutomatic BuildMagTics(ScottPlot.Plot myPlot)
 		{
 			// create a numeric tick generator that uses our custom minor tick generator
 			ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGen = new(2);
@@ -25,7 +26,13 @@ namespace QA40xPlot.Libraries
 			tickGenY.MinorTickGenerator = minorTickGen;
 
 			// tell the left axis to use our custom tick generator
-			myPlot.Axes.Left.TickGenerator = tickGenY;
+			return tickGenY;
+		}
+
+		private static void SetupMagTics(ScottPlot.Plot myPlot)
+		{
+			// tell the left axis to use our custom tick generator
+			myPlot.Axes.Left.TickGenerator = BuildMagTics(myPlot);
 		}
 
 		static void SetupPercentTics(ScottPlot.Plot myPlot)
@@ -161,6 +168,13 @@ namespace QA40xPlot.Libraries
 			myPlot.Axes.Rules.Add(rule);
 		}
 
+		public static ScottPlot.AxisPanels.LeftAxis AddSecondY(FreqRespViewModel frqrsVm, Plot myPlot)
+		{
+			// create a second axis and add it to the plot
+			var yAxis2 = myPlot.Axes.AddLeftAxis();
+			return yAxis2;
+		}
+
 		// this sets the axes bounds for phase while zooming. bottom is as above...
 		public static void AddPhaseFreqRule(ScottPlot.Plot myPlot)
 		{
@@ -252,6 +266,11 @@ namespace QA40xPlot.Libraries
 		{
 			SetupPhaseTics(myPlot);
 			AddPhaseFreqRule(myPlot);
+		}
+
+		public static void AddGroupDelayPlot(ScottPlot.Plot myPlot)
+		{
+			BuildMagTics(myPlot);
 		}
 
 		public static void InitializeMagFreqPlot(ScottPlot.Plot myPlot)
