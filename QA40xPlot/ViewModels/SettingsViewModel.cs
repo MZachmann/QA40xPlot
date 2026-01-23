@@ -44,11 +44,15 @@ namespace QA40xPlot.ViewModels
 		public static List<string> ThemeList { get; } = new List<string> { "None", "Light", "Dark", "System" };
 		public static List<string> GuiStyleList { get; } = new List<string> { "Menus", "Tabs"};
 		[JsonIgnore]
-		public RelayCommand DoMicCompensate { get => new RelayCommand(FindMicCompensate); }
-		[JsonIgnore]
 		public RelayCommand DoEditPlotColors { get => new RelayCommand(EditPlotColors); }
 		[JsonIgnore]
+		public RelayCommand DoMicCompensate { get => new RelayCommand(FindMicCompensate); }
+		[JsonIgnore]
 		public RelayCommand ClearMicCompensate { get => new RelayCommand(DelMicCompensate); }
+		[JsonIgnore]
+		public RelayCommand DoDataFolder { get => new RelayCommand(FindDataFolder); }
+		[JsonIgnore]
+		public RelayCommand ClearDataFolder { get => new RelayCommand(DelDataFolder); }
 
 
 		#region temporary setters
@@ -166,6 +170,13 @@ namespace QA40xPlot.ViewModels
 					}
 				}
 			}
+		}
+
+		private string _DataFolder = string.Empty;
+		public string DataFolder
+		{
+			get => _DataFolder;
+			set => SetProperty(ref _DataFolder, value);
 		}
 
 		private string _MicCompFile = string.Empty;
@@ -396,6 +407,7 @@ namespace QA40xPlot.ViewModels
 			OpenFileDialog openFileDialog = new OpenFileDialog
 			{
 				FileName = System.IO.Path.GetFileName(MicCompFile), // Default file name
+				InitialDirectory = ViewSettings.Singleton.SettingsVm.DataFolder,
 				DefaultExt = ".txt", // Default file extension
 				Filter = "Mic files|*.txt|All files|*.*" // Filter files by extension
 			};
@@ -412,6 +424,33 @@ namespace QA40xPlot.ViewModels
 		public void DelMicCompensate()
 		{
 			MicCompFile = string.Empty;
+		}
+
+		public void FindDataFolder()
+		{
+			var oldName = DataFolder;
+			if(oldName.Length == 0)
+			{
+				oldName = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+			}
+			OpenFolderDialog openFolderDialog = new OpenFolderDialog
+			{
+				FolderName = oldName, // Default file name
+				InitialDirectory = oldName
+			};
+			// Show save file dialog box
+			bool? result = openFolderDialog.ShowDialog();
+			if (result == true)
+			{
+				// Get the file name and display in the TextBox
+				DataFolder = openFolderDialog.FolderName;
+				Debug.WriteLine($"Data Folder set to: {DataFolder}");
+			}
+		}
+
+		public void DelDataFolder()
+		{
+			DataFolder = string.Empty;
 		}
 	}
 }

@@ -5,7 +5,6 @@ using QA40xPlot.ViewModels;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Net.Http.Json;
 using System.Reflection;
 using System.Text;
 using System.Windows;

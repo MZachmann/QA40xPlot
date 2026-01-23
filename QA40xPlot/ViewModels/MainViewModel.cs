@@ -522,6 +522,7 @@ namespace QA40xPlot.ViewModels
 			SaveFileDialog saveFileDialog = new SaveFileDialog
 			{
 				FileName = String.Format("QAImg{0}", FileAddon()), // Default file name
+				InitialDirectory = ViewSettings.Singleton.SettingsVm.DataFolder,
 				DefaultExt = ".png", // Default file extension
 				Filter = "PNG files|*.png|All files|*.*" // Filter files by extension
 			};
@@ -545,6 +546,7 @@ namespace QA40xPlot.ViewModels
 			SaveFileDialog saveFileDialog = new SaveFileDialog
 			{
 				FileName = String.Format("QaData{0}", FileAddon()), // Default file name
+				InitialDirectory = ViewSettings.Singleton.SettingsVm.DataFolder,
 				DefaultExt = ".frd", // Default file extension
 				Filter = "FRD files|*.frd|ZMA files|*.zma|All files|*.*" // Filter files by extension
 			};
@@ -576,6 +578,7 @@ namespace QA40xPlot.ViewModels
 			SaveFileDialog saveFileDialog = new SaveFileDialog
 			{
 				FileName = String.Format("QaSettings{0}", FileAddon()), // Default file name
+				InitialDirectory = ViewSettings.Singleton.SettingsVm.DataFolder,
 				DefaultExt = ".cfg", // Default file extension
 				Filter = "Settings files|*.cfg|All files|*.*" // Filter files by extension
 			};
@@ -602,6 +605,7 @@ namespace QA40xPlot.ViewModels
 			Microsoft.Win32.SaveFileDialog saveFileDialog = new Microsoft.Win32.SaveFileDialog
 			{
 				FileName = string.Empty, // Default file name
+				InitialDirectory = ViewSettings.Singleton.SettingsVm.DataFolder,
 				DefaultExt = ".wav", // Default file extension
 				Filter = "Wave files|*.wav|All files|*.*"  // Filter files by extension
 			};
@@ -629,6 +633,7 @@ namespace QA40xPlot.ViewModels
 			OpenFileDialog openFileDialog = new OpenFileDialog
 			{
 				FileName = string.Empty, // Default file name
+				InitialDirectory = ViewSettings.Singleton.SettingsVm.DataFolder,
 				DefaultExt = ".cfg", // Default file extension
 				Filter = "Settings files|*.cfg|All files|*.*" // Filter files by extension
 			};

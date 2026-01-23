@@ -72,7 +72,7 @@ namespace QA40xPlot
 				}
 				else
 				{
-					fload = " - with " + Path.GetRelativePath(fdocs, fpath);
+					fload = " - with " + Path.GetFileName(fpath);
 				}
 			}
 
@@ -227,8 +227,7 @@ namespace QA40xPlot
 				try
 				{
 					// look for a default config file
-					var fpath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-					fpath += @"\" + ((App)Application.Current).StockDefaultCfg;
+					string fpath = Util.GetDefaultConfigPath(); 
 					ViewSettings.Singleton.MainVm.SaveToSettings(fpath);
 				}
 				catch (Exception ex)

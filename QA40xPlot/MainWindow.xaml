@@ -22,8 +22,8 @@
         </Grid.RowDefinitions>
         <Grid Grid.Row="0">
             <Grid.RowDefinitions>
-                <RowDefinition/>
-                <RowDefinition/>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -33,7 +33,7 @@
             <StackPanel Orientation="Horizontal" Grid.Column="2" Grid.Row="0"
                  Visibility="{Binding ShowTabs, Converter={StaticResource BoolNotVisConverter}}" >
                 <Rectangle Fill="#40888888"  Width="2" />
-                <Label Content="USB: " VerticalAlignment="Center"  />
+                <Label Content="USB: " VerticalAlignment="Center" Padding="0" />
                 <Label Content="{Binding DCSupplyVoltage}" HorizontalAlignment="Right" Padding="0" VerticalAlignment="Center" />
                 <Label Content="V, " VerticalAlignment="Center" Padding="0"  />
                 <Label Content="{Binding DCSupplyCurrent}" HorizontalAlignment="Right" Padding="0" VerticalAlignment="Center"  />
@@ -78,8 +78,8 @@
                        Margin="10,0,15,0" 
                        Visibility="{Binding ShowTabs, Converter={StaticResource BoolNotVisConverter}}"
                         >
-                <Menu VerticalAlignment="Center" Background="Transparent">
-                    <MenuItem Header="_Page" >
+                <Menu Background="Transparent" >
+                    <MenuItem Header="_Page"  >
                         <MenuItem Header="_Spectrum" Command="{Binding SetPlotPage}" CommandParameter="spectrum" />
                         <MenuItem Header="_Intermodulation" Command="{Binding SetPlotPage}" CommandParameter="intermod" />
                         <MenuItem Header="Sco_pe" Command="{Binding SetPlotPage}" CommandParameter="scope" />
@@ -88,7 +88,7 @@
                         <MenuItem Header="Frequency _Response" Command="{Binding SetPlotPage}" CommandParameter="freqresp" />
                         <MenuItem Header="S_ettings" Command="{Binding SetPlotPage}" CommandParameter="settings" />
                     </MenuItem>
-                    <MenuItem Header="_Command">
+                    <MenuItem Header="_Command"  >
                         <MenuItem Header="Show _QA430" Click="OnQA430"
                                   Visibility="{Binding ShowQA430, Converter={StaticResource BoolVisConverter}}"/>
                         <MenuItem Header="_Whats New" Click="OnWhatsNew" />

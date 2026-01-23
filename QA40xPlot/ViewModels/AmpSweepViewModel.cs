@@ -212,25 +212,11 @@ namespace QA40xPlot.ViewModels
 
 		private void SaveItTab()
 		{
-			SaveFileDialog saveFileDialog = new SaveFileDialog
-			{
-				FileName = String.Format("QaTAmp{0}", FileAddon()), // Default file name
-				DefaultExt = ".plt", // Default file extension
-				Filter = PlotFileFilter // Filter files by extension
-			};
-
-			// Show save file dialog box
-			bool? result = saveFileDialog.ShowDialog();
-
+			var fname = GetSavePltName("QaTAmp");
 			// Process save file dialog box results
-			if (result == true)
+			if (fname.Length > 0)
 			{
-				// Save document
-				string filename = saveFileDialog.FileName;
-				if (filename.Length > 1)
-				{
-					MyAction.SaveToFile(filename);
-				}
+					MyAction.SaveToFile(fname);
 			}
 		}
 

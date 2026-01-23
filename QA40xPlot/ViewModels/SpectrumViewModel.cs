@@ -237,28 +237,14 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		private static void SaveIt()
+		private void SaveIt()
 		{
-			SaveFileDialog saveFileDialog = new SaveFileDialog
-			{
-				FileName = String.Format("QaSpectrum{0}", FileAddon()), // Default file name
-				DefaultExt = ".plt", // Default file extension
-				Filter = PlotFileFilter // Filter files by extension
-			};
-
-			// Show save file dialog box
-			bool? result = saveFileDialog.ShowDialog();
-
+			var fname = GetSavePltName("QaSpectrum");
 			// Process save file dialog box results
-			if (result == true)
+			if (fname.Length > 0)
 			{
 				// Save document
-				string filename = saveFileDialog.FileName;
-				if (filename.Length > 1)
-				{
-					var vm = MyVModel;
-					vm.actSpec.SaveToFile(filename);
-				}
+				actSpec.SaveToFile(fname);
 			}
 		}
 

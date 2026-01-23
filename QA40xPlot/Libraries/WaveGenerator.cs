@@ -210,6 +210,7 @@ namespace QA40xPlot.Libraries
 			Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
 			{
 				FileName = initial, // Default file name
+				InitialDirectory = ViewSettings.Singleton.SettingsVm.DataFolder,
 				DefaultExt = ".wav", // Default file extension
 				Filter = "Wave files|*.wav|All files|*.*"  // Filter files by extension
 			};

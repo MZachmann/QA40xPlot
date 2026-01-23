@@ -803,6 +803,27 @@ namespace QA40xPlot.ViewModels
 			paletteDialog.ShowDialog();
 		}
 
+		public string GetSavePltName(string prefix)
+		{
+			string sout = string.Empty;
+			Microsoft.Win32.SaveFileDialog saveFileDialog = new Microsoft.Win32.SaveFileDialog
+			{
+				FileName = String.Format(prefix + "{0}", FileAddon()), // Default file name
+				InitialDirectory = ViewSettings.Singleton.SettingsVm.DataFolder,
+				DefaultExt = ".plt", // Default file extension
+				Filter = PlotFileFilter // Filter files by extension
+			};
+
+			// Show save file dialog box
+			bool? result = saveFileDialog.ShowDialog();
+			if(result == true)
+			{
+				sout = saveFileDialog.FileName;
+			}
+			return sout;
+		}
+
+
 		/// <summary>
 		/// find the closest frequency to the desired one that is a bin frequency
 		/// this uses the ViewModel's fftsize and samplerate to determine the bin size
@@ -823,16 +844,17 @@ namespace QA40xPlot.ViewModels
 			Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
 			{
 				FileName = string.Empty, // Default file name
+				InitialDirectory = ViewSettings.Singleton.SettingsVm.DataFolder,
 				DefaultExt = ".zip", // Default file extension
 				Filter = fileFilter // Filter files by extension
 			};
 
 			openFileDialog.Multiselect = !isLoad;
 
-			// Show save file dialog box
+			// Show open file dialog box
 			bool? result = openFileDialog.ShowDialog();
 
-			// Process save file dialog box results
+			// Process open file dialog box results
 			if (result == true && isLoad)
 			{
 				// open document

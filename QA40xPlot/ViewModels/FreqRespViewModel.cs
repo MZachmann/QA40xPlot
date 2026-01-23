@@ -330,7 +330,7 @@ public class FreqRespViewModel : BaseViewModel
 	}
 
 
-	private static void SaveItTab()
+	private void SaveItTab()
 	{
 		string prefix = "QaFile";
 		var ttype = MyVModel.GetTestingType(MyVModel.TestType);
@@ -342,26 +342,13 @@ public class FreqRespViewModel : BaseViewModel
 			prefix = "QaGain";
 		else if (ttype == TestingType.Gain)
 			prefix = "QaCross";
-		SaveFileDialog saveFileDialog = new SaveFileDialog
-		{
-			FileName = prefix + FileAddon(),
-			DefaultExt = ".plt", // Default file extension
-			Filter = PlotFileFilter // Filter files by extension
-		};
 
-		// Show save file dialog box
-		bool? result = saveFileDialog.ShowDialog();
+		var fname = GetSavePltName(prefix);
 
 		// Process save file dialog box results
-		if (result == true)
+		if (fname.Length > 0)
 		{
-			// Save document
-			string filename = saveFileDialog.FileName;
-			if (filename.Length > 1)
-			{
-				var vm = MyVModel;
-				vm.actFreq.SaveToFile(filename);
-			}
+			actFreq.SaveToFile(fname);
 		}
 	}
 
