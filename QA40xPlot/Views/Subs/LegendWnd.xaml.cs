@@ -1,11 +1,11 @@
 ﻿using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
-using QA40xPlot.ViewModels.Subs;
 using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Input;
 
 namespace QA40xPlot.Views
 {
@@ -65,7 +65,7 @@ namespace QA40xPlot.Views
 			}
 		}
 
-		private void OnWindMouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+		private void OnWindMouseUp(object sender, MouseButtonEventArgs e)
 		{
 			if (sender is LegendWnd)
 			{
@@ -74,33 +74,64 @@ namespace QA40xPlot.Views
 			}
 		}
 
-		private void OnWindMouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+		private void OnWindMouseMove(object sender, MouseEventArgs e)
 		{
 			if (sender is LegendWnd)
 				_MovableWnd.OnWindMouseMove(sender, e);
 		}
 
-		private static void DoIsChecked(MarkerItem mark, bool isChecked)
+		private static string MarkSuffix(MarkerItem amark)
+		{
+			var ux = amark.Label.Split('@');
+			if (ux.Length == 2)
+				return ux[1];
+			return string.Empty;
+		}
+
+		private void DoIsChecked(MarkerItem mark, bool isChecked)
 		{
 			mark.IsShown = isChecked;
 			if(mark.Signal != null)
 			{
 				mark.Signal.IsVisible = isChecked;
-				if(mark.ThePlot != null)
+				if (mark.ThePlot != null)
 				{
 					var bvm = mark.ThePlot.DataContext as BaseViewModel;
 					if(bvm != null)
 					{
-						if (isChecked)
-							bvm.HiddenLines.Remove(mark.Label);
+						var info = bvm.LegendInfo; // short name of the list of markers
+						var msuffix = MarkSuffix(mark);
+						// check control key
+						if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+						{
+							foreach(MarkerItem amark in info)
+							{
+								if(MarkSuffix(amark) == msuffix )
+								{
+									amark.IsShown = isChecked;
+									if (amark.Signal != null)
+										amark.Signal.IsVisible = isChecked;
+									System.Diagnostics.Debug.WriteLine($"Set {amark.Label} to {isChecked}.");
+									if (isChecked)
+										bvm.HiddenLines.Remove(amark.Label);
+									else
+										bvm.HiddenLines.Add(amark.Label);
+								}
+							}
+						}
 						else
-							bvm.HiddenLines.Add(mark.Label);
+						{
+							if (isChecked)
+								bvm.HiddenLines.Remove(mark.Label);
+							else
+								bvm.HiddenLines.Add(mark.Label);
+						}
 					}
 					mark.ThePlot.Refresh();
 				}
 			}
 			// update viewable line segment
-
+			PopulateLegends();
 		}
 
 		private void PopulateLegends()
@@ -118,7 +149,8 @@ namespace QA40xPlot.Views
 			{
 				var kid = new StackPanel()
 				{
-					Orientation = Orientation.Horizontal
+					Orientation = Orientation.Horizontal,
+					ToolTip = "Palette index=" + marker.ColorIdx
 				};
 				var clr = PlotUtil.ScottToMedia(marker.TheColor);
 				var stkArray = PlotUtil.ScottToMedia(marker.ThePattern);
@@ -132,7 +164,8 @@ namespace QA40xPlot.Views
 					Margin = new Thickness(0, 0, 0, 0),
 					VerticalAlignment = VerticalAlignment.Center,
 					IsChecked = marker.IsShown,
-					IsEnabled = marker.ThePlot != null
+					IsEnabled = marker.ThePlot != null,
+					ToolTip = "Shift-click to turn on/off the group of lines."
 				};
 				bx.Checked += (s,e) => DoIsChecked(marker, true);
 				bx.Unchecked += (s, e) => DoIsChecked(marker, false);
@@ -148,14 +181,14 @@ namespace QA40xPlot.Views
 					StrokeThickness = 2,
 					StrokeDashArray = stkArray
 				};
+				
 				kid.Children.Add(lne);
 				var tbox = new TextBox()
 				{
 					Text = marker.Label,
 					IsReadOnly = true,
 					Margin = new Thickness(5, 0, 0, 0),
-					BorderBrush = Brushes.Transparent,
-					ToolTip = "Palette index=" + marker.ColorIdx
+					BorderBrush = Brushes.Transparent
 				};
 				kid.Children.Add(tbox);
 				maxSize = Math.Max(maxSize, MathUtil.MeasureString(tbox, marker.Label));

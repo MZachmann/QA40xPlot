@@ -14,6 +14,7 @@ v 1.2.6 1/24/26
 - try out second Y axis for group delay
 - rewrite/repair averaging for Frequency Response tests
 - update frequency response messaging
+- add Shift-Click to on/off a group of legend labels
 v 1.2.5 1/18/2026
 - add space to run/start/get... buttons
 - update mouse cursor in frequency response test when test runs
