@@ -419,6 +419,58 @@ namespace QA40x.BareMetal
 			return SoundUtil.HasChannel(isLeft);
 		}
 
+		static int _OldRate = -1;
+		private void TweakSampleRate(int newRate)
+		{
+			QaComm.MyIoDevice.SetSampleRate((uint)newRate);
+			_OldRate = newRate;
+			Debug.WriteLine($"Set new sample rate of {newRate}.");
+		}
+		private void UntweakSampleRate()
+		{
+			if(_OldRate != -1)
+			{
+				QaComm.MyIoDevice.SetSampleRate((uint)_OldRate);
+				_OldRate = -1;
+			}
+		}
+
+		private void TweakAtten(int offset)
+		{
+			var rngin = QaComm.GetInputRange();
+			var rng = Math.Min(42, rngin + offset);
+			QaComm.MyIoDevice.SetInputRange(rng);
+			Debug.WriteLine($"Convert {rngin} to {rng} attenuation.");
+
+		}
+
+		private void TweakORange()
+		{
+			var rng = QaComm.GetOutputRange();
+			var rngin = rng;
+			//{ { 18, 3 }, { 8, 2 }, { -2, 1 }, { -12, 0 } }
+			switch(rng)
+			{
+				case -12:
+					rng = 18;
+					break;
+				case -2:
+					rng = 8;
+					break;
+				case 8:
+					rng = 18;
+					break;
+				case 81:
+					rng = -12;
+					break;
+				default:
+					rng = -12;
+					break;
+			}
+			Debug.WriteLine($"Convert {rngin} to {rng} output range.");
+			QaComm.MyIoDevice.SetOutputRange(rng);
+		}
+
 		// here we detect start of data
 		// by comparing data to ~0. Empirically the QA40x has a latency of less than a ms.
 		// it looks like a fixed # of samples delay approximately 48-50 samples
@@ -556,6 +608,7 @@ namespace QA40x.BareMetal
 
 			// Loop and send/receive the remaining blocks. Everytime we get some RX data, we'll send another block of 
 			// TX data. This is how we maintain timing with the hardware. 
+			//bool bubble = false;
 			for (int i = prereader; i < blocks; i++)
 			{
 				// Wait for RX data to arrive then, for speed, just append the array to our list of receipts
@@ -569,6 +622,13 @@ namespace QA40x.BareMetal
 					Debug.WriteLine("Empty buffer received from USB");
 				}
 				remaining--;
+				//if(i >= blocks/2.0 && !bubble)
+				//{
+				//	bubble = true;
+				//	//TweakAtten(6);
+				//	//TweakORange();
+				//	//TweakSampleRate(96000);
+				//}
 
 				if (ct.IsCancellationRequested == false && bufr.Length > 0)
 				{
@@ -596,7 +656,7 @@ namespace QA40x.BareMetal
 			// Stop streaming. This also extinguishes the RUN led
 			WriteRegister(8, 0);
 			soundObj?.Stop();
-
+			UntweakSampleRate();
 			// we now have a list of all the rx buffers to convert to an array
 			// use fixed size so that frombytestream and others work ok
 			rxData = new byte[usbBufSize * usbRxBuffers.Count()];

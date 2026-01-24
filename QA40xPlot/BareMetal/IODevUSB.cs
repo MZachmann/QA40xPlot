@@ -187,7 +187,17 @@ namespace QA40xPlot.BareMetal
 			return 18; // Default to 18 dB if no suitable value is found
 		}
 
-		// note that averages refers to time series acquisitions
+		/// <summary>
+		/// This is the workhorse acquisition method used by virtually everything
+		/// It provides two channels of output wave 
+		/// then returns time and (optionally) frequency results
+		/// </summary>
+		/// <param name="averages">Number of times to acquire the data. it then averages the time domain data before calculating the fft</param>
+		/// <param name="ct">a cancellation token to enable external cancel</param>
+		/// <param name="dataLeft">left channel output</param>
+		/// <param name="dataRight">right channel output</param>
+		/// <param name="getFreq">bool to determine whether to calculate the fft freq data</param>
+		/// <returns>a LeftRightSeries with time data and possibly freq data</returns>
 		public async ValueTask<LeftRightSeries> DoAcquireUser(uint averages, CancellationToken ct, double[] dataLeft, double[] dataRight, bool getFreq)
 		{
 			if (!_UsbApi.IsOpen())

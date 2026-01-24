@@ -604,7 +604,7 @@ namespace QA40xPlot.Actions
 		/// <summary>
 		///  Start measurement button click
 		/// </summary>
-		public async Task DoMeasurement()
+		public async Task DoMeasurement(bool repeat)
 		{
 			var scopeVm = MyVModel;
 			if (!await StartAction(scopeVm))
@@ -671,6 +671,8 @@ namespace QA40xPlot.Actions
 					rslt = await PostProcess(PageData, ct.Token);
 					UpdateGraph(false);
 				}
+				if (!repeat)
+					break;
 			}
 
 			await showMessage("");

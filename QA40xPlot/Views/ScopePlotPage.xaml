@@ -17,7 +17,7 @@
         </Grid.ColumnDefinitions>
         <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
             <StackPanel Margin="0,1,1,0">
-                <views:StartStop />
+                <views:StartStop ShowStart="True" />
                 <CheckBox Content="_Use Generator 1" IsChecked="{Binding UseGenerator1}"  Margin="0,5,0,0" HorizontalAlignment="Center"></CheckBox>
                 <CheckBox Content="Use Generator _2" IsChecked="{Binding UseGenerator2}" HorizontalAlignment="Center"></CheckBox>
                 <views:Attenuator />

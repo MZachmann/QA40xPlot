@@ -2,7 +2,7 @@
 --------------------------------------------
 This changelog shows the changes made for each version
 --------------------------------------------
-v 1.2.6 1/25/26
+v 1.2.6 1/24/26
 - add a QA40x readme on ports
 - read the dc supply voltage, dc current, and temperature on device init
 - put them all upper-right updating on each measurement
@@ -12,6 +12,8 @@ v 1.2.6 1/25/26
 - finally fix phase upwrapping
 - add early group delay display
 - try out second Y axis for group delay
+- rewrite/repair averaging for Frequency Response tests
+- update frequency response messaging
 v 1.2.5 1/18/2026
 - add space to run/start/get... buttons
 - update mouse cursor in frequency response test when test runs

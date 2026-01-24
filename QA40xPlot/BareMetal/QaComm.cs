@@ -6,7 +6,7 @@ namespace QA40xPlot.BareMetal
 {
 	public class QaComm
 	{
-		private static IODevice MyIoDevice { get; set; } = new IODevUSB();
+		public static IODevice MyIoDevice { get; private set; } = new IODevUSB();
 
 		public static void SetIODevice(string name)
 		{
@@ -39,7 +39,8 @@ namespace QA40xPlot.BareMetal
 
 		public static async ValueTask SetInputRange(int range)
 		{
-			await MyIoDevice.SetInputRange(range);
+			var ubend = MyIoDevice.SetInputRange(range);
+			return;
 		}
 
 		public static async ValueTask SetOutputRange(int range)
