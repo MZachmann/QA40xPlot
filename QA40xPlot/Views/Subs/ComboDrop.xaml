@@ -7,14 +7,13 @@
              mc:Ignorable="d" 
              x:Name="MySelf"
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-        <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="1" Margin="0,2,0,2" >
+    <StackPanel Orientation="Vertical">
+        <StackPanel Orientation="Horizontal" Margin="0,2,0,2" >
             <ComboBox x:Name="cbCombo" Text="{Binding TheText, ElementName=MySelf}" 
                                 ToolTip="{Binding TheText, ElementName=MySelf}"
                                 IsEditable="True" 
                                 ItemsSource="{Binding TheSource, ElementName=MySelf}"
-                                MaxWidth="120" MinWidth="80" HorizontalAlignment="Left" 
-                            Grid.Row="2" Grid.Column="1" />
+                                MaxWidth="120" MinWidth="80" HorizontalAlignment="Left" />
             <Button Content="▽" Click="DownButton_Click" Margin="2,1" IsEnabled="{Binding IsOpen, ElementName=ThePopup, Converter={StaticResource InvBoolConverter}}"/>
         </StackPanel>
         <Popup x:Name="ThePopup" PlacementTarget="{Binding ElementName=cbCombo}" StaysOpen="False"
@@ -49,5 +48,5 @@
                 </StackPanel>
             </Border>
         </Popup>
-    </Grid>
+    </StackPanel>
 </UserControl>

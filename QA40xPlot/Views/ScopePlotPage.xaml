@@ -55,7 +55,7 @@
                                Grid.Row="3" Grid.Column="0" ToolTip="Select a WAV file."  />
                             <TextBox x:Name="cbWName"  Grid.Column="1" Grid.Row="3" MaxWidth="120"
                             Visibility="{Binding Gen1Waveform, Converter={StaticResource EnumVisConverter}, ConverterParameter=WaveFile}"
-                              VerticalContentAlignment="Center"
+                              VerticalContentAlignment="Center" ToolTip="{Binding GenWavFile}"
                               Text="{Binding GenWavFile}" >
                             </TextBox>
                             <Button Visibility="{Binding Gen1Waveform, Converter={StaticResource EnumVisConverter}, ConverterParameter=WaveFile}"

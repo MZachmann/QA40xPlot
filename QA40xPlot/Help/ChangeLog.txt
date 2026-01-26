@@ -2,6 +2,9 @@
 --------------------------------------------
 This changelog shows the changes made for each version
 --------------------------------------------
+v 1.2.7 asdfasdf
+- improve menu position and other esthetics
+
 v 1.2.6 1/24/26
 - add a QA40x readme on ports
 - read the dc supply voltage, dc current, and temperature on device init
@@ -15,6 +18,7 @@ v 1.2.6 1/24/26
 - rewrite/repair averaging for Frequency Response tests
 - update frequency response messaging
 - add Shift-Click to on/off a group of legend labels
+- switch to Release x64 instead of Release Any ?
 v 1.2.5 1/18/2026
 - add space to run/start/get... buttons
 - update mouse cursor in frequency response test when test runs

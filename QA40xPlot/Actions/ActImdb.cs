@@ -1,4 +1,5 @@
-﻿using QA40xPlot.BareMetal;
+﻿using NAudio.Gui;
+using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
@@ -696,7 +697,9 @@ namespace QA40xPlot.Actions
 				plotLeft.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, measurementNr * 2);
 				plotLeft.MarkerSize = 1;
 				plotLeft.LegendText = isMain ? "Left" : ClipName(page.Definition.Name) + ".L";
-				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotLeft.Color, plotLeft.LegendText, measurementNr * 2, plotLeft, imdPlot));
+				plotLeft.IsVisible = !MyVModel.HiddenLines.Contains(plotLeft.LegendText);
+				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotLeft.Color, plotLeft.LegendText, measurementNr * 2, 
+					plotLeft, imdPlot, plotLeft.IsVisible));
 			}
 
 			if (useRight)
@@ -712,7 +715,9 @@ namespace QA40xPlot.Actions
 				plotRight.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, measurementNr * 2 + 1);
 				plotRight.MarkerSize = 1;
 				plotRight.LegendText = isMain ? "Right" : ClipName(page.Definition.Name) + ".R";
-				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotRight.Color, plotRight.LegendText, measurementNr * 2 + 1, plotRight, imdPlot));
+				plotRight.IsVisible = !MyVModel.HiddenLines.Contains(plotRight.LegendText);
+				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotRight.Color, plotRight.LegendText, measurementNr * 2 + 1, 
+					plotRight, imdPlot, plotRight.IsVisible));
 			}
 
 			imdPlot.Refresh();

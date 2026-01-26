@@ -1336,7 +1336,7 @@ namespace QA40xPlot.Actions
 				plot.LegendText = prefix + legendname;
 				plot.LinePattern = LinePattern.Solid;
 				plot.IsVisible = !MyVModel.HiddenLines.Contains(legendname);
-				MyVModel.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2, plot, frqrsPlot));
+				MyVModel.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2, plot, frqrsPlot, plot.IsVisible));
 			}
 
 			showPlot = (isMain && frqrsVm.ShowRight) || (!isMain && page.Definition.IsOnR);
@@ -1365,7 +1365,7 @@ namespace QA40xPlot.Actions
 				plot.MarkerSize = markerSize;
 				plot.LinePattern = LinePattern.Solid;
 				plot.IsVisible = !MyVModel.HiddenLines.Contains(plot.LegendText);
-				MyVModel.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2 + 1, plot, frqrsPlot));
+				MyVModel.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2 + 1, plot, frqrsPlot, plot.IsVisible));
 
 				if (isMain && frqrsVm.ShowGroupDelay && (ttype == TestingType.Impedance || ttype == TestingType.Gain))
 				{
@@ -1388,7 +1388,7 @@ namespace QA40xPlot.Actions
 					plot.LineWidth = lineWidth;
 					plot.MarkerSize = markerSize;
 					plot.IsVisible = !MyVModel.HiddenLines.Contains(plot.LegendText);
-					MyVModel.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2 + 1, plot, frqrsPlot));
+					MyVModel.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2 + 1, plot, frqrsPlot, plot.IsVisible));
 				}
 			}
 

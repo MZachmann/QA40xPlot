@@ -39,8 +39,8 @@ The code is based on C#, .NET 9, and WPF (Windows Presentation Foundation).
 ## Documentation
 There is a help button in the application that brings up a page of help. 
 
-There is also a lengthy but good youtube tutorial. The video tutorial has a 
-clickable table of contents in the description.
+There is a lot of content in the Github Wiki for this repository. That includes specific help for app-wide functionality as well as
+detailed info on each of the tests. Most of the wiki pages point to video tutorials for their subject.
 
 ## To Run
 The installer creates an icon on your desktop and links to the usual Windows run options. 

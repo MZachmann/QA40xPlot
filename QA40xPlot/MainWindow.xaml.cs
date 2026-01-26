@@ -59,7 +59,7 @@ namespace QA40xPlot
 
 		public MainWindow()
 		{
-			string fload = " - default configuration";
+			string fload = " - factory default configuration";
 			var fdocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 			// look for a default config file before we paint the windows for theme setting...
 			string fpath = Util.GetDefaultConfigPath();
