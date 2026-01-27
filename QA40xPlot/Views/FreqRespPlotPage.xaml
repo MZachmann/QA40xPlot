@@ -147,6 +147,7 @@
             <StackPanel Orientation="Vertical">
                 <views:YAxisDb></views:YAxisDb>
                 <views:YAxisNoDb></views:YAxisNoDb>
+                <views:Y2Axis Visibility="{Binding ShowGroupDelay, Converter={StaticResource BoolVisConverter}}"></views:Y2Axis>
                 <views:PhaseAxis></views:PhaseAxis>
                 <Expander Header="—— X Axis"  IsExpanded="{Binding ExpandXAxis}" >
                     <Grid>
@@ -203,8 +204,10 @@
                               IsChecked="{Binding KeepMiniPlots}" Grid.Row="1"  />
                         <CheckBox Content="Legend" ToolTip="{Binding ShowLegendTip}"
                                 IsChecked="{Binding ShowLegend}" Grid.Row="2"  />
-                        <CheckBox Content="Group Delay" ToolTip="Show group delay"
-                                IsChecked="{Binding ShowGroupDelay}" Grid.Row="3"  />
+                        <CheckBox Content="Phase" ToolTip="Show phase curve if available" 
+                                IsChecked="{Binding ShowPhase}" Grid.Row="3"  />
+                        <CheckBox Content="Group Delay" ToolTip="Show group delay if available"
+                                IsChecked="{Binding ShowGroupDelay}" Grid.Row="4"  />
                     </Grid>
                 </Expander>
 

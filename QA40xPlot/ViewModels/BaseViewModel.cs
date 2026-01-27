@@ -23,6 +23,8 @@ namespace QA40xPlot.ViewModels
 		public static List<string> StartFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "5000", "10000" }; }
 		public static List<string> TopDbs { get => new List<string> { "100", "50", "20", "0", "-50", "-80" }; }
 		public static List<string> BottomDbs { get => new List<string> { "0", "-50", "-100", "-120", "-140", "-160", "-180", "-200" }; }
+		public static List<String> AbsoluteValues { get => new List<string> { "5", "2", "1", "0.5", "0.1", "0.05", "-0.05", "-0.1", "-0.5", "-1", "-2", "-5" }; }
+		public static List<String> AbsoluteDelays { get => new List<string> { "100", "30", "5", "2", "1", "0.5", "0.1", "0.05", "-0.05", "-0.1", "-0.5", "-1", "-2", "-5", "-30", "-100" }; }
 		public static List<string> StartPercents { get => new List<string> { "1000", "100", "10", "1", "0.1", "0.01" }; }
 		public static List<string> EndPercents { get => new List<string> { "0.1", "0.01", "0.001", "0.0001", "0.00001", "0.000001", "0.0000001" }; }
 		public static List<string> SampleRates { get => new List<string> { "48000", "96000", "192000", "384000" }; }
@@ -360,6 +362,13 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
+		private bool _ShowPhase;
+		public bool ShowPhase
+		{
+			get => _ShowPhase;
+			set => SetProperty(ref _ShowPhase, value);
+		}
+
 		private bool _ShowLegend = true;
 		public bool ShowLegend
 		{
@@ -413,6 +422,20 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _ShowThickLines;
 			set => SetProperty(ref _ShowThickLines, value);
+		}
+
+		private string _range2Top = string.Empty;
+		public string Range2Top
+		{
+			get { return _range2Top; }
+			set => SetProperty(ref _range2Top, value);
+		}
+
+		private string _range2Bottom = string.Empty;
+		public string Range2Bottom
+		{
+			get { return _range2Bottom; }
+			set => SetProperty(ref _range2Bottom, value);
 		}
 
 		private string _rangeTop = string.Empty;
@@ -767,6 +790,9 @@ namespace QA40xPlot.ViewModels
 			ShowLeft = gui.ShowLeft;
 			ShowRight = gui.ShowRight;
 			ShowLegend = gui.ShowLegend;
+			ShowPhase = gui.ShowPhase;
+			Range2Top = gui.Range2Top;
+			Range2Bottom = gui.Range2Bottom;
 		}
 
 		public void UpdatePlotColors()

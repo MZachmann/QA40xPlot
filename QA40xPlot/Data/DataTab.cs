@@ -258,6 +258,9 @@ namespace QA40xPlot.Data
 			get { return GetProperty<LeftRightFrequencySeries?>("Noise"); }
 			set { SetProperty("Noise", value); }
 		}
+		/// <summary>
+		/// the delay values associated with frequency vector
+		/// </summary>
 		[JsonIgnore]
 		public double[]? DelayRslt
 		{

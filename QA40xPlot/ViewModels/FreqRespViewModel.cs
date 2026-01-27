@@ -247,6 +247,9 @@ public class FreqRespViewModel : BaseViewModel
 			case "PhaseTop":
 			case "PhaseBottom":
 			case "ShowGroupDelay":
+			case "Range2Top":
+			case "Range2Bottom":
+			case "ShowPhase":
 				MyAction?.UpdateGraph(true);
 				break;
 			case "ShowRight":
@@ -479,9 +482,12 @@ public class FreqRespViewModel : BaseViewModel
 		RightChannel = false;
 		RangeTop = "1";             // when graphing percents distortion this is logarithmic 0.01....
 		RangeBottom = "0.001";
+		Range2Top = "1";             // when graphing group delay
+		Range2Bottom = "-1";
 
 		ShowThickLines = true;
 		ShowPercent = false;
+		ShowPhase = true;
 
 		RangeTopdB = "20";
 		RangeBottomdB = "-180";

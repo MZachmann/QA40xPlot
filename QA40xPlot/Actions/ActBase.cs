@@ -77,9 +77,17 @@ namespace QA40xPlot.Actions
 					{
 						var dref = GraphUtil.GetDbrReference(bvm, dRefs);
 						var bot = GraphUtil.ValueToLogPlot(bvm, bounds.Y, dref);
-						bvm.RangeBottomdB = Math.Floor(bot).ToString("0");
 						var top = GraphUtil.ValueToLogPlot(bvm, bounds.Y + bounds.Height, dref);
-						bvm.RangeTopdB = Math.Ceiling(top).ToString("0");
+						if(top > bot && (top-bot) < 10)
+						{
+							bvm.RangeBottomdB = bot.ToString("G3");
+							bvm.RangeTopdB = top.ToString("G3");
+						}
+						else
+						{
+							bvm.RangeBottomdB = Math.Floor(bot).ToString("0");
+							bvm.RangeTopdB = Math.Ceiling(top).ToString("0");
+						}
 					}
 					break;
 				default:
@@ -125,16 +133,29 @@ namespace QA40xPlot.Actions
 					{
 						var u = Math.Pow(10, Math.Round(myPlot.Axes.Left.Min, 1));
 						var w = Math.Pow(10, Math.Round(myPlot.Axes.Left.Max, 1));
-						bvm.RangeTop = (w > 10) ? w.ToString("0") : w.ToString("G2");
-						bvm.RangeBottom = (u > 10) ? u.ToString("0") : u.ToString("G2");
+						bvm.RangeTop = (w > 10) ? w.ToString("0") : w.ToString("G3");
+						bvm.RangeBottom = (u > 10) ? u.ToString("0") : u.ToString("G3");
 					}
 					break;
 				case "YM":  // Y magnitude
 					{
 						var u = myPlot.Axes.Left.Min;
 						var w = myPlot.Axes.Left.Max;
-						bvm.RangeTopdB = w.ToString("0");
-						bvm.RangeBottomdB = u.ToString("0");
+						if((w - u) < 10)
+						{
+							bvm.RangeTopdB = w.ToString("G4");
+							bvm.RangeBottomdB = u.ToString("G4");
+						}
+						else
+						{
+							bvm.RangeTopdB = Math.Ceiling(w).ToString("0");
+							bvm.RangeBottomdB = Math.Floor(u).ToString("0");
+						}
+						if(bvm.RangeTopdB == bvm.RangeBottomdB)
+						{
+							bvm.RangeBottomdB = (Math.Ceiling(w) -1).ToString("0");
+							bvm.RangeTopdB = (Math.Ceiling(w)+1).ToString("0");
+						}
 					}
 					break;
 			}

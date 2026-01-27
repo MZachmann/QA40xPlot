@@ -83,15 +83,26 @@ namespace QA40xPlot.Actions
 		{
 			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
 			var vm = MyVModel;
-			if(who != "PH")
-				PinGraphRanges(myPlot, vm, who);
-			else
+			if (who == "Y2")
+			{
+				var y2axis = GetY2Axis(myPlot);
+				if(y2axis != null)
+				{
+					var u = y2axis.Min;
+					var w = y2axis.Max;
+					vm.Range2Top = w.ToString("G3");
+					vm.Range2Bottom = u.ToString("G3");
+				}
+			}
+			else if (who == "PH")
 			{
 				var u = myPlot.Axes.Right.Min;
 				var w = myPlot.Axes.Right.Max;
 				vm.PhaseBottom = u.ToString("0");
 				vm.PhaseTop = w.ToString("0");
 			}
+			else
+				PinGraphRanges(myPlot, vm, who);
 		}
 
 		public bool SaveToFile(string fileName)
@@ -481,7 +492,6 @@ namespace QA40xPlot.Actions
 			return rrc;
 		}
 
-
 		public override Rect GetDataBounds()
 		{
 			// here we want to show what's visible so use freqVm for visibility
@@ -618,13 +628,27 @@ namespace QA40xPlot.Actions
 			{
 				return;
 			}
-			var bounds = (parameter.ToString() != "PH") ? GetDataBounds() : GetPhaseBounds();
-			switch (parameter)
+			var axisType = parameter.ToString();
+			Rect bounds = Rect.Empty;
+			switch (axisType)
+			{
+				case "Y2":
+					
+					break;
+				case "PH":
+					bounds = GetPhaseBounds();
+					break;
+				default:
+					bounds = GetDataBounds();
+					break;
+			}
+
+			switch (axisType)
 			{
 				case "PH":  // X magnitude
 							// calculate the bounds here. X is provided in input or output volts/power
-					bvm.PhaseTop = Math.Floor(bounds.Bottom).ToString("G0");
-					bvm.PhaseBottom = Math.Ceiling(bounds.Top).ToString("G0");
+					bvm.PhaseTop = bounds.Bottom.ToString("G3");
+					bvm.PhaseBottom = bounds.Top.ToString("G3");
 					break;
 				case "XF":  // X frequency
 					bvm.GraphStartX = bounds.Left.ToString("0");
@@ -637,27 +661,34 @@ namespace QA40xPlot.Actions
 					bvm.RangeTop = "100";  // always 100%
 					bvm.RangeBottom = bot.ToString("0.##########");
 					break;
+				case "Y2":  // group delay
+					var rsl = PageData.DelayRslt;
+					if(rsl != null && rsl.Length > 0)
+					{
+						bvm.Range2Bottom = rsl.Min().ToString("G3");
+						bvm.Range2Top = rsl.Max().ToString("G3");
+					}
+					break;
 				case "YM":  // Y magnitude
-					var frqVm = bvm as FreqRespViewModel;
-					var ttype = frqVm?.GetTestingType(frqVm.TestType) ?? TestingType.Response;
+					var ttype = bvm.GetTestingType(bvm.TestType);
 					if (ttype == TestingType.Impedance)
 					{
-						bvm.RangeBottomdB = bounds.Y.ToString("0");
-						bvm.RangeTopdB = (bounds.Height + bounds.Y).ToString("0");
+						bvm.RangeBottomdB = bounds.Y.ToString("G3");
+						bvm.RangeTopdB = (bounds.Height + bounds.Y).ToString("G3");
 					}
 					else if (ttype != TestingType.Response)
 					{
-						bvm.RangeBottomdB = (20 * Math.Log10(Math.Max(1e-14, bounds.Y))).ToString("0");
-						bvm.RangeTopdB = Math.Ceiling((20 * Math.Log10(Math.Max(1e-14, bounds.Height + bounds.Y)))).ToString("0");
+						bvm.RangeBottomdB = (20 * Math.Log10(Math.Max(1e-14, bounds.Y))).ToString("G3");
+						bvm.RangeTopdB = Math.Ceiling((20 * Math.Log10(Math.Max(1e-14, bounds.Height + bounds.Y)))).ToString("G3");
 					}
 					else
 					{
 						var dref = GraphUtil.GetDbrReference(bvm, bvm.ShowLeft ? PageData.GainLeft : PageData.GainRight,
 							PageData.GainFrequencies);
 						var botx = GraphUtil.ValueToLogPlot(bvm, bounds.Y, dref);
-						bvm.RangeBottomdB = Math.Floor(botx).ToString("0");
+						bvm.RangeBottomdB = Math.Floor(botx).ToString("G3");
 						var topx = GraphUtil.ValueToLogPlot(bvm, bounds.Y + bounds.Height, dref);
-						bvm.RangeTopdB = Math.Ceiling(topx).ToString("0");
+						bvm.RangeTopdB = Math.Ceiling(topx).ToString("G3");
 					}
 					break;
 				default:
@@ -1108,10 +1139,13 @@ namespace QA40xPlot.Actions
 
 		public void AddPhase(FreqRespViewModel frqrsVm, Plot myPlot)
 		{
-			PlotUtil.AddPhaseFreqRule(myPlot);
-			PlotUtil.AddPhasePlot(myPlot);
-			myPlot.Axes.Right.Label.Text = "Phase (Deg)";
-			frqrsVm.ToShowPhase = Visibility.Visible;
+			if(frqrsVm.ShowPhase)
+			{
+				PlotUtil.AddPhaseFreqRule(myPlot);
+				PlotUtil.AddPhasePlot(myPlot);
+				myPlot.Axes.Right.Label.Text = "Phase (Deg)";
+				frqrsVm.ToShowPhase = Visibility.Visible;
+			}
 			if (frqrsVm.ShowGroupDelay)
 			{
 				AddGroupDelay(frqrsVm, myPlot);
@@ -1128,13 +1162,11 @@ namespace QA40xPlot.Actions
 		{
 			var axis = PlotUtil.AddSecondY(frqrsVm, myPlot);
 			axis.RemoveTickGenerator();
-			// 
-			ScottPlot.AxisRules.MaximumBoundary rule = new(
-				xAxis: myPlot.Axes.Bottom,
-				yAxis: axis,
-				limits: new AxisLimits(Math.Log10(1), Math.Log10(100000), 3600, -3600)
-				);
-			myPlot.Axes.Rules.Add(rule);
+			var y2axis = GetY2Axis(myPlot);
+			if(y2axis != null)
+			{
+				myPlot.Axes.SetLimitsY(ToD(frqrsVm.Range2Bottom, -10), ToD(frqrsVm.Range2Top, 10), y2axis);
+			}
 
 			axis.LabelText = "Group Delay (ms)";
 			var tickgen = PlotUtil.BuildMagTics(myPlot);
@@ -1148,6 +1180,16 @@ namespace QA40xPlot.Actions
 			// use dark text color
 			axis.LabelFontColor = clr;
 			axis.TickLabelStyle.ForeColor = clr;
+		}
+
+		private IYAxis? GetY2Axis(Plot myPlot)
+		{
+			var yaxes = myPlot.Axes.GetYAxes();
+			if (yaxes.Count() > 2)
+			{
+				return yaxes.ElementAt(2);
+			}
+			return null;
 		}
 
 		/// <summary>
@@ -1169,11 +1211,11 @@ namespace QA40xPlot.Actions
 			// as if no phase
 			frqrsVm.ToShowPhase = Visibility.Collapsed;
 			myPlot.Axes.Right.Label.Text = string.Empty;
-			var yaxes = myPlot.Axes.GetYAxes();
-			if(yaxes.Count() > 2)
+			var y2axis = GetY2Axis(myPlot);
+			if(y2axis != null)
 			{
-				var y2 = yaxes.ElementAt(2);
-				myPlot.Axes.Remove(y2);
+				myPlot.Axes.Remove(y2axis);
+				y2axis = null;
 			}
 			PageData.DelayRslt = null;
 
@@ -1325,9 +1367,9 @@ namespace QA40xPlot.Actions
 			}
 			//SetMagFreqRule(myPlot);
 			var showPlot = isMain || page.Definition.IsOnL;
-			SignalXY plot;
 			var prefix = (measurementNr == 0) ? string.Empty : (ClipName(page.Definition.Name) + ".");
 
+			SignalXY? plot = null;
 			if ((ttype == TestingType.Gain || ttype == TestingType.Impedance) || showPlot)
 			{
 				plot = myPlot.Add.SignalXY(logFreqX.Skip(skipped).ToArray(), YValues.Skip(skipped).ToArray());
@@ -1344,12 +1386,16 @@ namespace QA40xPlot.Actions
 			if ((ttype == TestingType.Gain || ttype == TestingType.Impedance) || showPlot)
 			{
 				var phases = phaseValues;
+				plot = null;
 				if (ttype == TestingType.Gain || ttype == TestingType.Impedance)
 				{
-					phases = UnWrap(phaseValues);
-					plot = myPlot.Add.SignalXY(logFreqX.Skip(skipped).ToArray(), phases.Skip(skipped).ToArray());
-					plot.Axes.YAxis = myPlot.Axes.Right;
-					plot.LegendText = prefix + "Phase (Deg)";
+					if(frqrsVm.ShowPhase)
+					{
+						phases = UnWrap(phaseValues);
+						plot = myPlot.Add.SignalXY(logFreqX.Skip(skipped).ToArray(), phases.Skip(skipped).ToArray());
+						plot.Axes.YAxis = myPlot.Axes.Right;
+						plot.LegendText = prefix + "Phase (Deg)";
+					}
 				}
 				else if (ttype == TestingType.Response)
 				{
@@ -1361,12 +1407,15 @@ namespace QA40xPlot.Actions
 					plot = myPlot.Add.SignalXY(logFreqX.Skip(skipped).ToArray(), phases.Skip(skipped).ToArray());
 					plot.LegendText = prefix + "Right dB";
 				}
-				plot.LineWidth = lineWidth;
-				plot.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, measurementNr * 2 + 1);
-				plot.MarkerSize = markerSize;
-				plot.LinePattern = LinePattern.Solid;
-				plot.IsVisible = !MyVModel.HiddenLines.Contains(plot.LegendText);
-				MyVModel.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2 + 1, plot, frqrsPlot, plot.IsVisible));
+				if(plot != null)
+				{
+					plot.LineWidth = lineWidth;
+					plot.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, measurementNr * 2 + 1);
+					plot.MarkerSize = markerSize;
+					plot.LinePattern = LinePattern.Solid;
+					plot.IsVisible = !MyVModel.HiddenLines.Contains(plot.LegendText);
+					MyVModel.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2 + 1, plot, frqrsPlot, plot.IsVisible));
+				}
 
 				if (isMain && frqrsVm.ShowGroupDelay && (ttype == TestingType.Impedance || ttype == TestingType.Gain))
 				{

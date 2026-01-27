@@ -112,12 +112,6 @@ namespace QA40xPlot.ViewModels
 			get => _ShowMagnitude;
 			set => SetProperty(ref _ShowMagnitude, value);
 		}
-		private bool _ShowPhase;
-		public bool ShowPhase
-		{
-			get => _ShowPhase;
-			set => SetProperty(ref _ShowPhase, value);
-		}
 		private bool _ShowNoise;
 		public bool ShowNoise
 		{
