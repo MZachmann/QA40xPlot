@@ -203,7 +203,7 @@ namespace QA40xPlot.Libraries
 				case "Bartlett":
 					window = new FftSharp.Windows.Bartlett();    // best?
 					break;
-				case "Blackman":
+				case "Blackman-3":
 					window = new FftSharp.Windows.Blackman();    // best?
 					break;
 				case "Cosine":
@@ -217,6 +217,9 @@ namespace QA40xPlot.Libraries
 					break;
 				case "Hann":
 					window = new FftSharp.Windows.Hanning();    // best?
+					break;
+				case "Blackman-7":
+					window = new BlackmanH7();    // best?
 					break;
 				case "Kaiser":
 					window = new FftSharp.Windows.Kaiser();    // best?

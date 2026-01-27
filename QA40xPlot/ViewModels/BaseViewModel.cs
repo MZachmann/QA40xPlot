@@ -18,7 +18,7 @@ namespace QA40xPlot.ViewModels
 	{
 		// public INavigation ViewNavigator { get; set; }
 		#region Shared Properties
-		public static List<string> WindowingTypes { get => new List<string> { "Bartlett", "Blackman", "Cosine", "FlatTop", "Hamming", "Hann", "Kaiser", "Rectangular", "Tukey", "Welch" }; }
+		public static List<string> WindowingTypes { get => new List<string> { "Bartlett", "Blackman-3", "Blackman-7", "Cosine", "FlatTop", "Hamming", "Hann", "Kaiser", "Rectangular", "Tukey", "Welch" }; }
 		public static List<string> EndFrequencies { get => new List<string> { "1000", "2000", "5000", "10000", "20000", "50000", "100000" }; }
 		public static List<string> StartFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "5000", "10000" }; }
 		public static List<string> TopDbs { get => new List<string> { "100", "50", "20", "0", "-50", "-80" }; }

@@ -4,7 +4,8 @@ This changelog shows the changes made for each version
 --------------------------------------------
 v 1.2.7 asdfasdf
 - improve menu position and other esthetics
-
+- add blackman-harris 7 window to the window list, rename blackman to blackman-3
+- 
 v 1.2.6 1/24/26
 - add a QA40x readme on ports
 - read the dc supply voltage, dc current, and temperature on device init
