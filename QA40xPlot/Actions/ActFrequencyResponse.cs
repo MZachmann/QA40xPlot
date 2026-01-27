@@ -16,6 +16,7 @@ using System.Numerics;
 using System.Windows;
 using System.Windows.Interop;
 using static QA40xPlot.ViewModels.BaseViewModel;
+using static SkiaSharp.HarfBuzz.SKShaper;
 
 namespace QA40xPlot.Actions
 {
@@ -1397,8 +1398,6 @@ namespace QA40xPlot.Actions
 
 		public void UpdateGraph(bool settingsChanged)
 		{
-			frqrsPlot.ThePlot.Remove<Marker>();             // Remove all current lines
-			frqrsPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
 			var frqsrVm = MyVModel;
 
 			int resultNr = 0;
@@ -1409,7 +1408,15 @@ namespace QA40xPlot.Actions
 			}
 
 			frqsrVm.UpdateMouseCursor(frqsrVm.LookX, 0);
+			DrawPlotLines(resultNr);
+		}
+
+		public int DrawPlotLines(int resultNr)
+		{
+			var frqsrVm = MyVModel;
 			MyVModel.LegendInfo.Clear();
+			frqrsPlot.ThePlot.Remove<Marker>();             // Remove all current lines
+			frqrsPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
 			PlotValues(PageData, resultNr++, true);  // frqsrVm.GraphType);
 			if (OtherTabs.Count > 0)
 			{
@@ -1421,6 +1428,7 @@ namespace QA40xPlot.Actions
 			}
 
 			frqrsPlot.Refresh();
+			return resultNr;
 		}
 	}
 }

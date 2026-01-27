@@ -175,6 +175,9 @@ public class FreqRespViewModel : BaseViewModel
 	{
 		switch (e.PropertyName)
 		{
+			case "DSPlotColors":
+				MyAction?.DrawPlotLines(0);
+				break;
 			case "UpdateGraph":
 				MyAction?.UpdateGraph(true);
 				break;
