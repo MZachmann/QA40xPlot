@@ -379,10 +379,20 @@ namespace QA40xPlot.Libraries
 					// remove zip suffix
 					var fbegin = fname.Substring(0, fname.LastIndexOf('.'));
 					// Find the specific file inside the ZIP
+					// if we just do this then rename the file we can't load it
 					ZipArchiveEntry? entry = archive.GetEntry(fbegin);
-
 					if (entry == null)
 					{
+						// file was renamed? just use the first entry
+						var entries = archive.Entries;
+						if (entries.Count >= 1)
+						{
+							entry = entries[0];
+						}
+					}
+					if (entry == null)
+					{
+						MessageBox.Show("Error", "Unable to load the file. Zip entry conflict.", MessageBoxButton.OK, MessageBoxImage.Error);
 						return string.Empty;
 					}
 
