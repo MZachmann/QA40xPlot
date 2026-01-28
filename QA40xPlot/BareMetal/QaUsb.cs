@@ -69,9 +69,12 @@ namespace QA40x.BareMetal
 	class QaUsb
 	{
 		object ReadRegLock = new object();
-		private readonly static int _RelayMilliseconds = 2000; // how long to wait for relays to settle down after changing input/output ranges
-
-		List<AsyncResult> WriteQueue = new List<AsyncResult>();
+		// how long to wait for relays to settle down after changing input/output ranges
+		// in empirical testing it takes about 200ms, so we use 500ms to be safe
+		private readonly static int _RelayMilliseconds = 500;
+		private readonly static int _SRateChangeMilliseconds = 1000;
+		
+				List<AsyncResult> WriteQueue = new List<AsyncResult>();
 		List<AsyncResult> ReadQueue = new List<AsyncResult>();
 		/// Tracks whether or not an acq is in process. The count starts at one, and when it goes busy
 		/// it will drop to zero, and then return to 1 when not busy
@@ -313,6 +316,7 @@ namespace QA40x.BareMetal
 
 		private static int _LastInputRange = 100;
 		private static int _LastOutputRange = 100;
+		private static uint _LastSampleRate = 100;
 		/// <summary>
 		/// Provides an async method for doign the DAC/ADC streaming. You can submit separate buffers for the left and right channels.
 		/// When the acquisition is finished, the AcqResult return value will contain the Left and Right values captured by the ADC
@@ -329,6 +333,7 @@ namespace QA40x.BareMetal
 			{
 				var s = QaComm.GetInputRange();
 				var u = QaComm.GetOutputRange();
+				var t = QaComm.GetSampleRate();
 				if (s != _LastInputRange || u != _LastOutputRange)
 				{
 					// if we flipped a relay, wait a while...
@@ -342,6 +347,11 @@ namespace QA40x.BareMetal
 					}
 					_LastInputRange = s;
 					_LastOutputRange = u;
+				}
+				if(t != _LastSampleRate)
+				{
+					await showMessage("Synchronizing...", _SRateChangeMilliseconds);
+					_LastSampleRate = t;
 				}
 			}
 			catch (Exception ex)
@@ -474,7 +484,8 @@ namespace QA40x.BareMetal
 		// here we detect start of data
 		// by comparing data to ~0. Empirically the QA40x has a latency of less than a ms.
 		// it looks like a fixed # of samples delay approximately 48-50 samples
-		private const int _Qa40xDelay = 55;     // max samples past prebuf to check
+		// max samples past prebuf to check should be 55 but add for interrupt or w/e
+		private const int _Qa40xDelay = 55;
 		/// <summary>
 		/// Send data and receive data via USB low level code.
 		/// </summary>
@@ -729,9 +740,10 @@ namespace QA40x.BareMetal
 					}
 
 					if (loff == 0)
-						loff = preBuf + (HasAChannel(true) ? adelay : edelay);
+						loff = preBuf + (HasAChannel(true) ? edelay : adelay);
 					if (roff == 0)
-						roff = preBuf + (HasAChannel(false) ? adelay : edelay);
+						roff = preBuf + (HasAChannel(false) ? edelay : adelay);
+					Debug.WriteLine($"Prebuf={preBuf} Delay offset: {loff}, {roff}  DC offset: {dcoffsetL:G3},{dcoffsetR:G3}");
 					if (!useExternal || !SoundUtil.HasChannel(true))
 					{
 						if (loff > (preBuf + adelay))
@@ -778,6 +790,8 @@ namespace QA40x.BareMetal
 						loff = Math.Abs(loff);
 					}
 
+					Debug.WriteLine($"Prebuf={preBuf} Delay offset: {loff}, {roff}  DC offset: {dcoffsetL:G3},{dcoffsetR:G3}");
+
 					// both internal or both external, use min latency
 					// this keeps the two channels in phase with each other when using a single output device (QA40x or Windows)
 					if (!useExternal || 3 == SoundUtil.GetChannels())
@@ -786,9 +800,8 @@ namespace QA40x.BareMetal
 						roff = loff;
 					}
 
-					//Debug.WriteLine($"Prebuf={preBuf} Delay offset: {loff}, {roff}  DC offset: {dcoffsetL:G3},{dcoffsetR:G3}");
-					//loff = preBuf;
-					//roff = preBuf;
+					//loff = 0;
+					//roff = 0;
 				}
 
 				var rlf = r.Left.Skip(loff).Take(tused);

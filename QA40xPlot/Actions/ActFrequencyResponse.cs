@@ -98,8 +98,8 @@ namespace QA40xPlot.Actions
 			{
 				var u = myPlot.Axes.Right.Min;
 				var w = myPlot.Axes.Right.Max;
-				vm.PhaseBottom = u.ToString("0");
-				vm.PhaseTop = w.ToString("0");
+				vm.PhaseBottom = u.ToString("G3");
+				vm.PhaseTop = w.ToString("G3");
 			}
 			else
 				PinGraphRanges(myPlot, vm, who);
