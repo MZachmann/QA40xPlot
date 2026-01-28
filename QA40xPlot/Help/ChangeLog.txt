@@ -6,9 +6,10 @@ v 1.2.7 asdfasdf
 - improve menu position and other esthetics
 - add blackman-harris 7 window to the window list, rename blackman to blackman-3
 - repaired: renamed files could not be loaded with the new Zip code
-- fix Response plots color not updating when changing palette colors
+- fix Response plots color not updating immediately when palette colors change
 - hook up second Y axis settings for group delay
 - reduce the relay delay time after empirical testing
+- change graph limit updates to enable multipin/fit
 v 1.2.6 1/24/26
 - add a QA40x readme on ports
 - read the dc supply voltage, dc current, and temperature on device init

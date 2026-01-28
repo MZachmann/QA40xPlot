@@ -753,15 +753,6 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;
 			PlotUtil.InitializeMagAmpPlot(myPlot, plotFormat);
 
-			var thdFreq = MyVModel;
-			try
-			{
-				myPlot.Axes.SetLimits(Math.Log10(ToD(thdFreq.GraphStartX, .001)), Math.Log10(ToD(thdFreq.GraphEndX, .001)),
-					Math.Log10(ToD(thdFreq.RangeBottom)), Math.Log10(ToD(thdFreq.RangeTop)));
-			}
-			catch
-			{
-			}
 			UpdatePlotTitle();
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
 			thdPlot.Refresh();
@@ -772,12 +763,9 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void InitializeMagnitudePlot(string plotFormat = "dBV")
 		{
-			var thdFreq = MyVModel;
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;
 			PlotUtil.InitializeMagAmpPlot(myPlot, plotFormat);
 
-			myPlot.Axes.SetLimits(Math.Log10(ToD(thdFreq.GraphStartX, .001)), Math.Log10(ToD(thdFreq.GraphEndX, .001)),
-				ToD(thdFreq.RangeBottomdB), ToD(thdFreq.RangeTopdB));
 			UpdatePlotTitle();
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
 			thdPlot.Refresh();
@@ -916,28 +904,47 @@ namespace QA40xPlot.Actions
 			thdPlot.Refresh();
 		}
 
+		void HandleChangedProperty(ScottPlot.Plot myPlot, AmpSweepViewModel vm, string changedProp)
+		{
+			var ismag = GraphUtil.IsPlotFormatLog(vm.PlotFormat);
+			if (changedProp == "GraphStartX" || changedProp == "GraphEndX" || changedProp.Length == 0)
+				myPlot.Axes.SetLimitsX(Math.Log10(ToD(vm.GraphStartX, 20)), Math.Log10(ToD(vm.GraphEndX, 20000)), myPlot.Axes.Bottom);
+			if (ismag)
+			{
+				if (changedProp == "RangeBottomdB" || changedProp == "RangeTopdB" || changedProp.Length == 0)
+					myPlot.Axes.SetLimitsY(ToD(vm.RangeBottomdB, -100), ToD(vm.RangeTopdB, 0), myPlot.Axes.Left);
+			}
+			else
+			{
+				if (changedProp == "RangeBottom" || changedProp == "RangeTop" || changedProp.Length == 0)
+					myPlot.Axes.SetLimitsY(Math.Log10(ToD(vm.RangeBottom, 1e-6)) - 0.00000001, Math.Log10(ToD(vm.RangeTop, 1)), myPlot.Axes.Left);  // - 0.000001 to force showing label
+			}
+		}
 
-		public void UpdateGraph(bool settingsChanged)
+		public void UpdateGraph(bool settingsChanged, string theProperty = "")
 		{
 			thdPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
 			int resultNr = 0;
 			AmpSweepViewModel thd = MyVModel;
 
-			if (GraphUtil.IsPlotFormatLog(thd.PlotFormat))
+			if(settingsChanged)
 			{
-				if (settingsChanged)
+				if (GraphUtil.IsPlotFormatLog(thd.PlotFormat))
 				{
 					InitializeMagnitudePlot(thd.PlotFormat);
 				}
-			}
-			else
-			{
-				if (settingsChanged)
+				else
 				{
 					InitializeThdPlot(thd.PlotFormat);
 				}
+				HandleChangedProperty(thdPlot.ThePlot, thd, "");
 			}
-			MyVModel.LegendInfo.Clear();
+			else if(theProperty.Length > 0)
+			{
+				HandleChangedProperty(thdPlot.ThePlot, thd, theProperty);
+			}
+
+				MyVModel.LegendInfo.Clear();
 			PlotValues(PageData, resultNr++, true);
 			if (OtherTabs.Count > 0)
 			{

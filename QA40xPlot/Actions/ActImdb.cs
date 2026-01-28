@@ -743,8 +743,27 @@ namespace QA40xPlot.Actions
 			}
 		}
 
+		void HandleChangedProperty(ScottPlot.Plot myPlot, ImdViewModel vm, string changedProp)
+		{
+			var ismag = GraphUtil.IsPlotFormatLog(vm.PlotFormat);
+			if (changedProp == "GraphStartX" || changedProp == "GraphEndX" || changedProp.Length == 0)
+				myPlot.Axes.SetLimitsX(Math.Log10(ToD(vm.GraphStartX, 20)), Math.Log10(ToD(vm.GraphEndX, 20000)), myPlot.Axes.Bottom);
+			if (ismag)
+			{
+				if (changedProp == "RangeBottomdB" || changedProp == "RangeTopdB" || changedProp.Length == 0)
+					myPlot.Axes.SetLimitsY(ToD(vm.RangeBottomdB, -100), ToD(vm.RangeTopdB, 0), myPlot.Axes.Left);
+			}
+			else
+			{
+				if (changedProp == "RangeBottom" || changedProp == "RangeTop" || changedProp.Length == 0)
+					myPlot.Axes.SetLimitsY(Math.Log10(ToD(vm.RangeBottom, 1e-6)) - 0.00000001, Math.Log10(ToD(vm.RangeTop, 1)), myPlot.Axes.Left);  // - 0.000001 to force showing label
+			}
+		}
 
-		public void UpdateGraph(bool settingsChanged)
+
+
+
+		public void UpdateGraph(bool settingsChanged, string theProperty = "")
 		{
 			imdPlot.ThePlot.Remove<Marker>();             // Remove all current lines
 			int resultNr = 0;
@@ -760,6 +779,11 @@ namespace QA40xPlot.Actions
 				{
 					InitializefftPlot(thd.PlotFormat);
 				}
+				HandleChangedProperty(imdPlot.ThePlot, thd, "");
+			}
+			else if (theProperty.Length > 0)
+			{
+				HandleChangedProperty(imdPlot.ThePlot, thd, theProperty);
 			}
 
 			ReformatChannels(); // ensure the channels are formatted correctly
@@ -991,11 +1015,6 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = imdPlot.ThePlot;
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
-			myPlot.Axes.SetLimitsX(Math.Log10(ToD(imdVm.GraphStartX, 20)),
-				Math.Log10(ToD(imdVm.GraphEndX, 20000)), myPlot.Axes.Bottom);
-
-			myPlot.Axes.SetLimitsY(ToD(imdVm.RangeBottomdB, -100), ToD(imdVm.RangeTopdB, 0), myPlot.Axes.Left);
-
 			UpdatePlotTitle();
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
@@ -1012,8 +1031,6 @@ namespace QA40xPlot.Actions
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
 			ImdViewModel imdVm = MyVModel;
-			myPlot.Axes.SetLimits(Math.Log10(ToD(imdVm.GraphStartX, 20)), Math.Log10(ToD(imdVm.GraphEndX, 20000)),
-				Math.Log10(ToD(imdVm.RangeBottom, 1e-6)) - 0.00000001, Math.Log10(ToD(imdVm.RangeTop, 1)));  // - 0.000001 to force showing label
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
 

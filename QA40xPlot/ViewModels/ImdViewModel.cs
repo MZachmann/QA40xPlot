@@ -141,6 +141,7 @@ namespace QA40xPlot.ViewModels
 					MyAction?.DrawPlotLines(0);
 					break;
 				case "UpdateGraph":
+				case "IntermodType":
 					MyAction?.UpdateGraph(true);
 					break;
 				case "DsHeading":
@@ -172,14 +173,13 @@ namespace QA40xPlot.ViewModels
 					ShowInfos();
 					MyAction?.UpdateGraph(false);
 					break;
-				case "IntermodType":
 				case "GraphStartX":
 				case "GraphEndX":
 				case "RangeBottomdB":
 				case "RangeBottom":
 				case "RangeTopdB":
 				case "RangeTop":
-					MyAction?.UpdateGraph(true);
+					MyAction?.UpdateGraph(false, e.PropertyName);
 					break;
 				case "ShowThickLines":
 				case "ShowMarkers":

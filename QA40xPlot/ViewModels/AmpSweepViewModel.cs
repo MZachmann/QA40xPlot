@@ -118,16 +118,16 @@ namespace QA40xPlot.ViewModels
 					MyAction?.UpdateGraph(true);
 					break;
 				case "GenDirection":
+				case "XAxisType":
 					MyAction?.UpdateGraph(true);
 					break;
-				case "XAxisType":
 				case "GraphStartX":
 				case "GraphEndX":
 				case "RangeBottomdB":
 				case "RangeBottom":
 				case "RangeTopdB":
 				case "RangeTop":
-					MyAction?.UpdateGraph(true);
+					MyAction?.UpdateGraph(false, e.PropertyName);
 					break;
 				case "ShowRight":
 				case "ShowLeft":
@@ -232,7 +232,6 @@ namespace QA40xPlot.ViewModels
 		{
 			var frslt = MyAction.PageData.FreqRslt;
 			MyAction?.ActFitToData(this, parameter, ShowLeft ? frslt?.Left : frslt?.Right);
-			MyAction?.UpdateGraph(true);
 		}
 
 		// when the mouse moves in the plotcontrol window it sends a mouseevent to the parent view model (this)

@@ -813,19 +813,30 @@ namespace QA40xPlot.Actions
 				myPlot.Title("Spectrum : " + PageData.Definition.Name);
 		}
 
+		void HandleChangedProperty(ScottPlot.Plot myPlot, SpectrumViewModel vm, string changedProp)
+		{
+			var ismag = GraphUtil.IsPlotFormatLog(vm.PlotFormat);
+			if (changedProp == "GraphStartX" || changedProp == "GraphEndX" || changedProp.Length == 0)
+				myPlot.Axes.SetLimitsX(Math.Log10(ToD(vm.GraphStartX, 20)), Math.Log10(ToD(vm.GraphEndX, 20000)), myPlot.Axes.Bottom);
+			if (ismag)
+			{
+				if (changedProp == "RangeBottomdB" || changedProp == "RangeTopdB" || changedProp.Length == 0)
+					myPlot.Axes.SetLimitsY(ToD(vm.RangeBottomdB, -100), ToD(vm.RangeTopdB, 0), myPlot.Axes.Left);
+			}
+			else
+			{
+				if (changedProp == "RangeBottom" || changedProp == "RangeTop" || changedProp.Length == 0)
+					myPlot.Axes.SetLimitsY(Math.Log10(ToD(vm.RangeBottom, 1e-6)) - 0.00000001, Math.Log10(ToD(vm.RangeTop, 1)), myPlot.Axes.Left);  // - 0.000001 to force showing label
+			}
+		}
+
 		/// <summary>
 		/// Initialize the magnitude plot
 		/// </summary>
 		void InitializeMagnitudePlot(string plotFormat = "dBV")
 		{
-			var thdFreq = MyVModel;
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
-
-			myPlot.Axes.SetLimitsX(Math.Log10(ToD(thdFreq.GraphStartX, 20)),
-				Math.Log10(ToD(thdFreq.GraphEndX, 20000)), myPlot.Axes.Bottom);
-
-			myPlot.Axes.SetLimitsY(ToD(thdFreq.RangeBottomdB), ToD(thdFreq.RangeTopdB), myPlot.Axes.Left);
 
 			UpdatePlotTitle();
 			myPlot.XLabel("Frequency (Hz)");
@@ -842,9 +853,6 @@ namespace QA40xPlot.Actions
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
-			SpectrumViewModel thd = MyVModel;
-			myPlot.Axes.SetLimits(Math.Log10(ToD(thd.GraphStartX, 20)), Math.Log10(ToD(thd.GraphEndX, 20000)),
-				Math.Log10(ToD(thd.RangeBottom, -100)) - 0.00000001, Math.Log10(ToD(thd.RangeTop, -10)));  // - 0.000001 to force showing label
 			UpdatePlotTitle();
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
@@ -929,7 +937,7 @@ namespace QA40xPlot.Actions
 			fftPlot.Refresh();
 		}
 
-		public void UpdateGraph(bool settingsChanged)
+		public void UpdateGraph(bool settingsChanged, string theProperty = "")
 		{
 			fftPlot.ThePlot.Remove<Marker>();             // Remove all current lines
 			int resultNr = 0;
@@ -945,6 +953,11 @@ namespace QA40xPlot.Actions
 				{
 					InitializefftPlot(thd.PlotFormat);
 				}
+				HandleChangedProperty(fftPlot.ThePlot, thd, "");
+			}
+			else if(theProperty.Length > 0)
+			{
+				HandleChangedProperty(fftPlot.ThePlot, thd, theProperty);
 			}
 			ReformatChannels(); // ensure the channels are formatted correctly
 			ViewSettings.Singleton.ChannelLeft.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd;

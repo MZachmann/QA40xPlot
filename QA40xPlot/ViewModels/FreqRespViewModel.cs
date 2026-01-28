@@ -238,6 +238,10 @@ public class FreqRespViewModel : BaseViewModel
 
 				MyAction?.UpdateGraph(true);
 				break;
+			case "ShowGroupDelay":
+			case "ShowPhase":
+				MyAction?.UpdateGraph(true);
+				break;
 			case "GraphStartX":
 			case "GraphEndX":
 			case "RangeBottomdB":
@@ -246,11 +250,9 @@ public class FreqRespViewModel : BaseViewModel
 			case "RangeTop":
 			case "PhaseTop":
 			case "PhaseBottom":
-			case "ShowGroupDelay":
 			case "Range2Top":
 			case "Range2Bottom":
-			case "ShowPhase":
-				MyAction?.UpdateGraph(true);
+				MyAction?.UpdateGraph(false, e.PropertyName);
 				break;
 			case "ShowRight":
 			case "ShowLeft":
@@ -376,7 +378,6 @@ public class FreqRespViewModel : BaseViewModel
 	private void OnFitToData(object? parameter)
 	{
 		MyAction.FitToData(this, parameter, null);
-		MyAction?.UpdateGraph(true);
 	}
 
 	// when the mouse moves in the plotcontrol window it sends a mouseevent to the parent view model (this)

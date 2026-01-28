@@ -1,22 +1,16 @@
 ﻿using FftSharp;
 using QA40xPlot.BareMetal;
-using QA40xPlot.Converters;
 using QA40xPlot.Data;
 using QA40xPlot.Extensions;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
-using QA40xPlot.Views;
 using ScottPlot;
 using ScottPlot.AxisRules;
 using ScottPlot.Plottables;
-using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Numerics;
 using System.Windows;
-using System.Windows.Interop;
 using static QA40xPlot.ViewModels.BaseViewModel;
-using static SkiaSharp.HarfBuzz.SKShaper;
 
 namespace QA40xPlot.Actions
 {
@@ -1192,6 +1186,34 @@ namespace QA40xPlot.Actions
 			return null;
 		}
 
+		private void PinAll()
+		{
+			PinGraphRange("XM");
+		}
+
+		private void FitAll()
+		{
+
+		}
+
+		private void AddCustomMarker()
+		{
+
+		}
+
+		void HandleChangedProperty(ScottPlot.Plot myPlot, FreqRespViewModel vm, string changedProp)
+		{
+			if(changedProp == "GraphStartX" || changedProp == "GraphEndX" || changedProp.Length == 0)
+				myPlot.Axes.SetLimitsX(Math.Log10(ToD(vm.GraphStartX, 20.0)), Math.Log10(ToD(vm.GraphEndX, 20000)), myPlot.Axes.Bottom);
+			if (changedProp == "RangeBottomdB" || changedProp == "RangeTopdB" || changedProp.Length == 0)
+				myPlot.Axes.SetLimitsY(ToD(vm.RangeBottomdB, -20), ToD(vm.RangeTopdB, 180), myPlot.Axes.Left);
+			if (changedProp == "PhaseBottom" || changedProp == "PhaseTop" || changedProp.Length == 0)
+				myPlot.Axes.SetLimitsY(ToD(vm.PhaseBottom, 20.0), ToD(vm.PhaseTop, 20.0), myPlot.Axes.Right);
+			var y2axis = GetY2Axis(myPlot);
+			if((y2axis != null) && (changedProp == "Range2Bottom" || changedProp == "Range2Top" || changedProp.Length == 0))
+				myPlot.Axes.SetLimitsY(ToD(vm.PhaseBottom, 20.0), ToD(vm.PhaseTop, 20.0), y2axis);
+		}
+
 		/// <summary>
 		/// Initialize the magnitude plot
 		/// </summary>
@@ -1199,13 +1221,13 @@ namespace QA40xPlot.Actions
 		{
 			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
 			var frqrsVm = MyVModel;
+			myPlot.PlotControl?.Menu?.Clear();
+			myPlot.PlotControl?.Menu?.Add("Pin All", x => this.PinAll());
+			myPlot.PlotControl?.Menu?.Add("Fit All", x => this.FitAll());
+			myPlot.PlotControl?.Menu?.Add("Add Marker", x => this.AddCustomMarker());
 
 			PlotUtil.InitializeMagFreqPlot(myPlot);
 			PlotUtil.SetOhmFreqRule(myPlot);
-
-			myPlot.Axes.SetLimitsX(Math.Log10(ToD(frqrsVm.GraphStartX, 20.0)), Math.Log10(ToD(frqrsVm.GraphEndX, 20000)), myPlot.Axes.Bottom);
-			myPlot.Axes.SetLimitsY(ToD(frqrsVm.RangeBottomdB, -20), ToD(frqrsVm.RangeTopdB, 180), myPlot.Axes.Left);
-			myPlot.Axes.SetLimitsY(ToD(frqrsVm.PhaseBottom, 20.0), ToD(frqrsVm.PhaseTop, 20.0), myPlot.Axes.Right);
 
 			var ttype = frqrsVm.GetTestingType(frqrsVm.TestType);
 			// as if no phase
@@ -1445,7 +1467,7 @@ namespace QA40xPlot.Actions
 			frqrsPlot.Refresh();
 		}
 
-		public void UpdateGraph(bool settingsChanged)
+		public void UpdateGraph(bool settingsChanged, string theProperty = "")
 		{
 			var frqsrVm = MyVModel;
 
@@ -1454,6 +1476,13 @@ namespace QA40xPlot.Actions
 			if (settingsChanged)
 			{
 				InitializePlot();
+				// do all
+				HandleChangedProperty(frqrsPlot.ThePlot, frqsrVm, "");
+			}
+			else if (theProperty.Length > 0)
+			{
+				// if we're told which graph property changed...
+				HandleChangedProperty(frqrsPlot.ThePlot, frqsrVm, theProperty);
 			}
 
 			frqsrVm.UpdateMouseCursor(frqsrVm.LookX, 0);

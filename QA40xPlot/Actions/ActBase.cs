@@ -117,7 +117,7 @@ namespace QA40xPlot.Actions
 			return MathUtil.ToDouble(sval, defval);
 		}
 
-		public void PinGraphRanges(ScottPlot.Plot myPlot, BaseViewModel bvm, string who)
+		public static void PinGraphRanges(ScottPlot.Plot myPlot, BaseViewModel bvm, string who)
 		{
 			switch (who)
 			{

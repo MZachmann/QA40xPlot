@@ -844,27 +844,47 @@ namespace QA40xPlot.Actions
 			swpPlot.Refresh();
 		}
 
-		public void UpdateGraph(bool settingsChanged)
+		void HandleChangedProperty(ScottPlot.Plot myPlot, FreqSweepViewModel vm, string changedProp)
+		{
+			var ismag = GraphUtil.IsPlotFormatLog(vm.PlotFormat);
+			if (changedProp == "GraphStartX" || changedProp == "GraphEndX" || changedProp.Length == 0)
+				myPlot.Axes.SetLimitsX(Math.Log10(ToD(vm.GraphStartX, 20)), Math.Log10(ToD(vm.GraphEndX, 20000)), myPlot.Axes.Bottom);
+			if (ismag)
+			{
+				if (changedProp == "RangeBottomdB" || changedProp == "RangeTopdB" || changedProp.Length == 0)
+					myPlot.Axes.SetLimitsY(ToD(vm.RangeBottomdB, -100), ToD(vm.RangeTopdB, 0), myPlot.Axes.Left);
+			}
+			else
+			{
+				if (changedProp == "RangeBottom" || changedProp == "RangeTop" || changedProp.Length == 0)
+					myPlot.Axes.SetLimitsY(Math.Log10(ToD(vm.RangeBottom, 1e-6)) - 0.00000001, Math.Log10(ToD(vm.RangeTop, 1)), myPlot.Axes.Left);  // - 0.000001 to force showing label
+			}
+		}
+
+
+		public void UpdateGraph(bool settingsChanged, string theProperty = "")
 		{
 			swpPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
 			int resultNr = 0;
 			FreqSweepViewModel freqVm = MyVModel;
 
-			if (GraphUtil.IsPlotFormatLog(freqVm.PlotFormat))
+			if (settingsChanged)
 			{
-				if (settingsChanged)
+				if (GraphUtil.IsPlotFormatLog(freqVm.PlotFormat))
 				{
 					InitializeMagnitudePlot(freqVm.PlotFormat);
 				}
-			}
-			else
-			{
-				if (settingsChanged)
+				else
 				{
 					InitializeThdPlot(freqVm.PlotFormat);
 				}
+				HandleChangedProperty(swpPlot.ThePlot, freqVm, "");
 			}
-			freqVm.LegendInfo.Clear();
+			else if (theProperty.Length > 0)
+			{
+				HandleChangedProperty(swpPlot.ThePlot, freqVm, theProperty);
+			}
+				freqVm.LegendInfo.Clear();
 			PlotValues(PageData, resultNr++, true);
 			if (OtherTabs.Count > 0)
 			{

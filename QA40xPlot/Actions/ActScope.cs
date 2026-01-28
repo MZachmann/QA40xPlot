@@ -590,10 +590,6 @@ namespace QA40xPlot.Actions
 			PlotUtil.InitializeMagTimePlot(myPlot);
 
 			var thdFreq = MyVModel;
-
-			myPlot.Axes.SetLimits(ToD(thdFreq.GraphStartX), ToD(thdFreq.GraphEndX),
-				ToD(thdFreq.RangeBottom), ToD(thdFreq.RangeTop));
-
 			UpdatePlotTitle();
 			myPlot.XLabel("Time (mS)");
 			myPlot.YLabel("Voltage");
@@ -703,7 +699,15 @@ namespace QA40xPlot.Actions
 			FillChannelInfo(vm, timeData.Right);
 		}
 
-		public void UpdateGraph(bool settingsChanged)
+		void HandleChangedProperty(ScottPlot.Plot myPlot, ScopeViewModel vm, string changedProp)
+		{
+			if (changedProp == "GraphStartX" || changedProp == "GraphEndX" || changedProp.Length == 0)
+				myPlot.Axes.SetLimitsX(ToD(vm.GraphStartX, 0), ToD(vm.GraphEndX, 10), myPlot.Axes.Bottom);
+			if (changedProp == "RangeBottom" || changedProp == "RangeTop" || changedProp.Length == 0)
+				myPlot.Axes.SetLimitsY(ToD(vm.RangeBottom, 1e-6), ToD(vm.RangeTop, 1), myPlot.Axes.Left);  // - 0.000001 to force showing label
+		}
+
+		public void UpdateGraph(bool settingsChanged, string theProperty = "")
 		{
 			timePlot.ThePlot.Remove<Marker>();             // Remove all current lines
 			int resultNr = 0;
@@ -712,6 +716,11 @@ namespace QA40xPlot.Actions
 			if (settingsChanged)
 			{
 				InitializeMagnitudePlot();
+				HandleChangedProperty(timePlot.ThePlot, thd, "");
+			}
+			else if(theProperty.Length > 0)
+			{
+				HandleChangedProperty(timePlot.ThePlot, thd, theProperty);
 			}
 			thd.UpdateMouseCursor(thd.LookX, thd.LookY);
 			DrawPlotLines(resultNr); // draw the lines 
