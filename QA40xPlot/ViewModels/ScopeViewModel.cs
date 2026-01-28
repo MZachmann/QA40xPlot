@@ -18,6 +18,8 @@ namespace QA40xPlot.ViewModels
 		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 		public static List<String> GenFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "2000", "5000", "10000" }; }
 		public static List<String> TimeSteps { get => new List<string> { "0", ".1", ".5", "1", "5", "10", "20", "50", "100", "200", "500", "1000", "5000", "10000" }; }
+		[JsonIgnore]
+		public override List<string> AxisList { get; } = new List<string> { "XT", "YP" };
 
 		private ActScope MyAction { get => actScope; }
 		private static ScopeViewModel MyVModel { get => ViewSettings.Singleton.ScopeVm; }
@@ -285,16 +287,16 @@ namespace QA40xPlot.ViewModels
 			MyAction.PinGraphRange(pram);
 		}
 
-		private void OnFitToData(object? parameter)
+		public override void OnFitToData(object? parameter)
 		{
 			var bounds = MyAction.GetDataBounds();
 			switch (parameter)
 			{
-				case "XF":  // X time
+				case "XT":  // X time
 					this.GraphStartX = bounds.Left.ToString("0.###");
 					this.GraphEndX = bounds.Right.ToString("0.###");
 					break;
-				case "YM":  // Y magnitude
+				case "YP":  // Y magnitude
 					if(Math.Abs(bounds.Height) > 1e-2)
 					{
 						this.RangeBottom = (bounds.Y).ToString("0.###");
@@ -309,6 +311,7 @@ namespace QA40xPlot.ViewModels
 				default:
 					break;
 			}
+			MyAction?.UpdateGraph(false, PlotUtil.AxisParameter(parameter));
 		}
 
 		// when the mouse moves in the plotcontrol window it sends a mouseevent to the parent view model (this)

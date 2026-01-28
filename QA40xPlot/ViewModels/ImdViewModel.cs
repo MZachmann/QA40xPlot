@@ -24,6 +24,9 @@ namespace QA40xPlot.ViewModels
 			"CCIF (19KHz.20KHz 1:1)", "AES-17 MD (41Hz.7993Hz 4:1)", "AES-17 DFD (18KHz.20KHz 1:1)",
 			"TDFD Phono (3005Hz.4462Hz 1:1)" };
 		}
+		[JsonIgnore]
+		public override List<string> AxisList { get; } = new List<string> { "XF", "YM", "YP" };
+
 		private ActImd MyAction { get => actImd; }
 		private ActImd actImd { get; set; }
 		private PlotControl actPlot { get; set; }
@@ -257,10 +260,11 @@ namespace QA40xPlot.ViewModels
 			MyAction.PinGraphRange(pram);
 		}
 
-		private void OnFitToData(object? parameter)
+		public override void OnFitToData(object? parameter)
 		{
 			var frslt = MyAction.PageData.FreqRslt;
 			MyAction?.ActFitToData(this, parameter, ShowLeft ? frslt?.Left : frslt?.Right);
+			MyAction?.UpdateGraph(false, PlotUtil.AxisParameter(parameter));
 		}
 
 		private void ShowInfos()

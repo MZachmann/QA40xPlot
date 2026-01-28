@@ -1,4 +1,5 @@
-﻿using QA40xPlot.ViewModels;
+﻿using QA40xPlot.Actions;
+using QA40xPlot.ViewModels;
 using ScottPlot;
 using System.Windows;
 
@@ -82,6 +83,40 @@ namespace QA40xPlot.Libraries
 				}
 			}
 			myPlot.Axes.Bottom.TickGenerator = tickGenX;
+		}
+
+		public static string AxisParameter(object? parameter)
+		{
+			string pname = parameter as string ?? string.Empty;
+			if (pname.Length == 0)
+				return string.Empty;
+
+			switch(pname)
+			{
+				case "XF":
+					return "GraphStartX";
+				case "XT":
+					return "GraphStartX";
+				case "YP":
+					return "RangeTop";
+				case "YM":
+					return "RangeTopdB";
+				case "PH":
+					return "PhaseTop";
+				case "Y2":
+					return "Range2Top";
+				default:
+					return "GraphStartX";
+			}
+		}
+
+		// setup the on-screen menu
+		public static void SetupMenus(ScottPlot.Plot myPlot, ActBase myAct, BaseViewModel bvm)
+		{
+			myPlot.PlotControl?.Menu?.Clear();
+			myPlot.PlotControl?.Menu?.Add("Pin All", x => myAct.PinAll(myPlot, bvm));
+			myPlot.PlotControl?.Menu?.Add("Fit All", x => ActBase.FitAll(myPlot, bvm));//, LeftRightFrequencySeries lfrs));
+			//myPlot.PlotControl?.Menu?.Add("Add Marker", x => this.AddCustomMarker());
 		}
 
 		private static void SetupAmpTics(ScottPlot.Plot myPlot)

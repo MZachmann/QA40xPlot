@@ -19,6 +19,8 @@ namespace QA40xPlot.ViewModels
 		private ActFreqSweep MyAction { get => actFreq; }
 		private PlotControl actPlot { get; set; }
 		private ActFreqSweep actFreq { get; set; }
+		[JsonIgnore]
+		public override List<string> AxisList { get; } = new List<string> { "XF", "YM", "YP" };
 
 		[JsonIgnore]
 		public override RelayCommand DoStart { get => new RelayCommand(StartIt); }
@@ -266,10 +268,11 @@ namespace QA40xPlot.ViewModels
 			MyAction.PinGraphRange(pram);
 		}
 
-		private void OnFitToData(object? parameter)
+		public override void OnFitToData(object? parameter)
 		{
 			var frslt = MyAction.PageData.FreqRslt;
 			MyAction?.ActFitToData(this, parameter, ShowLeft ? frslt?.Left : frslt?.Right);
+			MyAction?.UpdateGraph(false, PlotUtil.AxisParameter(parameter));
 		}
 
 		// when the mouse moves in the plotcontrol window it sends a mouseevent to the parent view model (this)

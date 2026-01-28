@@ -18,6 +18,8 @@ namespace QA40xPlot.ViewModels
 		public static List<String> StartVoltages { get => new List<string> { "0.0001", "0.0002", "0.0005", "0.001", "0.002", "0.005", "0.01", "0.02", "0.05", "0.1", "0.2", "0.5" }; }
 		public static List<String> EndVoltages { get => new List<string> { "1", "2", "5", "10", "20", "50", "100", "200" }; }
 		private static AmpSweepViewModel MyVModel { get => ViewSettings.Singleton.AmpVm; }
+		[JsonIgnore]
+		public override List<string> AxisList { get; } = new List<string> { "XF", "YM", "YP" };
 
 		private ActAmpSweep MyAction { get => actSweep; }
 		private ActAmpSweep actSweep { get; set; }
@@ -228,10 +230,11 @@ namespace QA40xPlot.ViewModels
 			MyAction.PinGraphRange(pram);
 		}
 
-		private void OnFitToData(object? parameter)
+		public override void OnFitToData(object? parameter)
 		{
 			var frslt = MyAction.PageData.FreqRslt;
 			MyAction?.ActFitToData(this, parameter, ShowLeft ? frslt?.Left : frslt?.Right);
+			MyAction?.UpdateGraph(false, PlotUtil.AxisParameter(parameter));
 		}
 
 		// when the mouse moves in the plotcontrol window it sends a mouseevent to the parent view model (this)

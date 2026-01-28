@@ -31,7 +31,7 @@
                               ItemsSource="{Binding AbsoluteValues}">
             </ComboBox>
             <Label Content="V" Grid.Row="1" Grid.Column="2" VerticalAlignment="Center"  />
-            <Button Content="" Command="{Binding DoViewToFit}" CommandParameter="YM"
+            <Button Content="" Command="{Binding DoViewToFit}" CommandParameter="YP"
                             FontFamily="Segoe Fluent Icons"
                             Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  
                         HorizontalAlignment="Right" VerticalAlignment="Center"  >
@@ -39,7 +39,7 @@
                     <ToolTip FontFamily="Arial" Content="{Binding PinGraphTip}" />
                 </Button.ToolTip>
             </Button>
-            <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="YM"
+            <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="YP"
                             Margin="0,4,0,0" Grid.Row="2" Grid.Column="1"  HorizontalAlignment="Right" VerticalAlignment="Center"   />
         </Grid>
     </Expander>

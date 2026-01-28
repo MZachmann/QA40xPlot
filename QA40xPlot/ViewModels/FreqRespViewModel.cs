@@ -17,6 +17,8 @@ public class FreqRespViewModel : BaseViewModel
 	public static List<String> Smoothings { get => new List<string> { "0","0.001","0.01", "0.05", "0.1", "0.25" }; }
 	public static List<String> PhaseList { get => new List<string> { "360", "180", "90", "0", "-90", "-180", "-360" }; }
 	public static List<String> TestTypes { get => new List<string> { "Response", "Impedance", "Gain", "Crosstalk" }; }
+	[JsonIgnore]
+	public override List<string> AxisList { get; } = new List<string> { "XF", "YM", "PH", "Y2" };
 
 	private ActFrequencyResponse MyAction { get => actFreq; }
 	private PlotControl actPlot { get; set; }
@@ -375,9 +377,10 @@ public class FreqRespViewModel : BaseViewModel
 		MyAction.PinGraphRange(pram);
 	}
 
-	private void OnFitToData(object? parameter)
+	public override void OnFitToData(object? parameter)
 	{
 		MyAction.FitToData(this, parameter, null);
+		MyAction.UpdateGraph(false, PlotUtil.AxisParameter(parameter));
 	}
 
 	// when the mouse moves in the plotcontrol window it sends a mouseevent to the parent view model (this)

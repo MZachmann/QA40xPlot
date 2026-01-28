@@ -71,7 +71,7 @@ namespace QA40x.BareMetal
 		object ReadRegLock = new object();
 		// how long to wait for relays to settle down after changing input/output ranges
 		// in empirical testing it takes about 200ms, so we use 500ms to be safe
-		private readonly static int _RelayMilliseconds = 500;
+		private readonly static int _RelayMilliseconds = 1000;
 		private readonly static int _SRateChangeMilliseconds = 1000;
 		
 				List<AsyncResult> WriteQueue = new List<AsyncResult>();
@@ -790,8 +790,6 @@ namespace QA40x.BareMetal
 						loff = Math.Abs(loff);
 					}
 
-					Debug.WriteLine($"Prebuf={preBuf} Delay offset: {loff}, {roff}  DC offset: {dcoffsetL:G3},{dcoffsetR:G3}");
-
 					// both internal or both external, use min latency
 					// this keeps the two channels in phase with each other when using a single output device (QA40x or Windows)
 					if (!useExternal || 3 == SoundUtil.GetChannels())
@@ -799,6 +797,7 @@ namespace QA40x.BareMetal
 						loff = Math.Min(loff, roff);
 						roff = loff;
 					}
+					Debug.WriteLine($"Final Prebuf={preBuf} Delay offset: {loff}, {roff}  DC offset: {dcoffsetL:G3},{dcoffsetR:G3}");
 
 					//loff = 0;
 					//roff = 0;

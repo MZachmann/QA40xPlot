@@ -299,7 +299,7 @@ namespace QA40xPlot.Actions
 			return aline.ToArray();
 		}
 
-		public void PinGraphRange(string who)
+		public override void PinGraphRange(string who)
 		{
 			ScottPlot.Plot myPlot = thdPlot.ThePlot;
 			var vm = MyVModel;
@@ -929,6 +929,7 @@ namespace QA40xPlot.Actions
 
 			if(settingsChanged)
 			{
+				PlotUtil.SetupMenus(thdPlot.ThePlot, this, thd);
 				if (GraphUtil.IsPlotFormatLog(thd.PlotFormat))
 				{
 					InitializeMagnitudePlot(thd.PlotFormat);

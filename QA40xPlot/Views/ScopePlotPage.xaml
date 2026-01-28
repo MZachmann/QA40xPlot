@@ -169,7 +169,7 @@
                                 <ToolTip FontFamily="Arial" Content="{Binding PinGraphTip}" />
                             </Button.ToolTip>
                         </Button>
-                        <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="XF"
+                        <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="XT"
                             Margin="0,4,0,0" Grid.Row="2" Grid.Column="1"  HorizontalAlignment="Right" VerticalAlignment="Center"   />
                     </Grid>
                 </Expander>

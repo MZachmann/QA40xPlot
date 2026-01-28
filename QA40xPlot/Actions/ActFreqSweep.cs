@@ -274,7 +274,7 @@ namespace QA40xPlot.Actions
 			return allLines.ToArray();
 		}
 
-		public void PinGraphRange(string who)
+		public override void PinGraphRange(string who)
 		{
 			ScottPlot.Plot myPlot = swpPlot.ThePlot;
 			var vm = MyVModel;
@@ -870,6 +870,7 @@ namespace QA40xPlot.Actions
 
 			if (settingsChanged)
 			{
+				PlotUtil.SetupMenus(swpPlot.ThePlot, this, freqVm);
 				if (GraphUtil.IsPlotFormatLog(freqVm.PlotFormat))
 				{
 					InitializeMagnitudePlot(freqVm.PlotFormat);

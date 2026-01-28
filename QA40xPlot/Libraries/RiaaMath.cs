@@ -62,19 +62,19 @@ namespace QA40xPlot.Libraries
 		static double x4 = 0.000003180 * 2 * Math.PI;  // 50.05 KHz
 
 		// apply the transform to a frequency via complex math
-		// but return the magnitude since we don't really have a passive network
+		// this is the 3-term RIAA transform (no high freq wall)
 		public static double Fvalue3(double freq)
 		{
 			var f1 = new Complex(1, x1 * freq);
 			var f2 = new Complex(1, x2 * freq);
 			var f3 = new Complex(1, x3 * freq);
-			var f4 = new Complex(1, 0); // high frequency wall
+			var f4 = new Complex(1, 0); // no high frequency wall
 			var udiv = ((f1 * f3) / (f2 * f4)).Magnitude;
 			return udiv;
 		}
 
 		// apply the transform to a frequency via complex math
-		// but return the magnitude since we don't really have a passive network
+		// this is the 4-term RIAA transform (with high freq wall)
 		public static double Fvalue(double freq)
 		{
 			var f1 = new Complex(1, x1 * freq);

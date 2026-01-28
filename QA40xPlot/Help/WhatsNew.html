@@ -12,13 +12,19 @@
 </head>
 <h1>v 1.2.7&nbsp;&nbsp;&nbsp;&nbsp; Jan 24, 2026</h1>
 <h2>Risk Summary</h2>
-<p>This release is almost all just bug repairs so pretty low risk. The relay timing change might be problematic.</p>
+<p>The plot limit changes are medium risk but strictly gui. The relay timing change might be problematic but it&#39;s noticeably quicker.</p>
 <h2>Add Blackman-Harris-7 Window</h2>
 <p>Blackman-Harris 7 is a nice windowing scheme so it&#39;s now available (Blackman-7).</p>
 <h2>Repair renaming files</h2>
 <p>With the switch to .ZIP file format (instead of gzip) a bug was introduced causing load to fail if the file was renamed. That has been repaired.</p>
 <h2>Reduce relay time</h2>
-<p>Continuing to try to get ultra-stable results while spending as little time waiting as possible a few empirical tests were done and some relay wait times were decreased by a second+.</p>
+<p>Continuing to try to get ultra-stable results while spending as little time waiting as possible. A few empirical tests were done and some relay wait times were decreased by a second+.</p>
+<h2>Reduce effect when graph limits change</h2>
+<p>Especially for pin, having the graph readjust a lot was annoying. Now only the axis being changed adjusts. Also, pin is now way more exact and should be far more useful.</p>
+<h2>Add Pin All and Fit All to graph popup menu</h2>
+<p>The default ScottPlot graph popup menu wasn&#39;t very useful and now it is. Do all axes at once. Right-click the graph.</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
 <h5>__________________________________________________________________________________________________________</h5>
 <h5>__________________________________________________________________________________________________________</h5>
 <h1>&nbsp;</h1>

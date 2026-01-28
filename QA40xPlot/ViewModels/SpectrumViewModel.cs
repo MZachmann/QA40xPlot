@@ -1,8 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Input;
-using Microsoft.Win32;
 using Newtonsoft.Json;
 using QA40xPlot.Actions;
-using QA40xPlot.Converters;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.Views;
@@ -20,7 +18,8 @@ namespace QA40xPlot.ViewModels
 	{
 		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 		public static List<String> GenFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "2000", "5000", "10000" }; }
-
+		[JsonIgnore]
+		public override List<string> AxisList { get; } = new List<string> { "XF", "YM", "YP" };
 		private ActSpectrum MyAction { get => actSpec; }
 		private static SpectrumViewModel MyVModel { get => ViewSettings.Singleton.SpectrumVm; }
 		private PlotControl actPlot { get; set; }
@@ -256,10 +255,11 @@ namespace QA40xPlot.ViewModels
 			MyAction.PinGraphRange(pram);
 		}
 
-		private void OnFitToData(object? parameter)
+		public override void OnFitToData(object? parameter)
 		{
 			var frslt = MyAction.PageData.FreqRslt;
 			MyAction?.ActFitToData(this, parameter, ShowLeft ? frslt?.Left : frslt?.Right);
+			MyAction?.UpdateGraph(false, PlotUtil.AxisParameter(parameter));
 		}
 
 		// when the mouse moves in the plotcontrol window it sends a mouseevent to the parent view model (this)

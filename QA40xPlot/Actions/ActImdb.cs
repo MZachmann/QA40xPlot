@@ -81,7 +81,7 @@ namespace QA40xPlot.Actions
 			return db;
 		}
 
-		public void PinGraphRange(string who)
+		public override void PinGraphRange(string who)
 		{
 			ScottPlot.Plot myPlot = imdPlot.ThePlot;
 			var vm = MyVModel;
@@ -771,6 +771,8 @@ namespace QA40xPlot.Actions
 
 			if (settingsChanged)
 			{
+				PlotUtil.SetupMenus(imdPlot.ThePlot, this, thd);
+
 				if (GraphUtil.IsPlotFormatLog(thd.PlotFormat))
 				{
 					InitializeMagnitudePlot(thd.PlotFormat);

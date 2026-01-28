@@ -61,6 +61,8 @@ namespace QA40xPlot.ViewModels
 		public static List<string> DbrUnits { get => new List<string>() { "", "Hz", "dBV" }; }
 		public static List<string> DbrSelect { get => new List<string>() { "0", "6", "20", "30", "40", "60", "80", "100" }; }
 		[JsonIgnore]
+		public virtual List<string> AxisList { get; } = new List<string> {  };
+		[JsonIgnore]
 		public RelayCommand DoGetGenUnits { get => new RelayCommand(GetGenUnits); }
 		[JsonIgnore]
 		public RelayCommand EditPaletteCommand { get => new RelayCommand(EditPlotPalette); }
@@ -343,6 +345,12 @@ namespace QA40xPlot.ViewModels
 		{
 			throw new NotImplementedException();
 		}
+
+		public virtual void OnFitToData(object? parameter)
+		{
+			throw new NotImplementedException();
+		}
+
 
 		[JsonIgnore]
 		public virtual RelayCommand DoStop { get => new RelayCommand(NullFn); }

@@ -83,7 +83,7 @@ namespace QA40xPlot.Actions
 			return db;
 		}
 
-		public void PinGraphRange(string who)
+		public override void PinGraphRange(string who)
 		{
 			ScottPlot.Plot myPlot = timePlot.ThePlot;
 			var vm = MyVModel;
@@ -98,7 +98,7 @@ namespace QA40xPlot.Actions
 				vm.GraphEndX = maxx.ToString("0.###");
 				vm.GraphStartX = minx.ToString("0.###");
 			}
-			else if (who == "YM")
+			else if (who == "YP")
 			{
 				myPlot = timePlot.ThePlot;
 				var myAxis = myPlot.Axes.Left;
@@ -657,7 +657,7 @@ namespace QA40xPlot.Actions
 			}
 			MyVModel.LinkAbout(PageData.Definition);  // ensure we're linked right during replays
 
-			while (rslt && !ct.IsCancellationRequested)
+			while (repeat && rslt && !ct.IsCancellationRequested)
 			{
 				if (PageData.ViewModel != null)
 					MyVModel.CopyPropertiesTo(PageData.ViewModel);  // update the view model with latest settings
@@ -667,8 +667,6 @@ namespace QA40xPlot.Actions
 					rslt = await PostProcess(PageData, ct.Token);
 					UpdateGraph(false);
 				}
-				if (!repeat)
-					break;
 			}
 
 			await showMessage("");
@@ -715,6 +713,7 @@ namespace QA40xPlot.Actions
 
 			if (settingsChanged)
 			{
+				PlotUtil.SetupMenus(timePlot.ThePlot, this, thd);
 				InitializeMagnitudePlot();
 				HandleChangedProperty(timePlot.ThePlot, thd, "");
 			}

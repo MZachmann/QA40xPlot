@@ -1,4 +1,5 @@
-﻿using QA40xPlot.BareMetal;
+﻿using NAudio.Gui;
+using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
@@ -81,7 +82,7 @@ namespace QA40xPlot.Actions
 			return db;
 		}
 
-		public void PinGraphRange(string who)
+		public override void PinGraphRange(string who)
 		{
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			var vm = MyVModel;
@@ -945,6 +946,8 @@ namespace QA40xPlot.Actions
 
 			if (settingsChanged)
 			{
+				PlotUtil.SetupMenus(fftPlot.ThePlot, this, thd);
+
 				if (GraphUtil.IsPlotFormatLog(thd.PlotFormat))
 				{
 					InitializeMagnitudePlot(thd.PlotFormat);

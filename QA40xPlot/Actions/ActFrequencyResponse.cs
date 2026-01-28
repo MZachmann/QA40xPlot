@@ -73,7 +73,7 @@ namespace QA40xPlot.Actions
 				myPlot.Title(title);
 		}
 
-		public void PinGraphRange(string who)
+		public override void PinGraphRange(string who)
 		{
 			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
 			var vm = MyVModel;
@@ -614,11 +614,12 @@ namespace QA40xPlot.Actions
 		/// fit to data
 		/// </summary>
 		/// <param name="bvm">the view model</param>
-		/// <param name="parameter">not used</param>
+		/// <param name="parameter">which axis we're fitting</param>
 		/// <param name="dRefs">list of data points from fft</param>
-		public void FitToData(FreqRespViewModel bvm, object? parameter, double[]? dRefs)
+		public override void FitToData(BaseViewModel basevm, object? parameter, double[]? dRefs)
 		{
-			if(parameter == null)
+			var bvm = basevm as FreqRespViewModel;
+			if(parameter == null || bvm == null)
 			{
 				return;
 			}
@@ -1186,16 +1187,6 @@ namespace QA40xPlot.Actions
 			return null;
 		}
 
-		private void PinAll()
-		{
-			PinGraphRange("XM");
-		}
-
-		private void FitAll()
-		{
-
-		}
-
 		private void AddCustomMarker()
 		{
 
@@ -1211,7 +1202,7 @@ namespace QA40xPlot.Actions
 				myPlot.Axes.SetLimitsY(ToD(vm.PhaseBottom, 20.0), ToD(vm.PhaseTop, 20.0), myPlot.Axes.Right);
 			var y2axis = GetY2Axis(myPlot);
 			if((y2axis != null) && (changedProp == "Range2Bottom" || changedProp == "Range2Top" || changedProp.Length == 0))
-				myPlot.Axes.SetLimitsY(ToD(vm.PhaseBottom, 20.0), ToD(vm.PhaseTop, 20.0), y2axis);
+				myPlot.Axes.SetLimitsY(ToD(vm.Range2Bottom, -20.0), ToD(vm.Range2Top, 20.0), y2axis);
 		}
 
 		/// <summary>
@@ -1219,12 +1210,8 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void InitializePlot()
 		{
-			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
 			var frqrsVm = MyVModel;
-			myPlot.PlotControl?.Menu?.Clear();
-			myPlot.PlotControl?.Menu?.Add("Pin All", x => this.PinAll());
-			myPlot.PlotControl?.Menu?.Add("Fit All", x => this.FitAll());
-			myPlot.PlotControl?.Menu?.Add("Add Marker", x => this.AddCustomMarker());
+			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
 
 			PlotUtil.InitializeMagFreqPlot(myPlot);
 			PlotUtil.SetOhmFreqRule(myPlot);
@@ -1352,7 +1339,7 @@ namespace QA40xPlot.Actions
 						YValues = gainReal.Select(fvi).ToArray();
 						fvi = GraphUtil.ValueToPlotFn(frqrsVm, gainImag, page.GainFrequencies);
 						phaseValues = gainImag.Select(fvi).ToArray();
-						legendname = isMain ? "Left" : ClipName(page.Definition.Name) + ".L";
+						legendname = isMain ? "Left" : "L";
 					}
 					break;
 				case TestingType.Impedance:
@@ -1400,7 +1387,7 @@ namespace QA40xPlot.Actions
 				plot.MarkerSize = markerSize;
 				plot.LegendText = prefix + legendname;
 				plot.LinePattern = LinePattern.Solid;
-				plot.IsVisible = !MyVModel.HiddenLines.Contains(legendname);
+				plot.IsVisible = !MyVModel.HiddenLines.Contains(plot.LegendText);
 				MyVModel.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2, plot, frqrsPlot, plot.IsVisible));
 			}
 
@@ -1422,7 +1409,7 @@ namespace QA40xPlot.Actions
 				else if (ttype == TestingType.Response)
 				{
 					plot = myPlot.Add.SignalXY(logFreqX.Skip(skipped).ToArray(), phases.Skip(skipped).ToArray());
-					plot.LegendText = prefix + "Right";
+					plot.LegendText = prefix + (isMain ? "Right" : "R");
 				}
 				else // it's crosstalk
 				{
@@ -1475,6 +1462,7 @@ namespace QA40xPlot.Actions
 
 			if (settingsChanged)
 			{
+				PlotUtil.SetupMenus(frqrsPlot.ThePlot, this, frqsrVm);
 				InitializePlot();
 				// do all
 				HandleChangedProperty(frqrsPlot.ThePlot, frqsrVm, "");

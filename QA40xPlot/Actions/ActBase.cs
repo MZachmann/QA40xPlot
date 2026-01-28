@@ -36,6 +36,33 @@ namespace QA40xPlot.Actions
 			return new Rect(0, 0, 0, 0);
 		}
 
+		public void PinAll(ScottPlot.Plot myPlot, BaseViewModel bvm)
+		{
+			foreach(var ax in bvm.AxisList)
+			{
+				PinGraphRange(ax);
+			}
+		}
+
+		public virtual void PinGraphRange(string who)
+		{
+			throw new NotImplementedException();
+		}
+
+		public static void FitAll(ScottPlot.Plot myPlot, BaseViewModel bvm)
+		{
+			foreach (var ax in bvm.AxisList)
+			{
+				bvm.OnFitToData(ax);
+			}
+		}
+
+		public virtual void FitToData(BaseViewModel bvm, object? parameter, double[]? dRefs)
+		{
+			ActFitToData(bvm, parameter, dRefs);
+		}
+
+
 		/// <summary>
 		/// fit to data
 		/// </summary>
