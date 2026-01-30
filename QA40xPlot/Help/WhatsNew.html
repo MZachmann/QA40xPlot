@@ -1,18 +1,18 @@
 ﻿<head>
     <style type="text/css">
 
-        p,h1,h2 {
+        p,h1,h2,li {
             font-family: Arial, Helvetica, sans-serif; /* Arial as primary */
         }
-        p { font-size: 11pt}
+        p, li { font-size: 11pt}
         h1 { font-size: 15pt;}
         h2 { font-size: 13pt;}
-        h5 { color: blue;}
+        h5 { color: blue; font-size: 13pt;}
     </style>
 </head>
-<h1>v 1.2.7&nbsp;&nbsp;&nbsp;&nbsp; Jan 24, 2026</h1>
+<h5>v 1.2.7&nbsp;&nbsp;&nbsp;&nbsp; Jan 30, 2026</h5>
 <h2>Risk Summary</h2>
-<p>The plot limit changes are medium risk but strictly gui. The relay timing change might be problematic but it&#39;s noticeably quicker.</p>
+<p>The plot limit changes are medium risk but strictly gui. The relay timing speedup works perfectly in my tests but may cause issues on very slow PCs. The Action refactoring was necessary and much-delayed but is very high risk - symptons would be test files that don&#39;t load or save correctly.</p>
 <h2>Add Blackman-Harris-7 Window</h2>
 <p>Blackman-Harris 7 is a nice windowing scheme so it&#39;s now available (Blackman-7).</p>
 <h2>Repair renaming files</h2>
@@ -21,15 +21,19 @@
 <p>Continuing to try to get ultra-stable results while spending as little time waiting as possible. A few empirical tests were done and some relay wait times were decreased by a second+.</p>
 <h2>Reduce effect when graph limits change</h2>
 <p>Especially for pin, having the graph readjust a lot was annoying. Now only the axis being changed adjusts. Also, pin is now way more exact and should be far more useful.</p>
-<h2>Add Pin All and Fit All to graph popup menu</h2>
-<p>The default ScottPlot graph popup menu wasn&#39;t very useful and now it is. Do all axes at once. Right-click the graph.</p>
-<p>&nbsp;</p>
+<h2>Customize the Graph Popup menu</h2>
+<p>The default ScottPlot right-mouse-button graph popup menu wasn&#39;t very useful and now it is. </p>
+<ol>
+   <li><strong>Pin All </strong>- pin the range of all of the axes at once</li>
+   <li><strong>Fit All</strong> - do a Fit To Data for all axes at once.</li>
+   <li><strong>Snapshot</strong> - quickly save/get a test to have it immediately display. Snapshots are named Snap1, Snap2, ... and stored in the default data folder (if there is one in Settings) or in Documents if not. Those names are reused each time you run the program so you can persist these files simply by renaming them after closing QA40xPlot.</li>
+</ol>
 <p>&nbsp;</p>
 <h5>__________________________________________________________________________________________________________</h5>
 <h5>__________________________________________________________________________________________________________</h5>
 <h1>&nbsp;</h1>
 <h1>---- Older&nbsp; Entries ----</h1>
-<h1>v 1.2.6&nbsp;&nbsp;&nbsp;&nbsp; Jan 24, 2026</h1>
+<h5>v 1.2.6&nbsp;&nbsp;&nbsp;&nbsp; Jan 24, 2026</h5>
 <h2>Risk Summary</h2>
 <p>Frequency Response tests have had extensive changes. Otherwise, these are primarily esthetic improvements and small additional features so hopefully slight risk.</p>
 <h2>Add QA40x readings upper right</h2>
@@ -44,7 +48,7 @@
 <p>Hold down a shift key while clicking a legend checkbox (in the legend window) and the entire group of lines with the same suffix (after the @) will hide/show. This
 helps deal with the large number of plot lines in the THD vs Amplitude and vs Frequency tests.</p>
 <p>&nbsp;</p>
-<h1>v 1.2.5&nbsp;&nbsp;&nbsp;&nbsp; Jan 18, 2026</h1>
+<h5>v 1.2.5&nbsp;&nbsp;&nbsp;&nbsp; Jan 18, 2026</h5>
 <h2>Risk Summary</h2>
 <p>Start, Run, and Stop now work somewhat differently so there may be cases where they fail to enable correctly.
     Over the last few releases some objects have changed names so it is probably <strong>time to delete your default configuration file</strong>
@@ -59,7 +63,7 @@ helps deal with the large number of plot lines in the THD vs Amplitude and vs Fr
 <h2>Do not allow test switching during Run</h2>
 <p>Switching test pages while running a test was never a good idea but there was no program stop. Now it&#39;s explicit and you&#39;ll get a warning when you try to flip tests during a run.
 </p>
-<h1>v 1.2.4&nbsp;&nbsp;&nbsp;&nbsp; Jan 13, 2026</h1>
+<h5>v 1.2.4&nbsp;&nbsp;&nbsp;&nbsp; Jan 13, 2026</h5>
 <h2>Risk Summary</h2>
 <p>
     The gain curve math updates are problematic. QA40xPlot uses gain curves for auto-attenuation of IMD, Amplitude and Frequency sweeps, and Response. The unit of measure changes on amplitude (voltage) selection runs through every test and should work ok but now that they save/load with configuration there could be issues.</p>

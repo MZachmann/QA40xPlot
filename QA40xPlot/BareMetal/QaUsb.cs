@@ -70,11 +70,12 @@ namespace QA40x.BareMetal
 	{
 		object ReadRegLock = new object();
 		// how long to wait for relays to settle down after changing input/output ranges
-		// in empirical testing it takes about 200ms, so we use 500ms to be safe
+		// in empirical testing it takes nearly 1000ms to be safe
 		private readonly static int _RelayMilliseconds = 1000;
+		// changing sample rate empties the buffer entirely and takes time to restart
 		private readonly static int _SRateChangeMilliseconds = 1000;
 		
-				List<AsyncResult> WriteQueue = new List<AsyncResult>();
+		List<AsyncResult> WriteQueue = new List<AsyncResult>();
 		List<AsyncResult> ReadQueue = new List<AsyncResult>();
 		/// Tracks whether or not an acq is in process. The count starts at one, and when it goes busy
 		/// it will drop to zero, and then return to 1 when not busy

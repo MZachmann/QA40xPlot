@@ -225,9 +225,19 @@ namespace QA40xPlot.Actions
 		static int _NextSnapshot = 1;
 		public void AddSnapshotPlot()
 		{
-			string fileName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()) + ".zip";
-			Util.SaveToFile<T>(PageData, MyVModel, fileName);
-			LoadFromFile(fileName, false);
+			var fpath = ViewSettings.Singleton.SettingsVm.DataFolder;
+			if(string.IsNullOrEmpty(fpath))
+				fpath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+			string fileName = Path.Combine(fpath, $"Snap{_NextSnapshot}.plt.zip");
+			var vm = MyVModel;
+			var vmname = typeof(T).Name;
+			// only possibly save frequency result for spectrum and imd
+			bool saveFreq = (vm.Averages > 1) && (vmname == "SpectrumViewModel" || vmname == "ImdViewModel");
+			// now save then load
+			if (Util.SaveToFile<T>(PageData, vm, fileName, saveFreq))
+				LoadFromFile(fileName, false);
+			else
+				MessageBox.Show("Unable to save snapshot file.");
 			_NextSnapshot++;
 		}
 

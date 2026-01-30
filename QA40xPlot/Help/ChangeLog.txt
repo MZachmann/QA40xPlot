@@ -11,6 +11,8 @@ v 1.2.7 asdfasdf
 - reduce the relay delay time after empirical testing
 - reduce graph limit update defn for the GUI upgrade and to enable multi-pin/fit
 - implement pinall and fitall for popup menu on graphs
+- refactor Actions to generic finally
+- add snapshot of data option
 v 1.2.6 1/24/26
 - add a QA40x readme on ports
 - read the dc supply voltage, dc current, and temperature on device init
