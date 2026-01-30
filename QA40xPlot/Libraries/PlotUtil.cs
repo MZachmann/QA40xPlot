@@ -1,7 +1,6 @@
 ﻿using QA40xPlot.Actions;
 using QA40xPlot.ViewModels;
 using ScottPlot;
-using System.Windows;
 
 namespace QA40xPlot.Libraries
 {
@@ -143,6 +142,20 @@ namespace QA40xPlot.Libraries
 			myPlot.Axes.Bottom.TickGenerator = tickGenX;
 		}
 
+		public static void SetStockAxis(ScottPlot.Plot myPlot, IAxis axis)
+		{
+			axis.RemoveTickGenerator();
+			axis.Label.FontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
+			var foreColor = PlotUtil.StrToColor(ViewSettings.Singleton.SettingsVm.GraphForeground);
+			var light = ToBrightness(foreColor);
+			var clr = (light < 128) ? ScottPlot.Colors.White : ScottPlot.Colors.Black;
+			axis.Label.ForeColor = clr;         // use dark text color if needed
+			axis.TickLabelStyle.ForeColor = clr;
+			axis.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
+			var tickgen = PlotUtil.BuildMagTics(myPlot);
+			axis.TickGenerator = tickgen;
+		}
+
 		private static void SetupTimeTics(ScottPlot.Plot myPlot)
 		{
 			// create a numeric tick generator that uses our custom minor tick generator
@@ -166,7 +179,8 @@ namespace QA40xPlot.Libraries
 			tickGenY2.MinorTickGenerator = minorTickGen;
 
 			// tell the left axis to use our custom tick generator
-			myPlot.Axes.Right.TickGenerator = tickGenY2;
+			if(myPlot.Axes.Right != null)
+				myPlot.Axes.Right.TickGenerator = tickGenY2;
 		}
 
 		// this sets the axes bounds for freq vs percent
@@ -205,23 +219,20 @@ namespace QA40xPlot.Libraries
 			myPlot.Axes.Rules.Add(rule);
 		}
 
-		public static ScottPlot.AxisPanels.LeftAxis AddSecondY(FreqRespViewModel frqrsVm, Plot myPlot)
+		public static ScottPlot.AxisPanels.LeftAxis AddSecondY(Plot myPlot, BaseViewModel bvm)
 		{
 			// create a second axis and add it to the plot
 			var yAxis2 = myPlot.Axes.AddLeftAxis();
+			bvm.SecondYAxis = yAxis2;
 			return yAxis2;
 		}
 
-		// this sets the axes bounds for phase while zooming. bottom is as above...
-		public static void AddPhaseFreqRule(ScottPlot.Plot myPlot)
+		public static IYAxis AddSecondYR(Plot myPlot, BaseViewModel bvm)
 		{
-			// myPlot.Axes.Rules.Clear();
-			ScottPlot.AxisRules.MaximumBoundary rule = new(
-				xAxis: myPlot.Axes.Bottom,
-				yAxis: myPlot.Axes.Right,
-				limits: new AxisLimits(Math.Log10(1), Math.Log10(100000), -3600, 3600)
-				);
-			myPlot.Axes.Rules.Add(rule);
+			// create a second axis and add it to the plot
+			var yAxis2 = myPlot.Axes.Right;
+			bvm.SecondYAxis = yAxis2;
+			return yAxis2;
 		}
 
 		// this sets the axes bounds for freq vs percent
@@ -301,8 +312,8 @@ namespace QA40xPlot.Libraries
 
 		public static void AddPhasePlot(ScottPlot.Plot myPlot)
 		{
+			SetStockAxis(myPlot, myPlot.Axes.Right);
 			SetupPhaseTics(myPlot);
-			AddPhaseFreqRule(myPlot);
 		}
 
 		public static void AddGroupDelayPlot(ScottPlot.Plot myPlot)

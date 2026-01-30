@@ -72,7 +72,7 @@ namespace QA40xPlot.Actions
 			var vm = MyVModel;
 			if (who == "Y2")
 			{
-				var y2axis = GetY2Axis(myPlot);
+				var y2axis = vm.SecondYAxis;
 				if(y2axis != null)
 				{
 					var u = y2axis.Min;
@@ -1129,7 +1129,6 @@ namespace QA40xPlot.Actions
 		{
 			if(frqrsVm.ShowPhase)
 			{
-				PlotUtil.AddPhaseFreqRule(myPlot);
 				PlotUtil.AddPhasePlot(myPlot);
 				myPlot.Axes.Right.Label.Text = "Phase (Deg)";
 				frqrsVm.ToShowPhase = Visibility.Visible;
@@ -1148,14 +1147,14 @@ namespace QA40xPlot.Actions
 
 		public void AddGroupDelay(FreqRespViewModel frqrsVm, Plot myPlot)
 		{
-			var axis = PlotUtil.AddSecondY(frqrsVm, myPlot);
+			var axis = PlotUtil.AddSecondY(myPlot, frqrsVm);
 			axis.RemoveTickGenerator();
-			var y2axis = GetY2Axis(myPlot);
+			var y2axis = frqrsVm.SecondYAxis;
 			if(y2axis != null)
 			{
 				myPlot.Axes.SetLimitsY(ToD(frqrsVm.Range2Bottom, -10), ToD(frqrsVm.Range2Top, 10), y2axis);
 			}
-
+			frqrsVm.Y2AxisUnit = "ms";
 			axis.LabelText = "Group Delay (ms)";
 			var tickgen = PlotUtil.BuildMagTics(myPlot);
 			var foreColor = PlotUtil.StrToColor(ViewSettings.Singleton.SettingsVm.GraphForeground);
@@ -1168,16 +1167,6 @@ namespace QA40xPlot.Actions
 			// use dark text color
 			axis.LabelFontColor = clr;
 			axis.TickLabelStyle.ForeColor = clr;
-		}
-
-		private IYAxis? GetY2Axis(Plot myPlot)
-		{
-			var yaxes = myPlot.Axes.GetYAxes();
-			if (yaxes.Count() > 2)
-			{
-				return yaxes.ElementAt(2);
-			}
-			return null;
 		}
 
 		private void AddCustomMarker()
@@ -1193,7 +1182,7 @@ namespace QA40xPlot.Actions
 				myPlot.Axes.SetLimitsY(ToD(vm.RangeBottomdB, -20), ToD(vm.RangeTopdB, 180), myPlot.Axes.Left);
 			if (changedProp == "PhaseBottom" || changedProp == "PhaseTop" || changedProp.Length == 0)
 				myPlot.Axes.SetLimitsY(ToD(vm.PhaseBottom, 20.0), ToD(vm.PhaseTop, 20.0), myPlot.Axes.Right);
-			var y2axis = GetY2Axis(myPlot);
+			var y2axis = vm.SecondYAxis;
 			if((y2axis != null) && (changedProp == "Range2Bottom" || changedProp == "Range2Top" || changedProp.Length == 0))
 				myPlot.Axes.SetLimitsY(ToD(vm.Range2Bottom, -20.0), ToD(vm.Range2Top, 20.0), y2axis);
 		}
@@ -1213,10 +1202,11 @@ namespace QA40xPlot.Actions
 			// as if no phase
 			frqrsVm.ToShowPhase = Visibility.Collapsed;
 			myPlot.Axes.Right.Label.Text = string.Empty;
-			var y2axis = GetY2Axis(myPlot);
+			var y2axis = frqrsVm.SecondYAxis;
 			if(y2axis != null)
 			{
 				myPlot.Axes.Remove(y2axis);
+				frqrsVm.SecondYAxis = null;
 				y2axis = null;
 			}
 			PageData.DelayRslt = null;
@@ -1434,13 +1424,12 @@ namespace QA40xPlot.Actions
 					page.DelayRslt = gdelay;
 					// now plot it and add it to the legend
 					plot = myPlot.Add.SignalXY(logFreqX.Skip(skipped).ToArray(), gdelay.Skip(skipped).ToArray());
-					var is2 = myPlot.Axes.GetYAxes().Count() > 2;
-					plot.Axes.YAxis = myPlot.Axes.GetYAxes().ElementAt(is2 ? 2 : 1);
+					plot.Axes.YAxis = frqrsVm.SecondYAxis ?? myPlot.Axes.Left;
 					plot.LegendText = prefix + "Group Delay (ms)";
 					plot.LineWidth = lineWidth;
 					plot.MarkerSize = markerSize;
 					plot.IsVisible = !MyVModel.HiddenLines.Contains(plot.LegendText);
-					MyVModel.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2 + 1, plot, frqrsPlot, plot.IsVisible));
+					MyVModel.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2 + 2, plot, frqrsPlot, plot.IsVisible));
 				}
 			}
 

@@ -135,6 +135,7 @@
         <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
             <StackPanel Orientation="Vertical">
                 <views:YAxisAbs />
+                <views:Y2Axis Visibility="{Binding ShowResiduals, Converter={StaticResource BoolVisConverter}}" />
                 <Expander Header="—— X Axis"  IsExpanded="{Binding ExpandXAxis}" >
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -154,13 +155,13 @@
                         VerticalContentAlignment="Center"
                                Text="{Binding GraphStartX}" ItemsSource="{Binding TimeSteps}" >
                         </ComboBox>
-                        <Label Content="mS" Grid.Row="0"  Grid.Column="2" VerticalAlignment="Center" />
+                        <Label Content="ms" Grid.Row="0"  Grid.Column="2" VerticalAlignment="Center" />
                         <Label Content="To" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"  />
                         <ComboBox  MinWidth="70" IsEditable="True" Grid.Row="1" Grid.Column="1"  
                         VerticalContentAlignment="Center"
                                Text="{Binding GraphEndX}" ItemsSource="{Binding TimeSteps}">
                         </ComboBox>
-                        <Label Content="mS" Grid.Row="1"  Grid.Column="2" VerticalAlignment="Center" />
+                        <Label Content="ms" Grid.Row="1"  Grid.Column="2" VerticalAlignment="Center" />
                         <Button Content="" Command="{Binding DoViewToFit}" CommandParameter="XT"
                             FontFamily="Segoe Fluent Icons"
                             Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  
@@ -201,12 +202,6 @@
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Label Content="Scale:" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="0" Grid.Column="0" />
-                            <ComboBox  VerticalContentAlignment="Center" 
-                                       Grid.Row="0" Grid.Column="1"
-                               IsEditable="True" Text="{Binding ResidualScale}" ItemsSource="{Binding DbrSelect}" MinWidth="60" >
-                            </ComboBox>
-                            <Label Content=" dB" VerticalAlignment="Center" Grid.Row="0" Grid.Column="2"  />
                             <Label Content="Harmonics:" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="1" Grid.Column="0" />
                             <views:UpDownControl VerticalAlignment="Center" 
                              ToolTip="Set to >0 for just N harmonics."

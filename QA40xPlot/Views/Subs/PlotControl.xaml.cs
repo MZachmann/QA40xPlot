@@ -11,8 +11,8 @@ namespace QA40xPlot.Views
 	public partial class PlotControl : UserControl
 	{
 		public ScottPlot.Plot ThePlot { get; set; }
-		private WpfPlot _plot;
-		public WpfPlot Plot { get { return _plot; } set { _plot = value; ThePlot = value.Plot; } }
+		private WpfPlot _APlot;
+		public WpfPlot APlot { get { return _APlot; } set { _APlot = value; ThePlot = value.Plot; } }
 		public BaseViewModel? GrandParent { get; set; }
 
 		private bool _TrackMouse = true;
@@ -66,13 +66,13 @@ namespace QA40xPlot.Views
 		{
 			InitializeComponent();
 			GrandParent = null;
-			ThePlot = this.TheWpfPlot.Plot;
-			_plot = this.TheWpfPlot;
+			_APlot = TheWpfPlot;
+			ThePlot = TheWpfPlot.Plot;
 		}
 
 		public void Refresh()
 		{
-			Plot.Refresh();
+			APlot.Refresh();
 		}
 
 	}

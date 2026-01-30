@@ -4,8 +4,10 @@ using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using ScottPlot;
+using ScottPlot.AxisPanels;
 using ScottPlot.Plottables;
 using System.Data;
+using System.Text.Json.Serialization;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
 
@@ -35,18 +37,24 @@ namespace QA40xPlot.Actions
 		// here param is the id of the tab to remove from the othertab list
 		public void DeleteTab(int id)
 		{
-			var resId = HasResidualPlot();
 			OtherTabs.RemoveAll(item => item.Id == id);
 			MyVModel.ForceGraphUpdate(); // force a graph update
-			// if user manually removed the residuals turn off the checkbox last
-			if (resId != 0)
-				MyVModel.ShowResiduals = false;
 		}
 
 
 		public void DoCancel()
 		{
 			CanToken.Cancel();
+		}
+
+		public LeftRightTimeSeries? GetResidual(MyDataTab page)
+		{
+			return page.GetProperty<LeftRightTimeSeries?>(ScopeViewModel.ResidualName);
+		}
+
+		public void SetResidual(MyDataTab page, LeftRightTimeSeries? lrts)
+		{
+			page.SetProperty(ScopeViewModel.ResidualName, lrts);
 		}
 
 		/// <summary>
@@ -81,7 +89,18 @@ namespace QA40xPlot.Actions
 		{
 			ScottPlot.Plot myPlot = timePlot.ThePlot;
 			var vm = MyVModel;
-			if (who == "XT")
+			if (who == "Y2")
+			{
+				var y2axis = vm.SecondYAxis;
+				if (y2axis != null)
+				{
+					var u = y2axis.Min;
+					var w = y2axis.Max;
+					vm.Range2Top = w.ToString("G3");
+					vm.Range2Bottom = u.ToString("G3");
+				}
+			}
+			else if (who == "XT")
 			{
 				myPlot = timePlot.ThePlot;
 				var myAxis = myPlot.Axes.Bottom;
@@ -187,21 +206,18 @@ namespace QA40xPlot.Actions
 		{
 			if (isShown)
 			{
-				bool showFirst = false;
-				if (0 == HasResidualPlot())
+				if (!HasResidualPlot())
 				{
 					AddResidualPlot();
-					showFirst = true;
 				}
-				if (0 != HasResidualPlot())
+				if (HasResidualPlot())
 				{
-					UpdateResidualPlot(PageData.TimeRslt, showFirst);
+					UpdateResidualPlot(PageData.TimeRslt);
 				}
-				UpdateGraph(false);
 			}
 			else
 			{
-				if (0 != HasResidualPlot())
+				if (HasResidualPlot())
 				{
 					RemoveResidualPlot();
 				}
@@ -212,55 +228,32 @@ namespace QA40xPlot.Actions
 		/// return the id of the residual plot datapage
 		/// </summary>
 		/// <returns></returns>
-		public int HasResidualPlot()
+		public bool HasResidualPlot()
 		{
-			int pageId = 0;
-			var pages = OtherTabs.Where(x => x.Definition.Name == "Residual");
-			if (pages.Count() > 0)
-			{
-				pageId = pages.First().Id;
-			}
-			return pageId;
+			return (null != GetResidual(PageData));
 		}
 
 		public void RemoveResidualPlot()
 		{
-			var pages = OtherTabs.Where(x => x.Definition.Name == "Residual");
-			if (pages.Count() > 0)
-			{
-				var pageId = pages.First().Id;
-				MyVModel.DoDeleteIt(pageId.ToString());
-			}
+			SetResidual( PageData, null);
+			UpdateGraph(true);
 		}
 
-		public void UpdateResidualPlot(LeftRightTimeSeries source, bool isChanged)
+		public void UpdateResidualPlot(LeftRightTimeSeries source)
 		{
 			var vm = MyVModel;
 			var freq = vm.UseGenerator1 ? vm.NearestBinFreq(ToD(vm.Gen1Frequency, 0)) : 0.0;
-			var lrts = QaMath.CalculateResidual(source, freq, vm.ResidualScaleValue, vm.ResidualHarm);
-			var pages = OtherTabs.Where(x => x.Definition.Name == "Residual");
-			if(pages.Count() > 0)
-			{
-				var page = pages.First();
-				page.TimeRslt = lrts;
-			}	
+			var lrts = QaMath.CalculateResidual(source, freq, 1000, vm.ResidualHarm);
+			SetResidual( PageData, lrts);
 		}
 
 		public void AddResidualPlot()
 		{
 			var vm = MyVModel;
 			var freq = vm.UseGenerator1 ? vm.NearestBinFreq(ToD(vm.Gen1Frequency, 0)) : 0.0;
-			var lrts = QaMath.CalculateResidual(PageData.TimeRslt, freq, vm.ResidualScaleValue, vm.ResidualHarm);
-			var page = new DataTab<ScopeViewModel>(MyVModel, lrts);
-			page.Definition.FileName = "Residual";
-			page.Definition.Name = "Residual";
-			page.Definition.IsOnL = true;
-			page.Definition.IsOnR = false;
-			page.Definition.LeftColor = "Transparent";
-			page.Definition.RightColor = "Transparent";
-			OtherTabs.Add(page); // add the new one
-								 //var oss = new OtherSet(page.Definition.Name, page.Show, page.Id);
-			MyVModel.OtherSetList.Add(page.Definition);
+			var lrts = QaMath.CalculateResidual(PageData.TimeRslt, freq, 1000, vm.ResidualHarm);
+			SetResidual(PageData, lrts);
+			AddResidualAxis(vm, timePlot.ThePlot);
 		}
 
 		/// <summary>
@@ -492,7 +485,6 @@ namespace QA40xPlot.Actions
 					thd.RaiseMouseTracked("track");
 				}
 				MyVModel.HasExport = true;
-				DoShowResiduals(MyVModel.ShowResiduals);
 			}
 			catch (Exception ex)
 			{
@@ -517,11 +509,24 @@ namespace QA40xPlot.Actions
 			timePlot.Refresh();
 		}
 
+		public void AddResidualAxis(ScopeViewModel frqrsVm, Plot myPlot)
+		{
+			var axis = PlotUtil.AddSecondYR(myPlot, frqrsVm);
+			var y2axis = frqrsVm.SecondYAxis;
+			if (y2axis != null)
+			{
+				myPlot.Axes.SetLimitsY(ToD(frqrsVm.Range2Bottom, -10), ToD(frqrsVm.Range2Top, 10), y2axis);
+			}
+			frqrsVm.Y2AxisUnit = "mV";
+			axis.Label.Text = "Residual (mV)";
+			PlotUtil.SetStockAxis(myPlot, axis);
+		}
+
 		/// <summary>
 		/// Plot the THD % graph
 		/// </summary>
 		/// <param name="data"></param>
-		void PlotValues(MyDataTab page, int measurementNr, bool isMain)
+		int PlotValues(MyDataTab page, int measurementNr, bool isMain)
 		{
 			ScottPlot.Plot myPlot = timePlot.ThePlot;
 			var scopeVm = MyVModel;
@@ -540,7 +545,7 @@ namespace QA40xPlot.Actions
 
 			var timeData = page.TimeRslt;
 			if (timeData == null || timeData.Left.Length == 0)
-				return;
+				return measurementNr;
 
 			double maxleft = timeData.Left.Max();
 			double maxright = timeData.Right.Max();
@@ -552,27 +557,70 @@ namespace QA40xPlot.Actions
 			{
 				var pLeft = myPlot.Add.SignalXY(timeX, timeData.Left);
 				pLeft.LineWidth = showThick ? _Thickness : 1;
-				pLeft.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, measurementNr * 2);
+				pLeft.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, measurementNr);
 				pLeft.MarkerSize = markerSize;
 				pLeft.LegendText = isMain ? "Left" : ClipName(page.Definition.Name) + ".L";
 				pLeft.IsVisible = !MyVModel.HiddenLines.Contains(pLeft.LegendText);
 				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, pLeft.Color, pLeft.LegendText,
-					measurementNr * 2, pLeft, timePlot, pLeft.IsVisible));
+					measurementNr, pLeft, timePlot, pLeft.IsVisible));
 			}
+			measurementNr++;
 
 			if (useRight)
 			{
 				var pRight = myPlot.Add.SignalXY(timeX, timeData.Right);
 				pRight.LineWidth = showThick ? _Thickness : 1;
-				pRight.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, measurementNr * 2 + 1);
+				pRight.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, measurementNr);
 				pRight.MarkerSize = markerSize;
 				pRight.LegendText = isMain ? "Right" : ClipName(page.Definition.Name) + ".R";
 				pRight.IsVisible = !MyVModel.HiddenLines.Contains(pRight.LegendText);
 				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, pRight.Color, pRight.LegendText,
-					measurementNr * 2 + 1, pRight, timePlot, pRight.IsVisible));
+					measurementNr, pRight, timePlot, pRight.IsVisible));
+			}
+			measurementNr++;
+
+			if (isMain && HasResidualPlot())
+			{
+				var lrts = GetResidual(page);
+				if(lrts != null)
+				{
+					if (useLeft)
+					{
+						var pLeft = myPlot.Add.SignalXY(timeX, lrts.Left);
+						pLeft.LineWidth = showThick ? _Thickness : 1;
+						pLeft.Color = GraphUtil.GetPaletteColor(null, measurementNr);
+						pLeft.MarkerSize = markerSize;
+						pLeft.LegendText = "Residual.L";
+						pLeft.IsVisible = !MyVModel.HiddenLines.Contains(pLeft.LegendText);
+						pLeft.Axes.YAxis = scopeVm.SecondYAxis ?? myPlot.Axes.Left;
+						MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, pLeft.Color, pLeft.LegendText,
+							measurementNr, pLeft, timePlot, pLeft.IsVisible));
+					}
+					measurementNr++;
+
+					if (useRight)
+					{
+						var pRight = myPlot.Add.SignalXY(timeX, lrts.Right);
+						pRight.LineWidth = showThick ? _Thickness : 1;
+						pRight.Color = GraphUtil.GetPaletteColor(null, measurementNr * 2 + 1);
+						pRight.MarkerSize = markerSize;
+						pRight.LegendText = "Residual.R";
+						pRight.Axes.YAxis = scopeVm.SecondYAxis ?? myPlot.Axes.Left;
+						pRight.IsVisible = !MyVModel.HiddenLines.Contains(pRight.LegendText);
+						MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, pRight.Color, pRight.LegendText,
+							measurementNr, pRight, timePlot, pRight.IsVisible));
+					}
+					measurementNr++;
+				}
+			}
+			else if (isMain)
+			{
+				// leave room for the two residuals
+				measurementNr += 2;
 			}
 
 			timePlot.Refresh();
+			return measurementNr;
 		}
 
 		/// <summary>
@@ -585,7 +633,7 @@ namespace QA40xPlot.Actions
 
 			var thdFreq = MyVModel;
 			UpdatePlotTitle();
-			myPlot.XLabel("Time (mS)");
+			myPlot.XLabel("Time (ms)");
 			myPlot.YLabel("Voltage");
 
 			timePlot.Refresh();
@@ -697,6 +745,9 @@ namespace QA40xPlot.Actions
 				myPlot.Axes.SetLimitsX(ToD(vm.GraphStartX, 0), ToD(vm.GraphEndX, 10), myPlot.Axes.Bottom);
 			if (changedProp == "RangeBottom" || changedProp == "RangeTop" || changedProp.Length == 0)
 				myPlot.Axes.SetLimitsY(ToD(vm.RangeBottom, 1e-6), ToD(vm.RangeTop, 1), myPlot.Axes.Left);  // - 0.000001 to force showing label
+			var y2axis = vm.SecondYAxis;
+			if ((y2axis != null) && (changedProp == "Range2Bottom" || changedProp == "Range2Top" || changedProp.Length == 0))
+				myPlot.Axes.SetLimitsY(ToD(vm.Range2Bottom, -20.0), ToD(vm.Range2Top, 20.0), y2axis);
 		}
 
 		public void UpdateGraph(bool settingsChanged, string theProperty = "")
@@ -707,14 +758,25 @@ namespace QA40xPlot.Actions
 
 			if (settingsChanged)
 			{
-				PlotUtil.SetupMenus(timePlot.ThePlot, this, thd);
+				var myPlot = timePlot.ThePlot;
+				var y2axis = thd.SecondYAxis;
+				if (y2axis != null)
+				{
+					//myPlot.Axes.Remove(y2axis);
+					y2axis.Label.Text = string.Empty;
+					y2axis = null;
+					thd.SecondYAxis = null;
+				}
+				PlotUtil.SetupMenus(myPlot, this, thd);
 				InitializeMagnitudePlot();
-				HandleChangedProperty(timePlot.ThePlot, thd, "");
+				HandleChangedProperty(myPlot, thd, "");
+
 			}
 			else if(theProperty.Length > 0)
 			{
 				HandleChangedProperty(timePlot.ThePlot, thd, theProperty);
 			}
+			DoShowResiduals(thd.ShowResiduals);
 			thd.UpdateMouseCursor(thd.LookX, thd.LookY);
 			DrawPlotLines(resultNr); // draw the lines 
 		}
@@ -724,14 +786,13 @@ namespace QA40xPlot.Actions
 
 			timePlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
 			MyVModel.LegendInfo.Clear();
-			PlotValues(PageData, resultNr++, true);
+			resultNr = PlotValues(PageData, resultNr, true);
 			if (OtherTabs.Count > 0)
 			{
 				foreach (var other in OtherTabs)
 				{
 					if (other != null && other.Show != 0)
-						PlotValues(other, resultNr, false);
-					resultNr++;
+						resultNr = PlotValues(other, resultNr, false);
 				}
 			}
 			timePlot.Refresh();

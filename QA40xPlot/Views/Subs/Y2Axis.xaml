@@ -24,13 +24,13 @@
                         VerticalContentAlignment="Center"
                               Text="{Binding Range2Top}" ItemsSource="{Binding AbsoluteDelays}" >
                 </ComboBox>
-                <Label Content="V" Grid.Row="0" Grid.Column="2" VerticalAlignment="Center"  />
+                <Label Content="{Binding Y2AxisUnit}" Grid.Row="0" Grid.Column="2" VerticalAlignment="Center"  />
                 <Label Content="Bottom" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right"  VerticalAlignment="Center" />
                 <ComboBox IsEditable="True" Grid.Column="1"  Grid.Row="1"   Text="{Binding Range2Bottom}" 
                         VerticalContentAlignment="Center"
                               ItemsSource="{Binding AbsoluteValues}">
                 </ComboBox>
-                <Label Content="V" Grid.Row="1" Grid.Column="2" VerticalAlignment="Center"  />
+            <Label Content="{Binding Y2AxisUnit}" Grid.Row="1" Grid.Column="2" VerticalAlignment="Center"  />
                 <Button Content="" Command="{Binding DoViewToFit}" CommandParameter="Y2"
                             FontFamily="Segoe Fluent Icons"
                             Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  

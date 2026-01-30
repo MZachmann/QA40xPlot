@@ -8,6 +8,7 @@ using QA40xPlot.Views;
 using ScottPlot;
 using ScottPlot.Plottables;
 using System.ComponentModel;
+using System.Drawing.Drawing2D;
 using System.Windows;
 using System.Windows.Input;
 
@@ -19,7 +20,9 @@ namespace QA40xPlot.ViewModels
 		public static List<String> GenFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "2000", "5000", "10000" }; }
 		public static List<String> TimeSteps { get => new List<string> { "0", ".1", ".5", "1", "5", "10", "20", "50", "100", "200", "500", "1000", "5000", "10000" }; }
 		[JsonIgnore]
-		public override List<string> AxisList { get; } = new List<string> { "XT", "YP" };
+		public override List<string> AxisList { get; } = new List<string> { "XT", "YP", "Y2" };
+		[JsonIgnore]
+		public static readonly string ResidualName = "Residual";	// don't make it a property, it just readonly
 
 		private ActScope MyAction { get => actScope; }
 		private static ScopeViewModel MyVModel { get => ViewSettings.Singleton.ScopeVm; }
@@ -162,6 +165,8 @@ namespace QA40xPlot.ViewModels
 				case "GraphEndX":
 				case "RangeBottom":
 				case "RangeTop":
+				case "Range2Bottom":
+				case "Range2Top":
 					MyAction?.UpdateGraph(false, e.PropertyName);
 					break;
 				case "ShowThickLines":
@@ -235,7 +240,8 @@ namespace QA40xPlot.ViewModels
 
 		private void ChangeResidualScale()
 		{
-			MyAction?.DoShowResiduals(ShowResiduals);
+			MyAction?.UpdateGraph(false);	// repaint
+			//MyAction?.DoShowResiduals(ShowResiduals);
 		}
 
 		private void WaveSelect()
@@ -293,19 +299,42 @@ namespace QA40xPlot.ViewModels
 			switch (parameter)
 			{
 				case "XT":  // X time
-					this.GraphStartX = bounds.Left.ToString("0.###");
-					this.GraphEndX = bounds.Right.ToString("0.###");
+					GraphStartX = bounds.Left.ToString("0.###");
+					GraphEndX = bounds.Right.ToString("0.###");
 					break;
 				case "YP":  // Y magnitude
 					if(Math.Abs(bounds.Height) > 1e-2)
 					{
-						this.RangeBottom = (bounds.Y).ToString("0.###");
-						this.RangeTop = (bounds.Height + bounds.Y).ToString("0.###");
+						RangeBottom = (bounds.Y).ToString("0.###");
+						RangeTop = (bounds.Height + bounds.Y).ToString("0.###");
 					}
 					else
 					{
-						this.RangeBottom = (bounds.Y).ToString("0.#####");
-						this.RangeTop = (bounds.Height + bounds.Y).ToString("0.#####");
+						RangeBottom = (bounds.Y).ToString("0.#####");
+						RangeTop = (bounds.Height + bounds.Y).ToString("0.#####");
+					}
+					break;
+				case "Y2":  // group delay
+					var rsl = MyAction.GetResidual(MyAction.PageData);
+					if (rsl != null && rsl.Left.Length > 0 )
+					{
+						double rmin = double.MaxValue;
+						double rmax = double.MinValue;
+						if(ShowLeft)
+						{
+							rmin = rsl.Left.Min();
+							rmax = rsl.Left.Max();
+						}
+						if (ShowRight)
+						{
+							rmin = Math.Min(rmin, rsl.Right.Min());
+							rmax = Math.Max(rmax, rsl.Right.Max());
+						}
+						if(ShowLeft || ShowRight)
+						{
+							Range2Bottom = rmin.ToString("G3");
+							Range2Top = rmax.ToString("G3");
+						}
 					}
 					break;
 				default:

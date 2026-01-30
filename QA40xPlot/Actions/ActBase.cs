@@ -115,8 +115,8 @@ namespace QA40xPlot.Actions
 			{
 				case "XM":  // X magnitude
 							// calculate the bounds here. X is provided in input or output volts/power
-					bvm.GraphStartX = bounds.Left.ToString("G2");
-					bvm.GraphEndX = (bounds.Left + bounds.Right).ToString("G2");
+					bvm.GraphStartX = bounds.Left.ToString("G3");
+					bvm.GraphEndX = (bounds.Left + bounds.Right).ToString("G3");
 					break;
 				case "XF":  // X frequency
 					bvm.GraphStartX = bounds.Left.ToString("0");

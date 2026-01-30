@@ -222,6 +222,14 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _FreqShow, value);
 		}
 
+		private string _Y2AxisUnit = "V";
+		[JsonIgnore]
+		public string Y2AxisUnit
+		{
+			get => _Y2AxisUnit;
+			set => SetProperty(ref _Y2AxisUnit, value);
+		}
+
 		bool _isTracking = true;
 		[JsonIgnore]
 		public bool IsTracking
@@ -361,6 +369,14 @@ namespace QA40xPlot.ViewModels
 
 
 		#region Setters and Getters
+		private IYAxis? _SecondYAxis = null;  // keep track of the second Y axis
+		[JsonIgnore]
+		public IYAxis? SecondYAxis
+		{
+			get { return _SecondYAxis; }
+			set	{ SetProperty(ref _SecondYAxis, value);	}
+		}
+
 		private bool _DoAutoAttn = true;
 		public bool DoAutoAttn
 		{
@@ -432,14 +448,14 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ShowThickLines, value);
 		}
 
-		private string _range2Top = string.Empty;
+		private string _range2Top = "1";
 		public string Range2Top
 		{
 			get { return _range2Top; }
 			set => SetProperty(ref _range2Top, value);
 		}
 
-		private string _range2Bottom = string.Empty;
+		private string _range2Bottom = "0";
 		public string Range2Bottom
 		{
 			get { return _range2Bottom; }
@@ -595,7 +611,7 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		private string _ResidualScale = "0";
+		private string _ResidualScale = "1000";
 		public string ResidualScale
 		{
 			get => _ResidualScale;

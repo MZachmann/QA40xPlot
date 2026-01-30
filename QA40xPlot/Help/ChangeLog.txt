@@ -1,8 +1,9 @@
 ﻿The QA40xPlot Changelog
 --------------------------------------------
 This changelog shows the changes made for each version
+Date format is US mm/dd/yy
 --------------------------------------------
-v 1.2.7 asdfasdf
+v 1.2.7 2/1/26
 - improve menu position and other esthetics
 - add blackman-harris 7 window to the window list, rename blackman to blackman-3
 - repaired: renamed files could not be loaded with the new Zip code
@@ -13,6 +14,9 @@ v 1.2.7 asdfasdf
 - implement pinall and fitall for popup menu on graphs
 - refactor Actions to generic finally
 - add snapshot of data option
+- move residual to a separate axis and remove scaling
+- upgrade group delay creation
+- add ability to disable phase display
 v 1.2.6 1/24/26
 - add a QA40x readme on ports
 - read the dc supply voltage, dc current, and temperature on device init
