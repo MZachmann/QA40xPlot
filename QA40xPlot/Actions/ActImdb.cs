@@ -17,16 +17,12 @@ namespace QA40xPlot.Actions
 {
 	using MyDataTab = DataTab<ImdViewModel>;
 
-	public class ActImd : ActBase
+	public class ActImd : ActBase<ImdViewModel>
 	{
-		public MyDataTab PageData { get; private set; } // Data used in this form instance
 		private List<MyDataTab> OtherTabs { get; set; } = new List<MyDataTab>(); // Other tabs in the document
 		private readonly Views.PlotControl imdPlot;
 
 		private float _Thickness = 2.0f;
-		private static ImdViewModel MyVModel { get => ViewSettings.Singleton.ImdVm; }
-
-		CancellationTokenSource ct { set; get; }                                 // Measurement cancelation token
 
 		/// <summary>
 		/// Constructor
@@ -34,8 +30,6 @@ namespace QA40xPlot.Actions
 		public ActImd(Views.PlotControl graphFft)
 		{
 			imdPlot = graphFft;
-			ct = new CancellationTokenSource();
-			PageData = new(MyVModel, new LeftRightTimeSeries());
 			UpdateGraph(true);
 		}
 
@@ -50,7 +44,7 @@ namespace QA40xPlot.Actions
 
 		public void DoCancel()
 		{
-			ct.Cancel();
+			CanToken.Cancel();
 		}
 
 		// create a blob with F,Left,Right data for export
@@ -124,7 +118,7 @@ namespace QA40xPlot.Actions
 			{
 				BuildFrequencies(page);
 			}
-			await PostProcess(page, ct.Token);
+			await PostProcess(page, CanToken.Token);
 
 			if (isMain)
 			{
@@ -912,7 +906,7 @@ namespace QA40xPlot.Actions
 			var imdVm = MyVModel;
 			if (!await StartAction(imdVm))
 				return;
-			ct = new();
+			CanToken = new();
 
 			// sweep data
 			LeftRightTimeSeries lrts = new();
@@ -960,9 +954,9 @@ namespace QA40xPlot.Actions
 			}
 
 			// do the actual measurements
-			var rslt = await RunAcquisition(NextPage, true, iteration++, ct.Token);
+			var rslt = await RunAcquisition(NextPage, true, iteration++, CanToken.Token);
 			if (rslt)
-				rslt = await PostProcess(NextPage, ct.Token);
+				rslt = await PostProcess(NextPage, CanToken.Token);
 
 			if (rslt)
 			{
@@ -973,7 +967,7 @@ namespace QA40xPlot.Actions
 			MyVModel.LinkAbout(PageData.Definition);  // ensure we're linked right during replays
 
 			var loopTime = DateTime.Now;
-			while (rslt && !ct.IsCancellationRequested)
+			while (rslt && !CanToken.IsCancellationRequested)
 			{
 				// update the view model with latest settings
 				if (PageData.ViewModel != null)
@@ -981,14 +975,14 @@ namespace QA40xPlot.Actions
 				// have it recalculate the noise floor now possibly
 				bool redoNoise = (ViewSettings.NoiseRefresh > 0) &&
 					(DateTime.Now - loopTime).TotalSeconds > ViewSettings.NoiseRefresh;
-				rslt = await RunAcquisition(PageData, redoNoise, iteration++, ct.Token);
+				rslt = await RunAcquisition(PageData, redoNoise, iteration++, CanToken.Token);
 				if (redoNoise)
 				{
 					loopTime = DateTime.Now;
 				}
 				if (rslt)
 				{
-					rslt = await PostProcess(PageData, ct.Token);
+					rslt = await PostProcess(PageData, CanToken.Token);
 					UpdateGraph(false);
 				}
 			}

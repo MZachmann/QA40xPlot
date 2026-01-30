@@ -21,19 +21,15 @@ namespace QA40xPlot.Actions
 {
 	using MyDataTab = DataTab<FreqSweepViewModel>;
 
-	public class ActFreqSweep : ActOpamp
+	public class ActFreqSweep : ActOpamp<FreqSweepViewModel>
 	{
 		private readonly Views.PlotControl swpPlot;
 		private readonly Views.PlotControl fftPlot;
 		private readonly Views.PlotControl timePlot;
 
-		public MyDataTab PageData { get; private set; } // Data used in this form instance
 		private List<MyDataTab> OtherTabs { get; set; } = new List<MyDataTab>(); // Other tabs in the document
 
 		private float _Thickness = 2.0f;
-
-		private static FreqSweepViewModel MyVModel { get => ViewSettings.Singleton.FreqVm; }
-		CancellationTokenSource CanToken;                                 // Measurement cancelation token
 
 		private List<SweepLine>? FrequencyLines(MyDataTab page)
 		{
@@ -53,9 +49,6 @@ namespace QA40xPlot.Actions
 			fftPlot = graphFft;
 			timePlot = graphTime;
 			swpPlot = graphSwp;
-
-			CanToken = new CancellationTokenSource();
-			PageData = new(MyVModel, new LeftRightTimeSeries());
 
 			// Show empty graphs
 			FreqSweepViewModel vm = MyVModel;

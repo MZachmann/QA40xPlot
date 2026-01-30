@@ -15,16 +15,12 @@ namespace QA40xPlot.Actions
 {
 	using MyDataTab = DataTab<ScopeViewModel>;
 
-	public class ActScope : ActBase
+	public class ActScope : ActBase<ScopeViewModel>
 	{
-		public MyDataTab PageData { get; private set; } // Data used in this form instance
 		private List<MyDataTab> OtherTabs { get; set; } = new List<MyDataTab>(); // Other tabs in the document
 		private readonly Views.PlotControl timePlot;
 
 		private float _Thickness = 2.0f;
-		private static ScopeViewModel MyVModel { get => ViewSettings.Singleton.ScopeVm; }
-
-		CancellationTokenSource ct { set; get; }                                 // Measurement cancelation token
 
 		/// <summary>
 		/// Constructor
@@ -32,8 +28,6 @@ namespace QA40xPlot.Actions
 		public ActScope(Views.PlotControl graphFft)
 		{
 			timePlot = graphFft;
-			ct = new CancellationTokenSource();
-			PageData = new(MyVModel, new LeftRightTimeSeries());
 			UpdateGraph(true);
 		}
 
@@ -52,7 +46,7 @@ namespace QA40xPlot.Actions
 
 		public void DoCancel()
 		{
-			ct.Cancel();
+			CanToken.Cancel();
 		}
 
 		/// <summary>
@@ -167,7 +161,7 @@ namespace QA40xPlot.Actions
 
 			// now recalculate everything
 			BuildFrequencies(page);
-			await PostProcess(page, ct.Token);
+			await PostProcess(page, CanToken.Token);
 			if (isMain)
 			{
 				// we can't overwrite the viewmodel since it links to the display proper
@@ -605,7 +599,7 @@ namespace QA40xPlot.Actions
 			var scopeVm = MyVModel;
 			if (!await StartAction(scopeVm))
 				return;
-			ct = new();
+			CanToken = new();
 
 			// sweep data
 			LeftRightTimeSeries lrts = new();
@@ -645,9 +639,9 @@ namespace QA40xPlot.Actions
 			// do the actual measurements
 			var rslt = true;
 			await showProgress(0);
-			rslt = await RunAcquisition(NextPage, iteration++, ct.Token);
+			rslt = await RunAcquisition(NextPage, iteration++, CanToken.Token);
 			if (rslt)
-				rslt = await PostProcess(NextPage, ct.Token);
+				rslt = await PostProcess(NextPage, CanToken.Token);
 
 			if (rslt)
 			{
@@ -657,14 +651,14 @@ namespace QA40xPlot.Actions
 			}
 			MyVModel.LinkAbout(PageData.Definition);  // ensure we're linked right during replays
 
-			while (repeat && rslt && !ct.IsCancellationRequested)
+			while (repeat && rslt && !CanToken.IsCancellationRequested)
 			{
 				if (PageData.ViewModel != null)
 					MyVModel.CopyPropertiesTo(PageData.ViewModel);  // update the view model with latest settings
-				rslt = await RunAcquisition(PageData, iteration++, ct.Token);
+				rslt = await RunAcquisition(PageData, iteration++, CanToken.Token);
 				if (rslt)
 				{
-					rslt = await PostProcess(PageData, ct.Token);
+					rslt = await PostProcess(PageData, CanToken.Token);
 					UpdateGraph(false);
 				}
 			}

@@ -18,15 +18,12 @@ namespace QA40xPlot.Actions
 {
 	using MyDataTab = DataTab<SpectrumViewModel>;
 
-	public class ActSpectrum : ActBase
+	public class ActSpectrum : ActBase<SpectrumViewModel>
 	{
-		public MyDataTab PageData { get; private set; } // Data used in this form instance
 		private List<MyDataTab> OtherTabs { get; set; } = new List<MyDataTab>(); // Other tabs in the document
 		private readonly Views.PlotControl fftPlot;
 
 		private float _Thickness = 2.0f;
-		private static SpectrumViewModel MyVModel { get => ViewSettings.Singleton.SpectrumVm; }
-		CancellationTokenSource ct { set; get; }                                 // Measurement cancelation token
 
 		/// <summary>
 		/// Constructor
@@ -34,14 +31,12 @@ namespace QA40xPlot.Actions
 		public ActSpectrum(Views.PlotControl graphFft)
 		{
 			fftPlot = graphFft;
-			ct = new CancellationTokenSource();
-			PageData = new(MyVModel, new LeftRightTimeSeries());
 			UpdateGraph(true);
 		}
 
 		public void DoCancel()
 		{
-			ct.Cancel();
+			CanToken.Cancel();
 		}
 
 		public void DeleteTab(int id)
@@ -126,7 +121,7 @@ namespace QA40xPlot.Actions
 			}
 			ClipName(page.Definition, fileName);
 
-			await PostProcess(page, ct.Token);
+			await PostProcess(page, CanToken.Token);
 			if (doLoad)
 			{
 				// we can't overwrite the viewmodel since it links to the display proper
@@ -274,7 +269,7 @@ namespace QA40xPlot.Actions
 			if (!await StartAction(specVm))
 				return;
 
-			ct = new();
+			CanToken = new();
 			LeftRightTimeSeries lrts = new();
 			MyDataTab NextPage = new(specVm, lrts);
 			PageData.Definition.CopyPropertiesTo(NextPage.Definition);
@@ -315,9 +310,9 @@ namespace QA40xPlot.Actions
 			// run a measurement and get time data
 			// and frequency data
 
-			var rslt = await RunAcquisition(NextPage, true, 0, ct.Token);
+			var rslt = await RunAcquisition(NextPage, true, 0, CanToken.Token);
 			if (rslt)
-				rslt = await PostProcess(NextPage, ct.Token);
+				rslt = await PostProcess(NextPage, CanToken.Token);
 
 			if (rslt)
 			{
@@ -329,7 +324,7 @@ namespace QA40xPlot.Actions
 
 			var loopTime = DateTime.Now;
 			int iteration = 1;
-			while (rslt && !ct.IsCancellationRequested)
+			while (rslt && !CanToken.IsCancellationRequested)
 			{
 				// update the view model with latest settings
 				if (PageData.ViewModel != null)
@@ -339,14 +334,14 @@ namespace QA40xPlot.Actions
 				bool redoNoise = (ViewSettings.NoiseRefresh > 0) && 
 					(DateTime.Now - loopTime).TotalSeconds > ViewSettings.NoiseRefresh;
 				// acquire data
-				rslt = await RunAcquisition(PageData, redoNoise, iteration++, ct.Token);
+				rslt = await RunAcquisition(PageData, redoNoise, iteration++, CanToken.Token);
 				if (redoNoise)
 				{
 					loopTime = DateTime.Now;
 				}
 				if (rslt)
 				{
-					rslt = await PostProcess(PageData, ct.Token);
+					rslt = await PostProcess(PageData, CanToken.Token);
 					UpdateGraph(false);
 				}
 			}

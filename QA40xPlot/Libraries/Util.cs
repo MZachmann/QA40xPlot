@@ -299,7 +299,7 @@ namespace QA40xPlot.Libraries
 				// Write the JSON string to a file
 				// File.WriteAllText(fileName, jsonString);
 				var fname = fileName;
-				if (!fname.Contains(".zip"))
+				if (!fname.Contains(".zip", StringComparison.OrdinalIgnoreCase))
 					fname += ".zip";
 				Util.CompressTextToFile(jsonString, fname); // zip it
 			}

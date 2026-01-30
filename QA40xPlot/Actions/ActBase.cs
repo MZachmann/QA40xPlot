@@ -9,12 +9,46 @@ using System.Drawing.Drawing2D;
 using System.IO;
 using System.Numerics;
 using System.Windows;
+using System.Windows.Navigation;
+
 
 namespace QA40xPlot.Actions
 {
-	public partial class ActBase
+	public partial class ActBase<T> where T : BaseViewModel
 	{
+		public DataTab<T> PageData { get; protected set; } // Data used in this form instance
+		protected CancellationTokenSource CanToken;                                  // Measurement cancelation token
 		public List<LeftRightFrequencySeries> FrequencyHistory { get; set; } = new();   // for averaging
+
+		public static T MyVModel
+		{
+			get
+			{
+				var u = typeof(T).Name;
+				switch (u)
+				{
+					case "SpectrumViewModel":
+						return (T)(object)ViewSettings.Singleton.SpectrumVm;
+					case "ImdViewModel":
+						return (T)(object)ViewSettings.Singleton.ImdVm;
+					case "ScopeViewModel":
+						return (T)(object)ViewSettings.Singleton.ScopeVm;
+					case "FreqSweepViewModel":
+						return (T)(object)ViewSettings.Singleton.FreqVm;
+					case "AmpSweepViewModel":
+						return (T)(object)ViewSettings.Singleton.AmpVm;
+					case "FreqRespViewModel":
+						return (T)(object)ViewSettings.Singleton.FreqRespVm;
+				}
+				throw new InvalidOperationException("Unknown ViewModel type");
+			}
+		}
+	
+		public ActBase()
+		{
+			PageData = new(MyVModel, new LeftRightTimeSeries());
+			CanToken = new CancellationTokenSource();
+		}
 
 		// this is the initial gain calculation so that we can get attenuation and input voltage settings
 		private LeftRightFrequencySeries? _LRGains = null;
@@ -49,7 +83,7 @@ namespace QA40xPlot.Actions
 			throw new NotImplementedException();
 		}
 
-		public static void FitAll(ScottPlot.Plot myPlot, BaseViewModel bvm)
+		public void FitAll(ScottPlot.Plot myPlot, BaseViewModel bvm)
 		{
 			foreach (var ax in bvm.AxisList)
 			{
@@ -186,6 +220,15 @@ namespace QA40xPlot.Actions
 					}
 					break;
 			}
+		}
+
+		static int _NextSnapshot = 1;
+		public void AddSnapshotPlot()
+		{
+			string fileName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()) + ".zip";
+			Util.SaveToFile<T>(PageData, MyVModel, fileName);
+			LoadFromFile(fileName, false);
+			_NextSnapshot++;
 		}
 
 		protected LeftRightFrequencySeries CalculateAverages(LeftRightFrequencySeries fseries, uint averages)

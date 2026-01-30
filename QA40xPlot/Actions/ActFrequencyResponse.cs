@@ -16,19 +16,14 @@ namespace QA40xPlot.Actions
 {
 	using MyDataTab = DataTab<FreqRespViewModel>;
 
-	public partial class ActFrequencyResponse : ActBase
+	public partial class ActFrequencyResponse : ActBase<FreqRespViewModel>
 	{
-		public MyDataTab PageData { get; private set; } // Data used in this form instance
-
 		private List<MyDataTab> OtherTabs { get; set; } = new(); // Other tabs in the document
 		private readonly Views.PlotControl fftPlot;
 		private readonly Views.PlotControl timePlot;
 		private readonly Views.PlotControl frqrsPlot;
 
 		private float _Thickness = 2.0f;
-		private static FreqRespViewModel MyVModel { get => ViewSettings.Singleton.FreqRespVm; }
-
-		CancellationTokenSource ct { set; get; }                                 // Measurement cancelation token
 
 		/// <summary>
 		/// Constructor
@@ -43,9 +38,7 @@ namespace QA40xPlot.Actions
 			QaLibrary.InitMiniFftPlot(fftPlot, 10, 100000, -180, 20);
 			QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -2, 2);
 
-			ct = new();
 			MyVModel.ShowMiniPlots = false;
-			PageData = new(MyVModel, new LeftRightTimeSeries());
 			UpdateGraph(true);
 		}
 
@@ -59,7 +52,7 @@ namespace QA40xPlot.Actions
 
 		public void DoCancel()
 		{
-			ct.Cancel();
+			CanToken.Cancel();
 		}
 
 		public void UpdatePlotTitle()
@@ -132,7 +125,7 @@ namespace QA40xPlot.Actions
 
 			// now recalculate everything
 			// BuildFrequencies(page);
-			await PostProcess(page, ct.Token);
+			await PostProcess(page, CanToken.Token);
 			if (isMain)
 			{
 				// we can't overwrite the viewmodel since it links to the display proper
@@ -193,12 +186,12 @@ namespace QA40xPlot.Actions
 
 		public async Task RunMeasurement(bool runContinuously)
 		{
-			ct = new();
+			CanToken = new();
 			int index = 0;
 			if (runContinuously)
 			{
 				await DoMeasurement(index++);
-				while (!ct.IsCancellationRequested)
+				while (!CanToken.IsCancellationRequested)
 				{
 					await DoMeasurement(index++);
 				}
@@ -215,7 +208,7 @@ namespace QA40xPlot.Actions
 		{
 			// we can't do mic correction here because it gums up the data permanently
 			// it should be applied at each data point or the chirp
-			if (!ct.IsCancellationRequested)
+			if (!CanToken.IsCancellationRequested)
 			{
 				if (!ReferenceEquals(PageData, page))
 					PageData = page;        // finally update the pagedata for display and processing
@@ -347,7 +340,7 @@ namespace QA40xPlot.Actions
 					.Select(y => y.First())
 					.ToArray();
 
-				if (!ct.IsCancellationRequested)
+				if (!CanToken.IsCancellationRequested)
 				{
 					if (msr.IsChirp)
 					{
@@ -421,7 +414,7 @@ namespace QA40xPlot.Actions
 		// run a capture to get complex gain at a frequency
 		async Task<Complex> GetGain(double showfreq, FreqRespViewModel msr, TestingType ttype)
 		{
-			if (ct.Token.IsCancellationRequested)
+			if (CanToken.Token.IsCancellationRequested)
 				return new();
 
 			LeftRightSeries lfrs = new();
@@ -431,13 +424,13 @@ namespace QA40xPlot.Actions
 			var dataRight = dset.Item2;
 			for (int i = 0; i < msr.Averages - 1; i++)
 			{
-				lfrs = await QaComm.DoAcquireUser(1, ct.Token, dataLeft, dataRight, true);
+				lfrs = await QaComm.DoAcquireUser(1, CanToken.Token, dataLeft, dataRight, true);
 				if (lfrs == null || lfrs.TimeRslt == null || lfrs.FreqRslt == null)
 					return new();
 				FrequencyHistory.Add(lfrs.FreqRslt);
 			}
 			{
-				lfrs = await QaComm.DoAcquireUser(1, ct.Token, dataLeft, dataRight, true);
+				lfrs = await QaComm.DoAcquireUser(1, CanToken.Token, dataLeft, dataRight, true);
 				if (lfrs == null || lfrs.TimeRslt == null || lfrs.FreqRslt == null)
 					return new();
 				lfrs.FreqRslt = CalculateAverages(lfrs.FreqRslt, msr.Averages);
@@ -734,7 +727,7 @@ namespace QA40xPlot.Actions
 			var vm = page.ViewModel;
 			await showProgress(0, 50);
 			// Check if cancel button pressed
-			if (ct.IsCancellationRequested)
+			if (CanToken.IsCancellationRequested)
 				return false;
 
 			WaveContainer.SetMono();     // enable the generator
@@ -747,11 +740,11 @@ namespace QA40xPlot.Actions
 			{
 				page.GainData = ([],[]); // new list of complex data
 				page.GainFrequencies = []; // new list of frequencies
-				if (ct.IsCancellationRequested)
+				if (CanToken.IsCancellationRequested)
 					return false;
 				for (int steps = 0; steps < stepBinFrequencies.Length; steps++)
 				{
-					if (ct.IsCancellationRequested)
+					if (CanToken.IsCancellationRequested)
 						break;
 					var dfreq = stepBinFrequencies[steps];
 					// crosstalk doesn't support riaa preemph
@@ -844,11 +837,11 @@ namespace QA40xPlot.Actions
 				ucRight = (channels == WaveChannels.Both || channels == WaveChannels.Right) ? ucLeft : blank;
 			}
 			ucLeft = (channels == WaveChannels.Both || channels == WaveChannels.Left) ? ucLeft : blank;
-			LeftRightSeries lfrs = await QaComm.DoAcquireUser(1, ct.Token, ucLeft, ucRight, false);
+			LeftRightSeries lfrs = await QaComm.DoAcquireUser(1, CanToken.Token, ucLeft, ucRight, false);
 			if (lfrs?.TimeRslt == null)
 				return (null, [], []);
 			page.TimeRslt = lfrs.TimeRslt;
-			if (ct.IsCancellationRequested)
+			if (CanToken.IsCancellationRequested)
 				return (null, [], []);
 
 			Complex[] leftFft = [];
@@ -900,7 +893,7 @@ namespace QA40xPlot.Actions
 				{
 					await showMessage($"Measuring step {index + 1}.{i + 1}");
 					var rca = await RunChirpAcquire(page, voltagedBV, channels);
-					if (rca.Item2 == null || rca.Item3 == null || ct.IsCancellationRequested)
+					if (rca.Item2 == null || rca.Item3 == null || CanToken.IsCancellationRequested)
 						return false;
 					leftFfts.Add(rca.Item2);
 					rightFfts.Add(rca.Item3);
@@ -1015,7 +1008,7 @@ namespace QA40xPlot.Actions
 				perOctave = 0.5;
 
 			// Check if cancel button pressed
-			if (ct.IsCancellationRequested)
+			if (CanToken.IsCancellationRequested)
 				return false;
 
 			var didRun = false;
@@ -1048,13 +1041,13 @@ namespace QA40xPlot.Actions
 					page.GainData = (gl, gr);
 				}
 				gainLeft = page.GainLeft.Zip(page.GainRight, (x, y) => x / Math.Max(1e-10, y)).ToArray();
-				if (!ct.IsCancellationRequested)
+				if (!CanToken.IsCancellationRequested)
 				{
 					// right->left crosstalk
 					page.GainData = ([], []); // new list of complex data
 					page.GainFrequencies = []; // new list of frequencies
 					didRun = await DoChirpTest(page, voltagedBV, TestingType.Response, WaveChannels.Left, index);
-					if (!ct.IsCancellationRequested)
+					if (!CanToken.IsCancellationRequested)
 					{
 						if (perOctave > 0)
 						{

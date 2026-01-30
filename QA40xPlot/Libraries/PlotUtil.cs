@@ -111,11 +111,13 @@ namespace QA40xPlot.Libraries
 		}
 
 		// setup the on-screen menu
-		public static void SetupMenus(ScottPlot.Plot myPlot, ActBase myAct, BaseViewModel bvm)
+		public static void SetupMenus<T>(ScottPlot.Plot myPlot, ActBase<T> myAct, BaseViewModel bvm) where T : BaseViewModel
 		{
 			myPlot.PlotControl?.Menu?.Clear();
 			myPlot.PlotControl?.Menu?.Add("Pin All", x => myAct.PinAll(myPlot, bvm));
-			myPlot.PlotControl?.Menu?.Add("Fit All", x => ActBase.FitAll(myPlot, bvm));//, LeftRightFrequencySeries lfrs));
+			myPlot.PlotControl?.Menu?.Add("Fit All", x => myAct.FitAll(myPlot, bvm));//, LeftRightFrequencySeries lfrs));
+			myPlot.PlotControl?.Menu?.Add("Snapshot", x => myAct.AddSnapshotPlot());//, LeftRightFrequencySeries lfrs));
+
 			//myPlot.PlotControl?.Menu?.Add("Add Marker", x => this.AddCustomMarker());
 		}
 
