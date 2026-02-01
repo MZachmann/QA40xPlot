@@ -1197,6 +1197,7 @@ namespace QA40xPlot.Actions
 
 			PlotUtil.InitializeMagFreqPlot(myPlot);
 			PlotUtil.SetOhmFreqRule(myPlot);
+			PlotUtil.SetHeadingColor(frqrsPlot.MyLabel);
 
 			var ttype = frqrsVm.GetTestingType(frqrsVm.TestType);
 			// as if no phase
@@ -1448,6 +1449,7 @@ namespace QA40xPlot.Actions
 				InitializePlot();
 				// do all
 				HandleChangedProperty(frqrsPlot.ThePlot, frqsrVm, "");
+				PlotUtil.SetHeadingColor(frqrsPlot.MyLabel);
 			}
 			else if (theProperty.Length > 0)
 			{

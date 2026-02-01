@@ -1,13 +1,10 @@
-﻿using NAudio.Gui;
-using QA40xPlot.BareMetal;
+﻿using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using ScottPlot;
-using ScottPlot.AxisPanels;
 using ScottPlot.Plottables;
 using System.Data;
-using System.Text.Json.Serialization;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
 
@@ -769,6 +766,7 @@ namespace QA40xPlot.Actions
 				}
 				PlotUtil.SetupMenus(myPlot, this, thd);
 				InitializeMagnitudePlot();
+				PlotUtil.SetHeadingColor(timePlot.MyLabel);
 				HandleChangedProperty(myPlot, thd, "");
 
 			}

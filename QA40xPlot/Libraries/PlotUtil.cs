@@ -227,6 +227,15 @@ namespace QA40xPlot.Libraries
 			return yAxis2;
 		}
 
+		public static void SetHeadingColor(System.Windows.Controls.Label myLabel)
+		{
+			var backColor = StrToColor(ViewSettings.Singleton.SettingsVm.GraphForeground);
+			var light = ToBrightness(backColor);
+			var brush = new System.Windows.Media.BrushConverter().ConvertFromString((light < 128) ? "White" : "Black");
+			if(brush != null)
+				myLabel.Foreground = (System.Windows.Media.SolidColorBrush)brush;
+		}
+
 		public static IYAxis AddSecondYR(Plot myPlot, BaseViewModel bvm)
 		{
 			// create a second axis and add it to the plot

@@ -873,6 +873,7 @@ namespace QA40xPlot.Actions
 					InitializeThdPlot(freqVm.PlotFormat);
 				}
 				HandleChangedProperty(swpPlot.ThePlot, freqVm, "");
+				PlotUtil.SetHeadingColor(swpPlot.MyLabel);
 			}
 			else if (theProperty.Length > 0)
 			{

@@ -776,6 +776,7 @@ namespace QA40xPlot.Actions
 					InitializefftPlot(thd.PlotFormat);
 				}
 				HandleChangedProperty(imdPlot.ThePlot, thd, "");
+				PlotUtil.SetHeadingColor(imdPlot.MyLabel);
 			}
 			else if (theProperty.Length > 0)
 			{

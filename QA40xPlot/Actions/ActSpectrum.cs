@@ -952,6 +952,7 @@ namespace QA40xPlot.Actions
 					InitializefftPlot(thd.PlotFormat);
 				}
 				HandleChangedProperty(fftPlot.ThePlot, thd, "");
+				PlotUtil.SetHeadingColor(fftPlot.MyLabel);
 			}
 			else if(theProperty.Length > 0)
 			{

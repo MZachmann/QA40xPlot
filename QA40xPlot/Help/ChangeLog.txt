@@ -17,6 +17,7 @@ v 1.2.7 2/1/26
 - move residual to a separate axis and remove scaling
 - upgrade group delay creation
 - add ability to disable phase display
+- set contrast color for plot headings
 v 1.2.6 1/24/26
 - add a QA40x readme on ports
 - read the dc supply voltage, dc current, and temperature on device init

@@ -932,6 +932,7 @@ namespace QA40xPlot.Actions
 					InitializeThdPlot(thd.PlotFormat);
 				}
 				HandleChangedProperty(thdPlot.ThePlot, thd, "");
+				PlotUtil.SetHeadingColor(thdPlot.MyLabel);
 			}
 			else if(theProperty.Length > 0)
 			{
