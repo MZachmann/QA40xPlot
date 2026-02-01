@@ -263,7 +263,7 @@ namespace QA40xPlot.Actions
 		/// <summary>
 		///  Start measurement button click
 		/// </summary>
-		public async Task DoMeasurement()
+		public async Task DoMeasurement(bool repeater)
 		{
 			var specVm = MyVModel;          // the active viewmodel
 			if (!await StartAction(specVm))
@@ -324,7 +324,7 @@ namespace QA40xPlot.Actions
 
 			var loopTime = DateTime.Now;
 			int iteration = 1;
-			while (rslt && !CanToken.IsCancellationRequested)
+			while (rslt && repeater && !CanToken.IsCancellationRequested)
 			{
 				// update the view model with latest settings
 				if (PageData.ViewModel != null)

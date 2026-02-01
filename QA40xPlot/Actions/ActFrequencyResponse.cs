@@ -1410,7 +1410,7 @@ namespace QA40xPlot.Actions
 					MyVModel.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2 + 1, plot, frqrsPlot, plot.IsVisible));
 				}
 
-				if (isMain && frqrsVm.ShowGroupDelay && (ttype == TestingType.Impedance || ttype == TestingType.Gain))
+				if (isMain && frqrsVm.ShowGroupDelay && (phases.Length > 1) && (ttype == TestingType.Impedance || ttype == TestingType.Gain))
 				{
 					// note phases is unwrapped
 					double[] gdelay = new double[phases.Length];

@@ -902,7 +902,7 @@ namespace QA40xPlot.Actions
 		/// <summary>
 		///  Start measurement button click
 		/// </summary>
-		public async Task DoMeasurement()
+		public async Task DoMeasurement(bool repeater)
 		{
 			var imdVm = MyVModel;
 			if (!await StartAction(imdVm))
@@ -968,7 +968,7 @@ namespace QA40xPlot.Actions
 			MyVModel.LinkAbout(PageData.Definition);  // ensure we're linked right during replays
 
 			var loopTime = DateTime.Now;
-			while (rslt && !CanToken.IsCancellationRequested)
+			while (rslt && repeater && !CanToken.IsCancellationRequested)
 			{
 				// update the view model with latest settings
 				if (PageData.ViewModel != null)

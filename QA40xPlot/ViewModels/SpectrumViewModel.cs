@@ -27,7 +27,9 @@ namespace QA40xPlot.ViewModels
 		private ThdChannelInfo actInfoLeft { get; set; }
 		private ThdChannelInfo actInfoRight { get; set; }
 		[JsonIgnore]
-		public override RelayCommand DoRun { get => new RelayCommand(StartIt); }
+		public override RelayCommand DoRun { get => new RelayCommand(RunIt); }
+		[JsonIgnore]
+		public override RelayCommand DoStart { get => new RelayCommand(StartIt); }
 		[JsonIgnore]
 		public override RelayCommand DoStop { get => new RelayCommand(StopIt); }
 		[JsonIgnore]
@@ -209,7 +211,13 @@ namespace QA40xPlot.ViewModels
 		private void StartIt()
 		{
 			// Implement the logic to start the measurement process
-			actSpec?.DoMeasurement();
+			actSpec?.DoMeasurement(false);
+		}
+
+		private void RunIt()
+		{
+			// Implement the logic to start the measurement process
+			actSpec?.DoMeasurement(true);
 		}
 
 		private void StopIt()
