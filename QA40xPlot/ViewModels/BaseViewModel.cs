@@ -1126,7 +1126,7 @@ namespace QA40xPlot.ViewModels
 				var df = binNumber[0] / 20.0;	// random guess at the frequency here
 				var idx = Array.IndexOf(lrGains, maxGain);
 				var dfrq = df * idx;
-				Debug.WriteLine($"Max Gain of {maxGain} at {dfrq}" + Environment.NewLine);
+				//Debug.WriteLine($"Max Gain of {maxGain} at {dfrq}" + Environment.NewLine);
 			}
 
 			if (maxGain <= 0.0)

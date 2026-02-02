@@ -291,8 +291,8 @@ namespace QA40x.BareMetal
 			float leftLevel = BitConverter.ToSingle(calData, leftOffset + 2);
 			float rightLevel = BitConverter.ToSingle(calData, rightOffset + 2);
 
-			double leftValue = Math.Pow(10, leftLevel / 20);
-			double rightValue = Math.Pow(10, rightLevel / 20);
+			double leftValue = Math.Pow(10, leftLevel / 20.0);
+			double rightValue = Math.Pow(10, rightLevel / 20.0);
 
 			return (leftValue, rightValue);
 		}
