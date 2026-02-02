@@ -323,8 +323,9 @@ namespace QA40xPlot.Actions
 			MyVModel.LinkAbout(PageData.Definition);    // ensure we're linked right during replays
 
 			var loopTime = DateTime.Now;
-			int iteration = 1;
-			while (rslt && repeater && !CanToken.IsCancellationRequested)
+			uint iteration = 1;
+			uint maxIterations = repeater ? uint.MaxValue : specVm.Averages;
+			while (rslt && (iteration < maxIterations) && !CanToken.IsCancellationRequested)
 			{
 				// update the view model with latest settings
 				if (PageData.ViewModel != null)
@@ -385,7 +386,7 @@ namespace QA40xPlot.Actions
 		/// <param name="msr">the datatab we're using</param>
 		/// <param name="ct"></param>
 		/// <returns></returns>
-		async Task<bool> RunAcquisition(MyDataTab msr, bool doNoise, int iteration, CancellationToken ct)
+		async Task<bool> RunAcquisition(MyDataTab msr, bool doNoise, uint iteration, CancellationToken ct)
 		{
 			SpectrumViewModel vm = msr.ViewModel; // cached model
 
@@ -659,13 +660,14 @@ namespace QA40xPlot.Actions
 		private void ShowHarmonicMarkers(MyDataTab page)
 		{
 			var vm = page.ViewModel;
+			var specVm = MyVModel;
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
-			if (vm.ShowMarkers)
+			if (specVm.ShowMarkers)
 			{
 				ThdChannelViewModel? thdView = null;
-				if (vm.ShowLeft)
+				if (specVm.ShowLeft)
 					thdView = page.GetProperty("Left") as ThdChannelViewModel;
-				else if (vm.ShowRight)
+				else if (specVm.ShowRight)
 					thdView = page.GetProperty("Right") as ThdChannelViewModel;
 				if (thdView != null)
 				{
@@ -684,16 +686,18 @@ namespace QA40xPlot.Actions
 		private void ShowPowerMarkers(MyDataTab page)
 		{
 			var vm = page.ViewModel;
-			if (!vm.ShowLeft && !vm.ShowRight)
+			var specVm = MyVModel;
+
+			if (!specVm.ShowLeft && !specVm.ShowRight)
 				return;
 
 			ScottPlot.Plot myPlot = fftPlot.ThePlot;
-			if (vm.ShowPowerMarkers)
+			if (specVm.ShowPowerMarkers)
 			{
 				var sampleRate = vm.SampleRateVal;
 				var fftsize = vm.FftSizeVal;
 				double fsel = 0;
-				var fftdata = vm.ShowLeft ? page.FreqRslt?.Left : page.FreqRslt?.Right;
+				var fftdata = specVm.ShowLeft ? page.FreqRslt?.Left : page.FreqRslt?.Right;
 				if (fftdata == null)
 					return;
 				fsel = ToD(ViewSettings.Singleton.SettingsVm.PowerFrequency, 60); // 50 or 60hz

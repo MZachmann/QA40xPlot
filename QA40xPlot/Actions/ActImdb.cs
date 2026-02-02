@@ -304,7 +304,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="ct">Cancellation token</param>
 		/// <returns>result. false if cancelled</returns>
-		async Task<bool> RunAcquisition(MyDataTab msr, bool doNoise, int iteration, CancellationToken ct)
+		async Task<bool> RunAcquisition(MyDataTab msr, bool doNoise, uint iteration, CancellationToken ct)
 		{
 			// Setup
 			ImdViewModel vm = msr.ViewModel;
@@ -518,13 +518,14 @@ namespace QA40xPlot.Actions
 		private void ShowHarmonicMarkers(MyDataTab page)
 		{
 			var vm = page.ViewModel;
+			var imdVm = MyVModel;
 			ScottPlot.Plot myPlot = imdPlot.ThePlot;
-			if (vm.ShowMarkers)
+			if (imdVm.ShowMarkers)
 			{
 				ImdChannelViewModel? thdView = null;
-				if (vm.ShowLeft)
+				if (imdVm.ShowLeft)
 					thdView = page.GetProperty("Left") as ImdChannelViewModel;
-				else if (vm.ShowRight)
+				else if (imdVm.ShowRight)
 					thdView = page.GetProperty("Right") as ImdChannelViewModel;
 				var maxfreq = vm.SampleRateVal / 2.0;
 				if (thdView != null)
@@ -547,18 +548,19 @@ namespace QA40xPlot.Actions
 
 		private void ShowPowerMarkers(MyDataTab page)
 		{
+			var imdVm = MyVModel;
 			var vm = page.ViewModel;
-			if (!vm.ShowLeft && !vm.ShowRight)
+			if (!imdVm.ShowLeft && !imdVm.ShowRight)
 				return;
 
 			List<double> freqchecks = new List<double> { 50, 60, 100, 120, 180, 150 };
 			ScottPlot.Plot myPlot = imdPlot.ThePlot;
-			if (vm.ShowPowerMarkers)
+			if (imdVm.ShowPowerMarkers)
 			{
 				var sampleRate = vm.SampleRateVal;
 				var fftsize = vm.FftSizeVal;
 				double fsel = 0;
-				var fftdata = vm.ShowLeft ? page.FreqRslt?.Left : page.FreqRslt?.Right;
+				var fftdata = imdVm.ShowLeft ? page.FreqRslt?.Left : page.FreqRslt?.Right;
 				if (fftdata == null)
 					return;
 				// find if 50 or 60hz is higher, indicating power line frequency
@@ -926,7 +928,7 @@ namespace QA40xPlot.Actions
 			{
 				await CalculateGainCurve(MyVModel, Math.Min(freq, freq2), Math.Max(freq, freq2));
 			}
-			int iteration = 1;
+			uint iteration = 1;
 			// calculate the required attenuation
 			if (vm.DoAutoAttn && LRGains != null)
 			{
@@ -968,7 +970,8 @@ namespace QA40xPlot.Actions
 			MyVModel.LinkAbout(PageData.Definition);  // ensure we're linked right during replays
 
 			var loopTime = DateTime.Now;
-			while (rslt && repeater && !CanToken.IsCancellationRequested)
+			uint maxIterations = repeater ? uint.MaxValue : vm.Averages;
+			while (rslt && (iteration < maxIterations) && !CanToken.IsCancellationRequested)
 			{
 				// update the view model with latest settings
 				if (PageData.ViewModel != null)
