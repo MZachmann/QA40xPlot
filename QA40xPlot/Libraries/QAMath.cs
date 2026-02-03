@@ -300,6 +300,8 @@ namespace QA40xPlot.Libraries
 		public static LeftRightFrequencySeries CalculateSpectrum(LeftRightTimeSeries lrfs, string windowing)
 		{
 			LeftRightFrequencySeries lfs = new();
+			if (lrfs == null || lrfs.Left.Length == 0)
+				return lfs;
 			try
 			{
 				var timeSeries = lrfs;

@@ -6,7 +6,6 @@ using QA40xPlot.Libraries;
 using QA40xPlot.Views;
 using ScottPlot;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -115,6 +114,14 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _MyWindow;
 			set => SetProperty(ref _MyWindow, value);
+		}
+
+		private IYAxis? _SecondYAxis = null;  // keep track of the second Y axis
+		[JsonIgnore]
+		public IYAxis? SecondYAxis
+		{
+			get { return _SecondYAxis; }
+			set { SetProperty(ref _SecondYAxis, value); }
 		}
 
 		private bool _ShowMiniPlots = false;
@@ -261,6 +268,33 @@ namespace QA40xPlot.ViewModels
 			set { SetProperty(ref _HasSave, value); }
 		}
 
+		private Views.PlotControl _MainPlot = new();
+		[JsonIgnore]
+		public Views.PlotControl MainPlot
+		{
+			get { return _MainPlot; }
+			set { _MainPlot = value; }
+		}
+
+		private Views.PlotControl _MiniPlot = new();
+		[JsonIgnore]
+		public Views.PlotControl MiniPlot
+		{
+			get { return _MiniPlot; }
+			set { _MiniPlot = value; }
+		}
+
+		private Views.PlotControl _Mini2Plot = new();
+		[JsonIgnore]
+		public Views.PlotControl Mini2Plot
+		{
+			get { return _Mini2Plot; }
+			set { _Mini2Plot = value; }
+		}
+		#endregion
+
+		#region Setters and Getters
+
 		/// <summary>
 		/// for use by the unit converters
 		/// </summary>
@@ -349,34 +383,7 @@ namespace QA40xPlot.ViewModels
 		}
 		#endregion
 
-		private void NullFn()
-		{
-			throw new NotImplementedException();
-		}
-
-		public virtual void OnFitToData(object? parameter)
-		{
-			throw new NotImplementedException();
-		}
-
-
-		[JsonIgnore]
-		public virtual RelayCommand DoStop { get => new RelayCommand(NullFn); }
-		[JsonIgnore]
-		public virtual RelayCommand DoStart { get => new RelayCommand(NullFn); }
-		[JsonIgnore]
-		public virtual RelayCommand DoRun { get => new RelayCommand(NullFn); }
-
-
-		#region Setters and Getters
-		private IYAxis? _SecondYAxis = null;  // keep track of the second Y axis
-		[JsonIgnore]
-		public IYAxis? SecondYAxis
-		{
-			get { return _SecondYAxis; }
-			set	{ SetProperty(ref _SecondYAxis, value);	}
-		}
-
+		#region Setters and Getters 2
 		private bool _DoAutoAttn = true;
 		public bool DoAutoAttn
 		{
@@ -720,6 +727,29 @@ namespace QA40xPlot.ViewModels
 		}
 		#endregion
 
+		[JsonIgnore]
+		public virtual RelayCommand DoStop { get => new RelayCommand(NullFn); }
+		[JsonIgnore]
+		public virtual RelayCommand DoStart { get => new RelayCommand(NullFn); }
+		[JsonIgnore]
+		public virtual RelayCommand DoRun { get => new RelayCommand(NullFn); }
+
+		private void NullFn()
+		{
+			throw new NotImplementedException();
+		}
+
+		public virtual void OnFitToData(object? parameter)
+		{
+			throw new NotImplementedException();
+		}
+
+		protected void LinkPlots(PlotControl? plot = null, PlotControl? plot1 = null, PlotControl? plot2 = null)
+		{
+			MainPlot = plot ?? new();
+			MiniPlot = plot1 ?? new();
+			Mini2Plot = plot2 ?? new();
+		}
 
 		// return true if this is a voltage value
 		public static bool FindDirection(string genFormat)
@@ -821,7 +851,7 @@ namespace QA40xPlot.ViewModels
 
 		public void UpdatePlotColors()
 		{
-			RaisePropertyChanged("DSPlotColors");
+			RaisePropertyChanged("DsPlotColors");
 		}
 
 		public static void DoGenVoltUnits(object? parameter)

@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Input;
+using NAudio.Gui;
 using Newtonsoft.Json;
 using QA40xPlot.Actions;
 using QA40xPlot.Data;
@@ -21,7 +22,12 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public override List<string> AxisList { get; } = new List<string> { "XF", "YM", "YP" };
 		private ActSpectrum MyAction { get => actSpec; }
+
+		/// <summary>
+		/// the static model that applies to the GUI at least...
+		/// </summary>
 		private static SpectrumViewModel MyVModel { get => ViewSettings.Singleton.SpectrumVm; }
+
 		private PlotControl actPlot { get; set; }
 		private ActSpectrum actSpec { get; set; }
 		private ThdChannelInfo actInfoLeft { get; set; }
@@ -126,7 +132,16 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
-				case "DSPlotColors":
+				case "DsPinAll":
+					MyAction.PinAll(MainPlot.ThePlot, this);
+					break;
+				case "DsFitAll":
+					MyAction.FitAll(MainPlot.ThePlot, this);
+					break;
+				case "DsSnapshot":
+					MyAction.AddSnapshotPlot();
+					break;
+				case "DsPlotColors":
 					MyAction?.DrawPlotLines(0);
 					break;
 				case "UpdateGraph":
@@ -195,7 +210,8 @@ namespace QA40xPlot.ViewModels
 
 		public void SetAction(UserControl myWnd, PlotControl plot, ThdChannelInfo info, ThdChannelInfo info2, TabAbout about)
 		{
-			actSpec = new ActSpectrum(plot);
+			LinkPlots(plot);
+			actSpec = new ActSpectrum(this);
 			actInfoLeft = info;
 			actInfoRight = info2;
 			info.SetDataContext(ViewSettings.Singleton.ChannelLeft);

@@ -19,10 +19,6 @@ namespace QA40xPlot.Actions
 
 	public partial class ActAmpSweep : ActOpamp<AmpSweepViewModel>
 	{
-		private readonly Views.PlotControl thdPlot;
-		private readonly Views.PlotControl fftPlot;
-		private readonly Views.PlotControl timePlot;
-
 		private List<MyDataTab> OtherTabs { get; set; } = new List<MyDataTab>(); // Other tabs in the document
 
 		private float _Thickness = 2.0f;
@@ -40,16 +36,11 @@ namespace QA40xPlot.Actions
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public ActAmpSweep(Views.PlotControl graphThd, Views.PlotControl graphFft, Views.PlotControl graphTime)
+		public ActAmpSweep(AmpSweepViewModel vm)
 		{
 			// Show empty graphs
-			thdPlot = graphThd;
-			fftPlot = graphFft;
-			timePlot = graphTime;
-
-			// Show empty graphs
-			QaLibrary.InitMiniFftPlot(fftPlot, 10, 100000, -150, 20);
-			QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -1, 1);
+			QaLibrary.InitMiniTimePlot(vm.MiniPlot, 0, 4, -1, 1);
+			QaLibrary.InitMiniFftPlot(vm.Mini2Plot, 10, 100000, -150, 20);
 
 			// TODO: depends on graph settings which graph is shown
 			UpdateGraph(true);
@@ -70,7 +61,7 @@ namespace QA40xPlot.Actions
 		public void UpdatePlotTitle()
 		{
 			var vm = MyVModel;
-			ScottPlot.Plot myPlot = thdPlot.ThePlot;
+			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
 			var title = SetPlotLabels();
 			if (PageData.Definition.Name.Length > 0)
 				myPlot.Title(title + " : " + PageData.Definition.Name);
@@ -294,8 +285,8 @@ namespace QA40xPlot.Actions
 
 		public override void PinGraphRange(string who)
 		{
-			ScottPlot.Plot myPlot = thdPlot.ThePlot;
 			var vm = MyVModel;
+			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
 			if (who == "XM")
 			{
 				// setting start seems to reset max... this is strange...
@@ -433,8 +424,8 @@ namespace QA40xPlot.Actions
 			var genType = ToDirection(vm.GenDirection);
 
 			// Init mini plots
-			QaLibrary.InitMiniFftPlot(fftPlot, 10, 100000, -150, 20);
-			QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -1, 1);
+			QaLibrary.InitMiniFftPlot(vm.Mini2Plot, 10, 100000, -150, 20);
+			QaLibrary.InitMiniTimePlot(vm.MiniPlot, 0, 4, -1, 1);
 
 			if (vm.HasQA430)
 			{
@@ -525,8 +516,8 @@ namespace QA40xPlot.Actions
 					var stepOutLVoltages = dvsOut.Item2;
 					var stepOutRVoltages = dvsOut.Item3;
 
-					//QaLibrary.PlotMiniFftGraph(fftPlot, noisy.FreqRslt, vm.ShowLeft, vm.ShowRight);
-					//QaLibrary.PlotMiniTimeGraph(timePlot, noisy.TimeRslt, testFrequency, vm.ShowLeft, vm.ShowRight);
+					//QaLibrary.PlotMiniFftGraph(vm.Mini2Plot, noisy.FreqRslt, vm.ShowLeft, vm.ShowRight);
+					//QaLibrary.PlotMiniTimeGraph(vm.MiniPlot, noisy.TimeRslt, testFrequency, vm.ShowLeft, vm.ShowRight);
 					// ********************************************************************
 					// Step through the list of voltages
 					// ********************************************************************
@@ -629,8 +620,8 @@ namespace QA40xPlot.Actions
 							break;
 
 						// Plot the mini graphs
-						QaLibrary.PlotMiniFftGraph(fftPlot, lrfs.FreqRslt, vm.ShowLeft, vm.ShowRight);
-						QaLibrary.PlotMiniTimeGraph(timePlot, lrfs.TimeRslt, myConfig.GenFrequency, vm.ShowLeft, vm.ShowRight);
+						QaLibrary.PlotMiniFftGraph(vm.Mini2Plot, lrfs.FreqRslt, vm.ShowLeft, vm.ShowRight);
+						QaLibrary.PlotMiniTimeGraph(vm.MiniPlot, lrfs.TimeRslt, myConfig.GenFrequency, vm.ShowLeft, vm.ShowRight);
 
 						// Check if cancel button pressed
 						if (CanToken.IsCancellationRequested)
@@ -688,9 +679,9 @@ namespace QA40xPlot.Actions
 
 		private string SetPlotLabels()
 		{
-			ScottPlot.Plot myPlot = thdPlot.ThePlot;
-			var thdAmp = MyVModel;
-			var tt = ToDirection(thdAmp.GenDirection);
+			var vm = MyVModel;
+			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
+			var tt = ToDirection(vm.GenDirection);
 			string title = string.Empty;
 			if (tt == E_GeneratorDirection.INPUT_VOLTAGE)
 			{
@@ -743,12 +734,13 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void InitializeThdPlot(string plotFormat = "%")
 		{
-			ScottPlot.Plot myPlot = thdPlot.ThePlot;
+			var vm = MyVModel;
+			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
 			PlotUtil.InitializeMagAmpPlot(myPlot, plotFormat);
 
 			UpdatePlotTitle();
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
-			thdPlot.Refresh();
+			vm.MainPlot.Refresh();
 		}
 
 		/// <summary>
@@ -756,12 +748,13 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void InitializeMagnitudePlot(string plotFormat = "dBV")
 		{
-			ScottPlot.Plot myPlot = thdPlot.ThePlot;
+			var vm = MyVModel;
+			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
 			PlotUtil.InitializeMagAmpPlot(myPlot, plotFormat);
 
 			UpdatePlotTitle();
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
-			thdPlot.Refresh();
+			vm.MainPlot.Refresh();
 		}
 
 		// this always uses the 'global' format so others work too
@@ -802,14 +795,14 @@ namespace QA40xPlot.Actions
 			{
 				var u = measurementNr;
 				if (yValues.Count == 0) return;
-				var plot = thdPlot.ThePlot.Add.SignalXY(xValues, yValues.ToArray());
+				var plot = freqVm.MainPlot.ThePlot.Add.SignalXY(xValues, yValues.ToArray());
 				plot.LineWidth = lineWidth;
 				plot.Color = GraphUtil.GetPaletteColor("Transparent", colorIndex);
 				plot.MarkerSize = markerSize;
 				plot.LegendText = legendText;
 				plot.LinePattern = linePattern;
 				plot.IsVisible = !MyVModel.HiddenLines.Contains(legendText);
-				MyVModel.LegendInfo.Add(new MarkerItem(linePattern, plot.Color, legendText, colorIndex, plot, thdPlot, plot.IsVisible));
+				MyVModel.LegendInfo.Add(new MarkerItem(linePattern, plot.Color, legendText, colorIndex, plot, freqVm.MainPlot, plot.IsVisible));
 			}
 
 			// which columns are we displaying? left, right or both
@@ -894,7 +887,7 @@ namespace QA40xPlot.Actions
 				suffix = ".R" + tosuffix;          // second pass iff there are both channels
 				lp = isMain ? LinePattern.DenselyDashed : LinePattern.Dotted;
 			}
-			thdPlot.Refresh();
+			freqVm.MainPlot.Refresh();
 		}
 
 		void HandleChangedProperty(ScottPlot.Plot myPlot, AmpSweepViewModel vm, string changedProp)
@@ -916,27 +909,27 @@ namespace QA40xPlot.Actions
 
 		public void UpdateGraph(bool settingsChanged, string theProperty = "")
 		{
-			thdPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
+			AmpSweepViewModel vm = MyVModel;
+			vm.MainPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
 			int resultNr = 0;
-			AmpSweepViewModel thd = MyVModel;
 
 			if(settingsChanged)
 			{
-				PlotUtil.SetupMenus(thdPlot.ThePlot, this, thd);
-				if (GraphUtil.IsPlotFormatLog(thd.PlotFormat))
+				PlotUtil.SetupMenus(vm.MainPlot.ThePlot, this, vm);
+				if (GraphUtil.IsPlotFormatLog(vm.PlotFormat))
 				{
-					InitializeMagnitudePlot(thd.PlotFormat);
+					InitializeMagnitudePlot(vm.PlotFormat);
 				}
 				else
 				{
-					InitializeThdPlot(thd.PlotFormat);
+					InitializeThdPlot(vm.PlotFormat);
 				}
-				HandleChangedProperty(thdPlot.ThePlot, thd, "");
-				PlotUtil.SetHeadingColor(thdPlot.MyLabel);
+				HandleChangedProperty(vm.MainPlot.ThePlot, vm, "");
+				PlotUtil.SetHeadingColor(vm.MainPlot.MyLabel);
 			}
 			else if(theProperty.Length > 0)
 			{
-				HandleChangedProperty(thdPlot.ThePlot, thd, theProperty);
+				HandleChangedProperty(vm.MainPlot.ThePlot, vm, theProperty);
 			}
 
 				MyVModel.LegendInfo.Clear();

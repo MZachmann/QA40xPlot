@@ -19,24 +19,17 @@ namespace QA40xPlot.Actions
 	public partial class ActFrequencyResponse : ActBase<FreqRespViewModel>
 	{
 		private List<MyDataTab> OtherTabs { get; set; } = new(); // Other tabs in the document
-		private readonly Views.PlotControl fftPlot;
-		private readonly Views.PlotControl timePlot;
-		private readonly Views.PlotControl frqrsPlot;
 
 		private float _Thickness = 2.0f;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public ActFrequencyResponse(Views.PlotControl graphFreq, Views.PlotControl graphFft, Views.PlotControl graphTime)
+		public ActFrequencyResponse(FreqRespViewModel vm)
 		{
-			frqrsPlot = graphFreq;
-			fftPlot = graphFft;
-			timePlot = graphTime;
-
 			// Show empty graphs
-			QaLibrary.InitMiniFftPlot(fftPlot, 10, 100000, -180, 20);
-			QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -2, 2);
+			QaLibrary.InitMiniFftPlot(vm.Mini2Plot, 10, 100000, -180, 20);
+			QaLibrary.InitMiniTimePlot(vm.MiniPlot, 0, 4, -2, 2);
 
 			MyVModel.ShowMiniPlots = false;
 			UpdateGraph(true);
@@ -58,7 +51,7 @@ namespace QA40xPlot.Actions
 		public void UpdatePlotTitle()
 		{
 			var vm = MyVModel;
-			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
+			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
 			var title = GetTheTitle();
 			if (PageData.Definition.Name.Length > 0)
 				myPlot.Title(title + " : " + PageData.Definition.Name);
@@ -68,8 +61,8 @@ namespace QA40xPlot.Actions
 
 		public override void PinGraphRange(string who)
 		{
-			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
 			var vm = MyVModel;
+			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
 			if (who == "Y2")
 			{
 				var y2axis = vm.SecondYAxis;
@@ -238,28 +231,28 @@ namespace QA40xPlot.Actions
 		/// <param name="e"></param>
 		public async Task RunAcquisition(int index)
 		{
-			var vmFreq = MyVModel;
+			var vm = MyVModel;
 			await showMessage($"Measuring step {index + 1}.", 20);
-			if (!await StartAction(vmFreq))
+			if (!await StartAction(vm))
 				return;
-			if (!vmFreq.IsChirp)
+			if (!vm.IsChirp)
 			{
 				// Show empty graphs
-				QaLibrary.InitMiniFftPlot(fftPlot, 10, 40000, -180, 20);
-				QaLibrary.InitMiniTimePlot(timePlot, 0, 4, -2, 2);
+				QaLibrary.InitMiniFftPlot(vm.Mini2Plot, 10, 40000, -180, 20);
+				QaLibrary.InitMiniTimePlot(vm.MiniPlot, 0, 4, -2, 2);
 			}
 			else
 			{
-				vmFreq.ShowMiniPlots = false;
+				vm.ShowMiniPlots = false;
 			}
 
-			vmFreq.HasExport = false;
+			vm.HasExport = false;
 			if(index == 0)
 				UpdateGraph(true);
 
 			// sweep data
 			LeftRightTimeSeries lrts = new();
-			MyDataTab NextPage = new(vmFreq, lrts);
+			MyDataTab NextPage = new(vm, lrts);
 			PageData.Definition.CopyPropertiesTo(NextPage.Definition);
 			NextPage.Definition.CreateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 			var msr = NextPage.ViewModel;
@@ -312,7 +305,7 @@ namespace QA40xPlot.Actions
 				// get voltages for generator input based on GenDirection
 				genVolt = msr.ToGenVoltage(gvolt, frqtest, GEN_INPUT, LRGains?.Left);
 			}
-			vmFreq.Attenuation = msr.Attenuation; // display on-screen
+			vm.Attenuation = msr.Attenuation; // display on-screen
 			var voltagedBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);  // in dbv
 
 			NextPage.Definition.GeneratorVoltage = genVolt; // save the actual generator voltage
@@ -350,7 +343,7 @@ namespace QA40xPlot.Actions
 					else
 					{
 						// we have to clear since this does one step at atime
-						frqrsPlot.ThePlot.Clear();
+						vm.MainPlot.ThePlot.Clear();
 						await RunFreqTest(NextPage, stepBinFrequencies, voltagedBV);
 					}
 					AddMicCorrection(NextPage); // add mic correction if any
@@ -367,7 +360,7 @@ namespace QA40xPlot.Actions
 
 			UpdateGraph(false);
 			PageData.TimeRslt = new();  // clear this before saving stuff
-			await EndAction(vmFreq);
+			await EndAction(vm);
 		}
 
 		// create a blob with F,Left,Right data for export
@@ -794,8 +787,8 @@ namespace QA40xPlot.Actions
 					}
 					if (PageData.FreqRslt != null && !vm.IsChirp)
 					{
-						QaLibrary.PlotMiniFftGraph(fftPlot, PageData.FreqRslt, true, false);
-						QaLibrary.PlotMiniTimeGraph(timePlot, PageData.TimeRslt, dfreq, true, false);
+						QaLibrary.PlotMiniFftGraph(vm.Mini2Plot, PageData.FreqRslt, true, false);
+						QaLibrary.PlotMiniTimeGraph(vm.MiniPlot, PageData.TimeRslt, dfreq, true, false);
 					}
 					page.GainFrequencies = page.GainFrequencies.Append(dfreq).ToArray();
 					await showProgress(100 * (steps + 1) / stepBinFrequencies.Length, 100);
@@ -1192,22 +1185,22 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void InitializePlot()
 		{
-			var frqrsVm = MyVModel;
-			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
+			var vm = MyVModel;
+			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
 
 			PlotUtil.InitializeMagFreqPlot(myPlot);
 			PlotUtil.SetOhmFreqRule(myPlot);
-			PlotUtil.SetHeadingColor(frqrsPlot.MyLabel);
+			PlotUtil.SetHeadingColor(vm.MainPlot.MyLabel);
 
-			var ttype = frqrsVm.GetTestingType(frqrsVm.TestType);
+			var ttype = vm.GetTestingType(vm.TestType);
 			// as if no phase
-			frqrsVm.ToShowPhase = Visibility.Collapsed;
+			vm.ToShowPhase = Visibility.Collapsed;
 			myPlot.Axes.Right.Label.Text = string.Empty;
-			var y2axis = frqrsVm.SecondYAxis;
+			var y2axis = vm.SecondYAxis;
 			if(y2axis != null)
 			{
 				myPlot.Axes.Remove(y2axis);
-				frqrsVm.SecondYAxis = null;
+				vm.SecondYAxis = null;
 				y2axis = null;
 			}
 			PageData.DelayRslt = null;
@@ -1216,14 +1209,14 @@ namespace QA40xPlot.Actions
 			switch (ttype)
 			{
 				case TestingType.Response:
-					myPlot.YLabel(GraphUtil.GetFormatTitle(frqrsVm.PlotFormat));
+					myPlot.YLabel(GraphUtil.GetFormatTitle(vm.PlotFormat));
 					break;
 				case TestingType.Gain:
-					AddPhase(frqrsVm, myPlot);
+					AddPhase(vm, myPlot);
 					myPlot.YLabel("dB");
 					break;
 				case TestingType.Impedance:
-					AddPhase(frqrsVm, myPlot);
+					AddPhase(vm, myPlot);
 					myPlot.YLabel("|Z| Ohms");
 					break;
 				case TestingType.Crosstalk:
@@ -1232,7 +1225,7 @@ namespace QA40xPlot.Actions
 			}
 			UpdatePlotTitle();
 			myPlot.XLabel("Frequency (Hz)");
-			frqrsPlot.Refresh();
+			vm.MainPlot.Refresh();
 		}
 
 		/// <summary>
@@ -1275,8 +1268,8 @@ namespace QA40xPlot.Actions
 		/// <param name="measurementResult">Data to plot</param>
 		void PlotValues(MyDataTab page, int measurementNr, bool isMain)
 		{
-			ScottPlot.Plot myPlot = frqrsPlot.ThePlot;
-			var frqrsVm = MyVModel;
+			var vm = MyVModel;
+			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
 			int skipped = 0;
 
 			if (page.GainLeft == null || page.GainFrequencies == null)
@@ -1290,14 +1283,14 @@ namespace QA40xPlot.Actions
 				skipped = 1;
 
 			double[] logFreqX = freqX.Select(x => (x>0) ? Math.Log10(x) : 1e-6).ToArray();
-			float lineWidth = frqrsVm.ShowThickLines ? _Thickness : 1;
-			float markerSize = frqrsVm.ShowPoints ? lineWidth + 3 : 1;
+			float lineWidth = vm.ShowThickLines ? _Thickness : 1;
+			float markerSize = vm.ShowPoints ? lineWidth + 3 : 1;
 
-			var ttype = frqrsVm.GetTestingType(frqrsVm.TestType);
+			var ttype = vm.GetTestingType(vm.TestType);
 
 			double[] YValues = [];
 			double[] phaseValues = [];
-			double rref = ToD(frqrsVm.ZReference, 10);
+			double rref = ToD(vm.ZReference, 10);
 			string legendname = string.Empty;
 			var gainReal = page.GainReal;
 			var gainImag = page.GainImag;
@@ -1319,9 +1312,9 @@ namespace QA40xPlot.Actions
 					break;
 				case TestingType.Response:
 					{
-						var fvi = GraphUtil.ValueToPlotFn(frqrsVm, gainReal, page.GainFrequencies);
+						var fvi = GraphUtil.ValueToPlotFn(vm, gainReal, page.GainFrequencies);
 						YValues = gainReal.Select(fvi).ToArray();
-						fvi = GraphUtil.ValueToPlotFn(frqrsVm, gainImag, page.GainFrequencies);
+						fvi = GraphUtil.ValueToPlotFn(vm, gainImag, page.GainFrequencies);
 						phaseValues = gainImag.Select(fvi).ToArray();
 						legendname = isMain ? "Left" : "L";
 					}
@@ -1372,17 +1365,17 @@ namespace QA40xPlot.Actions
 				plot.LegendText = prefix + legendname;
 				plot.LinePattern = LinePattern.Solid;
 				plot.IsVisible = !MyVModel.HiddenLines.Contains(plot.LegendText);
-				MyVModel.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2, plot, frqrsPlot, plot.IsVisible));
+				MyVModel.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2, plot, vm.MainPlot, plot.IsVisible));
 			}
 
-			showPlot = (isMain && frqrsVm.ShowRight) || (!isMain && page.Definition.IsOnR);
+			showPlot = (isMain && vm.ShowRight) || (!isMain && page.Definition.IsOnR);
 			if ((ttype == TestingType.Gain || ttype == TestingType.Impedance) || showPlot)
 			{
 				var phases = phaseValues;
 				plot = null;
 				if (ttype == TestingType.Gain || ttype == TestingType.Impedance)
 				{
-					if(frqrsVm.ShowPhase)
+					if(vm.ShowPhase)
 					{
 						phases = UnWrap(phaseValues);
 						plot = myPlot.Add.SignalXY(logFreqX.Skip(skipped).ToArray(), phases.Skip(skipped).ToArray());
@@ -1407,10 +1400,10 @@ namespace QA40xPlot.Actions
 					plot.MarkerSize = markerSize;
 					plot.LinePattern = LinePattern.Solid;
 					plot.IsVisible = !MyVModel.HiddenLines.Contains(plot.LegendText);
-					MyVModel.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2 + 1, plot, frqrsPlot, plot.IsVisible));
+					MyVModel.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2 + 1, plot, vm.MainPlot, plot.IsVisible));
 				}
 
-				if (isMain && frqrsVm.ShowGroupDelay && (phases.Length > 1) && (ttype == TestingType.Impedance || ttype == TestingType.Gain))
+				if (isMain && vm.ShowGroupDelay && (phases.Length > 1) && (ttype == TestingType.Impedance || ttype == TestingType.Gain))
 				{
 					// note phases is unwrapped
 					double[] gdelay = new double[phases.Length];
@@ -1425,48 +1418,48 @@ namespace QA40xPlot.Actions
 					page.DelayRslt = gdelay;
 					// now plot it and add it to the legend
 					plot = myPlot.Add.SignalXY(logFreqX.Skip(skipped).ToArray(), gdelay.Skip(skipped).ToArray());
-					plot.Axes.YAxis = frqrsVm.SecondYAxis ?? myPlot.Axes.Left;
+					plot.Axes.YAxis = vm.SecondYAxis ?? myPlot.Axes.Left;
 					plot.LegendText = prefix + "Group Delay (ms)";
 					plot.LineWidth = lineWidth;
 					plot.MarkerSize = markerSize;
 					plot.IsVisible = !MyVModel.HiddenLines.Contains(plot.LegendText);
-					MyVModel.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2 + 2, plot, frqrsPlot, plot.IsVisible));
+					MyVModel.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2 + 2, plot, vm.MainPlot, plot.IsVisible));
 				}
 			}
 
-			frqrsPlot.Refresh();
+			vm.MainPlot.Refresh();
 		}
 
 		public void UpdateGraph(bool settingsChanged, string theProperty = "")
 		{
-			var frqsrVm = MyVModel;
+			var vm = MyVModel;
 
 			int resultNr = 0;
 
 			if (settingsChanged)
 			{
-				PlotUtil.SetupMenus(frqrsPlot.ThePlot, this, frqsrVm);
+				PlotUtil.SetupMenus(vm.MainPlot.ThePlot, this, vm);
 				InitializePlot();
 				// do all
-				HandleChangedProperty(frqrsPlot.ThePlot, frqsrVm, "");
-				PlotUtil.SetHeadingColor(frqrsPlot.MyLabel);
+				HandleChangedProperty(vm.MainPlot.ThePlot, vm, "");
+				PlotUtil.SetHeadingColor(vm.MainPlot.MyLabel);
 			}
 			else if (theProperty.Length > 0)
 			{
 				// if we're told which graph property changed...
-				HandleChangedProperty(frqrsPlot.ThePlot, frqsrVm, theProperty);
+				HandleChangedProperty(vm.MainPlot.ThePlot, vm, theProperty);
 			}
 
-			frqsrVm.UpdateMouseCursor(frqsrVm.LookX, 0);
+			vm.UpdateMouseCursor(vm.LookX, 0);
 			DrawPlotLines(resultNr);
 		}
 
 		public int DrawPlotLines(int resultNr)
 		{
-			var frqsrVm = MyVModel;
+			var vm = MyVModel;
 			MyVModel.LegendInfo.Clear();
-			frqrsPlot.ThePlot.Remove<Marker>();             // Remove all current lines
-			frqrsPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
+			vm.MainPlot.ThePlot.Remove<Marker>();             // Remove all current lines
+			vm.MainPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
 			PlotValues(PageData, resultNr++, true);  // frqsrVm.GraphType);
 			if (OtherTabs.Count > 0)
 			{
@@ -1477,7 +1470,7 @@ namespace QA40xPlot.Actions
 				}
 			}
 
-			frqrsPlot.Refresh();
+			vm.MainPlot.Refresh();
 			return resultNr;
 		}
 	}

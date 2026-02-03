@@ -42,7 +42,9 @@ public class FreqRespViewModel : BaseViewModel
 	[JsonIgnore]
 	public RelayCommand DoSaveTab { get => new RelayCommand(SaveItTab); }
 
-	[JsonIgnore]
+	/// <summary>
+	/// the static model that applies to the GUI at least...
+	/// </summary>
 	private static FreqRespViewModel MyVModel { get => ViewSettings.Singleton.FreqRespVm; }
 
 	#region Setters and Getters
@@ -177,7 +179,16 @@ public class FreqRespViewModel : BaseViewModel
 	{
 		switch (e.PropertyName)
 		{
-			case "DSPlotColors":
+			case "DsPinAll":
+				MyAction.PinAll(MainPlot.ThePlot, this);
+				break;
+			case "DsFitAll":
+				MyAction.FitAll(MainPlot.ThePlot, this);
+				break;
+			case "DsSnapshot":
+				MyAction.AddSnapshotPlot();
+				break;
+			case "DsPlotColors":
 				MyAction?.DrawPlotLines(0);
 				break;
 			case "UpdateGraph":
@@ -294,7 +305,8 @@ public class FreqRespViewModel : BaseViewModel
 
 	public void SetAction(PlotControl plot, PlotControl plot2, PlotControl plot3, TabAbout TAbout)
 	{
-		actFreq = new ActFrequencyResponse(plot, plot2, plot3);
+		LinkPlots(plot, plot2, plot3);
+		actFreq = new ActFrequencyResponse(this);
 		actAbout = TAbout;
 		SetupMainPlot(plot);
 		actPlot = plot;

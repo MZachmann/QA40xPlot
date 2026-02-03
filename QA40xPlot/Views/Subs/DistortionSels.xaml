@@ -1,0 +1,45 @@
+﻿<UserControl x:Class="QA40xPlot.Views.DistortionSels"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:QA40xPlot.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <CheckBox Content="Magnitude" IsChecked="{Binding ShowMagnitude}" Grid.Row="0" ToolTip="The measured signal magnitude"  />
+            <Button Content="&#x2714;" Width="26" Height="16" 
+                                Padding="0,-4,0,0"
+                                VerticalContentAlignment="Top" FontSize="12" BorderBrush="Gray"
+                                Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right"
+                                Command="{Binding SelectAll}"  />
+            <Button Content="&#x2610;" Width="26" Height="16"
+                                Padding="0,-4,0,0"
+                                VerticalAlignment="Center" FontSize="12" BorderBrush="Gray"
+                                Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right"
+                                Command="{Binding SelectNone}" />
+            <CheckBox Content="Noise Density" IsChecked="{Binding ShowNoise}" Grid.Row="1" Grid.Column="0" ToolTip="The background noise density"  />
+            <CheckBox Content="Noise Floor" IsChecked="{Binding ShowNoiseFloor}" Grid.Row="2" Grid.Column="0" ToolTip="The total background noise"  />
+            <CheckBox Content="THD" IsChecked="{Binding ShowTHD}" Grid.Row="3" Grid.Column="0" ToolTip="Total Harmonic Distortion"  />
+            <CheckBox Content="THD+N" IsChecked="{Binding ShowTHDN}" Grid.Row="3" Grid.Column="1" ToolTip="THD plus Noise"  />
+            <CheckBox Content="D2" IsChecked="{Binding ShowD2}" Grid.Row="4" Grid.Column="0" ToolTip="2nd harmonic"  />
+            <CheckBox Content="D3" IsChecked="{Binding ShowD3}" Grid.Row="4" Grid.Column="1" ToolTip="3rd harmonic"  />
+            <CheckBox Content="D4" IsChecked="{Binding ShowD4}" Grid.Row="5"  Grid.Column="0" ToolTip="4th harmonic" />
+            <CheckBox Content="D5" IsChecked="{Binding ShowD5}" Grid.Row="5" Grid.Column="1" ToolTip="5th harmonic"/>
+            <CheckBox Content="D6+" IsChecked="{Binding ShowD6}" Grid.Row="6" Grid.Column="0" ToolTip="6th harmonic and up" />
+        </Grid>
+</UserControl>

@@ -31,6 +31,12 @@ namespace QA40xPlot.ViewModels
 		};
 		[JsonIgnore]
 		public RelayCommand<object> SetPlotPage { get => new RelayCommand<object>(DoSetPlotPage); }
+		[JsonIgnore]
+		public RelayCommand DoPinAll { get => new RelayCommand(OnPinAll); }
+		[JsonIgnore]
+		public RelayCommand DoFitAll { get => new RelayCommand(OnFitAll); }
+		[JsonIgnore]
+		public RelayCommand DoSnapshot { get => new RelayCommand(OnSnapshot); }
 		// in case we're not in a view process the keys for run/start/stop here
 		[JsonIgnore]
 		public RelayCommand<object> DoRun { get => new RelayCommand<object>(DoRunRun); }
@@ -508,10 +514,6 @@ namespace QA40xPlot.ViewModels
 				}
 				File.WriteAllBytes(filename, System.Text.Encoding.UTF8.GetBytes(sout));
 			}
-			else
-			{
-				ViewSettings.Singleton.MainVm.CurrentView = vma;
-			}
 		}
 
 		public async Task OnPhoto()
@@ -539,6 +541,21 @@ namespace QA40xPlot.ViewModels
 				SaveToPng(mainwnd, filename);
 			}
 			await SetProgressMessage(string.Empty);
+		}
+
+		private void OnPinAll()
+		{
+			CurrentView?.RaisePropertyChanged("DsPinAll");
+		}
+
+		private void OnFitAll()
+		{
+			CurrentView?.RaisePropertyChanged("DsFitAll");
+		}
+
+		private void OnSnapshot()
+		{
+			CurrentView?.RaisePropertyChanged("DsSnapshot");
 		}
 
 		private static void OnExport()

@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
+using NAudio.Gui;
 using Newtonsoft.Json;
 using QA40xPlot.Actions;
 using QA40xPlot.Data;
@@ -25,7 +26,12 @@ namespace QA40xPlot.ViewModels
 		public static readonly string ResidualName = "Residual";	// don't make it a property, it just readonly
 
 		private ActScope MyAction { get => actScope; }
+
+		/// <summary>
+		/// the static model that applies to the GUI at least...
+		/// </summary>
 		private static ScopeViewModel MyVModel { get => ViewSettings.Singleton.ScopeVm; }
+
 		private PlotControl actPlot { get; set; }
 		private ActScope actScope { get; set; }
 		private ScopeInfo actInfoLeft { get; set; }
@@ -129,7 +135,16 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
-				case "DSPlotColors":
+				case "DsPinAll":
+					MyAction.PinAll(MainPlot.ThePlot, this);
+					break;
+				case "DsFitAll":
+					MyAction.FitAll(MainPlot.ThePlot, this);
+					break;
+				case "DsSnapshot":
+					MyAction.AddSnapshotPlot();
+					break;
+				case "DsPlotColors":
 					MyAction?.DrawPlotLines(0);
 					break;
 				case "UpdateGraph":
@@ -198,7 +213,8 @@ namespace QA40xPlot.ViewModels
 
 		public void SetAction(PlotControl plot, ScopeInfo info, ScopeInfo info2, TabAbout tinfo)
 		{
-			actScope = new ActScope(plot);
+			LinkPlots(plot);
+			actScope = new ActScope(this);
 			actAbout = tinfo;
 			actInfoLeft = info;
 			actInfoRight = info2;

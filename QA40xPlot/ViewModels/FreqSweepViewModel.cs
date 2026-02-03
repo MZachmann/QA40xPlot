@@ -37,6 +37,9 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public RelayCommand DoSaveTab { get => new RelayCommand(SaveItTab); }
 
+		/// <summary>
+		/// the static model that applies to the GUI at least...
+		/// </summary>
 		private static FreqSweepViewModel MyVModel { get => ViewSettings.Singleton.FreqVm; }
 
 		#region Setters and Getters
@@ -111,7 +114,16 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
-				case "DSPlotColors":
+				case "DsPinAll":
+					MyAction.PinAll(MainPlot.ThePlot, this);
+					break;
+				case "DsFitAll":
+					MyAction.FitAll(MainPlot.ThePlot, this);
+					break;
+				case "DsSnapshot":
+					MyAction.AddSnapshotPlot();
+					break;
+				case "DsPlotColors":
 					MyAction?.UpdateGraph(false);
 					break;
 				case "UpdateGraph":
@@ -169,7 +181,8 @@ namespace QA40xPlot.ViewModels
 
 		public void SetAction(PlotControl plot, PlotControl plot1, PlotControl plot2, TabAbout tAbout)
 		{
-			actFreq = new ActFreqSweep(plot, plot1, plot2);
+			LinkPlots(plot, plot1, plot2);
+			actFreq = new ActFreqSweep(this);
 			SetupMainPlot(plot);
 			actPlot = plot;
 			actAbout = tAbout;

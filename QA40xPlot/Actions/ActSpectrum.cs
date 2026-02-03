@@ -21,16 +21,13 @@ namespace QA40xPlot.Actions
 	public class ActSpectrum : ActBase<SpectrumViewModel>
 	{
 		private List<MyDataTab> OtherTabs { get; set; } = new List<MyDataTab>(); // Other tabs in the document
-		private readonly Views.PlotControl fftPlot;
-
 		private float _Thickness = 2.0f;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public ActSpectrum(Views.PlotControl graphFft)
+		public ActSpectrum(SpectrumViewModel vm)
 		{
-			fftPlot = graphFft;
 			UpdateGraph(true);
 		}
 
@@ -79,8 +76,8 @@ namespace QA40xPlot.Actions
 
 		public override void PinGraphRange(string who)
 		{
-			ScottPlot.Plot myPlot = fftPlot.ThePlot;
 			var vm = MyVModel;
+			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
 			PinGraphRanges(myPlot, vm, who);
 		}
 
@@ -650,7 +647,7 @@ namespace QA40xPlot.Actions
 
 			var colorIdx = ispower ? (int)StockColors.POWER : (int)StockColors.HARMONICS;
 			ScottPlot.Color markerCol = GraphUtil.GetPaletteColor(null, colorIdx);
-			ScottPlot.Plot myPlot = fftPlot.ThePlot;
+			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
 			var mymark = myPlot.Add.Marker(Math.Log10(frequency), markView,
 				MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), markerCol);
 			mymark.LegendText = string.Format("{1}: {0}", GraphUtil.PrettyPrint(markVal, vm.PlotFormat), (int)frequency);
@@ -661,7 +658,7 @@ namespace QA40xPlot.Actions
 		{
 			var vm = page.ViewModel;
 			var specVm = MyVModel;
-			ScottPlot.Plot myPlot = fftPlot.ThePlot;
+			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
 			if (specVm.ShowMarkers)
 			{
 				ThdChannelViewModel? thdView = null;
@@ -691,7 +688,7 @@ namespace QA40xPlot.Actions
 			if (!specVm.ShowLeft && !specVm.ShowRight)
 				return;
 
-			ScottPlot.Plot myPlot = fftPlot.ThePlot;
+			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
 			if (specVm.ShowPowerMarkers)
 			{
 				var sampleRate = vm.SampleRateVal;
@@ -775,7 +772,7 @@ namespace QA40xPlot.Actions
 				if (fftdata != null && ffs != null && ffs.Length > 0 && freq < fftdata.Df * ffs.Length)
 				{
 					int bin = 0;
-					ScottPlot.Plot myPlot = fftPlot.ThePlot;
+					ScottPlot.Plot myPlot = MyVModel.MainPlot.ThePlot;
 					var pixel = myPlot.GetPixel(new Coordinates(Math.Log10(freq), posndBV));
 					// get screen coords for some of the data
 					int abin = (int)(freq / fftdata.Df);       // apporoximate bin
@@ -806,8 +803,8 @@ namespace QA40xPlot.Actions
 
 		public void UpdatePlotTitle()
 		{
-			var thdFreq = MyVModel;
-			ScottPlot.Plot myPlot = fftPlot.ThePlot;
+			var vm = MyVModel;
+			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
 			myPlot.Title("Spectrum");
 			if (PageData.Definition.Name != null && PageData.Definition.Name.Length > 0)
 				myPlot.Title("Spectrum : " + PageData.Definition.Name);
@@ -835,14 +832,15 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void InitializeMagnitudePlot(string plotFormat = "dBV")
 		{
-			ScottPlot.Plot myPlot = fftPlot.ThePlot;
+			var vm = MyVModel;
+			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
 			UpdatePlotTitle();
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
 
-			fftPlot.Refresh();
+			vm.MainPlot.Refresh();
 		}
 
 		/// <summary>
@@ -850,14 +848,15 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void InitializefftPlot(string plotFormat = "%")
 		{
-			ScottPlot.Plot myPlot = fftPlot.ThePlot;
+			var vm = MyVModel;
+			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
 			UpdatePlotTitle();
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
 
-			fftPlot.Refresh();
+			vm.MainPlot.Refresh();
 		}
 
 		/// <summary>
@@ -869,15 +868,15 @@ namespace QA40xPlot.Actions
 			if (page == null)
 				return;
 
-			ScottPlot.Plot myPlot = fftPlot.ThePlot;
+			var vm = MyVModel;
+			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
 
-			var specVm = MyVModel;
 			bool useLeft;   // dynamically update these
 			bool useRight;
 			if (isMain)
 			{
-				useLeft = specVm.ShowLeft; // dynamically update these
-				useRight = specVm.ShowRight;
+				useLeft = vm.ShowLeft; // dynamically update these
+				useRight = vm.ShowRight;
 			}
 			else
 			{
@@ -898,15 +897,15 @@ namespace QA40xPlot.Actions
 			//
 			double[] leftdBV = [];
 			double[] rightdBV = [];
-			string plotForm = specVm.PlotFormat;
+			string plotForm = vm.PlotFormat;
 
 			// add a line plot to the plot
-			var lineWidth = specVm.ShowThickLines ? _Thickness : 1;   // so it dynamically updates
+			var lineWidth = vm.ShowThickLines ? _Thickness : 1;   // so it dynamically updates
 																		//IPalette palette = new ScottPlot.Palettes.Category20();
 			if (useLeft)
 			{
 				// format the data into current format
-				var fvi = GraphUtil.ValueToLogPlotFn(specVm, fftData.Left);
+				var fvi = GraphUtil.ValueToLogPlotFn(vm, fftData.Left);
 				var vf = fftData.Left.Skip(1);  // the first dot is F=0 so no logs...
 				leftdBV = vf.Select(fvi).ToArray();
 
@@ -915,14 +914,14 @@ namespace QA40xPlot.Actions
 				plotLeft.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, 2 * measurementNr);
 				plotLeft.MarkerSize = 1;
 				plotLeft.LegendText = isMain ? "Left" : ClipName(page.Definition.Name) + ".L";
-				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotLeft.Color, plotLeft.LegendText, 2 * measurementNr, plotLeft, fftPlot));
+				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotLeft.Color, plotLeft.LegendText, 2 * measurementNr, plotLeft, vm.MainPlot));
 			}
 
 			if (useRight)
 			{
 												// find the max value of the left and right channels
 				// now use that to calculate percents. Since Y axis is logarithmic use log of percent
-				var fvi = GraphUtil.ValueToLogPlotFn(specVm, fftData.Right);
+				var fvi = GraphUtil.ValueToLogPlotFn(vm, fftData.Right);
 				var vf = fftData.Right.Skip(1); // the first dot is F=0 so no logs...
 				rightdBV = vf.Select(fvi).ToArray();
 
@@ -931,41 +930,41 @@ namespace QA40xPlot.Actions
 				plotRight.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, 2 * measurementNr + 1); // color 0 is bad
 				plotRight.MarkerSize = 1;
 				plotRight.LegendText = isMain ? "Right" : ClipName(page.Definition.Name) + ".R";
-				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotRight.Color, plotRight.LegendText, 2 * measurementNr + 1, plotRight, fftPlot));
+				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotRight.Color, plotRight.LegendText, 2 * measurementNr + 1, plotRight, vm.MainPlot));
 			}
 
-			fftPlot.Refresh();
+			vm.MainPlot.Refresh();
 		}
 
 		public void UpdateGraph(bool settingsChanged, string theProperty = "")
 		{
-			fftPlot.ThePlot.Remove<Marker>();             // Remove all current lines
+			SpectrumViewModel vm = MyVModel;
+			vm.MainPlot.ThePlot.Remove<Marker>();             // Remove all current lines
 			int resultNr = 0;
-			SpectrumViewModel thd = MyVModel;
 
 			if (settingsChanged)
 			{
-				PlotUtil.SetupMenus(fftPlot.ThePlot, this, thd);
+				PlotUtil.SetupMenus(vm.MainPlot.ThePlot, this, vm);
 
-				if (GraphUtil.IsPlotFormatLog(thd.PlotFormat))
+				if (GraphUtil.IsPlotFormatLog(vm.PlotFormat))
 				{
-					InitializeMagnitudePlot(thd.PlotFormat);
+					InitializeMagnitudePlot(vm.PlotFormat);
 				}
 				else
 				{
-					InitializefftPlot(thd.PlotFormat);
+					InitializefftPlot(vm.PlotFormat);
 				}
-				HandleChangedProperty(fftPlot.ThePlot, thd, "");
-				PlotUtil.SetHeadingColor(fftPlot.MyLabel);
+				HandleChangedProperty(vm.MainPlot.ThePlot, vm, "");
+				PlotUtil.SetHeadingColor(vm.MainPlot.MyLabel);
 			}
 			else if(theProperty.Length > 0)
 			{
-				HandleChangedProperty(fftPlot.ThePlot, thd, theProperty);
+				HandleChangedProperty(vm.MainPlot.ThePlot, vm, theProperty);
 			}
 			ReformatChannels(); // ensure the channels are formatted correctly
 			ViewSettings.Singleton.ChannelLeft.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd;
 			ViewSettings.Singleton.ChannelRight.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd;
-			thd.UpdateMouseCursor(thd.LookX, thd.LookY);
+			vm.UpdateMouseCursor(vm.LookX, vm.LookY);
 
 			ShowPageInfo(PageData); // show the page info in the display
 			DrawPlotLines(resultNr);
@@ -978,8 +977,9 @@ namespace QA40xPlot.Actions
 
 		public int DrawPlotLines(int resultNr)
 		{
-			fftPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
-			MyVModel.LegendInfo.Clear();
+			var vm = MyVModel;
+			vm.MainPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
+			vm.LegendInfo.Clear();
 			PlotValues(PageData, resultNr++, true);
 			if (OtherTabs.Count > 0)
 			{
@@ -990,7 +990,7 @@ namespace QA40xPlot.Actions
 					resultNr++;     // keep consistent coloring
 				}
 			}
-			fftPlot.Refresh();
+			vm.MainPlot.Refresh();
 			return resultNr;
 		}
 	}

@@ -17,13 +17,15 @@ namespace QA40xPlot.ViewModels
 		public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 		public static List<String> StartVoltages { get => new List<string> { "0.0001", "0.0002", "0.0005", "0.001", "0.002", "0.005", "0.01", "0.02", "0.05", "0.1", "0.2", "0.5" }; }
 		public static List<String> EndVoltages { get => new List<string> { "1", "2", "5", "10", "20", "50", "100", "200" }; }
+		/// <summary>
+		/// the static model that applies to the GUI at least...
+		/// </summary>
 		private static AmpSweepViewModel MyVModel { get => ViewSettings.Singleton.AmpVm; }
 		[JsonIgnore]
 		public override List<string> AxisList { get; } = new List<string> { "XM", "YM", "YP" };
 
 		private ActAmpSweep MyAction { get => actSweep; }
 		private ActAmpSweep actSweep { get; set; }
-		private PlotControl actPlot { get; set; }
 
 		[JsonIgnore]
 		public override RelayCommand DoStart { get => new RelayCommand(StartIt); }
@@ -99,7 +101,16 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
-				case "DSPlotColors":
+				case "DsPinAll":
+					MyAction.PinAll(MainPlot.ThePlot, this);
+					break;
+				case "DsFitAll":
+					MyAction.FitAll(MainPlot.ThePlot, this);
+					break;
+				case "DsSnapshot":
+					MyAction.AddSnapshotPlot();
+					break;
+				case "DsPlotColors":
 					MyAction?.UpdateGraph(false);
 					break;
 				case "UpdateGraph":
@@ -193,9 +204,9 @@ namespace QA40xPlot.ViewModels
 
 		public void SetAction(PlotControl plot, PlotControl plot1, PlotControl plot2, TabAbout tAbout)
 		{
-			actSweep = new ActAmpSweep(plot, plot1, plot2);
+			LinkPlots(plot, plot1, plot2);
+			actSweep = new ActAmpSweep(this);
 			SetupMainPlot(plot);
-			actPlot = plot;
 			actAbout = tAbout;
 			MyVModel.LinkAbout(actSweep.PageData.Definition);
 			ShowInfos();
@@ -283,8 +294,8 @@ namespace QA40xPlot.ViewModels
 			SetMouseTrack(e);
 			if (IsTracking)
 			{
-				var p = e.GetPosition(actPlot);
-				var cord = ConvertScottCoords(actPlot, p.X, p.Y);
+				var p = e.GetPosition(MainPlot);
+				var cord = ConvertScottCoords(MainPlot, p.X, p.Y);
 				FreqValue = Math.Pow(10, cord.Item1); // amplitude actually
 			}
 
@@ -330,8 +341,6 @@ namespace QA40xPlot.ViewModels
 			LeftWidth = 90;  // reset the width of the left column
 			RightWidth = 50; // reset the width of the right column
 
-
-			actPlot = default!;
 			actSweep = default!;
 
 			TestFreq = "1000";

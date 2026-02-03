@@ -88,6 +88,11 @@
                         <MenuItem Header="Frequency _Response" Command="{Binding SetPlotPage}" CommandParameter="freqresp" />
                         <MenuItem Header="S_ettings" Command="{Binding SetPlotPage}" CommandParameter="settings" />
                     </MenuItem>
+                    <MenuItem Header="_Test" IsEnabled="{Binding IsRunning, Converter={StaticResource InvBoolConverter}}" >
+                        <MenuItem Header="_Fit All" Command="{Binding DoFitAll}" />
+                        <MenuItem Header="_Pin All" Command="{Binding DoPinAll}" />
+                        <MenuItem Header="_Snapshot" Command="{Binding DoSnapshot}" />
+                    </MenuItem>
                     <MenuItem Header="_Command"  >
                         <MenuItem Header="Show _QA430" Click="OnQA430"
                                   Visibility="{Binding ShowQA430, Converter={StaticResource BoolVisConverter}}"/>

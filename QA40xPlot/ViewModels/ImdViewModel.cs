@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
+using NAudio.Gui;
 using Newtonsoft.Json;
 using QA40xPlot.Actions;
 using QA40xPlot.Converters;
@@ -51,6 +52,9 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public RelayCommand DoSaveTab { get => new RelayCommand(SaveItTab); }
 
+		/// <summary>
+		/// the static model that applies to the GUI at least...
+		/// </summary>
 		private static ImdViewModel MyVModel { get => ViewSettings.Singleton.ImdVm; }
 
 		#region Setters and Getters
@@ -142,7 +146,16 @@ namespace QA40xPlot.ViewModels
 		{
 			switch (e.PropertyName)
 			{
-				case "DSPlotColors":
+				case "DsPinAll":
+					MyAction.PinAll(MainPlot.ThePlot, this);
+					break;
+				case "DsFitAll":
+					MyAction.FitAll(MainPlot.ThePlot, this);
+					break;
+				case "DsSnapshot":
+					MyAction.AddSnapshotPlot();
+					break;
+				case "DsPlotColors":
 					MyAction?.DrawPlotLines(0);
 					break;
 				case "UpdateGraph":
@@ -198,7 +211,8 @@ namespace QA40xPlot.ViewModels
 
 		public void SetAction(PlotControl plot, ImdChannelInfo info, ImdChannelInfo info2, TabAbout tinfo)
 		{
-			actImd = new ActImd(plot);
+			LinkPlots(plot);
+			actImd = new ActImd(this);
 			actInfoLeft = info;
 			actInfoRight = info2;
 			actAbout = tinfo;
