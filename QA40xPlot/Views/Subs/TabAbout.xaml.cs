@@ -14,10 +14,10 @@ namespace QA40xPlot.Views
 		[JsonIgnore]
 		private MovableWnd _MovableWnd = new MovableWnd();
 
-		public bool AllowCopy 
-		{ 
-			get; 
-			set; 
+		public bool AllowCopy
+		{
+			get;
+			set;
 		} = true;
 
 		public TabAbout()
@@ -38,7 +38,7 @@ namespace QA40xPlot.Views
 
 		private void OnWindMouseDown(object sender, MouseButtonEventArgs e)
 		{
-			if(AllowCopy)
+			if (AllowCopy)
 				_MovableWnd.OnWindMouseDown(sender, e);
 		}
 

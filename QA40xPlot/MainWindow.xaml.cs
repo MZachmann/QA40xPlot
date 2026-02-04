@@ -1,4 +1,4 @@
-﻿ using QA40xPlot.BareMetal;
+﻿using QA40xPlot.BareMetal;
 using QA40xPlot.Libraries;
 using QA40xPlot.QA430;
 using QA40xPlot.ViewModels;
@@ -66,7 +66,7 @@ namespace QA40xPlot
 			if (File.Exists(fpath))
 			{
 				var err = ViewSettings.Singleton.MainVm.LoadFromSettings(fpath);
-				if(err == 1)
+				if (err == 1)
 				{
 					MessageBox.Show("Please create a new default.", "Load Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
 				}
@@ -159,7 +159,7 @@ namespace QA40xPlot
 		private void DoContentRendered(object? sender, EventArgs e)
 		{
 			var vm = ViewSettings.Singleton?.MainVm;
-			if(vm != null)
+			if (vm != null)
 			{
 				if (TheTabs != null)
 					vm.TabControlObject = TheTabs;      // point to the tab control
@@ -227,7 +227,7 @@ namespace QA40xPlot
 				try
 				{
 					// look for a default config file
-					string fpath = Util.GetDefaultConfigPath(); 
+					string fpath = Util.GetDefaultConfigPath();
 					ViewSettings.Singleton.MainVm.SaveToSettings(fpath);
 				}
 				catch (Exception ex)

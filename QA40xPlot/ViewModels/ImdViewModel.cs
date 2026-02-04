@@ -1,6 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.Input;
-using Microsoft.Win32;
-using NAudio.Gui;
 using Newtonsoft.Json;
 using QA40xPlot.Actions;
 using QA40xPlot.Converters;
@@ -216,7 +214,6 @@ namespace QA40xPlot.ViewModels
 			actInfoLeft = info;
 			actInfoRight = info2;
 			actAbout = tinfo;
-			SetupMainPlot(plot);
 			actPlot = plot;
 			info.SetDataContext(true);
 			info2.SetDataContext(false);
@@ -259,7 +256,7 @@ namespace QA40xPlot.ViewModels
 			// Process save file dialog box results
 			if (fname.Length > 0)
 			{
-					actImd.SaveToFile(fname);
+				actImd.SaveToFile(fname);
 			}
 		}
 
@@ -318,7 +315,7 @@ namespace QA40xPlot.ViewModels
 			Gen2Frequency = df2.ToString();
 			if (tt != E_GeneratorDirection.OUTPUT_POWER && divisor == 1)
 			{
-				Gen2Voltage = Gen1Voltage.ToString();	// clone it
+				Gen2Voltage = Gen1Voltage.ToString();   // clone it
 			}
 			else
 			{
@@ -518,7 +515,7 @@ namespace QA40xPlot.ViewModels
 
 			Attenuation = 42;
 
-			IntermodType = IntermodTypes[2];	// DIN
+			IntermodType = IntermodTypes[2];    // DIN
 			IsImdCustom = true;
 
 			PlotFormat = "dBV";

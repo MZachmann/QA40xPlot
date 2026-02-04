@@ -66,7 +66,7 @@ namespace QA40xPlot.Actions
 			if (who == "Y2")
 			{
 				var y2axis = vm.SecondYAxis;
-				if(y2axis != null)
+				if (y2axis != null)
 				{
 					var u = y2axis.Min;
 					var w = y2axis.Max;
@@ -123,13 +123,13 @@ namespace QA40xPlot.Actions
 			{
 				// we can't overwrite the viewmodel since it links to the display proper
 				// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
-				PageData.ViewModel.OtherSetList = MyVModel.OtherSetList;
-				PageData.ViewModel.CopyPropertiesTo<FreqRespViewModel>(MyVModel);    // retract the gui
+				MyVModel.LoadViewFrom(page.ViewModel);
 				PageData = page;    // set the current page to the loaded one
 
 				// relink to the new definition
-				MyVModel.LinkAbout(PageData.Definition);
-				MyVModel.HasSave = true;
+				var vm = MyVModel;
+				vm.LinkAbout(page.Definition);
+				vm.HasSave = true;
 			}
 			else
 			{
@@ -169,7 +169,7 @@ namespace QA40xPlot.Actions
 					var gains = miccomp.Right.Select(x => QaLibrary.ConvertVoltage(-x, E_VoltageUnit.dBV, E_VoltageUnit.Volt)).ToArray();
 					var crctdata = QaMath.LinearApproximate(freqs, gains, page.GainFrequencies); // interpolate the mic correction data
 																								 // apply mic correction to the left channel
-					//page.GainData = page.GainData.Zip(crctdata, (x, y) => x * y).ToArray();
+																								 //page.GainData = page.GainData.Zip(crctdata, (x, y) => x * y).ToArray();
 					page.GainData = (page.GainLeft.Zip(crctdata, (x, y) => x * y).ToArray(),
 						page.GainRight.Zip(crctdata, (x, y) => x * y).ToArray());
 
@@ -247,7 +247,7 @@ namespace QA40xPlot.Actions
 			}
 
 			vm.HasExport = false;
-			if(index == 0)
+			if (index == 0)
 				UpdateGraph(true);
 
 			// sweep data
@@ -275,7 +275,7 @@ namespace QA40xPlot.Actions
 			bool needAttenuate = msr.DoAutoAttn || (ToDirection(msr.GenDirection) != E_GeneratorDirection.INPUT_VOLTAGE);
 
 			// calculate gain to autoattenuate
-			if ( (index==0 || LRGains == null) && needAttenuate)
+			if ((index == 0 || LRGains == null) && needAttenuate)
 			{
 				await CalculateGainCurve(MyVModel, fmin, fmax);
 				if (LRGains == null)
@@ -475,10 +475,9 @@ namespace QA40xPlot.Actions
 		public override Rect GetDataBounds()
 		{
 			// here we want to show what's visible so use freqVm for visibility
-			var vm = PageData.ViewModel;
-			var freqVm = MyVModel;
+			var vm = MyVModel;
 			var vmr = PageData.GainFrequencies; // test data
-			var ttype = freqVm.GetTestingType(freqVm.TestType);
+			var ttype = vm.GetTestingType(vm.TestType);
 			var msdre = PageData.GainReal;
 			var msdim = PageData.GainImag;
 
@@ -491,17 +490,17 @@ namespace QA40xPlot.Actions
 			rrc.Width = vmr.Max() - rrc.X;
 			if (ttype == TestingType.Response || ttype == TestingType.Crosstalk)
 			{
-				if (freqVm.ShowLeft)
+				if (vm.ShowLeft)
 				{
 					rrc.Y = msdre.Min();
 					rrc.Height = msdre.Max() - rrc.Y;
-					if (freqVm.ShowRight)
+					if (vm.ShowRight)
 					{
 						rrc.Y = Math.Min(rrc.Y, msdim.Min());
 						rrc.Height = Math.Max(rrc.Height, msdim.Max() - rrc.Y);
 					}
 				}
-				else if (freqVm.ShowRight)
+				else if (vm.ShowRight)
 				{
 					rrc.Y = msdim.Min();
 					rrc.Height = msdim.Max() - rrc.Y;
@@ -515,7 +514,7 @@ namespace QA40xPlot.Actions
 			}
 			else if (PageData.GainLeft != null && PageData.GainLeft.Length > 0)
 			{   // impedance
-				double rref = ToD(freqVm.ZReference, 10);
+				double rref = ToD(vm.ZReference, 10);
 				var gainZ = PageData.GainReal.Zip(PageData.GainImag, (x, y) => MathUtil.ToImpedanceMag(x, y));
 				var minL = gainZ.Min();
 				var maxL = gainZ.Max();
@@ -579,7 +578,7 @@ namespace QA40xPlot.Actions
 							var ohms = rref * impval;
 							impval = MathUtil.ToImpedancePhase(valuesRe[bin], valuesIm[bin]);
 							var gd = PageData.DelayRslt;
-							tup = ValueTuple.Create(myFreq, ohms, 180 * impval / Math.PI, (gd==null) ? 0.0 : gd.ElementAt(bin));
+							tup = ValueTuple.Create(myFreq, ohms, 180 * impval / Math.PI, (gd == null) ? 0.0 : gd.ElementAt(bin));
 						}
 						break;
 					case TestingType.Gain:
@@ -605,7 +604,7 @@ namespace QA40xPlot.Actions
 		public override void FitToData(BaseViewModel basevm, object? parameter, double[]? dRefs)
 		{
 			var bvm = basevm as FreqRespViewModel;
-			if(parameter == null || bvm == null)
+			if (parameter == null || bvm == null)
 			{
 				return;
 			}
@@ -614,7 +613,7 @@ namespace QA40xPlot.Actions
 			switch (axisType)
 			{
 				case "Y2":
-					
+
 					break;
 				case "PH":
 					bounds = GetPhaseBounds();
@@ -644,7 +643,7 @@ namespace QA40xPlot.Actions
 					break;
 				case "Y2":  // group delay
 					var rsl = PageData.DelayRslt;
-					if(rsl != null && rsl.Length > 0)
+					if (rsl != null && rsl.Length > 0)
 					{
 						bvm.Range2Bottom = rsl.Min().ToString("G3");
 						bvm.Range2Top = rsl.Max().ToString("G3");
@@ -731,7 +730,7 @@ namespace QA40xPlot.Actions
 
 			try
 			{
-				page.GainData = ([],[]); // new list of complex data
+				page.GainData = ([], []); // new list of complex data
 				page.GainFrequencies = []; // new list of frequencies
 				if (CanToken.IsCancellationRequested)
 					return false;
@@ -741,7 +740,7 @@ namespace QA40xPlot.Actions
 						break;
 					var dfreq = stepBinFrequencies[steps];
 					// crosstalk doesn't support riaa preemph
-					if(vm.IsRiaa && (ttype != TestingType.Crosstalk))
+					if (vm.IsRiaa && (ttype != TestingType.Crosstalk))
 					{
 						var gv = genVolt;
 						// scale to max unity gain at highest freq
@@ -750,12 +749,12 @@ namespace QA40xPlot.Actions
 						// enable both generators here with one riaa preemph
 						WaveGenerator.SetGen1(true, dfreq, gv, true);
 						WaveGenerator.SetGen1(false, dfreq, (ttype != TestingType.Gain) ? gv : genVolt, true);
-						WaveContainer.SetStereo();	// use both channels of generator
+						WaveContainer.SetStereo();  // use both channels of generator
 					}
 					else
-					{	// not riaa
+					{   // not riaa
 						var dfq = (dfreq > 0 ? dfreq : 1000);
-						WaveGenerator.SetGen1(true, dfq, genVolt, true);	// left
+						WaveGenerator.SetGen1(true, dfq, genVolt, true);    // left
 						WaveGenerator.SetGen1(false, dfq, genVolt, true);   // right, for crosstalk
 						WaveContainer.SetMono();  // use one channel of generator by default
 					}
@@ -769,14 +768,14 @@ namespace QA40xPlot.Actions
 						WaveContainer.SetStereo();      // use both channels
 						WaveContainer.SetEnabled(false, true);
 						await RunStep(page, TestingType.Response, dfreq, genVolt);      // get gain of both channels
-						var gainLeft = page.GainLeft.Last() / Math.Max(1e-10, page.GainRight.Last());	// signal was sent on left channel
+						var gainLeft = page.GainLeft.Last() / Math.Max(1e-10, page.GainRight.Last());   // signal was sent on left channel
 
 						page.GainData = exData; // new list of complex data
 						page.GainFrequencies = exFreq; // new list of frequencies
 						WaveContainer.SetEnabled(true, false);
 						await RunStep(page, TestingType.Response, dfreq, genVolt);      // get gain of both channels
-						var gainRight = page.GainRight.Last() / Math.Max(1e-10, page.GainLeft.Last());	// signal was sent on right channel
-						// merge the data and update the GainData Property
+						var gainRight = page.GainRight.Last() / Math.Max(1e-10, page.GainLeft.Last());  // signal was sent on right channel
+																										// merge the data and update the GainData Property
 						var idxread = page.GainLeft.Length - 1;
 						page.GainData.Item1[idxread] = gainLeft; // set the gain data to the new crosstalk gain
 						page.GainData.Item2[idxread] = gainRight; // set the gain data to the new crosstalk gain
@@ -817,7 +816,7 @@ namespace QA40xPlot.Actions
 			var genv = QaLibrary.ConvertVoltage(voltagedBV, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
 			var chirpy = Chirps.ChirpVp(vm.FftSizeVal, vm.SampleRateVal, genv, startf, endf, 0.8);
 			var ucLeft = chirpy;
-			if(vm.IsRiaa)
+			if (vm.IsRiaa)
 			{
 				// time domain filtering to riaa preemphasis
 				var bq = BiquadBuilder.BuildRiaaBiquad(vm.SampleRateVal, false);
@@ -825,7 +824,7 @@ namespace QA40xPlot.Actions
 			}
 			var blank = new double[chirpy.Length];
 			var ucRight = (channels == WaveChannels.Both || channels == WaveChannels.Right) ? chirpy : blank;
-			if(vm.GetTestingType(vm.TestType) == TestingType.Response)
+			if (vm.GetTestingType(vm.TestType) == TestingType.Response)
 			{
 				ucRight = (channels == WaveChannels.Both || channels == WaveChannels.Right) ? ucLeft : blank;
 			}
@@ -905,14 +904,14 @@ namespace QA40xPlot.Actions
 				var startf = ToD(vm.StartFreq) / 3;
 				var endf = ToD(vm.EndFreq) * 3;
 				// we have garbage near Nyquist f so trim it off
-				if(endf > vm.SampleRateVal/2)
-					endf = 0.95 * vm.SampleRateVal/2;
+				if (endf > vm.SampleRateVal / 2)
+					endf = 0.95 * vm.SampleRateVal / 2;
 				var trimf = gfr.Count(x => x < startf);
 				var trimEnd = gfr.Count(x => x <= endf) - trimf;
 				// trim them all
 				gfr = gfr.Skip(trimf).Take(trimEnd).ToArray();
 				// trim all of the arrays
-				for(int i =0; i<leftFfts.Count; i++)
+				for (int i = 0; i < leftFfts.Count; i++)
 				{
 					leftFfts[i] = leftFfts[i].Skip(trimf).Take(trimEnd).ToArray();
 					rightFfts[i] = rightFfts[i].Skip(trimf).Take(trimEnd).ToArray();
@@ -1012,7 +1011,7 @@ namespace QA40xPlot.Actions
 			if (ttype != TestingType.Crosstalk)
 			{
 				didRun = await DoChirpTest(page, voltagedBV, ttype, WaveChannels.Both, index);
-				if(perOctave > 0)
+				if (perOctave > 0)
 				{
 					// smooth the curve?
 					gainLeft = MathUtil.SmoothAverage(page.GainLeft, perOctave);
@@ -1022,7 +1021,7 @@ namespace QA40xPlot.Actions
 			}
 			else
 			{
-				page.GainData = ([],[]); // new list of complex data
+				page.GainData = ([], []); // new list of complex data
 				page.GainFrequencies = []; // new list of frequencies
 										   // left->right crosstalk
 				didRun = await DoChirpTest(page, voltagedBV, TestingType.Response, WaveChannels.Right, index);
@@ -1068,7 +1067,7 @@ namespace QA40xPlot.Actions
 		{
 			System.Numerics.Complex u = new Complex(1, 1);
 			var measuredFreqSeries = measuredSeries.FreqRslt;
-			if (measuredFreqSeries == null )
+			if (measuredFreqSeries == null)
 				return u;
 
 			try
@@ -1120,7 +1119,7 @@ namespace QA40xPlot.Actions
 
 		public void AddPhase(FreqRespViewModel frqrsVm, Plot myPlot)
 		{
-			if(frqrsVm.ShowPhase)
+			if (frqrsVm.ShowPhase)
 			{
 				PlotUtil.AddPhasePlot(myPlot);
 				myPlot.Axes.Right.Label.Text = "Phase (Deg)";
@@ -1143,7 +1142,7 @@ namespace QA40xPlot.Actions
 			var axis = PlotUtil.AddSecondY(myPlot, frqrsVm);
 			axis.RemoveTickGenerator();
 			var y2axis = frqrsVm.SecondYAxis;
-			if(y2axis != null)
+			if (y2axis != null)
 			{
 				myPlot.Axes.SetLimitsY(ToD(frqrsVm.Range2Bottom, -10), ToD(frqrsVm.Range2Top, 10), y2axis);
 			}
@@ -1169,14 +1168,14 @@ namespace QA40xPlot.Actions
 
 		void HandleChangedProperty(ScottPlot.Plot myPlot, FreqRespViewModel vm, string changedProp)
 		{
-			if(changedProp == "GraphStartX" || changedProp == "GraphEndX" || changedProp.Length == 0)
+			if (changedProp == "GraphStartX" || changedProp == "GraphEndX" || changedProp.Length == 0)
 				myPlot.Axes.SetLimitsX(Math.Log10(ToD(vm.GraphStartX, 20.0)), Math.Log10(ToD(vm.GraphEndX, 20000)), myPlot.Axes.Bottom);
 			if (changedProp == "RangeBottomdB" || changedProp == "RangeTopdB" || changedProp.Length == 0)
 				myPlot.Axes.SetLimitsY(ToD(vm.RangeBottomdB, -20), ToD(vm.RangeTopdB, 180), myPlot.Axes.Left);
 			if (changedProp == "PhaseBottom" || changedProp == "PhaseTop" || changedProp.Length == 0)
 				myPlot.Axes.SetLimitsY(ToD(vm.PhaseBottom, 20.0), ToD(vm.PhaseTop, 20.0), myPlot.Axes.Right);
 			var y2axis = vm.SecondYAxis;
-			if((y2axis != null) && (changedProp == "Range2Bottom" || changedProp == "Range2Top" || changedProp.Length == 0))
+			if ((y2axis != null) && (changedProp == "Range2Bottom" || changedProp == "Range2Top" || changedProp.Length == 0))
 				myPlot.Axes.SetLimitsY(ToD(vm.Range2Bottom, -20.0), ToD(vm.Range2Top, 20.0), y2axis);
 		}
 
@@ -1197,7 +1196,7 @@ namespace QA40xPlot.Actions
 			vm.ToShowPhase = Visibility.Collapsed;
 			myPlot.Axes.Right.Label.Text = string.Empty;
 			var y2axis = vm.SecondYAxis;
-			if(y2axis != null)
+			if (y2axis != null)
 			{
 				myPlot.Axes.Remove(y2axis);
 				vm.SecondYAxis = null;
@@ -1238,21 +1237,21 @@ namespace QA40xPlot.Actions
 			double[] outPhase = new double[phaseData.Length];
 			outPhase[0] = phaseData[0];
 			// make it as continuous as possible
-			for(int i=1; i<phaseData.Length; i++)
+			for (int i = 1; i < phaseData.Length; i++)
 			{
 				// place the next phase value near this one
 				outPhase[i] = phaseData[i];
-				var dot = outPhase[i] - outPhase[i-1];
-				while(Math.Abs(dot) > 180)
+				var dot = outPhase[i] - outPhase[i - 1];
+				while (Math.Abs(dot) > 180)
 				{
 					outPhase[i] += (dot < 0) ? 360 : -360;
 					dot = outPhase[i] - outPhase[i - 1];
 				}
 			}
 			// center it at +-180 if possible
-			if(outPhase.Min() >= 0 && outPhase.Max() > 180)
+			if (outPhase.Min() >= 0 && outPhase.Max() > 180)
 			{
-				outPhase = outPhase.Select(x => x-360).ToArray();
+				outPhase = outPhase.Select(x => x - 360).ToArray();
 			}
 			else if (outPhase.Min() < -180 && outPhase.Max() <= 0)
 			{
@@ -1282,7 +1281,7 @@ namespace QA40xPlot.Actions
 			if (freqX[0] == 0)
 				skipped = 1;
 
-			double[] logFreqX = freqX.Select(x => (x>0) ? Math.Log10(x) : 1e-6).ToArray();
+			double[] logFreqX = freqX.Select(x => (x > 0) ? Math.Log10(x) : 1e-6).ToArray();
 			float lineWidth = vm.ShowThickLines ? _Thickness : 1;
 			float markerSize = vm.ShowPoints ? lineWidth + 3 : 1;
 
@@ -1375,7 +1374,7 @@ namespace QA40xPlot.Actions
 				plot = null;
 				if (ttype == TestingType.Gain || ttype == TestingType.Impedance)
 				{
-					if(vm.ShowPhase)
+					if (vm.ShowPhase)
 					{
 						phases = UnWrap(phaseValues);
 						plot = myPlot.Add.SignalXY(logFreqX.Skip(skipped).ToArray(), phases.Skip(skipped).ToArray());
@@ -1393,7 +1392,7 @@ namespace QA40xPlot.Actions
 					plot = myPlot.Add.SignalXY(logFreqX.Skip(skipped).ToArray(), phases.Skip(skipped).ToArray());
 					plot.LegendText = prefix + "Right dB";
 				}
-				if(plot != null)
+				if (plot != null)
 				{
 					plot.LineWidth = lineWidth;
 					plot.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, measurementNr * 2 + 1);
@@ -1413,8 +1412,8 @@ namespace QA40xPlot.Actions
 						// so convert to ms
 						gdelay[i] = 1000 * (phases[i - 1] - phases[i]) / (360 * (freqX[i] - freqX[i - 1]));
 					}
-					gdelay[0] = gdelay[1];	// may as well
-					// save it in the pagedata for other uses
+					gdelay[0] = gdelay[1];  // may as well
+											// save it in the pagedata for other uses
 					page.DelayRslt = gdelay;
 					// now plot it and add it to the legend
 					plot = myPlot.Add.SignalXY(logFreqX.Skip(skipped).ToArray(), gdelay.Skip(skipped).ToArray());

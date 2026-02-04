@@ -20,11 +20,11 @@ namespace QA40xPlot.Libraries
 		public BiquadFilter(double ip0, double ip1, double ip2, double iz0, double iz1, double iz2)
 		{
 			// Normalize coefficients so that a0 = 1
-			b0 = ip0;	// poles = denomizator
+			b0 = ip0;   // poles = denomizator
 			b1 = ip1;
 			b2 = ip2;
 			a0 = iz0;
-			a1 = iz1;	// zeros = numerator
+			a1 = iz1;   // zeros = numerator
 			a2 = iz2;
 			z1 = z2 = 0.0;
 			var gain = (b0 + b1 + b2) / (a0 + a1 + a2);
@@ -34,7 +34,7 @@ namespace QA40xPlot.Libraries
 
 		public void Restart()
 		{
-			z1 = z2 = 0.0;	// reset these since they're tracking values
+			z1 = z2 = 0.0;  // reset these since they're tracking values
 		}
 
 		public void PrintString()
@@ -80,7 +80,7 @@ namespace QA40xPlot.Libraries
 			var f1 = new Complex(1, x1 * freq);
 			var f2 = new Complex(1, x2 * freq);
 			var f3 = new Complex(1, x3 * freq);
-			var f4 = new Complex(1, x4 * freq);	// high frequency wall
+			var f4 = new Complex(1, x4 * freq); // high frequency wall
 			var udiv = ((f1 * f3) / (f2 * f4)).Magnitude;
 			return udiv;
 		}
@@ -98,7 +98,7 @@ namespace QA40xPlot.Libraries
 		// just do a table lookup on a created filter
 		public double DoFilter(double freq)
 		{
-			if (_Df <= 0 || freq <= 0 )
+			if (_Df <= 0 || freq <= 0)
 				return 0.0;
 
 			var idx = (int)(freq / _Df);
@@ -114,7 +114,7 @@ namespace QA40xPlot.Libraries
 			_Df = df;
 			_SampleSize = sampleSize;
 			_RiaaFilter = Enumerable.Range(0, (int)sampleSize / 2).Select((x, i) => RiaaTransform.Fvalue3(i * df)).ToArray();
-			var at1000 = _RiaaFilter.Max();	// maximum gain of 1
+			var at1000 = _RiaaFilter.Max(); // maximum gain of 1
 			_RiaaFilter = _RiaaFilter.Select(x => x / at1000).ToArray();
 		}
 
@@ -144,13 +144,13 @@ namespace QA40xPlot.Libraries
 			System.IO.File.WriteAllLines(filename, valsstr);
 		}
 	};
-	
+
 	// this converts Laplace to Z domain for a biquad filter
 	class BiquadBuilder
 	{
 		// the Time Poles & Zeros
-		static double[] RiaaPoles = [3180e-6, 75e-6];	// poles
-		static double[] RiaaZeros = [318e-6, 3.18e-6];	// optional second zero
+		static double[] RiaaPoles = [3180e-6, 75e-6];   // poles
+		static double[] RiaaZeros = [318e-6, 3.18e-6];  // optional second zero
 
 		/// <summary>
 		/// Calculates the pole-zero mapping coefficient for a given time constant and sampling frequency.
@@ -160,9 +160,9 @@ namespace QA40xPlot.Libraries
 		/// <param name="T">The time constant of the system, in seconds. </param>
 		/// <param name="fs">The sampling frequency, in hertz. </param>
 		/// <returns>The pole-zero mapping coefficient</returns>
-		static double PoleZeroMap(double T, double fs) 
+		static double PoleZeroMap(double T, double fs)
 		{
-			return Math.Exp(-1.0 / (fs * T)); 
+			return Math.Exp(-1.0 / (fs * T));
 		}
 		/// <summary>
 		/// Compute Z-Domain Biquad coefficients based on time zeros and poles
@@ -196,14 +196,14 @@ namespace QA40xPlot.Libraries
 			return new BiquadFilter(d0, d1, d2, n0, n1, n2);
 		}
 
-		public static BiquadFilter BuildRiaaBiquad(uint sampleRate, bool useExtraZero )
+		public static BiquadFilter BuildRiaaBiquad(uint sampleRate, bool useExtraZero)
 		{
 			double[] zeros = (double[])RiaaZeros.Clone();
 
 			// this redoes the second zero based on fs
 			// based on Jan Didden stuff
 			double[] t4s = [20053, 30478, 41656];   // with added zero
-			double[] t4sno = [21833, 38433, 75313];	// (without)
+			double[] t4sno = [21833, 38433, 75313]; // (without)
 			List<uint> sr = [48000, 96000, 192000];
 			var idx = sr.IndexOf(sampleRate);
 			zeros[1] = 1 / (2 * Math.PI * (useExtraZero ? t4s[idx] : t4sno[idx]));
@@ -212,7 +212,7 @@ namespace QA40xPlot.Libraries
 			bq.PrintString();
 			return bq;
 		}
-		
+
 		// diagnostics
 		public static void GetQuad()
 		{

@@ -3,10 +3,8 @@ using Microsoft.Win32;
 using Newtonsoft.Json;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
-using System;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection.Metadata;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -20,7 +18,7 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public List<string> PageNames { get; } = new List<string>
 		{
-			"spectrum",	"intermod","scope", "freqsweep",
+			"spectrum", "intermod","scope", "freqsweep",
 			"ampsweep", "freqresp",
 			"settings",
 		};
@@ -83,9 +81,9 @@ namespace QA40xPlot.ViewModels
 				Application.Current?.Dispatcher.Invoke(() =>
 				{
 					var newType = parameter as string ?? "spectrum";
-					if( PageNames.Contains(newType))
+					if (PageNames.Contains(newType))
 						PlotPageType = newType;
-				}); 
+				});
 			});
 		}
 
@@ -138,7 +136,7 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public string ProgressMessage
 		{
-			get => _ProgressMessage; 
+			get => _ProgressMessage;
 			set => SetProperty(ref _ProgressMessage, value);
 		}
 		private int _ProgressAmount = 0;         // type of alert
@@ -307,7 +305,7 @@ namespace QA40xPlot.ViewModels
 				}
 				if (isrun && TabControlObject != null)
 				{
-					if(TabControlObject.SelectedIndex != PageNames.IndexOf(_PlotPageType))
+					if (TabControlObject.SelectedIndex != PageNames.IndexOf(_PlotPageType))
 					{
 						Task.Delay(200).ContinueWith(_ =>
 						{
@@ -445,7 +443,7 @@ namespace QA40xPlot.ViewModels
 				if (jsonObject != null)
 				{
 					msg = ViewSettings.Singleton.GetSettingsFrom(jsonObject);
-					if(msg == 1)
+					if (msg == 1)
 					{
 						MessageBox.Show($"The configuration file version is too low. Skipping {filename}", "Loader", MessageBoxButton.OK, MessageBoxImage.Information);
 						return msg;
@@ -614,7 +612,7 @@ namespace QA40xPlot.ViewModels
 
 		private void DoShowButtons(string? parameter)
 		{
-			IsButtonShown = (parameter=="1");
+			IsButtonShown = (parameter == "1");
 		}
 
 		private void OnSaveWave()
@@ -629,11 +627,11 @@ namespace QA40xPlot.ViewModels
 
 			// Show save file dialog box
 			bool? result = saveFileDialog.ShowDialog();
-			if(result == true) 
+			if (result == true)
 			{
 				var u = WaveContainer.TheWave(true);  // the left wave generator
-				// let's use the current view model
-				if(CurrentView != null)
+													  // let's use the current view model
+				if (CurrentView != null)
 				{
 					var vm = CurrentView;
 					var data1 = WaveGenerator.Generate(true, vm.SampleRateVal, vm.FftSizeVal);

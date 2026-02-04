@@ -240,8 +240,8 @@ namespace QA40xPlot.BareMetal
 			double rmsBelowNotch = ComputeRmsF(weighted, df, minFreq, notchLowerBound, windowing);
 			double rmsAboveNotch = ComputeRmsF(weighted, df, notchUpperBound, maxFreq, windowing);
 			// remove the harmonic distrtion levels
-			var counts = Enumerable.Range(2, 5);	// four harmonics
-			var distort = counts.Select(n => QaMath.MagAtFreq(weighted, df, n * fundamental)).Sum(x => x*x);
+			var counts = Enumerable.Range(2, 5);    // four harmonics
+			var distort = counts.Select(n => QaMath.MagAtFreq(weighted, df, n * fundamental)).Sum(x => x * x);
 			double noiseRms = Math.Sqrt(rmsBelowNotch * rmsBelowNotch + rmsAboveNotch * rmsAboveNotch - distort);
 			noiseRms = Math.Max(noiseRms, 1e-12); // prevent div by zero
 			if (debug)

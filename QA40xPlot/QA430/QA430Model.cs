@@ -3,12 +3,10 @@ using Newtonsoft.Json;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using QA40xPlot.Views;
-using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Media.Media3D;
 using static QA40xPlot.QA430.QA430Model;
 
 namespace QA40xPlot.QA430
@@ -114,41 +112,41 @@ namespace QA40xPlot.QA430
 		private readonly Task RefreshTask;
 		private bool RefreshTaskCancel = false;
 
-		static readonly QA430Config C1 = new ("Config1", OpampNegInputs.GndTo4p99, OpampPosInputs.Analyzer,
+		static readonly QA430Config C1 = new("Config1", OpampNegInputs.GndTo4p99, OpampPosInputs.Analyzer,
 					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, 0, 0);
-		static readonly QA430Config C2a = new ("Config2a", OpampNegInputs.Open, OpampPosInputs.Analyzer,
+		static readonly QA430Config C2a = new("Config2a", OpampNegInputs.Open, OpampPosInputs.Analyzer,
 					OpampPosNegConnects.Short, OpampFeedbacks.Short, 0, 0);
-		static readonly QA430Config C2b = new ("Config2b", OpampNegInputs.GndTo499, OpampPosInputs.Analyzer,
+		static readonly QA430Config C2b = new("Config2b", OpampNegInputs.GndTo499, OpampPosInputs.Analyzer,
 					OpampPosNegConnects.Short, OpampFeedbacks.R4p99k, 0, 0);
-		static readonly QA430Config C2c = new ("Config2", OpampNegInputs.GndTo4p99, OpampPosInputs.Analyzer,
+		static readonly QA430Config C2c = new("Config2", OpampNegInputs.GndTo4p99, OpampPosInputs.Analyzer,
 					OpampPosNegConnects.Short, OpampFeedbacks.R4p99k, 0, 0);    // note the Config2 name
-		static readonly QA430Config C3a = new ("Config3a", OpampNegInputs.GndTo4p99, OpampPosInputs.Gnd,
+		static readonly QA430Config C3a = new("Config3a", OpampNegInputs.GndTo4p99, OpampPosInputs.Gnd,
 					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, 0, 0);
-		static readonly QA430Config C3b = new ("Config3b", OpampNegInputs.GndTo499, OpampPosInputs.Gnd,
+		static readonly QA430Config C3b = new("Config3b", OpampNegInputs.GndTo499, OpampPosInputs.Gnd,
 					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, 0, 0);
-		static readonly QA430Config C3c = new ("Config3c", OpampNegInputs.Open, OpampPosInputs.Gnd,
+		static readonly QA430Config C3c = new("Config3c", OpampNegInputs.Open, OpampPosInputs.Gnd,
 					OpampPosNegConnects.Open, OpampFeedbacks.Short, 0, 0);
-		static readonly QA430Config C4a = new ("Config4a", OpampNegInputs.GndTo499, OpampPosInputs.Analyzer,
+		static readonly QA430Config C4a = new("Config4a", OpampNegInputs.GndTo499, OpampPosInputs.Analyzer,
 					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, 10, 10);
-		static readonly QA430Config C4b = new ("Config4b", OpampNegInputs.GndTo499, OpampPosInputs.Analyzer,
+		static readonly QA430Config C4b = new("Config4b", OpampNegInputs.GndTo499, OpampPosInputs.Analyzer,
 					OpampPosNegConnects.R49p9, OpampFeedbacks.R4p99k, 10, 110);
-		static readonly QA430Config C5a = new ("Config5a", OpampNegInputs.AnalyzerTo499, OpampPosInputs.Gnd,
+		static readonly QA430Config C5a = new("Config5a", OpampNegInputs.AnalyzerTo499, OpampPosInputs.Gnd,
 					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, -10, 10);
-		static readonly QA430Config C5b = new ("Config5b", OpampNegInputs.AnalyzerTo499, OpampPosInputs.Gnd,
+		static readonly QA430Config C5b = new("Config5b", OpampNegInputs.AnalyzerTo499, OpampPosInputs.Gnd,
 					OpampPosNegConnects.R49p9, OpampFeedbacks.R4p99k, -10, 110);
-		static readonly QA430Config C6a = new ("Config6a", OpampNegInputs.Open, OpampPosInputs.Analyzer,
+		static readonly QA430Config C6a = new("Config6a", OpampNegInputs.Open, OpampPosInputs.Analyzer,
 					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, 1, 1);
-		static readonly QA430Config C6b = new ("Config6b", OpampNegInputs.Open, OpampPosInputs.Analyzer,
+		static readonly QA430Config C6b = new("Config6b", OpampNegInputs.Open, OpampPosInputs.Analyzer,
 					OpampPosNegConnects.R49p9, OpampFeedbacks.R4p99k, 1, 101);
-		static readonly QA430Config C7a = new ("Config7a", OpampNegInputs.AnalyzerTo4p99k, OpampPosInputs.Gnd,
+		static readonly QA430Config C7a = new("Config7a", OpampNegInputs.AnalyzerTo4p99k, OpampPosInputs.Gnd,
 					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, -1, 1);
-		static readonly QA430Config C7b = new ("Config7b", OpampNegInputs.AnalyzerTo4p99k, OpampPosInputs.Gnd,
+		static readonly QA430Config C7b = new("Config7b", OpampNegInputs.AnalyzerTo4p99k, OpampPosInputs.Gnd,
 					OpampPosNegConnects.R49p9, OpampFeedbacks.R4p99k, -1, 101);
-		static readonly QA430Config C8a = new ("Config8a", OpampNegInputs.Open, OpampPosInputs.Analyzer,
+		static readonly QA430Config C8a = new("Config8a", OpampNegInputs.Open, OpampPosInputs.Analyzer,
 					OpampPosNegConnects.Open, OpampFeedbacks.Short, 0, 0);
-		static readonly QA430Config C8b = new ("Config8b", OpampNegInputs.Open, OpampPosInputs.AnalyzerTo100k,
+		static readonly QA430Config C8b = new("Config8b", OpampNegInputs.Open, OpampPosInputs.AnalyzerTo100k,
 					OpampPosNegConnects.Open, OpampFeedbacks.Short, 0, 0);
-		static readonly QA430Config[] AllConfigs = new [] { C1, C2a, C2b, C2c, C3a, C3b, C3c, C4a, C4b, C5a, C5b, C6a, C6b, C7a, C7b, C8a, C8b };
+		static readonly QA430Config[] AllConfigs = new[] { C1, C2a, C2b, C2c, C3a, C3b, C3c, C4a, C4b, C5a, C5b, C6a, C6b, C7a, C7b, C8a, C8b };
 
 		#region Properties
 
@@ -373,7 +371,7 @@ namespace QA40xPlot.QA430
 		/// <returns>connected USB to QA430?</returns>
 		internal static bool BeginQA430Op()
 		{
-			if(!ViewSettings.Singleton.SettingsVm.EnableQA430)
+			if (!ViewSettings.Singleton.SettingsVm.EnableQA430)
 			{
 				// not wanted
 				Debug.WriteLine("QA430 not wanted by user");
@@ -542,7 +540,7 @@ namespace QA40xPlot.QA430
 		public List<AcquireStep> ExpandLoadOptions(List<AcquireStep> srcSteps, string whom)
 		{
 			var items = SelectItemList.ParseList(whom).Where(x => x.IsSelected).ToList();
-			if(items == null || items.Count == 0)
+			if (items == null || items.Count == 0)
 				return srcSteps;    // nothing selected
 
 			List<AcquireStep> newSteps = new List<AcquireStep>();
@@ -557,7 +555,7 @@ namespace QA40xPlot.QA430
 				}
 				object? value = null;
 				Enum.TryParse(typeof(LoadOptions), vname, true, out value);
-				if(value == null)
+				if (value == null)
 					continue;
 				var newlist = srcSteps.Select(s =>
 				{
@@ -577,7 +575,7 @@ namespace QA40xPlot.QA430
 			foreach (var config in configSet)
 			{
 				QA430Config? cfg = model430?.FindOpampConfig(config);
-				if(cfg?.CfgGain == gainValue)
+				if (cfg?.CfgGain == gainValue)
 				{
 					return cfg;
 				}
@@ -593,7 +591,7 @@ namespace QA40xPlot.QA430
 				return srcSteps;
 			}
 			List<AcquireStep> newSteps = new List<AcquireStep>();
-			foreach(var opt in gainSet)
+			foreach (var opt in gainSet)
 			{
 				var gain = MathUtil.ToDouble(opt.Name, -150);
 				var cfg = GainToConfig((int)gain, useHigh);
@@ -617,7 +615,7 @@ namespace QA40xPlot.QA430
 		public List<AcquireStep> ExpandSupplyOptions(List<AcquireStep> srcSteps, string supplyOpts)
 		{
 			var supplySet = SelectItemList.ParseList(supplyOpts).Where(x => x.IsSelected).ToList();
-			if(supplySet == null || supplySet.Count == 0)
+			if (supplySet == null || supplySet.Count == 0)
 			{
 				return srcSteps;
 			}

@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-
-namespace QA40xPlot.Extensions
+﻿namespace QA40xPlot.Extensions
 {
 	public static class EnumExtend
 	{

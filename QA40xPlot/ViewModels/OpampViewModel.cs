@@ -2,7 +2,6 @@
 using Newtonsoft.Json;
 using QA40xPlot.QA430;
 using System.ComponentModel;
-using System.Windows.Media.Media3D;
 
 namespace QA40xPlot.ViewModels
 {
@@ -86,7 +85,7 @@ namespace QA40xPlot.ViewModels
 		}
 
 		// this is version specific but needed for data parsing
-		private int _SweepColumnCount = 13;	// this never changes but can be set on loads
+		private int _SweepColumnCount = 13; // this never changes but can be set on loads
 		public int SweepColumnCount
 		{
 			get => _SweepColumnCount;
@@ -182,11 +181,11 @@ namespace QA40xPlot.ViewModels
 			{
 				// enumerate the sweeps we are going to do
 				var step = new AcquireStep() { Cfg = "Config6b", Load = QA430Model.LoadOptions.Open, Gain = 1, Distgain = 101, SupplyP = 15, SupplyN = 15 };    // unity 6b with 101 dist gain
-				if( !vm.HasQA430 )
+				if (!vm.HasQA430)
 				{
 					step = new AcquireStep() { Cfg = "", Load = QA430Model.LoadOptions.Open, Gain = 1, Distgain = 1, SupplyP = 15, SupplyN = 15 };    // unity 6a with 1 dist gain
 				}
-				else if( !vm.UseHighDistortion)
+				else if (!vm.UseHighDistortion)
 				{
 					step = new AcquireStep() { Cfg = "Config6a", Load = QA430Model.LoadOptions.Open, Gain = 1, Distgain = 1, SupplyP = 15, SupplyN = 15 };    // unity 6a with 1 dist gain
 				}

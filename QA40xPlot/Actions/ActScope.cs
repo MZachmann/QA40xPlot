@@ -180,13 +180,13 @@ namespace QA40xPlot.Actions
 			{
 				// we can't overwrite the viewmodel since it links to the display proper
 				// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
-				page.ViewModel.OtherSetList = MyVModel.OtherSetList;
-				page.ViewModel.CopyPropertiesTo<ScopeViewModel>(MyVModel);    // retract the gui
+				MyVModel.LoadViewFrom(page.ViewModel);
 				PageData = page;    // set the current page to the loaded one
 
 				// relink to the new definition
-				MyVModel.LinkAbout(PageData.Definition);
-				MyVModel.HasSave = true;
+				var vm = MyVModel;
+				vm.LinkAbout(page.Definition);
+				vm.HasSave = true;
 			}
 			else
 			{
@@ -230,7 +230,7 @@ namespace QA40xPlot.Actions
 
 		public void RemoveResidualPlot()
 		{
-			SetResidual( PageData, null);
+			SetResidual(PageData, null);
 			UpdateGraph(true);
 		}
 
@@ -239,7 +239,7 @@ namespace QA40xPlot.Actions
 			var vm = MyVModel;
 			var freq = vm.UseGenerator1 ? vm.NearestBinFreq(ToD(vm.Gen1Frequency, 0)) : 0.0;
 			var lrts = QaMath.CalculateResidual(source, freq, 1000, vm.ResidualHarm);
-			SetResidual( PageData, lrts);
+			SetResidual(PageData, lrts);
 		}
 
 		public void AddResidualPlot()
@@ -269,7 +269,7 @@ namespace QA40xPlot.Actions
 			WaveContainer.SetMono(); // turn on the generator
 			WaveGenerator.SetGen1(true, freq, volts, force ? true : vm.UseGenerator1, vm.Gen1Waveform);          // send a sine wave
 			WaveGenerator.SetGen2(true, freq2, volts * v2 / v1, vm.UseGenerator2, vm.Gen2Waveform);          // send a sine wave
-			WaveGenerator.SetWaveFile(true, vm.GenWavFile);	// in case we're using a wave file
+			WaveGenerator.SetWaveFile(true, vm.GenWavFile); // in case we're using a wave file
 			var vsee1 = MathUtil.FormatVoltage(volts);
 			var vsee2 = MathUtil.FormatVoltage(volts * v2 / v1);
 			string vout = "";
@@ -342,21 +342,20 @@ namespace QA40xPlot.Actions
 
 		public override Rect GetDataBounds()
 		{
-			var vm = PageData.ViewModel;    // measurement settings
 			if (PageData.TimeRslt.Left.Length == 0 && OtherTabs.Count() == 0)
 				return new Rect(0, 0, 0, 0);
 
-			var specVm = MyVModel;     // current settings
+			var vm = MyVModel;     // current settings
 			var ffs = PageData.TimeRslt;
 			var hasdata = ffs.Left.Length > 0;
 
 			Rect rrc = new Rect(0, 0, 0, 0);
 			List<double[]> tabs = new List<double[]>();
-			if (specVm.ShowLeft && hasdata)
+			if (vm.ShowLeft && hasdata)
 			{
 				tabs.Add(ffs.Left);
 			}
-			if (specVm.ShowRight && hasdata)
+			if (vm.ShowRight && hasdata)
 			{
 				tabs.Add(ffs.Right);
 			}
@@ -578,7 +577,7 @@ namespace QA40xPlot.Actions
 			if (isMain && HasResidualPlot())
 			{
 				var lrts = GetResidual(page);
-				if(lrts != null)
+				if (lrts != null)
 				{
 					if (useLeft)
 					{
@@ -697,8 +696,9 @@ namespace QA40xPlot.Actions
 
 			while (repeat && rslt && !CanToken.IsCancellationRequested)
 			{
+				// make sure the page data viewmodel is up to date
 				if (PageData.ViewModel != null)
-					MyVModel.CopyPropertiesTo(PageData.ViewModel);  // update the view model with latest settings
+					PageData.ViewModel.LoadViewFrom(MyVModel);
 				rslt = await RunAcquisition(PageData, iteration++, CanToken.Token);
 				if (rslt)
 				{
@@ -769,7 +769,7 @@ namespace QA40xPlot.Actions
 				HandleChangedProperty(myPlot, vm, "");
 
 			}
-			else if(theProperty.Length > 0)
+			else if (theProperty.Length > 0)
 			{
 				HandleChangedProperty(vm.MainPlot.ThePlot, vm, theProperty);
 			}

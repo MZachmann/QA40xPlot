@@ -1,5 +1,4 @@
 ﻿using QA40xPlot.BareMetal;
-using QA40xPlot.Converters;
 using QA40xPlot.Data;
 using QA40xPlot.Extensions;
 using QA40xPlot.Libraries;
@@ -101,14 +100,10 @@ namespace QA40xPlot.Actions
 			Rect rrc = new Rect(0, 0, 0, 0);
 			try
 			{
-				var vm = PageData.ViewModel;    // measurement settings cloned to not shift...
-				if (vm == null)
-					return Rect.Empty;
-
-				var specVm = MyVModel;     // current settings
+				var vm = MyVModel;     // current settings
 
 				List<SweepColumn> steps = new();
-				if (specVm.ShowLeft)
+				if (vm.ShowLeft)
 				{
 					var a1 = FrequencyLines(PageData);
 					if (a1 != null)
@@ -117,7 +112,7 @@ namespace QA40xPlot.Actions
 							steps.AddRange(x.Columns);
 						}
 				}
-				if (specVm.ShowRight)
+				if (vm.ShowRight)
 				{
 					var a1 = FrequencyLinesRight(PageData);
 					if (a1 != null)
@@ -143,52 +138,52 @@ namespace QA40xPlot.Actions
 
 				double maxY = -1e10;
 				double minY = 1e10;
-				if (specVm.ShowMagnitude)
+				if (vm.ShowMagnitude)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.Mag));
 					minY = Math.Min(minY, arsteps.Min(x => x.Mag));
 				}
-				if (specVm.ShowTHD)
+				if (vm.ShowTHD)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.THD));
 					minY = Math.Min(minY, arsteps.Min(x => x.THD));
 				}
-				if (specVm.ShowTHDN)
+				if (vm.ShowTHDN)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.THDN));
 					minY = Math.Min(minY, arsteps.Min(x => x.THDN));
 				}
-				if (specVm.ShowNoise)
+				if (vm.ShowNoise)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.Noise));
 					minY = Math.Min(minY, arsteps.Min(x => x.Noise));
 				}
-				if (specVm.ShowNoiseFloor)
+				if (vm.ShowNoiseFloor)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.NoiseFloor));
 					minY = Math.Min(minY, arsteps.Min(x => x.NoiseFloor));
 				}
-				if (specVm.ShowD2)
+				if (vm.ShowD2)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.D2));
 					minY = Math.Min(minY, arsteps.Min(x => x.D2));
 				}
-				if (specVm.ShowD3)
+				if (vm.ShowD3)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.D3));
 					minY = Math.Min(minY, arsteps.Min(x => x.D3));
 				}
-				if (specVm.ShowD4)
+				if (vm.ShowD4)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.D4));
 					minY = Math.Min(minY, arsteps.Min(x => x.D4));
 				}
-				if (specVm.ShowD5)
+				if (vm.ShowD5)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.D5));
 					minY = Math.Min(minY, arsteps.Min(x => x.D5));
 				}
-				if (specVm.ShowD6)
+				if (vm.ShowD6)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.D6P));
 					minY = Math.Min(minY, arsteps.Min(x => x.D6P));
@@ -222,7 +217,7 @@ namespace QA40xPlot.Actions
 			// find nearest amplitude (both left and right will be identical here if scanned)
 			var bin = xvalues.CountWhile(x => x <= xValue);    // find # of voltages <= me
 			if (bin == xvalues.Length)
-				bin = xvalues.Distinct().Count()-1;
+				bin = xvalues.Distinct().Count() - 1;
 			var matchVolt = xvalues[bin];  // the actual voltage we want
 			var allLines = FrequencyLines(page) ?? new();
 			var allMatch = allLines.Where(x => x.Columns.Length > bin && Math.Abs(x.Columns[bin].GenVolts - matchVolt) < 0.0001).ToArray();
@@ -248,15 +243,15 @@ namespace QA40xPlot.Actions
 		// this is used by the cursor display
 		public SweepDot[] LookupX(double volts)
 		{
-			if(LRGains == null || LRGains.Left.Length == 0 || LRGains.Right.Length == 0)
+			if (LRGains == null || LRGains.Left.Length == 0 || LRGains.Right.Length == 0)
 				return [];
 			var vm = MyVModel;
 			var myVolts = volts;
 			var genType = ToDirection(vm.GenDirection);
-			if(genType != E_GeneratorDirection.INPUT_VOLTAGE && LRGains != null)
+			if (genType != E_GeneratorDirection.INPUT_VOLTAGE && LRGains != null)
 			{
 				// found this as output
-				var myFreq = PageData.SweepSteps.Steps[0].GenFrequency;	// first frequency?
+				var myFreq = PageData.SweepSteps.Steps[0].GenFrequency; // first frequency?
 				var gains = (ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right);
 				var bin = LRGains.ToBinNumber(myFreq);
 				var x = vm.ToGenVoltage(volts, [bin], GEN_INPUT, gains);
@@ -340,14 +335,14 @@ namespace QA40xPlot.Actions
 			{
 				// we can't overwrite the viewmodel since it links to the display proper
 				// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
-				page.ViewModel.OtherSetList = MyVModel.OtherSetList;
-				page.ViewModel.CopyPropertiesTo<AmpSweepViewModel>(MyVModel);    // retract the gui
+				MyVModel.LoadViewFrom(page.ViewModel);
 				PageData = page;    // set the current page to the loaded one
 
 				// relink to the new definition
-				MyVModel.LinkAbout(page.Definition);
-				MyVModel.HasSave = true;
-				MyVModel.ShowMiniPlots = false; // hide mini plots on load
+				var vm = MyVModel;
+				vm.LinkAbout(page.Definition);
+				vm.HasSave = true;
+				vm.ShowMiniPlots = false; // hide mini plots on load
 			}
 			else
 			{
@@ -414,7 +409,7 @@ namespace QA40xPlot.Actions
 			var thdAmp = MyVModel;
 
 			LeftRightTimeSeries lrts = new();
-			MyVModel.CopyPropertiesTo(PageData.ViewModel);  // update the view model with latest settings
+			PageData.ViewModel.LoadViewFrom(MyVModel); // ensure view model is up to date
 			PageData.Definition.CreateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 			var page = PageData;    // alias
 			page.Sweep = new();
@@ -496,7 +491,7 @@ namespace QA40xPlot.Actions
 				// save the step list
 				page.SweepSteps.Steps = variables.ToArray();
 				string lastCfg = string.Empty;
-				(LeftRightPair, LeftRightPair, LeftRightPair) noisy = new(new(),new(),new());
+				(LeftRightPair, LeftRightPair, LeftRightPair) noisy = new(new(), new(), new());
 				LeftRightFrequencySeries? noiseRslt = null;
 				bool longRest = true;
 
@@ -525,7 +520,7 @@ namespace QA40xPlot.Actions
 					{
 						// attenuate for both channels
 						var attenuate = (int)vm.Attenuation;
-						if(vm.DoAutoAttn)
+						if (vm.DoAutoAttn)
 						{
 							var voutLdbv = QaLibrary.ConvertVoltage(stepOutLVoltages[i], E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 							var voutRdbv = QaLibrary.ConvertVoltage(stepOutRVoltages[i], E_VoltageUnit.Volt, E_VoltageUnit.dBV);
@@ -537,11 +532,11 @@ namespace QA40xPlot.Actions
 						// Set the new input range
 						MyVModel.Attenuation = attenuate;   // visible display
 						vm.Attenuation = attenuate;         // my setting
-						// ********************************************************************
-						// Do noise floor measurement
-						// ********************************************************************
-						// do this with the specified opamp configuration
-						// wait for the noise to stabilize
+															// ********************************************************************
+															// Do noise floor measurement
+															// ********************************************************************
+															// do this with the specified opamp configuration
+															// wait for the noise to stabilize
 						if (longRest)
 						{
 							// so noise stabilizes which takes quite a while at first
@@ -636,7 +631,7 @@ namespace QA40xPlot.Actions
 						{
 							work.Item1.GenVolts = stepInVoltages[i];
 							work.Item2.GenVolts = stepInVoltages[i];
-							if(vm.DeembedDistortion)
+							if (vm.DeembedDistortion)
 							{
 								work.Item1 = DeembedColumns(work.Item1, work.Item2, myConfig.Distgain);
 							}
@@ -913,7 +908,7 @@ namespace QA40xPlot.Actions
 			vm.MainPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
 			int resultNr = 0;
 
-			if(settingsChanged)
+			if (settingsChanged)
 			{
 				PlotUtil.SetupMenus(vm.MainPlot.ThePlot, this, vm);
 				if (GraphUtil.IsPlotFormatLog(vm.PlotFormat))
@@ -927,12 +922,12 @@ namespace QA40xPlot.Actions
 				HandleChangedProperty(vm.MainPlot.ThePlot, vm, "");
 				PlotUtil.SetHeadingColor(vm.MainPlot.MyLabel);
 			}
-			else if(theProperty.Length > 0)
+			else if (theProperty.Length > 0)
 			{
 				HandleChangedProperty(vm.MainPlot.ThePlot, vm, theProperty);
 			}
 
-				MyVModel.LegendInfo.Clear();
+			MyVModel.LegendInfo.Clear();
 			PlotValues(PageData, resultNr++, true);
 			if (OtherTabs.Count > 0)
 			{

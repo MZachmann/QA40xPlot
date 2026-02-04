@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.Input;
-using Microsoft.Win32;
 using Newtonsoft.Json;
 using QA40xPlot.Actions;
 using QA40xPlot.Data;
@@ -206,7 +205,6 @@ namespace QA40xPlot.ViewModels
 		{
 			LinkPlots(plot, plot1, plot2);
 			actSweep = new ActAmpSweep(this);
-			SetupMainPlot(plot);
 			actAbout = tAbout;
 			MyVModel.LinkAbout(actSweep.PageData.Definition);
 			ShowInfos();
@@ -229,7 +227,7 @@ namespace QA40xPlot.ViewModels
 			// Process save file dialog box results
 			if (fname.Length > 0)
 			{
-					MyAction.SaveToFile(fname);
+				MyAction.SaveToFile(fname);
 			}
 		}
 

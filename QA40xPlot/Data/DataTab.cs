@@ -14,7 +14,7 @@ namespace QA40xPlot.Data
 	public class DataDescript : FloorViewModel
 	{
 		[JsonIgnore]
-		public RelayCommand DoCopyToAll { get => new RelayCommand(DoCopyAll);}
+		public RelayCommand DoCopyToAll { get => new RelayCommand(DoCopyAll); }
 		[JsonIgnore]
 		public RelayCommand DoUpdateSource { get => new RelayCommand(UpdateSource); }
 
@@ -48,7 +48,7 @@ namespace QA40xPlot.Data
 			get => _LeftColor;
 			set
 			{
-				if(SetProperty(ref _LeftColor, value))
+				if (SetProperty(ref _LeftColor, value))
 					RaisePropertyChanged("Repaint");
 			}  // left color for the graph
 		}
@@ -59,7 +59,7 @@ namespace QA40xPlot.Data
 			get => _RightColor;
 			set
 			{
-				if(SetProperty(ref _RightColor, value))  // left color for the graph
+				if (SetProperty(ref _RightColor, value))  // left color for the graph
 					RaisePropertyChanged("Repaint");    // this will notify the main graph via special property
 			}  // left color for the graph
 		}
@@ -225,7 +225,11 @@ namespace QA40xPlot.Data
 												// ------------------------------------------------------------------
 												// we only serialize these things
 		public DataDescript Definition { get; set; } = new DataDescript();
-		public T ViewModel { get; private set; }
+		public T ViewModel
+		{
+			get;
+			private set;
+		}
 		public LeftRightPair NoiseFloor { get; set; } = new();      // if we have the noise floor measurement we just need to retain the scalars
 		public LeftRightPair NoiseFloorA { get; set; } = new();      // if we have the noise floor measurement we just need to retain the scalars
 		public LeftRightPair NoiseFloorC { get; set; } = new();      // if we have the noise floor measurement we just need to retain the scalars
@@ -283,7 +287,7 @@ namespace QA40xPlot.Data
 			get
 			{
 				if (Sweep.RawLeft == null || Sweep.RawLeft.Length == 0)
-					return ([],[]);
+					return ([], []);
 				return (Sweep.RawLeft, Sweep.RawRight);
 			}
 			set

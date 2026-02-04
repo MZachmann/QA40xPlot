@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using QA40xPlot.ViewModels;
+﻿using QA40xPlot.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -164,7 +163,7 @@ namespace QA40xPlot.Views
 				{
 					var rows = Int32.Parse(rowIndex);
 					if (ItemsSet.Count > rows && rows >= 0)
-						ItemsSet.Insert(rows+1, new SelectItem(true, string.Empty, 0));
+						ItemsSet.Insert(rows + 1, new SelectItem(true, string.Empty, 0));
 				}
 				uint i = 0;
 				foreach (var u in ItemsSet)
@@ -207,5 +206,5 @@ namespace QA40xPlot.Views
 		{
 			ThePopup.IsOpen = false;
 		}
-    }
+	}
 }

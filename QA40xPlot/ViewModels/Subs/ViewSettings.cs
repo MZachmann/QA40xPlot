@@ -2,7 +2,6 @@
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using System.Diagnostics;
-using System.Windows;
 
 // this aggregates the settings somewhere static, which does mean only one of each
 namespace QA40xPlot.ViewModels
@@ -66,7 +65,7 @@ namespace QA40xPlot.ViewModels
 		public static double NoiseBandwidth { get => MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.NoiseBandwidthStr, 20000); }
 		[JsonIgnore]
 		public static double NoiseRefresh { get => MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.NoiseRefreshStr, 200); }
-		
+
 		private bool IsValidVersion(Dictionary<string, Dictionary<string, object>> vws)
 		{
 			string[] validSet = { "0.20", "0.30" };
@@ -91,9 +90,9 @@ namespace QA40xPlot.ViewModels
 		{
 			int rslt = 0;
 			var useThis = IsValidVersion(vws);
-			if(!useThis)
+			if (!useThis)
 			{
-				rslt = 1;	// config mismatch
+				rslt = 1;   // config mismatch
 				Debug.WriteLine("Config version mismatch, skipping");
 				return rslt;
 			}
@@ -142,7 +141,7 @@ namespace QA40xPlot.ViewModels
 
 		public void CopyAboutToAll(DataDescript desc)
 		{
-			foreach(var vm in ViewModelList)
+			foreach (var vm in ViewModelList)
 			{
 				// copy the datadescript stuff into the viewmodel base
 				vm.CopyDescript(vm, desc);

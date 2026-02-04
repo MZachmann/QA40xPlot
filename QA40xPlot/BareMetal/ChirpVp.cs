@@ -1,7 +1,5 @@
 using FftSharp;
-using QA40xPlot.Data;
 using QA40xPlot.Libraries;
-using QA40xPlot.ViewModels;
 using System.Numerics;
 
 // Written by MZachmann 4-24-2025

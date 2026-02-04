@@ -4,8 +4,8 @@ using QA40xPlot.ViewModels;
 using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace QA40xPlot.Views
 {
@@ -91,22 +91,22 @@ namespace QA40xPlot.Views
 		private void DoIsChecked(MarkerItem mark, bool isChecked)
 		{
 			mark.IsShown = isChecked;
-			if(mark.Signal != null)
+			if (mark.Signal != null)
 			{
 				mark.Signal.IsVisible = isChecked;
 				if (mark.ThePlot != null)
 				{
 					var bvm = mark.ThePlot.DataContext as BaseViewModel;
-					if(bvm != null)
+					if (bvm != null)
 					{
 						var info = bvm.LegendInfo; // short name of the list of markers
 						var msuffix = MarkSuffix(mark);
 						// check control key
 						if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
 						{
-							foreach(MarkerItem amark in info)
+							foreach (MarkerItem amark in info)
 							{
-								if(MarkSuffix(amark) == msuffix )
+								if (MarkSuffix(amark) == msuffix)
 								{
 									amark.IsShown = isChecked;
 									if (amark.Signal != null)
@@ -167,7 +167,7 @@ namespace QA40xPlot.Views
 					IsEnabled = marker.ThePlot != null,
 					ToolTip = "Shift-click to turn on/off the group of lines."
 				};
-				bx.Checked += (s,e) => DoIsChecked(marker, true);
+				bx.Checked += (s, e) => DoIsChecked(marker, true);
 				bx.Unchecked += (s, e) => DoIsChecked(marker, false);
 				kid.Children.Add(bx);
 				var lne = new System.Windows.Shapes.Line()
@@ -181,7 +181,7 @@ namespace QA40xPlot.Views
 					StrokeThickness = 2,
 					StrokeDashArray = stkArray
 				};
-				
+
 				kid.Children.Add(lne);
 				var tbox = new TextBox()
 				{

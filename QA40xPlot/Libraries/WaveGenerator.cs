@@ -2,7 +2,6 @@
 using NAudio.Wave.SampleProviders;
 using QA40xPlot.Data;
 using QA40xPlot.ViewModels;
-using System.Diagnostics;
 using System.Windows;
 namespace QA40xPlot.Libraries
 {
@@ -148,7 +147,7 @@ namespace QA40xPlot.Libraries
 		public static (double[], double[]) GenerateBoth(uint sampleRate, uint sampleSize)
 		{
 			var channels = WaveContainer.Singleton.Channels;
-			switch(channels)
+			switch (channels)
 			{
 				case WaveChannels.Neither:
 					var blank = new double[sampleSize];
@@ -219,7 +218,7 @@ namespace QA40xPlot.Libraries
 			bool? result = openFileDialog.ShowDialog();
 
 			// Process save file dialog box results
-			if (result == true )
+			if (result == true)
 			{
 				// open document
 				return openFileDialog.FileName;
@@ -236,12 +235,12 @@ namespace QA40xPlot.Libraries
 
 			public double[]? GetCache(string wave, uint rate, uint sizes)
 			{
-				if(wave == name && rate == samplerate && sizes == samplesize)
+				if (wave == name && rate == samplerate && sizes == samplesize)
 				{
 					return sampledata;
 				}
 				name = wave;
-				samplerate = rate; 
+				samplerate = rate;
 				samplesize = sizes;
 				return null;
 			}
@@ -270,7 +269,7 @@ namespace QA40xPlot.Libraries
 							int dataRead = monoSource.Read(dataOutput, 0, dataOutput.Length);
 							if (dataRead == 0)
 								break;
-							if(dataRead == dataOutput.Length)
+							if (dataRead == dataOutput.Length)
 								outstream.AddRange(dataOutput);
 							else
 								outstream.AddRange(dataOutput.Take(dataRead));

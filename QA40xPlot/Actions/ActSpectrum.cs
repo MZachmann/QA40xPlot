@@ -1,5 +1,4 @@
-﻿using NAudio.Gui;
-using QA40xPlot.BareMetal;
+﻿using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
@@ -123,13 +122,13 @@ namespace QA40xPlot.Actions
 			{
 				// we can't overwrite the viewmodel since it links to the display proper
 				// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
-				page.ViewModel.OtherSetList = MyVModel.OtherSetList;
-				page.ViewModel.CopyPropertiesTo<SpectrumViewModel>(MyVModel);    // retract the gui
+				MyVModel.LoadViewFrom(page.ViewModel);
 				PageData = page;    // set the current page to the loaded one
 
 				// relink to the new definition
-				MyVModel.LinkAbout(page.Definition);
-				MyVModel.HasSave = true;
+				var vm = MyVModel;
+				vm.LinkAbout(page.Definition);
+				vm.HasSave = true;
 			}
 			else
 			{
@@ -139,11 +138,6 @@ namespace QA40xPlot.Actions
 			}
 
 			UpdateGraph(true);
-		}
-
-		private void Oss_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-		{
-			throw new NotImplementedException();
 		}
 
 		private static double[] BuildWave(MyDataTab page, double volts, bool force = false)
@@ -326,10 +320,10 @@ namespace QA40xPlot.Actions
 			{
 				// update the view model with latest settings
 				if (PageData.ViewModel != null)
-					MyVModel.CopyPropertiesTo(PageData.ViewModel); 
+					PageData.ViewModel.LoadViewFrom(MyVModel);
 
 				// have it recalculate the noise floor now possibly
-				bool redoNoise = (ViewSettings.NoiseRefresh > 0) && 
+				bool redoNoise = (ViewSettings.NoiseRefresh > 0) &&
 					(DateTime.Now - loopTime).TotalSeconds > ViewSettings.NoiseRefresh;
 				// acquire data
 				rslt = await RunAcquisition(PageData, redoNoise, iteration++, CanToken.Token);
@@ -716,20 +710,19 @@ namespace QA40xPlot.Actions
 
 		public override Rect GetDataBounds()
 		{
-			var vm = PageData.ViewModel;    // measurement settings
 			if (PageData.FreqRslt == null && OtherTabs.Count == 0)
 				return new Rect(0, 0, 0, 0);
 
-			var specVm = MyVModel;     // current settings
+			var vm = MyVModel;     // current settings
 			var ffs = PageData.FreqRslt;
 
 			Rect rrc = new Rect(0, 0, 0, 0);
 			List<double[]> tabs = new List<double[]>();
-			if (specVm.ShowLeft && ffs != null)
+			if (vm.ShowLeft && ffs != null)
 			{
 				tabs.Add(ffs.Left);
 			}
-			if (specVm.ShowRight && ffs != null)
+			if (vm.ShowRight && ffs != null)
 			{
 				tabs.Add(ffs.Right);
 			}
@@ -901,7 +894,7 @@ namespace QA40xPlot.Actions
 
 			// add a line plot to the plot
 			var lineWidth = vm.ShowThickLines ? _Thickness : 1;   // so it dynamically updates
-																		//IPalette palette = new ScottPlot.Palettes.Category20();
+																  //IPalette palette = new ScottPlot.Palettes.Category20();
 			if (useLeft)
 			{
 				// format the data into current format
@@ -919,7 +912,7 @@ namespace QA40xPlot.Actions
 
 			if (useRight)
 			{
-												// find the max value of the left and right channels
+				// find the max value of the left and right channels
 				// now use that to calculate percents. Since Y axis is logarithmic use log of percent
 				var fvi = GraphUtil.ValueToLogPlotFn(vm, fftData.Right);
 				var vf = fftData.Right.Skip(1); // the first dot is F=0 so no logs...
@@ -957,7 +950,7 @@ namespace QA40xPlot.Actions
 				HandleChangedProperty(vm.MainPlot.ThePlot, vm, "");
 				PlotUtil.SetHeadingColor(vm.MainPlot.MyLabel);
 			}
-			else if(theProperty.Length > 0)
+			else if (theProperty.Length > 0)
 			{
 				HandleChangedProperty(vm.MainPlot.ThePlot, vm, theProperty);
 			}

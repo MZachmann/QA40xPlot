@@ -2,14 +2,10 @@
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
-using System;
 using System.Data;
 using System.Diagnostics;
-using System.Drawing.Drawing2D;
 using System.IO;
-using System.Numerics;
 using System.Windows;
-using System.Windows.Navigation;
 
 
 namespace QA40xPlot.Actions
@@ -20,6 +16,11 @@ namespace QA40xPlot.Actions
 		protected CancellationTokenSource CanToken;                                  // Measurement cancelation token
 		public List<LeftRightFrequencySeries> FrequencyHistory { get; set; } = new();   // for averaging
 
+		/// <summary>
+		/// MyVModel is the static ViewModel for each test that contains the GUI settings
+		/// as well as the plots and OtherSetList (gets)
+		/// It is the DataContext for the associated test windows
+		/// </summary>
 		public static T MyVModel
 		{
 			get
@@ -43,7 +44,7 @@ namespace QA40xPlot.Actions
 				throw new InvalidOperationException("Unknown ViewModel type");
 			}
 		}
-	
+
 		public ActBase()
 		{
 			PageData = new(MyVModel, new LeftRightTimeSeries());
@@ -72,7 +73,7 @@ namespace QA40xPlot.Actions
 
 		public void PinAll(ScottPlot.Plot myPlot, BaseViewModel bvm)
 		{
-			foreach(var ax in bvm.AxisList)
+			foreach (var ax in bvm.AxisList)
 			{
 				PinGraphRange(ax);
 			}
@@ -94,6 +95,20 @@ namespace QA40xPlot.Actions
 		public virtual void FitToData(BaseViewModel bvm, object? parameter, double[]? dRefs)
 		{
 			ActFitToData(bvm, parameter, dRefs);
+		}
+
+		/// <summary>
+		/// copy some of the properties from MyVModel to the page
+		/// </summary>
+		/// <param name="page"></param>
+		/// <param name="myVModel"></param>
+		protected void CopyViewProperties(DataTab<T> page, T srcVModel)
+		{
+			//page.ViewModel.MainPlot = srcVModel.MainPlot; // keep the plot link
+			//page.ViewModel.MiniPlot = srcVModel.MiniPlot; // keep the plot link
+			//page.ViewModel.Mini2Plot = srcVModel.Mini2Plot; // keep the plot link
+			//page.ViewModel.OtherSetList = srcVModel.OtherSetList;
+			//page.ViewModel.CopyPropertiesTo<T>(myVModel);    // retract the gui
 		}
 
 
@@ -139,7 +154,7 @@ namespace QA40xPlot.Actions
 						var dref = GraphUtil.GetDbrReference(bvm, dRefs);
 						var bot = GraphUtil.ValueToLogPlot(bvm, bounds.Y, dref);
 						var top = GraphUtil.ValueToLogPlot(bvm, bounds.Y + bounds.Height, dref);
-						if(top > bot && (top-bot) < 10)
+						if (top > bot && (top - bot) < 10)
 						{
 							bvm.RangeBottomdB = bot.ToString("G3");
 							bvm.RangeTopdB = top.ToString("G3");
@@ -202,7 +217,7 @@ namespace QA40xPlot.Actions
 					{
 						var u = myPlot.Axes.Left.Min;
 						var w = myPlot.Axes.Left.Max;
-						if((w - u) < 10)
+						if ((w - u) < 10)
 						{
 							bvm.RangeTopdB = w.ToString("G4");
 							bvm.RangeBottomdB = u.ToString("G4");
@@ -212,10 +227,10 @@ namespace QA40xPlot.Actions
 							bvm.RangeTopdB = Math.Ceiling(w).ToString("0");
 							bvm.RangeBottomdB = Math.Floor(u).ToString("0");
 						}
-						if(bvm.RangeTopdB == bvm.RangeBottomdB)
+						if (bvm.RangeTopdB == bvm.RangeBottomdB)
 						{
-							bvm.RangeBottomdB = (Math.Ceiling(w) -1).ToString("0");
-							bvm.RangeTopdB = (Math.Ceiling(w)+1).ToString("0");
+							bvm.RangeBottomdB = (Math.Ceiling(w) - 1).ToString("0");
+							bvm.RangeTopdB = (Math.Ceiling(w) + 1).ToString("0");
 						}
 					}
 					break;
@@ -226,7 +241,7 @@ namespace QA40xPlot.Actions
 		public void AddSnapshotPlot()
 		{
 			var fpath = ViewSettings.Singleton.SettingsVm.DataFolder;
-			if(string.IsNullOrEmpty(fpath))
+			if (string.IsNullOrEmpty(fpath))
 				fpath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 			string fileName = Path.Combine(fpath, $"Snap{_NextSnapshot}.plt.zip");
 			var vm = MyVModel;
@@ -486,7 +501,7 @@ namespace QA40xPlot.Actions
 			await showMessage("Calculating DUT gain");
 			uint sampleRate = GainSampleRate(bvm.SampleRateVal);
 			// if the two are equal we don't have a curve, so...
-			if (fStart > fEnd/1.1)
+			if (fStart > fEnd / 1.1)
 			{
 				fStart *= 0.9;
 				fEnd *= 1.1;
@@ -616,8 +631,8 @@ namespace QA40xPlot.Actions
 				return null;
 			var binstart = lrfs.ToBinNumber(fStart);
 			var binend = lrfs.ToBinNumber(fEnd);
-			var maxGain = Math.Max(0.01, lrfs.Left.Skip(binstart).Take(binend-binstart).Max());
-			maxGain = Math.Max(maxGain, Math.Max( 0.01, lrfs.Right.Skip(binstart).Take(binend - binstart).Max() ));
+			var maxGain = Math.Max(0.01, lrfs.Left.Skip(binstart).Take(binend - binstart).Max());
+			maxGain = Math.Max(maxGain, Math.Max(0.01, lrfs.Right.Skip(binstart).Take(binend - binstart).Max()));
 			if (maxGain <= 100)
 			{
 				// now try at 0.1V or greater if no gain

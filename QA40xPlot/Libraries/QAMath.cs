@@ -3,8 +3,6 @@ using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Extensions;
 using QA40xPlot.ViewModels;
-using ScottPlot;
-using System;
 using System.Diagnostics;
 using System.Numerics;
 using System.Windows;
@@ -99,7 +97,7 @@ namespace QA40xPlot.Libraries
 			// 1/6 octave seems enough with Hann and the built-in generator
 			var octave = 0.16;
 			var srate = (int)(0.1 + 1 / lrts.dt);
-			if(numHarmonics == 0)
+			if (numHarmonics == 0)
 			{
 				//var lrcs = QaMath.CalculateComplexSpectrum(lrts, "");
 				//// notch out the fundamental and return the rest
@@ -269,7 +267,7 @@ namespace QA40xPlot.Libraries
 				var timeSeries = lrfs;
 				// Left channel
 				// only take half of the data since it's symmetric so length of freq data = 1/2 length of time data
-				if(windowing.Length > 0)
+				if (windowing.Length > 0)
 				{
 					var window = GetWindowType(windowing);
 					double[] wdwLeft = window.Apply(timeSeries.Left, false);
@@ -353,7 +351,7 @@ namespace QA40xPlot.Libraries
 			{
 				return MakeMultitone(gw, samples);
 			}
-			if(gw.Name == "WaveFile")
+			if (gw.Name == "WaveFile")
 			{
 				return WaveGenerator.ReadWaveFile(gw.WaveFile, (uint)samples.SampleRate, (uint)samples.SampleSize, gw.Voltage);
 			}

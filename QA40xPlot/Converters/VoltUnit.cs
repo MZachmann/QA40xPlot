@@ -1,9 +1,4 @@
 ﻿using QA40xPlot.Libraries;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QA40xPlot.Converters
 {
@@ -64,7 +59,7 @@ namespace QA40xPlot.Converters
 			{
 				// get the input variables here
 				var ampvalue = MathUtil.ToDouble((string)value, double.MaxValue);     // actual voltage or power
-				if(ampvalue != double.MaxValue )
+				if (ampvalue != double.MaxValue)
 				{
 					ampnew = MathUtil.MergeUnitValue(ampvalue, uom); // convert to volts or watts
 				}

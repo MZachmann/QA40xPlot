@@ -1,5 +1,4 @@
-﻿using NAudio.Gui;
-using QA40xPlot.BareMetal;
+﻿using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
@@ -122,12 +121,12 @@ namespace QA40xPlot.Actions
 			{
 				// we can't overwrite the viewmodel since it links to the display proper
 				// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
-				PageData.ViewModel.OtherSetList = MyVModel.OtherSetList;
-				PageData.ViewModel.CopyPropertiesTo<ImdViewModel>(MyVModel);    // retract the gui
+				MyVModel.LoadViewFrom(page.ViewModel);
 				PageData = page;    // set the current page to the loaded one
 									// relink to the new definition
-				MyVModel.LinkAbout(PageData.Definition);
-				MyVModel.HasSave = true;
+				var vm = MyVModel;
+				vm.LinkAbout(page.Definition);
+				vm.HasSave = true;
 			}
 			else
 			{
@@ -264,15 +263,15 @@ namespace QA40xPlot.Actions
 			if (PageData.FreqRslt == null && OtherTabs.Count() == 0)
 				return rrc;
 
-			var specVm = MyVModel;     // current settings
+			var vm = MyVModel;     // current settings
 			var ffs = PageData.FreqRslt;
 
 			List<double[]> tabs = new List<double[]>();
-			if (specVm.ShowLeft && ffs != null)
+			if (vm.ShowLeft && ffs != null)
 			{
 				tabs.Add(ffs.Left);
 			}
-			if (specVm.ShowRight && ffs != null)
+			if (vm.ShowRight && ffs != null)
 			{
 				tabs.Add(ffs.Right);
 			}
@@ -692,7 +691,7 @@ namespace QA40xPlot.Actions
 				plotLeft.MarkerSize = 1;
 				plotLeft.LegendText = isMain ? "Left" : ClipName(page.Definition.Name) + ".L";
 				plotLeft.IsVisible = !MyVModel.HiddenLines.Contains(plotLeft.LegendText);
-				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotLeft.Color, plotLeft.LegendText, measurementNr * 2, 
+				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotLeft.Color, plotLeft.LegendText, measurementNr * 2,
 					plotLeft, vm.MainPlot, plotLeft.IsVisible));
 			}
 
@@ -710,7 +709,7 @@ namespace QA40xPlot.Actions
 				plotRight.MarkerSize = 1;
 				plotRight.LegendText = isMain ? "Right" : ClipName(page.Definition.Name) + ".R";
 				plotRight.IsVisible = !MyVModel.HiddenLines.Contains(plotRight.LegendText);
-				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotRight.Color, plotRight.LegendText, measurementNr * 2 + 1, 
+				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotRight.Color, plotRight.LegendText, measurementNr * 2 + 1,
 					plotRight, vm.MainPlot, plotRight.IsVisible));
 			}
 
@@ -974,7 +973,7 @@ namespace QA40xPlot.Actions
 			{
 				// update the view model with latest settings
 				if (PageData.ViewModel != null)
-					MyVModel.CopyPropertiesTo(PageData.ViewModel);
+					PageData.ViewModel.LoadViewFrom(MyVModel);
 				// have it recalculate the noise floor now possibly
 				bool redoNoise = (ViewSettings.NoiseRefresh > 0) &&
 					(DateTime.Now - loopTime).TotalSeconds > ViewSettings.NoiseRefresh;

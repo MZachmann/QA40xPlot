@@ -161,12 +161,12 @@ namespace QA40xPlot.Libraries
 					var dict = Deserialize(jsonContent);
 					if (dict == null)
 						return null;
-					if(dict.ContainsKey("ViewModel"))
+					if (dict.ContainsKey("ViewModel"))
 					{
 						var myvm = dict["ViewModel"];
 						if (myvm != null)
 						{
-							if(myvm.ContainsKey("Name"))
+							if (myvm.ContainsKey("Name"))
 								viewName = myvm["Name"]?.ToString();
 							if (myvm.ContainsKey("Version"))
 							{
@@ -226,10 +226,9 @@ namespace QA40xPlot.Libraries
 						// copy all but name
 						var srcMod = jsonObject.ViewModel as Model;
 						var destMod = page.ViewModel;
-						if(srcMod != null && destMod != null)
+						if (srcMod != null && destMod != null)
 						{
 							destMod.LoadViewFrom(srcMod);
-							//jsonObject.ViewModel.CopyPropertiesTo(page.ViewModel, ["Name"]);
 						}
 					}
 					page.Definition.Id = id; // keep the same id
@@ -361,7 +360,7 @@ namespace QA40xPlot.Libraries
 		/// </summary>
 		private static CompressType IdentifyCompression(string filePath)
 		{
-			if( IsThisFile(filePath, ZipSignature))
+			if (IsThisFile(filePath, ZipSignature))
 				return CompressType.Zip;
 			if (IsThisFile(filePath, GzipSignature))
 				return CompressType.Gzip;
@@ -404,7 +403,7 @@ namespace QA40xPlot.Libraries
 					}
 				}
 			}
-			catch (Exception )
+			catch (Exception)
 			{
 				//Console.WriteLine($"I/O Error: {ex.Message}");
 			}
@@ -428,7 +427,7 @@ namespace QA40xPlot.Libraries
 					return reader.ReadToEnd();
 				}
 			}
-			catch (Exception )
+			catch (Exception)
 			{
 				//MessageBox.Show(ex.Message, "File load error", MessageBoxButton.OK, MessageBoxImage.Information);
 			}
@@ -461,7 +460,7 @@ namespace QA40xPlot.Libraries
 					}
 				}
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
 				MessageBox.Show(ex.Message, "File save error", MessageBoxButton.OK, MessageBoxImage.Information);
 			}

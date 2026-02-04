@@ -12,7 +12,7 @@ namespace QA40xPlot.Actions
 		{
 			SweepColumn col = new();
 			// v2 and up all have at least 13 columns
-			if(columnCount >= 13)
+			if (columnCount >= 13)
 			{
 				col.Freq = rawData[startIdx];
 				col.Mag = rawData[startIdx + 1];
@@ -108,21 +108,21 @@ namespace QA40xPlot.Actions
 			ApplyGain(cout, DistGain);   // reverse out gain application
 			if (cout.THD > right.THD)
 				cout.THD = Math.Sqrt((cout.THD * cout.THD) - (right.THD * right.THD));
-			if(cout.THDN > right.THDN)
+			if (cout.THDN > right.THDN)
 				cout.THDN = Math.Sqrt((cout.THDN * cout.THDN) - (right.THDN * right.THDN));
-			if(cout.Noise > right.Noise)
+			if (cout.Noise > right.Noise)
 				cout.Noise = Math.Sqrt((cout.Noise * cout.Noise) - (right.Noise * right.Noise));
-			if(cout.NoiseFloor > right.NoiseFloor)
+			if (cout.NoiseFloor > right.NoiseFloor)
 				cout.NoiseFloor = Math.Sqrt((cout.NoiseFloor * cout.NoiseFloor) - (right.NoiseFloor * right.NoiseFloor));
-			if(cout.D2 > right.D2)
+			if (cout.D2 > right.D2)
 				cout.D2 = Math.Sqrt((cout.D2 * cout.D2) - (right.D2 * right.D2));
-			if(cout.D3 > right.D3)
+			if (cout.D3 > right.D3)
 				cout.D3 = Math.Sqrt((cout.D3 * cout.D3) - (right.D3 * right.D3));
-			if(cout.D4 > right.D4)
+			if (cout.D4 > right.D4)
 				cout.D4 = Math.Sqrt((cout.D4 * cout.D4) - (right.D4 * right.D4));
-			if(cout.D5 > right.D5)
+			if (cout.D5 > right.D5)
 				cout.D5 = Math.Sqrt((cout.D5 * cout.D5) - (right.D5 * right.D5));
-			if(cout.D6P > right.D6P)
+			if (cout.D6P > right.D6P)
 				cout.D6P = Math.Sqrt((cout.D6P * cout.D6P) - (right.D6P * right.D6P));
 			ApplyGain(cout, 1 / DistGain);   // put gain back
 			return cout;
@@ -148,9 +148,9 @@ namespace QA40xPlot.Actions
 
 			var maxf = .95 * lfrs.Df * lfrs.Left.Length;    // skip the end-gunk
 			var maxScan = Math.Min(ViewSettings.NoiseBandwidth, maxf);  // opamps use 80KHz bandwidth, audio uses 20KHz
-			var minScan = (ViewSettings.NoiseBandwidth > 20000) ? 30 : 20;	// ??
+			var minScan = (ViewSettings.NoiseBandwidth > 20000) ? 30 : 20;  // ??
 
-			LeftRightPair thds = QaCompute.GetThdDb(bvm.WindowingMethod, lfrs, dFreq, lfrs.Df, maxf);	// use all available data
+			LeftRightPair thds = QaCompute.GetThdDb(bvm.WindowingMethod, lfrs, dFreq, lfrs.Df, maxf);   // use all available data
 			LeftRightPair thdN = QaCompute.GetThdnDb(bvm.WindowingMethod, lfrs, dFreq, minScan, maxScan, ViewSettings.NoiseWeight);
 
 			var floor = noiseFloor;
@@ -195,7 +195,7 @@ namespace QA40xPlot.Actions
 				}
 
 				// divide by the amount of distortion gain since that is a voltage gain
-				if(dmult != 1.0)
+				if (dmult != 1.0)
 				{
 					ApplyGain(step, 1 / dmult);
 				}

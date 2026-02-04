@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.Input;
-using NAudio.Gui;
 using Newtonsoft.Json;
 using QA40xPlot.Actions;
 using QA40xPlot.Data;
@@ -218,7 +217,6 @@ namespace QA40xPlot.ViewModels
 			info2.SetDataContext(ViewSettings.Singleton.ChannelRight);
 			about.SetDataContext(ViewSettings.Singleton.TabDefs);
 			MyVModel.actAbout = about;
-			SetupMainPlot(plot);
 			MyVModel.LinkAbout(MyAction.PageData.Definition);
 			actPlot = plot;
 			ShowInfos();
@@ -308,7 +306,7 @@ namespace QA40xPlot.ViewModels
 			var ypos = cord.Item2;
 			FreqValue = Math.Pow(10, xpos);
 			LookX = FreqValue;
-			LookY = ypos;	// cache these
+			LookY = ypos;   // cache these
 			UpdateMouseCursor(FreqValue, ypos);
 		}
 

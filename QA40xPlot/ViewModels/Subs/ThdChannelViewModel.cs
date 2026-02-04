@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using QA40xPlot.Data;
-using System.Windows;
 
 namespace QA40xPlot.ViewModels
 {

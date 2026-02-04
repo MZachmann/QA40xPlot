@@ -1,5 +1,4 @@
-﻿using ScottPlot;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 
 namespace QA40xPlot.Data
 {

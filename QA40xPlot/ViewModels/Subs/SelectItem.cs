@@ -1,5 +1,4 @@
-﻿using QA40xPlot.Libraries;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 
 namespace QA40xPlot.ViewModels
 {

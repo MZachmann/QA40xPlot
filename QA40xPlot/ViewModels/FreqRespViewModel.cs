@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.Input;
-using Microsoft.Win32;
 using Newtonsoft.Json;
 using QA40xPlot.Actions;
 using QA40xPlot.Data;
@@ -14,7 +13,7 @@ using System.Windows.Input;
 public class FreqRespViewModel : BaseViewModel
 {
 	public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
-	public static List<String> Smoothings { get => new List<string> { "0","0.001","0.01", "0.05", "0.1", "0.25" }; }
+	public static List<String> Smoothings { get => new List<string> { "0", "0.001", "0.01", "0.05", "0.1", "0.25" }; }
 	public static List<String> PhaseList { get => new List<string> { "360", "180", "90", "0", "-90", "-180", "-360" }; }
 	public static List<String> TestTypes { get => new List<string> { "Response", "Impedance", "Gain", "Crosstalk" }; }
 	[JsonIgnore]
@@ -110,7 +109,7 @@ public class FreqRespViewModel : BaseViewModel
 		set => SetProperty(ref _Smoothing, value);
 	}
 	[JsonIgnore]
-	public double SmoothingVal {  get => MathUtil.ToDouble(Smoothing,0);}
+	public double SmoothingVal { get => MathUtil.ToDouble(Smoothing, 0); }
 
 	private bool _RightChannel;         // type of alert
 	public bool RightChannel
@@ -308,7 +307,6 @@ public class FreqRespViewModel : BaseViewModel
 		LinkPlots(plot, plot2, plot3);
 		actFreq = new ActFrequencyResponse(this);
 		actAbout = TAbout;
-		SetupMainPlot(plot);
 		actPlot = plot;
 		MyVModel.LinkAbout(actFreq.PageData.Definition);
 	}
@@ -429,7 +427,7 @@ public class FreqRespViewModel : BaseViewModel
 				{
 
 					ZValue = "Z: " + MathUtil.FormatUnits(zv.Item2, "|Z|") + ", " + MathUtil.FormatPhase(zv.Item3);
-					if(zv.Item4 != 0.0)
+					if (zv.Item4 != 0.0)
 					{
 						ZValue += Environment.NewLine + "GDelay:" + MathUtil.FormatUnits(zv.Item4 / 1000, "S");
 					}
@@ -454,7 +452,7 @@ public class FreqRespViewModel : BaseViewModel
 				ZValue = "G: " + (20 * Math.Log10(zv.Item2)).ToString("0.## dB") + Environment.NewLine + "  " + zv.Item3.ToString("0.## Deg");
 				if (zv.Item4 != 0.0)
 				{
-					ZValue += Environment.NewLine + "GDelay:" + MathUtil.FormatUnits(zv.Item4/1000, "S");
+					ZValue += Environment.NewLine + "GDelay:" + MathUtil.FormatUnits(zv.Item4 / 1000, "S");
 				}
 				break;
 		}

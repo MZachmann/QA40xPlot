@@ -44,7 +44,7 @@ namespace QA40xPlot.ViewModels
 			var props = (PropertyInfo[])properties.Clone();
 			foreach (PropertyInfo property in properties)
 			{
-				if(excludeList != null && excludeList.Contains(property.Name))
+				if (excludeList != null && excludeList.Contains(property.Name))
 					continue;
 				if (property.CanRead && property.CanWrite)
 				{

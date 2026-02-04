@@ -1,7 +1,6 @@
 ﻿using QA40xPlot.ViewModels;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Navigation;
 
 namespace QA40xPlot.Views
 {
@@ -20,7 +19,7 @@ namespace QA40xPlot.Views
 				switch (x)
 				{
 					case "Dark":
-						bclr = Color.FromArgb(120,255,255,255);     // slight brighten
+						bclr = Color.FromArgb(120, 255, 255, 255);     // slight brighten
 						break;
 					case "None":
 					case "Light":
@@ -32,13 +31,14 @@ namespace QA40xPlot.Views
 			}
 		}
 
-		public Brush BkgColor 
-		{ get 
+		public Brush BkgColor
+		{
+			get
 			{
 				var x = ViewSettings.Singleton.SettingsVm.ThemeSet;
 
-				Color bclr = Color.FromArgb(16,255,255,255);		// slight brighten
-				switch(x)
+				Color bclr = Color.FromArgb(16, 255, 255, 255);     // slight brighten
+				switch (x)
 				{
 					case "Dark":
 						bclr = Color.FromArgb(16, 255, 255, 255);     // slight brighten
@@ -50,8 +50,8 @@ namespace QA40xPlot.Views
 						break;
 				}
 				return new SolidColorBrush(bclr);
-			} 
-		} 
+			}
+		}
 
 		public VoltButton()
 		{

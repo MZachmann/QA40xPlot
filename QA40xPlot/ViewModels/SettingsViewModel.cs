@@ -42,7 +42,7 @@ namespace QA40xPlot.ViewModels
 			};
 		}
 		public static List<string> ThemeList { get; } = new List<string> { "None", "Light", "Dark", "System" };
-		public static List<string> GuiStyleList { get; } = new List<string> { "Menus", "Tabs"};
+		public static List<string> GuiStyleList { get; } = new List<string> { "Menus", "Tabs" };
 		[JsonIgnore]
 		public RelayCommand DoEditPlotColors { get => new RelayCommand(EditPlotColors); }
 		[JsonIgnore]
@@ -253,7 +253,7 @@ namespace QA40xPlot.ViewModels
 					}
 #pragma warning restore WPF0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 					MainVm.ThemeBkgd = BackgroundClr;
-					if(MainVm.TabControlObject != null)
+					if (MainVm.TabControlObject != null)
 					{
 						Task.Delay(100).ContinueWith(_ =>
 						{
@@ -314,7 +314,7 @@ namespace QA40xPlot.ViewModels
 			get { return _NoiseBandwidthStr; }
 			set { SetProperty(ref _NoiseBandwidthStr, value); }
 		}
-		private string _NoiseRefreshStr = "0";	// seconds between noise refreshes
+		private string _NoiseRefreshStr = "0";  // seconds between noise refreshes
 		public string NoiseRefreshStr
 		{
 			get { return _NoiseRefreshStr; }
@@ -429,7 +429,7 @@ namespace QA40xPlot.ViewModels
 		public void FindDataFolder()
 		{
 			var oldName = DataFolder;
-			if(oldName.Length == 0)
+			if (oldName.Length == 0)
 			{
 				oldName = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 			}

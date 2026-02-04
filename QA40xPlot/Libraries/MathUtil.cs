@@ -174,7 +174,7 @@ namespace QA40xPlot.Libraries
 			{
 				rslt = (1000000 * val).ToString("G3") + spacer + "u" + units;
 			}
-			else if(val > 0)
+			else if (val > 0)
 			{
 				rslt = (1e9 * val).ToString("G3") + spacer + "n" + units;
 			}
@@ -307,7 +307,7 @@ namespace QA40xPlot.Libraries
 
 		private static bool SameDouble(double a, double b)
 		{
-			return Math.Abs(a-b) < (Math.Abs(a) / 1e10);
+			return Math.Abs(a - b) < (Math.Abs(a) / 1e10);
 		}
 
 		// return mag of Z/(1-Z)
@@ -402,7 +402,7 @@ namespace QA40xPlot.Libraries
 				if (pointsInSum < windowSize)
 				{
 					pointsInSum++;
-					if(pointsInSum == windowSize)
+					if (pointsInSum == windowSize)
 					{
 						smooth[i - (int)(windowSize / 2)] = runningSum / windowSize;
 					}
@@ -410,12 +410,12 @@ namespace QA40xPlot.Libraries
 				}
 				runningSum -= data[i - windowSize];
 				smooth[i - (int)(windowSize / 2)] = runningSum / windowSize;
-				if ( ((i * perOctave) > windowSize) || (windowSize == 1))
+				if (((i * perOctave) > windowSize) || (windowSize == 1))
 				{
 					windowSize += 2;
 				}
 			}
-			for (int i=0; windowSize > 2; i++)
+			for (int i = 0; windowSize > 2; i++)
 			{
 				smooth[data.Length - (int)(windowSize / 2)] = runningSum / windowSize;
 				runningSum -= data[data.Length - windowSize--];
@@ -443,7 +443,7 @@ namespace QA40xPlot.Libraries
 		/// <param name="windowSize">the size of the window</param>
 		/// <param name="windowDelta">every N points increase the windowSize by 1</param>
 		/// <returns></returns>
-		public static double[] 
+		public static double[]
 			SmoothForward(double[] data, double perOctave)
 		{
 			double[] smooth = new double[data.Length];
@@ -461,7 +461,7 @@ namespace QA40xPlot.Libraries
 				}
 				runningSum -= data[i - windowSize];
 				smooth[i] = runningSum / windowSize;
-				if ( (i*perOctave) > windowSize)
+				if ((i * perOctave) > windowSize)
 				{
 					windowSize++;
 				}

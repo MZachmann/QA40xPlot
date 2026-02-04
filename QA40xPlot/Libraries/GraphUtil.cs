@@ -1,6 +1,5 @@
 ﻿using QA40xPlot.ViewModels;
 using QA40xPlot.ViewModels.Subs;
-using System.Data;
 using System.IO;
 using System.Windows;
 using System.Windows.Media;
@@ -101,7 +100,7 @@ namespace QA40xPlot.Libraries
 					{
 						rslt = (1000000 * dv).ToString("G3") + " u" + sfx;
 					}
-					else if(adv > 0)
+					else if (adv > 0)
 					{
 						rslt = (1e9 * dv).ToString("G3") + " n" + sfx;
 					}
@@ -179,15 +178,15 @@ namespace QA40xPlot.Libraries
 		{
 			var vfi = ValueToPlotFn(bvm, dRef);
 			return PrettyPrint(vfi(volts), bvm.PlotFormat);
-		}       
-		
-				/// <summary>
-				/// get a plot display format converter
-				/// the linear formats (%,V,W) are converted to log10 for plotting
-				/// </summary>
-				/// <param name="plotFormat">the format</param>
-				/// <param name="refX">the ref (max) value for scaling</param>
-				/// <returns>a function to get plottable value</returns>
+		}
+
+		/// <summary>
+		/// get a plot display format converter
+		/// the linear formats (%,V,W) are converted to log10 for plotting
+		/// </summary>
+		/// <param name="plotFormat">the format</param>
+		/// <param name="refX">the ref (max) value for scaling</param>
+		/// <returns>a function to get plottable value</returns>
 		public static Func<double, double> ValueToLogPlotFn(BaseViewModel bvm, double[] refX, double dF1 = 0.0)
 		{
 			var vfi = ValueToPlotFn(bvm, refX, dF1);
@@ -216,7 +215,7 @@ namespace QA40xPlot.Libraries
 		}
 
 		// this just avoids taking a max of the data constantly if not in dbr
-		public static Func<double, double> ValueToPlotFn(BaseViewModel bvm, double[] refX, double[] refFreq )
+		public static Func<double, double> ValueToPlotFn(BaseViewModel bvm, double[] refX, double[] refFreq)
 		{
 			var plotFormat = bvm.PlotFormat;
 			if (refX == null || refX.Length == 0 || (plotFormat != "dBr" && plotFormat != "%"))
@@ -258,11 +257,11 @@ namespace QA40xPlot.Libraries
 						// find the nearest frequency bin
 						var dfrq = MathUtil.ToDouble(bvm.DbrValue, 1000.0);
 						var frqIndex = 0;
-						while(frqIndex < (refFreq.Length-1) && refFreq[frqIndex] < dfrq)
+						while (frqIndex < (refFreq.Length - 1) && refFreq[frqIndex] < dfrq)
 						{
 							frqIndex++;
 						}
-						if((frqIndex > 0) && ((dfrq - refFreq[frqIndex-1]) < (refFreq[frqIndex] - dfrq)))
+						if ((frqIndex > 0) && ((dfrq - refFreq[frqIndex - 1]) < (refFreq[frqIndex] - dfrq)))
 						{
 							frqIndex -= 1;  // closer to the prior bin
 						}
@@ -282,12 +281,12 @@ namespace QA40xPlot.Libraries
 				return 1.0;
 			}
 			var toskip = (refX.Length > 1) ? 1 : 0;
-			if(bvm.PlotFormat != "dBr")
+			if (bvm.PlotFormat != "dBr")
 				return refX.Skip(toskip).Max();
 			var idx = BaseViewModel.DbrTypes.IndexOf(bvm.DbrType);
 			switch (idx)
 			{
-				case 0:		// max
+				case 0:     // max
 					return refX.Skip(toskip).Max();
 				case 1:     // frequency
 					{
@@ -360,15 +359,15 @@ namespace QA40xPlot.Libraries
 		{
 			var vfi = ValueToPlotFn(bvm, refX);
 			return vfi(volts);
-		}       
-		
+		}
+
 		/// <summary>
-				/// Given an input voltage, convert to the desired data format for plotting
-				/// </summary>
-				/// <param name="plotFormat">the data format</param>
-				/// <param name="volts"></param>
-				/// <param name="dRef">reference value for percent and dbr</param>
-				/// <returns>the converted double with logs of linear (%,V,W) formats</returns>
+		/// Given an input voltage, convert to the desired data format for plotting
+		/// </summary>
+		/// <param name="plotFormat">the data format</param>
+		/// <param name="volts"></param>
+		/// <param name="dRef">reference value for percent and dbr</param>
+		/// <returns>the converted double with logs of linear (%,V,W) formats</returns>
 		public static double ValueToLogPlot(BaseViewModel bvm, double volts, double dRef = 1.0)
 		{
 			var vfi = ValueToLogPlotFn(bvm, dRef);

@@ -6,6 +6,7 @@ using QA40xPlot.Libraries;
 using QA40xPlot.Views;
 using ScottPlot;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -60,7 +61,7 @@ namespace QA40xPlot.ViewModels
 		public static List<string> DbrUnits { get => new List<string>() { "", "Hz", "dBV" }; }
 		public static List<string> DbrSelect { get => new List<string>() { "0", "6", "20", "30", "40", "60", "80", "100" }; }
 		[JsonIgnore]
-		public virtual List<string> AxisList { get; } = new List<string> {  };
+		public virtual List<string> AxisList { get; } = new List<string> { };
 		[JsonIgnore]
 		public RelayCommand DoGetGenUnits { get => new RelayCommand(GetGenUnits); }
 		[JsonIgnore]
@@ -98,7 +99,6 @@ namespace QA40xPlot.ViewModels
 		public ObservableCollection<DataDescript> OtherSetList
 		{
 			get => _OtherSetList;
-			set => SetProperty(ref _OtherSetList, value);
 		}
 
 		// LookX, LookY are the last lookup values for mouse movement
@@ -272,7 +272,11 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public Views.PlotControl MainPlot
 		{
-			get { return _MainPlot; }
+			get
+			{
+				Debug.Assert(_MainPlot.GrandParent != null, "MainPlot is null");
+				return _MainPlot;
+			}
 			set { _MainPlot = value; }
 		}
 
@@ -280,7 +284,11 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public Views.PlotControl MiniPlot
 		{
-			get { return _MiniPlot; }
+			get
+			{
+				Debug.Assert(_MiniPlot.GrandParent != null, "MiniPlot is null");
+				return _MiniPlot;
+			}
 			set { _MiniPlot = value; }
 		}
 
@@ -288,7 +296,11 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public Views.PlotControl Mini2Plot
 		{
-			get { return _Mini2Plot; }
+			get
+			{
+				Debug.Assert(_Mini2Plot.GrandParent != null, "Mini2Plot is null");
+				return _Mini2Plot;
+			}
 			set { _Mini2Plot = value; }
 		}
 		#endregion
@@ -388,7 +400,9 @@ namespace QA40xPlot.ViewModels
 		public bool DoAutoAttn
 		{
 			get { return _DoAutoAttn; }
-			set { if (SetProperty(ref _DoAutoAttn, value))
+			set
+			{
+				if (SetProperty(ref _DoAutoAttn, value))
 					RaisePropertyChanged("AttenColor");
 			}
 		}
@@ -610,7 +624,9 @@ namespace QA40xPlot.ViewModels
 		}
 
 		[JsonIgnore]
-		public double ResidualScaleValue { get
+		public double ResidualScaleValue
+		{
+			get
 			{
 				var dscale = MathUtil.ToDouble(ResidualScale, 0);
 				dscale = (dscale == 0) ? 1.0 : Math.Pow(10, dscale / 20);
@@ -660,9 +676,11 @@ namespace QA40xPlot.ViewModels
 		public string PlotFormat
 		{
 			get => _PlotFormat;
-			set { if( SetProperty(ref _PlotFormat, value))
-					RaisePropertyChanged("GraphUnit"); 
-				}
+			set
+			{
+				if (SetProperty(ref _PlotFormat, value))
+					RaisePropertyChanged("GraphUnit");
+			}
 		}
 
 		private string _SampleRate = string.Empty;
@@ -744,10 +762,30 @@ namespace QA40xPlot.ViewModels
 			throw new NotImplementedException();
 		}
 
+		/// <summary>
+		/// set the plot variables up in the viewmodel
+		/// this must be called before creating the action so plot getters don't assert
+		/// </summary>
+		/// <param name="plot"></param>
+		/// <param name="plot1"></param>
+		/// <param name="plot2"></param>
 		protected void LinkPlots(PlotControl? plot = null, PlotControl? plot1 = null, PlotControl? plot2 = null)
 		{
+			if (plot != null)
+			{
+				plot.TrackMouse = true;
+				plot.GrandParent = this;
+			}
 			MainPlot = plot ?? new();
+			if (plot1 != null)
+			{
+				plot1.GrandParent = this;
+			}
 			MiniPlot = plot1 ?? new();
+			if (plot2 != null)
+			{
+				plot2.GrandParent = this;
+			}
 			Mini2Plot = plot2 ?? new();
 		}
 
@@ -763,10 +801,11 @@ namespace QA40xPlot.ViewModels
 			Attenuation = Math.Round(atten);
 		}
 
-		// override this to deal with version issues with viewmodels
+		// this copies a viewmodel from one to another, skipping MyVModel specific properties
 		public void LoadViewFrom<Model>(Model model) where Model : BaseViewModel
 		{
-			model.CopyPropertiesTo<Model>(this, ["Name", "Version"]);
+			Debug.Assert(!ReferenceEquals(this, model), "Cannot copy from self");
+			model.CopyPropertiesTo<Model>(this, ["Name", "Version", "MainPlot", "MiniPlot", "Mini2Plot", "OtherSetList"]);
 		}
 
 		public void CopyDescript(BaseViewModel vm, DataDescript desc)
@@ -896,7 +935,7 @@ namespace QA40xPlot.ViewModels
 
 			// Show save file dialog box
 			bool? result = saveFileDialog.ShowDialog();
-			if(result == true)
+			if (result == true)
 			{
 				sout = saveFileDialog.FileName;
 			}
@@ -1153,7 +1192,7 @@ namespace QA40xPlot.ViewModels
 					binmax = Math.Min(abin, binmax);  // limit this
 				}
 				maxGain = lrGains.Skip(binmin).Take(Math.Max(1, binmax - binmin)).Max();
-				var df = binNumber[0] / 20.0;	// random guess at the frequency here
+				var df = binNumber[0] / 20.0;   // random guess at the frequency here
 				var idx = Array.IndexOf(lrGains, maxGain);
 				var dfrq = df * idx;
 				//Debug.WriteLine($"Max Gain of {maxGain} at {dfrq}" + Environment.NewLine);
@@ -1229,12 +1268,6 @@ namespace QA40xPlot.ViewModels
 			ShowSummary = false;
 		}
 
-		public void SetupMainPlot(PlotControl plot)
-		{
-			plot.TrackMouse = true;
-			plot.GrandParent = this;
-		}
-
 		// convert mouse coordinates to scottplot coordinates
 		// from ScottPlot github comment https://github.com/ScottPlot/ScottPlot/issues/3514
 		public static Tuple<double, double> ConvertScottCoords(PlotControl plt, double x, double y)
@@ -1265,7 +1298,7 @@ namespace QA40xPlot.ViewModels
 			if (changed == null)
 				return;
 			var md = InputManager.Current.PrimaryMouseDevice;
-			if(md != null)
+			if (md != null)
 				changed.Invoke(this, new MouseEventArgs(md, Environment.TickCount));
 		}
 

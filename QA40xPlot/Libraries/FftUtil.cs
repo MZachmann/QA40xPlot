@@ -48,7 +48,7 @@ namespace QA40xPlot.Libraries
 				double frac = (double)i / (size - 1);
 				double value = 0.0;
 
-				for(int j=0; j<Coefficients.Length;j++)
+				for (int j = 0; j < Coefficients.Length; j++)
 				{
 					double sign = (j % 2 == 0) ? 1.0 : -1.0;
 					value += sign * Coefficients[j] * Math.Cos(2 * Math.PI * j * frac);

@@ -90,7 +90,7 @@ namespace QA40xPlot.Libraries
 			if (pname.Length == 0)
 				return string.Empty;
 
-			switch(pname)
+			switch (pname)
 			{
 				case "XF":
 					return "GraphStartX";
@@ -179,7 +179,7 @@ namespace QA40xPlot.Libraries
 			tickGenY2.MinorTickGenerator = minorTickGen;
 
 			// tell the left axis to use our custom tick generator
-			if(myPlot.Axes.Right != null)
+			if (myPlot.Axes.Right != null)
 				myPlot.Axes.Right.TickGenerator = tickGenY2;
 		}
 
@@ -232,7 +232,7 @@ namespace QA40xPlot.Libraries
 			var backColor = StrToColor(ViewSettings.Singleton.SettingsVm.GraphForeground);
 			var light = ToBrightness(backColor);
 			var brush = new System.Windows.Media.BrushConverter().ConvertFromString((light < 128) ? "White" : "Black");
-			if(brush != null)
+			if (brush != null)
 				myLabel.Foreground = (System.Windows.Media.SolidColorBrush)brush;
 		}
 

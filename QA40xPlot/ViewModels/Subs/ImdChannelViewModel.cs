@@ -197,7 +197,7 @@ namespace QA40xPlot.ViewModels
 		{
 			Harmonics = new List<HarmonicData>();
 			// just to remove null reference issues during initial display
-			for (int i=0; i<10; i++)
+			for (int i = 0; i < 10; i++)
 				Harmonics.Add(new HarmonicData());
 		}
 	}

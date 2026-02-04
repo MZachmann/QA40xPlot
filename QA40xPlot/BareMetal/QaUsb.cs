@@ -74,7 +74,7 @@ namespace QA40x.BareMetal
 		private readonly static int _RelayMilliseconds = 1000;
 		// changing sample rate empties the buffer entirely and takes time to restart
 		private readonly static int _SRateChangeMilliseconds = 1000;
-		
+
 		List<AsyncResult> WriteQueue = new List<AsyncResult>();
 		List<AsyncResult> ReadQueue = new List<AsyncResult>();
 		/// Tracks whether or not an acq is in process. The count starts at one, and when it goes busy
@@ -349,7 +349,7 @@ namespace QA40x.BareMetal
 					_LastInputRange = s;
 					_LastOutputRange = u;
 				}
-				if(t != _LastSampleRate)
+				if (t != _LastSampleRate)
 				{
 					await showMessage("Synchronizing...", _SRateChangeMilliseconds);
 					_LastSampleRate = t;
@@ -439,7 +439,7 @@ namespace QA40x.BareMetal
 		}
 		private void UntweakSampleRate()
 		{
-			if(_OldRate != -1)
+			if (_OldRate != -1)
 			{
 				QaComm.MyIoDevice.SetSampleRate((uint)_OldRate);
 				_OldRate = -1;
@@ -460,7 +460,7 @@ namespace QA40x.BareMetal
 			var rng = QaComm.GetOutputRange();
 			var rngin = rng;
 			//{ { 18, 3 }, { 8, 2 }, { -2, 1 }, { -12, 0 } }
-			switch(rng)
+			switch (rng)
 			{
 				case -12:
 					rng = 18;

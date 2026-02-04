@@ -100,14 +100,10 @@ namespace QA40xPlot.Actions
 			Rect rrc = new Rect(0, 0, 0, 0);
 			try
 			{
-				var vm = PageData.ViewModel;    // measurement settings cloned to not shift...
-				if (vm == null)
-					return Rect.Empty;
-
-				var specVm = MyVModel;     // current settings
+				var vm = MyVModel;     // current settings
 
 				List<SweepColumn> steps = new();
-				if (specVm.ShowLeft)
+				if (vm.ShowLeft)
 				{
 					var a1 = FrequencyLines(PageData);
 					if (a1 != null)
@@ -116,7 +112,7 @@ namespace QA40xPlot.Actions
 							steps.AddRange(x.Columns);
 						}
 				}
-				if (specVm.ShowRight)
+				if (vm.ShowRight)
 				{
 					var a1 = FrequencyLinesRight(PageData);
 					if (a1 != null)
@@ -143,52 +139,52 @@ namespace QA40xPlot.Actions
 
 				double maxY = -1e10;
 				double minY = 1e10;
-				if (specVm.ShowMagnitude)
+				if (vm.ShowMagnitude)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.Mag));
 					minY = Math.Min(minY, arsteps.Min(x => x.Mag));
 				}
-				if (specVm.ShowTHD)
+				if (vm.ShowTHD)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.THD));
 					minY = Math.Min(minY, arsteps.Min(x => x.THD));
 				}
-				if (specVm.ShowTHDN)
+				if (vm.ShowTHDN)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.THDN));
 					minY = Math.Min(minY, arsteps.Min(x => x.THDN));
 				}
-				if (specVm.ShowNoise)
+				if (vm.ShowNoise)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.Noise));
 					minY = Math.Min(minY, arsteps.Min(x => x.Noise));
 				}
-				if (specVm.ShowNoiseFloor)
+				if (vm.ShowNoiseFloor)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.NoiseFloor));
 					minY = Math.Min(minY, arsteps.Min(x => x.NoiseFloor));
 				}
-				if (specVm.ShowD2)
+				if (vm.ShowD2)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.D2));
 					minY = Math.Min(minY, arsteps.Min(x => x.D2));
 				}
-				if (specVm.ShowD3)
+				if (vm.ShowD3)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.D3));
 					minY = Math.Min(minY, arsteps.Min(x => x.D3));
 				}
-				if (specVm.ShowD4)
+				if (vm.ShowD4)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.D4));
 					minY = Math.Min(minY, arsteps.Min(x => x.D4));
 				}
-				if (specVm.ShowD5)
+				if (vm.ShowD5)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.D5));
 					minY = Math.Min(minY, arsteps.Min(x => x.D5));
 				}
-				if (specVm.ShowD6)
+				if (vm.ShowD6)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.D6P));
 					minY = Math.Min(minY, arsteps.Min(x => x.D6P));
@@ -303,14 +299,14 @@ namespace QA40xPlot.Actions
 			{
 				// we can't overwrite the viewmodel since it links to the display proper
 				// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
-				page.ViewModel.OtherSetList = MyVModel.OtherSetList;
-				page.ViewModel.CopyPropertiesTo<FreqSweepViewModel>(MyVModel);    // retract the gui
+				MyVModel.LoadViewFrom(page.ViewModel);
 				PageData = page;    // set the current page to the loaded one
 
 				// relink to the new definition
-				MyVModel.LinkAbout(page.Definition);
-				MyVModel.HasSave = true;
-				MyVModel.ShowMiniPlots = false; // hide mini plots on load
+				var vm = MyVModel;
+				vm.LinkAbout(page.Definition);
+				vm.HasSave = true;
+				vm.ShowMiniPlots = false; // hide mini plots on load
 			}
 			else
 			{
@@ -353,18 +349,18 @@ namespace QA40xPlot.Actions
 			await showMessage("Finished");
 		}
 
-		private (int,double) CalculateAttenuation(double voltage, BaseViewModel bvm, 
+		private (int, double) CalculateAttenuation(double voltage, BaseViewModel bvm,
 			int[] frqtest, LeftRightFrequencySeries LRGains)
 		{
 			// to figure out attenuation use the first gen voltage
 			var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
 			var genVolt = bvm.ToGenVoltage(voltage, frqtest, GEN_INPUT, gains);   // input voltage for request
-			// ********************************************************************
-			// Determine input level for attenuation
-			// we know that all settings of the QA430 have defined gain so that
-			// we can calculate the required attenuation up front and then vary the driving voltage
-			// to keep constant output voltage no matter configuration
-			// ********************************************************************
+																				  // ********************************************************************
+																				  // Determine input level for attenuation
+																				  // we know that all settings of the QA430 have defined gain so that
+																				  // we can calculate the required attenuation up front and then vary the driving voltage
+																				  // to keep constant output voltage no matter configuration
+																				  // ********************************************************************
 			var genOutL = ToGenOutVolts(genVolt, frqtest, LRGains.Left);   // output voltage for request left channel
 			var genOutR = ToGenOutVolts(genVolt, frqtest, LRGains.Right);   // output voltage for request right channel
 			var genOut = Math.Max(genOutL, genOutR);    // use both channels max value to get attenuation value
@@ -372,7 +368,7 @@ namespace QA40xPlot.Actions
 
 			// Get input voltage based on desired output voltage
 			var attenuation = QaLibrary.DetermineAttenuation(amplifierOutputVoltagedBV);
-			if(!bvm.DoAutoAttn)
+			if (!bvm.DoAutoAttn)
 			{
 				attenuation = (int)bvm.Attenuation;
 			}
@@ -383,7 +379,7 @@ namespace QA40xPlot.Actions
 		{
 			var freqVm = MyVModel;          // the active viewmodel
 			LeftRightTimeSeries lrts = new();
-			MyVModel.CopyPropertiesTo(PageData.ViewModel);  // update the view model with latest settings
+			PageData.ViewModel.LoadViewFrom(MyVModel); // make sure the page data viewmodel is up to date
 			PageData.Definition.CreateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 			var page = PageData;    // alias
 			page.Sweep = new();
@@ -422,7 +418,7 @@ namespace QA40xPlot.Actions
 			double binSize = 0;
 			// here they are in the format of the generator test...
 			var voltValues = SelectItemList.ParseList(vm.VoltSummary).Where(x => x.IsSelected).ToList();
-			if(voltValues.Count == 0)
+			if (voltValues.Count == 0)
 			{
 				await showMessage("No generator voltages specified!", 200);
 				return false;
@@ -432,8 +428,8 @@ namespace QA40xPlot.Actions
 			// ********************************************************************
 			try
 			{
-			if (true != await QaComm.InitializeDevice(vm.SampleRateVal, vm.FftSizeVal, vm.WindowingMethod, (int)vm.Attenuation))
-				return false;
+				if (true != await QaComm.InitializeDevice(vm.SampleRateVal, vm.FftSizeVal, vm.WindowingMethod, (int)vm.Attenuation))
+					return false;
 			}
 			catch (Exception ex)
 			{
@@ -443,7 +439,7 @@ namespace QA40xPlot.Actions
 
 			// Check if cancel button pressed
 			if (CanToken.IsCancellationRequested)
-					return false;
+				return false;
 
 			// Calculate frequency steps to do
 			binSize = QaLibrary.CalcBinSize(vm.SampleRateVal, vm.FftSizeVal);
@@ -470,12 +466,14 @@ namespace QA40xPlot.Actions
 					var vnew = new List<AcquireStep>();
 					foreach (var v in voltValues)
 					{
-						var vnewlist = variables.Select(x => {
+						var vnewlist = variables.Select(x =>
+						{
 							var ux = new AcquireStep(x);
 							var ampD = GenVoltApplyUnit(v.Name, vm.GenVoltageUnit, 1e-9);
 							ux.GenVolt = ampD;
 							ux.GenXFmt = (vm.IsGenPower ? MathUtil.FormatPower(ampD) : MathUtil.FormatVoltage(ampD));
-							return ux; }).ToList();
+							return ux;
+						}).ToList();
 						vnew.AddRange(vnewlist);
 					}
 					// now vnew is the full list of steps with voltages swept
@@ -493,8 +491,8 @@ namespace QA40xPlot.Actions
 				// ********************************************************************
 				foreach (var myConfig in variables) // sweep the different configurations
 				{
-					lastCfg = await vm.ExecuteModel(myConfig, lastCfg);	// update the qa430 if needed
-					// sweeping generator voltage as well
+					lastCfg = await vm.ExecuteModel(myConfig, lastCfg); // update the qa430 if needed
+																		// sweeping generator voltage as well
 					var attenset = CalculateAttenuation(myConfig.GenVolt, vm, frqtest, LRGains);
 					var attenuation = attenset.Item1;
 					var genVolt = attenset.Item2;
@@ -503,7 +501,7 @@ namespace QA40xPlot.Actions
 					page.Definition.GeneratorVoltage = genVolt;
 
 					// Set the new input range
-					if(attenuation != QaComm.GetInputRange())
+					if (attenuation != QaComm.GetInputRange())
 					{
 						await QaComm.SetInputRange(attenuation);
 					}
@@ -537,7 +535,7 @@ namespace QA40xPlot.Actions
 							page.NoiseFloor = noisy.Item1;
 							var ndbv = 20 * Math.Log10(page.NoiseFloor.Left);
 							Debug.WriteLine($"at {iii} left Noise is {page.NoiseFloor.Left}V or {ndbv}dBV");
-							iij = (Math.Abs((lastndbv - ndbv)/ndbv) < .005) ? iij + 1 : 0;
+							iij = (Math.Abs((lastndbv - ndbv) / ndbv) < .005) ? iij + 1 : 0;
 							if (iij > (newAtten ? 2 : 1))
 								break;
 							iii++;
@@ -870,7 +868,7 @@ namespace QA40xPlot.Actions
 			{
 				HandleChangedProperty(vm.MainPlot.ThePlot, vm, theProperty);
 			}
-				vm.LegendInfo.Clear();
+			vm.LegendInfo.Clear();
 			PlotValues(PageData, resultNr++, true);
 			if (OtherTabs.Count > 0)
 			{

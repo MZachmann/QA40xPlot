@@ -1,6 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.Input;
-using Microsoft.Win32;
-using NAudio.Gui;
 using Newtonsoft.Json;
 using QA40xPlot.Actions;
 using QA40xPlot.Data;
@@ -9,7 +7,6 @@ using QA40xPlot.Views;
 using ScottPlot;
 using ScottPlot.Plottables;
 using System.ComponentModel;
-using System.Drawing.Drawing2D;
 using System.Windows;
 using System.Windows.Input;
 
@@ -23,7 +20,7 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public override List<string> AxisList { get; } = new List<string> { "XT", "YP", "Y2" };
 		[JsonIgnore]
-		public static readonly string ResidualName = "Residual";	// don't make it a property, it just readonly
+		public static readonly string ResidualName = "Residual";    // don't make it a property, it just readonly
 
 		private ActScope MyAction { get => actScope; }
 
@@ -220,7 +217,6 @@ namespace QA40xPlot.ViewModels
 			actInfoRight = info2;
 			info.SetDataContext(ViewSettings.Singleton.ScopeInfoLeft);
 			info2.SetDataContext(ViewSettings.Singleton.ScopeInfoRight);
-			SetupMainPlot(plot);
 			actPlot = plot;
 			MyVModel.LinkAbout(MyAction.PageData.Definition);
 			ShowInfos();
@@ -256,8 +252,8 @@ namespace QA40xPlot.ViewModels
 
 		private void ChangeResidualScale()
 		{
-			MyAction?.UpdateGraph(false);	// repaint
-			//MyAction?.DoShowResiduals(ShowResiduals);
+			MyAction?.UpdateGraph(false);   // repaint
+											//MyAction?.DoShowResiduals(ShowResiduals);
 		}
 
 		private void WaveSelect()
@@ -319,7 +315,7 @@ namespace QA40xPlot.ViewModels
 					GraphEndX = bounds.Right.ToString("0.###");
 					break;
 				case "YP":  // Y magnitude
-					if(Math.Abs(bounds.Height) > 1e-2)
+					if (Math.Abs(bounds.Height) > 1e-2)
 					{
 						RangeBottom = (bounds.Y).ToString("0.###");
 						RangeTop = (bounds.Height + bounds.Y).ToString("0.###");
@@ -332,11 +328,11 @@ namespace QA40xPlot.ViewModels
 					break;
 				case "Y2":  // group delay
 					var rsl = MyAction.GetResidual(MyAction.PageData);
-					if (rsl != null && rsl.Left.Length > 0 )
+					if (rsl != null && rsl.Left.Length > 0)
 					{
 						double rmin = double.MaxValue;
 						double rmax = double.MinValue;
-						if(ShowLeft)
+						if (ShowLeft)
 						{
 							rmin = rsl.Left.Min();
 							rmax = rsl.Left.Max();
@@ -346,7 +342,7 @@ namespace QA40xPlot.ViewModels
 							rmin = Math.Min(rmin, rsl.Right.Min());
 							rmax = Math.Max(rmax, rsl.Right.Max());
 						}
-						if(ShowLeft || ShowRight)
+						if (ShowLeft || ShowRight)
 						{
 							Range2Bottom = rmin.ToString("G3");
 							Range2Top = rmax.ToString("G3");
