@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:QA40xPlot.Views"
              mc:Ignorable="d" 
              d:Background="AliceBlue"
-             d:DesignHeight="800" d:DesignWidth="807">
+             d:DesignHeight="1200" d:DesignWidth="807">
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
         <Grid Margin="5,5,5,5">
             <Grid.ColumnDefinitions>
@@ -66,6 +66,8 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -86,7 +88,7 @@
                    Grid.Row="2" Grid.Column="4" />
 
             <local:GroupHeader Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5"  />
-            
+
             <Label VerticalAlignment="Center" Content="Amplifier Load: " Grid.Row="4" Grid.Column="0" />
             <ComboBox IsEditable="True" Grid.Row="4" Grid.Column="1" MinWidth="80" 
                   Text="{Binding AmplifierLoad}" 
@@ -96,7 +98,7 @@
                    Text="The amplifier load is used to convert power to voltage for all tests." 
                    HorizontalAlignment="Left" VerticalAlignment="Center"
                    Grid.Row="4" Grid.Column="4" />
-            
+
             <local:GroupHeader Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="5"  />
 
             <Label VerticalAlignment="Center" Content="Data Folder: " Grid.Row="6" Grid.Column="0" />
@@ -287,20 +289,28 @@
                    HorizontalAlignment="Left" VerticalAlignment="Center"
                    Grid.Row="47" Grid.Column="4" />
             <local:GroupHeader Grid.Row="48" Grid.Column="0" Grid.ColumnSpan="5"  />
-            <Label VerticalAlignment="Center" Content="Safety Margin: " Grid.Row="49" Grid.Column="0" />
-            <ComboBox IsEditable="True"  Grid.Row="49" Grid.Column="1" MinWidth="80" Text="{Binding SafetyMargin}" ItemsSource="{Binding GenVoltages}" />
+            <Label VerticalAlignment="Center" Content="Min Output Gain: " Grid.Row="49" Grid.Column="0" />
+            <ComboBox Grid.Row="49" Grid.Column="1" MinWidth="80" Text="{Binding MinOutputRange}" ItemsSource="{Binding OutputRanges}" />
             <Label VerticalAlignment="Center" Content="dB" Grid.Row="49" Grid.Column="2" HorizontalAlignment="Left" />
             <TextBlock TextWrapping="Wrap" MaxWidth="600" 
-                   Text="Attenuator dB safety margin to add to calculated necessary attenuation - default 5." 
+                   Text="Set a minimum output gain if desired. Blank = factory settings." 
                    HorizontalAlignment="Left" VerticalAlignment="Center"
                    Grid.Row="49" Grid.Column="4" />
             <local:GroupHeader Grid.Row="50" Grid.Column="0" Grid.ColumnSpan="5"  />
-            <Label VerticalAlignment="Center" Content="Usb Buffer Size: " Grid.Row="51" Grid.Column="0" />
-            <ComboBox  Grid.Row="51" Grid.Column="1" MinWidth="80" SelectedValue="{Binding UsbBufferSize}" ItemsSource="{Binding UsbBufferSizes}" />
+            <Label VerticalAlignment="Center" Content="Safety Margin: " Grid.Row="51" Grid.Column="0" />
+            <ComboBox IsEditable="True"  Grid.Row="51" Grid.Column="1" MinWidth="80" Text="{Binding SafetyMargin}" ItemsSource="{Binding GenVoltages}" />
+            <Label VerticalAlignment="Center" Content="dB" Grid.Row="51" Grid.Column="2" HorizontalAlignment="Left" />
+            <TextBlock TextWrapping="Wrap" MaxWidth="600" 
+                   Text="Attenuator dB safety margin to add to calculated necessary attenuation - default 5." 
+                   HorizontalAlignment="Left" VerticalAlignment="Center"
+                   Grid.Row="51" Grid.Column="4" />
+            <local:GroupHeader Grid.Row="52" Grid.Column="0" Grid.ColumnSpan="5"  />
+            <Label VerticalAlignment="Center" Content="Usb Buffer Size: " Grid.Row="53" Grid.Column="0" />
+            <ComboBox  Grid.Row="53" Grid.Column="1" MinWidth="80" SelectedValue="{Binding UsbBufferSize}" ItemsSource="{Binding UsbBufferSizes}" />
             <TextBlock TextWrapping="Wrap" MaxWidth="600" 
                    Text="Set the size of the usb block. Careful!." 
                    HorizontalAlignment="Left" VerticalAlignment="Center"
-                   Grid.Row="51" Grid.Column="4" />
+                   Grid.Row="53" Grid.Column="4" />
         </Grid>
     </ScrollViewer>
 </UserControl>

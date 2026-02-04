@@ -18,6 +18,7 @@ namespace QA40xPlot.ViewModels
 		public static List<String> NoiseBandList { get; } = new List<string>() { "20000", "50000", "80000", "100000" };
 		public static List<String> NoiseRefreshList { get; } = new List<string>() { "0", "15", "45", "150" };
 		public static List<String> NoiseWeightList { get; } = new List<string>() { "Z", "A", "C" };
+		public static List<String> OutputRanges { get; } = new List<string>() { "", "18", "8", "-2", "-12" };
 		public static List<String> EchoTypes { get; } = new List<string>() { "QA40x", "WinDevice", "Both" };
 		public static List<String> EchoChannels { get; } = new List<string>() { "None", "Left", "Right", "L+R" };
 		public const int EchoChannelLeft = 1;   // in list order
@@ -56,6 +57,17 @@ namespace QA40xPlot.ViewModels
 
 
 		#region temporary setters
+
+		private string _MinOutputRange = string.Empty;
+		[JsonIgnore]
+		public string MinOutputRange
+		{
+			get { return _MinOutputRange; }
+			set
+			{
+				SetProperty(ref _MinOutputRange, value);
+			}
+		}
 
 		// always start this at blank (none)
 		private string _AddDistortion = string.Empty;

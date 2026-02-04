@@ -233,7 +233,9 @@ namespace QA40xPlot.BareMetal
 			maxOut = Math.Max(Math.Abs(maxOut), Math.Abs(minOut));  // maximum output voltage
 																	// don't bother setting output amplitude if we have no output
 			var mlevel = DetermineOutput((maxOut > 0) ? maxOut : 1e-8); // the setting for our voltage + 10%
-			mlevel = Math.Max(mlevel, -12); // noop for now but keep this line in for testing
+			// if mlevel is tiny we're doing a noise analysis so let the output range be
+			var minRange = (maxOut <= 1e-8) ? -12 : (int)MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.MinOutputRange, -12);
+			mlevel = Math.Max(mlevel, minRange); // noop for now but keep this line in for testing
 			await SetOutputRange(mlevel);   // set the output voltage
 
 			for (int rrun = 0; rrun < averages; rrun++)

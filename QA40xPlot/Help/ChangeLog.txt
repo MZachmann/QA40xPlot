@@ -6,6 +6,8 @@ Date format is US mm/dd/yy
 v 1.2.8
 - add more headroom on the output range selection to lower distortion substantially
 - show spectrum and imd markers on click rather than requiring run
+- serious refactor of viewmodel copying
+- add Test menu for the graph popup commands
 v 1.2.7 2/1/26
 - improve menu position and other esthetics
 - add blackman-harris 7 window to the window list, rename blackman to blackman-3
