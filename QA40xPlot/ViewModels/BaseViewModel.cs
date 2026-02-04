@@ -446,6 +446,14 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
+		// the iorange when we do a measurement
+		private string _IORange = string.Empty;
+		public string IORange
+		{
+			get => _IORange;
+			set => SetProperty(ref _IORange, value);
+		}
+
 		// the voltage with units, so 0.1mv ==> .0001
 		// where units is always GenVoltUnits
 		// use IsGenPower to determine which

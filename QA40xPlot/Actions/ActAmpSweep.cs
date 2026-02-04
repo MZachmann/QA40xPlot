@@ -578,6 +578,7 @@ namespace QA40xPlot.Actions
 							for (int ik = 0; ik < (thdAmp.Averages - 1); ik++)
 							{
 								lrfs = await QaComm.DoAcquireUser(1, CanToken.Token, wave, wave, true);
+								vm.IORange = $"({QaComm.GetOutputRange()} - {QaComm.GetInputRange()})";
 								if (lrfs == null || lrfs.TimeRslt == null || lrfs.FreqRslt == null)
 									break;
 								FrequencyHistory.Add(lrfs.FreqRslt);

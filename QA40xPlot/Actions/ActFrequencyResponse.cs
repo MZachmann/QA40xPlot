@@ -418,6 +418,7 @@ namespace QA40xPlot.Actions
 			for (int i = 0; i < msr.Averages - 1; i++)
 			{
 				lfrs = await QaComm.DoAcquireUser(1, CanToken.Token, dataLeft, dataRight, true);
+				msr.IORange = $"({QaComm.GetOutputRange()} - {QaComm.GetInputRange()})";
 				if (lfrs == null || lfrs.TimeRslt == null || lfrs.FreqRslt == null)
 					return new();
 				FrequencyHistory.Add(lfrs.FreqRslt);

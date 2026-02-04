@@ -356,6 +356,7 @@ namespace QA40xPlot.Actions
 
 				var wave = BuildWave(msr, genVolt);   // also update the waveform variables
 				lrfs = await QaComm.DoAcquireUser(1, ct, wave, wave, false);
+				vm.IORange = $"({QaComm.GetOutputRange()} - {QaComm.GetInputRange()})";
 
 				if (lrfs.TimeRslt == null)
 					return false;

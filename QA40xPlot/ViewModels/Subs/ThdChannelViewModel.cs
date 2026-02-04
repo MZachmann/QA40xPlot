@@ -65,6 +65,15 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _ENOB, value);
 		}
 
+		// the iorange when we do a measurement
+		private string _IORange = string.Empty;
+		[JsonIgnore]
+		public string IORange
+		{
+			get => _IORange;
+			set => SetProperty(ref _IORange, value);
+		}
+
 		private string _NoiseFloorView = "0";
 		[JsonIgnore]
 		public string NoiseFloorView

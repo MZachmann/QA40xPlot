@@ -217,11 +217,11 @@ namespace QA40xPlot.Actions
 						mdl.BorderColor = (System.Windows.Media.Brush)brs;
 				}
 			}
-			if (channels.Count < 2 && OtherTabs.Count > 0)
+			if (OtherTabs.Count > 0)
 			{
 				// copy the shown status from othersetlist to othertabs
 				var seen = DataUtil.FindShownInfo<SpectrumViewModel, ThdChannelViewModel>(OtherTabs);
-				if (seen.Count > 0)
+				if (channels.Count < 4 && seen.Count > 0)
 				{
 					var mdl = seen[0];
 					if (mdl != null)
@@ -230,9 +230,27 @@ namespace QA40xPlot.Actions
 						channels.Add(mdl);
 					}
 				}
-				if (channels.Count < 2 && seen.Count > 1)
+				if (channels.Count < 4 && seen.Count > 1)
 				{
 					var mdl = seen[1];
+					if (mdl != null)
+					{
+						SetVmColor(mdl, channels.Count);
+						channels.Add(mdl);
+					}
+				}
+				if (channels.Count < 4 && seen.Count > 2)
+				{
+					var mdl = seen[2];
+					if (mdl != null)
+					{
+						SetVmColor(mdl, channels.Count);
+						channels.Add(mdl);
+					}
+				}
+				if (channels.Count < 4 && seen.Count > 3)
+				{
+					var mdl = seen[3];
 					if (mdl != null)
 					{
 						SetVmColor(mdl, channels.Count);
@@ -248,6 +266,14 @@ namespace QA40xPlot.Actions
 			if (channels.Count > 1)
 			{
 				channels[1].CopyPropertiesTo(ViewSettings.Singleton.ChannelRight);
+			}
+			if (channels.Count > 2)
+			{
+				channels[2].CopyPropertiesTo(ViewSettings.Singleton.Channel2Left);
+			}
+			if (channels.Count > 3)
+			{
+				channels[3].CopyPropertiesTo(ViewSettings.Singleton.Channel2Right);
 			}
 		}
 
@@ -442,6 +468,7 @@ namespace QA40xPlot.Actions
 
 				var wave = BuildWave(msr, genVolt);   // also update the waveform variables
 				lrfs = await QaComm.DoAcquireUser(1, ct, wave, wave, false);
+				vm.IORange = $"({QaComm.GetOutputRange()} -> {QaComm.GetInputRange()})";
 
 				if (lrfs.TimeRslt != null)
 				{
@@ -511,6 +538,9 @@ namespace QA40xPlot.Actions
 				step.SNRatio = isleft ? snrdb.Left : snrdb.Right;
 				step.SinaddB = isleft ? sinaddb.Left : sinaddb.Right;
 				step.ENOB = (step.SNRatio - 1.76) / 6.02;
+#if DEBUG
+				step.IORange = vm.IORange;
+#endif
 				step.ThdNInV = step.FundamentalVolts * QaLibrary.ConvertVoltage(isleft ? thdN.Left : thdN.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
 				step.ThdInV = step.FundamentalVolts * QaLibrary.ConvertVoltage(isleft ? thds.Left : thds.Right, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
 				step.ThdInPercent = 100 * step.ThdInV / step.FundamentalVolts;
@@ -957,6 +987,8 @@ namespace QA40xPlot.Actions
 			ReformatChannels(); // ensure the channels are formatted correctly
 			ViewSettings.Singleton.ChannelLeft.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd;
 			ViewSettings.Singleton.ChannelRight.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd;
+			ViewSettings.Singleton.Channel2Left.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd;
+			ViewSettings.Singleton.Channel2Right.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd;
 			vm.UpdateMouseCursor(vm.LookX, vm.LookY);
 
 			ShowPageInfo(PageData); // show the page info in the display

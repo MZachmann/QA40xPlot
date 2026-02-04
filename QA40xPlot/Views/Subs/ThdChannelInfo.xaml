@@ -100,6 +100,8 @@
                 <Label Padding="2,2" Grid.Row="1" Grid.Column="0" Content="ENOB:" HorizontalAlignment="Right"/>
                 <Label Padding="2,2" Grid.Row="1" Grid.Column="1" ToolTip="Equivalent number of bits"
                        Content="{Binding ENOB, Converter={StaticResource DoubleIntlConverter}, ConverterParameter=-1}" ContentStringFormat="{}{0} bits"/>
+                <Label Padding="2,2" Grid.Row="1" Grid.Column="2" ToolTip="IO Range"
+                       Content="{Binding IORange}" HorizontalAlignment="Right" />
 
                 <Label Padding="2,2" Grid.Row="2" Grid.Column="0" Content="2nd:" HorizontalAlignment="Right"/>
                 <Label Padding="2,2" Grid.Row="2" Grid.Column="2" Content="3rd:" HorizontalAlignment="Right"/>

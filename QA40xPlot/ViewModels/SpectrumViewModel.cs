@@ -31,6 +31,8 @@ namespace QA40xPlot.ViewModels
 		private ActSpectrum actSpec { get; set; }
 		private ThdChannelInfo actInfoLeft { get; set; }
 		private ThdChannelInfo actInfoRight { get; set; }
+		private ThdChannelInfo actInfo2Left { get; set; }
+		private ThdChannelInfo actInfo2Right { get; set; }
 		[JsonIgnore]
 		public override RelayCommand DoRun { get => new RelayCommand(RunIt); }
 		[JsonIgnore]
@@ -117,6 +119,10 @@ namespace QA40xPlot.ViewModels
 				actInfoLeft.Visibility = (ShowSummary && frames > 0) ? Visibility.Visible : Visibility.Hidden;
 			if (actInfoRight != null)
 				actInfoRight.Visibility = (ShowSummary && frames > 1) ? Visibility.Visible : Visibility.Hidden;
+			if (actInfo2Left != null)
+				actInfo2Left.Visibility = (ShowSummary && frames > 2) ? Visibility.Visible : Visibility.Hidden;
+			if (actInfo2Right != null)
+				actInfo2Right.Visibility = (ShowSummary && frames > 3) ? Visibility.Visible : Visibility.Hidden;
 			if (actAbout != null)
 			{
 				actAbout.Visibility = ShowTabInfo ? Visibility.Visible : Visibility.Hidden;
@@ -207,14 +213,18 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		public void SetAction(UserControl myWnd, PlotControl plot, ThdChannelInfo info, ThdChannelInfo info2, TabAbout about)
+		public void SetAction(UserControl myWnd, PlotControl plot, ThdChannelInfo info, ThdChannelInfo info2, ThdChannelInfo info3, ThdChannelInfo info4, TabAbout about)
 		{
 			LinkPlots(plot);
 			actSpec = new ActSpectrum(this);
 			actInfoLeft = info;
 			actInfoRight = info2;
+			actInfo2Left = info3;
+			actInfo2Right = info4;
 			info.SetDataContext(ViewSettings.Singleton.ChannelLeft);
 			info2.SetDataContext(ViewSettings.Singleton.ChannelRight);
+			info3.SetDataContext(ViewSettings.Singleton.Channel2Left);
+			info4.SetDataContext(ViewSettings.Singleton.Channel2Right);
 			about.SetDataContext(ViewSettings.Singleton.TabDefs);
 			MyVModel.actAbout = about;
 			MyVModel.LinkAbout(MyAction.PageData.Definition);
@@ -354,6 +364,8 @@ namespace QA40xPlot.ViewModels
 			this.actPlot = default!;
 			this.actInfoLeft = default!;
 			this.actInfoRight = default!;
+			this.actInfo2Left = default!;
+			this.actInfo2Right = default!;
 			this.actSpec = default!;
 
 			LeftWidth = 80;  // reset the width of the left column

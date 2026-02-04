@@ -11,9 +11,15 @@ namespace QA40xPlot.BareMetal
 	public class IODevUSB : IODevice
 	{
 		private static int _InvalidInt = 1232;
-		private static double _Headroom = 1.40; // headroom multiplier for distortion reduction
-												// convert from value to register setting
-												// voltages are 7.943, 2.512, 0.794, 0.251
+		// headroom multiplier for distortion reduction (deprecated)
+		private static double _Headroom = 1.40;
+		/// <summary>
+		/// convert from generator voltage to register setting
+		/// voltages are 7.943, 2.512, 0.794, 0.251 by dBV of 18, 8, -2, -12
+		/// the Volt2Output list is empirically determined by looking at distortion vs output gain at each voltage
+		/// it is max generator voltage vs gain setting. -12 gain is particularly problematic
+		/// </summary>
+		private static readonly Dictionary<double, int> _Volt2Output = new() { { 7.94, 18 }, { 2.4, 8 }, { .65, -2 }, { .08, -12 } };
 		private static readonly Dictionary<int, int> _Output2Reg = new() { { 18, 3 }, { 8, 2 }, { -2, 1 }, { -12, 0 } };
 		private static readonly Dictionary<int, int> _Input2Reg = new() { { 0, 0 }, { 6, 1 }, { 12, 2 }, { 18, 3 }, { 24, 4 }, { 30, 5 }, { 36, 6 }, { 42, 7 } };
 		private static readonly Dictionary<int, int> _Samplerate2Reg = new() { { 48000, 0 }, { 96000, 1 }, { 192000, 2 }, { 384000, 3 } }; // 384K?
@@ -181,17 +187,34 @@ namespace QA40xPlot.BareMetal
 		static int DetermineOutput(double maxOut)
 		{
 			var headRoom = _Headroom;    // limit to 70% or so of full scale for less distortion (empirical)
+			bool useVoltage = true;
 
 			// Find the smallest output setting that is greater than or equal to maxOut
 			// since maxout is a peak voltage, convert to rms
 			var maxrms = maxOut * 0.7;  // the rms voltage to produce this peak voltage
-			var maxdbv = 20 * Math.Log10(headRoom * maxrms);        // get it in db
-			foreach (var kvp in _Output2Reg.Reverse())  // since the list decreases
+			if(useVoltage)
 			{
-				if (kvp.Key > maxdbv)
+				// new method with hardcoded voltage limits
+				foreach (var kvp in _Volt2Output.Reverse())  // since the list decreases
 				{
-					Debug.WriteLine($"For inv of {maxOut} use {kvp.Key}");
-					return kvp.Key;
+					if (kvp.Key > maxrms)
+					{
+						Debug.WriteLine($"For inv of {maxrms} use {kvp.Key}");
+						return kvp.Value;
+					}
+				}
+			}
+			else
+			{
+				// old method by just using the lowest possible gain
+				var maxdbv = 20 * Math.Log10(headRoom * maxrms);        // get it in db
+				foreach (var kvp in _Output2Reg.Reverse())  // since the list decreases
+				{
+					if (kvp.Key > maxdbv)
+					{
+						Debug.WriteLine($"For inv of {maxOut} use {kvp.Key}");
+						return kvp.Key;
+					}
 				}
 			}
 			// no headroom for largest one if all else fails
@@ -234,7 +257,8 @@ namespace QA40xPlot.BareMetal
 																	// don't bother setting output amplitude if we have no output
 			var mlevel = DetermineOutput((maxOut > 0) ? maxOut : 1e-8); // the setting for our voltage + 10%
 			// if mlevel is tiny we're doing a noise analysis so let the output range be
-			var minRange = (maxOut <= 1e-8) ? -12 : (int)MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.MinOutputRange, -12);
+			//var minRange = (maxOut <= 1e-8) ? -12 : (int)MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.MinOutputRange, -12);
+			var minRange = (int)MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.MinOutputRange, -12);
 			mlevel = Math.Max(mlevel, minRange); // noop for now but keep this line in for testing
 			await SetOutputRange(mlevel);   // set the output voltage
 
