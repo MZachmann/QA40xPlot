@@ -15,7 +15,10 @@
                     ToolTip="Run repeatedly (F5)"
                     FontSize="14" HorizontalAlignment="Right"></Button>
             <Button Content=" Start " ToolTip="Start the test (F6)"
-                    Visibility="{Binding ShowStart, ElementName=MyStartStop, Converter={StaticResource BoolVisConverter}}"
+                    Visibility="{Binding ShowRun, ElementName=MyStartStop, Converter={StaticResource BoolNotVisConverter}}"
+                    IsEnabled="{Binding MainVm.IsNotRunning}" FontSize="14" Command="{Binding DoStart}"  HorizontalAlignment="Right"></Button>
+            <Button Content=" Once " ToolTip="Start the test (F6)"
+                    Visibility="{Binding ShowRun, ElementName=MyStartStop, Converter={StaticResource BoolVisConverter}}"
                     IsEnabled="{Binding MainVm.IsNotRunning}" FontSize="14" Command="{Binding DoStart}"  HorizontalAlignment="Right"></Button>
             <Button Content=" Stop " Margin="10,0,0,0" ToolTip="Stop the test (F7)"
                     IsEnabled="{Binding MainVm.IsRunning}" FontSize="14" Command="{Binding DoStop}"  HorizontalAlignment="Left"></Button>
