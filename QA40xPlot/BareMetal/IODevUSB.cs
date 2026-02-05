@@ -12,14 +12,16 @@ namespace QA40xPlot.BareMetal
 	{
 		private static int _InvalidInt = 1232;
 		// headroom multiplier for distortion reduction (deprecated)
-		private static double _Headroom = 1.40;
+		private double _Headroom = 1.05;
 		/// <summary>
 		/// convert from generator voltage to register setting
 		/// voltages are 7.943, 2.512, 0.794, 0.251 by dBV of 18, 8, -2, -12
-		/// the Volt2Output list is empirically determined by looking at distortion vs output gain at each voltage
+		/// the Volt2Output list is empirically determined by looking at THD+N vs output gain at each voltage
 		/// it is max generator voltage vs gain setting. -12 gain is particularly problematic
+		/// this is used if MinOutputRange is set in the settings to not-blank
+		/// or we're set to miniminize distortion
 		/// </summary>
-		private static readonly Dictionary<double, int> _Volt2Output = new() { { 7.94, 18 }, { 2.4, 8 }, { .65, -2 }, { .08, -12 } };
+		private static readonly Dictionary<double, int> _Volt2Output = new() { { 7.94, 18 }, { 2.1, 8 }, { .54, -2 }, { .07, -12 } };
 		private static readonly Dictionary<int, int> _Output2Reg = new() { { 18, 3 }, { 8, 2 }, { -2, 1 }, { -12, 0 } };
 		private static readonly Dictionary<int, int> _Input2Reg = new() { { 0, 0 }, { 6, 1 }, { 12, 2 }, { 18, 3 }, { 24, 4 }, { 30, 5 }, { 36, 6 }, { 42, 7 } };
 		private static readonly Dictionary<int, int> _Samplerate2Reg = new() { { 48000, 0 }, { 96000, 1 }, { 192000, 2 }, { 384000, 3 } }; // 384K?
@@ -184,15 +186,15 @@ namespace QA40xPlot.BareMetal
 		/// </summary>
 		/// <param name="maxOut"></param>
 		/// <returns></returns>
-		static int DetermineOutput(double maxOut)
+		int DetermineOutput(double maxOut)
 		{
-			var headRoom = _Headroom;    // limit to 70% or so of full scale for less distortion (empirical)
-			bool useVoltage = true;
-
 			// Find the smallest output setting that is greater than or equal to maxOut
 			// since maxout is a peak voltage, convert to rms
 			var maxrms = maxOut * 0.7;  // the rms voltage to produce this peak voltage
-			if(useVoltage)
+			bool useVolts = ViewSettings.Singleton.SettingsVm.MinOutputRange.Length != 0 ||
+				ViewSettings.Singleton.SettingsVm.OutputMethod.Length == 0 ||
+				ViewSettings.Singleton.SettingsVm.OutputMethod.Contains("stort");
+			if (useVolts)
 			{
 				// new method with hardcoded voltage limits
 				foreach (var kvp in _Volt2Output.Reverse())  // since the list decreases
@@ -207,7 +209,7 @@ namespace QA40xPlot.BareMetal
 			else
 			{
 				// old method by just using the lowest possible gain
-				var maxdbv = 20 * Math.Log10(headRoom * maxrms);        // get it in db
+				var maxdbv = 20 * Math.Log10(_Headroom * maxrms);        // get it in db
 				foreach (var kvp in _Output2Reg.Reverse())  // since the list decreases
 				{
 					if (kvp.Key > maxdbv)

@@ -828,7 +828,7 @@ namespace QA40xPlot.Actions
 
 			// for each list of lines (left and right)
 			var ttype = ToDirection(freqVm.GenDirection);
-			var prefix = (measurementNr == 0) ? string.Empty : (measurementNr + ".");
+			var prefix = isMain ? string.Empty : (ClipName(page.Definition.Name) + ".");
 			foreach (var lineList in lineGroup)
 			{
 				var colorNum = (measurementNr > 1) ? (measurementNr - 1) * 5 : 0;

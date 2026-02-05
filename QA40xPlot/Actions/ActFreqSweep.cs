@@ -233,6 +233,11 @@ namespace QA40xPlot.Actions
 		{
 			var vm = MyVModel;
 			var allLines = LookupColumn(PageData, freq); // lookup the columns
+			for(int i=0; i<allLines.Count; i++)
+			{
+				var u = allLines[i];
+				u.Label = ClipName(PageData.Definition.Name);
+			}
 			if (OtherTabs.Count > 0)
 			{
 				int tabCnt = 1;
@@ -244,7 +249,7 @@ namespace QA40xPlot.Actions
 					var tabChr = tabCnt + ".";
 					foreach (var ail in all2)
 					{
-						ail.Label = tabChr + ail.Label;
+						ail.Label = o.Definition.Name + ail.Label;
 					}
 					allLines.AddRange(all2);
 					tabCnt++;
@@ -781,7 +786,7 @@ namespace QA40xPlot.Actions
 				suffix = tosuffix;
 
 			// for each list of lines (left and right)
-			var prefix = (measurementNr == 0) ? string.Empty : (measurementNr + ".");
+			var prefix = isMain ? string.Empty : (ClipName(page.Definition.Name) + "."); 
 			foreach (var lineList in lineGroup)
 			{
 				var colorNum = (measurementNr > 1) ? (measurementNr - 1) * 5 : 0;

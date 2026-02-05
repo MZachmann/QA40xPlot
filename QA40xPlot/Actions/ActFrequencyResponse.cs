@@ -497,8 +497,8 @@ namespace QA40xPlot.Actions
 					rrc.Height = msdre.Max() - rrc.Y;
 					if (vm.ShowRight)
 					{
-						rrc.Y = Math.Min(rrc.Y, msdim.Min());
-						rrc.Height = Math.Max(rrc.Height, msdim.Max() - rrc.Y);
+						rrc.Y = Math.Min(msdre.Min(), msdim.Min());
+						rrc.Height = Math.Max(msdre.Max(), msdim.Max()) - rrc.Y;
 					}
 				}
 				else if (vm.ShowRight)

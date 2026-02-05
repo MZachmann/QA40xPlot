@@ -6,6 +6,7 @@ using QA40xPlot.Libraries;
 using QA40xPlot.Views;
 using ScottPlot;
 using ScottPlot.Plottables;
+using System;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -109,12 +110,37 @@ namespace QA40xPlot.ViewModels
 		private void ShowInfos()
 		{
 			uint frames = 0;
+			List<uint> chanId = new();
 			if (ShowLeft)
+			{
 				frames++;
+				chanId.Add(0);
+			}
 			if (ShowRight)
+			{
+				chanId.Add(1);
 				frames++;
-			var seen = (OtherSetList == null) ? 0 : OtherSetList.Count(x => x.IsOnR) + OtherSetList.Count(x => x.IsOnL);
-			frames += (uint)seen;
+			}
+			uint ictr = 1;
+			foreach(var otl in OtherSetList)
+			{
+				if (otl.IsOnL)
+				{
+					chanId.Add(2*ictr);
+					frames++;
+				}
+				if (frames > 3)
+					break;
+				if (otl.IsOnR )
+				{
+					chanId.Add(2*ictr+1);
+					frames++;
+				}
+				ictr++;
+				if (frames > 3)
+					break;
+			}
+
 			if (actInfoLeft != null)
 				actInfoLeft.Visibility = (ShowSummary && frames > 0) ? Visibility.Visible : Visibility.Hidden;
 			if (actInfoRight != null)
@@ -123,6 +149,7 @@ namespace QA40xPlot.ViewModels
 				actInfo2Left.Visibility = (ShowSummary && frames > 2) ? Visibility.Visible : Visibility.Hidden;
 			if (actInfo2Right != null)
 				actInfo2Right.Visibility = (ShowSummary && frames > 3) ? Visibility.Visible : Visibility.Hidden;
+
 			if (actAbout != null)
 			{
 				actAbout.Visibility = ShowTabInfo ? Visibility.Visible : Visibility.Hidden;

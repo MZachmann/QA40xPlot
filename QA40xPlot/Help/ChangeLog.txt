@@ -3,12 +3,14 @@
 This changelog shows the changes made for each version
 Date format is US mm/dd/yy
 --------------------------------------------
-v 1.2.8
-- add more headroom on the output range selection to lower distortion substantially
+v 1.2.8 2/8/26
+- enable empirically set output range method using min distortion in settings
 - show spectrum and imd markers on click rather than requiring run
 - serious refactor of viewmodel copying
 - add Test menu for the graph popup commands
 - rename Start to Once when there is a Run button
+- support up to 4 data summary boxes to spectrum test (2 more than previous)
+- repair data summary box color match to line color
 v 1.2.7 2/1/26
 - improve menu position and other esthetics
 - add blackman-harris 7 window to the window list, rename blackman to blackman-3

@@ -6,19 +6,23 @@
             font-family: Arial, Helvetica, sans-serif; /* Arial as primary */
         }
         p, li { font-size: 11pt}
-        h1 { font-size: 15pt;}
+        h1 { font-size: 15pt;
+            margin-left: 40px;
+        }
         h2 { font-size: 13pt;}
         h5 { color: blue; font-size: 13pt;}
     </style>
 </head>
-<p>&nbsp;</p>
-<h5>v 1.2.8&nbsp;&nbsp;&nbsp;&nbsp; Feb 11, 2026</h5>
+<h1>What&#39;s New in QA40xPlot</h1>
+<h5>v 1.2.8&nbsp;&nbsp;&nbsp;&nbsp; Feb 8, 2026</h5>
 <h2>Risk Summary</h2>
-<p>Unknown at this time.</p>
-<h2>Change gain points to lower distortion</h2>
-<p>Noticed that the distortion rise in the QA403 generators near maximum output can be reduced by switching to the next higher gain block sooner. This reduces by about a factor of 2 the 3rd harmonic distortion of the generators in those voltage bands (such as 0.23 vrms) and it makes the THD vs Amplitude plot smoother. The cost is probably some additional background noise.</p>
-<p>&nbsp;</p>
-<h5>__________________________________________________________________________________________________________</h5>
+<p>This release is very high risk. There were some substantial refactorings of mid-level code to help with consistency and for adding more tests. Trying to reduce the code debt.</p>
+<h2>Added a new Test menu</h2>
+<p>The new test menu currently contains just the graph popup menu. This lets you do the graph popup options with the keyboard, too.</p>
+<h2>Renamed Start to Once when Run exists</h2>
+<p>For the tests which have a run once (Start) option that is now named Once.&nbsp;I think that&#39;s more user-friendly since I constantly found myself trying to remember which was which between Run and Start.</p>
+<h2>Support 4 Data Summary Boxes in Spectrum</h2>
+<p>I found myself wanting to compare 4 plots a lot. So... This may get expanded to no limit. While there I fixed the boundary to plot line color matching.</p>
 <h5>__________________________________________________________________________________________________________</h5>
 <h1>&nbsp;</h1>
 <h1>---- Older&nbsp; Entries ----</h1>

@@ -171,22 +171,23 @@ namespace QA40xPlot.Actions
 
 		private void SetVmColor(ThdChannelViewModel vm, int index)
 		{
-			var srcTab = OtherTabs.Find(item => item.GetProperty("Left") == vm);
-			string clr = "Transparent";
+			var srcTab = OtherTabs.Find(item => ReferenceEquals(item.GetProperty("Left"), vm));
+			var clr = srcTab?.Definition.LeftColor;
+			bool isLeft = true;
+			if (srcTab == null)
+			{
+				srcTab = OtherTabs.Find(item => ReferenceEquals(item.GetProperty("Right"), vm));
+				clr = srcTab?.Definition.RightColor;
+				isLeft = false;
+			}
+			if (srcTab == null)
+				return;
+			var srcIndx = (isLeft ? 2 : 3) + 2 * OtherTabs.IndexOf(srcTab);		// what index is this?
 			if (srcTab != null)
 			{
-				clr = srcTab.Definition.LeftColor;
+				var scottClr = GraphUtil.GetPaletteColor(clr, srcIndx);
+				vm.BorderColor = new System.Windows.Media.SolidColorBrush(PlotUtil.ScottToMedia(scottClr));
 			}
-			else
-			{
-				srcTab = OtherTabs.Find(item => item.GetProperty("Right") == vm);
-				if (srcTab != null)
-				{
-					clr = srcTab.Definition.RightColor;
-				}
-			}
-			var scottClr = GraphUtil.GetPaletteColor(clr, index);
-			vm.BorderColor = new System.Windows.Media.SolidColorBrush(PlotUtil.ScottToMedia(scottClr));
 		}
 
 		private void ShowPageInfo(MyDataTab page)
@@ -199,10 +200,6 @@ namespace QA40xPlot.Actions
 				if (mdl != null)
 				{
 					channels.Add(mdl);
-					var clr = GraphUtil.PlotPalette.GetColorName(0);
-					var brs = new System.Windows.Media.BrushConverter().ConvertFromString(clr);
-					if (brs != null)
-						mdl.BorderColor = (System.Windows.Media.Brush)brs;
 				}
 			}
 			if (specVm.ShowRight)
@@ -211,25 +208,21 @@ namespace QA40xPlot.Actions
 				if (mdl != null)
 				{
 					channels.Add(mdl);
-					var clr = GraphUtil.PlotPalette.GetColorName(1);
-					var brs = new System.Windows.Media.BrushConverter().ConvertFromString(clr);
-					if (brs != null)
-						mdl.BorderColor = (System.Windows.Media.Brush)brs;
 				}
 			}
 			if (OtherTabs.Count > 0)
 			{
-				// copy the shown status from othersetlist to othertabs
-				var seen = DataUtil.FindShownInfo<SpectrumViewModel, ThdChannelViewModel>(OtherTabs);
-				if (channels.Count < 4 && seen.Count > 0)
+			// copy the shown status from othersetlist to othertabs
+			var seen = DataUtil.FindShownInfo<SpectrumViewModel, ThdChannelViewModel>(OtherTabs);
+			if (channels.Count < 4 && seen.Count > 0)
+			{
+				var mdl = seen[0];
+				if (mdl != null)
 				{
-					var mdl = seen[0];
-					if (mdl != null)
-					{
-						SetVmColor(mdl, channels.Count);
-						channels.Add(mdl);
-					}
+					SetVmColor(mdl, channels.Count);
+					channels.Add(mdl);
 				}
+			}
 				if (channels.Count < 4 && seen.Count > 1)
 				{
 					var mdl = seen[1];

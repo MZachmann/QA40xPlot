@@ -289,11 +289,10 @@
                    HorizontalAlignment="Left" VerticalAlignment="Center"
                    Grid.Row="47" Grid.Column="4" />
             <local:GroupHeader Grid.Row="48" Grid.Column="0" Grid.ColumnSpan="5"  />
-            <Label VerticalAlignment="Center" Content="Min Output Gain: " Grid.Row="49" Grid.Column="0" />
-            <ComboBox Grid.Row="49" Grid.Column="1" MinWidth="80" Text="{Binding MinOutputRange}" ItemsSource="{Binding OutputRanges}" />
-            <Label VerticalAlignment="Center" Content="dB" Grid.Row="49" Grid.Column="2" HorizontalAlignment="Left" />
+            <Label VerticalAlignment="Center" Content="Output Method: " Grid.Row="49" Grid.Column="0" />
+            <ComboBox Grid.Row="49" Grid.Column="1" MinWidth="80" Text="{Binding OutputMethod}" ItemsSource="{Binding OutputMethods}" />
             <TextBlock TextWrapping="Wrap" MaxWidth="600" 
-                   Text="Set a minimum output gain if desired. Blank = factory settings." 
+                   Text="Change the generator gain method to use default or to minimize either noise or distortion." 
                    HorizontalAlignment="Left" VerticalAlignment="Center"
                    Grid.Row="49" Grid.Column="4" />
             <local:GroupHeader Grid.Row="50" Grid.Column="0" Grid.ColumnSpan="5"  />
