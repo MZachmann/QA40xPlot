@@ -124,8 +124,18 @@ namespace QA40xPlot.Libraries
 				}
 			}
 
+			var finalDataLeft = dtL;
+			var finalDataRight = dtR;
+			var gengain = MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.GeneratorGain, 0);
+			if (gengain != 0.0)
+			{
+				gengain = 1.0 / QaLibrary.ConvertVoltage(gengain, Data.E_VoltageUnit.dBV, Data.E_VoltageUnit.Volt);   // linearize
+				finalDataLeft = dtL.Select(x => x * gengain).ToArray();
+				finalDataRight = dtR.Select(x => x * gengain).ToArray();
+			}
+
 			soundObj?.Play();
-			await Qa40x.DoUserAcquisition(dtL, dtR);
+			await Qa40x.DoUserAcquisition(finalDataLeft, finalDataRight);
 			soundObj?.Stop();
 
 			if (ct.IsCancellationRequested)

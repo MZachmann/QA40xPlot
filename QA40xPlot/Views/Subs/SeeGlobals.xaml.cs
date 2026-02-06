@@ -16,6 +16,9 @@ namespace QA40xPlot.Views
 			this.EGain.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
 			this.EGain2.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
 			this.EGain3.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
+			this.GGain.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
+			this.GGain2.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
+			this.GGain3.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
 			this.Noises.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
 			this.Noises2.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
 			this.Noiseband.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control

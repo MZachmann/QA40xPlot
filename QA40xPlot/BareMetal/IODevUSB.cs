@@ -264,11 +264,21 @@ namespace QA40xPlot.BareMetal
 			mlevel = Math.Max(mlevel, minRange); // noop for now but keep this line in for testing
 			await SetOutputRange(mlevel);   // set the output voltage
 
+			var dtL = dataLeft;
+			var dtR = dataRight;
+			var gengain = MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.GeneratorGain, 0);
+			if (gengain != 0.0)
+			{
+				gengain = 1.0 / QaLibrary.ConvertVoltage(gengain, Data.E_VoltageUnit.dBV, Data.E_VoltageUnit.Volt);   // linearize
+				dtL = dataLeft.Select(x => x * gengain).ToArray();
+				dtR = dataRight.Select(x => x * gengain).ToArray();
+			}
+
 			for (int rrun = 0; rrun < averages; rrun++)
 			{
 				try
 				{
-					var newData = await _UsbApi.DoStreamingAsync(ct, dataLeft, dataRight);
+					var newData = await _UsbApi.DoStreamingAsync(ct, dtL, dtR);
 					if (ct.IsCancellationRequested || lrfs == null || newData.Valid == false)
 						return lrfs ?? new();
 					runList.Add(newData);

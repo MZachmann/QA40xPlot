@@ -351,6 +351,15 @@ namespace QA40xPlot.ViewModels
 			get { return _ExternalGain; }
 			set { SetProperty(ref _ExternalGain, value); }  // copy to the globally visible value
 		}
+		// if the user has a gain block for the generator, for example to get higher output voltages
+		// this is the gain value in power reduction or increase
+		// a negative value means attenuation, a positive value means gain
+		private string _GeneratorGain = "0"; // 0, 10, 20, 30, 40, 50 dB
+		public string GeneratorGain
+		{
+			get { return _GeneratorGain; }
+			set { SetProperty(ref _GeneratorGain, value); }  // copy to the globally visible value
+		}
 		// weighting method for noise analysis
 		private string _NoiseWeight = "Z"; // "Z","A", "C"
 		public string NoiseWeight
