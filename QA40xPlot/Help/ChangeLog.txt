@@ -11,6 +11,7 @@ v 1.2.8 2/8/26
 - rename Start to Once when there is a Run button
 - support up to 4 data summary boxes to spectrum test (2 more than previous)
 - repair data summary box color match to line color
+- add output gain block setting for higher voltage outputs
 v 1.2.7 2/1/26
 - improve menu position and other esthetics
 - add blackman-harris 7 window to the window list, rename blackman to blackman-3

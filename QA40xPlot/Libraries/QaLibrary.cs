@@ -1,4 +1,5 @@
-﻿using QA40xPlot.Data;
+﻿using QA40xPlot.BareMetal;
+using QA40xPlot.Data;
 using QA40xPlot.ViewModels;
 using QA40xPlot.Views;
 using ScottPlot;
@@ -152,6 +153,13 @@ namespace QA40xPlot.Libraries
 			binnedFrequencies = binnedFrequencies.Where(x => x >= 1 && x <= 95500).GroupBy(x => x).Select(y => y.First()).ToArray();
 
 			return binnedFrequencies;
+		}
+
+		public static async Task UpdateDCValues()
+		{
+			ViewSettings.Singleton.MainVm.Temperature = await QaComm.GetTemperature();
+			ViewSettings.Singleton.MainVm.DCSupplyVoltage = await QaComm.GetDCVoltage();
+			ViewSettings.Singleton.MainVm.DCSupplyCurrent = await QaComm.GetDCCurrent();
 		}
 
 		/// <summary>

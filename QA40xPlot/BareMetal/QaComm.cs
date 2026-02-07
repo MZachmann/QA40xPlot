@@ -115,9 +115,7 @@ namespace QA40xPlot.BareMetal
 			rslt = await MyIoDevice.InitializeDevice(sampleRate, fftsize, Windowing, attenuation);
 			if (rslt)
 			{
-				ViewSettings.Singleton.MainVm.Temperature = await MyIoDevice.GetTemperature();
-				ViewSettings.Singleton.MainVm.DCSupplyVoltage = await MyIoDevice.GetDCVolts();
-				ViewSettings.Singleton.MainVm.DCSupplyCurrent = await MyIoDevice.GetDCAmps();
+				await QaLibrary.UpdateDCValues();
 			}
 			return rslt;
 		}

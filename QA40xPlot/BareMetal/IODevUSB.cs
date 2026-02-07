@@ -18,8 +18,7 @@ namespace QA40xPlot.BareMetal
 		/// voltages are 7.943, 2.512, 0.794, 0.251 by dBV of 18, 8, -2, -12
 		/// the Volt2Output list is empirically determined by looking at THD+N vs output gain at each voltage
 		/// it is max generator voltage vs gain setting. -12 gain is particularly problematic
-		/// this is used if MinOutputRange is set in the settings to not-blank
-		/// or we're set to miniminize distortion
+		/// this is used if we're set to miniminize distortion
 		/// </summary>
 		private static readonly Dictionary<double, int> _Volt2Output = new() { { 7.94, 18 }, { 2.1, 8 }, { .54, -2 }, { .07, -12 } };
 		private static readonly Dictionary<int, int> _Output2Reg = new() { { 18, 3 }, { 8, 2 }, { -2, 1 }, { -12, 0 } };
@@ -191,9 +190,8 @@ namespace QA40xPlot.BareMetal
 			// Find the smallest output setting that is greater than or equal to maxOut
 			// since maxout is a peak voltage, convert to rms
 			var maxrms = maxOut * 0.7;  // the rms voltage to produce this peak voltage
-			bool useVolts = ViewSettings.Singleton.SettingsVm.MinOutputRange.Length != 0 ||
-				ViewSettings.Singleton.SettingsVm.OutputMethod.Length == 0 ||
-				ViewSettings.Singleton.SettingsVm.OutputMethod.Contains("stort");
+			// default to factory default method of just using the lowest gain that can support the voltage
+			bool useVolts = ViewSettings.Singleton.SettingsVm.OutputMethod.Contains("stort");
 			if (useVolts)
 			{
 				// new method with hardcoded voltage limits
@@ -258,8 +256,6 @@ namespace QA40xPlot.BareMetal
 			maxOut = Math.Max(Math.Abs(maxOut), Math.Abs(minOut));  // maximum output voltage
 																	// don't bother setting output amplitude if we have no output
 			var mlevel = DetermineOutput((maxOut > 0) ? maxOut : 1e-8); // the setting for our voltage + 10%
-			// if mlevel is tiny we're doing a noise analysis so let the output range be
-			//var minRange = (maxOut <= 1e-8) ? -12 : (int)MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.MinOutputRange, -12);
 			var minRange = (int)MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.MinOutputRange, -12);
 			mlevel = Math.Max(mlevel, minRange); // noop for now but keep this line in for testing
 			await SetOutputRange(mlevel);   // set the output voltage
@@ -276,6 +272,7 @@ namespace QA40xPlot.BareMetal
 
 			for (int rrun = 0; rrun < averages; rrun++)
 			{
+				await QaLibrary.UpdateDCValues();
 				try
 				{
 					var newData = await _UsbApi.DoStreamingAsync(ct, dtL, dtR);

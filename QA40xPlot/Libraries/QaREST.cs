@@ -134,6 +134,7 @@ namespace QA40xPlot.Libraries
 				finalDataRight = dtR.Select(x => x * gengain).ToArray();
 			}
 
+			await QaLibrary.UpdateDCValues();
 			soundObj?.Play();
 			await Qa40x.DoUserAcquisition(finalDataLeft, finalDataRight);
 			soundObj?.Stop();

@@ -109,7 +109,7 @@ namespace QA40xPlot.QA430
 		public static List<string> NegRailVoltages { get; } = new() { "-1", "-2", "-5", "-10", "-12", "-14.4" };
 		public static List<string> ConfigOptions { get; } = Enum.GetNames(typeof(OpampConfigOptions)).ToList();
 
-		private readonly Task RefreshTask;
+		private readonly Task? RefreshTask;
 		private bool RefreshTaskCancel = false;
 
 		static readonly QA430Config C1 = new("Config1", OpampNegInputs.GndTo4p99, OpampPosInputs.Analyzer,
@@ -330,7 +330,7 @@ namespace QA40xPlot.QA430
 		/// we stop when the app exits
 		/// </summary>
 		/// <returns></returns>
-		private async Task InitTimer()
+		private async Task MonitorQA430Timer()
 		{
 			var RefreshTimer = new PeriodicTimer(TimeSpan.FromSeconds(1));
 			while (await RefreshTimer.WaitForNextTickAsync())
@@ -349,7 +349,7 @@ namespace QA40xPlot.QA430
 			// we could embed them into the setproperty line but 
 			// this puts all the 'set option' code in one place
 			PropertyChanged += DoPropertyChanged;
-			RefreshTask = InitTimer();
+			RefreshTask = MonitorQA430Timer();
 		}
 
 		~QA430Model()
@@ -433,10 +433,14 @@ namespace QA40xPlot.QA430
 		/// </summary>
 		internal void RefreshVars()
 		{
-			RaisePropertyChanged(nameof(UsbVoltage));
-			RaisePropertyChanged(nameof(OffsetVoltage));
-			RaisePropertyChanged(nameof(CurrentSenseLowValue));
-			RaisePropertyChanged(nameof(CurrentSenseHiValue));
+			System.Windows.Application.Current.Dispatcher.Invoke(() =>
+			{
+				RaisePropertyChanged(nameof(UsbVoltage));
+				RaisePropertyChanged(nameof(OffsetVoltage));
+				RaisePropertyChanged(nameof(CurrentSenseLowValue));
+				RaisePropertyChanged(nameof(CurrentSenseHiValue));
+			});
+
 		}
 
 		internal bool SetDefaults()
@@ -444,13 +448,15 @@ namespace QA40xPlot.QA430
 			try
 			{
 				ShowRegisters("Beginning default");
-				//Hw.ResetAllRelays();	// set the internal relays byte to zero
+				Hw.ResetAllRelays();    // set the internal relays byte to zero
+				Thread.Sleep(50);
 				EnableSupply = false;
 				EnableCurrentSense = false;
 				PosRailVoltage = "1.0";
 				NegRailVoltage = "-1.0";
 				UseFixedRails = false;
 
+				Thread.Sleep(250); 
 				ShowRegisters("Voltage set");
 
 				OpampNegInput = (short)OpampNegInputs.Open;
