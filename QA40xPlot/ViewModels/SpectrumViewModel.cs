@@ -109,6 +109,9 @@ namespace QA40xPlot.ViewModels
 
 		private void ShowInfos()
 		{
+			if (ViewSettings.Singleton?.SpectrumVm == null)
+				return;
+
 			uint frames = 0;
 			List<uint> chanId = new();
 			if (ShowLeft)
@@ -122,7 +125,7 @@ namespace QA40xPlot.ViewModels
 				frames++;
 			}
 			uint ictr = 1;
-			foreach(var otl in OtherSetList)
+			foreach(var otl in MyVModel.OtherSetList)
 			{
 				if (otl.IsOnL)
 				{
@@ -232,10 +235,10 @@ namespace QA40xPlot.ViewModels
 		public override void DoDeleteIt(string param)
 		{
 			var id = MathUtil.ToInt(param, -1);
-			var fat = OtherSetList.FirstOrDefault(x => x.Id == id);
+			var fat = MyVModel.OtherSetList.FirstOrDefault(x => x.Id == id);
 			if (fat != null)
 			{
-				OtherSetList.Remove(fat);
+				MyVModel.OtherSetList.Remove(fat);
 				MyAction.DeleteTab(id);
 			}
 		}

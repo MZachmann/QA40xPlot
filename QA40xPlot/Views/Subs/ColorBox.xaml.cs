@@ -1,4 +1,7 @@
-﻿using System.ComponentModel;
+﻿using Newtonsoft.Json.Linq;
+using ScottPlot;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -10,6 +13,7 @@ namespace QA40xPlot.Views
 		public ColorBox()
 		{
 			InitializeComponent();
+			XColor = (Color.ToString() == "Transparent") ? "∅" : string.Empty;
 		}
 
 		// called by the picker when a value changes
@@ -39,13 +43,26 @@ namespace QA40xPlot.Views
 		public static readonly DependencyProperty ColorProperty =
 			DependencyProperty.Register(
 				"Color",                // Property name
-				typeof(string),              // Property type
+				typeof(string),         // Property type
 				typeof(ColorBox),       // Owner type
 				new FrameworkPropertyMetadata(
-					"Red", FrameworkPropertyMetadataOptions.BindsTwoWayByDefault)
+					"Red", FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, ColorChanged)
 			);
 
-		private string _XColor = "∅";
+		private static void ColorChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+		{
+			var box = d as ColorBox;
+			Debug.Assert(box != null, "Not a colorbox");
+			if(box != null)
+			{
+				var u = box.XColor;
+				box.XColor = (e.NewValue.ToString() == "Transparent") ? "∅" : string.Empty;
+				if(u != box.XColor)
+					box.RaisePropertyChanged("Color");
+			}
+		}
+
+		private string _XColor = "x";
 		public string XColor
 		{
 			get => _XColor;
@@ -60,11 +77,6 @@ namespace QA40xPlot.Views
 				// this is called when it gets set by palette editor
 				var oldc = Color;
 				SetValue(ColorProperty, value);
-				if (oldc != Color)
-				{
-					XColor = (value == "Transparent") ? "∅" : string.Empty;
-					RaisePropertyChanged("Color");
-				}
 			}
 		}
 

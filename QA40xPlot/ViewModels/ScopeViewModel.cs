@@ -195,10 +195,10 @@ namespace QA40xPlot.ViewModels
 		public override void DoDeleteIt(string param)
 		{
 			var id = MathUtil.ToInt(param, -1);
-			var fat = OtherSetList.FirstOrDefault(x => x.Id == id);
+			var fat = MyVModel.OtherSetList.FirstOrDefault(x => x.Id == id);
 			if (fat != null)
 			{
-				OtherSetList.Remove(fat);
+				MyVModel.OtherSetList.Remove(fat);
 				MyAction.DeleteTab(id);
 			}
 		}
@@ -277,12 +277,16 @@ namespace QA40xPlot.ViewModels
 
 		private void ShowInfos()
 		{
+			if (ViewSettings.Singleton?.ScopeVm == null)
+				return;
+
 			uint frames = 0;
 			if (ShowLeft)
 				frames++;
 			if (ShowRight)
 				frames++;
-			var seen = (OtherSetList == null) ? 0 : OtherSetList.Count(x => x.IsOnR) + OtherSetList.Count(x => x.IsOnL);
+			var olist = MyVModel.OtherSetList;
+			var seen = (olist == null) ? 0 : olist.Count(x => x.IsOnR) + olist.Count(x => x.IsOnL);
 			frames += (uint)seen;
 			if (actInfoLeft != null)
 				actInfoLeft.Visibility = (ShowSummary && frames > 0) ? Visibility.Visible : Visibility.Hidden;
