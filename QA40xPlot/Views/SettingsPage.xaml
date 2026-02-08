@@ -302,7 +302,7 @@
                    Grid.Row="49" Grid.Column="4" />
             <local:GroupHeader Grid.Row="50" Grid.Column="0" Grid.ColumnSpan="5"  />
             <Label VerticalAlignment="Center" Content="Output Method: " Grid.Row="51" Grid.Column="0" />
-            <ComboBox Grid.Row="51" Grid.Column="1" MinWidth="80" Text="{Binding OutputMethod}" ItemsSource="{Binding OutputMethods}" />
+            <ComboBox Grid.Row="51" Grid.Column="1" MinWidth="80" SelectedValue="{Binding OutputMethod}" ItemsSource="{Binding OutputMethods}" />
             <TextBlock TextWrapping="Wrap" MaxWidth="600" 
                    Text="Change the generator gain method to use default or to minimize either noise or distortion." 
                    HorizontalAlignment="Left" VerticalAlignment="Center"

@@ -1128,7 +1128,7 @@ namespace QA40xPlot.Actions
 			}
 			if (frqrsVm.ShowGroupDelay)
 			{
-				AddGroupDelay(frqrsVm, myPlot);
+				PlotUtil.AddGroupDelay(frqrsVm, myPlot);
 			}
 		}
 
@@ -1136,30 +1136,6 @@ namespace QA40xPlot.Actions
 		{
 			// BT.601 Y = 0.299 R + 0.587 G + 0.114 B
 			return clr.R * 0.299 + clr.G * 0.587 + clr.B * 0.114;
-		}
-
-		public void AddGroupDelay(FreqRespViewModel frqrsVm, Plot myPlot)
-		{
-			var axis = PlotUtil.AddSecondY(myPlot, frqrsVm);
-			axis.RemoveTickGenerator();
-			var y2axis = frqrsVm.SecondYAxis;
-			if (y2axis != null)
-			{
-				myPlot.Axes.SetLimitsY(ToD(frqrsVm.Range2Bottom, -10), ToD(frqrsVm.Range2Top, 10), y2axis);
-			}
-			frqrsVm.Y2AxisUnit = "ms";
-			axis.LabelText = "Group Delay (ms)";
-			var tickgen = PlotUtil.BuildMagTics(myPlot);
-			var foreColor = PlotUtil.StrToColor(ViewSettings.Singleton.SettingsVm.GraphForeground);
-			var light = ToBrightness(foreColor);
-			var clr = (light < 128) ? ScottPlot.Colors.White : ScottPlot.Colors.Black;
-
-			axis.TickGenerator = tickgen;
-			axis.LabelFontSize = GraphUtil.PtToPixels(PixelSizes.LABEL_SIZE);
-			axis.TickLabelStyle.FontSize = GraphUtil.PtToPixels(PixelSizes.AXIS_SIZE);
-			// use dark text color
-			axis.LabelFontColor = clr;
-			axis.TickLabelStyle.ForeColor = clr;
 		}
 
 		private void AddCustomMarker()

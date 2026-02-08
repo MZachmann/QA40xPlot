@@ -31,9 +31,17 @@
                                 <CheckBox Content="" IsChecked="{Binding IsSelected}" VerticalAlignment="Center" />
                                 <ComboBox MinWidth="100"
                                         VerticalContentAlignment="Center"
-                                        Text="{Binding Name}"
+                                        Text="{Binding Name}" 
                                         ToolTip="Clearing the text will remove the entry."
-                                        IsEditable="{Binding IsEditable, ElementName=MySelf}" 
+                                        Visibility="{Binding IsEditable, ElementName=MySelf, Converter={StaticResource BoolVisConverter}}" 
+                                        IsEditable="True" 
+                                        ItemsSource="{Binding TheSource, ElementName=MySelf}"/>
+                                <ComboBox MinWidth="100"
+                                        VerticalContentAlignment="Center"
+                                        SelectedValue="{Binding Name}" 
+                                        ToolTip="Clearing the text will remove the entry."
+                                        Visibility="{Binding IsEditable, ElementName=MySelf, Converter={StaticResource BoolNotVisConverter}}" 
+                                        IsEditable="False" 
                                         ItemsSource="{Binding TheSource, ElementName=MySelf}"/>
                                 <Button Content="+" Tag="{Binding Index}" MinWidth="20" Background="Transparent"
                                         ToolTip="Add a new entry after this one"
