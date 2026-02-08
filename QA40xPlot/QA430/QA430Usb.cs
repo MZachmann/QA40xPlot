@@ -170,10 +170,10 @@ namespace QA40xPlot.QA430
 		/// </summary>
 		/// <param name="reg"></param>
 		/// <returns></returns>
-		public UInt32 ReadRegister(byte reg)
+		public Int32 ReadRegister(byte reg)
 		{
 			byte[] data = new byte[4];
-			UInt32 val;
+			Int32 val;
 
 			// Lock so reads (two step USB operation) can't be broken up by writes (single step USB operation). We need to 
 			// consider there can be USB writes from the main (UI) thread, and also from the aquisition thread. So, it's 
@@ -190,7 +190,7 @@ namespace QA40xPlot.QA430
 					if (len == 0)
 						throw new Exception($"Usb.ReadRegister failed to read data. Register: {reg}");
 
-					val = (UInt32)((data[0] << 24) + (data[1] << 16) + (data[2] << 8) + data[3]);
+					val = ((data[0] << 24) + (data[1] << 16) + (data[2] << 8) + data[3]);
 
 				}
 				catch (Exception ex)

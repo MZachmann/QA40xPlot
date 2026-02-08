@@ -52,7 +52,7 @@ namespace QA40xPlot.QA430
 
 		internal static UInt32 SetPsrr(PsrrOptions options)
 		{
-			UInt32 writeVal = Qa430Usb.Singleton.ReadRegister(5);
+			var writeVal = (UInt32)Qa430Usb.Singleton.ReadRegister(5);
 			writeVal = SetPsrr(options, writeVal);
 			Qa430Usb.Singleton.WriteRegister(5, writeVal);
 			return writeVal;
@@ -87,7 +87,7 @@ namespace QA40xPlot.QA430
 
 		internal static void SetPsrrNow(PsrrOptions options)
 		{
-			UInt32 writeVal = Qa430Usb.Singleton.ReadRegister(5);
+			UInt32 writeVal = (UInt32)Qa430Usb.Singleton.ReadRegister(5);
 			writeVal = SetPsrr(options, writeVal);
 			Qa430Usb.Singleton.WriteRegister(5, writeVal);
 		}
@@ -95,7 +95,7 @@ namespace QA40xPlot.QA430
 
 		//internal static void SetPSRRInputToGroundNow()
 		//{
-		//    UInt32 writeVal = Qa430Usb.Singleton.ReadRegister(5);
+		//    UInt32 writeVal = (UInt32)Qa430Usb.Singleton.ReadRegister(5);
 		//    writeVal.BitSet(0x1 << 14);
 		//    writeVal.BitSet(0x1 << 15);
 
@@ -104,7 +104,7 @@ namespace QA40xPlot.QA430
 
 		//internal static void SetPSRRInputToAnalyzerNow()
 		//{
-		//    UInt32 writeVal = Qa430Usb.Singleton.ReadRegister(5);
+		//    UInt32 writeVal = (UInt32)Qa430Usb.Singleton.ReadRegister(5);
 		//    writeVal.BitClear(0x1 << 14);
 		//    writeVal.BitClear(0x1 << 15);
 
@@ -113,7 +113,7 @@ namespace QA40xPlot.QA430
 
 		internal static UInt32 OpampSupplyEnable(bool isEnabled)
 		{
-			UInt32 val = Qa430Usb.Singleton.ReadRegister(0xA);
+			UInt32 val = (UInt32)Qa430Usb.Singleton.ReadRegister(0xA);
 			if (isEnabled)
 				val = val.BitSet(0x1);
 			else
@@ -125,19 +125,19 @@ namespace QA40xPlot.QA430
 		internal static void OpampSupplyEnableNow()
 		{
 
-			UInt32 val = Qa430Usb.Singleton.ReadRegister(0xA);
+			UInt32 val = (UInt32)Qa430Usb.Singleton.ReadRegister(0xA);
 			Qa430Usb.Singleton.WriteRegister(0xA, val | 0x1);
 		}
 
 		internal static void OpampSupplyDisableNow()
 		{
-			UInt32 val = Qa430Usb.Singleton.ReadRegister(0xA);
+			UInt32 val = (UInt32)Qa430Usb.Singleton.ReadRegister(0xA);
 			Qa430Usb.Singleton.WriteRegister(0xA, (uint)(val & ~0x1));
 		}
 
 		internal static UInt32 SetPowerRails(bool isFixed)
 		{
-			UInt32 writeVal = Qa430Usb.Singleton.ReadRegister(5);
+			UInt32 writeVal = (UInt32)Qa430Usb.Singleton.ReadRegister(5);
 			if (isFixed)
 				writeVal = SetPowerFromFixedRails(writeVal);
 			else
@@ -160,21 +160,21 @@ namespace QA40xPlot.QA430
 
 		internal static void SetPowerFromFixedRailsNow()
 		{
-			UInt32 writeVal = Qa430Usb.Singleton.ReadRegister(5);
+			UInt32 writeVal = (UInt32)Qa430Usb.Singleton.ReadRegister(5);
 			writeVal = SetPowerFromFixedRails(writeVal);
 			Qa430Usb.Singleton.WriteRegister(5, writeVal);
 		}
 
 		internal static void SetPowerFromAdjustableRailsNow()
 		{
-			UInt32 writeVal = Qa430Usb.Singleton.ReadRegister(5);
+			UInt32 writeVal = (UInt32)Qa430Usb.Singleton.ReadRegister(5);
 			writeVal = SetPowerFromAdjustableRails(writeVal);
 			Qa430Usb.Singleton.WriteRegister(5, writeVal);
 		}
 
 		internal static UInt32 EnableSplitCurrentSense(bool isEnable)
 		{
-			UInt32 writeVal = Qa430Usb.Singleton.ReadRegister(5);
+			UInt32 writeVal = (UInt32)Qa430Usb.Singleton.ReadRegister(5);
 			if (isEnable)
 				writeVal = writeVal.BitSet(0x1 << 12);
 			else
@@ -228,7 +228,7 @@ namespace QA40xPlot.QA430
 
 		internal static UInt32 SetNegInput(OpampNegInputs input)
 		{
-			UInt32 writeVal = Qa430Usb.Singleton.ReadRegister(5);
+			UInt32 writeVal = (UInt32)Qa430Usb.Singleton.ReadRegister(5);
 			writeVal = SetNegInput(input, writeVal);
 			Qa430Usb.Singleton.WriteRegister(5, writeVal);
 			return writeVal;
@@ -265,7 +265,7 @@ namespace QA40xPlot.QA430
 
 		internal static UInt32 SetPosInput(OpampPosInputs input)
 		{
-			UInt32 writeVal = Qa430Usb.Singleton.ReadRegister(5);
+			UInt32 writeVal = (UInt32)Qa430Usb.Singleton.ReadRegister(5);
 			writeVal = SetPosInput(input, writeVal);
 			Qa430Usb.Singleton.WriteRegister(5, writeVal);
 			return writeVal;
@@ -294,7 +294,7 @@ namespace QA40xPlot.QA430
 
 		internal static UInt32 SetPosNegConnect(OpampPosNegConnects input)
 		{
-			UInt32 writeVal = Qa430Usb.Singleton.ReadRegister(5);
+			UInt32 writeVal = (UInt32)Qa430Usb.Singleton.ReadRegister(5);
 			writeVal = SetPosNegConnect(input, writeVal);
 			Qa430Usb.Singleton.WriteRegister(5, writeVal);
 			return writeVal;
@@ -326,7 +326,7 @@ namespace QA40xPlot.QA430
 
 		internal static UInt32 SetFeedback(OpampFeedbacks input)
 		{
-			UInt32 writeVal = Qa430Usb.Singleton.ReadRegister(5);
+			UInt32 writeVal = (UInt32)Qa430Usb.Singleton.ReadRegister(5);
 			writeVal = SetFeedback(input, writeVal);
 			Qa430Usb.Singleton.WriteRegister(5, writeVal);
 			return writeVal;
@@ -354,7 +354,7 @@ namespace QA40xPlot.QA430
 
 		internal static UInt32 SetLoad(LoadOptions load)
 		{
-			UInt32 writeVal = Qa430Usb.Singleton.ReadRegister(5);
+			UInt32 writeVal = (UInt32)Qa430Usb.Singleton.ReadRegister(5);
 			writeVal = SetLoad(load, writeVal);
 			Qa430Usb.Singleton.WriteRegister(5, writeVal);
 			return writeVal;
@@ -390,7 +390,7 @@ namespace QA40xPlot.QA430
 
 		internal static void SetLoadNow(LoadOptions load)
 		{
-			UInt32 writeVal = Qa430Usb.Singleton.ReadRegister(5);
+			UInt32 writeVal = (UInt32)Qa430Usb.Singleton.ReadRegister(5);
 			writeVal = SetLoad(load, writeVal);
 			Qa430Usb.Singleton.WriteRegister(5, writeVal);
 		}
