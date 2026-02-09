@@ -11,7 +11,7 @@ using static QA40xPlot.QA430.QA430Model;
 
 namespace QA40xPlot.QA430
 {
-	internal struct QA430Config
+	public struct QA430Config
 	{
 		public readonly OpampNegInputs CfgNegInput;
 		public readonly OpampPosInputs CfgPosInput;
@@ -83,13 +83,13 @@ namespace QA40xPlot.QA430
 		const int RelayRegister = 5;
 
 		// choice values for combo boxes
-		internal enum OpampNegInputs : ushort { AnalyzerTo499, GndTo4p99, Open, AnalyzerTo4p99k, GndTo499 }
-		internal enum OpampPosInputs : ushort { Analyzer, Gnd, AnalyzerTo100k }
-		internal enum OpampPosNegConnects : ushort { Open, R49p9, Short }
-		internal enum OpampFeedbacks : ushort { Short, R4p99k }
+		public enum OpampNegInputs : ushort { AnalyzerTo499, GndTo4p99, Open, AnalyzerTo4p99k, GndTo499 }
+		public enum OpampPosInputs : ushort { Analyzer, Gnd, AnalyzerTo100k }
+		public enum OpampPosNegConnects : ushort { Open, R49p9, Short }
+		public enum OpampFeedbacks : ushort { Short, R4p99k }
 		public enum LoadOptions : ushort { Open, R2000, R604, R470 }
-		internal enum PsrrOptions : ushort { BothPsrrInputsGrounded, HiRailToAnalyzer, LowRailToAnalyzer, BothRailsToAnalyzer }
-		internal enum OpampConfigOptions : ushort { Custom, Config1, Config2, Config3a, Config3b, Config3c, Config4a, Config4b, Config5a, Config5b, Config6a, Config6b, Config7a, Config7b, Config8a, Config8b };
+		public enum PsrrOptions : ushort { BothPsrrInputsGrounded, HiRailToAnalyzer, LowRailToAnalyzer, BothRailsToAnalyzer }
+		public enum OpampConfigOptions : ushort { Custom, Config1, Config2, Config3a, Config3b, Config3c, Config4a, Config4b, Config5a, Config5b, Config6a, Config6b, Config7a, Config7b, Config8a, Config8b };
 		// also
 		// +/- supply voltages
 		// use fixed rails
@@ -448,7 +448,7 @@ namespace QA40xPlot.QA430
 			try
 			{
 				ShowRegisters("Beginning default");
-				Hw.ResetAllRelays();    // set the internal relays byte to zero
+				//Hw.ResetAllRelays();    // set the internal relays byte to zero
 				Thread.Sleep(50);
 				EnableSupply = false;
 				EnableCurrentSense = false;

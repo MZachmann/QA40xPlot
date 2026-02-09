@@ -18,7 +18,7 @@
             <StackPanel Margin="0,1,1,0">
                 <views:StartStop ShowRun="False" ShowStart="True" />
                 <views:Attenuator AttnAtStart="False"  />
-                 <views:Intro430 />
+                 <views:Intro430 ShowGain="True" />
                <Expander Header="—— Generator" IsExpanded="{Binding ExpandGenerator}"  >
                     <Grid>
                         <Grid.ColumnDefinitions>

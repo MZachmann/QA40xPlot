@@ -466,7 +466,7 @@ namespace QA40xPlot.Actions
 			try
 			{
 				// get all qa430 variable combinations
-				var variables = OpampViewModel.EnumerateVariables(vm);
+				var variables = OpampViewModel.EnumerateVariables(vm, null);
 
 				// now expand the generator frequency options
 				{

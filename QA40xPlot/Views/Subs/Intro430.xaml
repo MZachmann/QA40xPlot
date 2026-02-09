@@ -7,6 +7,7 @@
              xmlns:views="clr-namespace:QA40xPlot.Views"
              d:Background="AliceBlue"
              mc:Ignorable="d" 
+             x:Name="MyIntro430"
              d:DesignHeight="450" d:DesignWidth="800">
     <Expander Header="—— Variables" IsExpanded="{Binding ExpandVars}" 
               Visibility="{Binding HasQA430, Converter={StaticResource BoolVisConverter}}"  >
@@ -31,11 +32,13 @@
                                          IsEditable="False" Grid.Column="1" x:Name="CmLoad"
                                          />
             <Label Content="_Gain" HorizontalAlignment="Right" Grid.Row="1" Grid.Column="0" 
+                   Visibility="{Binding ShowGain, ElementName=MyIntro430, Converter={StaticResource BoolVisConverter}}"
                    Target="{Binding ElementName=CmGain, Path=ValueComboBox}" VerticalAlignment="Center" />
             <views:ComboDrop TheText="{Binding GainSummary}" TheSource="{Binding QaGains}" TheTitle="Gain"
-                                         IsEditable="False" x:Name="CmGain"
-                                         Grid.Row="1" Grid.Column="1" 
-                                         />
+                            Visibility="{Binding ShowGain, ElementName=MyIntro430, Converter={StaticResource BoolVisConverter}}"
+                            IsEditable="False" x:Name="CmGain"
+                            Grid.Row="1" Grid.Column="1" 
+                            />
             <Label Content="_Supply" HorizontalAlignment="Right" Grid.Row="2" Grid.Column="0" 
                    Target="{Binding ElementName=CmSupply, Path=ValueComboBox}" VerticalAlignment="Center" />
             <views:ComboDrop TheText="{Binding SupplySummary}" TheSource="{Binding GenVoltages}" TheTitle="Supply"
@@ -44,6 +47,7 @@
                                          />
             <Label Content="V" Grid.Row="2" Grid.Column="2" />
             <CheckBox Content="Use Distortion Gain" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Right"
+                   Visibility="{Binding ShowGain, ElementName=MyIntro430, Converter={StaticResource BoolVisConverter}}"
                       IsChecked="{Binding UseHighDistortion}" ToolTip="Use the configurations with distortion gain." Margin="0,0,10,0" />
             <CheckBox Content="Deembed Source Distortion" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Right"
                       Visibility="Collapsed"

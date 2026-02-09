@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using QA40xPlot.Actions;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
+using QA40xPlot.QA430;
 using QA40xPlot.ViewModels;
 using QA40xPlot.Views;
 using System.ComponentModel;
@@ -10,18 +11,18 @@ using System.Numerics;
 using System.Windows;
 using System.Windows.Input;
 
-public class FreqRespViewModel : BaseViewModel
+public class FrQa430ViewModel : OpampViewModel
 {
 	public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 	public static List<String> Smoothings { get => new List<string> { "0", "0.001", "0.01", "0.05", "0.1", "0.25" }; }
 	public static List<String> PhaseList { get => new List<string> { "360", "180", "90", "0", "-90", "-180", "-360" }; }
-	public static List<String> TestTypes { get => new List<string> { "Response", "Impedance", "Gain", "Crosstalk" }; }
+	public static List<String> TestTypes { get => new List<string> { "CMRR", "PSRR", "InputZ", "GBW" }; }
 	[JsonIgnore]
 	public override List<string> AxisList { get; } = new List<string> { "XF", "YM", "PH", "Y2" };
 
-	private ActFrequencyResponse MyAction { get => actFreq; }
+	private ActFrQa430 MyAction { get => actFreq; }
 	private PlotControl actPlot { get; set; }
-	private ActFrequencyResponse actFreq { get; set; }
+	private ActFrQa430 actFreq { get; set; }
 	[JsonIgnore]
 	public override RelayCommand DoRun { get => new RelayCommand(RunIt); }
 	[JsonIgnore]
@@ -44,7 +45,7 @@ public class FreqRespViewModel : BaseViewModel
 	/// <summary>
 	/// the static model that applies to the GUI at least...
 	/// </summary>
-	private static FreqRespViewModel MyVModel { get => ViewSettings.Singleton.FreqRespVm; }
+	private static FrQa430ViewModel MyVModel { get => ViewSettings.Singleton.FrQa430Vm; }
 
 	#region Setters and Getters
 	private bool _UseMUseMicCorrection = false;
@@ -165,12 +166,87 @@ public class FreqRespViewModel : BaseViewModel
 		set => SetProperty(ref _ShowPercent, value);
 	}
 
+	private AcquireStep _QA430Cfg;
+	[JsonIgnore]
+	public AcquireStep QA430Cfg
+	{
+		get => _QA430Cfg;
+		set => SetProperty(ref _QA430Cfg, value);
+	}
+
 	#endregion
 
 	public TestingType GetTestingType(string type)
 	{
 		var vm = MyVModel;
 		return (TestingType)Enum.Parse(typeof(TestingType), type);
+	}
+
+	private void SetVMForTest()
+	{
+		// set the tab header as we change type
+		if (ViewSettings.Singleton != null && ViewSettings.Singleton.MainVm != null && ViewSettings.Singleton.MainVm.Frqa430Hdr != null)
+		{
+			ViewSettings.Singleton.MainVm.Frqa430Hdr = TestType;
+		}
+
+		switch (GetTestingType(TestType))
+		{
+			case TestingType.CMRR:
+				PlotFormat = "dBV";
+				Gen1Voltage = "10";
+				GenVoltageUnit = "mV";
+				StartFreq = "20";
+				EndFreq = "20000";
+				SampleRate = "96000";
+				FftSize = "32K";
+				IsChirp = false;
+				Smoothing = "0.01";
+				Averages = 1;
+				IsRiaa = false;
+				StepsOctave = 4;
+				break;
+			case TestingType.InputZ:
+				PlotFormat = "Ohms";
+				Gen1Voltage = "0.5";
+				GenVoltageUnit = "mV";
+				StartFreq = "200";
+				EndFreq = "90000";
+				SampleRate = "192000";
+				FftSize = "256K";
+				IsChirp = true;
+				Smoothing = "0.01";
+				Averages = 3;
+				IsRiaa = false;
+				break;
+			case TestingType.PSRR:
+				PlotFormat = "dB";
+				Gen1Voltage = "0.5";
+				GenVoltageUnit = "mV";
+				StartFreq = "200";
+				EndFreq = "90000";
+				SampleRate = "192000";
+				FftSize = "256K";
+				IsChirp = true;
+				Smoothing = "0.01";
+				Averages = 3;
+				IsRiaa = false;
+				break;
+			case TestingType.GBW:
+				PlotFormat = "dB";
+				Gen1Voltage = "0.5";
+				GenVoltageUnit = "mV";
+				StartFreq = "200";
+				EndFreq = "90000";
+				SampleRate = "192000";
+				FftSize = "256K";
+				IsChirp = true;
+				Smoothing = "0.01";
+				Averages = 3;
+				IsRiaa = false;
+				break;
+		}
+
 	}
 
 	// the property change is used to trigger repaints of the graph
@@ -226,28 +302,7 @@ public class FreqRespViewModel : BaseViewModel
 				//MyAction?.UpdateGeneratorParameters();
 				break;
 			case "TestType":
-				// set the tab header as we change type
-				if (ViewSettings.Singleton != null && ViewSettings.Singleton.MainVm != null && ViewSettings.Singleton.MainVm.FreqRespHdr != null)
-				{
-					ViewSettings.Singleton.MainVm.FreqRespHdr = TestType;
-				}
-
-				switch (GetTestingType(TestType))
-				{
-					case TestingType.Response:
-						PlotFormat = "dBV";
-						break;
-					case TestingType.Impedance:
-						PlotFormat = "Ohms";
-						break;
-					case TestingType.Gain:
-						PlotFormat = "SPL";
-						break;
-					case TestingType.Crosstalk:
-						PlotFormat = "SPL";
-						break;
-				}
-
+				SetVMForTest();
 				MyAction?.UpdateGraph(true);
 				break;
 			case "ShowGroupDelay":
@@ -298,14 +353,16 @@ public class FreqRespViewModel : BaseViewModel
 			//	}
 			//	break;
 			default:
+				OpampPropertyChanged(sender, e);
 				break;
+
 		}
 	}
 
 	public void SetAction(PlotControl plot, PlotControl plot2, PlotControl plot3, TabAbout TAbout)
 	{
 		LinkPlots(plot, plot2, plot3);
-		actFreq = new ActFrequencyResponse(this);
+		actFreq = new ActFrQa430(this);
 		actAbout = TAbout;
 		actPlot = plot;
 		MyVModel.LinkAbout(actFreq.PageData.Definition);
@@ -331,6 +388,7 @@ public class FreqRespViewModel : BaseViewModel
 
 	private void StartIt()
 	{
+		HasQA430 = QA430Model.BeginQA430Op();
 		// Implement the logic to start the measurement process
 		actFreq?.RunMeasurement(false);
 	}
@@ -361,14 +419,14 @@ public class FreqRespViewModel : BaseViewModel
 	{
 		string prefix = "QaFile";
 		var ttype = MyVModel.GetTestingType(MyVModel.TestType);
-		if (ttype == TestingType.Response)
-			prefix = "QaResponse";
-		else if (ttype == TestingType.Impedance)
-			prefix = "QaImpedance";
-		else if (ttype == TestingType.Gain)
-			prefix = "QaGain";
-		else if (ttype == TestingType.Gain)
-			prefix = "QaCross";
+		if (ttype == TestingType.CMRR)
+			prefix = "QaCmrr";
+		else if (ttype == TestingType.InputZ)
+			prefix = "QaInputZ";
+		else if (ttype == TestingType.GBW)
+			prefix = "QaGbw";
+		else if (ttype == TestingType.PSRR)
+			prefix = "QaPsrr";
 
 		var fname = GetSavePltName(prefix);
 
@@ -448,7 +506,9 @@ public class FreqRespViewModel : BaseViewModel
 					ZValue += Environment.NewLine + sadd;
 				}
 				break;
-			case TestingType.Gain:
+			case TestingType.GBW:
+			case TestingType.CMRR:
+			case TestingType.PSRR:
 				ZValue = "G: " + (20 * Math.Log10(zv.Item2)).ToString("0.## dB") + Environment.NewLine + "  " + zv.Item3.ToString("0.## Deg");
 				if (zv.Item4 != 0.0)
 				{
@@ -471,15 +531,15 @@ public class FreqRespViewModel : BaseViewModel
 		UpdateMouseCursor(FreqValue, 0);
 	}
 
-	~FreqRespViewModel()
+	~FrQa430ViewModel()
 	{
 		PropertyChanged -= CheckPropertyChanged;
 		MouseTracked -= DoMouseTracked;
 	}
 
-	public FreqRespViewModel()
+	public FrQa430ViewModel()
 	{
-		_Name = "Response";
+		_Name = "Frqa430";
 		PropertyChanged += CheckPropertyChanged;
 		MouseTracked += DoMouseTracked;
 
@@ -524,6 +584,7 @@ public class FreqRespViewModel : BaseViewModel
 		{
 			Application.Current.Dispatcher.Invoke(() =>
 			{
+				RaisePropertyChanged(nameof(TestType));
 				MyAction?.UpdateGraph(true);
 			});
 		});

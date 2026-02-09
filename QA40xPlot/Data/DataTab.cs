@@ -218,7 +218,8 @@ namespace QA40xPlot.Data
 	}
 
 	// our way of storing results (pages) in our Document. Each datatab has
-	// a viewmodel, a time series and a dictionary of other properties
+	// a viewmodel = settings from the run, a time series and a dictionary of other properties
+	// in addition the Definition is descriptive stuff about the data
 	public class DataTab<T>
 	{
 		private static int _CurrentId = 1;      // unique id for the datatab

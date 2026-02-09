@@ -19,7 +19,7 @@ namespace QA40xPlot.ViewModels
 		public List<string> PageNames { get; } = new List<string>
 		{
 			"spectrum", "intermod","scope", "freqsweep",
-			"ampsweep", "freqresp",
+			"ampsweep", "freqresp", "frqa430",
 			"settings",
 		};
 		[JsonIgnore]
@@ -167,6 +167,14 @@ namespace QA40xPlot.ViewModels
 		{
 			get => _FreqRespHdr;
 			set => SetProperty(ref _FreqRespHdr, value);
+		}
+
+		private string _Frqa430Hdr = "Response";
+		[JsonIgnore]
+		public string Frqa430Hdr
+		{
+			get => _Frqa430Hdr;
+			set => SetProperty(ref _Frqa430Hdr, value);
 		}
 
 		private BaseViewModel? _CurrentView = null;
@@ -425,7 +433,6 @@ namespace QA40xPlot.ViewModels
 			CurrentWindowState = Application.Current.MainWindow.WindowState.ToString();
 
 			// Serialize the object to a JSON string
-			//string jsonString = JsonConvert.SerializeObject(cfgData, Formatting.Indented);
 			string jsonString = Util.ConvertToJson(cfgData);
 
 			// Write the JSON string to a file
@@ -700,6 +707,10 @@ namespace QA40xPlot.ViewModels
 					break;
 				case "freqresp":
 					CurrentView = ViewSettings.Singleton.FreqRespVm;
+					break;
+				case "frqa430":
+					CurrentView = ViewSettings.Singleton.FrQa430Vm;
+					CurrentView.RaisePropertyChanged("CheckQA430");  // on new window refresh the list
 					break;
 				case "freqsweep":   // qa430 opamp tab & freq sweep
 					CurrentView = ViewSettings.Singleton.FreqVm;

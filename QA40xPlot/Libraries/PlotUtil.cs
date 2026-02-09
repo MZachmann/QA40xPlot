@@ -214,7 +214,7 @@ namespace QA40xPlot.Libraries
 			ScottPlot.AxisRules.MaximumBoundary rule = new(
 				xAxis: myPlot.Axes.Bottom,
 				yAxis: myPlot.Axes.Left,
-				limits: new AxisLimits(Math.Log10(1), Math.Log10(100000), -200, 10000)
+				limits: new AxisLimits(Math.Log10(1), Math.Log10(200000), -200, 10000)
 				);
 			myPlot.Axes.Rules.Add(rule);
 		}

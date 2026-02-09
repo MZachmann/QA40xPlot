@@ -87,6 +87,9 @@
                         <MenuItem Header="THD vs _Amplitude" Command="{Binding SetPlotPage}" CommandParameter="ampsweep" />
                         <MenuItem Header="Frequency _Response" Command="{Binding SetPlotPage}" CommandParameter="freqresp" />
                         <MenuItem Header="S_ettings" Command="{Binding SetPlotPage}" CommandParameter="settings" />
+                        <MenuItem Header="_QA430 Tests" Command="{Binding SetPlotPage}" CommandParameter="frqa430"
+                                  Visibility="{Binding HasQA430, Converter={StaticResource BoolVisConverter}}"
+                                  />
                     </MenuItem>
                     <MenuItem Header="_Test" IsEnabled="{Binding IsRunning, Converter={StaticResource InvBoolConverter}}" >
                         <MenuItem Header="Plot _On Top"  >
@@ -156,6 +159,11 @@
             <TabItem Header="{Binding FreqRespHdr}" Name="freqresp"  MaxWidth="{Binding MaxTab}" >
                 <Grid Background="{Binding Background, Mode=OneWay}">
                     <views:FreqRespPlotPage  />
+                </Grid>
+            </TabItem>
+            <TabItem Header="{Binding Frqa430Hdr}" Name="frqa430"  MaxWidth="{Binding MaxTab}" >
+                <Grid Background="{Binding Background, Mode=OneWay}">
+                    <views:FrQa430PlotPage  />
                 </Grid>
             </TabItem>
             <TabItem Header="Settings" Name="settings"  MaxWidth="{Binding MaxTab}" >

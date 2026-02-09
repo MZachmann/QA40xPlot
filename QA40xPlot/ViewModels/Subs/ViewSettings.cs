@@ -17,6 +17,7 @@ namespace QA40xPlot.ViewModels
 		//public ThdFreqViewModel ThdFreq { get; private set; }
 		//public ThdAmpViewModel ThdAmp { get; private set; }
 		public FreqRespViewModel FreqRespVm { get; private set; }
+		public FrQa430ViewModel FrQa430Vm { get; private set; }
 		public FreqSweepViewModel FreqVm { get; private set; }
 		public AmpSweepViewModel AmpVm { get; private set; }
 		public ScopeViewModel ScopeVm { get; private set; }
@@ -106,6 +107,7 @@ namespace QA40xPlot.ViewModels
 			//Util.GetPropertiesFrom(vws, "ThdAmp", ThdAmp);
 			//Util.GetPropertiesFrom(vws, "ThdFreq", ThdFreq);
 			Util.GetPropertiesFrom(vws, "FreqRespVm", FreqRespVm);
+			Util.GetPropertiesFrom(vws, "FrQa430Vm", FrQa430Vm);
 			Util.GetPropertiesFrom(vws, "ScopeVm", ScopeVm);
 			Util.GetPropertiesFrom(vws, "FreqVm", FreqVm);
 			Util.GetPropertiesFrom(vws, "AmpVm", AmpVm);
@@ -131,6 +133,7 @@ namespace QA40xPlot.ViewModels
 			//ThdAmp = new ThdAmpViewModel();
 			//ThdFreq = new ThdFreqViewModel();
 			FreqRespVm = new FreqRespViewModel();
+			FrQa430Vm = new FrQa430ViewModel();
 			ScopeVm = new ScopeViewModel();
 			FreqVm = new FreqSweepViewModel();
 			AmpVm = new AmpSweepViewModel();
@@ -143,6 +146,7 @@ namespace QA40xPlot.ViewModels
 			ViewModelList.Add(FreqVm);
 			ViewModelList.Add(AmpVm);
 			ViewModelList.Add(FreqRespVm);
+			ViewModelList.Add(FrQa430Vm);
 		}
 
 		public void CopyAboutToAll(DataDescript desc)

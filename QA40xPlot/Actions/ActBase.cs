@@ -1,4 +1,5 @@
-﻿using QA40xPlot.BareMetal;
+﻿using NAudio.SoundFont;
+using QA40xPlot.BareMetal;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
@@ -41,6 +42,8 @@ namespace QA40xPlot.Actions
 						return (T)(object)ViewSettings.Singleton.AmpVm;
 					case "FreqRespViewModel":
 						return (T)(object)ViewSettings.Singleton.FreqRespVm;
+					case "FrQa430ViewModel":
+						return (T)(object)ViewSettings.Singleton.FrQa430Vm;
 				}
 				throw new InvalidOperationException("Unknown ViewModel type");
 			}
@@ -459,27 +462,44 @@ namespace QA40xPlot.Actions
 				return null;
 
 			// the simplest thing here is to do a quick burst low value...
-			var generatorV = 0.01;          // random low test value
-											// we must have this in the bin center here
-			dfreq = QaLibrary.GetNearestBinFrequency(dfreq, sampleRate, fftsize);
-			WaveContainer.SetMono();                 // enable generator
-			WaveGenerator.SetGen1(true, dfreq, generatorV, true); // send a sine wave
-			bvm.GeneratorVoltage = bvm.GetGenVoltLine(generatorV); // update the viewmodel so we can show it on-screen
+			var generatorV = 0.001;         // random low test value
+			LeftRightSeries acqData = new();
+			LeftRightFrequencySeries lrfs = new();
 			var ct = new CancellationTokenSource();
-			// do two and average them
-			LeftRightSeries acqData = await QaComm.DoAcquisitions(1, ct.Token);        // Do a single acquisition
-			if (acqData == null || acqData.FreqRslt == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
-				return null;
+			int binmin = 0;
+			int bintrack = 0;
 
-			int fundamentalBin = QaLibrary.GetBinOfFrequency(dfreq, acqData.FreqRslt.Df);
-			int binmin = Math.Max(0, fundamentalBin - 2);
-			int bintrack = (int)Math.Min(fftsize, fundamentalBin + 2) - binmin;
+			int numtests = 1;
+			while (numtests > 0)
+			{
+				// we must have this in the bin center here
+				dfreq = QaLibrary.GetNearestBinFrequency(dfreq, sampleRate, fftsize);
+				WaveContainer.SetMono();                 // enable generator
+				WaveGenerator.SetGen1(true, dfreq, generatorV, true); // send a sine wave
+				bvm.GeneratorVoltage = bvm.GetGenVoltLine(generatorV); // update the viewmodel so we can show it on-screen
+				// do two and average them
+				acqData = await QaComm.DoAcquisitions(1, ct.Token);        // Do a single acquisition
+				if (acqData == null || acqData.FreqRslt == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
+					return null;
 
-			// calculate gain for each channel from frequency response
-			LeftRightFrequencySeries lrfs = new LeftRightFrequencySeries();
-			lrfs.Left = new double[] { GetFGain(acqData.FreqRslt.Left, generatorV, binmin, bintrack) };
-			lrfs.Right = new double[] { GetFGain(acqData.FreqRslt.Right, generatorV, binmin, bintrack) };
-			lrfs.Df = acqData.FreqRslt.Df;
+				int fundamentalBin = QaLibrary.GetBinOfFrequency(dfreq, acqData.FreqRslt.Df);
+				binmin = Math.Max(0, fundamentalBin - 2);
+				bintrack = (int)Math.Min(fftsize, fundamentalBin + 2) - binmin;
+
+				// calculate gain for each channel from frequency response
+				lrfs = new LeftRightFrequencySeries();
+				lrfs.Left = new double[] { GetFGain(acqData.FreqRslt.Left, generatorV, binmin, bintrack) };
+				lrfs.Right = new double[] { GetFGain(acqData.FreqRslt.Right, generatorV, binmin, bintrack) };
+				lrfs.Df = acqData.FreqRslt.Df;
+				numtests--;
+				// do this again if gain is low
+				if (lrfs.Left[0] < 10 && lrfs.Right[0] < 10 && generatorV == .001)
+				{
+					// do another test at a higher voltage for better gain math
+					generatorV = 0.01;
+					numtests++;
+				}
+			}
 
 			// if we're asking for averaging
 			for (int j = 1; j < average; j++)
@@ -630,8 +650,10 @@ namespace QA40xPlot.Actions
 			bvm.Attenuation = QaLibrary.DEVICE_MAX_ATTENUATION; // try this out
 			if (true != await QaComm.InitializeDevice(sampleRate, fftsize, swindow, (int)bvm.Attenuation))
 				return null;
-			// try at 0.01 volt generator and 42dB attenuation
-			var lrfs = await SubGainCurve(bvm, inits, fStart, fEnd, average, 0.01, (int)bvm.Attenuation);
+			// try at 0.001 volt generator and 42dB attenuation
+			var generatorV = 0.001;
+			bvm.GeneratorVoltage = bvm.GetGenVoltLine(generatorV); // update the viewmodel so we can show it on-screen
+			var lrfs = await SubGainCurve(bvm, inits, fStart, fEnd, average, generatorV, (int)bvm.Attenuation);
 			// now do it again louder for better accuracy
 			if (lrfs == null)
 				return null;
@@ -643,14 +665,13 @@ namespace QA40xPlot.Actions
 			{
 				// now try at 0.1V or greater if no gain
 				// and appropriate attenuation for best accuracy
-				var gvolt = 0.1;
-				if (maxGain < 0.5)
-					gvolt = Math.Min(1, 0.1 / maxGain);
-				double ampdBV = QaLibrary.ConvertVoltage(gvolt * maxGain, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+				generatorV = 0.01;
+				bvm.GeneratorVoltage = bvm.GetGenVoltLine(generatorV); // update the viewmodel so we can show it on-screen
+				double ampdBV = QaLibrary.ConvertVoltage(generatorV * maxGain, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
 				// Get input voltage based on desired output voltage
 				var attenuation = QaLibrary.DetermineAttenuation(ampdBV);
-				lrfs = await SubGainCurve(bvm, inits, fStart, fEnd, average, gvolt, attenuation);
+				lrfs = await SubGainCurve(bvm, inits, fStart, fEnd, average, generatorV, attenuation);
 			}
 			bvm.Attenuation = oldAtten;
 			return lrfs;

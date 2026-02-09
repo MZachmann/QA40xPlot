@@ -5,6 +5,11 @@
 		Response,
 		Impedance,
 		Gain,
-		Crosstalk
+		Crosstalk,
+		CMRR,
+		PSRR,
+		InputZ,
+		GBW,
+		Noise
 	}
 }

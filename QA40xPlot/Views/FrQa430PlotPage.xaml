@@ -1,0 +1,235 @@
+﻿<UserControl x:Class="QA40xPlot.Views.FrQa430PlotPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:views="clr-namespace:QA40xPlot.Views"
+             xmlns:vm="clr-namespace:QA40xPlot.ViewModels"
+             xmlns:local="clr-namespace:QA40xPlot"
+             mc:Ignorable="d" 
+             d:DesignHeight="750" d:DesignWidth="800">
+    <Grid Height="Auto" Width="Auto">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+            <StackPanel Margin="0,1,1,0">
+                <views:StartStop ShowStart="True" />
+                <views:Attenuator AttnAtStart="False"  />
+                <views:Intro430 ShowGain="False" />
+                <views:GroupHeader Header="Testing" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" MinWidth="{Binding LeftWidth}"  />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Label Content="T_est Type" Target="{Binding ElementName=cbType}"   HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Column="0" Grid.Row="0"  />
+                    <ComboBox x:Name="cbType"  SelectedItem="{Binding TestType}" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" ItemsSource="{Binding TestTypes}" 
+                        VerticalContentAlignment="Center" />
+                    <Label Content="Reference _Z" 
+                       Target="{Binding ElementName=cbZ}"   HorizontalAlignment="Right" 
+                              Visibility="{Binding TestType, Converter={StaticResource EnumVisConverter}, ConverterParameter=Impedance}"
+                       VerticalAlignment="Center" Grid.Column="0" Grid.Row="1"  />
+                    <ComboBox x:Name="cbZ"  IsEditable="True" Text="{Binding ZReference}" ToolTip="The series resistor value for the impedance test"
+                        VerticalContentAlignment="Center" IsEnabled="{Binding TestType, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=Impedance}"
+                              Visibility="{Binding TestType, Converter={StaticResource EnumVisConverter}, ConverterParameter=Impedance}"
+                          Grid.Column="1" Grid.Row="1" ItemsSource="{Binding Impedances}"  />
+                    <Label Content="Ohms" Grid.Column="2" Grid.Row="1" VerticalAlignment="Center"
+                              Visibility="{Binding TestType, Converter={StaticResource EnumVisConverter}, ConverterParameter=Impedance}"
+                           />
+                    <CheckBox Content="Use _microphone compensation" ToolTip="See Settings to select a compensation file"
+                          IsChecked="{Binding UseMicCorrection}"
+                              Visibility="{Binding TestType, Converter={StaticResource EnumVisConverter}, ConverterParameter=Response}"
+                        VerticalContentAlignment="Center" IsEnabled="{Binding TestType, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=Response}"
+                          Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="3"  />
+                </Grid>
+
+                <Expander Header="—— Sweep" IsExpanded="{Binding ExpandSweep}"  >
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" MinWidth="{Binding LeftWidth}" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Label Content="Start Fre_quency" Target="{Binding ElementName=cbSF}"  HorizontalAlignment="Right" VerticalAlignment="Center"  Grid.Column="0" Grid.Row="0"  />
+                            <ComboBox IsEditable="True" MinWidth="60" x:Name="cbSF" Text="{Binding StartFreq}" Grid.Column="1" 
+                                  VerticalContentAlignment="Center"
+                                  Grid.Row="0" ItemsSource="{Binding StartFrequencies}"  />
+                            <Label Content="Hz" Grid.Column="2" Grid.Row="0" VerticalAlignment="Center"  />
+                            <Label Content="_End Frequency" Target="{Binding ElementName=cbEF}"  HorizontalAlignment="Right" VerticalAlignment="Center"  Grid.Column="0" Grid.Row="1"  />
+                            <ComboBox IsEditable="True" x:Name="cbEF" Text="{Binding EndFreq}" Grid.Column="1" 
+                                VerticalContentAlignment="Center"
+                                Grid.Row="1"  ItemsSource="{Binding EndFrequencies}"  />
+                            <Label Content="Hz" Grid.Column="2" Grid.Row="1" VerticalAlignment="Center"  />
+                            <Label Content="Steps / _Octave" 
+                                   Visibility="{Binding IsChirp, Converter={StaticResource BoolNotVisConverter}}" 
+                                   Target="{Binding ElementName=cbStO, Path=ValueTextBox}"  HorizontalAlignment="Right" VerticalAlignment="Center"  Grid.Column="0" Grid.Row="2"  />
+                            <views:UpDownControl Visibility="{Binding IsChirp, Converter={StaticResource BoolNotVisConverter}}" 
+                                        x:Name="cbStO"  VerticalAlignment="Center" 
+                                        Value="{Binding StepsOctave}" Minimum="1" Grid.Column="1" Grid.Row="2"  />
+                            <Label Content="_Smoothing" Target="{Binding ElementName=cbSM}"  HorizontalAlignment="Right" 
+                               VerticalAlignment="Center"  Grid.Column="0" Grid.Row="3"
+                                   Visibility="{Binding IsChirp, Converter={StaticResource BoolVisConverter}}"
+                                   />
+                            <ComboBox IsEditable="True" x:Name="cbSM" Text="{Binding Smoothing}" 
+                                  Grid.Column="1" 
+                                VerticalContentAlignment="Center"
+                                Visibility="{Binding IsChirp, Converter={StaticResource BoolVisConverter}}"
+                                Grid.Row="3"  ItemsSource="{Binding Smoothings}"  />
+                            <Label Content="Octv" Grid.Column="2" Grid.Row="3" 
+                                Visibility="{Binding IsChirp, Converter={StaticResource BoolVisConverter}}"
+                                   VerticalAlignment="Center"  />
+                        </Grid>
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                        <CheckBox Content="_Use Chirp" IsChecked="{Binding IsChirp}" HorizontalAlignment="Left"   />
+                         <CheckBox Content="_RIAA Preemphasis" IsChecked="{Binding IsRiaa}" 
+                                      HorizontalAlignment="Left" ToolTip="Use RIAA Preemphasis on the QA40x left channel output." />
+                        </StackPanel>
+                    </StackPanel>
+                </Expander>
+
+                <Expander Header="—— Generator" IsExpanded="{Binding ExpandGenerator}"  >
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" MinWidth="{Binding LeftWidth}" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Label Content="Set _DUT" Target="{Binding ElementName=cbDUT}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="0" Grid.Column="0" ToolTip="{Binding DutInfo}"  />
+                        <ComboBox ToolTip="{Binding DutDescript}" x:Name="cbDUT"  Grid.Column="1" 
+                              Grid.Row="0"   Grid.ColumnSpan="2"
+                              IsEnabled="{Binding MainVm.IsNotRunning}"
+                          SelectedValue="{Binding GenDirection}" ItemsSource="{Binding MeasureVoltsFull}"/>
+                        <Label Content="{Binding GenAmpDescript}" Target="{Binding ElementName=cbVolt}"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="1" Grid.Column="0"  />
+                        <ComboBox x:Name="cbVolt" Grid.Column="1" Grid.Row="1"   
+                              VerticalContentAlignment="Center"
+                              Text="{Binding Gen1Voltage}"
+                              IsEditable="True" ItemsSource="{Binding GenVoltages}">
+                        </ComboBox>
+                        <views:VoltButton Grid.Row="1" Grid.Column="2" />
+                    </Grid>
+                </Expander>
+                <views:SamplingExp></views:SamplingExp>
+                <views:SeeGlobals HorizontalAlignment="Stretch" Margin="0,5,0,0" />
+                <views:StorageUi />
+                <views:GotFileList HorizontalAlignment="Stretch" MaxHeight="150" Margin="0,5,0,0"/>
+            </StackPanel>
+        </ScrollViewer>
+        <Grid Grid.Column="1">
+            <views:PlotControl x:Name="WpfPlot1"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch"  />
+            <views:TabAbout x:Name="TAbout" Visibility="Hidden"
+                  VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,180,34,0" />
+            <views:MiniShow x:Name="MiniShow" Visibility="{Binding ShowMiniPlots, Converter={StaticResource BoolVisConverter}}" 
+                            VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,80,64,0" />
+            <views:LegendWnd x:Name="LegendWindow" Visibility="{Binding ShowLegend, Converter={StaticResource BoolVisConverter}}"
+                VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,70,40,0" />
+        </Grid>
+        <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+            <StackPanel Orientation="Vertical">
+                <views:YAxisDb></views:YAxisDb>
+                <views:YAxisNoDb></views:YAxisNoDb>
+                <views:Y2Axis Visibility="{Binding ShowGroupDelay, Converter={StaticResource BoolVisConverter}}"></views:Y2Axis>
+                <views:PhaseAxis></views:PhaseAxis>
+                <Expander Header="—— X Axis"  IsExpanded="{Binding ExpandXAxis}" >
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" MinWidth="{Binding RightWidth}" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Label Content="From" Grid.Row="0"  Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"  />
+                        <ComboBox IsEditable="True" Grid.Row="0" Grid.Column="1"   
+                        VerticalContentAlignment="Center"
+                              Text="{Binding GraphStartX}"  MinWidth="70" ItemsSource="{Binding StartFrequencies}">
+                        </ComboBox>
+                        <Label Content="Hz" Grid.Row="0"  Grid.Column="2" VerticalAlignment="Center" />
+                        <Label Content="To" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center"  />
+                        <ComboBox IsEditable="True" Grid.Row="1" Grid.Column="1"  
+                        VerticalContentAlignment="Center"
+                              Text="{Binding GraphEndX}" ItemsSource="{Binding EndFrequencies}">
+                        </ComboBox>
+                        <Label Content="Hz" Grid.Row="1"  Grid.Column="2" VerticalAlignment="Center" />
+                        <Button Content="" Command="{Binding DoViewToFit}" CommandParameter="XF"
+                            FontFamily="Segoe Fluent Icons"
+                            Margin="0,4,0,0" Grid.Row="2" Grid.Column="0"  
+                        HorizontalAlignment="Right" VerticalAlignment="Center"  >
+                            <Button.ToolTip >
+                                <ToolTip FontFamily="Arial" Content="{Binding PinGraphTip}" />
+                            </Button.ToolTip>
+                        </Button>
+                        <Button Content="Fit to data" Command="{Binding DoFitToData}" CommandParameter="XF"
+                            Margin="0,4,0,0" Grid.Row="2" Grid.Column="1"  HorizontalAlignment="Right" VerticalAlignment="Center"   />
+                    </Grid>
+                </Expander>
+
+                <Expander Header="—— Graph Data"  IsExpanded="{Binding ExpandGraphData}" >
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <CheckBox Content="Test Info" ToolTip="{Binding TabInfoTip}"
+                              IsChecked="{Binding ShowTabInfo}" Grid.Row="0"  />
+                        <CheckBox Content="Mini-Plots" ToolTip="{Binding MiniPlotsTip}"
+                              IsChecked="{Binding KeepMiniPlots}" Grid.Row="1"  />
+                        <CheckBox Content="Legend" ToolTip="{Binding ShowLegendTip}"
+                                IsChecked="{Binding ShowLegend}" Grid.Row="2"  />
+                        <CheckBox Content="Phase" ToolTip="Show phase curve if available" 
+                                IsChecked="{Binding ShowPhase}" Grid.Row="3"  />
+                        <CheckBox Content="Group Delay" ToolTip="Show group delay if available"
+                                IsChecked="{Binding ShowGroupDelay}" Grid.Row="4"  />
+                    </Grid>
+                </Expander>
+
+                <Expander Header="—— Options"  IsExpanded="{Binding ExpandGraphOptions}" >
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <CheckBox Content="Right Channel" IsChecked="{Binding ShowRight}" Grid.Row="0"  />
+                        <CheckBox Content="Thick Lines" IsChecked="{Binding ShowThickLines}" Grid.Row="3"  />
+                        <CheckBox Content="Data Points" IsChecked="{Binding ShowPoints}" Grid.Row="4"  />
+                        <Button  Content="Edit Palette" Command="{Binding EditPaletteCommand}" Margin="12, 2" Grid.Row="5"></Button>
+                    </Grid>
+                </Expander>
+                <views:CursorExpander />
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

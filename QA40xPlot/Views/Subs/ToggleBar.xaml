@@ -40,6 +40,11 @@
                     BorderBrush="Transparent" Background="Transparent"
                         IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=freqresp}"
                         Command="{Binding SetPlotPage}" CommandParameter="freqresp" />
+            <Button Content="Q" Width="30" Padding="0,5" ToolTip="QA430 Opamp Tests" 
+                    BorderBrush="Transparent" Background="Transparent"
+                        IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=frqa430}"
+                        Visibility="{Binding HasQA430, Converter={StaticResource BoolVisConverter}}"
+                        Command="{Binding SetPlotPage}" CommandParameter="frqa430" />
             <Button Content="&#x26ed;" Width="30" Padding="0,5" ToolTip="Settings" 
                     BorderBrush="Transparent" Background="Transparent"
                         IsEnabled="{Binding PlotPageType, Converter={StaticResource EnumNotBoolConverter}, ConverterParameter=settings}"

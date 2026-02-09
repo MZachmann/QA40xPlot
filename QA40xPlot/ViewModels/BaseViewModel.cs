@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using QA40xPlot.Actions;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
+using QA40xPlot.QA430;
 using QA40xPlot.Views;
 using ScottPlot;
 using System.Collections.ObjectModel;

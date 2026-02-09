@@ -173,29 +173,37 @@ namespace QA40xPlot.ViewModels
 		}
 
 		// create variale list based on qa430 settings
-		public static List<AcquireStep> EnumerateVariables(OpampViewModel vm)
+		public static List<AcquireStep> EnumerateVariables(OpampViewModel vm, AcquireStep? myStep)
 		{
 			var variables = new List<AcquireStep>();
 			// now do the measurement stuff
 			try
 			{
-				// enumerate the sweeps we are going to do
-				var step = new AcquireStep() { Cfg = "Config6b", Load = QA430Model.LoadOptions.Open, Gain = 1, Distgain = 101, SupplyP = 15, SupplyN = 15 };    // unity 6b with 101 dist gain
-				if (!vm.HasQA430)
+				if (string.IsNullOrEmpty(myStep?.Cfg))
 				{
-					step = new AcquireStep() { Cfg = "", Load = QA430Model.LoadOptions.Open, Gain = 1, Distgain = 1, SupplyP = 15, SupplyN = 15 };    // unity 6a with 1 dist gain
+					// enumerate the sweeps we are going to do
+					var step = new AcquireStep() { Cfg = "Config6b", Load = QA430Model.LoadOptions.Open, Gain = 1, Distgain = 101, SupplyP = 15, SupplyN = 15 };    // unity 6b with 101 dist gain
+					if (!vm.HasQA430)
+					{
+						step = new AcquireStep() { Cfg = "", Load = QA430Model.LoadOptions.Open, Gain = 1, Distgain = 1, SupplyP = 15, SupplyN = 15 };    // unity 6a with 1 dist gain
+					}
+					else if (!vm.UseHighDistortion)
+					{
+						step = new AcquireStep() { Cfg = "Config6a", Load = QA430Model.LoadOptions.Open, Gain = 1, Distgain = 1, SupplyP = 15, SupplyN = 15 };    // unity 6a with 1 dist gain
+					}
+					variables.Add(step);
 				}
-				else if (!vm.UseHighDistortion)
+				else
 				{
-					step = new AcquireStep() { Cfg = "Config6a", Load = QA430Model.LoadOptions.Open, Gain = 1, Distgain = 1, SupplyP = 15, SupplyN = 15 };    // unity 6a with 1 dist gain
+					variables.Add((AcquireStep)myStep);
 				}
-				variables.Add(step);
 
-				QA430Model? model430 = vm.HasQA430 ? Qa430Usb.Singleton?.QAModel : null;
+					QA430Model? model430 = vm.HasQA430 ? Qa430Usb.Singleton?.QAModel : null;
 				if (model430 != null)
 				{
 					variables = model430.ExpandLoadOptions(variables, vm.LoadSummary) ?? variables;
-					variables = model430.ExpandGainOptions(variables, vm.GainSummary, vm.UseHighDistortion) ?? variables;
+					if(string.IsNullOrEmpty(myStep?.Cfg))
+						variables = model430.ExpandGainOptions(variables, vm.GainSummary, vm.UseHighDistortion) ?? variables;
 					variables = model430.ExpandSupplyOptions(variables, vm.SupplySummary) ?? variables;
 				}
 			}
