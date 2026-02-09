@@ -21,6 +21,7 @@ namespace QA40xPlot.ViewModels
 		public static List<String> OutputMethods { get; } = new List<string>() { "", "Min Noise", "Min Distortion" };
 		public static List<String> EchoTypes { get; } = new List<string>() { "QA40x", "WinDevice", "Both" };
 		public static List<String> EchoChannels { get; } = new List<string>() { "None", "Left", "Right", "L+R" };
+		public static List<String> ZOrderList { get; } = new List<string>() { "Left", "Right", "Get/Left", "Get/Right" };
 		public const int EchoChannelLeft = 1;   // in list order
 		public const int EchoChannelRight = 2;
 		[JsonIgnore]
@@ -66,16 +67,6 @@ namespace QA40xPlot.ViewModels
 			set
 			{
 				SetProperty(ref _MinOutputRange, value);
-			}
-		}
-
-		private string _OutputMethod = string.Empty;
-		public string OutputMethod
-		{
-			get { return _OutputMethod; }
-			set
-			{
-				SetProperty(ref _OutputMethod, value);
 			}
 		}
 
@@ -172,6 +163,26 @@ namespace QA40xPlot.ViewModels
 			{
 				SetProperty(ref _EchoChannel, value);
 				RaisePropertyChanged("UseExternalEcho");
+			}
+		}
+
+		private string _PlotZOrder = "Get/Left";
+		public string PlotZOrder
+		{
+			get { return _PlotZOrder; }
+			set
+			{
+				SetProperty(ref _PlotZOrder, value);
+			}
+		}
+
+		private string _OutputMethod = string.Empty;
+		public string OutputMethod
+		{
+			get { return _OutputMethod; }
+			set
+			{
+				SetProperty(ref _OutputMethod, value);
 			}
 		}
 

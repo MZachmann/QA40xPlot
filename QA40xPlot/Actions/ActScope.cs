@@ -549,31 +549,37 @@ namespace QA40xPlot.Actions
 			var timeX = Enumerable.Range(0, timeData.Left.Length).Select(x => x * 1000 * timeData.dt).ToArray(); // in ms
 			var showThick = MyVModel.ShowThickLines;    // so it dynamically updates
 			var markerSize = vm.ShowPoints ? (showThick ? _Thickness : 1) + 3 : 1;
-			if (useLeft)
+
+			void PlotLine(double[] y, bool isLeft)
 			{
-				var pLeft = myPlot.Add.SignalXY(timeX, timeData.Left);
-				pLeft.LineWidth = showThick ? _Thickness : 1;
-				pLeft.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, measurementNr);
-				pLeft.MarkerSize = markerSize;
-				pLeft.LegendText = isMain ? "Left" : ClipName(page.Definition.Name) + ".L";
-				pLeft.IsVisible = !MyVModel.HiddenLines.Contains(pLeft.LegendText);
-				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, pLeft.Color, pLeft.LegendText,
-					measurementNr, pLeft, vm.MainPlot, pLeft.IsVisible));
+				var p = myPlot.Add.SignalXY(timeX, y);
+				p.LineWidth = showThick ? _Thickness : 1;
+				p.Color = GraphUtil.GetPaletteColor(isLeft ? page.Definition.LeftColor : page.Definition.RightColor, measurementNr);
+				p.MarkerSize = markerSize;
+				p.LegendText = isMain ? (isLeft ? "Left" : "Right") : ClipName(page.Definition.Name) + (isLeft ? ".L" : ".R");
+				p.IsVisible = !MyVModel.HiddenLines.Contains(p.LegendText);
+				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, p.Color, p.LegendText,
+					measurementNr, p, vm.MainPlot, p.IsVisible));
+			}
+
+			var leftFirst = !PlotZLeft;
+
+			if (useLeft && leftFirst)
+			{
+				PlotLine(timeData.Left, true);
 			}
 			measurementNr++;
-
 			if (useRight)
 			{
-				var pRight = myPlot.Add.SignalXY(timeX, timeData.Right);
-				pRight.LineWidth = showThick ? _Thickness : 1;
-				pRight.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, measurementNr);
-				pRight.MarkerSize = markerSize;
-				pRight.LegendText = isMain ? "Right" : ClipName(page.Definition.Name) + ".R";
-				pRight.IsVisible = !MyVModel.HiddenLines.Contains(pRight.LegendText);
-				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, pRight.Color, pRight.LegendText,
-					measurementNr, pRight, vm.MainPlot, pRight.IsVisible));
+				PlotLine(timeData.Right, false);
 			}
 			measurementNr++;
+			if (useLeft && !leftFirst)
+			{
+				measurementNr -= 2;
+				PlotLine(timeData.Left, true);
+				measurementNr += 2;
+			}
 
 			if (isMain && HasResidualPlot())
 			{
@@ -784,7 +790,14 @@ namespace QA40xPlot.Actions
 			var vm = MyVModel;
 			vm.MainPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
 			vm.LegendInfo.Clear();
-			resultNr = PlotValues(PageData, resultNr, true);
+			var mainFirst = PlotZMain;
+			var rnr = resultNr;
+			if (!mainFirst)
+			{
+				resultNr = PlotValues(PageData, rnr, true);
+			}
+			else
+				resultNr += 4; // if we're showing the main plot last we need to skip over the other plot lines in the numbering for colors
 			if (OtherTabs.Count > 0)
 			{
 				foreach (var other in OtherTabs)
@@ -792,6 +805,10 @@ namespace QA40xPlot.Actions
 					if (other != null && other.Show != 0)
 						resultNr = PlotValues(other, resultNr, false);
 				}
+			}
+			if (mainFirst)
+			{
+				PlotValues(PageData, rnr, true);
 			}
 			vm.MainPlot.Refresh();
 			return resultNr;

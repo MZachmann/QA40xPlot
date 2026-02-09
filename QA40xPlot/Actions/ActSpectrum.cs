@@ -918,35 +918,44 @@ namespace QA40xPlot.Actions
 			// add a line plot to the plot
 			var lineWidth = vm.ShowThickLines ? _Thickness : 1;   // so it dynamically updates
 																  //IPalette palette = new ScottPlot.Palettes.Category20();
-			if (useLeft)
+
+			void PlotLine(double[] data, bool isLeft)
 			{
 				// format the data into current format
-				var fvi = GraphUtil.ValueToLogPlotFn(vm, fftData.Left);
-				var vf = fftData.Left.Skip(1);  // the first dot is F=0 so no logs...
-				leftdBV = vf.Select(fvi).ToArray();
+				var fvi = GraphUtil.ValueToLogPlotFn(vm, data);
+				var vf = data.Skip(1);  // the first dot is F=0 so no logs...
+				var plotdBV = vf.Select(fvi).ToArray();
 
-				var plotLeft = myPlot.Add.SignalXY(freqLogX, leftdBV);
-				plotLeft.LineWidth = lineWidth;
-				plotLeft.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, 2 * measurementNr);
-				plotLeft.MarkerSize = 1;
-				plotLeft.LegendText = isMain ? "Left" : ClipName(page.Definition.Name) + ".L";
-				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotLeft.Color, plotLeft.LegendText, 2 * measurementNr, plotLeft, vm.MainPlot));
+				var plotLine = myPlot.Add.SignalXY(freqLogX, plotdBV);
+				plotLine.LineWidth = lineWidth;
+				plotLine.MarkerSize = 1;
+				if(isLeft)
+				{
+					plotLine.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, 2 * measurementNr);
+					plotLine.LegendText = isMain ? "Left" : ClipName(page.Definition.Name) + ".L";
+				}
+				else
+				{
+					plotLine.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, 2 * measurementNr + 1);
+					plotLine.LegendText = isMain ? "Right" : ClipName(page.Definition.Name) + ".R";
+				}
+				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotLine.Color, plotLine.LegendText, 2 * measurementNr + (isLeft ? 1 : 0), plotLine, vm.MainPlot));
+			}
+
+			bool leftTop = PlotZLeft;
+			if (useLeft && !leftTop)
+			{
+				PlotLine(fftData.Left, true);
 			}
 
 			if (useRight)
 			{
-				// find the max value of the left and right channels
-				// now use that to calculate percents. Since Y axis is logarithmic use log of percent
-				var fvi = GraphUtil.ValueToLogPlotFn(vm, fftData.Right);
-				var vf = fftData.Right.Skip(1); // the first dot is F=0 so no logs...
-				rightdBV = vf.Select(fvi).ToArray();
+				PlotLine(fftData.Right, false);
+			}
 
-				var plotRight = myPlot.Add.SignalXY(freqLogX, rightdBV);
-				plotRight.LineWidth = lineWidth;
-				plotRight.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, 2 * measurementNr + 1); // color 0 is bad
-				plotRight.MarkerSize = 1;
-				plotRight.LegendText = isMain ? "Right" : ClipName(page.Definition.Name) + ".R";
-				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotRight.Color, plotRight.LegendText, 2 * measurementNr + 1, plotRight, vm.MainPlot));
+			if (useLeft && leftTop)
+			{
+				PlotLine(fftData.Left, true);
 			}
 
 			vm.MainPlot.Refresh();
@@ -998,7 +1007,12 @@ namespace QA40xPlot.Actions
 			var vm = MyVModel;
 			vm.MainPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
 			vm.LegendInfo.Clear();
-			PlotValues(PageData, resultNr++, true);
+			var mainFirst = PlotZMain;
+			var rnr = resultNr++;
+			if (!mainFirst)
+			{
+				PlotValues(PageData, rnr, true);
+			}
 			if (OtherTabs.Count > 0)
 			{
 				foreach (var other in OtherTabs)
@@ -1007,6 +1021,10 @@ namespace QA40xPlot.Actions
 						PlotValues(other, resultNr, false);
 					resultNr++;     // keep consistent coloring
 				}
+			}
+			if (mainFirst)
+			{
+				PlotValues(PageData, rnr, true);
 			}
 			vm.MainPlot.Refresh();
 			return resultNr;

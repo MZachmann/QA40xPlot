@@ -679,41 +679,45 @@ namespace QA40xPlot.Actions
 			var lineWidth = vm.ShowThickLines ? _Thickness : 1;   // so it dynamically updates
 
 			int trimOff = 1;
-			if (useLeft)
-			{
-				var vf = fftData.Left.Skip(trimOff);
-				// the usual dbv display
-				var fvi = GraphUtil.ValueToLogPlotFn(vm, fftData.Left);
-				leftdBV = vf.Select(fvi).ToArray();
 
-				var plotLeft = myPlot.Add.SignalXY(freqLogX, leftdBV);
-				plotLeft.LineWidth = lineWidth;
-				plotLeft.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, measurementNr * 2);
-				plotLeft.MarkerSize = 1;
-				plotLeft.LegendText = isMain ? "Left" : ClipName(page.Definition.Name) + ".L";
-				plotLeft.IsVisible = !MyVModel.HiddenLines.Contains(plotLeft.LegendText);
-				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotLeft.Color, plotLeft.LegendText, measurementNr * 2,
-					plotLeft, vm.MainPlot, plotLeft.IsVisible));
+			void PlotLine(double[] data, bool isLeft)
+			{
+				var vf = data.Skip(trimOff);
+				// the usual dbv display
+				var fvi = GraphUtil.ValueToLogPlotFn(vm, data);
+				var plotdBV = vf.Select(fvi).ToArray();
+				var plotLine = myPlot.Add.SignalXY(freqLogX, plotdBV);
+				var mrn = measurementNr * 2 + (isLeft ? 0 : 1);
+				plotLine.LineWidth = lineWidth;
+				plotLine.Color = GraphUtil.GetPaletteColor(page.Definition.LeftColor, mrn);
+				plotLine.MarkerSize = 1;
+				if(isLeft)
+				{
+					plotLine.LegendText = isMain ? "Left" : ClipName(page.Definition.Name) + ".L";
+
+				}
+				else
+				{
+					plotLine.LegendText = isMain ? "Right" : ClipName(page.Definition.Name) + ".R";
+				}
+				plotLine.IsVisible = !MyVModel.HiddenLines.Contains(plotLine.LegendText);
+				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotLine.Color, plotLine.LegendText, mrn,
+					plotLine, vm.MainPlot, plotLine.IsVisible));
 			}
 
+			var leftFirst = PlotZLeft;
+			if (useLeft && !leftFirst)
+			{
+				PlotLine(fftData.Left, true);
+			}
 			if (useRight)
 			{
-				var vf = fftData.Right.Skip(trimOff);
-				// find the max value of the left and right channels
-				// now use that to calculate percents. Since Y axis is logarithmic use log of percent
-				var fvi = GraphUtil.ValueToLogPlotFn(vm, fftData.Right);
-				rightdBV = vf.Select(fvi).ToArray();
-
-				var plotRight = myPlot.Add.SignalXY(freqLogX, rightdBV);
-				plotRight.LineWidth = lineWidth;
-				plotRight.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, measurementNr * 2 + 1);
-				plotRight.MarkerSize = 1;
-				plotRight.LegendText = isMain ? "Right" : ClipName(page.Definition.Name) + ".R";
-				plotRight.IsVisible = !MyVModel.HiddenLines.Contains(plotRight.LegendText);
-				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotRight.Color, plotRight.LegendText, measurementNr * 2 + 1,
-					plotRight, vm.MainPlot, plotRight.IsVisible));
+				PlotLine(fftData.Right, false);
 			}
-
+			if (useLeft && leftFirst)
+			{
+				PlotLine(fftData.Left, true);
+			}
 			vm.MainPlot.Refresh();
 		}
 
@@ -802,7 +806,12 @@ namespace QA40xPlot.Actions
 			var vm = MyVModel;
 			vm.MainPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
 			vm.LegendInfo.Clear();
-			PlotValues(PageData, resultNr++, true);
+			var mainFirst = PlotZMain;
+			var rnr = resultNr++;
+			if (!mainFirst)
+			{
+				PlotValues(PageData, rnr, true);
+			}
 			if (OtherTabs.Count > 0)
 			{
 				foreach (var other in OtherTabs)
@@ -811,6 +820,10 @@ namespace QA40xPlot.Actions
 						PlotValues(other, resultNr, false);
 					resultNr++;     // keep consistent coloring
 				}
+			}
+			if (mainFirst)
+			{
+				PlotValues(PageData, rnr, true);
 			}
 			vm.MainPlot.Refresh();
 			return resultNr;

@@ -89,6 +89,12 @@
                         <MenuItem Header="S_ettings" Command="{Binding SetPlotPage}" CommandParameter="settings" />
                     </MenuItem>
                     <MenuItem Header="_Test" IsEnabled="{Binding IsRunning, Converter={StaticResource InvBoolConverter}}" >
+                        <MenuItem Header="Plot _On Top"  >
+                            <MenuItem Header="_Left" Command="{Binding DoOnTop}" CommandParameter="Left" />
+                            <MenuItem Header="_Right" Command="{Binding DoOnTop}" CommandParameter="Right" />
+                            <MenuItem Header="_Get/Left" Command="{Binding DoOnTop}" CommandParameter="Get/Left" />
+                            <MenuItem Header="Ge_t/Right" Command="{Binding DoOnTop}" CommandParameter="Get/Right" />
+                        </MenuItem>
                         <MenuItem Header="_Fit All" Command="{Binding DoFitAll}" />
                         <MenuItem Header="_Pin All" Command="{Binding DoPinAll}" />
                         <MenuItem Header="_Snapshot" Command="{Binding DoSnapshot}" />

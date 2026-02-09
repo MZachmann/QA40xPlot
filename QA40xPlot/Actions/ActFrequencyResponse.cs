@@ -1436,7 +1436,12 @@ namespace QA40xPlot.Actions
 			MyVModel.LegendInfo.Clear();
 			vm.MainPlot.ThePlot.Remove<Marker>();             // Remove all current lines
 			vm.MainPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
-			PlotValues(PageData, resultNr++, true);  // frqsrVm.GraphType);
+			var mainFirst = PlotZMain;
+			var rnr = resultNr++;
+			if (mainFirst)
+			{
+				PlotValues(PageData, rnr, true);  // frqsrVm.GraphType);
+			}
 			if (OtherTabs.Count > 0)
 			{
 				foreach (var other in OtherTabs)
@@ -1444,6 +1449,10 @@ namespace QA40xPlot.Actions
 					if (other != null && other.Show != 0)
 						PlotValues(other, resultNr++, false);
 				}
+			}
+			if (!mainFirst)
+			{
+				PlotValues(PageData, rnr, true);
 			}
 
 			vm.MainPlot.Refresh();

@@ -5,6 +5,7 @@ using QA40xPlot.ViewModels;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
+using System.Text.Json.Serialization;
 using System.Windows;
 
 
@@ -44,6 +45,11 @@ namespace QA40xPlot.Actions
 				throw new InvalidOperationException("Unknown ViewModel type");
 			}
 		}
+
+		[JsonIgnore]
+		public static bool PlotZMain { get => !(ViewSettings.Singleton?.SettingsVm?.PlotZOrder ?? "").Contains("Get"); }
+		[JsonIgnore]
+		public static bool PlotZLeft { get => (ViewSettings.Singleton?.SettingsVm?.PlotZOrder ?? "").Contains("Left"); }
 
 		public ActBase()
 		{

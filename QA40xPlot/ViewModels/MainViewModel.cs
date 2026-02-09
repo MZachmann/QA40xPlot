@@ -34,6 +34,8 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public RelayCommand DoFitAll { get => new RelayCommand(OnFitAll); }
 		[JsonIgnore]
+		public RelayCommand<object> DoOnTop { get => new RelayCommand<object>(OnTopOf); }
+		[JsonIgnore]
 		public RelayCommand DoSnapshot { get => new RelayCommand(OnSnapshot); }
 		// in case we're not in a view process the keys for run/start/stop here
 		[JsonIgnore]
@@ -511,6 +513,20 @@ namespace QA40xPlot.ViewModels
 					}
 				}
 				File.WriteAllBytes(filename, System.Text.Encoding.UTF8.GetBytes(sout));
+			}
+		}
+
+		private void OnTopOf(object? obj)
+		{
+			if (obj != null && obj is string)
+			{
+				var ostr = obj as string;
+				var vm = ViewSettings.Singleton?.SettingsVm;
+				if (vm != null && ostr != null)
+				{
+					vm.PlotZOrder = ostr;
+					CurrentView?.RaisePropertyChanged("UpdateGraph");
+				}
 			}
 		}
 

@@ -805,9 +805,10 @@ namespace QA40xPlot.Actions
 			List<SweepLine>[] lineGroup;
 			List<SweepLine>? leftCol = FrequencyLines(page);
 			List<SweepLine>? rightCol = FrequencyLinesRight(page);
+			var leftTop = PlotZLeft;
 			if (showLeft && showRight && leftCol != null && rightCol != null)
 			{
-				lineGroup = [leftCol, rightCol];
+				lineGroup = leftTop ? [rightCol, leftCol] : [leftCol, rightCol];
 			}
 			else if (showLeft && leftCol != null)
 			{
@@ -820,9 +821,10 @@ namespace QA40xPlot.Actions
 
 			string tosuffix = MyVModel.HasQA430 ? "." : "";
 			string suffix = string.Empty;
-			var lp = isMain ? LinePattern.Solid : LinePattern.Dashed;
+			LinePattern[] patternList = [LinePattern.Solid, LinePattern.Dashed, LinePattern.DenselyDashed, LinePattern.Dotted];
+			var lp = patternList[(isMain && leftTop) ? 1 : (isMain ? 0 : (leftTop ? 3 : 2))];
 			if (showRight && showLeft)
-				suffix = ".L" + tosuffix;
+				suffix = (leftTop ? ".R" : ".L") + tosuffix;
 			else
 				suffix = tosuffix;
 
@@ -880,8 +882,8 @@ namespace QA40xPlot.Actions
 					if (freqVm.ShowD6)
 						AddPlot(freq, colArray.Select(x => FormVal(x.D6P, x.Mag)).ToList(), colorNum, prefix + "D6+" + subsuffix, lp);
 				}
-				suffix = ".R" + tosuffix;          // second pass iff there are both channels
-				lp = isMain ? LinePattern.DenselyDashed : LinePattern.Dotted;
+				suffix = (leftTop ? ".L" : ".R") + tosuffix;          // second pass iff there are both channels
+				lp = patternList[(isMain && leftTop) ? 0 : (isMain ? 1 : (leftTop ? 2 : 3))]; ;
 			}
 			freqVm.MainPlot.Refresh();
 		}
@@ -929,7 +931,12 @@ namespace QA40xPlot.Actions
 			}
 
 			MyVModel.LegendInfo.Clear();
-			PlotValues(PageData, resultNr++, true);
+			var mainTop = PlotZMain;
+			var rnr = resultNr++;
+			if (!mainTop)
+			{
+				PlotValues(PageData, rnr, true);
+			}
 			if (OtherTabs.Count > 0)
 			{
 				foreach (var other in OtherTabs)
@@ -938,6 +945,10 @@ namespace QA40xPlot.Actions
 						PlotValues(other, resultNr++, false);
 					resultNr++;
 				}
+			}
+			if (mainTop)
+			{
+				PlotValues(PageData, rnr, true);
 			}
 		}
 

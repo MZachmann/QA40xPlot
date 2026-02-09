@@ -4,7 +4,8 @@ This changelog shows the changes made for each version
 Date format is US mm/dd/yy
 --------------------------------------------
 v 1.2.9 2/ /26
-
+- support ZOrder setting for plot lines
+- added a new option to Test menu for ZOrder specification
 v 1.2.8 2/8/26
 - enable empirically set output range method using min distortion in settings
 - show spectrum and imd markers on click rather than requiring run
