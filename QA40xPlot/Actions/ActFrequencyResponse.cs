@@ -277,7 +277,7 @@ namespace QA40xPlot.Actions
 			// calculate gain to autoattenuate
 			if ((index == 0 || LRGains == null) && needAttenuate)
 			{
-				await CalculateGainCurve(MyVModel, fmin, fmax);
+				await CalculateGainCurve(msr, fmin, fmax);
 				if (LRGains == null)
 				{
 					// cancelled?

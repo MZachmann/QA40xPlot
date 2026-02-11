@@ -1,4 +1,6 @@
-﻿namespace QA40xPlot.Data
+﻿using QA40xPlot.Libraries;
+
+namespace QA40xPlot.Data
 {
 	internal class DataUtil
 	{
@@ -80,6 +82,32 @@
 				if (2 == (t.Show & 2))
 				{
 					result.Add(f.Right);
+				}
+			}
+			return result;
+		}
+
+		/// <summary>
+		/// find the shown Left,Right properties in the datatab list
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <typeparam name="U"></typeparam>
+		/// <param name="tabs"></param>
+		/// <returns></returns>
+		public static List<LeftRightResult> FindShownGains<T>(List<DataTab<T>> tabs)
+		{
+			List<LeftRightResult> result = new();
+			foreach (var t in tabs)
+			{
+				if(t.Definition.IsOnL && t.GainLeft != null)
+				{
+					var u = new LeftRightResult
+					{
+						Left = t.GainLeft,
+						Right = t.GainRight,
+						XValues = t.GainFrequencies
+					};
+					result.Append(u);
 				}
 			}
 			return result;

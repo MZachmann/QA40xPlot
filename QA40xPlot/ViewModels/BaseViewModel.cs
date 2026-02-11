@@ -19,6 +19,7 @@ namespace QA40xPlot.ViewModels
 	{
 		// public INavigation ViewNavigator { get; set; }
 		#region Shared Properties
+		protected static int _MyIndex = 0;
 		public static List<string> WindowingTypes { get => new List<string> { "Bartlett", "Blackman-3", "Blackman-7", "Cosine", "FlatTop", "Hamming", "Hann", "Kaiser", "Rectangular", "Tukey", "Welch" }; }
 		public static List<string> EndFrequencies { get => new List<string> { "1000", "2000", "5000", "10000", "20000", "50000", "100000" }; }
 		public static List<string> StartFrequencies { get => new List<string> { "5", "10", "20", "50", "100", "200", "500", "1000", "5000", "10000" }; }
@@ -117,6 +118,14 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _MyWindow, value);
 		}
 
+		private string _MyId = "";
+		[JsonIgnore]
+		public string MyId
+		{
+			get => _MyId;
+			set { SetProperty(ref _MyId, value); }
+		}
+
 		private IYAxis? _SecondYAxis = null;  // keep track of the second Y axis
 		[JsonIgnore]
 		public IYAxis? SecondYAxis
@@ -211,7 +220,7 @@ namespace QA40xPlot.ViewModels
 		public string ZValue
 		{
 			get => _ZValue;
-			set => SetProperty(ref _ZValue, value);
+			set { SetProperty(ref _ZValue, value); }
 		}
 
 		private double _FreqValue = 0.0;
@@ -1201,9 +1210,9 @@ namespace QA40xPlot.ViewModels
 					binmax = Math.Min(abin, binmax);  // limit this
 				}
 				maxGain = lrGains.Skip(binmin).Take(Math.Max(1, binmax - binmin)).Max();
-				var df = binNumber[0] / 20.0;   // random guess at the frequency here
-				var idx = Array.IndexOf(lrGains, maxGain);
-				var dfrq = df * idx;
+				//var df = binNumber[0] / 20.0;   // random guess at the frequency here
+				//var idx = Array.IndexOf(lrGains, maxGain);
+				//var dfrq = df * idx;
 				//Debug.WriteLine($"Max Gain of {maxGain} at {dfrq}" + Environment.NewLine);
 			}
 
@@ -1275,6 +1284,7 @@ namespace QA40xPlot.ViewModels
 			ShowRight = false;
 			ShowTabInfo = false;
 			ShowSummary = false;
+			_MyIndex++;
 		}
 
 		// convert mouse coordinates to scottplot coordinates

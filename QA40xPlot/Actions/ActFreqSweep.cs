@@ -201,7 +201,6 @@ namespace QA40xPlot.Actions
 
 		private List<SweepDot> LookupColumn(MyDataTab page, double freq)
 		{
-			var vm = MyVModel;
 			var allLines = FrequencyLines(page);
 			List<SweepDot> dots = new();
 			if (allLines == null || allLines.Count == 0)
@@ -496,7 +495,7 @@ namespace QA40xPlot.Actions
 				// ********************************************************************
 				foreach (var myConfig in variables) // sweep the different configurations
 				{
-					lastCfg = await vm.ExecuteModel(myConfig, lastCfg); // update the qa430 if needed
+					lastCfg = await OpampViewModel.ExecuteModel(myConfig, lastCfg, vm.HasQA430); // update the qa430 if needed
 																		// sweeping generator voltage as well
 					var attenset = CalculateAttenuation(myConfig.GenVolt, vm, frqtest, LRGains);
 					var attenuation = attenset.Item1;

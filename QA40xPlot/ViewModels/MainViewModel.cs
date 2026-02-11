@@ -63,38 +63,17 @@ namespace QA40xPlot.ViewModels
 		public TabControl? TabControlObject { get; set; } = null;
 		#endregion
 
-		private void DoSetPlotPage(object? parameter)
-		{
-			// if we don't clear focus we get a COM exception
-			// as any focused text box tries to set the Text field i think
-			// this only happens with menus since clicking a tab button loses the focus
-			try
-			{
-				System.Windows.Input.Keyboard.Focus(Application.Current?.MainWindow);
-			}
-			catch (Exception ex)
-			{
-				Debug.WriteLine(ex.ToString());
-			}
-
-			// let the focus lose happen then continue
-			Task.Delay(10).ContinueWith(_ =>
-			{
-				Application.Current?.Dispatcher.Invoke(() =>
-				{
-					var newType = parameter as string ?? "spectrum";
-					if (PageNames.Contains(newType))
-						PlotPageType = newType;
-				});
-			});
-		}
-
 		#region Ignored Setters
 		private System.Windows.Media.SolidColorBrush _Background =
 			(new BrushConverter().ConvertFrom("#dce4e4") as SolidColorBrush) ?? System.Windows.Media.Brushes.MintCream;
 		private System.Windows.Media.SolidColorBrush _GraphBackground =
 			(new BrushConverter().ConvertFrom("#f8f8f8") as SolidColorBrush) ?? System.Windows.Media.Brushes.MintCream;
 
+		[JsonIgnore]
+		public string PlotZOrder 
+		{ 
+			get => ViewSettings.Singleton?.SettingsVm?.PlotZOrder ?? string.Empty; 
+		}
 		[JsonIgnore]
 		public System.Windows.Media.SolidColorBrush Background
 		{
@@ -355,6 +334,32 @@ namespace QA40xPlot.ViewModels
 		}
 		#endregion
 
+		private void DoSetPlotPage(object? parameter)
+		{
+			// if we don't clear focus we get a COM exception
+			// as any focused text box tries to set the Text field i think
+			// this only happens with menus since clicking a tab button loses the focus
+			try
+			{
+				System.Windows.Input.Keyboard.Focus(Application.Current?.MainWindow);
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex.ToString());
+			}
+
+			// let the focus lose happen then continue
+			Task.Delay(10).ContinueWith(_ =>
+			{
+				Application.Current?.Dispatcher.Invoke(() =>
+				{
+					var newType = parameter as string ?? "spectrum";
+					if (PageNames.Contains(newType))
+						PlotPageType = newType;
+				});
+			});
+		}
+
 		public static void SaveToPng(Window wnd, string filename)
 		{
 			var pngData = GraphUtil.CopyAsBitmap(wnd);
@@ -533,6 +538,7 @@ namespace QA40xPlot.ViewModels
 				{
 					vm.PlotZOrder = ostr;
 					CurrentView?.RaisePropertyChanged("UpdateGraph");
+					RaisePropertyChanged("PlotZOrder");
 				}
 			}
 		}

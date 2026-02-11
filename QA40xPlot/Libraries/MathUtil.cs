@@ -172,7 +172,7 @@ namespace QA40xPlot.Libraries
 			}
 			else if (val >= 1e-6)
 			{
-				rslt = (1000000 * val).ToString("G3") + spacer + "u" + units;
+				rslt = (1000000 * val).ToString("G3") + spacer + "μ" + units;
 			}
 			else if (val > 0)
 			{
@@ -468,6 +468,7 @@ namespace QA40xPlot.Libraries
 			}
 			return smooth;
 		}
+
 	}
 }
 

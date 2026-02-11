@@ -92,15 +92,27 @@
                                   />
                     </MenuItem>
                     <MenuItem Header="_Test" IsEnabled="{Binding IsRunning, Converter={StaticResource InvBoolConverter}}" >
-                        <MenuItem Header="Plot _On Top"  >
-                            <MenuItem Header="_Left" Command="{Binding DoOnTop}" CommandParameter="Left" />
-                            <MenuItem Header="_Right" Command="{Binding DoOnTop}" CommandParameter="Right" />
-                            <MenuItem Header="_Get/Left" Command="{Binding DoOnTop}" CommandParameter="Get/Left" />
-                            <MenuItem Header="Ge_t/Right" Command="{Binding DoOnTop}" CommandParameter="Get/Right" />
+                        <MenuItem Header="Plot _On Top" ToolTip="Determine which plot lines are on top."  >
+                            <MenuItem Header="_Left" Command="{Binding DoOnTop}" 
+                                      CommandParameter="Left" 
+                                      IsChecked="{Binding PlotZOrder, Mode=OneWay, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=Left}"
+                                      />
+                            <MenuItem Header="_Right" Command="{Binding DoOnTop}" 
+                                      CommandParameter="Right" 
+                                      IsChecked="{Binding PlotZOrder, Mode=OneWay, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=Right}"
+                                      />
+                            <MenuItem Header="_Get/Left" Command="{Binding DoOnTop}" 
+                                      CommandParameter="Get/Left" 
+                                      IsChecked="{Binding PlotZOrder, Mode=OneWay, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=Get/Left}"
+                                      />
+                            <MenuItem Header="Ge_t/Right" Command="{Binding DoOnTop}" 
+                                      CommandParameter="Get/Right" 
+                                      IsChecked="{Binding PlotZOrder, Mode=OneWay, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=Get/Right}"
+                                      />
                         </MenuItem>
-                        <MenuItem Header="_Fit All" Command="{Binding DoFitAll}" />
-                        <MenuItem Header="_Pin All" Command="{Binding DoPinAll}" />
-                        <MenuItem Header="_Snapshot" Command="{Binding DoSnapshot}" />
+                        <MenuItem Header="_Fit All" Command="{Binding DoFitAll}" ToolTip="Adjust all axes so the data just fits" />
+                        <MenuItem Header="_Pin All" Command="{Binding DoPinAll}" ToolTip="Set all axes with the current min/max values." />
+                        <MenuItem Header="_Snapshot" Command="{Binding DoSnapshot}" ToolTip="Save then get the current results and display the left channel." />
                     </MenuItem>
                     <MenuItem Header="_Command"  >
                         <MenuItem Header="Show _QA430" Click="OnQA430"

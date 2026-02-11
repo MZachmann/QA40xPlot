@@ -434,6 +434,7 @@ namespace QA40xPlot.ViewModels
 		public SettingsViewModel()
 		{
 			_Name = "Settings";
+			MyId = $"{_Name}:{_MyIndex}";
 			_AmplifierLoad = "8";
 			_UsbBufferSize = "16384";
 			_SaveOnExit = "False";

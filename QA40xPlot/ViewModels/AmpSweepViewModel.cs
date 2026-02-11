@@ -335,6 +335,7 @@ namespace QA40xPlot.ViewModels
 		public AmpSweepViewModel()
 		{
 			_Name = "AmpSweep";
+			MyId = $"{_Name}:{_MyIndex}";
 			_Version = 2;
 			PropertyChanged += CheckPropertyChanged;
 			MouseTracked += DoMouseTracked;

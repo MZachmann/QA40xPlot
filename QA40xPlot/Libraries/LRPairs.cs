@@ -1,4 +1,5 @@
 ﻿
+using QA40xPlot.Extensions;
 using System.Numerics;
 
 /// Historical LeftRight pair classes and conversion utilities
@@ -173,6 +174,29 @@ namespace QA40xPlot.Libraries
 		public int ToBinNumber(double dFreq)
 		{
 			return QaLibrary.GetBinOfFrequency(dFreq, Df);
+		}
+	}
+
+	public class LeftRightResult
+	{
+		/// <summary>
+		/// df is the frequency spacing of FFT bins
+		/// </summary>
+		public double[] XValues { get; set; }
+		public double[] Left { get; set; }
+		public double[] Right { get; set; }
+
+		// this is only invoked with real data during an acquisition, so ignore the init
+		public LeftRightResult()
+		{
+			XValues = new double[0];
+			Left = new double[0];
+			Right = new double[0];
+		}
+
+		public int ToBinNumber(double dFreq)
+		{
+			return XValues.CountWhile(x => x > dFreq);
 		}
 	}
 

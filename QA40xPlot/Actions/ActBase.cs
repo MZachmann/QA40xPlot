@@ -405,12 +405,15 @@ namespace QA40xPlot.Actions
 			FrequencyHistory.Clear();
 			for (int ik = 0; ik < (averages - 1); ik++)
 			{
+				await showMessage($"Noise test {ik}.", 40);
 				lrfs = await QaComm.DoAcquisitions(1, ct);
 				if (lrfs != null && lrfs.FreqRslt != null)
 					FrequencyHistory.Add(lrfs.FreqRslt);
 			}
 			// now FrequencyHistory has n-1 samples
 			{
+				if(averages > 1)
+					await showMessage($"Noise test {averages}.", 40);
 				lrfs = await QaComm.DoAcquisitions(1, ct, true);
 				if (lrfs != null && lrfs.FreqRslt != null)
 					lrfs.FreqRslt = CalculateAverages(lrfs.FreqRslt, averages);

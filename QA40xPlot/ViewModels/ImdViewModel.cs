@@ -482,6 +482,7 @@ namespace QA40xPlot.ViewModels
 		public ImdViewModel()
 		{
 			_Name = "Intermodulation";
+			MyId = $"{_Name}:{_MyIndex}";
 			PropertyChanged += CheckPropertyChanged;
 			MouseTracked += DoMouseTracked;
 

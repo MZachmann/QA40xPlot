@@ -169,7 +169,6 @@ public class FreqRespViewModel : BaseViewModel
 
 	public TestingType GetTestingType(string type)
 	{
-		var vm = MyVModel;
 		return (TestingType)Enum.Parse(typeof(TestingType), type);
 	}
 
@@ -203,7 +202,7 @@ public class FreqRespViewModel : BaseViewModel
 			case "PlotFormat":
 				// we may need to change the axis
 				{
-					var ttype = MyVModel.GetTestingType(MyVModel.TestType);
+					var ttype = GetTestingType(MyVModel.TestType);
 					var isdb = ttype == TestingType.Response;
 					ToShowRange = isdb ? Visibility.Collapsed : Visibility.Visible;
 					ToShowdB = isdb ? Visibility.Visible : Visibility.Collapsed;
@@ -273,30 +272,6 @@ public class FreqRespViewModel : BaseViewModel
 			case "ShowPoints":
 				MyAction?.UpdateGraph(false);
 				break;
-			case "SampleRate":
-				if (IsChirp)
-				{
-					if (SampleRate == "96000")
-					{
-						this.FftSize = "64K";
-					}
-					if (SampleRate == "192000")
-					{
-						this.FftSize = "128K";
-					}
-					else if (SampleRate == "48000")
-					{
-						this.FftSize = "32K";
-					}
-				}
-				break;
-			//case "IsChirp":
-			//	if(IsChirp)
-			//	{
-			//		this.SampleRate = "96000";
-			//		this.FftSize = "64K";
-			//	}
-			//	break;
 			default:
 				break;
 		}
@@ -342,8 +317,7 @@ public class FreqRespViewModel : BaseViewModel
 
 	public DataBlob? GetFftData()
 	{
-		var vm = MyVModel;
-		return vm.actFreq.CreateExportData();
+		return MyAction.CreateExportData();
 	}
 
 	private static async Task LoadItTab()
@@ -360,7 +334,7 @@ public class FreqRespViewModel : BaseViewModel
 	private void SaveItTab()
 	{
 		string prefix = "QaFile";
-		var ttype = MyVModel.GetTestingType(MyVModel.TestType);
+		var ttype = GetTestingType(MyVModel.TestType);
 		if (ttype == TestingType.Response)
 			prefix = "QaResponse";
 		else if (ttype == TestingType.Impedance)
@@ -480,6 +454,7 @@ public class FreqRespViewModel : BaseViewModel
 	public FreqRespViewModel()
 	{
 		_Name = "Response";
+		MyId = $"{_Name}:{_MyIndex}";
 		PropertyChanged += CheckPropertyChanged;
 		MouseTracked += DoMouseTracked;
 

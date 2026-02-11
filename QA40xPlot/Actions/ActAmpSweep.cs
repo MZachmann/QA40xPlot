@@ -207,7 +207,6 @@ namespace QA40xPlot.Actions
 		/// <returns></returns>
 		private List<SweepDot> LookupColumn(MyDataTab page, double xValue)
 		{
-			var vm = MyVModel;
 			var xvalues = page.Sweep.X;
 			List<SweepDot> dots = new();
 			if (xvalues == null || xvalues.Length == 0)
@@ -502,7 +501,7 @@ namespace QA40xPlot.Actions
 				foreach (var myConfig in variables) // sweep the different configurations
 				{
 					// update the qa430 if needed
-					lastCfg = await vm.ExecuteModel(myConfig, lastCfg);
+					lastCfg = await OpampViewModel.ExecuteModel(myConfig, lastCfg, vm.HasQA430);
 					// ********************************************************************
 					// Determine voltage sequences potentially based on configuration
 					// ********************************************************************
@@ -666,7 +665,6 @@ namespace QA40xPlot.Actions
 
 			PageData.TimeRslt = new();
 			PageData.FreqRslt = null;
-			PageData.DelayRslt = null;
 
 			// Show message
 			await showMessage(CanToken.IsCancellationRequested ? $"Measurement cancelled!" : $"Measurement finished!");

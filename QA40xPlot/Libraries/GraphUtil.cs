@@ -88,17 +88,17 @@ namespace QA40xPlot.Libraries
 			if (plotFormat == "V" || plotFormat == "W")
 			{
 				{
-					if (adv >= .01)
+					if (adv >= .09)
 					{
 						rslt = dv.ToString("0.###") + " " + sfx;
 					}
-					else if (adv >= 1e-5)
+					else if (adv >= 9e-5)
 					{
 						rslt = (1000 * dv).ToString("G3") + " m" + sfx;
 					}
-					else if (adv >= 1e-8)
+					else if (adv >= 9e-8)
 					{
-						rslt = (1000000 * dv).ToString("G3") + " u" + sfx;
+						rslt = (1000000 * dv).ToString("G3") + " μ" + sfx;
 					}
 					else if (adv > 0)
 					{
@@ -383,6 +383,7 @@ namespace QA40xPlot.Libraries
 		{
 			switch (plotFormat)
 			{
+				case "dB":
 				case "SPL":
 					return "dB";
 				case "dBFS":

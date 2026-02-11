@@ -939,7 +939,7 @@ namespace QA40xPlot.Actions
 			// calculate the gain curve if we need it
 			if (vm.DoAutoAttn || genType != E_GeneratorDirection.INPUT_VOLTAGE)
 			{
-				await CalculateGainCurve(MyVModel, Math.Min(freq, freq2), Math.Max(freq, freq2));
+				await CalculateGainCurve(vm, Math.Min(freq, freq2), Math.Max(freq, freq2));
 			}
 			uint iteration = 1;
 			// calculate the required attenuation

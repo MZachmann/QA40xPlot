@@ -7,6 +7,7 @@ using QA40xPlot.QA430;
 using QA40xPlot.ViewModels;
 using QA40xPlot.Views;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Numerics;
 using System.Windows;
 using System.Windows.Input;
@@ -16,9 +17,9 @@ public class FrQa430ViewModel : OpampViewModel
 	public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 	public static List<String> Smoothings { get => new List<string> { "0", "0.001", "0.01", "0.05", "0.1", "0.25" }; }
 	public static List<String> PhaseList { get => new List<string> { "360", "180", "90", "0", "-90", "-180", "-360" }; }
-	public static List<String> TestTypes { get => new List<string> { "CMRR", "PSRR", "InputZ", "GBW" }; }
+	public static List<String> TestTypes { get => new List<string> { "CMRR", "PSRR", "InputZ", "GBW", "Noise" }; }
 	[JsonIgnore]
-	public override List<string> AxisList { get; } = new List<string> { "XF", "YM", "PH", "Y2" };
+	public override List<string> AxisList { get; } = new List<string> { "XF", "YM", "PH" };
 
 	private ActFrQa430 MyAction { get => actFreq; }
 	private PlotControl actPlot { get; set; }
@@ -178,7 +179,6 @@ public class FrQa430ViewModel : OpampViewModel
 
 	public TestingType GetTestingType(string type)
 	{
-		var vm = MyVModel;
 		return (TestingType)Enum.Parse(typeof(TestingType), type);
 	}
 
@@ -193,8 +193,8 @@ public class FrQa430ViewModel : OpampViewModel
 		switch (GetTestingType(TestType))
 		{
 			case TestingType.CMRR:
-				PlotFormat = "dBV";
-				Gen1Voltage = "10";
+				PlotFormat = "dB";
+				Gen1Voltage = "8";
 				GenVoltageUnit = "mV";
 				StartFreq = "20";
 				EndFreq = "20000";
@@ -209,10 +209,10 @@ public class FrQa430ViewModel : OpampViewModel
 			case TestingType.InputZ:
 				PlotFormat = "Ohms";
 				Gen1Voltage = "0.5";
-				GenVoltageUnit = "mV";
-				StartFreq = "200";
-				EndFreq = "90000";
-				SampleRate = "192000";
+				GenVoltageUnit = "V";
+				StartFreq = "20";
+				EndFreq = "20000";
+				SampleRate = "96000";
 				FftSize = "256K";
 				IsChirp = true;
 				Smoothing = "0.01";
@@ -243,6 +243,19 @@ public class FrQa430ViewModel : OpampViewModel
 				IsChirp = true;
 				Smoothing = "0.01";
 				Averages = 3;
+				IsRiaa = false;
+				break;
+			case TestingType.Noise:
+				PlotFormat = "dBV";
+				Gen1Voltage = "0";
+				GenVoltageUnit = "mV";
+				StartFreq = ViewSettings.MinNoiseFrequency.ToString();
+				EndFreq = ViewSettings.NoiseBandwidth.ToString();
+				SampleRate = "192000";
+				FftSize = "256K";
+				IsChirp = true;
+				Smoothing = "0.3";
+				Averages = 1;
 				IsRiaa = false;
 				break;
 		}
@@ -279,8 +292,8 @@ public class FrQa430ViewModel : OpampViewModel
 			case "PlotFormat":
 				// we may need to change the axis
 				{
-					var ttype = MyVModel.GetTestingType(MyVModel.TestType);
-					var isdb = ttype == TestingType.Response;
+					var ttype = GetTestingType(MyVModel.TestType);
+					var isdb = ttype == TestingType.Noise;
 					ToShowRange = isdb ? Visibility.Collapsed : Visibility.Visible;
 					ToShowdB = isdb ? Visibility.Visible : Visibility.Collapsed;
 				}
@@ -328,30 +341,6 @@ public class FrQa430ViewModel : OpampViewModel
 			case "ShowPoints":
 				MyAction?.UpdateGraph(false);
 				break;
-			case "SampleRate":
-				if (IsChirp)
-				{
-					if (SampleRate == "96000")
-					{
-						this.FftSize = "64K";
-					}
-					if (SampleRate == "192000")
-					{
-						this.FftSize = "128K";
-					}
-					else if (SampleRate == "48000")
-					{
-						this.FftSize = "32K";
-					}
-				}
-				break;
-			//case "IsChirp":
-			//	if(IsChirp)
-			//	{
-			//		this.SampleRate = "96000";
-			//		this.FftSize = "64K";
-			//	}
-			//	break;
 			default:
 				OpampPropertyChanged(sender, e);
 				break;
@@ -400,8 +389,7 @@ public class FrQa430ViewModel : OpampViewModel
 
 	public DataBlob? GetFftData()
 	{
-		var vm = MyVModel;
-		return vm.actFreq.CreateExportData();
+		return MyAction.CreateExportData();
 	}
 
 	private static async Task LoadItTab()
@@ -418,7 +406,7 @@ public class FrQa430ViewModel : OpampViewModel
 	private void SaveItTab()
 	{
 		string prefix = "QaFile";
-		var ttype = MyVModel.GetTestingType(MyVModel.TestType);
+		var ttype = GetTestingType(MyVModel.TestType);
 		if (ttype == TestingType.CMRR)
 			prefix = "QaCmrr";
 		else if (ttype == TestingType.InputZ)
@@ -475,7 +463,7 @@ public class FrQa430ViewModel : OpampViewModel
 			case TestingType.Crosstalk:
 				ZValue = "Left: " + (20 * Math.Log10(zv.Item2)).ToString("0.## dB") + Environment.NewLine + "Right: " + (20 * Math.Log10(zv.Item3)).ToString("0.## dB");
 				break;
-			case TestingType.Response:
+			case TestingType.Noise:
 				{
 					ZValue = "Left: " + GraphUtil.PrettyPrint(zv.Item2, PlotFormat) + Environment.NewLine +
 						"Right: " + GraphUtil.PrettyPrint(zv.Item3, PlotFormat);
@@ -516,6 +504,7 @@ public class FrQa430ViewModel : OpampViewModel
 				}
 				break;
 		}
+		Debug.Assert(ReferenceEquals(this, MyVModel), "Not vmodel in this");
 	}
 
 	private void DoMouse(object sender, MouseEventArgs e)
@@ -540,6 +529,7 @@ public class FrQa430ViewModel : OpampViewModel
 	public FrQa430ViewModel()
 	{
 		_Name = "Frqa430";
+		MyId = $"{_Name}:{_MyIndex}";
 		PropertyChanged += CheckPropertyChanged;
 		MouseTracked += DoMouseTracked;
 

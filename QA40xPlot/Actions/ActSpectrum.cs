@@ -905,7 +905,7 @@ namespace QA40xPlot.Actions
 				return;
 
 			var fftData = page.FreqRslt;
-			if (fftData == null)
+			if (fftData == null || fftData.Left.Length == 0)
 				return;
 
 			// log of the frequencies for providing X axis values

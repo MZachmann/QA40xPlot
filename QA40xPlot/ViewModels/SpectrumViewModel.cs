@@ -388,6 +388,7 @@ namespace QA40xPlot.ViewModels
 		public SpectrumViewModel()
 		{
 			_Name = "Spectrum";
+			MyId = $"{_Name}:{_MyIndex}";
 			PropertyChanged += CheckPropertyChanged;
 			MouseTracked += DoMouseTracked;
 

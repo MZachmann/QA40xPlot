@@ -214,9 +214,9 @@ namespace QA40xPlot.ViewModels
 			return variables;
 		}
 
-		public async Task<string> ExecuteModel(AcquireStep myConfig, string lastCfg)
+		public static async Task<string> ExecuteModel(AcquireStep myConfig, string lastCfg, bool hasQA430)
 		{
-			QA430Model? model = HasQA430 ? Qa430Usb.Singleton?.QAModel : null;
+			QA430Model? model = hasQA430 ? Qa430Usb.Singleton?.QAModel : null;
 			if (model != null)
 			{
 				if (myConfig.Cfg != lastCfg && myConfig.Cfg.Length > 0)
