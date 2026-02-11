@@ -781,7 +781,8 @@ namespace QA40xPlot.Actions
 			string tosuffix = MyVModel.HasQA430 ? "." : "";
 			string suffix = string.Empty;
 			LinePattern[] patternList = [LinePattern.Solid, LinePattern.Dashed, LinePattern.DenselyDashed, LinePattern.Dotted];
-			var lp = patternList[ (isMain && leftTop) ? 1 : (isMain ? 0 : (leftTop ? 3 :2))];
+			var solidFirst = lineGroup.Length > 0 && ReferenceEquals(lineGroup[0], leftCol);
+			var lp = patternList[ (isMain && solidFirst) ? 0 : (isMain ? 1 : (solidFirst ? 2 : 3))];
 			if (showRight && showLeft)
 				suffix = (leftTop ? ".R" : ".L") + tosuffix;
 			else
@@ -828,7 +829,7 @@ namespace QA40xPlot.Actions
 						AddPlot(freq, colArray.Select(x => FormVal(x.D6P, x.Mag)).ToList(), colorNum, prefix + "D6+" + subsuffix, lp);
 				}
 				suffix = (leftTop ? ".L" : ".R") + tosuffix;          // second pass iff there are both channels
-				lp = patternList[(isMain && leftTop) ? 0 : (isMain ? 1 : (leftTop ? 2 : 3))]; ;
+				lp = patternList[(isMain && solidFirst) ? 1 : (isMain ? 0 : (solidFirst ? 3 : 2))]; ;
 			}
 			vm.MainPlot.Refresh();
 		}

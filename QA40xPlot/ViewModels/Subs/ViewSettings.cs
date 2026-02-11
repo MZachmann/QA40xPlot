@@ -69,6 +69,8 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public static double NoiseBandwidth { get => MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.NoiseBandwidthStr, 20000); }
 		[JsonIgnore]
+		public static double MinNoiseFrequency { get => MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.MinNoiseFreq, 20); }
+		[JsonIgnore]
 		public static double NoiseRefresh { get => MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.NoiseRefreshStr, 200); }
 
 		private bool IsValidVersion(Dictionary<string, Dictionary<string, object>> vws)

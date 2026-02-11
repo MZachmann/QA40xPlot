@@ -637,8 +637,9 @@ namespace QA40xPlot.BareMetal
 				return new LeftRightPair(1e-20, 1e-20);
 
 			var maxf = ViewSettings.NoiseBandwidth;
-			var noiseLeft = QaCompute.ComputeRmsF(lrfs.Left, lrfs.Df, 20, maxf, windowing, weighting);
-			var noiseRight = QaCompute.ComputeRmsF(lrfs.Right, lrfs.Df, 20, maxf, windowing, weighting);
+			var minf = ViewSettings.MinNoiseFrequency;
+			var noiseLeft = QaCompute.ComputeRmsF(lrfs.Left, lrfs.Df, minf, maxf, windowing, weighting);
+			var noiseRight = QaCompute.ComputeRmsF(lrfs.Right, lrfs.Df, minf, maxf, windowing, weighting);
 			// calculate the noise floor
 			return new LeftRightPair(noiseLeft, noiseRight);
 		}

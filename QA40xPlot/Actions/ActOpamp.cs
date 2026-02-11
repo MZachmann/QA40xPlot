@@ -148,7 +148,7 @@ namespace QA40xPlot.Actions
 
 			var maxf = .95 * lfrs.Df * lfrs.Left.Length;    // skip the end-gunk
 			var maxScan = Math.Min(ViewSettings.NoiseBandwidth, maxf);  // opamps use 80KHz bandwidth, audio uses 20KHz
-			var minScan = (ViewSettings.NoiseBandwidth > 20000) ? 30 : 20;  // ??
+			var minScan = ViewSettings.MinNoiseFrequency;  // ??
 
 			LeftRightPair thds = QaCompute.GetThdDb(bvm.WindowingMethod, lfrs, dFreq, lfrs.Df, maxf);   // use all available data
 			LeftRightPair thdN = QaCompute.GetThdnDb(bvm.WindowingMethod, lfrs, dFreq, minScan, maxScan, ViewSettings.NoiseWeight);

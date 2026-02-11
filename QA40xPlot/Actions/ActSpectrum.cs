@@ -512,11 +512,12 @@ namespace QA40xPlot.Actions
 
 			// use noise bandwidth of NoiseBandwidth Hz
 			var maxf = Math.Min(ViewSettings.NoiseBandwidth, lrfs.Df * lrfs.Left.Length);
-			LeftRightPair sinaddb = QaCompute.GetSinadDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf, ViewSettings.NoiseWeight);
-			LeftRightPair snrdb = QaCompute.GetSnrDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf, ViewSettings.NoiseWeight);
-			LeftRightPair thdN = QaCompute.GetThdnDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf, ViewSettings.NoiseWeight);
+			var minf = ViewSettings.MinNoiseFrequency;
+			LeftRightPair sinaddb = QaCompute.GetSinadDb(vm.WindowingMethod, lrfs, freq, minf, maxf, ViewSettings.NoiseWeight);
+			LeftRightPair snrdb = QaCompute.GetSnrDb(vm.WindowingMethod, lrfs, freq, minf, maxf, ViewSettings.NoiseWeight);
+			LeftRightPair thdN = QaCompute.GetThdnDb(vm.WindowingMethod, lrfs, freq, minf, maxf, ViewSettings.NoiseWeight);
 			maxf = Math.Min(Math.Max(maxf, freq * 5), lrfs.Df * lrfs.Left.Length);
-			LeftRightPair thds = QaCompute.GetThdDb(vm.WindowingMethod, lrfs, freq, 20.0, maxf);
+			LeftRightPair thds = QaCompute.GetThdDb(vm.WindowingMethod, lrfs, freq, minf, maxf);
 
 			ThdChannelViewModel[] steps = [left, right];
 			foreach (var step in steps)

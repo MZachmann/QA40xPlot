@@ -191,19 +191,19 @@
             <ComboBox IsEditable="True"  Grid.Row="22" Grid.Column="1" MinWidth="80" Text="{Binding NoiseBandwidthStr}" 
                   ItemsSource="{Binding NoiseBandList}" />
             <TextBlock TextWrapping="Wrap" MaxWidth="600" Grid.Row="22" Grid.Column="4"
-                   Text="Set the noise bandwidth for THD+N and SNR math." 
+                   Text="Set the noise upper frequency for THD+N and SNR math." 
                    HorizontalAlignment="Left" VerticalAlignment="Center"
                    />
             <Label VerticalAlignment="Center" Content="Hz" Grid.Row="22" Grid.Column="2" HorizontalAlignment="Left" />
             <local:GroupHeader Grid.Row="23" Grid.Column="0" Grid.ColumnSpan="5"  />
-            <Label VerticalAlignment="Center" Content="Noise Refresh: " Grid.Row="24" Grid.Column="0" />
-            <ComboBox IsEditable="True"  Grid.Row="24" Grid.Column="1" MinWidth="80" Text="{Binding NoiseRefreshStr}" 
-                  ItemsSource="{Binding NoiseRefreshList}" />
+            <Label VerticalAlignment="Top" Content="Noise Band Minimum: " Grid.Row="24" Grid.Column="0" />
+            <ComboBox IsEditable="True"  Grid.Row="24" Grid.Column="1" MinWidth="80" Text="{Binding MinNoiseFreq}" 
+                  ItemsSource="{Binding StartFrequencies}" />
             <TextBlock TextWrapping="Wrap" MaxWidth="600" Grid.Row="24" Grid.Column="4"
-                   Text="Set the time between noise floor recalculations. 0 == never" 
+                   Text="Set the minimum frequency for THD+N and SNR math." 
                    HorizontalAlignment="Left" VerticalAlignment="Center"
                    />
-            <Label VerticalAlignment="Center" Content="Sec" Grid.Row="24" Grid.Column="2" HorizontalAlignment="Left" />
+            <Label VerticalAlignment="Center" Content="Hz" Grid.Row="24" Grid.Column="2" HorizontalAlignment="Left" />
             <local:GroupHeader Grid.Row="25" Grid.Column="0" Grid.ColumnSpan="5"  />
             <Label VerticalAlignment="Center" Content="Noise Weighting: " Grid.Row="26" Grid.Column="0" />
             <ComboBox  Grid.Row="26" Grid.Column="1" MinWidth="80" SelectedValue="{Binding NoiseWeight}" 

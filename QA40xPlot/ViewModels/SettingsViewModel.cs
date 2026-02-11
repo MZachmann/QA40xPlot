@@ -240,6 +240,16 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
+		private string _MinNoiseFreq = "20";
+		public string MinNoiseFreq
+		{
+			get { return _MinNoiseFreq; }
+			set
+			{
+				SetProperty(ref _MinNoiseFreq, value);
+			}
+		}
+
 		private string _GraphForeground = BackColors[2];  // brighten more
 		public string GraphForeground
 		{

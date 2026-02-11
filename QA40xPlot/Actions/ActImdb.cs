@@ -402,11 +402,12 @@ namespace QA40xPlot.Actions
 
 			var maxScan = lrfs.Df * lrfs.Left.Length;
 			var maxf = Math.Min(ViewSettings.NoiseBandwidth, maxScan); // the app seems to use 20,000 so not sampleRate/ 2.0;
+			var minf = ViewSettings.MinNoiseFrequency;
 			var wdw = vm.WindowingMethod; // windowing method
 			double[] funds = [freq, freq2];
-			LeftRightPair thds = QaCompute.GetImdDb(wdw, lrfs, funds, 20.0, maxScan);
-			LeftRightPair thdN = QaCompute.GetImdnDb(wdw, lrfs, funds, 20.0, maxf, ViewSettings.NoiseWeight);
-			LeftRightPair snrimdb = QaCompute.GetSnrImdDb(wdw, lrfs, funds, 20.0, maxf, ViewSettings.NoiseWeight);
+			LeftRightPair thds = QaCompute.GetImdDb(wdw, lrfs, funds, minf, maxScan);
+			LeftRightPair thdN = QaCompute.GetImdnDb(wdw, lrfs, funds, minf, maxf, ViewSettings.NoiseWeight);
+			LeftRightPair snrimdb = QaCompute.GetSnrImdDb(wdw, lrfs, funds, minf, maxf, ViewSettings.NoiseWeight);
 			var method = QaCompute.GetImdMethod(funds);
 
 			ImdChannelViewModel[] steps = [left, right];
