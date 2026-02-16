@@ -20,8 +20,6 @@ namespace QA40xPlot.Actions
 	{
 		private List<MyDataTab> OtherTabs { get; set; } = new List<MyDataTab>(); // Other tabs in the document
 
-		private float _Thickness = 2.0f;
-
 		private List<SweepLine>? FrequencyLines(MyDataTab page)
 		{
 			return (List<SweepLine>?)page.GetProperty("Left");
@@ -781,7 +779,7 @@ namespace QA40xPlot.Actions
 			if (!showLeft && !showRight)
 				return;
 
-			float lineWidth = freqVm.ShowThickLines ? _Thickness : 1;
+			float lineWidth = freqVm.ShowThickLines ? ViewSettings.Thickness : 1;
 			float markerSize = freqVm.ShowPoints ? lineWidth + 3 : 1;
 
 			// here Y values are in dBV

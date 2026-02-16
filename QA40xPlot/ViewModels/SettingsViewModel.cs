@@ -21,6 +21,7 @@ namespace QA40xPlot.ViewModels
 		public static List<String> OutputMethods { get; } = new List<string>() { "", "Min Noise", "Min Distortion" };
 		public static List<String> EchoTypes { get; } = new List<string>() { "QA40x", "WinDevice", "Both" };
 		public static List<String> EchoChannels { get; } = new List<string>() { "None", "Left", "Right", "L+R" };
+		public static List<String> ThickList { get; } = new List<string>() { "1", "2", "3", "4", "5", "6" };
 		public static List<String> ZOrderList { get; } = new List<string>() { "Left", "Right", "Get/Left", "Get/Right" };
 		public const int EchoChannelLeft = 1;   // in list order
 		public const int EchoChannelRight = 2;
@@ -248,6 +249,13 @@ namespace QA40xPlot.ViewModels
 			{
 				SetProperty(ref _MinNoiseFreq, value);
 			}
+		}
+
+		private string _LineThickness = "3";
+		public string LineThickness
+		{
+			get => _LineThickness;
+			set => SetProperty(ref _LineThickness, value);
 		}
 
 		private string _GraphForeground = BackColors[2];  // brighten more

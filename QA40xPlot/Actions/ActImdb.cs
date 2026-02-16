@@ -20,8 +20,6 @@ namespace QA40xPlot.Actions
 	{
 		private List<MyDataTab> OtherTabs { get; set; } = new List<MyDataTab>(); // Other tabs in the document
 
-		private float _Thickness = 2.0f;
-
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -677,7 +675,7 @@ namespace QA40xPlot.Actions
 			string plotForm = vm.PlotFormat;
 
 			// add a line plot to the plot
-			var lineWidth = vm.ShowThickLines ? _Thickness : 1;   // so it dynamically updates
+			var lineWidth = vm.ShowThickLines ? ViewSettings.Thickness : 1;   // so it dynamically updates
 
 			int trimOff = 1;
 

@@ -18,8 +18,6 @@ namespace QA40xPlot.Actions
 	{
 		private List<MyDataTab> OtherTabs { get; set; } = new List<MyDataTab>(); // Other tabs in the document
 
-		private float _Thickness = 2.0f;
-
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -548,12 +546,12 @@ namespace QA40xPlot.Actions
 
 			var timeX = Enumerable.Range(0, timeData.Left.Length).Select(x => x * 1000 * timeData.dt).ToArray(); // in ms
 			var showThick = MyVModel.ShowThickLines;    // so it dynamically updates
-			var markerSize = vm.ShowPoints ? (showThick ? _Thickness : 1) + 3 : 1;
+			var markerSize = vm.ShowPoints ? (showThick ? ViewSettings.Thickness : 1) + 3 : 1;
 
 			void PlotLine(double[] y, bool isLeft)
 			{
 				var p = myPlot.Add.SignalXY(timeX, y);
-				p.LineWidth = showThick ? _Thickness : 1;
+				p.LineWidth = showThick ? ViewSettings.Thickness : 1;
 				p.Color = GraphUtil.GetPaletteColor(isLeft ? page.Definition.LeftColor : page.Definition.RightColor, measurementNr);
 				p.MarkerSize = markerSize;
 				p.LegendText = isMain ? (isLeft ? "Left" : "Right") : ClipName(page.Definition.Name) + (isLeft ? ".L" : ".R");
@@ -589,7 +587,7 @@ namespace QA40xPlot.Actions
 					if (useLeft)
 					{
 						var pLeft = myPlot.Add.SignalXY(timeX, lrts.Left);
-						pLeft.LineWidth = showThick ? _Thickness : 1;
+						pLeft.LineWidth = showThick ? ViewSettings.Thickness : 1;
 						pLeft.Color = GraphUtil.GetPaletteColor(null, measurementNr);
 						pLeft.MarkerSize = markerSize;
 						pLeft.LegendText = "Residual.L";
@@ -603,7 +601,7 @@ namespace QA40xPlot.Actions
 					if (useRight)
 					{
 						var pRight = myPlot.Add.SignalXY(timeX, lrts.Right);
-						pRight.LineWidth = showThick ? _Thickness : 1;
+						pRight.LineWidth = showThick ? ViewSettings.Thickness : 1;
 						pRight.Color = GraphUtil.GetPaletteColor(null, measurementNr * 2 + 1);
 						pRight.MarkerSize = markerSize;
 						pRight.LegendText = "Residual.R";

@@ -57,7 +57,7 @@ namespace QA40xPlot.Views
 			{
 				var u = box.XColor;
 				box.XColor = (e.NewValue.ToString() == "Transparent") ? "∅" : string.Empty;
-				if(u != box.XColor)
+				if(e.NewValue != e.OldValue)
 					box.RaisePropertyChanged("Color");
 			}
 		}

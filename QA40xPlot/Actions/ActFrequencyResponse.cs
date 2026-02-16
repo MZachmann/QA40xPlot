@@ -20,8 +20,6 @@ namespace QA40xPlot.Actions
 	{
 		private List<MyDataTab> OtherTabs { get; set; } = new(); // Other tabs in the document
 
-		private float _Thickness = 2.0f;
-
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -1259,7 +1257,7 @@ namespace QA40xPlot.Actions
 				skipped = 1;
 
 			double[] logFreqX = freqX.Select(x => (x > 0) ? Math.Log10(x) : 1e-6).ToArray();
-			float lineWidth = vm.ShowThickLines ? _Thickness : 1;
+			float lineWidth = vm.ShowThickLines ? ViewSettings.Thickness : 1;
 			float markerSize = vm.ShowPoints ? lineWidth + 3 : 1;
 
 			var ttype = vm.GetTestingType(vm.TestType);

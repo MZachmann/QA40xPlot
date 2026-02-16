@@ -111,6 +111,7 @@ namespace QA40xPlot.QA430
 
 		private readonly Task? RefreshTask;
 		private bool RefreshTaskCancel = false;
+		private static bool _FirstDefault = true;
 
 		static readonly QA430Config C1 = new("Config1", OpampNegInputs.GndTo4p99, OpampPosInputs.Analyzer,
 					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, 0, 0);
@@ -448,7 +449,12 @@ namespace QA40xPlot.QA430
 			try
 			{
 				ShowRegisters("Beginning default");
-				//Hw.ResetAllRelays();    // set the internal relays byte to zero
+				// just once we want to reset all the relays
+				if(_FirstDefault)
+				{
+					Hw.ResetAllRelays();    // set the internal relays byte to zero
+					_FirstDefault = false;
+				}
 				Thread.Sleep(50);
 				EnableSupply = false;
 				EnableCurrentSense = false;

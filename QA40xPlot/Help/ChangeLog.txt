@@ -8,6 +8,7 @@ v 1.2.9 2/ /26
 - added a new option to Test menu for ZOrder specification
 - do first gain test at 1mV instead of 10mV for 60db configurations
 - added a min frequency Setting for noise band
+- add plot line thickness setting (old default = 2.0)
 v 1.2.8 2/8/26
 - enable empirically set output range method using min distortion in settings
 - show spectrum and imd markers on click rather than requiring run

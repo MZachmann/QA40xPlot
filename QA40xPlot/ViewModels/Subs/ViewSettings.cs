@@ -55,6 +55,8 @@ namespace QA40xPlot.ViewModels
 		public static string NoiseWeight { get => ViewSettings.Singleton.SettingsVm.NoiseWeight; }
 		[JsonIgnore]
 		public static int WaveEchoes { get => ViewSettings.Singleton.SettingsVm.EchoDevices; }
+		[JsonIgnore]
+		public static float Thickness { get => (float)MathUtil.ToDouble(ViewSettings.Singleton?.SettingsVm?.LineThickness, 0); }
 
 		/// <summary>
 		/// returns if left channel is our voltage output math

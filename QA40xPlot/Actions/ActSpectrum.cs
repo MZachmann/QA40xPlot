@@ -20,8 +20,6 @@ namespace QA40xPlot.Actions
 	public class ActSpectrum : ActBase<SpectrumViewModel>
 	{
 		private List<MyDataTab> OtherTabs { get; set; } = new List<MyDataTab>(); // Other tabs in the document
-		private float _Thickness = 2.0f;
-
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -917,7 +915,7 @@ namespace QA40xPlot.Actions
 			string plotForm = vm.PlotFormat;
 
 			// add a line plot to the plot
-			var lineWidth = vm.ShowThickLines ? _Thickness : 1;   // so it dynamically updates
+			var lineWidth = vm.ShowThickLines ? ViewSettings.Thickness : 1;   // so it dynamically updates
 																  //IPalette palette = new ScottPlot.Palettes.Category20();
 
 			void PlotLine(double[] data, bool isLeft)
@@ -940,7 +938,7 @@ namespace QA40xPlot.Actions
 					plotLine.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, 2 * measurementNr + 1);
 					plotLine.LegendText = isMain ? "Right" : ClipName(page.Definition.Name) + ".R";
 				}
-				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotLine.Color, plotLine.LegendText, 2 * measurementNr + (isLeft ? 1 : 0), plotLine, vm.MainPlot));
+				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotLine.Color, plotLine.LegendText, 2 * measurementNr + (isLeft ? 0 : 1), plotLine, vm.MainPlot));
 			}
 
 			bool leftTop = PlotZLeft;

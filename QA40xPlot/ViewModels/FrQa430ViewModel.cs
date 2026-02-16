@@ -17,7 +17,7 @@ public class FrQa430ViewModel : OpampViewModel
 	public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 	public static List<String> Smoothings { get => new List<string> { "0", "0.001", "0.01", "0.05", "0.1", "0.25" }; }
 	public static List<String> PhaseList { get => new List<string> { "360", "180", "90", "0", "-90", "-180", "-360" }; }
-	public static List<String> TestTypes { get => new List<string> { "CMRR", "PSRR", "InputZ", "GBW", "Noise" }; }
+	public static List<String> TestTypes { get => new List<string> { "CMRR", "PSRR", "GBW", "Noise" }; }
 	[JsonIgnore]
 	public override List<string> AxisList { get; } = new List<string> { "XF", "YM", "PH" };
 
