@@ -198,7 +198,7 @@ namespace QA40xPlot.ViewModels
 					variables.Add((AcquireStep)myStep);
 				}
 
-					QA430Model? model430 = vm.HasQA430 ? Qa430Usb.Singleton?.QAModel : null;
+				QA430Model? model430 = vm.HasQA430 ? Qa430Usb.Singleton?.QAModel : null;
 				if (model430 != null)
 				{
 					variables = model430.ExpandLoadOptions(variables, vm.LoadSummary) ?? variables;
@@ -233,6 +233,7 @@ namespace QA40xPlot.ViewModels
 				}
 				else
 					model.UseFixedRails = true;
+				model.PsrrOption = (short)myConfig.ConnectPssr;
 				// now that the QA430 relays are set, wait a bit...
 				await model.WaitForQA430Relays();
 			}

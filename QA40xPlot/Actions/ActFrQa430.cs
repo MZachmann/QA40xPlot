@@ -307,7 +307,6 @@ namespace QA40xPlot.Actions
 						NextPage.GainData = ([], []); // new list of complex data
 						NextPage.GainFrequencies = [];
 						NextPage.Definition.GeneratorVoltage = genVolt; // save the actual generator voltage
-
 						if(ttype == TestingType.Noise)
 						{
 							await RunNoiseTest(NextPage, myConfig, index);
@@ -390,6 +389,7 @@ namespace QA40xPlot.Actions
 			{
 				case TestingType.Crosstalk:
 				case TestingType.Noise:
+				case TestingType.PSRR:
 					if (frsqVm.ShowRight && !frsqVm.ShowLeft)
 					{
 						db.LeftData = PageData.GainData.Item2.ToList();
@@ -401,7 +401,6 @@ namespace QA40xPlot.Actions
 					break;
 				case TestingType.CMRR:
 				case TestingType.GBW:
-				case TestingType.PSRR:
 					db.LeftData = PageData.GainReal.Zip(PageData.GainImag, (x, y) => Math.Sqrt(x * x + y * y)).ToList();
 					db.PhaseData = PageData.GainReal.Zip(PageData.GainImag, (x, y) => Math.Atan2(y, x)).ToList();
 					break;
@@ -493,6 +492,7 @@ namespace QA40xPlot.Actions
 			var ttype = vm.GetTestingType(vm.TestType);
 			var msdre = PageData.GainReal;
 			var msdim = PageData.GainImag;
+			bool is2Channel = ttype == TestingType.Noise;
 
 			if (msdfrq == null || msdfrq.Length == 0 || msdre == null || msdim == null)
 				return Rect.Empty;
@@ -505,11 +505,11 @@ namespace QA40xPlot.Actions
 				tabs.Add(new LeftRightResult
 				{
 					Left = msdre,
-					Right = vm.ShowRight ? msdim : [],
+					Right = (vm.ShowRight || !is2Channel) ? msdim : [],
 					XValues = msdfrq
 				});
 			}
-			var u = DataUtil.FindShownGains(OtherTabs);
+			var u = DataUtil.FindShownGains(OtherTabs, is2Channel);
 			if (u.Count > 0)
 			{
 				foreach (var other in u)
@@ -520,7 +520,7 @@ namespace QA40xPlot.Actions
 
 			if (tabs.Count != 0)
 			{
-				if (ttype == TestingType.Noise)
+				if (ttype == TestingType.Noise )
 				{
 					rrc.X = tabs.Min(x => x.XValues.Min());
 					rrc.Width = tabs.Max(x => x.XValues.Max()) - rrc.X;
@@ -531,7 +531,7 @@ namespace QA40xPlot.Actions
 						Math.Max(y.Left.Max(), y.Right.Max()) :
 						y.Left.Max()) - rrc.Y;
 				}
-				else if (ttype == TestingType.GBW || ttype == TestingType.PSRR || ttype == TestingType.CMRR)
+				else if (ttype == TestingType.GBW || ttype == TestingType.CMRR || ttype == TestingType.PSRR)
 				{
 					rrc.X = tabs.Min(x => x.XValues.Min());
 					rrc.Width = tabs.Max(x => x.XValues.Max()) - rrc.X;
@@ -540,7 +540,7 @@ namespace QA40xPlot.Actions
 					foreach(var tab in tabs)
 					{
 						var u2 = MathUtil.ToCplxMag(tab.Left, tab.Right);
-						x = Math.Min(x, u2.Min());
+						 x = Math.Min(x, u2.Min());
 						x2 = Math.Max(x, u2.Max());
 					}
 					rrc.Y = x;
@@ -617,8 +617,8 @@ namespace QA40xPlot.Actions
 						break;
 					case TestingType.Gain:
 					case TestingType.GBW:
-					case TestingType.PSRR:
 					case TestingType.CMRR:
+					case TestingType.PSRR:
 						{
 							// send freq, gain, phasedeg
 							var mag = MathUtil.ToCplxMag(valuesRe[bin], valuesIm[bin]);
@@ -734,6 +734,10 @@ namespace QA40xPlot.Actions
 				{
 					total /= Math.Abs(vm.QA430Cfg.Gain);
 				}
+				if(ttype == TestingType.PSRR || ttype == TestingType.CMRR)
+				{
+					total = 1 / total;	// use the inverse for them
+				}
 				page.GainData = (page.GainReal.Append(total.Real).ToArray(), page.GainImag.Append(total.Imaginary).ToArray());
 			}
 			else
@@ -744,6 +748,10 @@ namespace QA40xPlot.Actions
 				if (ttype == TestingType.CMRR && vm.QA430Cfg.Gain != 0)
 				{
 					ga /= Math.Abs(vm.QA430Cfg.Gain);
+				}
+				if (ttype == TestingType.PSRR || ttype == TestingType.CMRR)
+				{
+					ga = 1 / ga;  // use the inverse for them
 				}
 				page.GainData = (page.GainReal.Append(ga.Real).ToArray(), page.GainImag.Append(ga.Imaginary).ToArray());
 			}
@@ -1070,7 +1078,11 @@ namespace QA40xPlot.Actions
 						for (int i = 0; i < vm.Averages; i++)
 						{
 							// divide left/right complex
-							var cplxdiv = leftFfts[i].Zip(rightFfts[i], (l, r) => { return l / r; });
+							Complex[] cplxdiv;
+							if(ttype == TestingType.GBW)
+								cplxdiv = leftFfts[i].Zip(rightFfts[i], (l, r) => { return l / r; }).ToArray();
+							else // cmrr and psrr use 1/x for positive db
+								cplxdiv = leftFfts[i].Zip(rightFfts[i], (l, r) => { return r / l; }).ToArray();
 							leftGains.Add(cplxdiv.Select(x => x.Real).ToArray());
 							rightGains.Add(cplxdiv.Select(x => x.Imaginary).ToArray());
 						}
@@ -1131,6 +1143,8 @@ namespace QA40xPlot.Actions
 					acq = new AcquireStep() { Cfg = "Config3a", Load = QA430Model.LoadOptions.R2000, Gain = 1, Distgain = 1000, SupplyP = 15, SupplyN = 15 };    // unity 6b with 101 dist gain
 					break;
 				case TestingType.PSRR:
+					acq = new AcquireStep() { Cfg = "Config9a", Load = QA430Model.LoadOptions.R2000, Gain = 1, Distgain = 1, SupplyP = 8, SupplyN = 8 };    // unity 6a with gnd in and lower voltage
+					acq.ConnectPssr = QA430Model.PsrrOptions.ToHighRail;
 					break;
 				case TestingType.GBW:
 					acq = new AcquireStep() { Cfg = "Config1", Load = QA430Model.LoadOptions.R2000, Gain = 1000, Distgain = 1, SupplyP = 15, SupplyN = 15 };    // unity 6b with 101 dist gain
@@ -1294,7 +1308,7 @@ namespace QA40xPlot.Actions
 				case TestingType.GBW:
 				case TestingType.CMRR:
 				case TestingType.PSRR:
-					AddPhase(vm, myPlot);
+					//AddPhase(vm, myPlot);
 					myPlot.YLabel("dB");
 					break;
 				case TestingType.InputZ:

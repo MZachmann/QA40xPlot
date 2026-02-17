@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:QA40xPlot"
              xmlns:views ="clr-namespace:QA40xPlot.Views"
+             xmlns:e ="clr-namespace:QA40xPlot.Extensions"
              mc:Ignorable="d" 
              Title="QA430 Opamp Tester"
              Height="530" Width="386" Background="{Binding ThemeBackground}">
@@ -59,14 +60,18 @@
                 <ComboBox Grid.Row="4" Grid.Column="1" 
                   ItemsSource="{Binding Loads}"
                   SelectedIndex="{Binding LoadOption}"/>
-                <Separator Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2"
+                <Separator Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="5"
                   Height="10" Background="AliceBlue" HorizontalAlignment="Stretch" />
-                <CheckBox Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2"
+                <CheckBox Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Center" Margin="5,0,0,0"
                   Content="Use Fixed Rails" IsChecked="{Binding UseFixedRails}" />
+                <Label Grid.Row="6" Grid.Column="3" Grid.ColumnSpan="2" VerticalAlignment="Center" Content="Add Input to Rails" ></Label>
                 <Label Grid.Row="7" Grid.Column="0" VerticalAlignment="Center" Content="Pos Rail" ></Label>
                 <ComboBox Grid.Row="7" Grid.Column="1" IsEditable="True"
                   ItemsSource="{Binding RailVoltages}" 
                   Text="{Binding PosRailVoltage, UpdateSourceTrigger=LostFocus}"/>
+                <ComboBox Grid.Row="7" Grid.Column="3" Grid.ColumnSpan="2" IsEditable="False"
+                  ItemsSource="{Binding PsrrOptionsList}" 
+                  SelectedIndex="{Binding PsrrOption}"/>
                 <Label Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" Content="Neg Rail" ></Label>
                 <ComboBox Grid.Row="8" Grid.Column="1" IsEditable="True"
                   ItemsSource="{Binding NegRailVoltages}" 

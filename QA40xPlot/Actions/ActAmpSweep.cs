@@ -880,7 +880,7 @@ namespace QA40xPlot.Actions
 						AddPlot(freq, colArray.Select(x => FormVal(x.D6P, x.Mag)).ToList(), colorNum, prefix + "D6+" + subsuffix, lp);
 				}
 				suffix = (leftTop ? ".L" : ".R") + tosuffix;          // second pass iff there are both channels
-				lp = patternList[(isMain && solidFirst) ? 1 : (isMain ? 2 : (solidFirst ? 3 : 2))]; ;
+				lp = patternList[(isMain && solidFirst) ? 1 : (isMain ? 0 : (solidFirst ? 3 : 2))]; ;
 			}
 			freqVm.MainPlot.Refresh();
 		}

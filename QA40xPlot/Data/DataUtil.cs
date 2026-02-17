@@ -94,7 +94,7 @@ namespace QA40xPlot.Data
 		/// <typeparam name="U"></typeparam>
 		/// <param name="tabs"></param>
 		/// <returns></returns>
-		public static List<LeftRightResult> FindShownGains<T>(List<DataTab<T>> tabs)
+		public static List<LeftRightResult> FindShownGains<T>(List<DataTab<T>> tabs, bool is2channel)
 		{
 			List<LeftRightResult> result = new();
 			foreach (var t in tabs)
@@ -104,7 +104,7 @@ namespace QA40xPlot.Data
 					var u = new LeftRightResult
 					{
 						Left = t.GainLeft,
-						Right = t.GainRight,
+						Right = (t.Definition.IsOnR || !is2channel) ? t.GainRight : [],
 						XValues = t.GainFrequencies
 					};
 					result.Append(u);

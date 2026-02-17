@@ -37,14 +37,23 @@ namespace QA40xPlot.QA430
 	public struct AcquireStep
 	{
 		public string Cfg;      // configuration name
-		public LoadOptions Load; // load option
 		public int Gain;        // signal gain for use by app
+		public LoadOptions Load; // load option
+		public PsrrOptions ConnectPssr; // connect the input to + and or - PSRR lines
 		public int Distgain;    // distortion gain for use by app
 		public double SupplyP;  // supply positive voltage
 		public double SupplyN;  // supply negative voltage
 		public double GenVolt { get; set; } // generator voltage (freq sweep)
 		public string GenXFmt { get; set; } // format the swept value
 		public double GenFrequency { get; set; } // generator frequency (amp sweep)
+
+		public AcquireStep()
+		{
+			Cfg = string.Empty;
+			GenXFmt = string.Empty;
+			Load = LoadOptions.Open;
+			ConnectPssr = PsrrOptions.None;
+		}
 
 		public AcquireStep(AcquireStep asIn)
 		{
@@ -57,6 +66,7 @@ namespace QA40xPlot.QA430
 			GenVolt = asIn.GenVolt;
 			GenXFmt = asIn.GenXFmt;
 			GenFrequency = asIn.GenFrequency;
+			ConnectPssr = asIn.ConnectPssr;
 		}
 
 		public string ToSuffix(bool addVolt, bool hasQa430)
@@ -69,6 +79,10 @@ namespace QA40xPlot.QA430
 					sout = $".{aload};{SupplyP}VDC;Gain={Gain}";
 				else
 					sout = $".{aload};+{SupplyP}|-{SupplyN}VDC;Gain={Gain}";
+				if(ConnectPssr != PsrrOptions.None)
+				{
+					sout += $";{nameof(ConnectPssr)}";
+				}
 			}
 			if (addVolt)
 			{
@@ -88,7 +102,7 @@ namespace QA40xPlot.QA430
 		public enum OpampPosNegConnects : ushort { Open, R49p9, Short }
 		public enum OpampFeedbacks : ushort { Short, R4p99k }
 		public enum LoadOptions : ushort { Open, R2000, R604, R470 }
-		public enum PsrrOptions : ushort { BothPsrrInputsGrounded, HiRailToAnalyzer, LowRailToAnalyzer, BothRailsToAnalyzer }
+		public enum PsrrOptions : ushort { None, ToHighRail, ToLowRail, ToBothRails }
 		public enum OpampConfigOptions : ushort { Custom, Config1, Config2, Config3a, Config3b, Config3c, Config4a, Config4b, Config5a, Config5b, Config6a, Config6b, Config7a, Config7b, Config8a, Config8b };
 		// also
 		// +/- supply voltages
@@ -104,7 +118,7 @@ namespace QA40xPlot.QA430
 		public static List<string> PosNegConnects { get; } = new() { "Open", "49.9 Ω", "Short" };
 		public static List<string> Feedbacks { get; } = new() { "Short", "4.99K Ω" };
 		public static List<string> Loads { get; } = new() { "Open", "2000 Ω", "604 Ω", "470 Ω" };
-		public static List<string> Psrrs { get; } = new() { "None", "Hi Rail", "Low Rail", "Both Rails" };
+		public static List<string> PsrrOptionsList { get; } = new() { "None", "Hi Rail", "Low Rail", "Both Rails" };
 		public static List<string> RailVoltages { get; } = new() { "1", "2", "5", "10", "12", "14.4" };
 		public static List<string> NegRailVoltages { get; } = new() { "-1", "-2", "-5", "-10", "-12", "-14.4" };
 		public static List<string> ConfigOptions { get; } = Enum.GetNames(typeof(OpampConfigOptions)).ToList();
@@ -147,7 +161,10 @@ namespace QA40xPlot.QA430
 					OpampPosNegConnects.Open, OpampFeedbacks.Short, 0, 0);
 		static readonly QA430Config C8b = new("Config8b", OpampNegInputs.Open, OpampPosInputs.AnalyzerTo100k,
 					OpampPosNegConnects.Open, OpampFeedbacks.Short, 0, 0);
-		static readonly QA430Config[] AllConfigs = new[] { C1, C2a, C2b, C2c, C3a, C3b, C3c, C4a, C4b, C5a, C5b, C6a, C6b, C7a, C7b, C8a, C8b };
+		// these are special for tests, not in the config list
+		static readonly QA430Config C9a = new("Config9a", OpampNegInputs.Open, OpampPosInputs.Gnd,
+					OpampPosNegConnects.Open, OpampFeedbacks.R4p99k, 1, 1);
+		static readonly QA430Config[] AllConfigs = new[] { C1, C2a, C2b, C2c, C3a, C3b, C3c, C4a, C4b, C5a, C5b, C6a, C6b, C7a, C7b, C8a, C8b, C9a };
 
 		#region Properties
 
@@ -208,13 +225,12 @@ namespace QA40xPlot.QA430
 			get => _Load;
 			set => SetProperty(ref _Load, value);
 		}
-		private short _Psrr = 10;
+		private short _PsrrOption = (short)PsrrOptions.None;
 		public short PsrrOption
 		{
-			get => _Psrr;
-			set => SetProperty(ref _Psrr, value);
+			get => _PsrrOption;
+			set => SetProperty(ref _PsrrOption, value);
 		}
-
 		public double PosRailVoltageValue
 		{
 			get
@@ -471,7 +487,7 @@ namespace QA40xPlot.QA430
 				OpampPosNegConnect = (short)OpampPosNegConnects.Open;
 				UseFixedRails = true;   // not using this is just painful, so...
 										// don't allow analyzer to drive rails
-				PsrrOption = (short)PsrrOptions.BothPsrrInputsGrounded;
+				PsrrOption = (short)PsrrOptions.None;
 				LoadOption = (short)LoadOptions.Open;
 
 				ShowRegisters("Relays set");    // sb E00C,11,11,1
@@ -492,7 +508,8 @@ namespace QA40xPlot.QA430
 		{
 			SetOpampConfig("Config6a");
 			UseFixedRails = true;
-			LoadOption = (short)QA430Model.LoadOptions.Open;
+			LoadOption = (short)LoadOptions.Open;
+			PsrrOption = (short)PsrrOptions.None;
 			// now that the QA430 relays are set, wait a bit...
 			await WaitForQA430Relays();
 		}

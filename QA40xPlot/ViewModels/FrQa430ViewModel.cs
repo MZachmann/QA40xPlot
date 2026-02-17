@@ -190,6 +190,8 @@ public class FrQa430ViewModel : OpampViewModel
 			ViewSettings.Singleton.MainVm.Frqa430Hdr = TestType;
 		}
 
+		SupplySummary = "15";
+
 		switch (GetTestingType(TestType))
 		{
 			case TestingType.CMRR:
@@ -221,15 +223,16 @@ public class FrQa430ViewModel : OpampViewModel
 				break;
 			case TestingType.PSRR:
 				PlotFormat = "dB";
-				Gen1Voltage = "0.5";
-				GenVoltageUnit = "mV";
-				StartFreq = "200";
-				EndFreq = "90000";
-				SampleRate = "192000";
-				FftSize = "256K";
-				IsChirp = true;
+				Gen1Voltage = "0.1";
+				GenVoltageUnit = "V";
+				SupplySummary = "8";
+				StartFreq = "20";
+				EndFreq = "20000";
+				SampleRate = "96000";
+				FftSize = "64K";
+				IsChirp = false;
 				Smoothing = "0.01";
-				Averages = 3;
+				Averages = 1;
 				IsRiaa = false;
 				break;
 			case TestingType.GBW:

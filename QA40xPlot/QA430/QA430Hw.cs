@@ -1,4 +1,5 @@
-﻿using static QA40xPlot.QA430.QA430Model;
+﻿using System.Diagnostics;
+using static QA40xPlot.QA430.QA430Model;
 
 namespace QA40xPlot.QA430
 {
@@ -53,35 +54,35 @@ namespace QA40xPlot.QA430
 		internal static UInt32 SetPsrr(PsrrOptions options)
 		{
 			var writeVal = (UInt32)Qa430Usb.Singleton.ReadRegister(5);
-			writeVal = SetPsrr(options, writeVal);
-			Qa430Usb.Singleton.WriteRegister(5, writeVal);
-			return writeVal;
+			var writeVal2 = SetPsrr(options, writeVal);
+			Qa430Usb.Singleton.WriteRegister(5, writeVal2);
+			Debug.WriteLine($"Write psrr from {writeVal:X4} to {writeVal2:X4}");
+			return writeVal2;
 		}
 
 		internal static UInt32 SetPsrr(PsrrOptions options, UInt32 writeVal)
 		{
 			switch (options)
 			{
-				case PsrrOptions.BothPsrrInputsGrounded:
+				case PsrrOptions.None:
 					writeVal = writeVal.BitSet(0x1 << 14);
 					writeVal = writeVal.BitSet(0x1 << 15);
 					break;
-				case PsrrOptions.HiRailToAnalyzer:
+				case PsrrOptions.ToHighRail:
 					writeVal = writeVal.BitClear(0x1 << 14);
 					writeVal = writeVal.BitSet(0x1 << 15);
 					break;
-				case PsrrOptions.LowRailToAnalyzer:
+				case PsrrOptions.ToLowRail:
 					writeVal = writeVal.BitClear(0x1 << 15);
 					writeVal = writeVal.BitSet(0x1 << 14);
 					break;
-				case PsrrOptions.BothRailsToAnalyzer:
+				case PsrrOptions.ToBothRails:
 					writeVal = writeVal.BitClear(0x1 << 14);
 					writeVal = writeVal.BitClear(0x1 << 15);
 					break;
 				default:
 					break;
 			}
-
 			return writeVal;
 		}
 
