@@ -13,7 +13,7 @@ using static QA40xPlot.ViewModels.BaseViewModel;
 
 namespace QA40xPlot.Actions
 {
-
+	using MyViewClass = AmpSweepViewModel;
 	using MyDataTab = DataTab<AmpSweepViewModel>;
 
 	public partial class ActAmpSweep : ActOpamp<AmpSweepViewModel>
@@ -33,7 +33,7 @@ namespace QA40xPlot.Actions
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public ActAmpSweep(AmpSweepViewModel vm)
+		public ActAmpSweep(MyViewClass vm)
 		{
 			// Show empty graphs
 			QaLibrary.InitMiniTimePlot(vm.MiniPlot, 0, 4, -1, 1);
@@ -57,8 +57,8 @@ namespace QA40xPlot.Actions
 
 		public void UpdatePlotTitle()
 		{
-			var vm = MyVModel;
-			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
+			var guiVm = MyVModel;
+			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			var title = SetPlotLabels();
 			if (PageData.Definition.Name.Length > 0)
 				myPlot.Title(title + " : " + PageData.Definition.Name);
@@ -98,10 +98,10 @@ namespace QA40xPlot.Actions
 			Rect rrc = new Rect(0, 0, 0, 0);
 			try
 			{
-				var vm = MyVModel;     // current settings
+				var guiVm = MyVModel;     // current settings
 
 				List<SweepColumn> steps = new();
-				if (vm.ShowLeft)
+				if (guiVm.ShowLeft)
 				{
 					var a1 = FrequencyLines(PageData);
 					if (a1 != null)
@@ -110,7 +110,7 @@ namespace QA40xPlot.Actions
 							steps.AddRange(x.Columns);
 						}
 				}
-				if (vm.ShowRight)
+				if (guiVm.ShowRight)
 				{
 					var a1 = FrequencyLinesRight(PageData);
 					if (a1 != null)
@@ -119,7 +119,7 @@ namespace QA40xPlot.Actions
 							steps.AddRange(x.Columns);
 						}
 				}
-				var seen = DataUtil.FindShownInfo<AmpSweepViewModel, List<SweepLine>>(OtherTabs);
+				var seen = DataUtil.FindShownInfo<MyViewClass, List<SweepLine>>(OtherTabs);
 				foreach (var s in seen)
 				{
 					if (s != null)
@@ -136,52 +136,52 @@ namespace QA40xPlot.Actions
 
 				double maxY = -1e10;
 				double minY = 1e10;
-				if (vm.ShowMagnitude)
+				if (guiVm.ShowMagnitude)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.Mag));
 					minY = Math.Min(minY, arsteps.Min(x => x.Mag));
 				}
-				if (vm.ShowTHD)
+				if (guiVm.ShowTHD)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.THD));
 					minY = Math.Min(minY, arsteps.Min(x => x.THD));
 				}
-				if (vm.ShowTHDN)
+				if (guiVm.ShowTHDN)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.THDN));
 					minY = Math.Min(minY, arsteps.Min(x => x.THDN));
 				}
-				if (vm.ShowNoise)
+				if (guiVm.ShowNoise)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.Noise));
 					minY = Math.Min(minY, arsteps.Min(x => x.Noise));
 				}
-				if (vm.ShowNoiseFloor)
+				if (guiVm.ShowNoiseFloor)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.NoiseFloor));
 					minY = Math.Min(minY, arsteps.Min(x => x.NoiseFloor));
 				}
-				if (vm.ShowD2)
+				if (guiVm.ShowD2)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.D2));
 					minY = Math.Min(minY, arsteps.Min(x => x.D2));
 				}
-				if (vm.ShowD3)
+				if (guiVm.ShowD3)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.D3));
 					minY = Math.Min(minY, arsteps.Min(x => x.D3));
 				}
-				if (vm.ShowD4)
+				if (guiVm.ShowD4)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.D4));
 					minY = Math.Min(minY, arsteps.Min(x => x.D4));
 				}
-				if (vm.ShowD5)
+				if (guiVm.ShowD5)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.D5));
 					minY = Math.Min(minY, arsteps.Min(x => x.D5));
 				}
-				if (vm.ShowD6)
+				if (guiVm.ShowD6)
 				{
 					maxY = Math.Max(maxY, arsteps.Max(x => x.D6P));
 					minY = Math.Min(minY, arsteps.Min(x => x.D6P));
@@ -242,16 +242,16 @@ namespace QA40xPlot.Actions
 		{
 			if (LRGains == null || LRGains.Left.Length == 0 || LRGains.Right.Length == 0)
 				return [];
-			var vm = MyVModel;
+			var guiVm = MyVModel;
 			var myVolts = volts;
-			var genType = ToDirection(vm.GenDirection);
+			var genType = ToDirection(guiVm.GenDirection);
 			if (genType != E_GeneratorDirection.INPUT_VOLTAGE && LRGains != null)
 			{
 				// found this as output
 				var myFreq = PageData.SweepSteps.Steps[0].GenFrequency; // first frequency?
 				var gains = (ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right);
 				var bin = LRGains.ToBinNumber(myFreq);
-				var x = vm.ToGenVoltage(volts, [bin], GEN_INPUT, gains);
+					var x = guiVm.ToGenVoltage(volts, [bin], GEN_INPUT, gains);
 				myVolts = x;
 			}
 			var aline = LookupColumn(PageData, myVolts); // lookup the columns
@@ -277,29 +277,29 @@ namespace QA40xPlot.Actions
 
 		public override void PinGraphRange(string who)
 		{
-			var vm = MyVModel;
-			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
+			var guiVm = MyVModel;
+			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			if (who == "XM")
 			{
 				// setting start seems to reset max... this is strange...
-				var minx = Math.Pow(10, myPlot.Axes.Bottom.Min).ToString("0.##");
-				vm.GraphEndX = Math.Pow(10, myPlot.Axes.Bottom.Max).ToString("0.##");
-				vm.GraphStartX = minx;
+					var minx = Math.Pow(10, myPlot.Axes.Bottom.Min).ToString("0.##");
+					guiVm.GraphEndX = Math.Pow(10, myPlot.Axes.Bottom.Max).ToString("0.##");
+					guiVm.GraphStartX = minx;
 			}
 			else
 			{
-				PinGraphRanges(myPlot, vm, who);
+				PinGraphRanges(myPlot, guiVm, who);
 			}
 		}
 
 		public bool SaveToFile(string fileName)
 		{
-			return Util.SaveToFile<AmpSweepViewModel>(PageData, MyVModel, fileName);
+			return FileUtil.SaveToFile<MyViewClass>(PageData, MyVModel, fileName);
 		}
 
 		public override async Task LoadFromFile(string fileName, bool doLoad)
 		{
-			var page = Util.LoadFile<AmpSweepViewModel>(PageData, fileName);
+			var page = Util.LoadFile<MyViewClass>(PageData, fileName);
 			if (page != null)
 			{
 				RawToAmpSweepColumns(page);
@@ -314,7 +314,7 @@ namespace QA40xPlot.Actions
 		/// <returns>a datatab with no frequency info</returns>
 		public MyDataTab? LoadFile(MyDataTab page, string fileName)
 		{
-			return Util.LoadFile<AmpSweepViewModel>(page, fileName);
+			return Util.LoadFile<MyViewClass>(page, fileName);
 		}
 
 		/// <summary>
@@ -336,10 +336,10 @@ namespace QA40xPlot.Actions
 				PageData = page;    // set the current page to the loaded one
 
 				// relink to the new definition
-				var vm = MyVModel;
-				vm.LinkAbout(page.Definition);
-				vm.HasSave = true;
-				vm.ShowMiniPlots = false; // hide mini plots on load
+				var guiVm = MyVModel;
+				guiVm.LinkAbout(page.Definition);
+				guiVm.HasSave = true;
+				guiVm.ShowMiniPlots = false; // hide mini plots on load
 			}
 			else
 			{
@@ -382,7 +382,7 @@ namespace QA40xPlot.Actions
 			await EndAction(thdAmp);
 		}
 
-		public (double[], double[], double[]) DetermineVoltageSequences(AmpSweepViewModel myVm, double dFreq)
+		public (double[], double[], double[]) DetermineVoltageSequences(MyViewClass myVm, double dFreq)
 		{
 			// specified voltages boundaries
 			if (LRGains == null || LRGains.Left.Length == 0 || LRGains.Right.Length == 0)
@@ -671,9 +671,9 @@ namespace QA40xPlot.Actions
 
 		private string SetPlotLabels()
 		{
-			var vm = MyVModel;
-			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
-			var tt = ToDirection(vm.GenDirection);
+			var guiVm = MyVModel;
+			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
+			var tt = ToDirection(guiVm.GenDirection);
 			string title = string.Empty;
 			if (tt == E_GeneratorDirection.INPUT_VOLTAGE)
 			{
@@ -726,13 +726,13 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void InitializeThdPlot(string plotFormat = "%")
 		{
-			var vm = MyVModel;
-			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
+			var guiVm = MyVModel;
+			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			PlotUtil.InitializeMagAmpPlot(myPlot, plotFormat);
 
 			UpdatePlotTitle();
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
-			vm.MainPlot.Refresh();
+			guiVm.MainPlot.Refresh();
 		}
 
 		/// <summary>
@@ -740,13 +740,13 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void InitializeMagnitudePlot(string plotFormat = "dBV")
 		{
-			var vm = MyVModel;
-			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
+			var guiVm = MyVModel;
+			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			PlotUtil.InitializeMagAmpPlot(myPlot, plotFormat);
 
 			UpdatePlotTitle();
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
-			vm.MainPlot.Refresh();
+			guiVm.MainPlot.Refresh();
 		}
 
 		// this always uses the 'global' format so others work too
@@ -762,13 +762,13 @@ namespace QA40xPlot.Actions
 		/// <param name="data">The data to plot</param>
 		private void PlotValues(MyDataTab page, int measurementNr, bool isMain)
 		{
-			var freqVm = MyVModel;
+			var guiVm = MyVModel;
 			bool showLeft;
 			bool showRight;
 			if (isMain)
 			{
-				showLeft = freqVm.ShowLeft; // dynamically update these
-				showRight = freqVm.ShowRight;
+				showLeft = guiVm.ShowLeft; // dynamically update these
+				showRight = guiVm.ShowRight;
 			}
 			else
 			{
@@ -779,22 +779,22 @@ namespace QA40xPlot.Actions
 			if (!showLeft && !showRight)
 				return;
 
-			float lineWidth = freqVm.ShowThickLines ? ViewSettings.Thickness : 1;
-			float markerSize = freqVm.ShowPoints ? lineWidth + 3 : 1;
+			float lineWidth = guiVm.ShowThickLines ? ViewSettings.Thickness : 1;
+			float markerSize = guiVm.ShowPoints ? lineWidth + 3 : 1;
 
 			// here Y values are in dBV
 			void AddPlot(double[] xValues, List<double> yValues, int colorIndex, string legendText, LinePattern linePattern)
 			{
 				var u = measurementNr;
 				if (yValues.Count == 0) return;
-				var plot = freqVm.MainPlot.ThePlot.Add.SignalXY(xValues, yValues.ToArray());
+				var plot = guiVm.MainPlot.ThePlot.Add.SignalXY(xValues, yValues.ToArray());
 				plot.LineWidth = lineWidth;
 				plot.Color = GraphUtil.GetPaletteColor("Transparent", colorIndex);
 				plot.MarkerSize = markerSize;
 				plot.LegendText = legendText;
 				plot.LinePattern = linePattern;
 				plot.IsVisible = !MyVModel.HiddenLines.Contains(legendText);
-				MyVModel.LegendInfo.Add(new MarkerItem(linePattern, plot.Color, legendText, colorIndex, plot, freqVm.MainPlot, plot.IsVisible));
+				MyVModel.LegendInfo.Add(new MarkerItem(linePattern, plot.Color, legendText, colorIndex, plot, guiVm.MainPlot, plot.IsVisible));
 			}
 
 			// which columns are we displaying? left, right or both
@@ -826,7 +826,7 @@ namespace QA40xPlot.Actions
 				suffix = tosuffix;
 
 			// for each list of lines (left and right)
-			var ttype = ToDirection(freqVm.GenDirection);
+			var ttype = ToDirection(guiVm.GenDirection);
 			var prefix = isMain ? string.Empty : (ClipName(page.Definition.Name) + ".");
 			foreach (var lineList in lineGroup)
 			{
@@ -849,43 +849,43 @@ namespace QA40xPlot.Actions
 							break;
 					}
 					freq = freq.Select(x => Math.Log10(x)).ToArray();
-					if (freqVm.ShowMagnitude)
+					if (guiVm.ShowMagnitude)
 						AddPlot(freq, colArray.Select(x => FormVal(x.Mag, x.Mag)).ToList(), colorNum, prefix + "Mag" + subsuffix, lp);
 					colorNum++;
-					if (freqVm.ShowTHDN)
+					if (guiVm.ShowTHDN)
 						AddPlot(freq, colArray.Select(x => FormVal(x.THDN, x.Mag)).ToList(), colorNum, prefix + "THDN" + subsuffix, lp);
 					colorNum++;
-					if (freqVm.ShowTHD)
+					if (guiVm.ShowTHD)
 						AddPlot(freq, colArray.Select(x => FormVal(x.THD, x.Mag)).ToList(), colorNum, prefix + "THD" + subsuffix, lp);
 					colorNum++;
-					if (freqVm.ShowNoise)
+					if (guiVm.ShowNoise)
 						AddPlot(freq, colArray.Select(x => FormVal(x.Noise, x.Mag)).ToList(), colorNum, prefix + "Noise" + subsuffix, lp);
 					colorNum++;
-					if (freqVm.ShowNoiseFloor)
+					if (guiVm.ShowNoiseFloor)
 						AddPlot(freq, colArray.Select(x => FormVal(x.NoiseFloor, x.Mag)).ToList(), colorNum, prefix + "Floor" + subsuffix, lp);
 					colorNum++;
-					if (freqVm.ShowD2)
+					if (guiVm.ShowD2)
 						AddPlot(freq, colArray.Select(x => FormVal(x.D2, x.Mag)).ToList(), colorNum, prefix + "D2" + subsuffix, lp);
 					colorNum++;
-					if (freqVm.ShowD3)
+					if (guiVm.ShowD3)
 						AddPlot(freq, colArray.Select(x => FormVal(x.D3, x.Mag)).ToList(), colorNum, prefix + "D3" + subsuffix, lp);
 					colorNum++;
-					if (freqVm.ShowD4)
+					if (guiVm.ShowD4)
 						AddPlot(freq, colArray.Select(x => FormVal(x.D4, x.Mag)).ToList(), colorNum, prefix + "D4" + subsuffix, lp);
 					colorNum++;
-					if (freqVm.ShowD5)
+					if (guiVm.ShowD5)
 						AddPlot(freq, colArray.Select(x => FormVal(x.D5, x.Mag)).ToList(), colorNum, prefix + "D5" + subsuffix, lp);
 					colorNum++;
-					if (freqVm.ShowD6)
+					if (guiVm.ShowD6)
 						AddPlot(freq, colArray.Select(x => FormVal(x.D6P, x.Mag)).ToList(), colorNum, prefix + "D6+" + subsuffix, lp);
 				}
 				suffix = (leftTop ? ".L" : ".R") + tosuffix;          // second pass iff there are both channels
 				lp = patternList[(isMain && solidFirst) ? 1 : (isMain ? 0 : (solidFirst ? 3 : 2))]; ;
 			}
-			freqVm.MainPlot.Refresh();
+			guiVm.MainPlot.Refresh();
 		}
 
-		void HandleChangedProperty(ScottPlot.Plot myPlot, AmpSweepViewModel vm, string changedProp)
+		void HandleChangedProperty(ScottPlot.Plot myPlot, MyViewClass vm, string changedProp)
 		{
 			var ismag = GraphUtil.IsPlotFormatLog(vm.PlotFormat);
 			if (changedProp == "GraphStartX" || changedProp == "GraphEndX" || changedProp.Length == 0)
@@ -904,27 +904,27 @@ namespace QA40xPlot.Actions
 
 		public void UpdateGraph(bool settingsChanged, string theProperty = "")
 		{
-			AmpSweepViewModel vm = MyVModel;
-			vm.MainPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
+			MyViewClass guiVm = MyVModel;
+			guiVm.MainPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
 			int resultNr = 0;
 
 			if (settingsChanged)
 			{
-				PlotUtil.SetupMenus(vm.MainPlot.ThePlot, this, vm);
-				if (GraphUtil.IsPlotFormatLog(vm.PlotFormat))
+				PlotUtil.SetupMenus(guiVm.MainPlot.ThePlot, this, guiVm);
+				if (GraphUtil.IsPlotFormatLog(guiVm.PlotFormat))
 				{
-					InitializeMagnitudePlot(vm.PlotFormat);
+					InitializeMagnitudePlot(guiVm.PlotFormat);
 				}
 				else
 				{
-					InitializeThdPlot(vm.PlotFormat);
+					InitializeThdPlot(guiVm.PlotFormat);
 				}
-				HandleChangedProperty(vm.MainPlot.ThePlot, vm, "");
-				PlotUtil.SetHeadingColor(vm.MainPlot.MyLabel);
+				HandleChangedProperty(guiVm.MainPlot.ThePlot, guiVm, "");
+				PlotUtil.SetHeadingColor(guiVm.MainPlot.MyLabel);
 			}
 			else if (theProperty.Length > 0)
 			{
-				HandleChangedProperty(vm.MainPlot.ThePlot, vm, theProperty);
+				HandleChangedProperty(guiVm.MainPlot.ThePlot, guiVm, theProperty);
 			}
 
 			MyVModel.LegendInfo.Clear();

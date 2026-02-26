@@ -15,15 +15,16 @@ using static QA40xPlot.ViewModels.BaseViewModel;
 
 namespace QA40xPlot.Actions
 {
+	using MyViewClass = SpectrumViewModel;
 	using MyDataTab = DataTab<SpectrumViewModel>;
 
-	public class ActSpectrum : ActBase<SpectrumViewModel>
+	public class ActSpectrum : ActBase<MyViewClass>
 	{
 		private List<MyDataTab> OtherTabs { get; set; } = new List<MyDataTab>(); // Other tabs in the document
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public ActSpectrum(SpectrumViewModel vm)
+		public ActSpectrum(MyViewClass vm)
 		{
 			UpdateGraph(true);
 		}
@@ -72,21 +73,20 @@ namespace QA40xPlot.Actions
 		}
 
 		public override void PinGraphRange(string who)
-		{
-			var vm = MyVModel;
-			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
-			PinGraphRanges(myPlot, vm, who);
+			{
+				var guiVm = MyVModel;
+				ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
+				PinGraphRanges(myPlot, guiVm, who);
 		}
-
 
 		public bool SaveToFile(string fileName)
 		{
-			return Util.SaveToFile<SpectrumViewModel>(PageData, MyVModel, fileName, PageData.ViewModel.Averages > 1);
+			return FileUtil.SaveToFile<MyViewClass>(PageData, MyVModel, fileName, PageData.ViewModel.Averages > 1);
 		}
 
 		public override async Task LoadFromFile(string fileName, bool doLoad)
 		{
-			var page = Util.LoadFile<SpectrumViewModel>(PageData, fileName);
+			var page = Util.LoadFile<MyViewClass>(PageData, fileName);
 			if (page != null)
 				await FinishLoad(page, fileName, doLoad);
 		}
@@ -98,7 +98,7 @@ namespace QA40xPlot.Actions
 		/// <returns>a datatab with no frequency info</returns>
 		public MyDataTab? LoadFile(MyDataTab page, string fileName)
 		{
-			return Util.LoadFile<SpectrumViewModel>(page, fileName);
+			return Util.LoadFile<MyViewClass>(page, fileName);
 		}
 
 		/// <summary>
@@ -124,9 +124,9 @@ namespace QA40xPlot.Actions
 				PageData = page;    // set the current page to the loaded one
 
 				// relink to the new definition
-				var vm = MyVModel;
-				vm.LinkAbout(page.Definition);
-				vm.HasSave = true;
+				var guiVm = MyVModel;
+				guiVm.LinkAbout(page.Definition);
+				guiVm.HasSave = true;
 			}
 			else
 			{
@@ -210,17 +210,17 @@ namespace QA40xPlot.Actions
 			}
 			if (OtherTabs.Count > 0)
 			{
-			// copy the shown status from othersetlist to othertabs
-			var seen = DataUtil.FindShownInfo<SpectrumViewModel, ThdChannelViewModel>(OtherTabs);
-			if (channels.Count < 4 && seen.Count > 0)
-			{
-				var mdl = seen[0];
-				if (mdl != null)
+				// copy the shown status from othersetlist to othertabs
+				var seen = DataUtil.FindShownInfo<MyViewClass, ThdChannelViewModel>(OtherTabs);
+				if (channels.Count < 4 && seen.Count > 0)
 				{
-					SetVmColor(mdl, channels.Count);
-					channels.Add(mdl);
+					var mdl = seen[0];
+					if (mdl != null)
+					{
+						SetVmColor(mdl, channels.Count);
+						channels.Add(mdl);
+					}
 				}
-			}
 				if (channels.Count < 4 && seen.Count > 1)
 				{
 					var mdl = seen[1];
@@ -396,7 +396,7 @@ namespace QA40xPlot.Actions
 		/// <returns></returns>
 		async Task<bool> RunAcquisition(MyDataTab msr, bool doNoise, uint iteration, CancellationToken ct)
 		{
-			SpectrumViewModel vm = msr.ViewModel; // cached model
+			MyViewClass vm = msr.ViewModel; // cached model
 
 			var freq = vm.NearestBinFreq(vm.Gen1Frequency);
 			var sampleRate = vm.SampleRateVal;
@@ -498,7 +498,7 @@ namespace QA40xPlot.Actions
 			left.IsLeft = true;
 			var right = new ThdChannelViewModel();
 			right.IsLeft = false;
-			SpectrumViewModel vm = msr.ViewModel;
+			MyViewClass vm = msr.ViewModel;
 
 			var freq = vm.NearestBinFreq(vm.Gen1Frequency);
 			if (vm.Gen1Waveform == "Multitone")
@@ -735,16 +735,16 @@ namespace QA40xPlot.Actions
 			if (PageData.FreqRslt == null && OtherTabs.Count == 0)
 				return new Rect(0, 0, 0, 0);
 
-			var vm = MyVModel;     // current settings
+			var guiVm = MyVModel;     // current settings
 			var ffs = PageData.FreqRslt;
 
 			Rect rrc = new Rect(0, 0, 0, 0);
 			List<double[]> tabs = new List<double[]>();
-			if (vm.ShowLeft && ffs != null)
+			if (guiVm.ShowLeft && ffs != null)
 			{
 				tabs.Add(ffs.Left);
 			}
-			if (vm.ShowRight && ffs != null)
+			if (guiVm.ShowRight && ffs != null)
 			{
 				tabs.Add(ffs.Right);
 			}
@@ -803,7 +803,7 @@ namespace QA40xPlot.Actions
 					var dlist = distx.ToList(); // no dc
 					bin = binmin + dlist.IndexOf(dlist.Min());
 
-					var vm = MyVModel;
+                    var guiVm = MyVModel;
 					if (bin < ffs.Length)
 					{
 						return ValueTuple.Create(bin * fftdata.Df, ffs[bin], useRight ? fftdata.Right : fftdata.Left);
@@ -818,14 +818,14 @@ namespace QA40xPlot.Actions
 
 		public void UpdatePlotTitle()
 		{
-			var vm = MyVModel;
-			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
+		var guiVm = MyVModel;
+		ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			myPlot.Title("Spectrum");
 			if (PageData.Definition.Name != null && PageData.Definition.Name.Length > 0)
 				myPlot.Title("Spectrum : " + PageData.Definition.Name);
 		}
 
-		void HandleChangedProperty(ScottPlot.Plot myPlot, SpectrumViewModel vm, string changedProp)
+		void HandleChangedProperty(ScottPlot.Plot myPlot, MyViewClass vm, string changedProp)
 		{
 			var ismag = GraphUtil.IsPlotFormatLog(vm.PlotFormat);
 			if (changedProp == "GraphStartX" || changedProp == "GraphEndX" || changedProp.Length == 0)
@@ -847,15 +847,15 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void InitializeMagnitudePlot(string plotFormat = "dBV")
 		{
-			var vm = MyVModel;
-			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
+		var guiVm = MyVModel;
+		ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
 			UpdatePlotTitle();
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
 
-			vm.MainPlot.Refresh();
+		guiVm.MainPlot.Refresh();
 		}
 
 		/// <summary>
@@ -863,15 +863,15 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void InitializefftPlot(string plotFormat = "%")
 		{
-			var vm = MyVModel;
-			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
+		var guiVm = MyVModel;
+		ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
 			UpdatePlotTitle();
 			myPlot.XLabel("Frequency (Hz)");
 			myPlot.YLabel(GraphUtil.GetFormatTitle(plotFormat));
 
-			vm.MainPlot.Refresh();
+		guiVm.MainPlot.Refresh();
 		}
 
 		/// <summary>
@@ -883,15 +883,15 @@ namespace QA40xPlot.Actions
 			if (page == null)
 				return;
 
-			var vm = MyVModel;
-			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
+		var guiVm = MyVModel;
+		ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 
 			bool useLeft;   // dynamically update these
 			bool useRight;
 			if (isMain)
 			{
-				useLeft = vm.ShowLeft; // dynamically update these
-				useRight = vm.ShowRight;
+			useLeft = guiVm.ShowLeft; // dynamically update these
+			useRight = guiVm.ShowRight;
 			}
 			else
 			{
@@ -912,16 +912,16 @@ namespace QA40xPlot.Actions
 			//
 			double[] leftdBV = [];
 			double[] rightdBV = [];
-			string plotForm = vm.PlotFormat;
+		string plotForm = guiVm.PlotFormat;
 
 			// add a line plot to the plot
-			var lineWidth = vm.ShowThickLines ? ViewSettings.Thickness : 1;   // so it dynamically updates
+		var lineWidth = guiVm.ShowThickLines ? ViewSettings.Thickness : 1;   // so it dynamically updates
 																  //IPalette palette = new ScottPlot.Palettes.Category20();
 
-			void PlotLine(double[] data, bool isLeft)
+		void PlotLine(double[] data, bool isLeft)
 			{
 				// format the data into current format
-				var fvi = GraphUtil.ValueToLogPlotFn(vm, data);
+			var fvi = GraphUtil.ValueToLogPlotFn(guiVm, data);
 				var vf = data.Skip(1);  // the first dot is F=0 so no logs...
 				var plotdBV = vf.Select(fvi).ToArray();
 
@@ -938,7 +938,7 @@ namespace QA40xPlot.Actions
 					plotLine.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, 2 * measurementNr + 1);
 					plotLine.LegendText = isMain ? "Right" : ClipName(page.Definition.Name) + ".R";
 				}
-				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotLine.Color, plotLine.LegendText, 2 * measurementNr + (isLeft ? 0 : 1), plotLine, vm.MainPlot));
+			MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotLine.Color, plotLine.LegendText, 2 * measurementNr + (isLeft ? 0 : 1), plotLine, guiVm.MainPlot));
 			}
 
 			bool leftTop = PlotZLeft;
@@ -957,40 +957,40 @@ namespace QA40xPlot.Actions
 				PlotLine(fftData.Left, true);
 			}
 
-			vm.MainPlot.Refresh();
+		guiVm.MainPlot.Refresh();
 		}
 
 		public void UpdateGraph(bool settingsChanged, string theProperty = "")
 		{
-			SpectrumViewModel vm = MyVModel;
-			vm.MainPlot.ThePlot.Remove<Marker>();             // Remove all current lines
+			var guiVm = MyVModel;
+			guiVm.MainPlot.ThePlot.Remove<Marker>();             // Remove all current lines
 			int resultNr = 0;
 
 			if (settingsChanged)
 			{
-				PlotUtil.SetupMenus(vm.MainPlot.ThePlot, this, vm);
+				PlotUtil.SetupMenus(guiVm.MainPlot.ThePlot, this, guiVm);
 
-				if (GraphUtil.IsPlotFormatLog(vm.PlotFormat))
+				if (GraphUtil.IsPlotFormatLog(guiVm.PlotFormat))
 				{
-					InitializeMagnitudePlot(vm.PlotFormat);
+					InitializeMagnitudePlot(guiVm.PlotFormat);
 				}
 				else
 				{
-					InitializefftPlot(vm.PlotFormat);
+					InitializefftPlot(guiVm.PlotFormat);
 				}
-				HandleChangedProperty(vm.MainPlot.ThePlot, vm, "");
-				PlotUtil.SetHeadingColor(vm.MainPlot.MyLabel);
+				HandleChangedProperty(guiVm.MainPlot.ThePlot, guiVm, "");
+				PlotUtil.SetHeadingColor(guiVm.MainPlot.MyLabel);
 			}
 			else if (theProperty.Length > 0)
 			{
-				HandleChangedProperty(vm.MainPlot.ThePlot, vm, theProperty);
+				HandleChangedProperty(guiVm.MainPlot.ThePlot, guiVm, theProperty);
 			}
 			ReformatChannels(); // ensure the channels are formatted correctly
 			ViewSettings.Singleton.ChannelLeft.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd;
 			ViewSettings.Singleton.ChannelRight.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd;
 			ViewSettings.Singleton.Channel2Left.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd;
 			ViewSettings.Singleton.Channel2Right.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd;
-			vm.UpdateMouseCursor(vm.LookX, vm.LookY);
+			guiVm.UpdateMouseCursor(guiVm.LookX, guiVm.LookY);
 
 			ShowPageInfo(PageData); // show the page info in the display
 			DrawPlotLines(resultNr);
@@ -1003,9 +1003,9 @@ namespace QA40xPlot.Actions
 
 		public int DrawPlotLines(int resultNr)
 		{
-			var vm = MyVModel;
-			vm.MainPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
-			vm.LegendInfo.Clear();
+		var guiVm = MyVModel;
+		guiVm.MainPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
+		guiVm.LegendInfo.Clear();
 			var mainFirst = PlotZMain;
 			var rnr = resultNr++;
 			if (!mainFirst)
@@ -1025,7 +1025,7 @@ namespace QA40xPlot.Actions
 			{
 				PlotValues(PageData, rnr, true);
 			}
-			vm.MainPlot.Refresh();
+		guiVm.MainPlot.Refresh();
 			return resultNr;
 		}
 	}

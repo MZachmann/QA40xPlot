@@ -21,13 +21,11 @@
 	</PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="ViewModels\RelayCommand.cs" />
+    <Compile Remove="Libraries\WelchAve.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <None Remove="Batches\build.cmd" />
-    <None Remove="Batches\newcert.cmd" />
-    <None Remove="Batches\signit.cmd" />
     <None Remove="Images\favicon.ico" />
     <None Remove="Images\QA430Configs\Config1.png" />
     <None Remove="Images\QA430Configs\Config2.png" />
@@ -165,9 +163,6 @@
     </None>
     <None Update="Help\HelpSummary.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Help\HelpSummary.md">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <None Update="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

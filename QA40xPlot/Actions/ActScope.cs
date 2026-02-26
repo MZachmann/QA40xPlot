@@ -12,16 +12,17 @@ using static QA40xPlot.ViewModels.BaseViewModel;
 
 namespace QA40xPlot.Actions
 {
+	using MyViewClass = ScopeViewModel;
 	using MyDataTab = DataTab<ScopeViewModel>;
 
-	public class ActScope : ActBase<ScopeViewModel>
+	public class ActScope : ActBase<MyViewClass>
 	{
 		private List<MyDataTab> OtherTabs { get; set; } = new List<MyDataTab>(); // Other tabs in the document
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public ActScope(ScopeViewModel vm)
+		public ActScope(MyViewClass vm)
 		{
 			UpdateGraph(true);
 		}
@@ -42,12 +43,12 @@ namespace QA40xPlot.Actions
 
 		public LeftRightTimeSeries? GetResidual(MyDataTab page)
 		{
-			return page.GetProperty<LeftRightTimeSeries?>(ScopeViewModel.ResidualName);
+			return page.GetProperty<LeftRightTimeSeries?>(MyViewClass.ResidualName);
 		}
 
 		public void SetResidual(MyDataTab page, LeftRightTimeSeries? lrts)
 		{
-			page.SetProperty(ScopeViewModel.ResidualName, lrts);
+			page.SetProperty(MyViewClass.ResidualName, lrts);
 		}
 
 		/// <summary>
@@ -61,10 +62,10 @@ namespace QA40xPlot.Actions
 			if (ffs == null || ffs.Left.Length == 0)
 				return null;
 
-			var vm = MyVModel;
-			var sampleRate = MathUtil.ToUint(vm.SampleRate);
+			var guiVm = MyVModel;
+			var sampleRate = MathUtil.ToUint(guiVm.SampleRate);
 			var fftsize = ffs.Left.Length;
-			if (vm.ShowRight && !vm.ShowLeft)
+			if (guiVm.ShowRight && !guiVm.ShowLeft)
 			{
 				db.LeftData = ffs.Right.ToList();
 			}
@@ -80,58 +81,58 @@ namespace QA40xPlot.Actions
 
 		public override void PinGraphRange(string who)
 		{
-			var vm = MyVModel;
-			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
+			var guiVm = MyVModel;
+			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			if (who == "Y2")
 			{
-				var y2axis = vm.SecondYAxis;
+				var y2axis = guiVm.SecondYAxis;
 				if (y2axis != null)
 				{
 					var u = y2axis.Min;
 					var w = y2axis.Max;
-					vm.Range2Top = w.ToString("G3");
-					vm.Range2Bottom = u.ToString("G3");
+					guiVm.Range2Top = w.ToString("G3");
+					guiVm.Range2Bottom = u.ToString("G3");
 				}
 			}
 			else if (who == "XT")
 			{
-				myPlot = vm.MainPlot.ThePlot;
+				myPlot = guiVm.MainPlot.ThePlot;
 				var myAxis = myPlot.Axes.Bottom;
 
 				// setting start seems to reset max...
 				var minx = myAxis.Min;
 				var maxx = myAxis.Max;
-				vm.GraphEndX = maxx.ToString("0.###");
-				vm.GraphStartX = minx.ToString("0.###");
+				guiVm.GraphEndX = maxx.ToString("0.###");
+				guiVm.GraphStartX = minx.ToString("0.###");
 			}
 			else if (who == "YP")
 			{
-				myPlot = vm.MainPlot.ThePlot;
+				myPlot = guiVm.MainPlot.ThePlot;
 				var myAxis = myPlot.Axes.Left;
 				var minx = myAxis.Min;
 				var maxx = myAxis.Max;
 				// setting start seems to reset max...
 				if (maxx > 0.01)
 				{
-					vm.RangeTop = maxx.ToString("0.###");
-					vm.RangeBottom = minx.ToString("0.###");
+					guiVm.RangeTop = maxx.ToString("0.###");
+					guiVm.RangeBottom = minx.ToString("0.###");
 				}
 				else
 				{
 					// if we set rangebottom first it adjust axis max so...
-					vm.RangeTop = maxx.ToString("0.#####");
-					vm.RangeBottom = minx.ToString("0.#####");
+					guiVm.RangeTop = maxx.ToString("0.#####");
+					guiVm.RangeBottom = minx.ToString("0.#####");
 				}
 			}
 			else
 			{
-				PinGraphRanges(myPlot, vm, who);
+				PinGraphRanges(myPlot, guiVm, who);
 			}
 		}
 
 		public bool SaveToFile(string fileName)
 		{
-			return Util.SaveToFile<ScopeViewModel>(PageData, MyVModel, fileName);
+			return FileUtil.SaveToFile<MyViewClass>(PageData, MyVModel, fileName);
 		}
 
 		public override async Task LoadFromFile(string fileName, bool isMain)
@@ -148,13 +149,13 @@ namespace QA40xPlot.Actions
 		/// <returns>a datatab with no frequency info</returns>
 		public MyDataTab? LoadFile(string fileName)
 		{
-			return Util.LoadFile<ScopeViewModel>(PageData, fileName);
+			return Util.LoadFile<MyViewClass>(PageData, fileName);
 		}
 
 		public void UpdatePlotTitle()
 		{
-			var vm = MyVModel;
-			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
+			var guiVm = MyVModel;
+			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			var title = "Scope";
 			if (PageData.Definition.Name.Length > 0)
 				myPlot.Title(title + " : " + PageData.Definition.Name);
@@ -182,9 +183,9 @@ namespace QA40xPlot.Actions
 				PageData = page;    // set the current page to the loaded one
 
 				// relink to the new definition
-				var vm = MyVModel;
-				vm.LinkAbout(page.Definition);
-				vm.HasSave = true;
+				var guiVm = MyVModel;
+				guiVm.LinkAbout(page.Definition);
+				guiVm.HasSave = true;
 			}
 			else
 			{
@@ -234,19 +235,19 @@ namespace QA40xPlot.Actions
 
 		public void UpdateResidualPlot(LeftRightTimeSeries source)
 		{
-			var vm = MyVModel;
-			var freq = vm.UseGenerator1 ? vm.NearestBinFreq(ToD(vm.Gen1Frequency, 0)) : 0.0;
-			var lrts = QaMath.CalculateResidual(source, freq, 1000, vm.ResidualHarm);
+			var guiVm = MyVModel;
+			var freq = guiVm.UseGenerator1 ? guiVm.NearestBinFreq(ToD(guiVm.Gen1Frequency, 0)) : 0.0;
+			var lrts = QaMath.CalculateResidual(source, freq, 1000, guiVm.ResidualHarm);
 			SetResidual(PageData, lrts);
 		}
 
 		public void AddResidualPlot()
 		{
-			var vm = MyVModel;
-			var freq = vm.UseGenerator1 ? vm.NearestBinFreq(ToD(vm.Gen1Frequency, 0)) : 0.0;
-			var lrts = QaMath.CalculateResidual(PageData.TimeRslt, freq, 1000, vm.ResidualHarm);
+			var guiVm = MyVModel;
+			var freq = guiVm.UseGenerator1 ? guiVm.NearestBinFreq(ToD(guiVm.Gen1Frequency, 0)) : 0.0;
+			var lrts = QaMath.CalculateResidual(PageData.TimeRslt, freq, 1000, guiVm.ResidualHarm);
 			SetResidual(PageData, lrts);
-			AddResidualAxis(vm, vm.MainPlot.ThePlot);
+			AddResidualAxis(guiVm, guiVm.MainPlot.ThePlot);
 		}
 
 		/// <summary>
@@ -324,8 +325,6 @@ namespace QA40xPlot.Actions
 				if (timedata != null && ffs != null && ffs.Length > 0 && atime > 0)
 				{
 					int abin = (int)(atime / (1000 * timedata.dt));       // approximate bin in mS
-
-					var vm = MyVModel;
 					if (abin < ffs.Length)
 					{
 						return ValueTuple.Create(1000 * abin * timedata.dt, ffs[abin]);
@@ -343,17 +342,17 @@ namespace QA40xPlot.Actions
 			if (PageData.TimeRslt.Left.Length == 0 && OtherTabs.Count() == 0)
 				return new Rect(0, 0, 0, 0);
 
-			var vm = MyVModel;     // current settings
+			var guiVm = MyVModel;     // current settings
 			var ffs = PageData.TimeRslt;
 			var hasdata = ffs.Left.Length > 0;
 
 			Rect rrc = new Rect(0, 0, 0, 0);
 			List<double[]> tabs = new List<double[]>();
-			if (vm.ShowLeft && hasdata)
+			if (guiVm.ShowLeft && hasdata)
 			{
 				tabs.Add(ffs.Left);
 			}
-			if (vm.ShowRight && hasdata)
+			if (guiVm.ShowRight && hasdata)
 			{
 				tabs.Add(ffs.Right);
 			}
@@ -385,7 +384,7 @@ namespace QA40xPlot.Actions
 		async Task<bool> RunAcquisition(MyDataTab msr, int iteration, CancellationToken ct)
 		{
 			// Setup
-			ScopeViewModel thd = msr.ViewModel;
+			MyViewClass thd = msr.ViewModel;
 
 			var freq = ToD(thd.Gen1Frequency, 0);
 			var sampleRate = thd.SampleRateVal;
@@ -498,12 +497,12 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void ClearPlot()
 		{
-			var vm = MyVModel;
-			vm.MainPlot.ThePlot.Clear();
-			vm.MainPlot.Refresh();
+			var guiVm = MyVModel;
+			guiVm.MainPlot.ThePlot.Clear();
+			guiVm.MainPlot.Refresh();
 		}
 
-		public void AddResidualAxis(ScopeViewModel frqrsVm, Plot myPlot)
+		public void AddResidualAxis(MyViewClass frqrsVm, Plot myPlot)
 		{
 			var axis = PlotUtil.AddSecondYR(myPlot, frqrsVm);
 			var y2axis = frqrsVm.SecondYAxis;
@@ -522,14 +521,14 @@ namespace QA40xPlot.Actions
 		/// <param name="data"></param>
 		int PlotValues(MyDataTab page, int measurementNr, bool isMain)
 		{
-			var vm = MyVModel;
-			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
+			var guiVm = MyVModel;
+			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			bool useLeft;   // dynamically update these
 			bool useRight;
 			if (isMain)
 			{
-				useLeft = vm.ShowLeft; // dynamically update these
-				useRight = vm.ShowRight;
+				useLeft = guiVm.ShowLeft; // dynamically update these
+				useRight = guiVm.ShowRight;
 			}
 			else
 			{
@@ -546,7 +545,7 @@ namespace QA40xPlot.Actions
 
 			var timeX = Enumerable.Range(0, timeData.Left.Length).Select(x => x * 1000 * timeData.dt).ToArray(); // in ms
 			var showThick = MyVModel.ShowThickLines;    // so it dynamically updates
-			var markerSize = vm.ShowPoints ? (showThick ? ViewSettings.Thickness : 1) + 3 : 1;
+			var markerSize = guiVm.ShowPoints ? (showThick ? ViewSettings.Thickness : 1) + 3 : 1;
 
 			void PlotLine(double[] y, bool isLeft)
 			{
@@ -557,7 +556,7 @@ namespace QA40xPlot.Actions
 				p.LegendText = isMain ? (isLeft ? "Left" : "Right") : ClipName(page.Definition.Name) + (isLeft ? ".L" : ".R");
 				p.IsVisible = !MyVModel.HiddenLines.Contains(p.LegendText);
 				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, p.Color, p.LegendText,
-					measurementNr, p, vm.MainPlot, p.IsVisible));
+					measurementNr, p, guiVm.MainPlot, p.IsVisible));
 			}
 
 			var leftFirst = !PlotZLeft;
@@ -592,9 +591,9 @@ namespace QA40xPlot.Actions
 						pLeft.MarkerSize = markerSize;
 						pLeft.LegendText = "Residual.L";
 						pLeft.IsVisible = !MyVModel.HiddenLines.Contains(pLeft.LegendText);
-						pLeft.Axes.YAxis = vm.SecondYAxis ?? myPlot.Axes.Left;
+						pLeft.Axes.YAxis = guiVm.SecondYAxis ?? myPlot.Axes.Left;
 						MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, pLeft.Color, pLeft.LegendText,
-							measurementNr, pLeft, vm.MainPlot, pLeft.IsVisible));
+							measurementNr, pLeft, guiVm.MainPlot, pLeft.IsVisible));
 					}
 					measurementNr++;
 
@@ -605,10 +604,10 @@ namespace QA40xPlot.Actions
 						pRight.Color = GraphUtil.GetPaletteColor(null, measurementNr * 2 + 1);
 						pRight.MarkerSize = markerSize;
 						pRight.LegendText = "Residual.R";
-						pRight.Axes.YAxis = vm.SecondYAxis ?? myPlot.Axes.Left;
+						pRight.Axes.YAxis = guiVm.SecondYAxis ?? myPlot.Axes.Left;
 						pRight.IsVisible = !MyVModel.HiddenLines.Contains(pRight.LegendText);
 						MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, pRight.Color, pRight.LegendText,
-							measurementNr, pRight, vm.MainPlot, pRight.IsVisible));
+							measurementNr, pRight, guiVm.MainPlot, pRight.IsVisible));
 					}
 					measurementNr++;
 				}
@@ -619,7 +618,7 @@ namespace QA40xPlot.Actions
 				measurementNr += 2;
 			}
 
-			vm.MainPlot.Refresh();
+			guiVm.MainPlot.Refresh();
 			return measurementNr;
 		}
 
@@ -628,15 +627,15 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void InitializeMagnitudePlot()
 		{
-			var vm = MyVModel;
-			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
+			var guiVm = MyVModel;
+			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			PlotUtil.InitializeMagTimePlot(myPlot);
 
 			UpdatePlotTitle();
 			myPlot.XLabel("Time (ms)");
 			myPlot.YLabel("Voltage");
 
-			vm.MainPlot.Refresh();
+			guiVm.MainPlot.Refresh();
 		}
 
 		/// <summary>
@@ -740,7 +739,7 @@ namespace QA40xPlot.Actions
 			FillChannelInfo(vm, timeData.Right);
 		}
 
-		void HandleChangedProperty(ScottPlot.Plot myPlot, ScopeViewModel vm, string changedProp)
+		void HandleChangedProperty(ScottPlot.Plot myPlot, MyViewClass vm, string changedProp)
 		{
 			if (changedProp == "GraphStartX" || changedProp == "GraphEndX" || changedProp.Length == 0)
 				myPlot.Axes.SetLimitsX(ToD(vm.GraphStartX, 0), ToD(vm.GraphEndX, 10), myPlot.Axes.Bottom);
@@ -753,41 +752,41 @@ namespace QA40xPlot.Actions
 
 		public void UpdateGraph(bool settingsChanged, string theProperty = "")
 		{
-			var vm = MyVModel;
-			vm.MainPlot.ThePlot.Remove<Marker>();             // Remove all current lines
+			var guiVm = MyVModel;
+			guiVm.MainPlot.ThePlot.Remove<Marker>();             // Remove all current lines
 			int resultNr = 0;
 
 			if (settingsChanged)
 			{
-				var myPlot = vm.MainPlot.ThePlot;
-				var y2axis = vm.SecondYAxis;
+				var myPlot = guiVm.MainPlot.ThePlot;
+				var y2axis = guiVm.SecondYAxis;
 				if (y2axis != null)
 				{
 					//myPlot.Axes.Remove(y2axis);
 					y2axis.Label.Text = string.Empty;
 					y2axis = null;
-					vm.SecondYAxis = null;
+					guiVm.SecondYAxis = null;
 				}
-				PlotUtil.SetupMenus(myPlot, this, vm);
+				PlotUtil.SetupMenus(myPlot, this, guiVm);
 				InitializeMagnitudePlot();
-				PlotUtil.SetHeadingColor(vm.MainPlot.MyLabel);
-				HandleChangedProperty(myPlot, vm, "");
+				PlotUtil.SetHeadingColor(guiVm.MainPlot.MyLabel);
+				HandleChangedProperty(myPlot, guiVm, "");
 
 			}
 			else if (theProperty.Length > 0)
 			{
-				HandleChangedProperty(vm.MainPlot.ThePlot, vm, theProperty);
+				HandleChangedProperty(guiVm.MainPlot.ThePlot, guiVm, theProperty);
 			}
-			DoShowResiduals(vm.ShowResiduals);
-			vm.UpdateMouseCursor(vm.LookX, vm.LookY);
+			DoShowResiduals(guiVm.ShowResiduals);
+			guiVm.UpdateMouseCursor(guiVm.LookX, guiVm.LookY);
 			DrawPlotLines(resultNr); // draw the lines 
 		}
 
 		public int DrawPlotLines(int resultNr)
 		{
-			var vm = MyVModel;
-			vm.MainPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
-			vm.LegendInfo.Clear();
+			var guiVm = MyVModel;
+			guiVm.MainPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
+			guiVm.LegendInfo.Clear();
 			var mainFirst = PlotZMain;
 			var rnr = resultNr;
 			if (!mainFirst)
@@ -808,7 +807,7 @@ namespace QA40xPlot.Actions
 			{
 				PlotValues(PageData, rnr, true);
 			}
-			vm.MainPlot.Refresh();
+			guiVm.MainPlot.Refresh();
 			return resultNr;
 		}
 	}

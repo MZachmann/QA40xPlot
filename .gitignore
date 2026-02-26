@@ -366,3 +366,4 @@ FodyWeavers.xsd
 /Documents
 PublishIt.cmd
 /QA40xPlot/QA430/TimeTracker.txt
+/QA40xPlot/Libraries/WelchAve.cs

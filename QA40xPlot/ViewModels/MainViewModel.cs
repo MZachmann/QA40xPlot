@@ -15,6 +15,7 @@ namespace QA40xPlot.ViewModels
 	public class MainViewModel : FloorViewModel
 	{
 		#region ignorable
+		// this internal list of page names is used to switch pages by name
 		[JsonIgnore]
 		public List<string> PageNames { get; } = new List<string>
 		{
@@ -277,6 +278,7 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
+		// PlotPageType is always set as a way to swith pages
 		private string _PlotPageType = "spectrum";
 		public string PlotPageType
 		{

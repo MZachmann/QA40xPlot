@@ -282,8 +282,8 @@ namespace QA40xPlot.ViewModels
 		public override void OnFitToData(object? parameter)
 		{
 			var frslt = MyAction.PageData.FreqRslt;
-			MyAction?.ActFitToData(this, parameter, ShowLeft ? frslt?.Left : frslt?.Right);
-			MyAction?.UpdateGraph(false, PlotUtil.AxisParameter(parameter));
+			MyAction.ActFitToData(this, parameter, ShowLeft ? frslt?.Left : frslt?.Right);
+			MyAction.UpdateGraph(false, PlotUtil.AxisParameter(parameter));
 		}
 
 		private void ShowInfos()

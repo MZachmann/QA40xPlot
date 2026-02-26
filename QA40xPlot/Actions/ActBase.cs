@@ -253,12 +253,12 @@ namespace QA40xPlot.Actions
 			if (string.IsNullOrEmpty(fpath))
 				fpath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 			string fileName = Path.Combine(fpath, $"Snap{_NextSnapshot}.plt.zip");
-			var vm = MyVModel;
+			var guiVm = MyVModel;
 			var vmname = typeof(T).Name;
 			// only possibly save frequency result for spectrum and imd
-			bool saveFreq = (vm.Averages > 1) && (vmname == "SpectrumViewModel" || vmname == "ImdViewModel");
+			bool saveFreq = (guiVm.Averages > 1) && (vmname == "SpectrumViewModel" || vmname == "ImdViewModel");
 			// now save then load
-			if (Util.SaveToFile<T>(PageData, vm, fileName, saveFreq))
+			if (FileUtil.SaveToFile<T>(PageData, guiVm, fileName, saveFreq))
 				LoadFromFile(fileName, false);
 			else
 				MessageBox.Show("Unable to save snapshot file.");

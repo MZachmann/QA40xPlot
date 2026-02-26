@@ -215,8 +215,5 @@ namespace QA40xPlot.Actions
 			var avenoise = noises.Skip(minbin).Take(maxbin - minbin).Average(x => x); // average noise within these bins
 			return avenoise / Math.Sqrt(binSize);   // ? i think
 		}
-
-
-
 	}
 }

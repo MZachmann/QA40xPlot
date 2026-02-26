@@ -217,38 +217,38 @@ namespace QA40xPlot.ViewModels
 		// this always uses the 'global' format so others work too
 		private static string FormatValue(double d1, double dMax)
 		{
-			var vm = MyVModel;
-			var x = GraphUtil.ValueToPlot(vm.PlotFormat, d1, dMax);
-			return GraphUtil.PrettyPrint(x, vm.PlotFormat);
+			var guiVm = MyVModel;
+			var x = GraphUtil.ValueToPlot(guiVm.PlotFormat, d1, dMax);
+			return GraphUtil.PrettyPrint(x, guiVm.PlotFormat);
 		}
 
 		private static string FormatCursor(SweepDot dot)
 		{
-			var vm = MyVModel;
+			var guiVm = MyVModel;
 			var column = dot.Column;
 
 			string sout = "--" + dot.Label + Environment.NewLine;
-			if (vm.ShowMagnitude)
+			if (guiVm.ShowMagnitude)
 				sout += "Mag: " + FormatValue(column.Mag, column.Mag) + Environment.NewLine;
-			if (vm.ShowPhase)
+			if (guiVm.ShowPhase)
 				sout += "Phase: " + FormatValue(column.Phase, column.Mag) + Environment.NewLine;
-			if (vm.ShowTHDN)
+			if (guiVm.ShowTHDN)
 				sout += "THD+N: " + FormatValue(column.THDN, column.Mag) + Environment.NewLine;
-			if (vm.ShowTHD)
+			if (guiVm.ShowTHD)
 				sout += "THD: " + FormatValue(column.THD, column.Mag) + Environment.NewLine;
-			if (vm.ShowNoise)
+			if (guiVm.ShowNoise)
 				sout += "Noise: " + FormatValue(column.Noise, column.Mag) + Environment.NewLine;
-			if (vm.ShowNoiseFloor)
+			if (guiVm.ShowNoiseFloor)
 				sout += "Floor: " + FormatValue(column.NoiseFloor, column.Mag) + Environment.NewLine;
-			if (vm.ShowD2)
+			if (guiVm.ShowD2)
 				sout += "D2: " + FormatValue(column.D2, column.Mag) + Environment.NewLine;
-			if (vm.ShowD3)
+			if (guiVm.ShowD3)
 				sout += "D3: " + FormatValue(column.D3, column.Mag) + Environment.NewLine;
-			if (vm.ShowD4)
+			if (guiVm.ShowD4)
 				sout += "D4: " + FormatValue(column.D4, column.Mag) + Environment.NewLine;
-			if (vm.ShowD5)
+			if (guiVm.ShowD5)
 				sout += "D5: " + FormatValue(column.D5, column.Mag) + Environment.NewLine;
-			if (vm.ShowD6)
+			if (guiVm.ShowD6)
 				sout += "D6+: " + FormatValue(column.D6P, column.Mag) + Environment.NewLine;
 			return sout;
 		}

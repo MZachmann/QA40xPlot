@@ -320,16 +320,15 @@ namespace QA40xPlot.ViewModels
 		public override void OnFitToData(object? parameter)
 		{
 			var frslt = MyAction.PageData.FreqRslt;
-			MyAction?.ActFitToData(this, parameter, ShowLeft ? frslt?.Left : frslt?.Right);
-			MyAction?.UpdateGraph(false, PlotUtil.AxisParameter(parameter));
+			MyAction.ActFitToData(this, parameter, ShowLeft ? frslt?.Left : frslt?.Right);
+			MyAction.UpdateGraph(false, PlotUtil.AxisParameter(parameter));
 		}
 
 		// when the mouse moves in the plotcontrol window it sends a mouseevent to the parent view model (this)
 		// here's the tracker event handler
 		private static void DoMouseTracked(object? sender, MouseEventArgs e)
 		{
-			var specVm = MyVModel;
-			specVm.DoMouse(sender, e);
+			MyVModel.DoMouse(sender, e);
 		}
 
 		private static Marker? MyMark = null;

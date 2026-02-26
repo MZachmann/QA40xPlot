@@ -269,47 +269,6 @@ namespace QA40xPlot.Libraries
 			return jsonString;
 		}
 
-		public static bool SaveToFile<Model>(DataTab<Model> page, Model GuiModel, string fileName, bool saveFreq = false) where Model : BaseViewModel
-		{
-			if (page == null)
-				return false;
-			try
-			{
-				// convert time data to longer stuff
-				if (page.TimeRslt != null && page.TimeRslt.Left.Length > 0)
-				{
-					page.TimeSaver = new LeftRightTimeSaver();
-					page.TimeSaver.FromSeries(page.TimeRslt);
-				}
-
-				if (saveFreq && page.FreqRslt != null && page.FreqRslt.Left.Length > 0)
-				{
-					page.FreqSaver = new LeftRightFreqSaver();
-					page.FreqSaver.FromSeries(page.FreqRslt);
-				}
-				// Serialize the object to a JSON string
-				// before we do this, copy the graph viewing stuff to the viewmodel
-				page.ViewModel.CopyGraphSettingsFromGui(GuiModel);
-				//string jsonString = JsonConvert.SerializeObject(page, Formatting.Indented);
-				string jsonString = ConvertToJson(page);
-				page.TimeSaver = null; // clear the time saver, we don't need it anymore
-				page.FreqSaver = null; // clear the frequency saver, we don't need it anymore
-
-				// Write the JSON string to a file
-				// File.WriteAllText(fileName, jsonString);
-				var fname = fileName;
-				if (!fname.Contains(".zip", StringComparison.OrdinalIgnoreCase))
-					fname += ".zip";
-				Util.CompressTextToFile(jsonString, fname); // zip it
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(ex.Message, "A save error occurred.", MessageBoxButton.OK, MessageBoxImage.Information);
-				return false;
-			}
-			return true;
-		}
-
 		public static string GetDefaultConfigPath()
 		{
 			// look for a default config file before we paint the windows for theme setting...
