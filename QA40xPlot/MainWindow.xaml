@@ -79,6 +79,10 @@
                        Visibility="{Binding ShowTabs, Converter={StaticResource BoolNotVisConverter}}"
                         >
                 <Menu Background="Transparent" VerticalAlignment="Center" >
+                    <MenuItem Header="_File"  >
+                        <MenuItem Header="_Open..." Command="{Binding DocOpen}"  />
+                        <MenuItem Header="_Save..." Command="{Binding DocSave}"  />
+                    </MenuItem>
                     <MenuItem Header="_Page"  >
                         <MenuItem Header="_Spectrum" Command="{Binding SetPlotPage}" CommandParameter="spectrum" />
                         <MenuItem Header="_Intermodulation" Command="{Binding SetPlotPage}" CommandParameter="intermod" />

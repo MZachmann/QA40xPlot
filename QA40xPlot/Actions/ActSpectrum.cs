@@ -81,7 +81,7 @@ namespace QA40xPlot.Actions
 
 		public bool SaveToFile(string fileName)
 		{
-			return FileUtil.SaveToFile<MyViewClass>(PageData, MyVModel, fileName, PageData.ViewModel.Averages > 1);
+			return DocUtil.SaveToFile<MyViewClass>(PageData, MyVModel, fileName, PageData.ViewModel.Averages > 1);
 		}
 
 		public override async Task LoadFromFile(string fileName, bool doLoad)
@@ -140,7 +140,7 @@ namespace QA40xPlot.Actions
 
 		private static double[] BuildWave(MyDataTab page, double volts, bool force = false)
 		{
-			var vm = page.ViewModel;
+			var vm = page.ViewModel as MyViewClass;
 			var freq = vm.NearestBinFreq(vm.Gen1Frequency);
 			WaveContainer.SetMono();          // enable the generator
 			bool buse = force ? true : vm.UseGenerator1;
@@ -282,7 +282,7 @@ namespace QA40xPlot.Actions
 			MyDataTab NextPage = new(specVm, lrts);
 			PageData.Definition.CopyPropertiesTo(NextPage.Definition);
 			NextPage.Definition.CreateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-			var vm = NextPage.ViewModel;
+			var vm = NextPage.ViewModel as MyViewClass;
 			if (vm == null)
 				return;
 
@@ -362,7 +362,7 @@ namespace QA40xPlot.Actions
 
 		void BuildFrequencies(MyDataTab page)
 		{
-			var vm = page.ViewModel;
+			var vm = page.ViewModel as MyViewClass;
 			if (vm == null)
 				return;
 

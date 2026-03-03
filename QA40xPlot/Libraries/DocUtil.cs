@@ -9,10 +9,39 @@ using System.Windows;
 
 namespace QA40xPlot.Libraries
 {
-	public class FileUtil
+	public class DocUtil
 	{
+		public static void OpenDocument(string filepath)
+		{
+			var vmlist = ViewSettings.Singleton.ViewModelList;
+			Dictionary<string, string> document = new();
+			foreach(var vml in vmlist)
+			{
+				if(vml.HasExport)
+				{
+					var ttype = vml.GetType();
+					//var page = new DataTab<ttype>();
+					//var jsonString = PageToText<ttype>(page, vml, true);
+					document.Add(vml.Name, string.Empty);
+				}
+			}
+		}
+
 		public static void SaveDocument(string filepath)
 		{
+			var vmlist = ViewSettings.Singleton.ViewModelList;
+			Dictionary<string, string> document = new();
+			foreach(var vml in vmlist)
+			{
+				if(vml.HasExport)
+				{
+					//Type ttype = vml.GetType();
+					//var page = new DataTab<ttype>(vml, new LeftRightTimeSeries());
+					//var jsonString = PageToText<ttype>(page, vml, true);
+					//document.Add(vml.Name, string.Empty);
+				}
+			}
+
 		}
 
 		public static bool SaveToFile<Model>(DataTab<Model> page, Model GuiModel, string fileName, bool saveFreq = false) where Model : BaseViewModel
@@ -21,7 +50,7 @@ namespace QA40xPlot.Libraries
 				return false;
 			try
 			{
-				var jsonString = PageToText(page, GuiModel, fileName, saveFreq);
+				var jsonString = PageToText(page, GuiModel, saveFreq);
 				// Write the JSON string to a file
 				var fname = fileName;
 				if (!fname.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
@@ -45,7 +74,7 @@ namespace QA40xPlot.Libraries
 		/// <param name="fileName"></param>
 		/// <param name="saveFreq"></param>
 		/// <returns></returns>
-		public static string PageToText<Model>(DataTab<Model> page, Model GuiModel, string fileName, bool saveFreq = false) where Model : BaseViewModel
+		public static string PageToText<Model>(DataTab<Model> page, Model GuiModel, bool saveFreq = false) where Model : BaseViewModel
 		{
 			if (page == null)
 				return string.Empty;

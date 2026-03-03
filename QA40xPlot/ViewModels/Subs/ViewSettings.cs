@@ -9,7 +9,7 @@ namespace QA40xPlot.ViewModels
 	public class ViewSettings
 	{
 		public static ViewSettings Singleton { get; private set; } = new ViewSettings();
-		private readonly List<BaseViewModel> ViewModelList = new();
+		public readonly List<BaseViewModel> ViewModelList = new();
 		private readonly Dictionary<string, string> _ProductTitle = new Dictionary<string, string>() { { "Name", "QA40xPlot" }, { "Version", "0.30" } };
 		public Dictionary<string, string> Product { get { return _ProductTitle; } private set {; } }
 		public SpectrumViewModel SpectrumVm { get; private set; }
@@ -106,23 +106,26 @@ namespace QA40xPlot.ViewModels
 				return rslt;
 			}
 			// here the object name must be the same as the string used to store it
-			Util.GetPropertiesFrom(vws, "SpectrumVm", SpectrumVm);
-			Util.GetPropertiesFrom(vws, "ImdVm", ImdVm);
-			//Util.GetPropertiesFrom(vws, "ThdAmp", ThdAmp);
-			//Util.GetPropertiesFrom(vws, "ThdFreq", ThdFreq);
-			Util.GetPropertiesFrom(vws, "FreqRespVm", FreqRespVm);
-			Util.GetPropertiesFrom(vws, "FrQa430Vm", FrQa430Vm);
-			Util.GetPropertiesFrom(vws, "ScopeVm", ScopeVm);
-			Util.GetPropertiesFrom(vws, "FreqVm", FreqVm);
 			Util.GetPropertiesFrom(vws, "AmpVm", AmpVm);
+			Util.GetPropertiesFrom(vws, "ImdVm", ImdVm);
+			Util.GetPropertiesFrom(vws, "FreqRespVm", FreqRespVm);
+			Util.GetPropertiesFrom(vws, "FreqVm", FreqVm);
+			Util.GetPropertiesFrom(vws, "FrQa430Vm", FrQa430Vm);
 			Util.GetPropertiesFrom(vws, "MainVm", MainVm);
+			Util.GetPropertiesFrom(vws, "ScopeVm", ScopeVm);
+			Util.GetPropertiesFrom(vws, "SpectrumVm", SpectrumVm);
+			// do settings last
 			Util.GetPropertiesFrom(vws, "SettingsVm", SettingsVm);  // this will update global settings last which makes sense
 			return rslt;
 		}
 
 		public ViewSettings()
 		{
+			// app-wide settings are created first
 			SettingsVm = new SettingsViewModel();
+
+			// create all of the static viewmodels here
+			// these contain the GUI/displayable settings for each test
 			MainVm = new MainViewModel();
 			ChannelLeft = new ThdChannelViewModel();
 			ChannelRight = new ThdChannelViewModel();
@@ -134,8 +137,6 @@ namespace QA40xPlot.ViewModels
 			ImdChannelRight = new ImdChannelViewModel();
 			SpectrumVm = new SpectrumViewModel();
 			ImdVm = new ImdViewModel();
-			//ThdAmp = new ThdAmpViewModel();
-			//ThdFreq = new ThdFreqViewModel();
 			FreqRespVm = new FreqRespViewModel();
 			FrQa430Vm = new FrQa430ViewModel();
 			ScopeVm = new ScopeViewModel();
@@ -143,22 +144,23 @@ namespace QA40xPlot.ViewModels
 			AmpVm = new AmpSweepViewModel();
 			TabDefs = new DataDescript();
 
-			// enumerate the Pages other than viewsettings
-			ViewModelList.Add(SpectrumVm);
-			ViewModelList.Add(ImdVm);
-			ViewModelList.Add(ScopeVm);
-			ViewModelList.Add(FreqVm);
+			// enumerate the Page ViewModels other than viewsettings
+			ViewModelList.Clear();
 			ViewModelList.Add(AmpVm);
+			ViewModelList.Add(FreqVm);
 			ViewModelList.Add(FreqRespVm);
 			ViewModelList.Add(FrQa430Vm);
+			ViewModelList.Add(ImdVm);
+			ViewModelList.Add(SpectrumVm);
+			ViewModelList.Add(ScopeVm);
 		}
 
 		public void CopyAboutToAll(DataDescript desc)
 		{
-			foreach (var vm in ViewModelList)
+			foreach (var vml in ViewModelList)
 			{
 				// copy the datadescript stuff into the viewmodel base
-				vm.CopyDescript(vm, desc);
+				vml.CopyDescript(vml, desc);
 			}
 		}
 	}

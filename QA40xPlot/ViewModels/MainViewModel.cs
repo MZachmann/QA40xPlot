@@ -29,6 +29,10 @@ namespace QA40xPlot.ViewModels
 			"F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12"
 		};
 		[JsonIgnore]
+		public RelayCommand DocOpen { get => new RelayCommand(DoDocOpen); }
+		[JsonIgnore]
+		public RelayCommand DocSave { get => new RelayCommand(DoDocSave); }
+		[JsonIgnore]
 		public RelayCommand<object> SetPlotPage { get => new RelayCommand<object>(DoSetPlotPage); }
 		[JsonIgnore]
 		public RelayCommand DoPinAll { get => new RelayCommand(OnPinAll); }
@@ -570,6 +574,16 @@ namespace QA40xPlot.ViewModels
 				SaveToPng(mainwnd, filename);
 			}
 			await SetProgressMessage(string.Empty);
+		}
+
+		private void DoDocOpen()
+		{
+			DocUtil.OpenDocument(string.Empty);
+		}
+
+		private void DoDocSave()
+		{
+			DocUtil.SaveDocument(string.Empty);
 		}
 
 		private void OnPinAll()

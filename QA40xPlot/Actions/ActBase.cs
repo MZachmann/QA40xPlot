@@ -258,7 +258,7 @@ namespace QA40xPlot.Actions
 			// only possibly save frequency result for spectrum and imd
 			bool saveFreq = (guiVm.Averages > 1) && (vmname == "SpectrumViewModel" || vmname == "ImdViewModel");
 			// now save then load
-			if (FileUtil.SaveToFile<T>(PageData, guiVm, fileName, saveFreq))
+			if (DocUtil.SaveToFile<T>(PageData, guiVm, fileName, saveFreq))
 				LoadFromFile(fileName, false);
 			else
 				MessageBox.Show("Unable to save snapshot file.");

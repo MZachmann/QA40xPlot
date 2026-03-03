@@ -80,7 +80,7 @@ namespace QA40xPlot.Actions
 
 		public bool SaveToFile(string fileName)
 		{
-			return FileUtil.SaveToFile<MyViewClass>(PageData, MyVModel, fileName, PageData.ViewModel.Averages > 1);
+			return DocUtil.SaveToFile<MyViewClass>(PageData, MyVModel, fileName, PageData.ViewModel.Averages > 1);
 		}
 
 		public override async Task LoadFromFile(string fileName, bool isMain)

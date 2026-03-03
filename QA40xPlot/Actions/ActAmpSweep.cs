@@ -294,7 +294,7 @@ namespace QA40xPlot.Actions
 
 		public bool SaveToFile(string fileName)
 		{
-			return FileUtil.SaveToFile<MyViewClass>(PageData, MyVModel, fileName);
+			return DocUtil.SaveToFile<MyViewClass>(PageData, MyVModel, fileName);
 		}
 
 		public override async Task LoadFromFile(string fileName, bool doLoad)
