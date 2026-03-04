@@ -36,7 +36,6 @@ namespace QA40xPlot.Libraries
 				if(vml.HasExport)
 				{
 					//Type ttype = vml.GetType();
-					//var page = new DataTab<ttype>(vml, new LeftRightTimeSeries());
 					//var jsonString = PageToText<ttype>(page, vml, true);
 					//document.Add(vml.Name, string.Empty);
 				}
@@ -44,7 +43,7 @@ namespace QA40xPlot.Libraries
 
 		}
 
-		public static bool SaveToFile<Model>(DataTab<Model> page, Model GuiModel, string fileName, bool saveFreq = false) where Model : BaseViewModel
+		public static bool SaveToFile<Model>(DataTab page, Model GuiModel, string fileName, bool saveFreq = false) where Model : BaseViewModel
 		{
 			if (page == null)
 				return false;
@@ -74,7 +73,7 @@ namespace QA40xPlot.Libraries
 		/// <param name="fileName"></param>
 		/// <param name="saveFreq"></param>
 		/// <returns></returns>
-		public static string PageToText<Model>(DataTab<Model> page, Model GuiModel, bool saveFreq = false) where Model : BaseViewModel
+		public static string PageToText<Model>(DataTab page, Model GuiModel, bool saveFreq = false) where Model : BaseViewModel
 		{
 			if (page == null)
 				return string.Empty;

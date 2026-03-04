@@ -39,7 +39,7 @@ namespace QA40xPlot.ViewModels
 		/// <summary>
 		/// the static model that applies to the GUI at least...
 		/// </summary>
-		private static FreqSweepViewModel MyVModel { get => ViewSettings.Singleton.FreqVm; }
+		private static FreqSweepViewModel MyGuiModel { get => ViewSettings.Singleton.FreqVm; }
 
 		#region Setters and Getters
 		private string _GenVoltage = string.Empty;
@@ -184,7 +184,7 @@ namespace QA40xPlot.ViewModels
 			actFreq = new ActFreqSweep(this);
 			actPlot = plot;
 			actAbout = tAbout;
-			MyVModel.LinkAbout(actFreq.PageData.Definition);
+			MyGuiModel.LinkAbout(actFreq.PageData.Definition);
 			ShowInfos();
 		}
 
@@ -192,10 +192,10 @@ namespace QA40xPlot.ViewModels
 		public override void DoDeleteIt(string param)
 		{
 			var id = MathUtil.ToInt(param, -1);
-			var fat = MyVModel.OtherSetList.FirstOrDefault(x => x.Id == id);
+			var fat = MyGuiModel.OtherSetList.FirstOrDefault(x => x.Id == id);
 			if (fat != null)
 			{
-				MyVModel.OtherSetList.Remove(fat);
+				MyGuiModel.OtherSetList.Remove(fat);
 				MyAction.DeleteTab(id);
 			}
 		}
@@ -217,14 +217,14 @@ namespace QA40xPlot.ViewModels
 		// this always uses the 'global' format so others work too
 		private static string FormatValue(double d1, double dMax)
 		{
-			var guiVm = MyVModel;
+			var guiVm = MyGuiModel;
 			var x = GraphUtil.ValueToPlot(guiVm.PlotFormat, d1, dMax);
 			return GraphUtil.PrettyPrint(x, guiVm.PlotFormat);
 		}
 
 		private static string FormatCursor(SweepDot dot)
 		{
-			var guiVm = MyVModel;
+			var guiVm = MyGuiModel;
 			var column = dot.Column;
 
 			string sout = "--" + dot.Label + Environment.NewLine;
@@ -255,12 +255,12 @@ namespace QA40xPlot.ViewModels
 
 		private static async Task LoadItTab()
 		{
-			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, true);
+			await DoGetLoad(MyGuiModel.MyAction, PlotFileFilter, true);
 		}
 
 		private static async Task GetItTab()
 		{
-			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, false);
+			await DoGetLoad(MyGuiModel.MyAction, PlotFileFilter, false);
 		}
 
 		private void SaveItTab()

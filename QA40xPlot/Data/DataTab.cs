@@ -220,13 +220,13 @@ namespace QA40xPlot.Data
 	// our way of storing results (pages) in our Document. Each datatab has
 	// a viewmodel = settings from the run, a time series and a dictionary of other properties
 	// in addition the Definition is descriptive stuff about the data
-	public class DataTab<T>
+	public class DataTab
 	{
 		private static int _CurrentId = 1;      // unique id for the datatab
 												// ------------------------------------------------------------------
 												// we only serialize these things
 		public DataDescript Definition { get; set; } = new DataDescript();
-		public T ViewModel
+		public BaseViewModel ViewModel
 		{
 			get;
 			private set;
@@ -357,13 +357,13 @@ namespace QA40xPlot.Data
 		/// <param name="viewModel"></param>
 		/// <param name="series"></param>
 		/// <param name="dct"></param>
-		public DataTab(T viewModel, LeftRightTimeSeries series, Dictionary<string, object>? dct = null)
+		public DataTab(BaseViewModel viewModel, LeftRightTimeSeries series, Dictionary<string, object>? dct = null)
 		{
 			Definition.Id = _CurrentId;
 			Id = _CurrentId++;  // unique id for the data descriptor
 			if (viewModel != null)
 			{
-				ViewModel = (T)((ICloneable)viewModel).Clone();   // get a copy of the VM here
+				ViewModel = (BaseViewModel)((ICloneable)viewModel).Clone();   // get a copy of the VM here
 			}
 			else
 			{

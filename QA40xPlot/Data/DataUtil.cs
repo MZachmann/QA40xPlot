@@ -11,9 +11,9 @@ namespace QA40xPlot.Data
 		/// <typeparam name="U">result type/viewmodel type</typeparam>
 		/// <param name="tabs">list of other tabs</param>
 		/// <returns>tabs that are enabled</returns>
-		public static List<DataTab<T>> FindShown<T>(List<DataTab<T>> tabs)
+		public static List<DataTab> FindShown<T>(List<DataTab> tabs)
 		{
-			List<DataTab<T>> result = new();
+			List<DataTab> result = new();
 			foreach (var t in tabs)
 			{
 				if (t.Definition.IsOnL)
@@ -35,7 +35,7 @@ namespace QA40xPlot.Data
 		/// <typeparam name="U"></typeparam>
 		/// <param name="tabs">a list of data tabs</param>
 		/// <returns></returns>
-		public static List<U> FindShownInfo<T, U>(List<DataTab<T>> tabs)
+		public static List<U> FindShownInfo<T, U>(List<DataTab> tabs)
 		{
 			List<U> result = new();
 			foreach (var t in tabs)
@@ -67,7 +67,7 @@ namespace QA40xPlot.Data
 		/// <typeparam name="U"></typeparam>
 		/// <param name="tabs"></param>
 		/// <returns></returns>
-		public static List<double[]> FindShownFreqs<T>(List<DataTab<T>> tabs)
+		public static List<double[]> FindShownFreqs(List<DataTab> tabs)
 		{
 			List<double[]> result = new();
 			foreach (var t in tabs)
@@ -94,7 +94,7 @@ namespace QA40xPlot.Data
 		/// <typeparam name="U"></typeparam>
 		/// <param name="tabs"></param>
 		/// <returns></returns>
-		public static List<LeftRightResult> FindShownGains<T>(List<DataTab<T>> tabs, bool is2channel)
+		public static List<LeftRightResult> FindShownGains(List<DataTab> tabs, bool is2channel)
 		{
 			List<LeftRightResult> result = new();
 			foreach (var t in tabs)
@@ -120,7 +120,7 @@ namespace QA40xPlot.Data
 		/// <typeparam name="U"></typeparam>
 		/// <param name="tabs"></param>
 		/// <returns></returns>
-		public static List<double[]> FindShownTimes<T>(List<DataTab<T>> tabs)
+		public static List<double[]> FindShownTimes(List<DataTab> tabs)
 		{
 			List<double[]> result = new();
 			foreach (var t in tabs)

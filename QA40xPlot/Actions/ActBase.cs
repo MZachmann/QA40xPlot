@@ -14,16 +14,16 @@ namespace QA40xPlot.Actions
 {
 	public partial class ActBase<T> where T : BaseViewModel
 	{
-		public DataTab<T> PageData { get; protected set; } // Data used in this form instance
+		public DataTab PageData { get; protected set; } // Data used in this form instance
 		protected CancellationTokenSource CanToken;                                  // Measurement cancelation token
 		public List<LeftRightFrequencySeries> FrequencyHistory { get; set; } = new();   // for averaging
 
 		/// <summary>
-		/// MyVModel is the static ViewModel for each test that contains the GUI settings
+		/// MyGuiModel is the static ViewModel for each test that contains the GUI settings
 		/// as well as the plots and OtherSetList (gets)
 		/// It is the DataContext for the associated test windows
 		/// </summary>
-		public static T MyVModel
+		public static T MyGuiModel
 		{
 			get
 			{
@@ -56,7 +56,7 @@ namespace QA40xPlot.Actions
 
 		public ActBase()
 		{
-			PageData = new(MyVModel, new LeftRightTimeSeries());
+			PageData = new(MyGuiModel, new LeftRightTimeSeries());
 			CanToken = new CancellationTokenSource();
 		}
 
@@ -105,21 +105,6 @@ namespace QA40xPlot.Actions
 		{
 			ActFitToData(bvm, parameter, dRefs);
 		}
-
-		/// <summary>
-		/// copy some of the properties from MyVModel to the page
-		/// </summary>
-		/// <param name="page"></param>
-		/// <param name="myVModel"></param>
-		protected void CopyViewProperties(DataTab<T> page, T srcVModel)
-		{
-			//page.ViewModel.MainPlot = srcVModel.MainPlot; // keep the plot link
-			//page.ViewModel.MiniPlot = srcVModel.MiniPlot; // keep the plot link
-			//page.ViewModel.Mini2Plot = srcVModel.Mini2Plot; // keep the plot link
-			//page.ViewModel.OtherSetList = srcVModel.OtherSetList;
-			//page.ViewModel.CopyPropertiesTo<T>(myVModel);    // retract the gui
-		}
-
 
 		/// <summary>
 		/// fit to data
@@ -253,7 +238,7 @@ namespace QA40xPlot.Actions
 			if (string.IsNullOrEmpty(fpath))
 				fpath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 			string fileName = Path.Combine(fpath, $"Snap{_NextSnapshot}.plt.zip");
-			var guiVm = MyVModel;
+			var guiVm = MyGuiModel;
 			var vmname = typeof(T).Name;
 			// only possibly save frequency result for spectrum and imd
 			bool saveFreq = (guiVm.Averages > 1) && (vmname == "SpectrumViewModel" || vmname == "ImdViewModel");

@@ -143,10 +143,10 @@ namespace QA40xPlot.Libraries
 		/// </summary>
 		/// <param name="fileName">full path name</param>
 		/// <returns>a datatab with no frequency info</returns>
-		public static DataTab<Model>? LoadFile<Model>(DataTab<Model> model, string fileName) where Model : BaseViewModel
+		public static DataTab? LoadFile<Model>(DataTab dtab, string fileName) where Model : BaseViewModel
 		{
 			// a new DataTab
-			var page = new DataTab<Model>(model.ViewModel, new LeftRightTimeSeries());
+			var page = new DataTab(dtab.ViewModel, new LeftRightTimeSeries());
 			page.Definition.FileName = fileName;
 			try
 			{
@@ -175,7 +175,7 @@ namespace QA40xPlot.Libraries
 							}
 							else
 								viewVersion = 1;
-							var z = model.ViewModel;
+							var z = dtab.ViewModel;
 							isValid = z?.IsValidLoadModel(viewName, viewVersion) ?? false;
 						}
 					}
@@ -189,7 +189,7 @@ namespace QA40xPlot.Libraries
 				}
 
 				// Deserialize the JSON string into an object
-				var jsonObject = JsonConvert.DeserializeObject<DataTab<Model>>(jsonContent);
+				var jsonObject = JsonConvert.DeserializeObject<DataTab>(jsonContent);
 				if (jsonObject != null)
 				{
 					if (jsonObject.TimeSaver != null && jsonObject.TimeSaver.Left.Length > 0)

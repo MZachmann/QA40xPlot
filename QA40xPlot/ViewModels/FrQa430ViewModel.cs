@@ -46,7 +46,7 @@ public class FrQa430ViewModel : OpampViewModel
 	/// <summary>
 	/// the static model that applies to the GUI at least...
 	/// </summary>
-	private static FrQa430ViewModel MyVModel { get => ViewSettings.Singleton.FrQa430Vm; }
+	private static FrQa430ViewModel MyGuiModel { get => ViewSettings.Singleton.FrQa430Vm; }
 
 	#region Setters and Getters
 	private bool _UseMUseMicCorrection = false;
@@ -295,7 +295,7 @@ public class FrQa430ViewModel : OpampViewModel
 			case "PlotFormat":
 				// we may need to change the axis
 				{
-					var ttype = GetTestingType(MyVModel.TestType);
+					var ttype = GetTestingType(MyGuiModel.TestType);
 					var isdb = ttype == TestingType.Noise;
 					ToShowRange = isdb ? Visibility.Collapsed : Visibility.Visible;
 					ToShowdB = isdb ? Visibility.Visible : Visibility.Collapsed;
@@ -357,17 +357,17 @@ public class FrQa430ViewModel : OpampViewModel
 		actFreq = new ActFrQa430(this);
 		actAbout = TAbout;
 		actPlot = plot;
-		MyVModel.LinkAbout(actFreq.PageData.Definition);
+		MyGuiModel.LinkAbout(actFreq.PageData.Definition);
 	}
 
 	// here param is the id of the tab to remove from the othertab list
 	public override void DoDeleteIt(string param)
 	{
 		var id = MathUtil.ToInt(param, -1);
-		var fat = MyVModel.OtherSetList.FirstOrDefault(x => x.Id == id);
+		var fat = MyGuiModel.OtherSetList.FirstOrDefault(x => x.Id == id);
 		if (fat != null)
 		{
-			MyVModel.OtherSetList.Remove(fat);
+			MyGuiModel.OtherSetList.Remove(fat);
 			MyAction.DeleteTab(id);
 		}
 	}
@@ -397,19 +397,19 @@ public class FrQa430ViewModel : OpampViewModel
 
 	private static async Task LoadItTab()
 	{
-		await DoGetLoad(MyVModel.MyAction, PlotFileFilter, true);
+		await DoGetLoad(MyGuiModel.MyAction, PlotFileFilter, true);
 	}
 
 	private static async Task GetItTab()
 	{
-		await DoGetLoad(MyVModel.MyAction, PlotFileFilter, false);
+		await DoGetLoad(MyGuiModel.MyAction, PlotFileFilter, false);
 	}
 
 
 	private void SaveItTab()
 	{
 		string prefix = "QaFile";
-		var ttype = GetTestingType(MyVModel.TestType);
+		var ttype = GetTestingType(MyGuiModel.TestType);
 		if (ttype == TestingType.CMRR)
 			prefix = "QaCmrr";
 		else if (ttype == TestingType.InputZ)
@@ -446,7 +446,7 @@ public class FrQa430ViewModel : OpampViewModel
 	// here's the tracker event handler
 	private static void DoMouseTracked(object sender, MouseEventArgs e)
 	{
-		var freqVm = MyVModel;
+		var freqVm = MyGuiModel;
 		freqVm.DoMouse(sender, e);
 	}
 
@@ -507,7 +507,7 @@ public class FrQa430ViewModel : OpampViewModel
 				}
 				break;
 		}
-		Debug.Assert(ReferenceEquals(this, MyVModel), "Not vmodel in this");
+		Debug.Assert(ReferenceEquals(this, MyGuiModel), "Not vmodel in this");
 	}
 
 	private void DoMouse(object sender, MouseEventArgs e)

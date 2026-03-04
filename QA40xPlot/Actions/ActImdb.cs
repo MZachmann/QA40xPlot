@@ -15,11 +15,11 @@ using static QA40xPlot.ViewModels.BaseViewModel;
 namespace QA40xPlot.Actions
 {
 	using MyViewClass = ImdViewModel;
-	using MyDataTab = DataTab<ImdViewModel>;
+
 
 	public class ActImd : ActBase<MyViewClass>
 	{
-		private List<MyDataTab> OtherTabs { get; set; } = new List<MyDataTab>(); // Other tabs in the document
+		private List<DataTab> OtherTabs { get; set; } = new List<DataTab>(); // Other tabs in the document
 
 		/// <summary>
 		/// Constructor
@@ -33,7 +33,7 @@ namespace QA40xPlot.Actions
 		public void DeleteTab(int id)
 		{
 			OtherTabs.RemoveAll(item => item.Id == id);
-			MyVModel.ForceGraphUpdate(); // force a graph update
+			MyGuiModel.ForceGraphUpdate(); // force a graph update
 		}
 
 
@@ -52,7 +52,7 @@ namespace QA40xPlot.Actions
 			if (vfs == null)
 				return null;
 
-			var imdVm = MyVModel;
+			var imdVm = MyGuiModel;
 			var sampleRate = MathUtil.ToUint(imdVm.SampleRate);
 			var fftsize = vfs.Left.Length;
 			var binSize = QaLibrary.CalcBinSize(sampleRate, (uint)fftsize);
@@ -73,14 +73,14 @@ namespace QA40xPlot.Actions
 
 		public override void PinGraphRange(string who)
 		{
-			var guiVm = MyVModel;
+			var guiVm = MyGuiModel;
 			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			PinGraphRanges(myPlot, guiVm, who);
 		}
 
 		public bool SaveToFile(string fileName)
 		{
-			return DocUtil.SaveToFile<MyViewClass>(PageData, MyVModel, fileName, PageData.ViewModel.Averages > 1);
+			return DocUtil.SaveToFile<MyViewClass>(PageData, MyGuiModel, fileName, PageData.ViewModel.Averages > 1);
 		}
 
 		public override async Task LoadFromFile(string fileName, bool isMain)
@@ -95,7 +95,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="fileName">full path name</param>
 		/// <returns>a datatab with no frequency info</returns>
-		public MyDataTab? LoadFile(string fileName)
+		public DataTab? LoadFile(string fileName)
 		{
 			return Util.LoadFile<MyViewClass>(PageData, fileName);
 		}
@@ -105,7 +105,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="page"></param>
 		/// <returns></returns>
-		public async Task FinishLoad(MyDataTab page, bool isMain, string fileName)
+		public async Task FinishLoad(DataTab page, bool isMain, string fileName)
 		{
 			ClipName(page.Definition, fileName);
 
@@ -120,10 +120,10 @@ namespace QA40xPlot.Actions
 			{
 				// we can't overwrite the viewmodel since it links to the display proper
 				// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
-				MyVModel.LoadViewFrom(page.ViewModel);
+				MyGuiModel.LoadViewFrom((MyViewClass)page.ViewModel);
 				PageData = page;    // set the current page to the loaded one
 			// relink to the new definition
-			var guiVm = MyVModel;
+			var guiVm = MyGuiModel;
 			guiVm.LinkAbout(page.Definition);
 			guiVm.HasSave = true;
 			}
@@ -131,15 +131,15 @@ namespace QA40xPlot.Actions
 			{
 				OtherTabs.Add(page); // add the new one
 									 //var oss = new OtherSet(page.Definition.Name, page.Show, page.Id);
-				MyVModel.OtherSetList.Add(page.Definition);
+				MyGuiModel.OtherSetList.Add(page.Definition);
 			}
 
 			UpdateGraph(true);
 		}
 
-		private static double[] BuildWave(MyDataTab page, double volts)
+		private static double[] BuildWave(DataTab page, double volts)
 		{
-			var vm = page.ViewModel;
+			var vm = (MyViewClass)page.ViewModel;
 			var freq = vm.NearestBinFreq(vm.Gen1Frequency);
 			var freq2 = vm.NearestBinFreq(vm.Gen2Frequency);
 			var v2 = volts / vm.GenDivisor;
@@ -177,7 +177,7 @@ namespace QA40xPlot.Actions
 			{
 				vout = "off"; // no output
 			}
-			MyVModel.GeneratorVoltage = vout; // set the generator voltage in the viewmodel
+			MyGuiModel.GeneratorVoltage = vout; // set the generator voltage in the viewmodel
 
 			var dout = WaveGenerator.Generate(true, (uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
 			if (distout.Length > 0)
@@ -191,9 +191,9 @@ namespace QA40xPlot.Actions
 			return dout; // return the waveform
 		}
 
-		void BuildFrequencies(MyDataTab page)
+		void BuildFrequencies(DataTab page)
 		{
-			var vm = page.ViewModel;
+			var vm = (MyViewClass)page.ViewModel;
 			if (vm == null)
 				return;
 
@@ -225,7 +225,7 @@ namespace QA40xPlot.Actions
 				if (fftdata != null && ffs != null && ffs.Length > 0 && freq < fftdata.Df * ffs.Length)
 				{
 					int bin = 0;
-					ScottPlot.Plot myPlot = MyVModel.MainPlot.ThePlot;
+					ScottPlot.Plot myPlot = MyGuiModel.MainPlot.ThePlot;
 					var pixel = myPlot.GetPixel(new Coordinates(Math.Log10(freq), posndBV));
 					var left = ViewSettings.Singleton.ImdChannelLeft;
 					var right = ViewSettings.Singleton.ImdChannelRight;
@@ -262,7 +262,7 @@ namespace QA40xPlot.Actions
 			if (PageData.FreqRslt == null && OtherTabs.Count() == 0)
 				return rrc;
 
-			var guiVm = MyVModel;     // current settings
+			var guiVm = MyGuiModel;     // current settings
 			var ffs = PageData.FreqRslt;
 
 			List<double[]> tabs = new List<double[]>();
@@ -299,10 +299,10 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="ct">Cancellation token</param>
 		/// <returns>result. false if cancelled</returns>
-		async Task<bool> RunAcquisition(MyDataTab msr, bool doNoise, uint iteration, CancellationToken ct)
+		async Task<bool> RunAcquisition(DataTab msr, bool doNoise, uint iteration, CancellationToken ct)
 		{
 			// Setup
-			MyViewClass vm = msr.ViewModel;
+			MyViewClass vm = (MyViewClass)msr.ViewModel;
 
 			var freq = vm.NearestBinFreq(vm.Gen1Frequency); // make sure it's a bin center frequency
 			var freq2 = vm.NearestBinFreq(vm.Gen2Frequency); // make sure it's a bin center frequency
@@ -327,7 +327,7 @@ namespace QA40xPlot.Actions
 				// except InputRange (attenuation) which is push/pop-ed
 				if (msr.NoiseFloor.Left == 0 || doNoise)
 				{
-					var noisy = await MeasureNoise(MyVModel, ct);
+					var noisy = await MeasureNoise(MyGuiModel, ct);
 					msr.NoiseFloor = noisy.Item1;
 					msr.NoiseFloorA = noisy.Item2;
 					msr.NoiseFloorC = noisy.Item3;
@@ -377,7 +377,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="ct">Cancellation token</param>
 		/// <returns>result. false if cancelled</returns>
-		private async Task<bool> PostProcess(MyDataTab msr, CancellationToken ct)
+		private async Task<bool> PostProcess(DataTab msr, CancellationToken ct)
 		{
 			if (msr.FreqRslt == null)
 			{
@@ -390,7 +390,7 @@ namespace QA40xPlot.Actions
 			left.IsLeft = true;
 			var right = new ImdChannelViewModel();
 			right.IsLeft = false;
-			MyViewClass vm = msr.ViewModel;
+			MyViewClass vm = (MyViewClass)msr.ViewModel;
 
 			var freq = vm.NearestBinFreq(vm.Gen1Frequency);
 			var freq2 = vm.NearestBinFreq(vm.Gen2Frequency);
@@ -482,9 +482,9 @@ namespace QA40xPlot.Actions
 			return !ct.IsCancellationRequested;
 		}
 
-		private void AddAMarker(MyDataTab page, double frequency, bool ispower = false)
+		private void AddAMarker(DataTab page, double frequency, bool ispower = false)
 		{
-			var vm = page.ViewModel;
+			var vm = (MyViewClass)page.ViewModel;
 
 			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
 			var sampleRate = vm.SampleRateVal;
@@ -509,13 +509,13 @@ namespace QA40xPlot.Actions
 			var mymark = myPlot.Add.Marker(Math.Log10(frequency), markView,
 				MarkerShape.FilledDiamond, GraphUtil.PtToPixels(6), markerCol);
 			mymark.LegendText = string.Format("{1}: {0}", GraphUtil.PrettyPrint(markVal, vm.PlotFormat), (int)frequency);
-			MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, mymark.Color, mymark.LegendText, colorIdx));
+			MyGuiModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, mymark.Color, mymark.LegendText, colorIdx));
 		}
 
-		private void ShowHarmonicMarkers(MyDataTab page)
+		private void ShowHarmonicMarkers(DataTab page)
 		{
-			var vm = page.ViewModel;
-			var imdVm = MyVModel;
+			var vm = (MyViewClass)page.ViewModel;
+			var imdVm = MyGuiModel;
 			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
 			if (imdVm.ShowMarkers)
 			{
@@ -543,10 +543,10 @@ namespace QA40xPlot.Actions
 			}
 		}
 
-		private void ShowPowerMarkers(MyDataTab page)
+		private void ShowPowerMarkers(DataTab page)
 		{
-			var imdVm = MyVModel;
-			var vm = page.ViewModel;
+			var imdVm = MyGuiModel;
+			var vm = (MyViewClass)page.ViewModel;
 			if (!imdVm.ShowLeft && !imdVm.ShowRight)
 				return;
 
@@ -622,14 +622,14 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void ClearPlot()
 		{
-			var guiVm = MyVModel;
+			var guiVm = MyGuiModel;
 			guiVm.MainPlot.ThePlot.Clear();
 			guiVm.MainPlot.Refresh();
 		}
 
 		string GetTheTitle(ScottPlot.Plot myPlot)
 		{
-			var imdVm = MyVModel;
+			var imdVm = MyGuiModel;
 			if (imdVm.IntermodType == "Custom")
 				return "Intermodulation Distortion";
 			else
@@ -643,12 +643,12 @@ namespace QA40xPlot.Actions
 		/// Plot all of the spectral data values
 		/// </summary>
 		/// <param name="data"></param>
-		void PlotValues(MyDataTab? page, int measurementNr, bool isMain)
+		void PlotValues(DataTab? page, int measurementNr, bool isMain)
 		{
 			if (page == null)
 				return;
 
-			var guiVm = MyVModel;
+			var guiVm = MyGuiModel;
 			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 
 			bool useLeft;
@@ -700,8 +700,8 @@ namespace QA40xPlot.Actions
 				{
 					plotLine.LegendText = isMain ? "Right" : ClipName(page.Definition.Name) + ".R";
 				}
-				plotLine.IsVisible = !MyVModel.HiddenLines.Contains(plotLine.LegendText);
-				MyVModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotLine.Color, plotLine.LegendText, mrn,
+				plotLine.IsVisible = !MyGuiModel.HiddenLines.Contains(plotLine.LegendText);
+				MyGuiModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotLine.Color, plotLine.LegendText, mrn,
 					plotLine, guiVm.MainPlot, plotLine.IsVisible));
 			}
 
@@ -730,14 +730,14 @@ namespace QA40xPlot.Actions
 			}
 		}
 
-		private void ReformatChannels(MyDataTab page)
+		private void ReformatChannels(DataTab page)
 		{
 			var left = page.GetProperty("Left") as ImdChannelViewModel;
 			var right = page.GetProperty("Right") as ImdChannelViewModel;
 			if (left != null && right != null)
 			{
-				left.ShowDataPercents = MyVModel.ShowDataPercent;
-				right.ShowDataPercents = MyVModel.ShowDataPercent;
+				left.ShowDataPercents = MyGuiModel.ShowDataPercent;
+				right.ShowDataPercents = MyGuiModel.ShowDataPercent;
 			}
 		}
 
@@ -763,7 +763,7 @@ namespace QA40xPlot.Actions
 
 		public void UpdateGraph(bool settingsChanged, string theProperty = "")
 		{
-			var guiVm = MyVModel;
+			var guiVm = MyGuiModel;
 			guiVm.MainPlot.ThePlot.Remove<Marker>();             // Remove all current lines
 			int resultNr = 0;
 
@@ -803,7 +803,7 @@ namespace QA40xPlot.Actions
 
 		public int DrawPlotLines(int resultNr)
 		{
-			var guiVm = MyVModel;
+			var guiVm = MyGuiModel;
 			guiVm.MainPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
 			guiVm.LegendInfo.Clear();
 			var mainFirst = PlotZMain;
@@ -851,10 +851,10 @@ namespace QA40xPlot.Actions
 			vm.BorderColor = new System.Windows.Media.SolidColorBrush(PlotUtil.ScottToMedia(scottClr));
 		}
 
-		private void ShowPageInfo(MyDataTab page)
+		private void ShowPageInfo(DataTab page)
 		{
 			List<ImdChannelViewModel?> channels = new();
-			var specVm = MyVModel;  // the active viewmodel
+			var specVm = MyGuiModel;  // the active viewmodel
 			if (specVm.ShowLeft)
 			{
 				var mdl = page.GetProperty("Left") as ImdChannelViewModel;
@@ -918,17 +918,17 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		public async Task DoMeasurement(bool repeater)
 		{
-			var imdVm = MyVModel;
+			var imdVm = MyGuiModel;
 			if (!await StartAction(imdVm))
 				return;
 			CanToken = new();
 
 			// sweep data
 			LeftRightTimeSeries lrts = new();
-			MyDataTab NextPage = new(imdVm, lrts);
+			DataTab NextPage = new(imdVm, lrts);
 			PageData.Definition.CopyPropertiesTo(NextPage.Definition);
 			NextPage.Definition.CreateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-			var vm = NextPage.ViewModel;
+			var vm = (MyViewClass)NextPage.ViewModel;
 			if (vm == null)
 				return;
 
@@ -979,7 +979,7 @@ namespace QA40xPlot.Actions
 					PageData = NextPage;        // finally update the pagedata for display and processing
 				UpdateGraph(true);
 			}
-			MyVModel.LinkAbout(PageData.Definition);  // ensure we're linked right during replays
+			MyGuiModel.LinkAbout(PageData.Definition);  // ensure we're linked right during replays
 
 			var loopTime = DateTime.Now;
 			uint maxIterations = repeater ? uint.MaxValue : vm.Averages;
@@ -987,7 +987,7 @@ namespace QA40xPlot.Actions
 			{
 				// update the view model with latest settings
 				if (PageData.ViewModel != null)
-					PageData.ViewModel.LoadViewFrom(MyVModel);
+					PageData.ViewModel.LoadViewFrom(MyGuiModel);
 				// have it recalculate the noise floor now possibly
 				bool redoNoise = (ViewSettings.NoiseRefresh > 0) &&
 					(DateTime.Now - loopTime).TotalSeconds > ViewSettings.NoiseRefresh;
@@ -1004,13 +1004,13 @@ namespace QA40xPlot.Actions
 			}
 
 			await showMessage("");
-			MyVModel.HasExport = PageData.FreqRslt != null && PageData.FreqRslt.Left?.Length > 0;
+			MyGuiModel.HasExport = PageData.FreqRslt != null && PageData.FreqRslt.Left?.Length > 0;
 			await EndAction(imdVm);
 		}
 
 		public void UpdatePlotTitle()
 		{
-			var guiVm = MyVModel;
+			var guiVm = MyGuiModel;
 			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			var title = GetTheTitle(myPlot);
 			myPlot.Title(title);
@@ -1023,7 +1023,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void InitializeMagnitudePlot(string plotFormat = "dBV")
 		{
-			var guiVm = MyVModel;
+			var guiVm = MyGuiModel;
 			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
@@ -1039,7 +1039,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void InitializefftPlot(string plotFormat = "%")
 		{
-			var guiVm = MyVModel;
+			var guiVm = MyGuiModel;
 			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
@@ -1050,9 +1050,9 @@ namespace QA40xPlot.Actions
 			guiVm.MainPlot.Refresh();
 		}
 
-		private void CalculateHarmonics(MyDataTab page, ImdChannelViewModel left, ImdChannelViewModel right)
+		private void CalculateHarmonics(DataTab page, ImdChannelViewModel left, ImdChannelViewModel right)
 		{
-			var vm = page.ViewModel;
+			var vm = (MyViewClass)page.ViewModel;
 			if (page.FreqRslt == null)
 				return;
 

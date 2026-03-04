@@ -9,10 +9,15 @@ namespace QA40xPlot.ViewModels
 	public class ViewSettings
 	{
 		public static ViewSettings Singleton { get; private set; } = new ViewSettings();
+		[JsonIgnore]
 		public readonly List<BaseViewModel> ViewModelList = new();
 		private readonly Dictionary<string, string> _ProductTitle = new Dictionary<string, string>() { { "Name", "QA40xPlot" }, { "Version", "0.30" } };
 		public Dictionary<string, string> Product { get { return _ProductTitle; } private set {; } }
-		public SpectrumViewModel SpectrumVm { get; private set; }
+		public SpectrumViewModel SpectrumVm 
+		{ 
+			get; 
+			private set; 
+		}
 		public ImdViewModel ImdVm { get; private set; }
 		//public ThdFreqViewModel ThdFreq { get; private set; }
 		//public ThdAmpViewModel ThdAmp { get; private set; }

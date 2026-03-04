@@ -53,7 +53,7 @@ namespace QA40xPlot.ViewModels
 		/// <summary>
 		/// the static model that applies to the GUI at least...
 		/// </summary>
-		private static ImdViewModel MyVModel { get => ViewSettings.Singleton.ImdVm; }
+		private static ImdViewModel MyGuiModel { get => ViewSettings.Singleton.ImdVm; }
 
 		#region Setters and Getters
 
@@ -217,7 +217,7 @@ namespace QA40xPlot.ViewModels
 			actPlot = plot;
 			info.SetDataContext(true);
 			info2.SetDataContext(false);
-			MyVModel.LinkAbout(MyAction.PageData.Definition);
+			MyGuiModel.LinkAbout(MyAction.PageData.Definition);
 			ShowInfos();
 		}
 
@@ -225,10 +225,10 @@ namespace QA40xPlot.ViewModels
 		public override void DoDeleteIt(string param)
 		{
 			var id = MathUtil.ToInt(param, -1);
-			var fat = MyVModel.OtherSetList.FirstOrDefault(x => x.Id == id);
+			var fat = MyGuiModel.OtherSetList.FirstOrDefault(x => x.Id == id);
 			if (fat != null)
 			{
-				MyVModel.OtherSetList.Remove(fat);
+				MyGuiModel.OtherSetList.Remove(fat);
 				MyAction.DeleteTab(id);
 			}
 		}
@@ -262,12 +262,12 @@ namespace QA40xPlot.ViewModels
 
 		private static async Task LoadIt()
 		{
-			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, true);
+			await DoGetLoad(MyGuiModel.MyAction, PlotFileFilter, true);
 		}
 
 		private static async Task GetIt()
 		{
-			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, false);
+			await DoGetLoad(MyGuiModel.MyAction, PlotFileFilter, false);
 		}
 
 
@@ -295,7 +295,7 @@ namespace QA40xPlot.ViewModels
 				frames++;
 			if (ShowRight)
 				frames++;
-			var olist = MyVModel.OtherSetList;
+			var olist = MyGuiModel.OtherSetList;
 			var seen = (olist == null) ? 0 : olist.Count(x => x.IsOnR) + olist.Count(x => x.IsOnL);
 			frames += (uint)seen;
 			if (actInfoLeft != null)

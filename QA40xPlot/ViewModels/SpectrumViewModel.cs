@@ -26,7 +26,7 @@ namespace QA40xPlot.ViewModels
 		/// <summary>
 		/// the static model that applies to the GUI at least...
 		/// </summary>
-		private static SpectrumViewModel MyVModel { get => ViewSettings.Singleton.SpectrumVm; }
+		private static SpectrumViewModel MyGuiModel { get => ViewSettings.Singleton.SpectrumVm; }
 
 		private PlotControl actPlot { get; set; }
 		private ActSpectrum actSpec { get; set; }
@@ -125,7 +125,7 @@ namespace QA40xPlot.ViewModels
 				frames++;
 			}
 			uint ictr = 1;
-			foreach(var otl in MyVModel.OtherSetList)
+			foreach(var otl in MyGuiModel.OtherSetList)
 			{
 				if (otl.IsOnL)
 				{
@@ -235,10 +235,10 @@ namespace QA40xPlot.ViewModels
 		public override void DoDeleteIt(string param)
 		{
 			var id = MathUtil.ToInt(param, -1);
-			var fat = MyVModel.OtherSetList.FirstOrDefault(x => x.Id == id);
+			var fat = MyGuiModel.OtherSetList.FirstOrDefault(x => x.Id == id);
 			if (fat != null)
 			{
-				MyVModel.OtherSetList.Remove(fat);
+				MyGuiModel.OtherSetList.Remove(fat);
 				MyAction.DeleteTab(id);
 			}
 		}
@@ -256,8 +256,8 @@ namespace QA40xPlot.ViewModels
 			info3.SetDataContext(ViewSettings.Singleton.Channel2Left);
 			info4.SetDataContext(ViewSettings.Singleton.Channel2Right);
 			about.SetDataContext(ViewSettings.Singleton.TabDefs);
-			MyVModel.actAbout = about;
-			MyVModel.LinkAbout(MyAction.PageData.Definition);
+			MyGuiModel.actAbout = about;
+			MyGuiModel.LinkAbout(MyAction.PageData.Definition);
 			actPlot = plot;
 			ShowInfos();
 		}
@@ -281,12 +281,12 @@ namespace QA40xPlot.ViewModels
 
 		private static async Task LoadIt()
 		{
-			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, true);
+			await DoGetLoad(MyGuiModel.MyAction, PlotFileFilter, true);
 		}
 
 		private static async Task GetIt()
 		{
-			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, false);
+			await DoGetLoad(MyGuiModel.MyAction, PlotFileFilter, false);
 		}
 
 		private void WaveSelect()
@@ -328,7 +328,7 @@ namespace QA40xPlot.ViewModels
 		// here's the tracker event handler
 		private static void DoMouseTracked(object? sender, MouseEventArgs e)
 		{
-			MyVModel.DoMouse(sender, e);
+			MyGuiModel.DoMouse(sender, e);
 		}
 
 		private static Marker? MyMark = null;

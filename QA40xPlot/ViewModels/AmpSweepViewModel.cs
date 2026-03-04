@@ -19,7 +19,7 @@ namespace QA40xPlot.ViewModels
 		/// <summary>
 		/// the static model that applies to the GUI at least...
 		/// </summary>
-		private static AmpSweepViewModel MyVModel { get => ViewSettings.Singleton.AmpVm; }
+		private static AmpSweepViewModel MyGuiModel { get => ViewSettings.Singleton.AmpVm; }
 		[JsonIgnore]
 		public override List<string> AxisList { get; } = new List<string> { "XM", "YM", "YP" };
 
@@ -170,10 +170,10 @@ namespace QA40xPlot.ViewModels
 		public override void DoDeleteIt(string param)
 		{
 			var id = MathUtil.ToInt(param, -1);
-			var fat = MyVModel.OtherSetList.FirstOrDefault(x => x.Id == id);
+			var fat = MyGuiModel.OtherSetList.FirstOrDefault(x => x.Id == id);
 			if (fat != null)
 			{
-				MyVModel.OtherSetList.Remove(fat);
+				MyGuiModel.OtherSetList.Remove(fat);
 				MyAction.DeleteTab(id);
 			}
 		}
@@ -209,19 +209,19 @@ namespace QA40xPlot.ViewModels
 			LinkPlots(plot, plot1, plot2);
 			actSweep = new ActAmpSweep(this);
 			actAbout = tAbout;
-			MyVModel.LinkAbout(actSweep.PageData.Definition);
+			MyGuiModel.LinkAbout(actSweep.PageData.Definition);
 			ShowInfos();
 
 		}
 
 		private static async Task LoadItTab()
 		{
-			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, true);
+			await DoGetLoad(MyGuiModel.MyAction, PlotFileFilter, true);
 		}
 
 		private static async Task GetItTab()
 		{
-			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, false);
+			await DoGetLoad(MyGuiModel.MyAction, PlotFileFilter, false);
 		}
 
 		private void SaveItTab()
@@ -262,14 +262,14 @@ namespace QA40xPlot.ViewModels
 		// this always uses the 'global' format so others work too
 		private static string FormatValue(double d1, double dMax)
 		{
-			var guiVm = MyVModel;
+			var guiVm = MyGuiModel;
 			var x = GraphUtil.ValueToPlot(guiVm.PlotFormat, d1, dMax);
 			return GraphUtil.PrettyPrint(x, guiVm.PlotFormat);
 		}
 
 		private static string FormatCursor(SweepColumn column)
 		{
-			var guiVm = MyVModel;
+			var guiVm = MyGuiModel;
 			string sout = "Mag: " + FormatValue(column.Mag, column.Mag) + Environment.NewLine;
 			if (guiVm.ShowTHDN)
 				sout += "THD+N: " + FormatValue(column.THDN, column.Mag) + Environment.NewLine;

@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using Newtonsoft.Json;
 using QA40xPlot.Actions;
+using QA40xPlot.Converters;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
 using QA40xPlot.QA430;
@@ -15,6 +16,10 @@ using System.Windows.Input;
 
 namespace QA40xPlot.ViewModels
 {
+	// adding the jsonconverer tag is needed when we load viewmodels
+	// because they have a "BaseViewModel" type
+	// that we convert to the real view model on load
+	[JsonConverter(typeof(ViewModelConverter))]
 	public abstract class BaseViewModel : FloorViewModel, IMouseTracker, ICloneable
 	{
 		// public INavigation ViewNavigator { get; set; }
@@ -819,11 +824,11 @@ namespace QA40xPlot.ViewModels
 			Attenuation = Math.Round(atten);
 		}
 
-		// this copies a viewmodel from one to another, skipping MyVModel specific properties
+		// this copies a viewmodel from one to another, skipping MyGuiModel specific properties
 		public void LoadViewFrom<Model>(Model model) where Model : BaseViewModel
 		{
 			Debug.Assert(!ReferenceEquals(this, model), "Cannot copy from self");
-			model.CopyPropertiesTo<Model>(this, ["Name", "Version", "MainPlot", "MiniPlot", "Mini2Plot", "OtherSetList"]);
+			model.CopyPropertiesTo<Model>(this, ["Name", "MyId", "Version", "MainPlot", "MiniPlot", "Mini2Plot", "OtherSetList"]);
 		}
 
 		public void CopyDescript(BaseViewModel vm, DataDescript desc)

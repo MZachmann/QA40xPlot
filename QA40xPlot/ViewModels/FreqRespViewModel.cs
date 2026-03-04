@@ -44,7 +44,7 @@ public class FreqRespViewModel : BaseViewModel
 	/// <summary>
 	/// the static model that applies to the GUI at least...
 	/// </summary>
-	private static FreqRespViewModel MyVModel { get => ViewSettings.Singleton.FreqRespVm; }
+	private static FreqRespViewModel MyGuiModel { get => ViewSettings.Singleton.FreqRespVm; }
 
 	#region Setters and Getters
 	private bool _UseMUseMicCorrection = false;
@@ -202,7 +202,7 @@ public class FreqRespViewModel : BaseViewModel
 			case "PlotFormat":
 				// we may need to change the axis
 				{
-					var ttype = GetTestingType(MyVModel.TestType);
+					var ttype = GetTestingType(MyGuiModel.TestType);
 					var isdb = ttype == TestingType.Response;
 					ToShowRange = isdb ? Visibility.Collapsed : Visibility.Visible;
 					ToShowdB = isdb ? Visibility.Visible : Visibility.Collapsed;
@@ -283,17 +283,17 @@ public class FreqRespViewModel : BaseViewModel
 		actFreq = new ActFrequencyResponse(this);
 		actAbout = TAbout;
 		actPlot = plot;
-		MyVModel.LinkAbout(actFreq.PageData.Definition);
+		MyGuiModel.LinkAbout(actFreq.PageData.Definition);
 	}
 
 	// here param is the id of the tab to remove from the othertab list
 	public override void DoDeleteIt(string param)
 	{
 		var id = MathUtil.ToInt(param, -1);
-		var fat = MyVModel.OtherSetList.FirstOrDefault(x => x.Id == id);
+		var fat = MyGuiModel.OtherSetList.FirstOrDefault(x => x.Id == id);
 		if (fat != null)
 		{
-			MyVModel.OtherSetList.Remove(fat);
+			MyGuiModel.OtherSetList.Remove(fat);
 			MyAction.DeleteTab(id);
 		}
 	}
@@ -322,19 +322,19 @@ public class FreqRespViewModel : BaseViewModel
 
 	private static async Task LoadItTab()
 	{
-		await DoGetLoad(MyVModel.MyAction, PlotFileFilter, true);
+		await DoGetLoad(MyGuiModel.MyAction, PlotFileFilter, true);
 	}
 
 	private static async Task GetItTab()
 	{
-		await DoGetLoad(MyVModel.MyAction, PlotFileFilter, false);
+		await DoGetLoad(MyGuiModel.MyAction, PlotFileFilter, false);
 	}
 
 
 	private void SaveItTab()
 	{
 		string prefix = "QaFile";
-		var ttype = GetTestingType(MyVModel.TestType);
+		var ttype = GetTestingType(MyGuiModel.TestType);
 		if (ttype == TestingType.Response)
 			prefix = "QaResponse";
 		else if (ttype == TestingType.Impedance)
@@ -371,7 +371,7 @@ public class FreqRespViewModel : BaseViewModel
 	// here's the tracker event handler
 	private static void DoMouseTracked(object sender, MouseEventArgs e)
 	{
-		var freqVm = MyVModel;
+		var freqVm = MyGuiModel;
 		freqVm.DoMouse(sender, e);
 	}
 

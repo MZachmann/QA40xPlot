@@ -27,7 +27,7 @@ namespace QA40xPlot.ViewModels
 		/// <summary>
 		/// the static model that applies to the GUI at least...
 		/// </summary>
-		private static ScopeViewModel MyVModel { get => ViewSettings.Singleton.ScopeVm; }
+		private static ScopeViewModel MyGuiModel { get => ViewSettings.Singleton.ScopeVm; }
 
 		private PlotControl actPlot { get; set; }
 		private ActScope actScope { get; set; }
@@ -195,10 +195,10 @@ namespace QA40xPlot.ViewModels
 		public override void DoDeleteIt(string param)
 		{
 			var id = MathUtil.ToInt(param, -1);
-			var fat = MyVModel.OtherSetList.FirstOrDefault(x => x.Id == id);
+			var fat = MyGuiModel.OtherSetList.FirstOrDefault(x => x.Id == id);
 			if (fat != null)
 			{
-				MyVModel.OtherSetList.Remove(fat);
+				MyGuiModel.OtherSetList.Remove(fat);
 				MyAction.DeleteTab(id);
 			}
 		}
@@ -218,7 +218,7 @@ namespace QA40xPlot.ViewModels
 			info.SetDataContext(ViewSettings.Singleton.ScopeInfoLeft);
 			info2.SetDataContext(ViewSettings.Singleton.ScopeInfoRight);
 			actPlot = plot;
-			MyVModel.LinkAbout(MyAction.PageData.Definition);
+			MyGuiModel.LinkAbout(MyAction.PageData.Definition);
 			ShowInfos();
 
 		}
@@ -242,12 +242,12 @@ namespace QA40xPlot.ViewModels
 
 		private static async Task LoadItTab()
 		{
-			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, true);
+			await DoGetLoad(MyGuiModel.MyAction, PlotFileFilter, true);
 		}
 
 		private static async Task GetItTab()
 		{
-			await DoGetLoad(MyVModel.MyAction, PlotFileFilter, false);
+			await DoGetLoad(MyGuiModel.MyAction, PlotFileFilter, false);
 		}
 
 		private void ChangeResidualScale()
@@ -285,7 +285,7 @@ namespace QA40xPlot.ViewModels
 				frames++;
 			if (ShowRight)
 				frames++;
-			var olist = MyVModel.OtherSetList;
+			var olist = MyGuiModel.OtherSetList;
 			var seen = (olist == null) ? 0 : olist.Count(x => x.IsOnR) + olist.Count(x => x.IsOnL);
 			frames += (uint)seen;
 			if (actInfoLeft != null)
