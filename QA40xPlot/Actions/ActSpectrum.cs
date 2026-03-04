@@ -18,13 +18,12 @@ namespace QA40xPlot.Actions
 
 	using MyViewClass = SpectrumViewModel;
 
-	public class ActSpectrum : ActBase<MyViewClass>
+	public class ActSpectrum : ActBase
 	{
-		private List<DataTab> OtherTabs { get; set; } = new List<DataTab>(); // Other tabs in the document
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public ActSpectrum(MyViewClass vm)
+		public ActSpectrum(MyViewClass vm) : base(vm)
 		{
 			UpdateGraph(true);
 		}
@@ -74,14 +73,15 @@ namespace QA40xPlot.Actions
 
 		public override void PinGraphRange(string who)
 			{
-				var guiVm = MyGuiModel;
+				var guiVm = (MyViewClass)MyGuiModel;
 				ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 				PinGraphRanges(myPlot, guiVm, who);
 		}
 
 		public bool SaveToFile(string fileName)
 		{
-			return DocUtil.SaveToFile<MyViewClass>(PageData, MyGuiModel, fileName, PageData.ViewModel.Averages > 1);
+			var guiVm = (MyViewClass)MyGuiModel;
+			return DocUtil.SaveToFile<MyViewClass>(PageData, guiVm, fileName, PageData.ViewModel.Averages > 1);
 		}
 
 		public override async Task LoadFromFile(string fileName, bool doLoad)
@@ -124,7 +124,7 @@ namespace QA40xPlot.Actions
 				PageData = page;    // set the current page to the loaded one
 
 				// relink to the new definition
-				var guiVm = MyGuiModel;
+				var guiVm = (MyViewClass)MyGuiModel;
 				guiVm.LinkAbout(page.Definition);
 				guiVm.HasSave = true;
 			}
@@ -592,8 +592,9 @@ namespace QA40xPlot.Actions
 			var right = page.GetProperty("Right") as ThdChannelViewModel;
 			if (left != null && right != null)
 			{
-				left.ShowDataPercents = MyGuiModel.ShowDataPercent;
-				right.ShowDataPercents = MyGuiModel.ShowDataPercent;
+				var guiVm = (MyViewClass)MyGuiModel;
+				left.ShowDataPercents = guiVm.ShowDataPercent;
+				right.ShowDataPercents = guiVm.ShowDataPercent;
 			}
 		}
 
@@ -673,14 +674,14 @@ namespace QA40xPlot.Actions
 		private void ShowHarmonicMarkers(DataTab page)
 		{
 			var vm = (MyViewClass)page.ViewModel;
-			var specVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
-			if (specVm.ShowMarkers)
+			if (guiVm.ShowMarkers)
 			{
 				ThdChannelViewModel? thdView = null;
-				if (specVm.ShowLeft)
+				if (guiVm.ShowLeft)
 					thdView = page.GetProperty("Left") as ThdChannelViewModel;
-				else if (specVm.ShowRight)
+				else if (guiVm.ShowRight)
 					thdView = page.GetProperty("Right") as ThdChannelViewModel;
 				if (thdView != null)
 				{
@@ -699,7 +700,7 @@ namespace QA40xPlot.Actions
 		private void ShowPowerMarkers(DataTab page)
 		{
 			var vm = (MyViewClass)page.ViewModel;
-			var specVm = MyGuiModel;
+			var specVm = (MyViewClass)MyGuiModel;
 
 			if (!specVm.ShowLeft && !specVm.ShowRight)
 				return;
@@ -735,7 +736,7 @@ namespace QA40xPlot.Actions
 			if (PageData.FreqRslt == null && OtherTabs.Count == 0)
 				return new Rect(0, 0, 0, 0);
 
-			var guiVm = MyGuiModel;     // current settings
+			var guiVm = (MyViewClass)MyGuiModel;     // current settings
 			var ffs = PageData.FreqRslt;
 
 			Rect rrc = new Rect(0, 0, 0, 0);
@@ -803,7 +804,7 @@ namespace QA40xPlot.Actions
 					var dlist = distx.ToList(); // no dc
 					bin = binmin + dlist.IndexOf(dlist.Min());
 
-                    var guiVm = MyGuiModel;
+                    var guiVm = (MyViewClass)MyGuiModel;
 					if (bin < ffs.Length)
 					{
 						return ValueTuple.Create(bin * fftdata.Df, ffs[bin], useRight ? fftdata.Right : fftdata.Left);
@@ -818,7 +819,7 @@ namespace QA40xPlot.Actions
 
 		public void UpdatePlotTitle()
 		{
-		var guiVm = MyGuiModel;
+		var guiVm = (MyViewClass)MyGuiModel;
 		ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			myPlot.Title("Spectrum");
 			if (PageData.Definition.Name != null && PageData.Definition.Name.Length > 0)
@@ -847,7 +848,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void InitializeMagnitudePlot(string plotFormat = "dBV")
 		{
-		var guiVm = MyGuiModel;
+		var guiVm = (MyViewClass)MyGuiModel;
 		ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
@@ -863,7 +864,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void InitializefftPlot(string plotFormat = "%")
 		{
-		var guiVm = MyGuiModel;
+		var guiVm = (MyViewClass)MyGuiModel;
 		ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
@@ -883,7 +884,7 @@ namespace QA40xPlot.Actions
 			if (page == null)
 				return;
 
-		var guiVm = MyGuiModel;
+		var guiVm = (MyViewClass)MyGuiModel;
 		ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 
 			bool useLeft;   // dynamically update these
@@ -962,7 +963,7 @@ namespace QA40xPlot.Actions
 
 		public void UpdateGraph(bool settingsChanged, string theProperty = "")
 		{
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			guiVm.MainPlot.ThePlot.Remove<Marker>();             // Remove all current lines
 			int resultNr = 0;
 
@@ -1003,7 +1004,7 @@ namespace QA40xPlot.Actions
 
 		public int DrawPlotLines(int resultNr)
 		{
-		var guiVm = MyGuiModel;
+		var guiVm = (MyViewClass)MyGuiModel;
 		guiVm.MainPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
 		guiVm.LegendInfo.Clear();
 			var mainFirst = PlotZMain;

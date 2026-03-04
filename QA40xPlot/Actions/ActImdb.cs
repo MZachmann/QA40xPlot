@@ -17,14 +17,12 @@ namespace QA40xPlot.Actions
 	using MyViewClass = ImdViewModel;
 
 
-	public class ActImd : ActBase<MyViewClass>
+	public class ActImd : ActBase
 	{
-		private List<DataTab> OtherTabs { get; set; } = new List<DataTab>(); // Other tabs in the document
-
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public ActImd(MyViewClass vm)
+		public ActImd(MyViewClass vm) : base(vm)
 		{
 			UpdateGraph(true);
 		}
@@ -73,14 +71,15 @@ namespace QA40xPlot.Actions
 
 		public override void PinGraphRange(string who)
 		{
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			PinGraphRanges(myPlot, guiVm, who);
 		}
 
 		public bool SaveToFile(string fileName)
 		{
-			return DocUtil.SaveToFile<MyViewClass>(PageData, MyGuiModel, fileName, PageData.ViewModel.Averages > 1);
+			var guiVm = (MyViewClass)MyGuiModel;
+			return DocUtil.SaveToFile<MyViewClass>(PageData, guiVm, fileName, PageData.ViewModel.Averages > 1);
 		}
 
 		public override async Task LoadFromFile(string fileName, bool isMain)
@@ -123,7 +122,7 @@ namespace QA40xPlot.Actions
 				MyGuiModel.LoadViewFrom((MyViewClass)page.ViewModel);
 				PageData = page;    // set the current page to the loaded one
 			// relink to the new definition
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			guiVm.LinkAbout(page.Definition);
 			guiVm.HasSave = true;
 			}
@@ -137,7 +136,7 @@ namespace QA40xPlot.Actions
 			UpdateGraph(true);
 		}
 
-		private static double[] BuildWave(DataTab page, double volts)
+		private double[] BuildWave(DataTab page, double volts)
 		{
 			var vm = (MyViewClass)page.ViewModel;
 			var freq = vm.NearestBinFreq(vm.Gen1Frequency);
@@ -177,6 +176,7 @@ namespace QA40xPlot.Actions
 			{
 				vout = "off"; // no output
 			}
+			
 			MyGuiModel.GeneratorVoltage = vout; // set the generator voltage in the viewmodel
 
 			var dout = WaveGenerator.Generate(true, (uint)vm.SampleRateVal, (uint)vm.FftSizeVal); // generate the waveform
@@ -262,7 +262,7 @@ namespace QA40xPlot.Actions
 			if (PageData.FreqRslt == null && OtherTabs.Count() == 0)
 				return rrc;
 
-			var guiVm = MyGuiModel;     // current settings
+			var guiVm = (MyViewClass)MyGuiModel;     // current settings
 			var ffs = PageData.FreqRslt;
 
 			List<double[]> tabs = new List<double[]>();
@@ -515,14 +515,14 @@ namespace QA40xPlot.Actions
 		private void ShowHarmonicMarkers(DataTab page)
 		{
 			var vm = (MyViewClass)page.ViewModel;
-			var imdVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
-			if (imdVm.ShowMarkers)
+			if (guiVm.ShowMarkers)
 			{
 				ImdChannelViewModel? thdView = null;
-				if (imdVm.ShowLeft)
+				if (guiVm.ShowLeft)
 					thdView = page.GetProperty("Left") as ImdChannelViewModel;
-				else if (imdVm.ShowRight)
+				else if (guiVm.ShowRight)
 					thdView = page.GetProperty("Right") as ImdChannelViewModel;
 				var maxfreq = vm.SampleRateVal / 2.0;
 				if (thdView != null)
@@ -545,19 +545,19 @@ namespace QA40xPlot.Actions
 
 		private void ShowPowerMarkers(DataTab page)
 		{
-			var imdVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			var vm = (MyViewClass)page.ViewModel;
-			if (!imdVm.ShowLeft && !imdVm.ShowRight)
+			if (!guiVm.ShowLeft && !guiVm.ShowRight)
 				return;
 
 			List<double> freqchecks = new List<double> { 50, 60, 100, 120, 180, 150 };
 			ScottPlot.Plot myPlot = vm.MainPlot.ThePlot;
-			if (imdVm.ShowPowerMarkers)
+			if (guiVm.ShowPowerMarkers)
 			{
 				var sampleRate = vm.SampleRateVal;
 				var fftsize = vm.FftSizeVal;
 				double fsel = 0;
-				var fftdata = imdVm.ShowLeft ? page.FreqRslt?.Left : page.FreqRslt?.Right;
+				var fftdata = guiVm.ShowLeft ? page.FreqRslt?.Left : page.FreqRslt?.Right;
 				if (fftdata == null)
 					return;
 				// find if 50 or 60hz is higher, indicating power line frequency
@@ -622,19 +622,19 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void ClearPlot()
 		{
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			guiVm.MainPlot.ThePlot.Clear();
 			guiVm.MainPlot.Refresh();
 		}
 
 		string GetTheTitle(ScottPlot.Plot myPlot)
 		{
-			var imdVm = MyGuiModel;
-			if (imdVm.IntermodType == "Custom")
+			var guiVm = (MyViewClass)MyGuiModel;
+			if (guiVm.IntermodType == "Custom")
 				return "Intermodulation Distortion";
 			else
 			{
-				var vsa = imdVm.IntermodType.Split('(').First();
+				var vsa = guiVm.IntermodType.Split('(').First();
 				return String.Format("{0} Intermodulation Distortion", vsa);
 			}
 		}
@@ -648,7 +648,7 @@ namespace QA40xPlot.Actions
 			if (page == null)
 				return;
 
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 
 			bool useLeft;
@@ -736,8 +736,9 @@ namespace QA40xPlot.Actions
 			var right = page.GetProperty("Right") as ImdChannelViewModel;
 			if (left != null && right != null)
 			{
-				left.ShowDataPercents = MyGuiModel.ShowDataPercent;
-				right.ShowDataPercents = MyGuiModel.ShowDataPercent;
+				var guiVm = (MyViewClass)MyGuiModel;
+				left.ShowDataPercents = guiVm.ShowDataPercent;
+				right.ShowDataPercents = guiVm.ShowDataPercent;
 			}
 		}
 
@@ -763,7 +764,7 @@ namespace QA40xPlot.Actions
 
 		public void UpdateGraph(bool settingsChanged, string theProperty = "")
 		{
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			guiVm.MainPlot.ThePlot.Remove<Marker>();             // Remove all current lines
 			int resultNr = 0;
 
@@ -803,7 +804,7 @@ namespace QA40xPlot.Actions
 
 		public int DrawPlotLines(int resultNr)
 		{
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			guiVm.MainPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
 			guiVm.LegendInfo.Clear();
 			var mainFirst = PlotZMain;
@@ -1010,7 +1011,7 @@ namespace QA40xPlot.Actions
 
 		public void UpdatePlotTitle()
 		{
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			var title = GetTheTitle(myPlot);
 			myPlot.Title(title);
@@ -1023,7 +1024,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void InitializeMagnitudePlot(string plotFormat = "dBV")
 		{
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 
@@ -1039,7 +1040,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void InitializefftPlot(string plotFormat = "%")
 		{
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			PlotUtil.InitializeLogFreqPlot(myPlot, plotFormat);
 

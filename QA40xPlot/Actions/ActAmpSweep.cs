@@ -18,8 +18,6 @@ namespace QA40xPlot.Actions
 
 	public partial class ActAmpSweep : ActOpamp<MyViewClass>
 	{
-		private List<DataTab> OtherTabs { get; set; } = new List<DataTab>(); // Other tabs in the document
-
 		private List<SweepLine>? FrequencyLines(DataTab page)
 		{
 			return (List<SweepLine>?)page.GetProperty("Left");
@@ -33,7 +31,7 @@ namespace QA40xPlot.Actions
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public ActAmpSweep(MyViewClass vm)
+		public ActAmpSweep(MyViewClass vm) : base(vm)
 		{
 			// Show empty graphs
 			QaLibrary.InitMiniTimePlot(vm.MiniPlot, 0, 4, -1, 1);
@@ -57,7 +55,7 @@ namespace QA40xPlot.Actions
 
 		public void UpdatePlotTitle()
 		{
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			var title = SetPlotLabels();
 			if (PageData.Definition.Name.Length > 0)
@@ -99,7 +97,7 @@ namespace QA40xPlot.Actions
 			Rect rrc = new Rect(0, 0, 0, 0);
 			try
 			{
-				var guiVm = MyGuiModel;     // current settings
+				var guiVm = (MyViewClass)MyGuiModel;     // current settings
 
 				List<SweepColumn> steps = new();
 				if (guiVm.ShowLeft)
@@ -243,7 +241,7 @@ namespace QA40xPlot.Actions
 		{
 			if (LRGains == null || LRGains.Left.Length == 0 || LRGains.Right.Length == 0)
 				return [];
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			var myVolts = volts;
 			var genType = ToDirection(guiVm.GenDirection);
 			if (genType != E_GeneratorDirection.INPUT_VOLTAGE && LRGains != null)
@@ -278,7 +276,7 @@ namespace QA40xPlot.Actions
 
 		public override void PinGraphRange(string who)
 		{
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			if (who == "XM")
 			{
@@ -295,7 +293,8 @@ namespace QA40xPlot.Actions
 
 		public bool SaveToFile(string fileName)
 		{
-			return DocUtil.SaveToFile<MyViewClass>(PageData, MyGuiModel, fileName);
+			var guiVm = (MyViewClass)MyGuiModel;
+			return DocUtil.SaveToFile<MyViewClass>(PageData, guiVm, fileName);
 		}
 
 		public override async Task LoadFromFile(string fileName, bool doLoad)
@@ -337,7 +336,7 @@ namespace QA40xPlot.Actions
 				PageData = page;    // set the current page to the loaded one
 
 				// relink to the new definition
-				var guiVm = MyGuiModel;
+				var guiVm = (MyViewClass)MyGuiModel;
 				guiVm.LinkAbout(page.Definition);
 				guiVm.HasSave = true;
 				guiVm.ShowMiniPlots = false; // hide mini plots on load
@@ -672,7 +671,7 @@ namespace QA40xPlot.Actions
 
 		private string SetPlotLabels()
 		{
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			var tt = ToDirection(guiVm.GenDirection);
 			string title = string.Empty;
@@ -727,7 +726,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void InitializeThdPlot(string plotFormat = "%")
 		{
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			PlotUtil.InitializeMagAmpPlot(myPlot, plotFormat);
 
@@ -741,7 +740,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void InitializeMagnitudePlot(string plotFormat = "dBV")
 		{
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			PlotUtil.InitializeMagAmpPlot(myPlot, plotFormat);
 
@@ -763,7 +762,7 @@ namespace QA40xPlot.Actions
 		/// <param name="data">The data to plot</param>
 		private void PlotValues(DataTab page, int measurementNr, bool isMain)
 		{
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			bool showLeft;
 			bool showRight;
 			if (isMain)
@@ -816,7 +815,7 @@ namespace QA40xPlot.Actions
 				lineGroup = (rightCol != null) ? [rightCol] : [];
 			}
 
-			string tosuffix = MyGuiModel.HasQA430 ? "." : "";
+			string tosuffix = guiVm.HasQA430 ? "." : "";
 			string suffix = string.Empty;
 			LinePattern[] patternList = [LinePattern.Solid, LinePattern.Dashed, LinePattern.DenselyDashed, LinePattern.Dotted];
 			var solidFirst = lineGroup.Length > 0 && ReferenceEquals(lineGroup[0], leftCol);
@@ -905,7 +904,7 @@ namespace QA40xPlot.Actions
 
 		public void UpdateGraph(bool settingsChanged, string theProperty = "")
 		{
-			MyViewClass guiVm = MyGuiModel;
+			MyViewClass guiVm = (MyViewClass)MyGuiModel;
 			guiVm.MainPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
 			int resultNr = 0;
 

@@ -12,8 +12,10 @@ using System.Windows;
 
 namespace QA40xPlot.Actions
 {
-	public partial class ActBase<T> where T : BaseViewModel
+	public partial class ActBase
 	{
+		protected List<DataTab> OtherTabs { get; set; } = new List<DataTab>(); // Other tabs in the document
+
 		public DataTab PageData { get; protected set; } // Data used in this form instance
 		protected CancellationTokenSource CanToken;                                  // Measurement cancelation token
 		public List<LeftRightFrequencySeries> FrequencyHistory { get; set; } = new();   // for averaging
@@ -23,27 +25,27 @@ namespace QA40xPlot.Actions
 		/// as well as the plots and OtherSetList (gets)
 		/// It is the DataContext for the associated test windows
 		/// </summary>
-		public static T MyGuiModel
+		public BaseViewModel MyGuiModel
 		{
 			get
 			{
-				var u = typeof(T).Name;
-				switch (u)
+				var vml = PageData.ViewModel.Name;
+				switch (vml)
 				{
-					case "SpectrumViewModel":
-						return (T)(object)ViewSettings.Singleton.SpectrumVm;
-					case "ImdViewModel":
-						return (T)(object)ViewSettings.Singleton.ImdVm;
-					case "ScopeViewModel":
-						return (T)(object)ViewSettings.Singleton.ScopeVm;
-					case "FreqSweepViewModel":
-						return (T)(object)ViewSettings.Singleton.FreqVm;
-					case "AmpSweepViewModel":
-						return (T)(object)ViewSettings.Singleton.AmpVm;
-					case "FreqRespViewModel":
-						return (T)(object)ViewSettings.Singleton.FreqRespVm;
-					case "FrQa430ViewModel":
-						return (T)(object)ViewSettings.Singleton.FrQa430Vm;
+					case "Spectrum":
+						return ViewSettings.Singleton.SpectrumVm;
+					case "Intermodulation":
+						return ViewSettings.Singleton.ImdVm;
+					case "Scope":
+						return ViewSettings.Singleton.ScopeVm;
+					case "FreqSweep":
+						return ViewSettings.Singleton.FreqVm;
+					case "AmpSweep":
+						return ViewSettings.Singleton.AmpVm;
+					case "Response":
+						return ViewSettings.Singleton.FreqRespVm;
+					case "Frqa430":
+						return ViewSettings.Singleton.FrQa430Vm;
 				}
 				throw new InvalidOperationException("Unknown ViewModel type");
 			}
@@ -54,9 +56,9 @@ namespace QA40xPlot.Actions
 		[JsonIgnore]
 		public static bool PlotZLeft { get => (ViewSettings.Singleton?.SettingsVm?.PlotZOrder ?? "").Contains("Left"); }
 
-		public ActBase()
+		public ActBase(BaseViewModel bvm)
 		{
-			PageData = new(MyGuiModel, new LeftRightTimeSeries());
+			PageData = new(bvm, new LeftRightTimeSeries());
 			CanToken = new CancellationTokenSource();
 		}
 
@@ -239,11 +241,11 @@ namespace QA40xPlot.Actions
 				fpath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 			string fileName = Path.Combine(fpath, $"Snap{_NextSnapshot}.plt.zip");
 			var guiVm = MyGuiModel;
-			var vmname = typeof(T).Name;
+			var vmname = guiVm.Name;
 			// only possibly save frequency result for spectrum and imd
-			bool saveFreq = (guiVm.Averages > 1) && (vmname == "SpectrumViewModel" || vmname == "ImdViewModel");
+			bool saveFreq = (guiVm.Averages > 1) && (vmname == "Spectrum" || vmname == "Intermodulation");
 			// now save then load
-			if (DocUtil.SaveToFile<T>(PageData, guiVm, fileName, saveFreq))
+			if (DocUtil.SaveToFile(PageData, guiVm, fileName, saveFreq))
 				LoadFromFile(fileName, false);
 			else
 				MessageBox.Show("Unable to save snapshot file.");

@@ -981,7 +981,7 @@ namespace QA40xPlot.ViewModels
 			return NearestBinFreq(MathUtil.ToDouble(sfreq, 1000.0));
 		}
 
-		public static async Task DoGetLoad<T>(ActBase<T> myAct, string fileFilter, bool isLoad) where T : BaseViewModel
+		public static async Task DoGetLoad(ActBase myAct, string fileFilter, bool isLoad)
 		{
 			Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
 			{

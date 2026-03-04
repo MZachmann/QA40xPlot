@@ -15,14 +15,12 @@ namespace QA40xPlot.Actions
 	using MyViewClass = ScopeViewModel;
 
 
-	public class ActScope : ActBase<MyViewClass>
+	public class ActScope : ActBase
 	{
-		private List<DataTab> OtherTabs { get; set; } = new List<DataTab>(); // Other tabs in the document
-
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public ActScope(MyViewClass vm)
+		public ActScope(MyViewClass vm) : base(vm)
 		{
 			UpdateGraph(true);
 		}
@@ -62,7 +60,7 @@ namespace QA40xPlot.Actions
 			if (ffs == null || ffs.Left.Length == 0)
 				return null;
 
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			var sampleRate = MathUtil.ToUint(guiVm.SampleRate);
 			var fftsize = ffs.Left.Length;
 			if (guiVm.ShowRight && !guiVm.ShowLeft)
@@ -81,7 +79,7 @@ namespace QA40xPlot.Actions
 
 		public override void PinGraphRange(string who)
 		{
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			if (who == "Y2")
 			{
@@ -132,7 +130,8 @@ namespace QA40xPlot.Actions
 
 		public bool SaveToFile(string fileName)
 		{
-			return DocUtil.SaveToFile<MyViewClass>(PageData, MyGuiModel, fileName);
+			var guiVm = (MyViewClass)MyGuiModel;
+			return DocUtil.SaveToFile<MyViewClass>(PageData, guiVm, fileName);
 		}
 
 		public override async Task LoadFromFile(string fileName, bool isMain)
@@ -154,7 +153,7 @@ namespace QA40xPlot.Actions
 
 		public void UpdatePlotTitle()
 		{
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			var title = "Scope";
 			if (PageData.Definition.Name.Length > 0)
@@ -183,7 +182,7 @@ namespace QA40xPlot.Actions
 				PageData = page;    // set the current page to the loaded one
 
 				// relink to the new definition
-				var guiVm = MyGuiModel;
+				var guiVm = (MyViewClass)MyGuiModel;
 				guiVm.LinkAbout(page.Definition);
 				guiVm.HasSave = true;
 			}
@@ -235,7 +234,7 @@ namespace QA40xPlot.Actions
 
 		public void UpdateResidualPlot(LeftRightTimeSeries source)
 		{
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			var freq = guiVm.UseGenerator1 ? guiVm.NearestBinFreq(ToD(guiVm.Gen1Frequency, 0)) : 0.0;
 			var lrts = QaMath.CalculateResidual(source, freq, 1000, guiVm.ResidualHarm);
 			SetResidual(PageData, lrts);
@@ -243,7 +242,7 @@ namespace QA40xPlot.Actions
 
 		public void AddResidualPlot()
 		{
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			var freq = guiVm.UseGenerator1 ? guiVm.NearestBinFreq(ToD(guiVm.Gen1Frequency, 0)) : 0.0;
 			var lrts = QaMath.CalculateResidual(PageData.TimeRslt, freq, 1000, guiVm.ResidualHarm);
 			SetResidual(PageData, lrts);
@@ -257,7 +256,7 @@ namespace QA40xPlot.Actions
 		/// <param name="volts">generator voltage</param>
 		/// <param name="force"></param>
 		/// <returns></returns>
-		private static double[] BuildWave(DataTab page, double volts, bool force = false)
+		private double[] BuildWave(DataTab page, double volts, bool force = false)
 		{
 			var vm = (MyViewClass)page.ViewModel;
 			var freq = vm.NearestBinFreq(ToD(vm.Gen1Frequency, 0));
@@ -342,7 +341,7 @@ namespace QA40xPlot.Actions
 			if (PageData.TimeRslt.Left.Length == 0 && OtherTabs.Count() == 0)
 				return new Rect(0, 0, 0, 0);
 
-			var guiVm = MyGuiModel;     // current settings
+			var guiVm = (MyViewClass)MyGuiModel;     // current settings
 			var ffs = PageData.TimeRslt;
 			var hasdata = ffs.Left.Length > 0;
 
@@ -497,7 +496,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void ClearPlot()
 		{
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			guiVm.MainPlot.ThePlot.Clear();
 			guiVm.MainPlot.Refresh();
 		}
@@ -521,7 +520,7 @@ namespace QA40xPlot.Actions
 		/// <param name="data"></param>
 		int PlotValues(DataTab page, int measurementNr, bool isMain)
 		{
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			bool useLeft;   // dynamically update these
 			bool useRight;
@@ -627,7 +626,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void InitializeMagnitudePlot()
 		{
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			PlotUtil.InitializeMagTimePlot(myPlot);
 
@@ -643,7 +642,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		public async Task DoMeasurement(bool repeat)
 		{
-			var scopeVm = MyGuiModel;
+			var scopeVm = (MyViewClass)MyGuiModel;
 			if (!await StartAction(scopeVm))
 				return;
 			CanToken = new();
@@ -752,7 +751,7 @@ namespace QA40xPlot.Actions
 
 		public void UpdateGraph(bool settingsChanged, string theProperty = "")
 		{
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			guiVm.MainPlot.ThePlot.Remove<Marker>();             // Remove all current lines
 			int resultNr = 0;
 
@@ -784,7 +783,7 @@ namespace QA40xPlot.Actions
 
 		public int DrawPlotLines(int resultNr)
 		{
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			guiVm.MainPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
 			guiVm.LegendInfo.Clear();
 			var mainFirst = PlotZMain;

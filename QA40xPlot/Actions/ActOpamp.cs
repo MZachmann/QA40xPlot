@@ -6,8 +6,12 @@ using QA40xPlot.ViewModels;
 
 namespace QA40xPlot.Actions
 {
-	public partial class ActOpamp<T> : ActBase<T> where T : BaseViewModel
+	public partial class ActOpamp<T> : ActBase where T : BaseViewModel
 	{
+		public ActOpamp(T vm) : base(vm)
+		{
+		}
+
 		protected static SweepColumn ArrayToColumn(double[] rawData, uint startIdx, int columnCount)
 		{
 			SweepColumn col = new();

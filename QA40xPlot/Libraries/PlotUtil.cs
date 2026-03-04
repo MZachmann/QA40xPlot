@@ -110,7 +110,7 @@ namespace QA40xPlot.Libraries
 		}
 
 		// setup the on-screen menu
-		public static void SetupMenus<T>(ScottPlot.Plot myPlot, ActBase<T> myAct, BaseViewModel bvm) where T : BaseViewModel
+		public static void SetupMenus(ScottPlot.Plot myPlot, ActBase myAct, BaseViewModel bvm)
 		{
 			myPlot.PlotControl?.Menu?.Clear();
 			myPlot.PlotControl?.Menu?.Add("Pin All", x => myAct.PinAll(myPlot, bvm));

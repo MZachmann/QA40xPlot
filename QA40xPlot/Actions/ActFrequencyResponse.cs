@@ -17,14 +17,12 @@ namespace QA40xPlot.Actions
 	using MyViewClass = FreqRespViewModel;
 
 
-	public partial class ActFrequencyResponse : ActBase<MyViewClass>
+	public partial class ActFrequencyResponse : ActBase
 	{
-		private List<DataTab> OtherTabs { get; set; } = new(); // Other tabs in the document
-
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public ActFrequencyResponse(MyViewClass vm)
+		public ActFrequencyResponse(MyViewClass vm) : base(vm)
 		{
 			// Show empty graphs
 			QaLibrary.InitMiniFftPlot(vm.Mini2Plot, 10, 100000, -180, 20);
@@ -49,7 +47,7 @@ namespace QA40xPlot.Actions
 
 		public void UpdatePlotTitle()
 		{
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			var title = GetTheTitle();
 			if (PageData.Definition.Name.Length > 0)
@@ -60,7 +58,7 @@ namespace QA40xPlot.Actions
 
 		public override void PinGraphRange(string who)
 		{
-			var guiVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			if (who == "Y2")
 			{
@@ -86,7 +84,8 @@ namespace QA40xPlot.Actions
 
 		public bool SaveToFile(string fileName)
 		{
-			return DocUtil.SaveToFile<MyViewClass>(PageData, MyGuiModel, fileName);
+			var guiVm = (MyViewClass)MyGuiModel;
+			return DocUtil.SaveToFile<MyViewClass>(PageData, guiVm, fileName);
 		}
 
 		public override async Task LoadFromFile(string fileName, bool isMain)
@@ -126,7 +125,7 @@ namespace QA40xPlot.Actions
 				PageData = page;    // set the current page to the loaded one
 
 				// relink to the new definition
-				var guiVm = MyGuiModel;
+				var guiVm = (MyViewClass)MyGuiModel;
 				guiVm.LinkAbout(page.Definition);
 				guiVm.HasSave = true;
 			}
@@ -230,7 +229,7 @@ namespace QA40xPlot.Actions
 		/// <param name="e"></param>
 		public async Task RunAcquisition(int index)
 			{
-				var guiVm = MyGuiModel;
+				var guiVm = (MyViewClass)MyGuiModel;
 				await showMessage($"Measuring step {index + 1}.", 20);
 				if (!await StartAction(guiVm))
 					return;
@@ -368,18 +367,18 @@ namespace QA40xPlot.Actions
 			if (PageData == null || PageData.GainFrequencies == null || PageData.GainData.Item1 == null)
 				return null;
 			DataBlob db = new();
-			var frsqVm = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 			var freqs = this.PageData.GainFrequencies;
 			if (freqs.Length == 0)
 				return null;
 
 			db.FreqData = freqs.ToList();        // test frequencies
-			var ttype = frsqVm.GetTestingType(frsqVm.TestType);
+			var ttype = guiVm.GetTestingType(guiVm.TestType);
 			switch (ttype)
 			{
 				case TestingType.Crosstalk:
 				case TestingType.Response:
-					if (frsqVm.ShowRight && !frsqVm.ShowLeft)
+					if (guiVm.ShowRight && !guiVm.ShowLeft)
 					{
 						db.LeftData = PageData.GainData.Item2.ToList();
 					}
@@ -394,7 +393,7 @@ namespace QA40xPlot.Actions
 					break;
 				case TestingType.Impedance:
 					{
-						double rref = ToD(MyGuiModel.ZReference, 8);
+						double rref = ToD(guiVm.ZReference, 8);
 						db.LeftData = PageData.GainReal.Zip(PageData.GainImag, (x, y) => rref * MathUtil.ToImpedanceMag(x, y)).ToList();
 						db.PhaseData = PageData.GainReal.Zip(PageData.GainImag, (x, y) => MathUtil.ToImpedancePhase(x, y)).ToList();
 					}
@@ -466,7 +465,7 @@ namespace QA40xPlot.Actions
 			{
 				// here we want to show what's visible so use guiVm for visibility
 				var pageVm = PageData.ViewModel;
-				var guiVm = MyGuiModel;
+				var guiVm = (MyViewClass)MyGuiModel;
 				var vmr = PageData.GainFrequencies; // test data
 				var ttype = guiVm.GetTestingType(guiVm.TestType);
 			var gainReal = PageData.GainReal;
@@ -502,7 +501,7 @@ namespace QA40xPlot.Actions
 		public override Rect GetDataBounds()
 			{
 				// here we want to show what's visible so use guiVm for visibility
-				var guiVm = MyGuiModel;
+				var guiVm = (MyViewClass)MyGuiModel;
 				var vmr = PageData.GainFrequencies; // test data
 				var ttype = guiVm.GetTestingType(guiVm.TestType);
 			var msdre = PageData.GainReal;
@@ -579,8 +578,8 @@ namespace QA40xPlot.Actions
 					bin++;
 				}
 
-				var frsqVm = MyGuiModel;
-				var ttype = frsqVm.GetTestingType(frsqVm.TestType);
+				var guiVm = (MyViewClass)MyGuiModel;
+				var ttype = guiVm.GetTestingType(guiVm.TestType);
 				var myFreq = freqs[bin];
 				switch (ttype)
 				{
@@ -591,8 +590,8 @@ namespace QA40xPlot.Actions
 					case TestingType.Response:
 						// send freq, gain, gain2
 						{
-							var fvi = GraphUtil.ValueToPlotFn(frsqVm, PageData.GainReal, PageData.GainFrequencies);
-							var fvi2 = GraphUtil.ValueToPlotFn(frsqVm, PageData.GainImag, PageData.GainFrequencies);
+							var fvi = GraphUtil.ValueToPlotFn(guiVm, PageData.GainReal, PageData.GainFrequencies);
+							var fvi2 = GraphUtil.ValueToPlotFn(guiVm, PageData.GainImag, PageData.GainFrequencies);
 							var fl = fvi(valuesRe[bin]);
 							var fr = fvi2(valuesIm[bin]);
 							tup = ValueTuple.Create(myFreq, fl, fr, 0.0);
@@ -600,7 +599,7 @@ namespace QA40xPlot.Actions
 						break;
 					case TestingType.Impedance:
 						{   // send freq, ohms, phasedeg
-							double rref = ToD(frsqVm.ZReference, 10);
+							double rref = ToD(guiVm.ZReference, 10);
 							var impval = MathUtil.ToImpedanceMag(valuesRe[bin], valuesIm[bin]);
 							var ohms = rref * impval;
 							impval = MathUtil.ToImpedancePhase(valuesRe[bin], valuesIm[bin]);
@@ -1123,8 +1122,8 @@ namespace QA40xPlot.Actions
 
 		private string GetTheTitle()
 		{
-			var frqrsVm = MyGuiModel;
-			var ttype = frqrsVm.GetTestingType(frqrsVm.TestType);
+			var guiVm = (MyViewClass)MyGuiModel;
+			var ttype = guiVm.GetTestingType(guiVm.TestType);
 			string title = string.Empty;
 			switch (ttype)
 			{
@@ -1187,7 +1186,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void InitializePlot()
 		{
-		var guiVm = MyGuiModel;
+		var guiVm = (MyViewClass)MyGuiModel;
 		ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 
 		PlotUtil.InitializeMagFreqPlot(myPlot);
@@ -1270,7 +1269,7 @@ namespace QA40xPlot.Actions
 		/// <param name="measurementResult">Data to plot</param>
 		void PlotValues(DataTab page, int measurementNr, bool isMain)
 		{
-		var guiVm = MyGuiModel;
+		var guiVm = (MyViewClass)MyGuiModel;
 		ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			int skipped = 0;
 
@@ -1434,7 +1433,7 @@ namespace QA40xPlot.Actions
 
 		public void UpdateGraph(bool settingsChanged, string theProperty = "")
 		{
-		var guiVm = MyGuiModel;
+		var guiVm = (MyViewClass)MyGuiModel;
 
 		int resultNr = 0;
 
@@ -1458,7 +1457,7 @@ namespace QA40xPlot.Actions
 
 		public int DrawPlotLines(int resultNr)
 		{
-		var guiVm = MyGuiModel;
+		var guiVm = (MyViewClass)MyGuiModel;
 		MyGuiModel.LegendInfo.Clear();
 		guiVm.MainPlot.ThePlot.Remove<Marker>();             // Remove all current lines
 		guiVm.MainPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
