@@ -56,6 +56,8 @@ namespace QA40xPlot.ViewModels
 		public RelayCommand DoDataFolder { get => new RelayCommand(FindDataFolder); }
 		[JsonIgnore]
 		public RelayCommand ClearDataFolder { get => new RelayCommand(DelDataFolder); }
+		[JsonIgnore]
+		public RelayCommand OnEditor { get => new RelayCommand(DoMiniEditor); }
 
 
 		#region temporary setters
@@ -512,6 +514,13 @@ namespace QA40xPlot.ViewModels
 		public void DelDataFolder()
 		{
 			DataFolder = string.Empty;
+		}
+
+		public void DoMiniEditor()
+		{
+			var editor = new MiniSettings();
+			editor.DataContext = this;
+			editor.ShowDialog();
 		}
 	}
 }

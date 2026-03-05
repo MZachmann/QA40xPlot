@@ -8,7 +8,15 @@
              d:Background="AliceBlue"
              d:DesignHeight="450" d:DesignWidth="800">
     <StackPanel>
-        <Expander Header="—— Settings" IsExpanded="{Binding ExpandGlobals}" d:IsExpanded="True"  >
+        <Expander IsExpanded="{Binding ExpandGlobals}" d:IsExpanded="True"  >
+            <Expander.Header><StackPanel Orientation="Horizontal">
+                    <Label Content="—— Settings  "/>
+                    <Button x:Name="Editor" Command="{Binding OnEditor}" ToolTip="Edit" HorizontalAlignment="Center" MinWidth="28" >
+                        <Button.Content>
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE70F;" FontSize="12"  />
+                        </Button.Content>
+                    </Button>
+                </StackPanel></Expander.Header>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -16,6 +24,15 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -50,8 +67,6 @@
                 <Label Content="Generator Volts: " Grid.Row="4" Grid.Column="0"  Padding="0" />
                 <Label Content="{Binding GeneratorVoltage}" HorizontalAlignment="Left"  Padding="2,0"  
                        ToolTip="Current DUT input voltage" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" />
-                <!--<Label Content="{Binding GeneratorVoltageUnits}" HorizontalAlignment="Left"  Padding="2,0"  
-                       Grid.Row="3" Grid.Column="2" />-->
                 <Label x:Name="Noises2" Content="Noise Weighting: " Grid.Row="5" Grid.Column="0"  Padding="0" 
                        Visibility="{Binding NoiseWeight, ConverterParameter=Z, Converter={StaticResource StringVisConverter}}" />
                 <Label x:Name="Noises" Content="{Binding NoiseWeight}" HorizontalAlignment="Right"  Padding="2,0"  
@@ -70,9 +85,17 @@
                        ToolTip="Name of Windows Sound echo device"
                        Visibility="{Binding UseExternalEcho, Converter={StaticResource BoolVisConverter}}"/>
                 <Label x:Name="SoundDevice" Content="{Binding EchoName}" HorizontalAlignment="Left"  Padding="2,0"  
-                       Grid.Row="8" Grid.Column="1" MaxWidth="80"  
+                       Grid.Row="7" Grid.Column="1" MaxWidth="80"  
                        Grid.ColumnSpan="2"
                        ToolTip="{Binding EchoName}"
+                       Visibility="{Binding UseExternalEcho, Converter={StaticResource BoolVisConverter}}" />
+                <Label x:Name="SoundDevice3" Content="Sound Channels: " Grid.Row="9" Grid.Column="0"  Padding="0"
+                       ToolTip="Which channels the Windows Sound device uses"
+                       Visibility="{Binding UseExternalEcho, Converter={StaticResource BoolVisConverter}}"/>
+                <Label x:Name="SoundDevice4" Content="{Binding EchoChannel}" HorizontalAlignment="Left"  Padding="2,0"  
+                       Grid.Row="9" Grid.Column="1" MaxWidth="80"  
+                       Grid.ColumnSpan="2"
+                       ToolTip="{Binding EchoChannel, Mode=OneWay}"
                        Visibility="{Binding UseExternalEcho, Converter={StaticResource BoolVisConverter}}" />
             </Grid>
         </Expander>

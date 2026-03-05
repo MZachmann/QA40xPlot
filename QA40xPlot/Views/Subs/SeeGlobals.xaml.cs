@@ -11,7 +11,7 @@ namespace QA40xPlot.Views
 		public SeeGlobals()
 		{
 			InitializeComponent();
-			this.EGain.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
+
 			this.AmpLoad.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
 			this.EGain.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
 			this.EGain2.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
@@ -26,6 +26,14 @@ namespace QA40xPlot.Views
 			this.Noiseband3.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
 			this.SoundDevice.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
 			this.SoundDevice2.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
+			this.SoundDevice3.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
+			this.SoundDevice4.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
+			this.Editor.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
 		}
-	}
+
+		private void OnEdit(object sender, System.Windows.RoutedEventArgs e)
+		{
+
+        }
+    }
 }
