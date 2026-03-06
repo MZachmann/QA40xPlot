@@ -41,6 +41,11 @@ namespace QA40xPlot.Actions
 			UpdateGraph(true);
 		}
 
+		public override async Task LoadFromDictionary(Dictionary<string, string> docFile, bool doLoad)
+		{
+			await LoadADictionary<MyViewClass>(docFile, MyGuiModel, doLoad);
+		}
+
 		// here param is the id of the tab to remove from the othertab list
 		public void DeleteTab(int id)
 		{
@@ -303,7 +308,7 @@ namespace QA40xPlot.Actions
 			if (page != null)
 			{
 				RawToAmpSweepColumns(page);
-				await FinishLoad(page, doLoad, fileName);
+				await FinishLoad(page, fileName, doLoad);
 			}
 		}
 
@@ -322,21 +327,21 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="page"></param>
 		/// <returns></returns>
-		public async Task FinishLoad(DataTab page, bool doLoad, string fileName)
+		public override async Task FinishLoad(DataTab page, string fileName, bool doLoad)
 		{
+			var guiVm = (MyViewClass)MyGuiModel;
 			ClipName(page.Definition, fileName);
-
+			RawToAmpSweepColumns(page);
 			// now recalculate everything
 			await PostProcess(page, CanToken.Token);
 			if (doLoad)
 			{
 				// we can't overwrite the viewmodel since it links to the display proper
 				// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
-				MyGuiModel.LoadViewFrom((MyViewClass)page.ViewModel);
+				guiVm.LoadViewFrom((MyViewClass)page.ViewModel);
 				PageData = page;    // set the current page to the loaded one
 
 				// relink to the new definition
-				var guiVm = (MyViewClass)MyGuiModel;
 				guiVm.LinkAbout(page.Definition);
 				guiVm.HasSave = true;
 				guiVm.ShowMiniPlots = false; // hide mini plots on load
@@ -344,7 +349,7 @@ namespace QA40xPlot.Actions
 			else
 			{
 				OtherTabs.Add(page); // add the new one
-				MyGuiModel.OtherSetList.Add(page.Definition);
+				guiVm.OtherSetList.Add(page.Definition);
 			}
 
 			UpdateGraph(true);
@@ -367,8 +372,8 @@ namespace QA40xPlot.Actions
 		/// <param name="e"></param>
 		public async Task DoMeasurement()
 		{
-			var thdAmp = MyGuiModel;
-			if (!await StartAction(thdAmp))
+			var guiVm = MyGuiModel;
+			if (!await StartAction(guiVm))
 				return;
 			try
 			{
@@ -379,7 +384,7 @@ namespace QA40xPlot.Actions
 			{
 				await showMessage(ex.Message.ToString());
 			}
-			await EndAction(thdAmp);
+			await EndAction(guiVm);
 		}
 
 		public (double[], double[], double[]) DetermineVoltageSequences(MyViewClass myVm, double dFreq)
@@ -403,10 +408,10 @@ namespace QA40xPlot.Actions
 
 		public async Task<bool> RunAcquisition()
 		{
-			var thdAmp = MyGuiModel;
+			var guiVm = (MyViewClass)MyGuiModel;
 
 			LeftRightTimeSeries lrts = new();
-			PageData.ViewModel.LoadViewFrom(MyGuiModel); // ensure view model is up to date
+			PageData.ViewModel.LoadViewFrom(guiVm); // ensure view model is up to date
 			PageData.Definition.CreateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 			var page = PageData;    // alias
 			page.Sweep = new();
@@ -527,7 +532,7 @@ namespace QA40xPlot.Actions
 						await showMessage($"Measuring step {i + 1} at {voltf} with attenuation {attenuate}.");
 						await showProgress(100 * (i + 1) / (stepInVoltages.Length));
 						// Set the new input range
-						MyGuiModel.Attenuation = attenuate;   // visible display
+						guiVm.Attenuation = attenuate;   // visible display
 						vm.Attenuation = attenuate;         // my setting
 															// ********************************************************************
 															// Do noise floor measurement
@@ -540,7 +545,7 @@ namespace QA40xPlot.Actions
 							var nstart = DateTime.Now;
 							while ((DateTime.Now - nstart).TotalMilliseconds < 3200)
 							{
-								await MeasureNoise(MyGuiModel, CanToken.Token);
+								await MeasureNoise(guiVm, CanToken.Token);
 							}
 						}
 						if (longRest || attenuate != QaComm.GetInputRange())
@@ -564,7 +569,7 @@ namespace QA40xPlot.Actions
 						// Convert generator voltage from V to dBV
 						var generatorVoltageV = stepInVoltages[i];
 						page.Definition.GeneratorVoltage = generatorVoltageV;
-						MyGuiModel.GeneratorVoltage = vm.GetGenVoltLine(generatorVoltageV);
+						guiVm.GeneratorVoltage = vm.GetGenVoltLine(generatorVoltageV);
 
 						LeftRightSeries? lrfs = null;
 						try
@@ -572,7 +577,7 @@ namespace QA40xPlot.Actions
 							var wave = BuildWave(page, myConfig.GenFrequency);   // also update the waveform variables
 
 							FrequencyHistory.Clear();
-							for (int ik = 0; ik < (thdAmp.Averages - 1); ik++)
+							for (int ik = 0; ik < (guiVm.Averages - 1); ik++)
 							{
 								lrfs = await QaComm.DoAcquireUser(1, CanToken.Token, wave, wave, true);
 								vm.IORange = $"({QaComm.GetOutputRange()} - {QaComm.GetInputRange()})";
@@ -584,7 +589,7 @@ namespace QA40xPlot.Actions
 								lrfs = await QaComm.DoAcquireUser(1, CanToken.Token, wave, wave, true);
 								if (lrfs == null || lrfs.TimeRslt == null || lrfs.FreqRslt == null)
 									break;
-								lrfs.FreqRslt = CalculateAverages(lrfs.FreqRslt, thdAmp.Averages);
+								lrfs.FreqRslt = CalculateAverages(lrfs.FreqRslt, guiVm.Averages);
 							}
 						}
 						catch (HttpRequestException ex)
@@ -636,7 +641,7 @@ namespace QA40xPlot.Actions
 							AddColumn(page, stepInVoltages[i], work.Item1, work.Item2);
 						}
 
-						MyGuiModel.LinkAbout(PageData.Definition);
+						guiVm.LinkAbout(PageData.Definition);
 						RawToAmpSweepColumns(page);
 						UpdateGraph(false);
 
@@ -793,8 +798,8 @@ namespace QA40xPlot.Actions
 				plot.MarkerSize = markerSize;
 				plot.LegendText = legendText;
 				plot.LinePattern = linePattern;
-				plot.IsVisible = !MyGuiModel.HiddenLines.Contains(legendText);
-				MyGuiModel.LegendInfo.Add(new MarkerItem(linePattern, plot.Color, legendText, colorIndex, plot, guiVm.MainPlot, plot.IsVisible));
+				plot.IsVisible = !guiVm.HiddenLines.Contains(legendText);
+				guiVm.LegendInfo.Add(new MarkerItem(linePattern, plot.Color, legendText, colorIndex, plot, guiVm.MainPlot, plot.IsVisible));
 			}
 
 			// which columns are we displaying? left, right or both
@@ -927,7 +932,7 @@ namespace QA40xPlot.Actions
 				HandleChangedProperty(guiVm.MainPlot.ThePlot, guiVm, theProperty);
 			}
 
-			MyGuiModel.LegendInfo.Clear();
+			guiVm.LegendInfo.Clear();
 			var mainTop = PlotZMain;
 			var rnr = resultNr++;
 			if (!mainTop)

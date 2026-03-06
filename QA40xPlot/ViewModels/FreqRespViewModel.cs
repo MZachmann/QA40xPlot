@@ -281,6 +281,7 @@ public class FreqRespViewModel : BaseViewModel
 	{
 		LinkPlots(plot, plot2, plot3);
 		actFreq = new ActFrequencyResponse(this);
+		DocUtil.ActionList.Add(actFreq);
 		actAbout = TAbout;
 		actPlot = plot;
 		MyGuiModel.LinkAbout(actFreq.PageData.Definition);

@@ -46,6 +46,7 @@ namespace QA40xPlot.ViewModels
 		public static List<string> WaveformsNC { get => new List<string> { "Sine", "Square", "Multitone", "Impulse", "Chirp", "RiaaChirp" }; }
 		public static List<string> Attenuations { get => new List<string> { "0", "20", "10", "-6", "-10", "-20", "-30" }; }
 		public static string PlotFileFilter { get => "Plot files|*.plt;*.zip|All files|*.*"; }
+		public static string DocFileFilter { get => "Document files|*.plx;*.zip|All files|*.*"; }
 		public static string DutInfo { get => "DUT = Device Under Test"; }
 		public static string DutDescript { get => "Input Voltage = DUT Input(Generator Output), Output Voltage = DUT Output(QA40x Input)"; }
 		public static string AutoRangeDescript { get => "When the test is started a safe Attenuation value is calculated based on a test at 42."; }

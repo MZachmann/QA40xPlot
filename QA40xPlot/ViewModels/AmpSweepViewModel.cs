@@ -208,6 +208,7 @@ namespace QA40xPlot.ViewModels
 		{
 			LinkPlots(plot, plot1, plot2);
 			actSweep = new ActAmpSweep(this);
+			DocUtil.ActionList.Add(actSweep);
 			actAbout = tAbout;
 			MyGuiModel.LinkAbout(actSweep.PageData.Definition);
 			ShowInfos();

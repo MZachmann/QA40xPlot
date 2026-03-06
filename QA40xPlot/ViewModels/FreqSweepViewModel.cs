@@ -182,6 +182,7 @@ namespace QA40xPlot.ViewModels
 		{
 			LinkPlots(plot, plot1, plot2);
 			actFreq = new ActFreqSweep(this);
+			DocUtil.ActionList.Add(actFreq);
 			actPlot = plot;
 			actAbout = tAbout;
 			MyGuiModel.LinkAbout(actFreq.PageData.Definition);

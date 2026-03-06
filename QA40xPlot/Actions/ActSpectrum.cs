@@ -39,6 +39,12 @@ namespace QA40xPlot.Actions
 			MyGuiModel.ForceGraphUpdate(); // force a graph update
 		}
 
+		public override string PageToText(DataTab? page = null, bool saveFreq = false)
+		{
+			var guiVm = (MyViewClass)MyGuiModel;
+			return DocUtil.PageToText<MyViewClass>(page ?? PageData, guiVm, saveFreq);
+		}
+
 
 		/// <summary>
 		/// Create a blob for data export
@@ -84,6 +90,11 @@ namespace QA40xPlot.Actions
 			return DocUtil.SaveToFile<MyViewClass>(PageData, guiVm, fileName, PageData.ViewModel.Averages > 1);
 		}
 
+		public override async Task LoadFromDictionary(Dictionary<string,string> docFile, bool doLoad)
+		{
+			await LoadADictionary<MyViewClass>(docFile, MyGuiModel, doLoad);
+		}
+
 		public override async Task LoadFromFile(string fileName, bool doLoad)
 		{
 			var page = Util.LoadFile<MyViewClass>(PageData, fileName);
@@ -106,7 +117,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="page"></param>
 		/// <returns></returns>
-		public async Task FinishLoad(DataTab page, string fileName, bool doLoad)
+		public override async Task FinishLoad(DataTab page, string fileName, bool doLoad)
 		{
 			// now recalculate everything
 			if (page.FreqRslt == null)
@@ -116,15 +127,15 @@ namespace QA40xPlot.Actions
 			ClipName(page.Definition, fileName);
 
 			await PostProcess(page, CanToken.Token);
+			var guiVm = (MyViewClass)MyGuiModel;
 			if (doLoad)
 			{
 				// we can't overwrite the viewmodel since it links to the display proper
 				// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
-				MyGuiModel.LoadViewFrom((MyViewClass)page.ViewModel);
+				guiVm.LoadViewFrom((MyViewClass)page.ViewModel);
 				PageData = page;    // set the current page to the loaded one
 
 				// relink to the new definition
-				var guiVm = (MyViewClass)MyGuiModel;
 				guiVm.LinkAbout(page.Definition);
 				guiVm.HasSave = true;
 			}
@@ -132,7 +143,7 @@ namespace QA40xPlot.Actions
 			{
 				OtherTabs.Add(page); // add the new one
 									 //var oss = new OtherSet(page.Definition.Name, page.Show, page.Id);
-				MyGuiModel.OtherSetList.Add(page.Definition);
+				guiVm.OtherSetList.Add(page.Definition);
 			}
 
 			UpdateGraph(true);
@@ -273,13 +284,13 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		public async Task DoMeasurement(bool repeater)
 		{
-			var specVm = MyGuiModel;          // the active viewmodel
-			if (!await StartAction(specVm))
+			var guiVm = MyGuiModel;          // the active viewmodel
+			if (!await StartAction(guiVm))
 				return;
 
 			CanToken = new();
 			LeftRightTimeSeries lrts = new();
-			DataTab NextPage = new(specVm, lrts);
+			DataTab NextPage = new(guiVm, lrts);
 			PageData.Definition.CopyPropertiesTo(NextPage.Definition);
 			NextPage.Definition.CreateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 			var vm = NextPage.ViewModel as MyViewClass;
@@ -292,7 +303,7 @@ namespace QA40xPlot.Actions
 			// if we're doing adjusting here we need gain information
 			if (vm.DoAutoAttn || genType != E_GeneratorDirection.INPUT_VOLTAGE)
 			{
-				await CalculateGainAtFreq(MyGuiModel, freq);
+				await CalculateGainAtFreq(guiVm, freq);
 			}
 
 			// auto attenuation?
@@ -312,7 +323,7 @@ namespace QA40xPlot.Actions
 				double voutR = ToGenOutVolts(vinL, [], LRGains.Right);  // for both channels
 				var vdbv = QaLibrary.ConvertVoltage(Math.Max(voutL, voutR), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 				vm.Attenuation = QaLibrary.DetermineAttenuation(vdbv);              // find attenuation for both
-				specVm.Attenuation = vm.Attenuation;    // set both to show on indicator
+				guiVm.Attenuation = vm.Attenuation;    // set both to show on indicator
 			}
 
 			// run a measurement and get time data
@@ -328,16 +339,16 @@ namespace QA40xPlot.Actions
 					PageData = NextPage;        // finally update the pagedata for display and processing
 				UpdateGraph(true);
 			}
-			MyGuiModel.LinkAbout(PageData.Definition);    // ensure we're linked right during replays
+			guiVm.LinkAbout(PageData.Definition);    // ensure we're linked right during replays
 
 			var loopTime = DateTime.Now;
 			uint iteration = 1;
-			uint maxIterations = repeater ? uint.MaxValue : specVm.Averages;
+			uint maxIterations = repeater ? uint.MaxValue : guiVm.Averages;
 			while (rslt && (iteration < maxIterations) && !CanToken.IsCancellationRequested)
 			{
 				// update the view model with latest settings
 				if (PageData.ViewModel != null)
-					PageData.ViewModel.LoadViewFrom(MyGuiModel);
+					PageData.ViewModel.LoadViewFrom(guiVm);
 
 				// have it recalculate the noise floor now possibly
 				bool redoNoise = (ViewSettings.NoiseRefresh > 0) &&
@@ -356,8 +367,8 @@ namespace QA40xPlot.Actions
 			}
 
 			await showMessage("");
-			MyGuiModel.HasExport = PageData.FreqRslt != null;
-			await EndAction(specVm);
+			guiVm.HasExport = PageData.FreqRslt != null;
+			await EndAction(guiVm);
 		}
 
 		void BuildFrequencies(DataTab page)
@@ -884,8 +895,8 @@ namespace QA40xPlot.Actions
 			if (page == null)
 				return;
 
-		var guiVm = (MyViewClass)MyGuiModel;
-		ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
+			var guiVm = (MyViewClass)MyGuiModel;
+			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 
 			bool useLeft;   // dynamically update these
 			bool useRight;
@@ -913,16 +924,16 @@ namespace QA40xPlot.Actions
 			//
 			double[] leftdBV = [];
 			double[] rightdBV = [];
-		string plotForm = guiVm.PlotFormat;
+			string plotForm = guiVm.PlotFormat;
 
 			// add a line plot to the plot
-		var lineWidth = guiVm.ShowThickLines ? ViewSettings.Thickness : 1;   // so it dynamically updates
+			var lineWidth = guiVm.ShowThickLines ? ViewSettings.Thickness : 1;   // so it dynamically updates
 																  //IPalette palette = new ScottPlot.Palettes.Category20();
 
-		void PlotLine(double[] data, bool isLeft)
+			void PlotLine(double[] data, bool isLeft)
 			{
 				// format the data into current format
-			var fvi = GraphUtil.ValueToLogPlotFn(guiVm, data);
+				var fvi = GraphUtil.ValueToLogPlotFn(guiVm, data);
 				var vf = data.Skip(1);  // the first dot is F=0 so no logs...
 				var plotdBV = vf.Select(fvi).ToArray();
 
@@ -939,7 +950,7 @@ namespace QA40xPlot.Actions
 					plotLine.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, 2 * measurementNr + 1);
 					plotLine.LegendText = isMain ? "Right" : ClipName(page.Definition.Name) + ".R";
 				}
-			MyGuiModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotLine.Color, plotLine.LegendText, 2 * measurementNr + (isLeft ? 0 : 1), plotLine, guiVm.MainPlot));
+				guiVm.LegendInfo.Add(new MarkerItem(LinePattern.Solid, plotLine.Color, plotLine.LegendText, 2 * measurementNr + (isLeft ? 0 : 1), plotLine, guiVm.MainPlot));
 			}
 
 			bool leftTop = PlotZLeft;
@@ -958,7 +969,7 @@ namespace QA40xPlot.Actions
 				PlotLine(fftData.Left, true);
 			}
 
-		guiVm.MainPlot.Refresh();
+			guiVm.MainPlot.Refresh();
 		}
 
 		public void UpdateGraph(bool settingsChanged, string theProperty = "")

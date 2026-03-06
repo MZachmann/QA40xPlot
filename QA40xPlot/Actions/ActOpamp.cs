@@ -6,11 +6,29 @@ using QA40xPlot.ViewModels;
 
 namespace QA40xPlot.Actions
 {
-	public partial class ActOpamp<T> : ActBase where T : BaseViewModel
+	public abstract class ActOpamp<T> : ActBase where T : BaseViewModel
 	{
 		public ActOpamp(T vm) : base(vm)
 		{
 		}
+
+		public override string PageToText(DataTab? page = null, bool saveFreq = false)
+		{
+			var guiVm = (T)MyGuiModel;
+			return DocUtil.PageToText<T>(page ?? PageData, guiVm, saveFreq);
+		}
+
+		public override bool HasDataAvailable()
+		{
+			return PageData != null && PageData.ViewModel != null && PageData.Sweep.RawLeft != null && PageData.Sweep.RawLeft.Length > 0;
+		}
+
+		public override Task LoadFromDictionary(Dictionary<string, string> docFile, bool doLoad)
+		{
+			throw new NotImplementedException();
+		}
+
+
 
 		protected static SweepColumn ArrayToColumn(double[] rawData, uint startIdx, int columnCount)
 		{

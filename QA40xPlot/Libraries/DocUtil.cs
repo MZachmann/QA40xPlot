@@ -1,46 +1,184 @@
-﻿using QA40xPlot.Data;
+﻿using Microsoft.Win32;
+using Newtonsoft.Json;
+using QA40xPlot.Actions;
+using QA40xPlot.Data;
 using QA40xPlot.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Xml.Linq;
 
 namespace QA40xPlot.Libraries
 {
+	public struct DocHeader
+	{
+		public string Version;
+		public string AppVersion;
+		public string Date;
+		public string Notes;
+	}
+
 	public class DocUtil
 	{
-		public static void OpenDocument(string filepath)
+		public static List<ActBase> ActionList = new List<ActBase>();
+
+		public static void DoOpenDocument()
 		{
-			var vmlist = ViewSettings.Singleton.ViewModelList;
-			Dictionary<string, string> document = new();
-			foreach(var vml in vmlist)
+			OpenFileDialog openFileDialog = new OpenFileDialog
 			{
-				if(vml.HasExport)
+				FileName = string.Empty, // Default file name
+				InitialDirectory = ViewSettings.Singleton.SettingsVm.DataFolder,
+				DefaultExt = ".plx", // Default file extension
+				Filter = "Document Files|*.plx.zip|All files|*.*" // Filter files by extension
+			};
+
+			// Show save file dialog box
+			bool? result = openFileDialog.ShowDialog();
+
+			// Process save file dialog box results
+			if (result == true)
+			{
+				// if we don't clear focus we get a COM exception
+				// as any focused text box tries to set the Text field i think
+				// this only happens with menus since clicking a tab button loses the focus
+				try
 				{
-					var ttype = vml.GetType();
-					//var page = new DataTab<ttype>();
-					//var jsonString = PageToText<ttype>(page, vml, true);
-					document.Add(vml.Name, string.Empty);
+					System.Windows.Input.Keyboard.Focus(Application.Current?.MainWindow);
 				}
+				catch (Exception ex)
+				{
+					Debug.WriteLine(ex.ToString());
+				}
+				// let the focus lose happen then continue
+				Task.Delay(20).ContinueWith(_ =>
+				{
+					Application.Current?.Dispatcher.Invoke(() =>
+					{
+						// Save document
+						string filename = openFileDialog.FileName;
+						var filetext = Util.LoadFileText(filename);
+						OpenDocument(filetext, filename);
+					});
+				});
+			}
+		}
+
+		public static void OpenDocument(string docText, string fileName)
+		{
+			var actList = ActionList;
+			Dictionary<string, string>? docDict = null;
+			try
+			{
+				var u = JsonConvert.DeserializeObject<Dictionary<string, string>>(docText);
+				if (u != null) 
+				{
+					docDict = u;
+				}
+			}
+			catch { }
+
+			if (docDict == null || docDict.Count == 0)
+			{
+				MessageBox.Show("The document is empty or invalid.", "A load error occurred.", MessageBoxButton.OK, MessageBoxImage.Information);
+				return;
+			}
+			try
+			{
+				var ky = docDict.Keys.Select(x => x.ToString()).ToArray();
+				var kys = string.Join(",", ky);
+				Debug.WriteLine($"Dict keys: {kys}");
+				docDict["FileName"] = fileName;
+				foreach (var act in actList)
+				{
+					act.LoadFromDictionary(docDict, true);
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, "A save error occurred.", MessageBoxButton.OK, MessageBoxImage.Information);
+			}
+		}
+
+		public static void DoSaveDocument()
+		{
+			SaveFileDialog saveFileDialog = new SaveFileDialog
+			{
+				FileName = String.Format("QaDoc{0}", FloorViewModel.FileAddon()), // Default file name
+				InitialDirectory = ViewSettings.Singleton.SettingsVm.DataFolder,
+				DefaultExt = ".plx", // Default file extension
+				Filter = "Document Files|*.plx.zip|All files|*.*" // Filter files by extension
+			};
+
+			// Show save file dialog box
+			bool? result = saveFileDialog.ShowDialog();
+
+			// Process save file dialog box results
+			if (result == true)
+			{
+				// Save document
+				string filename = saveFileDialog.FileName;
+				SaveDocument(filename);
 			}
 		}
 
 		public static void SaveDocument(string filepath)
 		{
-			var vmlist = ViewSettings.Singleton.ViewModelList;
-			Dictionary<string, string> document = new();
-			foreach(var vml in vmlist)
+			var actList = ActionList;
+			Dictionary<string, string> docDict = new();
+			var dh = new DocHeader
 			{
-				if(vml.HasExport)
+				Version = "1.0",
+				AppVersion = MainWindow.GetVersionInfo(),
+				Date = DateTime.Now.ToString(),
+				Notes = "A QA40xPlot document."
+			};
+			var sdh = Util.ConvertToJson(dh);
+			if (sdh != null && sdh.Length > 0)
+				docDict.Add("Header", sdh);
+			try
+			{
+				string jsonString = string.Empty;
+				foreach (var act in actList)
 				{
-					//Type ttype = vml.GetType();
-					//var jsonString = PageToText<ttype>(page, vml, true);
-					//document.Add(vml.Name, string.Empty);
+					var vm = act.PageData?.ViewModel;
+					if (act.PageData == null || vm == null)
+						continue;
+					bool saveFreq = (vm.Averages > 1) && (vm.Name == "Spectrum" || vm.Name == "Intermodulation");
+					if (act.HasDataAvailable())
+					{
+						jsonString = act.PageToText(null, saveFreq);
+						if (jsonString != null && jsonString.Length > 0)
+							docDict.Add(act.PageData.ViewModel.Name, jsonString);
+					}
+					if(act.OtherTabs != null && act.OtherTabs.Count > 0)
+					{
+						int cntr = 0;
+						foreach (var ot in act.OtherTabs)
+						{
+							if (ot.ViewModel == null)
+								continue;
+							jsonString = act.PageToText(ot, saveFreq);
+							if (jsonString != null && jsonString.Length > 0)
+								docDict.Add($"{ot.ViewModel.Name}:{++cntr}", jsonString);
+						}
+					}
 				}
+				// Write the JSON string to a file
+				var docString = Util.ConvertToJson(docDict);
+				var fname = filepath;
+				if (!fname.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+					fname += ".zip";
+				Util.CompressTextToFile(docString, fname); // zip it
 			}
-
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, "A save error occurred.", MessageBoxButton.OK, MessageBoxImage.Information);
+			}
 		}
 
 		public static bool SaveToFile<Model>(DataTab page, Model GuiModel, string fileName, bool saveFreq = false) where Model : BaseViewModel

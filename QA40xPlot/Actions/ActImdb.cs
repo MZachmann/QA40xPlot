@@ -27,6 +27,11 @@ namespace QA40xPlot.Actions
 			UpdateGraph(true);
 		}
 
+		public override async Task LoadFromDictionary(Dictionary<string, string> docFile, bool doLoad)
+		{
+			await LoadADictionary<MyViewClass>(docFile, MyGuiModel, doLoad);
+		}
+
 		// here param is the id of the tab to remove from the othertab list
 		public void DeleteTab(int id)
 		{
@@ -34,7 +39,11 @@ namespace QA40xPlot.Actions
 			MyGuiModel.ForceGraphUpdate(); // force a graph update
 		}
 
-
+		public override string PageToText(DataTab? page = null, bool saveFreq = false)
+		{
+			var guiVm = (MyViewClass)MyGuiModel;
+			return DocUtil.PageToText<MyViewClass>(page ?? PageData, guiVm, saveFreq);
+		}
 
 		public void DoCancel()
 		{
@@ -50,11 +59,11 @@ namespace QA40xPlot.Actions
 			if (vfs == null)
 				return null;
 
-			var imdVm = MyGuiModel;
-			var sampleRate = MathUtil.ToUint(imdVm.SampleRate);
+			var guiVm = MyGuiModel;
+			var sampleRate = MathUtil.ToUint(guiVm.SampleRate);
 			var fftsize = vfs.Left.Length;
 			var binSize = QaLibrary.CalcBinSize(sampleRate, (uint)fftsize);
-			if (imdVm.ShowRight && !imdVm.ShowLeft)
+			if (guiVm.ShowRight && !guiVm.ShowLeft)
 			{
 				db.LeftData = vfs.Right.ToList();
 			}
@@ -86,7 +95,7 @@ namespace QA40xPlot.Actions
 		{
 			var page = LoadFile(fileName);
 			if (page != null)
-				await FinishLoad(page, isMain, fileName);
+				await FinishLoad(page, fileName, isMain);
 		}
 
 		/// <summary>
@@ -104,7 +113,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="page"></param>
 		/// <returns></returns>
-		public async Task FinishLoad(DataTab page, bool isMain, string fileName)
+		public override async Task FinishLoad(DataTab page, string fileName, bool isMain)
 		{
 			ClipName(page.Definition, fileName);
 
@@ -115,14 +124,14 @@ namespace QA40xPlot.Actions
 			}
 			await PostProcess(page, CanToken.Token);
 
+			var guiVm = (MyViewClass)MyGuiModel;
 			if (isMain)
 			{
 				// we can't overwrite the viewmodel since it links to the display proper
 				// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
-				MyGuiModel.LoadViewFrom((MyViewClass)page.ViewModel);
+				guiVm.LoadViewFrom<MyViewClass>((MyViewClass)page.ViewModel);
 				PageData = page;    // set the current page to the loaded one
 			// relink to the new definition
-			var guiVm = (MyViewClass)MyGuiModel;
 			guiVm.LinkAbout(page.Definition);
 			guiVm.HasSave = true;
 			}
@@ -919,14 +928,14 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		public async Task DoMeasurement(bool repeater)
 		{
-			var imdVm = MyGuiModel;
-			if (!await StartAction(imdVm))
+			var guiVm = (MyViewClass)MyGuiModel;
+			if (!await StartAction(guiVm))
 				return;
 			CanToken = new();
 
 			// sweep data
 			LeftRightTimeSeries lrts = new();
-			DataTab NextPage = new(imdVm, lrts);
+			DataTab NextPage = new DataTab(guiVm, lrts);
 			PageData.Definition.CopyPropertiesTo(NextPage.Definition);
 			NextPage.Definition.CreateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 			var vm = (MyViewClass)NextPage.ViewModel;
@@ -965,8 +974,8 @@ namespace QA40xPlot.Actions
 
 				var vdbv = QaLibrary.ConvertVoltage(vtotal, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 
-				imdVm.Attenuation = QaLibrary.DetermineAttenuation(vdbv);
-				vm.Attenuation = imdVm.Attenuation; // update the specVm to update the gui, then this for the steps
+				guiVm.Attenuation = QaLibrary.DetermineAttenuation(vdbv);
+				vm.Attenuation = guiVm.Attenuation; // update the specVm to update the gui, then this for the steps
 			}
 
 			// do the actual measurements
@@ -980,7 +989,7 @@ namespace QA40xPlot.Actions
 					PageData = NextPage;        // finally update the pagedata for display and processing
 				UpdateGraph(true);
 			}
-			MyGuiModel.LinkAbout(PageData.Definition);  // ensure we're linked right during replays
+			guiVm.LinkAbout(PageData.Definition);  // ensure we're linked right during replays
 
 			var loopTime = DateTime.Now;
 			uint maxIterations = repeater ? uint.MaxValue : vm.Averages;
@@ -988,7 +997,7 @@ namespace QA40xPlot.Actions
 			{
 				// update the view model with latest settings
 				if (PageData.ViewModel != null)
-					PageData.ViewModel.LoadViewFrom(MyGuiModel);
+					PageData.ViewModel.LoadViewFrom(guiVm);
 				// have it recalculate the noise floor now possibly
 				bool redoNoise = (ViewSettings.NoiseRefresh > 0) &&
 					(DateTime.Now - loopTime).TotalSeconds > ViewSettings.NoiseRefresh;
@@ -1005,8 +1014,8 @@ namespace QA40xPlot.Actions
 			}
 
 			await showMessage("");
-			MyGuiModel.HasExport = PageData.FreqRslt != null && PageData.FreqRslt.Left?.Length > 0;
-			await EndAction(imdVm);
+			guiVm.HasExport = PageData.FreqRslt != null && PageData.FreqRslt.Left?.Length > 0;
+			await EndAction(guiVm);
 		}
 
 		public void UpdatePlotTitle()

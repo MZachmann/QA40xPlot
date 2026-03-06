@@ -25,6 +25,21 @@ namespace QA40xPlot.Actions
 			UpdateGraph(true);
 		}
 
+		public override async Task LoadFromDictionary(Dictionary<string, string> docFile, bool doLoad)
+		{
+			await LoadADictionary<MyViewClass>(docFile, MyGuiModel, doLoad);
+		}
+
+		public override string PageToText(DataTab? page = null, bool saveFreq = false)
+		{
+			var guiVm = (MyViewClass)MyGuiModel;
+			return DocUtil.PageToText<MyViewClass>(page ?? PageData, guiVm, saveFreq);
+		}
+
+		public override bool HasDataAvailable()
+		{
+			return PageData != null && PageData.ViewModel != null && PageData.TimeRslt != null && PageData.TimeRslt.Left != null && PageData.TimeRslt.Left.Length > 0;
+		}
 
 		// here param is the id of the tab to remove from the othertab list
 		public void DeleteTab(int id)
@@ -138,7 +153,7 @@ namespace QA40xPlot.Actions
 		{
 			var page = LoadFile(fileName);
 			if (page != null)
-				await FinishLoad(page, isMain, fileName);
+				await FinishLoad(page, fileName, isMain);
 		}
 
 		/// <summary>
@@ -167,7 +182,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="page"></param>
 		/// <returns></returns>
-		public async Task FinishLoad(DataTab page, bool isMain, string fileName)
+		public override async Task FinishLoad(DataTab page, string fileName, bool isMain)
 		{
 			ClipName(page.Definition, fileName);
 
@@ -178,11 +193,11 @@ namespace QA40xPlot.Actions
 			{
 				// we can't overwrite the viewmodel since it links to the display proper
 				// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
-				MyGuiModel.LoadViewFrom((MyViewClass)page.ViewModel);
+				var guiVm = (MyViewClass)MyGuiModel;
+				guiVm.LoadViewFrom((MyViewClass)page.ViewModel);
 				PageData = page;    // set the current page to the loaded one
 
 				// relink to the new definition
-				var guiVm = (MyViewClass)MyGuiModel;
 				guiVm.LinkAbout(page.Definition);
 				guiVm.HasSave = true;
 			}
@@ -543,7 +558,7 @@ namespace QA40xPlot.Actions
 			double maxright = timeData.Right.Max();
 
 			var timeX = Enumerable.Range(0, timeData.Left.Length).Select(x => x * 1000 * timeData.dt).ToArray(); // in ms
-			var showThick = MyGuiModel.ShowThickLines;    // so it dynamically updates
+			var showThick = guiVm.ShowThickLines;    // so it dynamically updates
 			var markerSize = guiVm.ShowPoints ? (showThick ? ViewSettings.Thickness : 1) + 3 : 1;
 
 			void PlotLine(double[] y, bool isLeft)
@@ -553,8 +568,8 @@ namespace QA40xPlot.Actions
 				p.Color = GraphUtil.GetPaletteColor(isLeft ? page.Definition.LeftColor : page.Definition.RightColor, measurementNr);
 				p.MarkerSize = markerSize;
 				p.LegendText = isMain ? (isLeft ? "Left" : "Right") : ClipName(page.Definition.Name) + (isLeft ? ".L" : ".R");
-				p.IsVisible = !MyGuiModel.HiddenLines.Contains(p.LegendText);
-				MyGuiModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, p.Color, p.LegendText,
+				p.IsVisible = !guiVm.HiddenLines.Contains(p.LegendText);
+				guiVm.LegendInfo.Add(new MarkerItem(LinePattern.Solid, p.Color, p.LegendText,
 					measurementNr, p, guiVm.MainPlot, p.IsVisible));
 			}
 
@@ -589,9 +604,9 @@ namespace QA40xPlot.Actions
 						pLeft.Color = GraphUtil.GetPaletteColor(null, measurementNr);
 						pLeft.MarkerSize = markerSize;
 						pLeft.LegendText = "Residual.L";
-						pLeft.IsVisible = !MyGuiModel.HiddenLines.Contains(pLeft.LegendText);
+						pLeft.IsVisible = !guiVm.HiddenLines.Contains(pLeft.LegendText);
 						pLeft.Axes.YAxis = guiVm.SecondYAxis ?? myPlot.Axes.Left;
-						MyGuiModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, pLeft.Color, pLeft.LegendText,
+						guiVm.LegendInfo.Add(new MarkerItem(LinePattern.Solid, pLeft.Color, pLeft.LegendText,
 							measurementNr, pLeft, guiVm.MainPlot, pLeft.IsVisible));
 					}
 					measurementNr++;
@@ -604,8 +619,8 @@ namespace QA40xPlot.Actions
 						pRight.MarkerSize = markerSize;
 						pRight.LegendText = "Residual.R";
 						pRight.Axes.YAxis = guiVm.SecondYAxis ?? myPlot.Axes.Left;
-						pRight.IsVisible = !MyGuiModel.HiddenLines.Contains(pRight.LegendText);
-						MyGuiModel.LegendInfo.Add(new MarkerItem(LinePattern.Solid, pRight.Color, pRight.LegendText,
+						pRight.IsVisible = !guiVm.HiddenLines.Contains(pRight.LegendText);
+						guiVm.LegendInfo.Add(new MarkerItem(LinePattern.Solid, pRight.Color, pRight.LegendText,
 							measurementNr, pRight, guiVm.MainPlot, pRight.IsVisible));
 					}
 					measurementNr++;
@@ -642,43 +657,43 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		public async Task DoMeasurement(bool repeat)
 		{
-			var scopeVm = (MyViewClass)MyGuiModel;
-			if (!await StartAction(scopeVm))
+			var guiVm = (MyViewClass)MyGuiModel;
+			if (!await StartAction(guiVm))
 				return;
 			CanToken = new();
 
 			// sweep data
 			LeftRightTimeSeries lrts = new();
-			DataTab NextPage = new(scopeVm, lrts);
+			DataTab NextPage = new DataTab(guiVm, lrts);
 			PageData.Definition.CopyPropertiesTo(NextPage.Definition);
 			NextPage.Definition.CreateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 			var vm = NextPage.ViewModel;
 			if (vm == null)
 				return;
 
-			var genType = ToDirection(scopeVm.GenDirection);
-			var freq = ToD(scopeVm.Gen1Frequency, 1000);
+			var genType = ToDirection(guiVm.GenDirection);
+			var freq = ToD(guiVm.Gen1Frequency, 1000);
 			// if we're doing adjusting here
 			if (vm.DoAutoAttn || genType != E_GeneratorDirection.INPUT_VOLTAGE)
 			{
 				// show that we're autoing...
-				await CalculateGainAtFreq(MyGuiModel, freq);
+				await CalculateGainAtFreq(guiVm, freq);
 			}
 
-			if (scopeVm.DoAutoAttn && LRGains != null)
+			if (guiVm.DoAutoAttn && LRGains != null)
 			{
-				var maxv = GenVoltApplyUnit(scopeVm.Gen1Voltage, scopeVm.GenVoltageUnit, 1e-3);
+				var maxv = GenVoltApplyUnit(guiVm.Gen1Voltage, guiVm.GenVoltageUnit, 1e-3);
 				var wave = BuildWave(NextPage, maxv, true);   // build a wave to evaluate the peak values
 															  // get the peak voltages then fake an rms math div by 2*sqrt(2) = 2.828
 															  // since I assume that's the hardware math
 				var waveVOut = (wave.Max() - wave.Min()) / 2.828;
 				var gains = ViewSettings.IsTestLeft ? LRGains.Left : LRGains.Right;
-				var vinL = scopeVm.ToGenVoltage(waveVOut, [], GEN_INPUT, gains); // get gen1 input voltage
+				var vinL = guiVm.ToGenVoltage(waveVOut, [], GEN_INPUT, gains); // get gen1 input voltage
 				double voutL = ToGenOutVolts(vinL, [], LRGains.Left);   // what is that as output voltage?
 				double voutR = ToGenOutVolts(vinL, [], LRGains.Right);  // for both channels
 				var vdbv = QaLibrary.ConvertVoltage(Math.Max(voutL, voutR), E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-				scopeVm.Attenuation = QaLibrary.DetermineAttenuation(vdbv);             // find attenuation for both
-				vm.Attenuation = scopeVm.Attenuation;   // update the scopeVm to update the gui, then this for the steps
+				guiVm.Attenuation = QaLibrary.DetermineAttenuation(vdbv);             // find attenuation for both
+				vm.Attenuation = guiVm.Attenuation;   // update the scopeVm to update the gui, then this for the steps
 			}
 
 			int iteration = 1;
@@ -695,13 +710,13 @@ namespace QA40xPlot.Actions
 					PageData = NextPage;        // finally update the pagedata for display and processing
 				UpdateGraph(true);
 			}
-			MyGuiModel.LinkAbout(PageData.Definition);  // ensure we're linked right during replays
+			guiVm.LinkAbout(PageData.Definition);  // ensure we're linked right during replays
 
 			while (repeat && rslt && !CanToken.IsCancellationRequested)
 			{
 				// make sure the page data viewmodel is up to date
 				if (PageData.ViewModel != null)
-					PageData.ViewModel.LoadViewFrom(MyGuiModel);
+					PageData.ViewModel.LoadViewFrom(guiVm);
 				rslt = await RunAcquisition(PageData, iteration++, CanToken.Token);
 				if (rslt)
 				{
@@ -711,8 +726,8 @@ namespace QA40xPlot.Actions
 			}
 
 			await showMessage("");
-			scopeVm.HasExport = (PageData.TimeRslt.Left.Length > 0);
-			await EndAction(scopeVm);
+			guiVm.HasExport = (PageData.TimeRslt.Left.Length > 0);
+			await EndAction(guiVm);
 		}
 
 		private void FillChannelInfo(ScopeInfoViewModel vm, double[] timeData)

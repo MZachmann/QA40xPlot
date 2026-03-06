@@ -1,7 +1,8 @@
 {
   "profiles": {
     "QA40xPlot": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "nativeDebugging": true
     }
   }
 }

@@ -26,7 +26,7 @@ namespace QA40xPlot
 		private double _MaxTabWidth = 0;
 
 		// Modify the GetVersionInfo method
-		static string GetVersionInfo()
+		public static string GetVersionInfo()
 		{
 			// try to get the clickonce version first
 			if (ApplicationDeployment.IsNetworkDeployed)

@@ -211,6 +211,7 @@ namespace QA40xPlot.ViewModels
 		{
 			LinkPlots(plot);
 			actImd = new ActImd(this);
+			DocUtil.ActionList.Add(actImd);
 			actInfoLeft = info;
 			actInfoRight = info2;
 			actAbout = tinfo;

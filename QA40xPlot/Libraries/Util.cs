@@ -143,14 +143,14 @@ namespace QA40xPlot.Libraries
 		/// </summary>
 		/// <param name="fileName">full path name</param>
 		/// <returns>a datatab with no frequency info</returns>
-		public static DataTab? LoadFile<Model>(DataTab dtab, string fileName) where Model : BaseViewModel
+		public static DataTab? LoadFromString<Model>(DataTab dtab, string strData) where Model : BaseViewModel
 		{
 			// a new DataTab
 			var page = new DataTab(dtab.ViewModel, new LeftRightTimeSeries());
-			page.Definition.FileName = fileName;
+			page.Definition.FileName = "Internal";
 			try
 			{
-				var jsonContent = LoadFileText(fileName);
+				var jsonContent = strData;
 				// check which viewmodel this was built for
 				bool isValid = false;
 				Dictionary<string, object>? oldTime = null;
@@ -232,7 +232,6 @@ namespace QA40xPlot.Libraries
 						}
 					}
 					page.Definition.Id = id; // keep the same id
-					page.Definition.FileName = fileName; // re-set the filename
 					if (jsonObject.FreqRslt != null)
 						page.FreqRslt = jsonObject.FreqRslt; // set the frequency result
 					page.Definition.IsOnL = true;
@@ -244,6 +243,40 @@ namespace QA40xPlot.Libraries
 				MessageBox.Show(ex.Message, "A load error occurred.", MessageBoxButton.OK, MessageBoxImage.Information);
 				page = null;
 			}
+			return page;
+		}
+
+		/// <summary>
+		/// Load a file into a DataTab
+		/// </summary>
+		/// <param name="fileName">full path name</param>
+		/// <returns>a datatab with no frequency info</returns>
+		public static DataTab? LoadFromText<Model>(DataTab dtab, string ftext) where Model : BaseViewModel
+		{
+			// a new DataTab
+			try
+			{
+				var page = LoadFromString<Model>(dtab, ftext);
+				return page;
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, "A load error occurred.", MessageBoxButton.OK, MessageBoxImage.Information);
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// Load a file into a DataTab
+		/// </summary>
+		/// <param name="fileName">full path name</param>
+		/// <returns>a datatab with no frequency info</returns>
+		public static DataTab? LoadFile<Model>(DataTab dtab, string fileName) where Model : BaseViewModel
+		{
+			// a new DataTab
+			var page = LoadFromText<Model>(dtab, LoadFileText(fileName));
+			if (page != null)
+				page.Definition.FileName = fileName;
 			return page;
 		}
 

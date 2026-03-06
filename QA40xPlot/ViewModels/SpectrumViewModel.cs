@@ -247,6 +247,7 @@ namespace QA40xPlot.ViewModels
 		{
 			LinkPlots(plot);
 			actSpec = new ActSpectrum(this);
+			DocUtil.ActionList.Add(actSpec);
 			actInfoLeft = info;
 			actInfoRight = info2;
 			actInfo2Left = info3;

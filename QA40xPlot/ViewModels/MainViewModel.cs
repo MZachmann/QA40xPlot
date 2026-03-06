@@ -578,12 +578,12 @@ namespace QA40xPlot.ViewModels
 
 		private void DoDocOpen()
 		{
-			DocUtil.OpenDocument(string.Empty);
+			DocUtil.DoOpenDocument();
 		}
 
 		private void DoDocSave()
 		{
-			DocUtil.SaveDocument(string.Empty);
+			DocUtil.DoSaveDocument();
 		}
 
 		private void OnPinAll()

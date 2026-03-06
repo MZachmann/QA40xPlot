@@ -32,6 +32,21 @@ namespace QA40xPlot.Actions
 			UpdateGraph(true);
 		}
 
+		public override async Task LoadFromDictionary(Dictionary<string, string> docFile, bool doLoad)
+		{
+			await LoadADictionary<MyViewClass>(docFile, MyGuiModel, doLoad);
+		}
+
+		public override string PageToText(DataTab? page = null, bool saveFreq = false)
+		{
+			var guiVm = (MyViewClass)MyGuiModel;
+			return DocUtil.PageToText<MyViewClass>(page ?? PageData, guiVm, saveFreq);
+		}
+
+		public override bool HasDataAvailable()
+		{
+			return PageData != null && PageData.ViewModel != null && PageData.GainLeft != null && PageData.GainFrequencies != null && PageData.GainLeft.Length > 0;
+		}
 
 		// here param is the id of the tab to remove from the othertab list
 		public void DeleteTab(int id)
@@ -92,7 +107,7 @@ namespace QA40xPlot.Actions
 		{
 			var page = LoadFile(fileName);
 			if (page != null)
-				await FinishLoad(page, isMain, fileName);
+				await FinishLoad(page, fileName, isMain);
 		}
 
 		/// <summary>
@@ -110,8 +125,9 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="page"></param>
 		/// <returns></returns>
-		public async Task FinishLoad(DataTab page, bool isMain, string fileName)
+		public override async Task FinishLoad(DataTab page, string fileName, bool isMain)
 		{
+			var guiVm = (MyViewClass)MyGuiModel;
 			ClipName(page.Definition, fileName);
 
 			// now recalculate everything
@@ -121,18 +137,17 @@ namespace QA40xPlot.Actions
 			{
 				// we can't overwrite the viewmodel since it links to the display proper
 				// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
-				MyGuiModel.LoadViewFrom((MyViewClass)page.ViewModel);
+				guiVm.LoadViewFrom((MyViewClass)page.ViewModel);
 				PageData = page;    // set the current page to the loaded one
 
 				// relink to the new definition
-				var guiVm = (MyViewClass)MyGuiModel;
 				guiVm.LinkAbout(page.Definition);
 				guiVm.HasSave = true;
 			}
 			else
 			{
 				OtherTabs.Add(page); // add the new one
-				MyGuiModel.OtherSetList.Add(page.Definition);
+				guiVm.OtherSetList.Add(page.Definition);
 			}
 			UpdateGraph(true);
 		}
@@ -250,7 +265,7 @@ namespace QA40xPlot.Actions
 
 				// sweep data
 				LeftRightTimeSeries lrts = new();
-				DataTab NextPage = new(guiVm, lrts);
+				DataTab NextPage = new DataTab(guiVm, lrts);
 			PageData.Definition.CopyPropertiesTo(NextPage.Definition);
 			NextPage.Definition.CreateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 			var msr = (MyViewClass)NextPage.ViewModel;
@@ -307,7 +322,7 @@ namespace QA40xPlot.Actions
 			var voltagedBV = QaLibrary.ConvertVoltage(genVolt, E_VoltageUnit.Volt, E_VoltageUnit.dBV);  // in dbv
 
 			NextPage.Definition.GeneratorVoltage = genVolt; // save the actual generator voltage
-			MyGuiModel.GeneratorVoltage = msr.GetGenVoltLine(genVolt); // save the actual generator voltage for display
+			guiVm.GeneratorVoltage = msr.GetGenVoltLine(genVolt); // save the actual generator voltage for display
 
 			if (true != await QaComm.InitializeDevice(sampleRate, fftsize, msr.WindowingMethod, (int)msr.Attenuation))
 			{
@@ -1365,8 +1380,8 @@ namespace QA40xPlot.Actions
 			plot.MarkerSize = markerSize;
 			plot.LegendText = prefix + legendname;
 			plot.LinePattern = LinePattern.Solid;
-			plot.IsVisible = !MyGuiModel.HiddenLines.Contains(plot.LegendText);
-			MyGuiModel.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2, plot, guiVm.MainPlot, plot.IsVisible));
+			plot.IsVisible = !guiVm.HiddenLines.Contains(plot.LegendText);
+			guiVm.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2, plot, guiVm.MainPlot, plot.IsVisible));
 			}
 
 		showPlot = (isMain && guiVm.ShowRight) || (!isMain && page.Definition.IsOnR);
@@ -1400,8 +1415,8 @@ namespace QA40xPlot.Actions
 			plot.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, measurementNr * 2 + 1);
 			plot.MarkerSize = markerSize;
 			plot.LinePattern = LinePattern.Solid;
-			plot.IsVisible = !MyGuiModel.HiddenLines.Contains(plot.LegendText);
-			MyGuiModel.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2 + 1, plot, guiVm.MainPlot, plot.IsVisible));
+			plot.IsVisible = !guiVm.HiddenLines.Contains(plot.LegendText);
+			guiVm.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2 + 1, plot, guiVm.MainPlot, plot.IsVisible));
 				}
 
 			if (isMain && guiVm.ShowGroupDelay && (phases.Length > 1) && (ttype == TestingType.Impedance || ttype == TestingType.Gain))
@@ -1423,8 +1438,8 @@ namespace QA40xPlot.Actions
 				plot.LegendText = prefix + "Group Delay (ms)";
 				plot.LineWidth = lineWidth;
 				plot.MarkerSize = markerSize;
-				plot.IsVisible = !MyGuiModel.HiddenLines.Contains(plot.LegendText);
-				MyGuiModel.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2 + 2, plot, guiVm.MainPlot, plot.IsVisible));
+				plot.IsVisible = !guiVm.HiddenLines.Contains(plot.LegendText);
+				guiVm.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2 + 2, plot, guiVm.MainPlot, plot.IsVisible));
 				}
 			}
 
@@ -1458,7 +1473,7 @@ namespace QA40xPlot.Actions
 		public int DrawPlotLines(int resultNr)
 		{
 		var guiVm = (MyViewClass)MyGuiModel;
-		MyGuiModel.LegendInfo.Clear();
+		guiVm.LegendInfo.Clear();
 		guiVm.MainPlot.ThePlot.Remove<Marker>();             // Remove all current lines
 		guiVm.MainPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
 			var mainFirst = PlotZMain;

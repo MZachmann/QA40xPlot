@@ -355,6 +355,7 @@ public class FrQa430ViewModel : OpampViewModel
 	{
 		LinkPlots(plot, plot2, plot3);
 		actFreq = new ActFrQa430(this);
+		DocUtil.ActionList.Add(actFreq);
 		actAbout = TAbout;
 		actPlot = plot;
 		MyGuiModel.LinkAbout(actFreq.PageData.Definition);

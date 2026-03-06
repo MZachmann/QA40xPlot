@@ -12,9 +12,9 @@ using System.Windows;
 
 namespace QA40xPlot.Actions
 {
-	public partial class ActBase
+	public abstract class ActBase
 	{
-		protected List<DataTab> OtherTabs { get; set; } = new List<DataTab>(); // Other tabs in the document
+		public List<DataTab> OtherTabs { get; protected set; } = new List<DataTab>(); // Other tabs in the document
 
 		public DataTab PageData { get; protected set; } // Data used in this form instance
 		protected CancellationTokenSource CanToken;                                  // Measurement cancelation token
@@ -68,6 +68,36 @@ namespace QA40xPlot.Actions
 		{
 			get => _LRGains;
 			set => _LRGains = value;
+		}
+
+		public abstract Task LoadFromDictionary(Dictionary<string, string> docFile, bool doLoad);
+
+		public abstract Task FinishLoad(DataTab page, string fileName, bool isMain);
+
+		public async Task LoadADictionary<T>(Dictionary<string, string> docFile, BaseViewModel bvm, bool doLoad) where T : BaseViewModel
+		{
+			if (docFile.ContainsKey(bvm.Name))
+			{
+				var ftext = docFile[bvm.Name];
+				var page = Util.LoadFromText<T>(PageData, ftext);
+				if (page != null)
+					await FinishLoad(page, docFile["FileName"], doLoad);
+			}
+			if (doLoad)
+			{
+				OtherTabs.Clear();
+				bvm.OtherSetList.Clear();
+				// get the other keys
+				var myKeys = docFile.Keys.Where(k => k.StartsWith(bvm.Name + ":")).ToList();
+				foreach (var mkey in myKeys)
+				{
+					var ftext = docFile[mkey];
+					var page = Util.LoadFromText<T>(PageData, ftext);
+					if (page != null)
+						await FinishLoad(page, docFile["FileName"], false);
+				}
+			}
+			bvm.ForceGraphUpdate();
 		}
 
 		public virtual Task LoadFromFile(string fileName, bool doLoad)
@@ -167,19 +197,31 @@ namespace QA40xPlot.Actions
 			}
 		}
 
+		public abstract string PageToText(DataTab? page = null, bool saveFreq = false);
+
+		public virtual bool HasDataAvailable()
+		{
+			return PageData != null && PageData.ViewModel != null && PageData.FreqRslt != null && PageData.FreqRslt.Left != null;
+		}
+
 		public static void ClipName(DataDescript defn, string fileName)
 		{
-			if (defn.Name.Length == 0)
+			if (string.IsNullOrEmpty(defn.Name))
 			{
-				FileInfo fileInfo = new FileInfo(fileName);
-				defn.Name = fileInfo.Name;
-				if (defn.Name.EndsWith(".zip"))
+				if(string.IsNullOrEmpty(fileName))
+					defn.Name = "Snap";
+				else
 				{
-					defn.Name = defn.Name.Substring(0, defn.Name.Length - 4);
-				}
-				if (defn.Name.EndsWith(".plt"))
-				{
-					defn.Name = defn.Name.Substring(0, defn.Name.Length - 4);
+					FileInfo fileInfo = new FileInfo(fileName);
+					defn.Name = fileInfo.Name;
+					if (defn.Name.EndsWith(".zip"))
+					{
+						defn.Name = defn.Name.Substring(0, defn.Name.Length - 4);
+					}
+					if (defn.Name.EndsWith(".plt"))
+					{
+						defn.Name = defn.Name.Substring(0, defn.Name.Length - 4);
+					}
 				}
 			}
 		}
