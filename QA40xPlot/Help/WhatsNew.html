@@ -14,6 +14,16 @@
     </style>
 </head>
 <h1>What&#39;s New in QA40xPlot</h1>
+<h5>v 1.2.10&nbsp;&nbsp;&nbsp;&nbsp;March 7, 2026</h5>
+<h2>Risk Summary</h2>
+<p>This is extremely high risk due to the upgrades required to support load/save. Please report any new bugs via github or the forum.</p>
+<h2>Added Open/Save Document Commands</h2>
+<p>From the (new) File menu you can now save and load the entire workspace. This includes not only all current data from tests but also includes (embedded) all opened tests in each Get list. </p>
+<p>So, if you have a Spectrum and Intermodulation plot in your workspace both of them will be saved in the document. If the Spectrum test also has three tests shown in the Get list they will also be embedded into the document for later loading. Try this out!</p>
+<h2>Added Settings Mini Editor</h2>
+<p>In order to easily set common settings (as shown in the Settings expander bottom left of the screen) there is a new Pencil button that lets you pop up a short Settings window with common fields to set.</p>
+<h5>__________________________________________________________________________________________________________</h5>
+<h1>---- Older&nbsp; Entries ----</h1>
 <h5>v 1.2.9&nbsp;&nbsp;&nbsp;&nbsp; Feb 17, 2026</h5>
 <h2>Risk Summary</h2>
 <p>Should be minimal. </p>
@@ -21,9 +31,6 @@
 <p>From the test menu you can decide which traces are plotted on top. Choose from Left, Right, Get/Left (Get plots are on top and Left channel is on top), and Get/Right. Applies to all plots.</p>
 <h2>Added Plot Line thickness setting</h2>
 <p>The constant thick value of 2.0 was a little thin with my light gray background so it&#39;s now a floating point Setting that applies to all plots. Usual values are &lt; 6.</p>
-<h5>__________________________________________________________________________________________________________</h5>
-<h1>&nbsp;</h1>
-<h1>---- Older&nbsp; Entries ----</h1>
 <h5>v 1.2.8&nbsp;&nbsp;&nbsp;&nbsp; Feb 8, 2026</h5>
 <h2>Risk Summary</h2>
 <p>This release is very high risk. There were some substantial refactorings of mid-level code to help with consistency and for adding more tests. Trying to reduce the code debt.</p>

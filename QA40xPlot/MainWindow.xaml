@@ -85,6 +85,7 @@
                         <Separator />
                         <MenuItem Header="_Load Configuration" Command="{Binding DoLoadCfg}" />
                         <MenuItem Header="Save _Configuration" Command="{Binding DoSaveCfg}" />
+                        <MenuItem Header="Save Configuration as _Default" Command="{Binding DoSaveDfltCfg}" />
                     </MenuItem>
                     <MenuItem Header="_Page"  >
                         <MenuItem Header="_Spectrum" Command="{Binding SetPlotPage}" CommandParameter="spectrum" />
@@ -128,7 +129,6 @@
                         <MenuItem Header="_Help" Click="OnHelp" />
                         <MenuItem Header="_Photo" Command="{Binding DoPhoto}" />
                         <MenuItem Header="_Export Data" Command="{Binding DoExport}" />
-                        <MenuItem Header="Save Configuration as _Default" Command="{Binding DoSaveDfltCfg}" />
                         <!--<MenuItem Header="_Save Generator" Command="{Binding DoSaveWave}" />-->
                     </MenuItem>
                 </Menu>
