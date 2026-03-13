@@ -243,6 +243,16 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
+		private string _SampleLatency = "47"; // sample latency
+		public string Latency
+		{
+			get { return _SampleLatency; }
+			set
+			{
+				SetProperty(ref _SampleLatency, value);
+			}
+		}
+
 		private string _MinNoiseFreq = "20";
 		public string MinNoiseFreq
 		{

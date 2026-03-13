@@ -1,5 +1,4 @@
-﻿using QA40x.BareMetal;
-using QA40xPlot.Libraries;
+﻿using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using System.Diagnostics;
 
@@ -185,7 +184,7 @@ namespace QA40xPlot.BareMetal
 		/// </summary>
 		/// <param name="maxOut"></param>
 		/// <returns></returns>
-		int DetermineOutput(double maxOut)
+		public static int DetermineOutput(double maxOut, double Headroom)
 		{
 			// Find the smallest output setting that is greater than or equal to maxOut
 			// since maxout is a peak voltage, convert to rms
@@ -207,7 +206,7 @@ namespace QA40xPlot.BareMetal
 			else
 			{
 				// old method by just using the lowest possible gain
-				var maxdbv = 20 * Math.Log10(_Headroom * maxrms);        // get it in db
+				var maxdbv = 20 * Math.Log10(Headroom * maxrms);        // get it in db
 				foreach (var kvp in _Output2Reg.Reverse())  // since the list decreases
 				{
 					if (kvp.Key > maxdbv)
@@ -225,6 +224,16 @@ namespace QA40xPlot.BareMetal
 			return -2; // Default to -2dB if no suitable value is found
 		}
 
+		public byte[] GetCalData()
+		{
+			return _UsbApi.CalData;
+		}
+
+		public QaUsb? GetUsb()
+		{
+			return _UsbApi;
+		}
+
 		/// <summary>
 		/// This is the workhorse acquisition method used by virtually everything
 		/// It provides two channels of output wave 
@@ -236,7 +245,7 @@ namespace QA40xPlot.BareMetal
 		/// <param name="dataRight">right channel output</param>
 		/// <param name="getFreq">bool to determine whether to calculate the fft freq data</param>
 		/// <returns>a LeftRightSeries with time data and possibly freq data</returns>
-		public async ValueTask<LeftRightSeries> DoAcquireUser(uint averages, CancellationToken ct, double[] dataLeft, double[] dataRight, bool getFreq)
+		public async ValueTask<LeftRightSeries> DoAcquireUser(uint averages, CancellationToken ct, double[] dataLeft, double[] dataRight, bool getFreq, bool runRepeat)
 		{
 			if (!_UsbApi.IsOpen())
 				return new LeftRightSeries();
@@ -255,7 +264,7 @@ namespace QA40xPlot.BareMetal
 			var minOut = Math.Min(dataLeft.Min(), dataRight.Min());
 			maxOut = Math.Max(Math.Abs(maxOut), Math.Abs(minOut));  // maximum output voltage
 																	// don't bother setting output amplitude if we have no output
-			var mlevel = DetermineOutput((maxOut > 0) ? maxOut : 1e-8); // the setting for our voltage + 10%
+			var mlevel = DetermineOutput((maxOut > 0) ? maxOut : 1e-8, _Headroom); // the setting for our voltage + 10%
 			var minRange = (int)MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.MinOutputRange, -12);
 			mlevel = Math.Max(mlevel, minRange); // noop for now but keep this line in for testing
 			await SetOutputRange(mlevel);   // set the output voltage
@@ -275,7 +284,7 @@ namespace QA40xPlot.BareMetal
 				await QaLibrary.UpdateDCValues();
 				try
 				{
-					var newData = await _UsbApi.DoStreamingAsync(ct, dtL, dtR);
+					var newData = await _UsbApi.DoStreamingAsync(ct, dtL, dtR, runRepeat);
 					if (ct.IsCancellationRequested || lrfs == null || newData.Valid == false)
 						return lrfs ?? new();
 					runList.Add(newData);
@@ -334,14 +343,14 @@ namespace QA40xPlot.BareMetal
 		}
 
 		// note that averages refers to time series acquisitions
-		public async ValueTask<LeftRightSeries> DoAcquisitions(uint averages, CancellationToken ct, bool getFreq)
+		public async ValueTask<LeftRightSeries> DoAcquisitions(uint averages, CancellationToken ct, bool getFreq, bool runRepeat)
 		{
 			if (!_UsbApi.IsOpen())
 				return new LeftRightSeries();
 			var ffts = GetFftSize();
 			var srate = GetSampleRate();
 			var datapt = WaveGenerator.GenerateBoth(srate, ffts);
-			var lrfs = await DoAcquireUser(averages, ct, datapt.Item1, datapt.Item2, getFreq);
+			var lrfs = await DoAcquireUser(averages, ct, datapt.Item1, datapt.Item2, getFreq, runRepeat);
 			Debug.WriteLine($"Acquire at SampleRate={GetSampleRate()}, FftSize={GetFftSize()}, Windowing={GetWindowing()}, Attenuation={GetInputRange()}`");
 
 			return lrfs;

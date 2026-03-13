@@ -338,7 +338,7 @@ namespace QA40xPlot.Actions
 			{
 				// we can't overwrite the viewmodel since it links to the display proper
 				// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
-				guiVm.LoadViewFrom((MyViewClass)page.ViewModel);
+				guiVm.LoadViewFrom<MyViewClass>((MyViewClass)page.ViewModel);
 				PageData = page;    // set the current page to the loaded one
 
 				// relink to the new definition
@@ -411,7 +411,7 @@ namespace QA40xPlot.Actions
 			var guiVm = (MyViewClass)MyGuiModel;
 
 			LeftRightTimeSeries lrts = new();
-			PageData.ViewModel.LoadViewFrom(guiVm); // ensure view model is up to date
+			PageData.ViewModel.LoadViewFrom<MyViewClass>(guiVm); // ensure view model is up to date
 			PageData.Definition.CreateDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 			var page = PageData;    // alias
 			page.Sweep = new();
@@ -579,14 +579,14 @@ namespace QA40xPlot.Actions
 							FrequencyHistory.Clear();
 							for (int ik = 0; ik < (guiVm.Averages - 1); ik++)
 							{
-								lrfs = await QaComm.DoAcquireUser(1, CanToken.Token, wave, wave, true);
+								lrfs = await QaComm.DoAcquireUser(1, CanToken.Token, wave, wave, true, true);
 								vm.IORange = $"({QaComm.GetOutputRange()} - {QaComm.GetInputRange()})";
 								if (lrfs == null || lrfs.TimeRslt == null || lrfs.FreqRslt == null)
 									break;
 								FrequencyHistory.Add(lrfs.FreqRslt);
 							}
 							{
-								lrfs = await QaComm.DoAcquireUser(1, CanToken.Token, wave, wave, true);
+								lrfs = await QaComm.DoAcquireUser(1, CanToken.Token, wave, wave, true, false);
 								if (lrfs == null || lrfs.TimeRslt == null || lrfs.FreqRslt == null)
 									break;
 								lrfs.FreqRslt = CalculateAverages(lrfs.FreqRslt, guiVm.Averages);

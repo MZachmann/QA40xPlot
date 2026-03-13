@@ -18,6 +18,16 @@ namespace QA40xPlot.BareMetal
 			}
 		}
 
+		public static byte[] GetCalData()
+		{
+			return MyIoDevice.GetCalData();
+		}
+
+		public static QaUsb? GetUsb()
+		{
+			return MyIoDevice.GetUsb();
+		}
+
 		/// <summary>
 		/// is the hardware device connected to the usb bus?
 		/// </summary>
@@ -39,8 +49,7 @@ namespace QA40xPlot.BareMetal
 
 		public static async ValueTask SetInputRange(int range)
 		{
-			var ubend = MyIoDevice.SetInputRange(range);
-			return;
+			await MyIoDevice.SetInputRange(range);
 		}
 
 		public static async ValueTask SetOutputRange(int range)
@@ -104,9 +113,9 @@ namespace QA40xPlot.BareMetal
 			return 2048;
 		}
 
-		public static async Task<LeftRightSeries> DoAcquireUser(uint averages, CancellationToken ct, double[] dataLeft, double[] dataRight, bool getFreq)
+		public static async Task<LeftRightSeries> DoAcquireUser(uint averages, CancellationToken ct, double[] dataLeft, double[] dataRight, bool getFreq, bool runRepeat)
 		{
-			return await MyIoDevice.DoAcquireUser(averages, ct, dataLeft, dataRight, getFreq);
+			return await MyIoDevice.DoAcquireUser(averages, ct, dataLeft, dataRight, getFreq, runRepeat);
 		}
 
 		public static async Task<bool> InitializeDevice(uint sampleRate, uint fftsize, string Windowing, int attenuation)
@@ -120,9 +129,9 @@ namespace QA40xPlot.BareMetal
 			return rslt;
 		}
 
-		public static async Task<LeftRightSeries> DoAcquisitions(uint averages, CancellationToken ct, bool getFreq = true)
+		public static async Task<LeftRightSeries> DoAcquisitions(uint averages, CancellationToken ct, bool getFreq = true, bool runRepeat = false)
 		{
-			return await MyIoDevice.DoAcquisitions(averages, ct, getFreq);
+			return await MyIoDevice.DoAcquisitions(averages, ct, getFreq, runRepeat);
 		}
 
 	}

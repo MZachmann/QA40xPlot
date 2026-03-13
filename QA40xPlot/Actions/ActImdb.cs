@@ -363,7 +363,7 @@ namespace QA40xPlot.Actions
 				await showMessage($"{iteration:0} Measuring spectrum with input of {voltf}.");
 
 				var wave = BuildWave(msr, genVolt);   // also update the waveform variables
-				lrfs = await QaComm.DoAcquireUser(1, ct, wave, wave, false);
+				lrfs = await QaComm.DoAcquireUser(1, ct, wave, wave, false, true);
 				vm.IORange = $"({QaComm.GetOutputRange()} - {QaComm.GetInputRange()})";
 
 				if (lrfs.TimeRslt == null)
@@ -997,7 +997,7 @@ namespace QA40xPlot.Actions
 			{
 				// update the view model with latest settings
 				if (PageData.ViewModel != null)
-					PageData.ViewModel.LoadViewFrom(guiVm);
+					PageData.ViewModel.LoadViewFrom<MyViewClass>(guiVm);
 				// have it recalculate the noise floor now possibly
 				bool redoNoise = (ViewSettings.NoiseRefresh > 0) &&
 					(DateTime.Now - loopTime).TotalSeconds > ViewSettings.NoiseRefresh;
@@ -1012,6 +1012,7 @@ namespace QA40xPlot.Actions
 					UpdateGraph(false);
 				}
 			}
+			UsbDataService.Singleton.RunRepeatedly = false; // ensure we turn this off when done
 
 			await showMessage("");
 			guiVm.HasExport = PageData.FreqRslt != null && PageData.FreqRslt.Left?.Length > 0;

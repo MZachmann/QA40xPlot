@@ -126,7 +126,7 @@ namespace QA40xPlot.Actions
 			{
 			// we can't overwrite the viewmodel since it links to the display proper
 			// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
-				guiVm.LoadViewFrom(page.ViewModel);
+				guiVm.LoadViewFrom<MyViewClass>((MyViewClass)page.ViewModel);
 				PageData = page;    // set the current page to the loaded one
 
 				// relink to the new definition
@@ -441,13 +441,13 @@ namespace QA40xPlot.Actions
 			var dataRight = dset.Item2;
 			for (int i = 0; i < msr.Averages - 1; i++)
 			{
-				lfrs = await QaComm.DoAcquireUser(1, CanToken.Token, dataLeft, dataRight, true);
+				lfrs = await QaComm.DoAcquireUser(1, CanToken.Token, dataLeft, dataRight, true, true);
 				if (lfrs == null || lfrs.TimeRslt == null || lfrs.FreqRslt == null)
 					return new();
 				FrequencyHistory.Add(lfrs.FreqRslt);
 			}
 			{
-				lfrs = await QaComm.DoAcquireUser(1, CanToken.Token, dataLeft, dataRight, true);
+				lfrs = await QaComm.DoAcquireUser(1, CanToken.Token, dataLeft, dataRight, true, false);
 				msr.IORange = $"({QaComm.GetOutputRange()} - {QaComm.GetInputRange()})";    // diagnostic
 				if (lfrs == null || lfrs.TimeRslt == null || lfrs.FreqRslt == null)
 					return new();
@@ -930,7 +930,7 @@ namespace QA40xPlot.Actions
 				ucRight = (channels == WaveChannels.Both || channels == WaveChannels.Right) ? ucLeft : blank;
 			}
 			ucLeft = (channels == WaveChannels.Both || channels == WaveChannels.Left) ? ucLeft : blank;
-			LeftRightSeries lfrs = await QaComm.DoAcquireUser(1, CanToken.Token, ucLeft, ucRight, false);
+			LeftRightSeries lfrs = await QaComm.DoAcquireUser(1, CanToken.Token, ucLeft, ucRight, false, false);
 			if (lfrs?.TimeRslt == null)
 				return (null, [], []);
 			page.TimeRslt = lfrs.TimeRslt;

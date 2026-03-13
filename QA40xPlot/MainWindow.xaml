@@ -83,8 +83,8 @@
                         <MenuItem Header="_Open..." Command="{Binding DocOpen}"  />
                         <MenuItem Header="_Save..." Command="{Binding DocSave}"  />
                         <Separator />
-                        <MenuItem Header="_Load Configuration" Command="{Binding DoLoadCfg}" />
-                        <MenuItem Header="Save _Configuration" Command="{Binding DoSaveCfg}" />
+                        <MenuItem Header="_Load Configuration..." Command="{Binding DoLoadCfg}" />
+                        <MenuItem Header="Save _Configuration..." Command="{Binding DoSaveCfg}" />
                         <MenuItem Header="Save Configuration as _Default" Command="{Binding DoSaveDfltCfg}" />
                     </MenuItem>
                     <MenuItem Header="_Page"  >

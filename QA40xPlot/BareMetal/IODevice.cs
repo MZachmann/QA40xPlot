@@ -39,6 +39,8 @@ namespace QA40xPlot.BareMetal
 		public uint GetFftSize();
 		public string GetWindowing();
 		public OutputSources GetOutputSource();
+		public byte[] GetCalData();
+		public QaUsb? GetUsb();
 
 		public ValueTask SetInputRange(int range);
 		public ValueTask SetOutputRange(int range);
@@ -49,7 +51,7 @@ namespace QA40xPlot.BareMetal
 
 		// higher level methods
 		public ValueTask<bool> InitializeDevice(uint sampleRate, uint fftsize, string Windowing, int attenuation);
-		public ValueTask<LeftRightSeries> DoAcquireUser(uint averages, CancellationToken ct, double[] dataLeft, double[] dataRight, bool getFreq);
-		public ValueTask<LeftRightSeries> DoAcquisitions(uint averages, CancellationToken ct, bool getFreq);
+		public ValueTask<LeftRightSeries> DoAcquireUser(uint averages, CancellationToken ct, double[] dataLeft, double[] dataRight, bool getFreq, bool runRepeat);
+		public ValueTask<LeftRightSeries> DoAcquisitions(uint averages, CancellationToken ct, bool getFreq, bool runRepeat);
 	}
 }

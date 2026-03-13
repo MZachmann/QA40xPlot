@@ -194,7 +194,7 @@ namespace QA40xPlot.Actions
 				// we can't overwrite the viewmodel since it links to the display proper
 				// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
 				var guiVm = (MyViewClass)MyGuiModel;
-				guiVm.LoadViewFrom((MyViewClass)page.ViewModel);
+				guiVm.LoadViewFrom<MyViewClass>((MyViewClass)page.ViewModel);
 				PageData = page;    // set the current page to the loaded one
 
 				// relink to the new definition
@@ -395,7 +395,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="ct">Cancellation token</param>
 		/// <returns>result. false if cancelled</returns>
-		async Task<bool> RunAcquisition(DataTab msr, int iteration, CancellationToken ct)
+		async Task<bool> RunAcquisition(DataTab msr, int iteration, CancellationToken ct, bool repeat)
 		{
 			// Setup
 			MyViewClass thd = (MyViewClass)msr.ViewModel;
@@ -457,7 +457,7 @@ namespace QA40xPlot.Actions
 				await showMessage($"{iteration:0} Measuring waveform with input of {voltf}.");
 
 				var wave = BuildWave(msr, genVolt);   // also update the waveform variables
-				lrfs = await QaComm.DoAcquireUser(msr.ViewModel.Averages, ct, wave, wave, false);
+				lrfs = await QaComm.DoAcquireUser(msr.ViewModel.Averages, ct, wave, wave, false, repeat);
 				thd.IORange = $"({QaComm.GetOutputRange()} - {QaComm.GetInputRange()})";
 
 				if (lrfs.TimeRslt == null)
@@ -473,8 +473,6 @@ namespace QA40xPlot.Actions
 			return true;
 		}
 
-
-
 		/// <summary>
 		/// do post processing, just a bunch of easy math and moving stuff into viewmodels
 		/// </summary>
@@ -482,7 +480,7 @@ namespace QA40xPlot.Actions
 		/// <returns>result. false if cancelled</returns>
 		private async Task<bool> PostProcess(DataTab msr, CancellationToken ct)
 		{
-			var thd = msr.ViewModel;
+			var thd = (MyViewClass)msr.ViewModel;
 			try
 			{
 				UpdateGraph(false);
@@ -696,11 +694,11 @@ namespace QA40xPlot.Actions
 				vm.Attenuation = guiVm.Attenuation;   // update the scopeVm to update the gui, then this for the steps
 			}
 
-			int iteration = 1;
+			int iteration = 0;
 			// do the actual measurements
 			var rslt = true;
 			await showProgress(0);
-			rslt = await RunAcquisition(NextPage, iteration++, CanToken.Token);
+			rslt = await RunAcquisition(NextPage, iteration++, CanToken.Token, repeat);
 			if (rslt)
 				rslt = await PostProcess(NextPage, CanToken.Token);
 
@@ -716,15 +714,15 @@ namespace QA40xPlot.Actions
 			{
 				// make sure the page data viewmodel is up to date
 				if (PageData.ViewModel != null)
-					PageData.ViewModel.LoadViewFrom(guiVm);
-				rslt = await RunAcquisition(PageData, iteration++, CanToken.Token);
+					PageData.ViewModel.LoadViewFrom<MyViewClass>(guiVm);
+				rslt = await RunAcquisition(PageData, iteration++, CanToken.Token, repeat);
 				if (rslt)
 				{
 					rslt = await PostProcess(PageData, CanToken.Token);
 					UpdateGraph(false);
 				}
 			}
-
+			UsbDataService.Singleton.RunRepeatedly = false; // stop freerunning
 			await showMessage("");
 			guiVm.HasExport = (PageData.TimeRslt.Left.Length > 0);
 			await EndAction(guiVm);

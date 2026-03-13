@@ -45,6 +45,10 @@ namespace QA40xPlot.BareMetal
 
 		public OutputSources GetOutputSource() { return _OutputSource; }
 
+		public byte[] GetCalData() { return []; }
+
+		public QaUsb? GetUsb() { return null; }
+
 		public string GetWindowing() { return _Windowing; }
 
 		public ValueTask<bool> IsServerRunning()
@@ -104,18 +108,18 @@ namespace QA40xPlot.BareMetal
 			await Qa40x.SetWindowing(windowing);
 		}
 
-		public async ValueTask<LeftRightSeries> DoAcquireUser(uint averages, CancellationToken ct, double[] dataLeft, double[] dataRight, bool getFreq)
+		public async ValueTask<LeftRightSeries> DoAcquireUser(uint averages, CancellationToken ct, double[] dataLeft, double[] dataRight, bool getFreq, bool runRepeat)
 		{
-			return await QaREST.DoAcquireUser(ct, dataLeft, dataRight, getFreq);
+			return await QaREST.DoAcquireUser(ct, dataLeft, dataRight, getFreq, runRepeat);
 		}
 
-		public async ValueTask<LeftRightSeries> DoAcquisitions(uint averages, CancellationToken ct, bool getFreq)
+		public async ValueTask<LeftRightSeries> DoAcquisitions(uint averages, CancellationToken ct, bool getFreq, bool runRepeat)
 		{
 			var ffts = GetFftSize();
 			var osource = GetOutputSource();
 			var srate = GetSampleRate();
 			var datapts = WaveGenerator.GenerateBoth(srate, ffts);
-			return await QaREST.DoAcquireUser(ct, datapts.Item1, datapts.Item2, getFreq);
+			return await QaREST.DoAcquireUser(ct, datapts.Item1, datapts.Item2, getFreq, runRepeat);
 		}
 
 		public async ValueTask<bool> InitializeDevice(uint sampleRate, uint fftsize, string Windowing, int attenuation)

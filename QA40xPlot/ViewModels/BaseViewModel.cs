@@ -826,10 +826,10 @@ namespace QA40xPlot.ViewModels
 		}
 
 		// this copies a viewmodel from one to another, skipping MyGuiModel specific properties
-		public void LoadViewFrom<Model>(Model model) where Model : BaseViewModel
+		public void LoadViewFrom<Model>(Model srcModel) where Model : BaseViewModel
 		{
-			Debug.Assert(!ReferenceEquals(this, model), "Cannot copy from self");
-			model.CopyPropertiesTo<Model>(this, ["Name", "MyId", "Version", "MainPlot", "MiniPlot", "Mini2Plot", "OtherSetList"]);
+			Debug.Assert(!ReferenceEquals(this, srcModel), "Cannot copy from self");
+			srcModel.CopyPropertiesTo<Model>(this, ["Name", "MyId", "Version", "MainPlot", "MiniPlot", "Mini2Plot", "OtherSetList"]);
 		}
 
 		public void CopyDescript(BaseViewModel vm, DataDescript desc)

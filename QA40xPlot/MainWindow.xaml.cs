@@ -183,6 +183,22 @@ namespace QA40xPlot
 			}
 			if (TheTabs != null && ViewSettings.Singleton != null)
 				TabUtil.SetTabPanelVisibility(ViewSettings.Singleton.MainVm.ShowTabs, TheTabs);
+
+		}
+
+		private async Task DoClosing()
+		{
+			// set max attenuation for safety, turns on ATTEN led
+			if (ViewSettings.Singleton.SettingsVm.RelayUsage != "Never")
+			{
+				if (!ViewSettings.IsUseREST)
+				{
+					var qadev = QaComm.CheckDeviceConnected();  // this will try to reopen the usb
+					var iscon = qadev.AsTask().Wait(50);
+				}
+				await QaComm.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION);
+			}
+			await UsbDataService.Singleton.Stop();
 		}
 
 		protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
@@ -192,17 +208,8 @@ namespace QA40xPlot
 				if (ViewSettings.Singleton.MainVm.HasQA430)
 					QA430Model.EndQA430Op();
 
-				if (ViewSettings.Singleton.SettingsVm.RelayUsage != "Never")
-				{
-					if (!ViewSettings.IsUseREST)
-					{
-						var qadev = QaComm.CheckDeviceConnected();  // this will try to reopen the usb
-						var iscon = qadev.AsTask().Wait(50);
-					}
-					// set max attenuation for safety, turns on ATTEN led
-					var tsk = QaComm.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION);
-					tsk.AsTask().Wait(100);
-				}
+				DoClosing().ContinueWith(x => { });
+
 			}
 			catch (Exception ex)
 			{

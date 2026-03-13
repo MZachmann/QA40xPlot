@@ -132,7 +132,7 @@ namespace QA40xPlot.Actions
 			{
 				// we can't overwrite the viewmodel since it links to the display proper
 				// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
-				guiVm.LoadViewFrom((MyViewClass)page.ViewModel);
+				guiVm.LoadViewFrom<MyViewClass>((MyViewClass)page.ViewModel);
 				PageData = page;    // set the current page to the loaded one
 
 				// relink to the new definition
@@ -284,7 +284,7 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		public async Task DoMeasurement(bool repeater)
 		{
-			var guiVm = MyGuiModel;          // the active viewmodel
+			var guiVm = (MyViewClass)MyGuiModel;          // the active viewmodel
 			if (!await StartAction(guiVm))
 				return;
 
@@ -348,7 +348,7 @@ namespace QA40xPlot.Actions
 			{
 				// update the view model with latest settings
 				if (PageData.ViewModel != null)
-					PageData.ViewModel.LoadViewFrom(guiVm);
+					PageData.ViewModel.LoadViewFrom<MyViewClass>(guiVm);
 
 				// have it recalculate the noise floor now possibly
 				bool redoNoise = (ViewSettings.NoiseRefresh > 0) &&
@@ -365,7 +365,7 @@ namespace QA40xPlot.Actions
 					UpdateGraph(false);
 				}
 			}
-
+			UsbDataService.Singleton.RunRepeatedly = false; // ensure we turn this off when done
 			await showMessage("");
 			guiVm.HasExport = PageData.FreqRslt != null;
 			await EndAction(guiVm);
@@ -402,7 +402,9 @@ namespace QA40xPlot.Actions
 		/// <summary>
 		/// run an acquisition and get the frequency and time results
 		/// </summary>
-		/// <param name="msr">the datatab we're using</param>
+		/// <param name="msr"></param>
+		/// <param name="doNoise"></param>
+		/// <param name="iteration"></param>
 		/// <param name="ct"></param>
 		/// <returns></returns>
 		async Task<bool> RunAcquisition(DataTab msr, bool doNoise, uint iteration, CancellationToken ct)
@@ -467,9 +469,8 @@ namespace QA40xPlot.Actions
 				// now do the step measurement
 				await showMessage($"{iteration:0} Measuring spectrum with input of {MyGuiModel.GeneratorVoltage}.");
 				await showProgress(80);
-
 				var wave = BuildWave(msr, genVolt);   // also update the waveform variables
-				lrfs = await QaComm.DoAcquireUser(1, ct, wave, wave, false);
+				lrfs = await QaComm.DoAcquireUser(1, ct, wave, wave, false, true);
 				vm.IORange = $"({QaComm.GetOutputRange()} -> {QaComm.GetInputRange()})";
 
 				if (lrfs.TimeRslt != null)

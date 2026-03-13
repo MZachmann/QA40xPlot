@@ -14,20 +14,32 @@ using System.Diagnostics;
 // and https://github.com/QuantAsylum/PyQa40x
 
 
-namespace QA40x.BareMetal
+namespace QA40xPlot.BareMetal
 {
-	class AcqResult
+	public class AcqResult
 	{
 		public bool Valid = false;
+		public int JobNumber = 0;
 		public double[] Left = [];
 		public double[] Right = [];
 	};
 
+	public class AsyncSource
+	{
+		public double[] Left = [];
+		public double[] Right = [];
+		public byte[] TheData = [];
+	}
+
 	/// <summary>
 	/// A simple class to help wrap async transfers
 	/// </summary>
-	class AsyncResult
+	public class AsyncResult
 	{
+		// result numbering
+		public uint JobTotal = 0;
+		public uint JobNumber = 0;
+		public uint JobItem = 0;
 		/// <summary>
 		/// This is specific to the underlying library. LIBUSBDOTNET uses UsbTransfer. 
 		/// WinUsbDotNet uses IAsyncResult.
@@ -50,6 +62,25 @@ namespace QA40x.BareMetal
 		}
 
 		/// <summary>
+		/// This will change depending on lib used.
+		/// </summary>
+		/// <param name="usb"></param>
+		public AsyncResult(UsbTransfer usb, byte[] readBuffer, uint jobNo, uint jobItem, uint jobTotal)
+		{
+			UsbXfer = usb;
+			ReadBuffer = readBuffer;
+			JobItem = jobItem;
+			JobNumber = jobNo;
+			JobTotal = jobTotal;
+		}
+
+		public void SetJob(uint jobNumber, uint jobItem)
+		{
+			JobNumber = jobNumber;
+			JobItem = jobItem;
+		}
+
+		/// <summary>
 		/// Waits until the data associated with this USB object has been read from 
 		/// or written to, or timed out
 		/// </summary>
@@ -59,6 +90,19 @@ namespace QA40x.BareMetal
 			UsbXfer.Wait(out int transferred);
 			return transferred;
 		}
+
+		public bool IsDone()
+		{
+			return UsbXfer.IsCompleted;
+		}
+
+		public void Cancel()
+		{
+			if(!UsbXfer.IsCompleted)
+			{
+				UsbXfer.Cancel();
+			}
+		}
 	}
 
 	/// <summary>
@@ -66,7 +110,7 @@ namespace QA40x.BareMetal
 	/// higher level calls and basic read/writes. It also has replacment calls
 	/// for the common QaLibrary methods such as DoAcquisition and InitializeDevice.
 	/// </summary>
-	class QaUsb
+	public class QaUsb
 	{
 		object ReadRegLock = new object();
 		// how long to wait for relays to settle down after changing input/output ranges
@@ -79,7 +123,7 @@ namespace QA40x.BareMetal
 		List<AsyncResult> ReadQueue = new List<AsyncResult>();
 		/// Tracks whether or not an acq is in process. The count starts at one, and when it goes busy
 		/// it will drop to zero, and then return to 1 when not busy
-		static SemaphoreSlim AcqSemaphore = new SemaphoreSlim(1);
+		static SemaphoreSlim AcqSemaphore = new SemaphoreSlim(0, 1);
 
 		readonly int RegReadWriteTimeout = 100;
 		readonly int MainI2SReadWriteTimeout = 1000; // per baremetal
@@ -326,7 +370,7 @@ namespace QA40x.BareMetal
 		/// <param name="leftOut"></param>
 		/// <param name="rightOut"></param>
 		/// <returns></returns>
-		public async Task<AcqResult> DoStreamingAsync(CancellationToken ct, double[] leftOut, double[] rightOut)
+		public async Task<AcqResult> DoStreamingAsync(CancellationToken ct, double[] leftOut, double[] rightOut, bool runRepeat)
 		{
 			// this bunch of code is to handle the relay flipping.
 			// We need to wait a bit for the relays to settle down
@@ -360,7 +404,9 @@ namespace QA40x.BareMetal
 				Debug.WriteLine($"Error: {ex.Message}");
 			}
 			// now do the real thing
-			return await SubStreamingAsync(ct, leftOut, rightOut);
+			return await UsbDataService.UseDataService(null, false, leftOut, rightOut, _LastSampleRate, ct, runRepeat);
+
+			//await SubStreamingAsync(ct, leftOut, rightOut);
 		}
 		/// <summary>
 		/// Provides an async method for doign the DAC/ADC streaming. You can submit separate buffers for the left and right channels.
@@ -559,7 +605,7 @@ namespace QA40x.BareMetal
 			byte[] txData = ToByteStream(lout.ToArray(), rout.ToArray());
 			byte[] rxData = new byte[txData.Length];
 
-			// Determine the number of blocks needed
+			// Determine the number of full size blocks needed
 			int blocks = txData.Length / usbBufSize;
 			int remainder = txData.Length - blocks * usbBufSize;
 
@@ -593,14 +639,10 @@ namespace QA40x.BareMetal
 			InitOverlapped();
 			soundObj?.Play();
 
-			// Start streaming DAC, with ADC autostreamed after DAC is seeing live data
-			// Important! Enabled streaming AND THEN send data. This will also illuminate the 
-			// RUN led
-			WriteRegister(8, 0x5);
 
 			// list of rx blocks
 			List<byte[]> usbRxBuffers = new List<byte[]>();
-			int prereader = 3;  // number of buffers to keep running
+			int prereader = blocks;  // number of buffers to keep running
 
 			// Prime the pump with two reads. This way we can handle one buffer while the other is being
 			// used by the OS
@@ -615,6 +657,11 @@ namespace QA40x.BareMetal
 				ReadDataBegin(usbBufSize);
 				WriteDataBegin(txData, usbBufSize * i, usbBufSize);
 			}
+
+			// The baremetal code says this should be sent before sending data but I'm pretty sure that's wrong
+			// Important! Enabled streaming AND THEN send data. This will also illuminate the 
+			// RUN led
+			WriteRegister(8, 0x5);
 
 			var remaining = prereader;  // # of blocks still to read after all is sent
 
@@ -659,7 +706,7 @@ namespace QA40x.BareMetal
 
 			// At this point, all buffers have been sent and there are two or three RX
 			// buffers in-flight. Collect those
-			for (int i = 0; i < remaining; i++)
+			for (int i = 0; (i < remaining) && !ct.IsCancellationRequested; i++)
 			{
 				var bufr = ReadDataEnd();
 				usbRxBuffers.Add(bufr);
@@ -805,13 +852,13 @@ namespace QA40x.BareMetal
 				}
 
 				var rlf = r.Left.Skip(loff).Take(tused);
-				var troff = rlf.Average();  // dc offset
+				var troff = 0;// rlf.Average();  // dc offset
 				r.Left = rlf.Select(x => (x - troff) * adcCal.Left * adcCorrection).ToArray();
 
 				var rrf = r.Right.Skip(roff).Take(tused);
 				if (rrf.Count() > 0)
 				{
-					troff = rrf.Average();  // dc offset
+					troff = 0;// rrf.Average();  // dc offset
 					r.Right = rrf.Select(x => (x - troff) * adcCal.Right * adcCorrection).ToArray();
 				}
 			}

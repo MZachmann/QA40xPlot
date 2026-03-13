@@ -435,16 +435,16 @@ namespace QA40xPlot.Actions
 			for (int ik = 0; ik < (averages - 1); ik++)
 			{
 				await showMessage($"Noise test {ik}.", 40);
-				lrfs = await QaComm.DoAcquisitions(1, ct);
-				if (lrfs != null && lrfs.FreqRslt != null)
+				lrfs = await QaComm.DoAcquisitions(1, ct, true, true);
+				if (lrfs != null && lrfs.FreqRslt != null && lrfs.FreqRslt.Left.Length > 0)
 					FrequencyHistory.Add(lrfs.FreqRslt);
 			}
 			// now FrequencyHistory has n-1 samples
 			{
 				if(averages > 1)
 					await showMessage($"Noise test {averages}.", 40);
-				lrfs = await QaComm.DoAcquisitions(1, ct, true);
-				if (lrfs != null && lrfs.FreqRslt != null)
+				lrfs = await QaComm.DoAcquisitions(1, ct, true, false);
+				if (lrfs != null && lrfs.FreqRslt != null && lrfs.FreqRslt.Left.Length > 0)
 					lrfs.FreqRslt = CalculateAverages(lrfs.FreqRslt, averages);
 			}
 
@@ -510,9 +510,13 @@ namespace QA40xPlot.Actions
 				WaveGenerator.SetGen1(true, dfreq, generatorV, true); // send a sine wave
 				bvm.GeneratorVoltage = bvm.GetGenVoltLine(generatorV); // update the viewmodel so we can show it on-screen
 				// do two and average them
-				acqData = await QaComm.DoAcquisitions(1, ct.Token);        // Do a single acquisition
+				acqData = await QaComm.DoAcquisitions(1, ct.Token, true, true);        // Do a single acquisition
 				if (acqData == null || acqData.FreqRslt == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
+				{
+					ct.Dispose();
+					UsbDataService.Singleton.RunRepeatedly = false;
 					return null;
+				}
 
 				int fundamentalBin = QaLibrary.GetBinOfFrequency(dfreq, acqData.FreqRslt.Df);
 				binmin = Math.Max(0, fundamentalBin - 2);
@@ -536,14 +540,20 @@ namespace QA40xPlot.Actions
 			// if we're asking for averaging
 			for (int j = 1; j < average; j++)
 			{
-				acqData = await QaComm.DoAcquisitions(1, ct.Token);        // Do a single aqcuisition
+				acqData = await QaComm.DoAcquisitions(1, ct.Token, true, true);        // Do a single aqcuisition
 				if (acqData == null || acqData.FreqRslt == null || ct.IsCancellationRequested)
+				{
+					ct.Dispose();
+					UsbDataService.Singleton.RunRepeatedly = false;
 					return null;
+				}
 
 				// calculate gain for each channel from frequency response
 				lrfs.Left[0] += GetFGain(acqData.FreqRslt.Left, generatorV, binmin, bintrack);
 				lrfs.Right[0] += GetFGain(acqData.FreqRslt.Right, generatorV, binmin, bintrack);
 			}
+			ct.Dispose();
+			UsbDataService.Singleton.RunRepeatedly = false;
 			if (average > 1)
 			{
 				lrfs.Left = lrfs.Left.Select(x => x / average).ToArray();
@@ -602,9 +612,12 @@ namespace QA40xPlot.Actions
 				LeftRightFrequencySeries lrfs = new LeftRightFrequencySeries();
 				for (int j = 0; j < average; j++)
 				{
-					LeftRightSeries acqData = await QaComm.DoAcquireUser(1, ct.Token, chirpy, chirpy, false);
+					LeftRightSeries acqData = await QaComm.DoAcquireUser(1, ct.Token, chirpy, chirpy, true, (j < (average-1)));
 					if (acqData == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
+					{
+						ct.Dispose();
 						return null;
+					}
 
 					// calculate gain for each channel from frequency response
 					LeftRightTimeSeries lrts = new LeftRightTimeSeries();
@@ -661,6 +674,7 @@ namespace QA40xPlot.Actions
 				lrfOut.Left[0] = lrfs.Left[0];
 				lrfOut.Right[lst] = lrfs.Right[lst];
 				lrfOut.Left[lst] = lrfs.Left[lst];
+				ct.Dispose();
 				return lrfOut;       // Return the new generator amplitude and acquisition data
 			}
 		}

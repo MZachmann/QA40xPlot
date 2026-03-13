@@ -110,7 +110,7 @@ namespace QA40xPlot.BareMetal
 			}
 
 			var ffs = lrs.Left;
-			var thdLeft = ComputeSnrRatio(windowing, ffs, lrs.Df, fundFreq, minFreq, maxFreq, weighting, true);
+			var thdLeft = ComputeSnrRatio(windowing, ffs, lrs.Df, fundFreq, minFreq, maxFreq, weighting, false);
 			thdLeft = QaLibrary.ConvertVoltage(thdLeft, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
 			ffs = lrs.Right;
 			var thdRight = ComputeSnrRatio(windowing, ffs, lrs.Df, fundFreq, minFreq, maxFreq, weighting, false);

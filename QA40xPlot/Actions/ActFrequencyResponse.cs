@@ -137,7 +137,7 @@ namespace QA40xPlot.Actions
 			{
 				// we can't overwrite the viewmodel since it links to the display proper
 				// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
-				guiVm.LoadViewFrom((MyViewClass)page.ViewModel);
+				guiVm.LoadViewFrom<MyViewClass>((MyViewClass)page.ViewModel);
 				PageData = page;    // set the current page to the loaded one
 
 				// relink to the new definition
@@ -432,7 +432,7 @@ namespace QA40xPlot.Actions
 			var is2channel = ttype == TestingType.Response;
 			for (int i = 0; i < msr.Averages - 1; i++)
 			{
-				lfrs = await QaComm.DoAcquireUser(1, CanToken.Token, dataLeft, dataRight, true);
+				lfrs = await QaComm.DoAcquireUser(1, CanToken.Token, dataLeft, dataRight, true, true);
 				msr.IORange = $"({QaComm.GetOutputRange()} - {QaComm.GetInputRange()})";
 				if (lfrs == null || lfrs.TimeRslt == null || lfrs.FreqRslt == null)
 					return new();
@@ -441,7 +441,7 @@ namespace QA40xPlot.Actions
 				gainvalues.Add(gas);
 			}
 			{
-				lfrs = await QaComm.DoAcquireUser(1, CanToken.Token, dataLeft, dataRight, true);
+				lfrs = await QaComm.DoAcquireUser(1, CanToken.Token, dataLeft, dataRight, true, false);
 				if (lfrs == null || lfrs.TimeRslt == null || lfrs.FreqRslt == null)
 					return new();
 				//lfrs.FreqRslt = CalculateAverages(lfrs.FreqRslt, msr.Averages);
@@ -720,33 +720,11 @@ namespace QA40xPlot.Actions
 		private async Task RunStep(DataTab page, TestingType ttype, double dfreq, double genVolt)
 		{
 			var vm = (MyViewClass)page.ViewModel;
-			if (vm.Averages > 0)
-			{
-				List<Complex> readings = new();
-				for (int j = 0; j < vm.Averages; j++)
-				{
-					var voltf = vm.GetGenVoltLine(genVolt);
-					await showMessage(string.Format($"Checking + {dfreq:0} Hz at {voltf}"));   // need a delay to actually see it
-					var ga = await GetGain(dfreq, vm, ttype);
-					readings.Add(ga);
-				}
-				var total = Complex.Zero;
-				foreach (var f in readings)
-				{
-					total += f;
-				}
-				total /= vm.Averages;
-				page.GainData = (page.GainReal.Append(total.Real).ToArray(), page.GainImag.Append(total.Imaginary).ToArray());
-				//page.GainData = page.GainData.Append(total / vm.Averages).ToArray();
-			}
-			else
-			{
-				await showMessage(string.Format("Checking + {0:0}", dfreq));   // need a delay to actually see it
-				var ga = await GetGain(dfreq, vm, ttype);
-				//page.GainData = page.GainData.Append(ga).ToArray();
-				page.GainData = (page.GainReal.Append(ga.Real).ToArray(), page.GainImag.Append(ga.Imaginary).ToArray());
-
-			}
+			// the getgain method already uses averaging
+			await showMessage(string.Format("Checking + {0:0} with {1:3}", dfreq, genVolt));   // need a delay to actually see it
+			var ga = await GetGain(dfreq, vm, ttype);
+			//page.GainData = page.GainData.Append(ga).ToArray();
+			page.GainData = (page.GainReal.Append(ga.Real).ToArray(), page.GainImag.Append(ga.Imaginary).ToArray());
 		}
 
 		/// <summary>
@@ -870,7 +848,7 @@ namespace QA40xPlot.Actions
 				ucRight = (channels == WaveChannels.Both || channels == WaveChannels.Right) ? ucLeft : blank;
 			}
 			ucLeft = (channels == WaveChannels.Both || channels == WaveChannels.Left) ? ucLeft : blank;
-			LeftRightSeries lfrs = await QaComm.DoAcquireUser(1, CanToken.Token, ucLeft, ucRight, false);
+			LeftRightSeries lfrs = await QaComm.DoAcquireUser(1, CanToken.Token, ucLeft, ucRight, false, false);
 			if (lfrs?.TimeRslt == null)
 				return (null, [], []);
 			page.TimeRslt = lfrs.TimeRslt;
