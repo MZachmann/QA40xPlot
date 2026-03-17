@@ -253,6 +253,16 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
+		private bool _AllowRepeating = true;
+		public bool AllowRepeating
+		{
+			get { return _AllowRepeating; }
+			set
+			{
+				SetProperty(ref _AllowRepeating, value);
+			}
+		}
+
 		private string _MinNoiseFreq = "20";
 		public string MinNoiseFreq
 		{

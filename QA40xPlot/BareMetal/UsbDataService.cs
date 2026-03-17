@@ -1,4 +1,4 @@
-﻿#define SHOWDBG
+﻿//#define SHOWDBG
 
 using LibUsbDotNet.Main;
 using QA40xPlot.Extensions;
@@ -107,6 +107,11 @@ namespace QA40xPlot.BareMetal
 #endif
 			byte[] shaData = [];
 			bool diffSha = false;
+			if(runRepeat && ! ViewSettings.Singleton.SettingsVm.AllowRepeating)
+			{
+				// if we do not allow repeating
+				runRepeat = false;
+			}
 			await Task.Run(() =>
 			{
 				shaData = UsbDataService.CalculateSha(outL, outR);
@@ -265,6 +270,12 @@ namespace QA40xPlot.BareMetal
 									// submit a second run immediately to prep for repeating
 									HandleDataReady(false);
 									CurrentJobNo++;
+									if(InDataQueue.Count <= 2)
+									{
+										// for faster scans we need two runs queued up
+										HandleDataReady(false);
+										CurrentJobNo++;
+									}
 								}
 								else if(!RunRepeatedly)
 								{
@@ -780,9 +791,9 @@ namespace QA40xPlot.BareMetal
 				uint jobItem = 0;
 				// If we have data to send, send it
 				var dataArray = InDataQueue.ToArray();
-				// if we are starting a new data source use all but the postbuf
-				// otherwise skip the prebuf also
-				AsyncSource[] dataQueue = (CurrentJobNo == 0) ? dataArray[0..^1] : dataArray[1..^1];
+				// if we are starting a new data source use all
+				// otherwise skip the prebuf
+				var dataQueue = (CurrentJobNo == 0) ? dataArray : dataArray.Skip(1);
 				if(isLast)
 				{
 					dataQueue = [dataArray[(CurrentJobNo == 1) ? 1 : 0]]; // if this is the last one, send the first block
@@ -908,9 +919,9 @@ namespace QA40xPlot.BareMetal
 				sources.Add(src);
 			}
 
-			// PostBuffer
-			lfa = new double[PostBufSize];
-			sources.Add(new AsyncSource() { Left = lfa, Right = lfa });
+			//// PostBuffer
+			//lfa = new double[PostBufSize];
+			//sources.Add(new AsyncSource() { Left = lfa, Right = lfa });
 
 			foreach(var src in sources)
 			{

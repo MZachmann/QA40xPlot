@@ -1,7 +1,6 @@
 ﻿using LibUsbDotNet;
 using LibUsbDotNet.Main;
 using NAudio.Wave;
-using QA40xPlot.BareMetal;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using System.Data;

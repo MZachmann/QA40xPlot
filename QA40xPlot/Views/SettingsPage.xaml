@@ -19,6 +19,8 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -70,6 +72,8 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto"/>
@@ -312,37 +316,53 @@
                    HorizontalAlignment="Left" VerticalAlignment="Center"
                    Grid.Row="51" Grid.Column="4" />
             <local:GroupHeader Grid.Row="52" Grid.Column="0" Grid.ColumnSpan="5"  />
-            <Label VerticalAlignment="Center" Content="Debug Distortion: " Grid.Row="53" Grid.Column="0" />
-            <ComboBox IsEditable="True" Grid.Row="53" Grid.Column="1" MinWidth="80" 
-                  Text="{Binding AddDistortion}" 
-                  ItemsSource="{Binding Impedances}" />
-            <Label VerticalAlignment="Center" Content="%" Grid.Row="53" Grid.Column="2" HorizontalAlignment="Left" />
+            <Label VerticalAlignment="Center" Content="Idle Generator: " Grid.Row="53" Grid.Column="0" />
+            <CheckBox  Grid.Row="53" Grid.Column="1" IsChecked="{Binding AllowRepeating}" Content="Allow" VerticalAlignment="Center" />
             <TextBlock TextWrapping="Wrap" MaxWidth="600" 
-                   Text="Add distortion to the signal for testing. For spectrum and IMD. Blank or 0==none" 
+                   Text="Send a constant test generator instead of in packets when repeating a test." 
                    HorizontalAlignment="Left" VerticalAlignment="Center"
                    Grid.Row="53" Grid.Column="4" />
             <local:GroupHeader Grid.Row="54" Grid.Column="0" Grid.ColumnSpan="5"  />
-            <Label VerticalAlignment="Center" Content="Output Method: " Grid.Row="55" Grid.Column="0" />
-            <ComboBox Grid.Row="55" Grid.Column="1" MinWidth="80" SelectedValue="{Binding OutputMethod}" ItemsSource="{Binding OutputMethods}" />
+            <Label VerticalAlignment="Center" Content="Debug Distortion: " Grid.Row="55" Grid.Column="0" />
+            <ComboBox IsEditable="True" Grid.Row="55" Grid.Column="1" MinWidth="80" 
+                  Text="{Binding AddDistortion}" 
+                  ItemsSource="{Binding Impedances}" />
+            <Label VerticalAlignment="Center" Content="%" Grid.Row="55" Grid.Column="2" HorizontalAlignment="Left" />
             <TextBlock TextWrapping="Wrap" MaxWidth="600" 
-                   Text="Change the generator gain method to use default or to minimize either noise or distortion." 
+                   Text="Add distortion to the signal for testing. For spectrum and IMD. Blank or 0==none" 
                    HorizontalAlignment="Left" VerticalAlignment="Center"
                    Grid.Row="55" Grid.Column="4" />
             <local:GroupHeader Grid.Row="56" Grid.Column="0" Grid.ColumnSpan="5"  />
-            <Label VerticalAlignment="Center" Content="Safety Margin: " Grid.Row="57" Grid.Column="0" />
-            <ComboBox IsEditable="True"  Grid.Row="57" Grid.Column="1" MinWidth="80" Text="{Binding SafetyMargin}" ItemsSource="{Binding GenVoltages}" />
-            <Label VerticalAlignment="Center" Content="dB" Grid.Row="57" Grid.Column="2" HorizontalAlignment="Left" />
+            <Label VerticalAlignment="Center" Content="Output Method: " Grid.Row="57" Grid.Column="0" />
+            <ComboBox Grid.Row="57" Grid.Column="1" MinWidth="80" SelectedValue="{Binding OutputMethod}" ItemsSource="{Binding OutputMethods}" />
             <TextBlock TextWrapping="Wrap" MaxWidth="600" 
-                   Text="Attenuator dB safety margin to add to calculated necessary attenuation - default 5." 
+                   Text="Change the generator gain method to use default or to minimize either noise or distortion." 
                    HorizontalAlignment="Left" VerticalAlignment="Center"
                    Grid.Row="57" Grid.Column="4" />
             <local:GroupHeader Grid.Row="58" Grid.Column="0" Grid.ColumnSpan="5"  />
-            <Label VerticalAlignment="Center" Content="Usb Buffer Size: " Grid.Row="59" Grid.Column="0" />
-            <ComboBox  Grid.Row="59" Grid.Column="1" MinWidth="80" SelectedValue="{Binding UsbBufferSize}" ItemsSource="{Binding UsbBufferSizes}" />
+            <Label VerticalAlignment="Center" Content="Safety Margin: " Grid.Row="59" Grid.Column="0" />
+            <ComboBox IsEditable="True"  Grid.Row="59" Grid.Column="1" MinWidth="80" Text="{Binding SafetyMargin}" ItemsSource="{Binding GenVoltages}" />
+            <Label VerticalAlignment="Center" Content="dB" Grid.Row="59" Grid.Column="2" HorizontalAlignment="Left" />
+            <TextBlock TextWrapping="Wrap" MaxWidth="600" 
+                   Text="Attenuator dB safety margin to add to calculated necessary attenuation - default 5." 
+                   HorizontalAlignment="Left" VerticalAlignment="Center"
+                   Grid.Row="59" Grid.Column="4" />
+            <local:GroupHeader Grid.Row="60" Grid.Column="0" Grid.ColumnSpan="5"  />
+            <Label VerticalAlignment="Center" Content="Usb Buffer Size: " Grid.Row="61" Grid.Column="0" />
+            <ComboBox  Grid.Row="61" Grid.Column="1" MinWidth="80" SelectedValue="{Binding UsbBufferSize}" ItemsSource="{Binding UsbBufferSizes}" />
             <TextBlock TextWrapping="Wrap" MaxWidth="600" 
                    Text="Set the size of the usb block. Careful!." 
                    HorizontalAlignment="Left" VerticalAlignment="Center"
-                   Grid.Row="59" Grid.Column="4" />
+                   Grid.Row="61" Grid.Column="4" />
+            <local:GroupHeader Grid.Row="62" Grid.Column="0" Grid.ColumnSpan="5"  />
+            <Label VerticalAlignment="Center" Content="Usb Latency: " Grid.Row="63" Grid.Column="0" />
+            <ComboBox  Grid.Row="63" Grid.Column="1" MinWidth="80" IsEditable="True"
+                       Text="{Binding Latency}" ItemsSource="{Binding ThickList}" />
+            <Label VerticalAlignment="Center" Content="Samples" Grid.Row="63" Grid.Column="2" />
+            <TextBlock TextWrapping="Wrap" MaxWidth="600" 
+                   Text="Set the usb latency in samples." 
+                   HorizontalAlignment="Left" VerticalAlignment="Center"
+                   Grid.Row="63" Grid.Column="4" />
         </Grid>
     </ScrollViewer>
 </UserControl>
