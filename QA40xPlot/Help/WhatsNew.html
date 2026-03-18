@@ -14,6 +14,14 @@
     </style>
 </head>
 <h1>What&#39;s New in QA40xPlot</h1>
+<h5>v 1.2.10&nbsp;&nbsp;&nbsp;&nbsp;March 19, 2026</h5>
+<h2>Risk Summary</h2>
+<p>This is extremely high risk due to the upgrades required to support continuous generation. Please report any new bugs via github or the forum. Because the changes are down deep in the USB code bugs here can cause serious issues up to possibly requiring a power cycle of the QA40x test device. These are the last planned high-risk changes for a long while.</p>
+<h2>Add Continuous Generator Support</h2>
+<p>There is a new setting Idle Generator which can be on or off. When turned on (the default) any case where the generator repeats (such as averaging or the Spectrum test in Run mode) the generator will run continuously. Prior to this 
+the generator would run as packets, with a short pause between each iteration. Now it just runs until stopped. The waveform will be discontinuous at junctions between the fft blocks but the sampled waveform should exactly (more or less) match the fft packets. This may produce more representative testing results because the device under test is running more continuously and the tests run subjectively faster because the generator is now running even when the graph is plotting.</p>
+<h5>__________________________________________________________________________________________________________</h5>
+<h1>---- Older&nbsp; Entries ----</h1>
 <h5>v 1.2.10&nbsp;&nbsp;&nbsp;&nbsp;March 7, 2026</h5>
 <h2>Risk Summary</h2>
 <p>This is extremely high risk due to the upgrades required to support load/save. Please report any new bugs via github or the forum.</p>
@@ -22,8 +30,6 @@
 <p>So, if you have a Spectrum and Intermodulation plot in your workspace both of them will be saved in the document. If the Spectrum test also has three tests shown in the Get list they will also be embedded into the document for later loading. Try this out!</p>
 <h2>Added Settings Mini Editor</h2>
 <p>In order to easily set common settings (as shown in the Settings expander bottom left of the screen) there is a new Pencil button that lets you pop up a short Settings window with common fields to set.</p>
-<h5>__________________________________________________________________________________________________________</h5>
-<h1>---- Older&nbsp; Entries ----</h1>
 <h5>v 1.2.9&nbsp;&nbsp;&nbsp;&nbsp; Feb 17, 2026</h5>
 <h2>Risk Summary</h2>
 <p>Should be minimal. </p>

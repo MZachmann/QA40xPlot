@@ -33,7 +33,7 @@ namespace QA40xPlot.BareMetal
 	/// <summary>
 	/// A simple class to help wrap async transfers
 	/// </summary>
-	public class AsyncResult
+	public class AcqAsyncResult
 	{
 		// result numbering
 		public uint JobTotal = 0;
@@ -54,7 +54,7 @@ namespace QA40xPlot.BareMetal
 		/// This will change depending on lib used.
 		/// </summary>
 		/// <param name="usb"></param>
-		public AsyncResult(UsbTransfer usb, byte[] readBuffer)
+		public AcqAsyncResult(UsbTransfer usb, byte[] readBuffer)
 		{
 			UsbXfer = usb;
 			ReadBuffer = readBuffer;
@@ -64,7 +64,7 @@ namespace QA40xPlot.BareMetal
 		/// This will change depending on lib used.
 		/// </summary>
 		/// <param name="usb"></param>
-		public AsyncResult(UsbTransfer usb, byte[] readBuffer, uint jobNo, uint jobItem, uint jobTotal)
+		public AcqAsyncResult(UsbTransfer usb, byte[] readBuffer, uint jobNo, uint jobItem, uint jobTotal)
 		{
 			UsbXfer = usb;
 			ReadBuffer = readBuffer;
@@ -90,6 +90,11 @@ namespace QA40xPlot.BareMetal
 			return transferred;
 		}
 
+		public async Task<bool> WaitAsync(int timeout, CancellationToken ct)
+		{
+			return await UsbXfer.AsyncWaitHandle.WaitHandleAsync(timeout, ct);
+		}
+
 		public bool IsDone()
 		{
 			return UsbXfer.IsCompleted;
@@ -111,6 +116,10 @@ namespace QA40xPlot.BareMetal
 	/// </summary>
 	public class QaUsb
 	{
+		// turn off to always use the prior code that doesn't run in background
+		// otherwise the prior code is used when user turns off AllowRepeating in Settings
+		private static readonly bool UseIdleCode = true;
+
 		object ReadRegLock = new object();
 		// how long to wait for relays to settle down after changing input/output ranges
 		// in empirical testing it takes nearly 1000ms to be safe
@@ -118,11 +127,11 @@ namespace QA40xPlot.BareMetal
 		// changing sample rate empties the buffer entirely and takes time to restart
 		private readonly static int _SRateChangeMilliseconds = 1000;
 
-		List<AsyncResult> WriteQueue = new List<AsyncResult>();
-		List<AsyncResult> ReadQueue = new List<AsyncResult>();
+		List<AcqAsyncResult> WriteQueue = new List<AcqAsyncResult>();
+		List<AcqAsyncResult> ReadQueue = new List<AcqAsyncResult>();
 		/// Tracks whether or not an acq is in process. The count starts at one, and when it goes busy
 		/// it will drop to zero, and then return to 1 when not busy
-		static SemaphoreSlim AcqSemaphore = new SemaphoreSlim(0, 1);
+		static SemaphoreSlim AcqSemaphore = new SemaphoreSlim(1);
 
 		readonly int RegReadWriteTimeout = 100;
 		readonly int MainI2SReadWriteTimeout = 1000; // per baremetal
@@ -402,10 +411,18 @@ namespace QA40xPlot.BareMetal
 			{
 				Debug.WriteLine($"Error: {ex.Message}");
 			}
-			// now do the real thing
-			return await UsbDataService.UseDataService(null, false, leftOut, rightOut, _LastSampleRate, ct, runRepeat);
-
-			//await SubStreamingAsync(ct, leftOut, rightOut);
+			// now do the real thing.
+			// Switch to SubStreamingAsync to use prior version code
+			if( UseIdleCode )
+			{
+				// && ViewSettings.Singleton.SettingsVm.AllowRepeating
+				return await UsbDataService.UseDataService(null, false, leftOut, rightOut, _LastSampleRate, ct, runRepeat);
+			}
+			else
+			{
+				// !this code is deprecated
+				return await SubStreamingAsync(ct, leftOut, rightOut);
+			}
 		}
 		/// <summary>
 		/// Provides an async method for doign the DAC/ADC streaming. You can submit separate buffers for the left and right channels.
@@ -631,12 +648,11 @@ namespace QA40xPlot.BareMetal
 				soundObj = SoundUtil.CreateUtil(ViewSettings.Singleton.SettingsVm.EchoName, lexout.ToArray(), rexout.ToArray(), (int)sampleRate);
 				if (soundObj != null && soundObj.IsNew)
 				{
-					soundObj.WasteOne(lexout.Count, sampleRate);  // play once to start up the DAC
+					soundObj.WasteOne(postbuf.Length, sampleRate);  // play once to start up the DAC
 					soundObj.IsNew = false;
 				}
 			}
 			InitOverlapped();
-			soundObj?.Play();
 
 
 			// list of rx blocks
@@ -661,6 +677,7 @@ namespace QA40xPlot.BareMetal
 			// Important! Enabled streaming AND THEN send data. This will also illuminate the 
 			// RUN led
 			WriteRegister(8, 0x5);
+			soundObj?.Play();
 
 			var remaining = prereader;  // # of blocks still to read after all is sent
 
@@ -926,27 +943,26 @@ namespace QA40xPlot.BareMetal
 			// Lock so reads (two step USB operation) can't be broken up by writes (single step USB operation). We need to 
 			// consider there can be USB writes from the main (UI) thread, and also from the aquisition thread. So, it's 
 			// important to ensure a read doesn't get broken up
-			lock (ReadRegLock)
-			{
 				try
 				{
 					byte[] txBuf = WriteRegisterPrep((byte)(0x80 + reg), 0);
-					WriteRegisterRaw(txBuf);
 					int len = 0;
-					RegisterReader?.Read(data, RegReadWriteTimeout, out len);
+					lock (ReadRegLock)
+					{
+						WriteRegisterRaw(txBuf);
+						RegisterReader?.Read(data, RegReadWriteTimeout, out len);
+					}
 
 					if (len == 0)
 						throw new Exception($"Usb.ReadRegister failed to read data. Register: {reg}");
 
 					val = (UInt32)((data[0] << 24) + (data[1] << 16) + (data[2] << 8) + data[3]);
-
 				}
 				catch (Exception ex)
 				{
 					Debug.WriteLine($"Error: {ex.Message}");
 					throw;
 				}
-			}
 
 			return val;
 		}
@@ -1030,7 +1046,7 @@ namespace QA40xPlot.BareMetal
 				throw new Exception("Bad result in WriteDataBegin in Usb.cs");
 			}
 			if (ar != null)
-				WriteQueue.Add(new AsyncResult(ar, localBuf));
+				WriteQueue.Add(new AcqAsyncResult(ar, localBuf));
 		}
 
 		/// <summary>
@@ -1043,7 +1059,7 @@ namespace QA40xPlot.BareMetal
 			if (WriteQueue.Count == 0)
 				throw new Exception("No buffers in Usb WriteDataEnd()");
 
-			AsyncResult ar = WriteQueue[0];
+			AcqAsyncResult ar = WriteQueue[0];
 			WriteQueue.RemoveAt(0);
 			return ar.Wait();
 		}
@@ -1058,7 +1074,7 @@ namespace QA40xPlot.BareMetal
 			UsbTransfer? ar = null;
 			DataReader?.SubmitAsyncTransfer(readBuffer, 0, readBuffer.Length, MainI2SReadWriteTimeout, out ar);
 			if (ar != null)
-				ReadQueue.Add(new AsyncResult(ar, readBuffer));
+				ReadQueue.Add(new AcqAsyncResult(ar, readBuffer));
 		}
 
 		/// <summary>
@@ -1069,7 +1085,7 @@ namespace QA40xPlot.BareMetal
 		{
 			if (ReadQueue.Count > 0)
 			{
-				AsyncResult ar = ReadQueue[0];
+				AcqAsyncResult ar = ReadQueue[0];
 				ReadQueue.RemoveAt(0);
 				if (ar.Wait() == 0)
 				{

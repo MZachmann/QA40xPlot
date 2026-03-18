@@ -486,7 +486,7 @@ namespace QA40xPlot.BareMetal
 					{
 						harmonicAmplitude += QaMath.MagAtFreq(signalFreqLin, df, fv);
 						// Debugging: Show the harmonic amplitude in dB and the bins being examined
-						Debug.WriteLine($"{fv:0} Intermod Amplitude: {MathUtil.FormatVoltage(harmonicAmplitude)} ");
+						//Debug.WriteLine($"{fv:0} Intermod Amplitude: {MathUtil.FormatVoltage(harmonicAmplitude)} ");
 					}
 				}
 				harmonicAmplitudesSqSum += harmonicAmplitude * harmonicAmplitude;

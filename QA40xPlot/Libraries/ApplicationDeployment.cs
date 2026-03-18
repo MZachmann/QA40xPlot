@@ -1,4 +1,5 @@
 ﻿/// This comes straight from dotnet-mage with slight update to nullables
+/// This is for clickonce version info
 
 namespace QA40xPlot.Libraries
 {

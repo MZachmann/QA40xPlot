@@ -435,7 +435,10 @@ namespace QA40xPlot.Actions
 				lfrs = await QaComm.DoAcquireUser(1, CanToken.Token, dataLeft, dataRight, true, true);
 				msr.IORange = $"({QaComm.GetOutputRange()} - {QaComm.GetInputRange()})";
 				if (lfrs == null || lfrs.TimeRslt == null || lfrs.FreqRslt == null)
+				{
+					UsbDataService.Singleton.RunRepeatedly = false;
 					return new();
+				}
 				//FrequencyHistory.Add(lfrs.FreqRslt);
 				var gas = CalculateGain(showfreq, lfrs, is2channel); // gain,phase or gain1,gain2
 				gainvalues.Add(gas);

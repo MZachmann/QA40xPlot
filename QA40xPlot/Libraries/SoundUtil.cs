@@ -5,6 +5,7 @@ using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using QA40xPlot.ViewModels;
 using ScottPlot;
+using System.Diagnostics;
 using System.IO;
 
 // code for dealing with windows sound audio output devices
@@ -29,7 +30,7 @@ public class SoundUtil : FloorViewModel, IDisposable
 		set { SetProperty(ref _isNew, value); }
 	}
 
-	private bool _isShared = true;
+	private bool _isShared = false;
 	public bool IsShared
 	{
 		get { return _isShared; }
@@ -67,6 +68,8 @@ public class SoundUtil : FloorViewModel, IDisposable
 		get { return _renderer; }
 		set { SetProperty(ref _renderer, value); }
 	}
+
+	public bool IsPlaying { get => WaveRender?.PlaybackState == PlaybackState.Playing; }
 
 	public SoundUtil()
 	{
@@ -346,21 +349,20 @@ public class SoundUtil : FloorViewModel, IDisposable
 	{
 		try
 		{
-			IsShared = true;
 			if (SndDevice != null)
 			{
 				WasapiOut? waveOut = null;
 				try
 				{
-					waveOut = new(SndDevice,
-						IsShared ? AudioClientShareMode.Shared : AudioClientShareMode.Exclusive,
-						useEventSync: true, latency: 40);
-
+					// per the doc default latency is 200ms which is way too long for us
+					// so we try to get it to 40ms
+					var smode = IsShared ? AudioClientShareMode.Shared : AudioClientShareMode.Exclusive;
+					waveOut = new(SndDevice, smode, useEventSync: true, latency: 40);
 				}
 				catch
 				{
 					waveOut = new(SndDevice, AudioClientShareMode.Shared, useEventSync: true, latency: 40);
-					IsShared = false;
+					IsShared = true;
 				}
 				WaveRender = waveOut;
 			}
@@ -517,7 +519,18 @@ public class SoundUtil : FloorViewModel, IDisposable
 	public void Play()
 	{
 		WaveRender?.Play();
+		//// Create and start the stopwatch
+		//Stopwatch stopwatch = new Stopwatch();
+		//stopwatch.Start();
+		//while (WaveRender?.PlaybackState == PlaybackState.Playing)
+		//{
+		//	Thread.Sleep(20);
+		//}
+		//stopwatch.Stop();
+		//// Display elapsed time in different formats
+		//Debug.WriteLine($"Entire play duration: {stopwatch.ElapsedMilliseconds} ms");
 	}
+
 	public void Stop()
 	{
 		if (_Provider != null)
@@ -539,7 +552,8 @@ public class SoundUtil : FloorViewModel, IDisposable
 	public void WasteOne(int numNotes, uint sampleRate)
 	{
 		Play();
-		Thread.Sleep((int)(1000 * numNotes / sampleRate));  // give some time to start the sound engine
+		// this has to block or the code fails (?)
+		Task.Delay((int)(1000 * numNotes / sampleRate)).Wait();  // give some time to start the sound engine
 		Stop();
 	}
 }
