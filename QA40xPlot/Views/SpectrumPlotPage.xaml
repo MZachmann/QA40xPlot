@@ -92,7 +92,7 @@
             <views:ThdChannelInfo x:Name="Info1" 
                   VerticalAlignment="Top" HorizontalAlignment="Left" Margin="60,70,0,0" />
             <views:ThdChannelInfo x:Name="Info2" 
-                  VerticalAlignment="Top" HorizontalAlignment="Left" Margin="60,330,0,0" />
+                  VerticalAlignment="Top" HorizontalAlignment="Left" Margin="280,70,0,0" />
             <views:ThdChannelInfo x:Name="Info3" 
                   VerticalAlignment="Top" HorizontalAlignment="Left" Margin="280,70,0,0" />
             <views:ThdChannelInfo x:Name="Info4" 
