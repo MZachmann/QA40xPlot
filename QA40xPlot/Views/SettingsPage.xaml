@@ -138,7 +138,7 @@
                   ItemsSource="{Binding Attenuations}" />
             <Label VerticalAlignment="Center" Content="dB" Grid.Row="10" Grid.Column="2" HorizontalAlignment="Left" />
             <TextBlock TextWrapping="Wrap" MaxWidth="600" 
-                   Text="If you have an external input gain/attenuator enter the power gain (negative == attenuation)." 
+                   Text="If you have an external input gain/attenuator enter the voltage gain (negative == attenuation)." 
                    HorizontalAlignment="Left" VerticalAlignment="Center"
                    Grid.Row="10" Grid.Column="4" />
             <local:GroupHeader Grid.Row="11" Grid.Column="0" Grid.ColumnSpan="5"  />
@@ -148,7 +148,7 @@
                   ItemsSource="{Binding Attenuations}" />
             <Label VerticalAlignment="Center" Content="dB" Grid.Row="12" Grid.Column="2" HorizontalAlignment="Left" />
             <TextBlock TextWrapping="Wrap" MaxWidth="600" 
-                   Text="If you have an external gain/attenuator block for the generator output enter the voltage gain." 
+                   Text="If you have an external gain/attenuator for the generator output enter the voltage gain." 
                    HorizontalAlignment="Left" VerticalAlignment="Center"
                    Grid.Row="12" Grid.Column="4" />
             <local:GroupHeader Grid.Row="13" Grid.Column="0" Grid.ColumnSpan="5"  />

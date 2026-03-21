@@ -28,14 +28,21 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public List<string> EchoNames { get { var x = SoundUtil.EnumerateDevices().ToList(); return x; } }
 
+
 		public static List<String> BackColors
 		{
-			get => new List<string>() { "Transparent", "#dce4e4", "#ecf4f4",
-			"#f8f8f8", "White",
+			get => new List<string>() { "Transparent", "#FFAAAAAA", "#FF666666",
+			"#FF999999", "White",
 			"MintCream", "LightGray",
-
 			"DarkGray", "LightGreen", "Lavender" };
 		}
+		//public static List<String> BackColors
+		//{
+		//	get => new List<string>() { "Transparent", "#dce4e4", "#ecf4f4",
+		//	"#f8f8f8", "White",
+		//	"MintCream", "LightGray",
+		//	"DarkGray", "LightGreen", "Lavender" };
+		//}
 		public static List<String> PlotColors
 		{
 			get => new List<string>() { "Transparent",
