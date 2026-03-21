@@ -251,29 +251,37 @@ namespace QA40xPlot.BareMetal
 			Stopwatch stopwatch = new Stopwatch();
 			stopwatch.Start();
 #endif
-			lock (OutDataQueue)
+			try
 			{
-				if (!OutDataQueue.IsEmpty)
+				lock (OutDataQueue)
 				{
-					asr = OutDataQueue.Last();
+					if (!OutDataQueue.IsEmpty)
+					{
+						asr = OutDataQueue.Last();
+					}
+				}
+				var ctk = RunTokenSource.Token;
+				if (asr != null && !ctk.IsCancellationRequested)
+				{
+					await asr.WaitAsync(Timeout.Infinite, ctk);
+					asr = null;
+				}
+				// wait for the read to completely finish
+				lock (ReadDataQueue)
+				{
+					if (!ReadDataQueue.IsEmpty)
+					{
+						asr = ReadDataQueue.Last();
+					}
+				}
+				if (asr != null && !ctk.IsCancellationRequested)
+				{
+					await asr.WaitAsync(Timeout.Infinite, ctk);
 				}
 			}
-			if (asr != null)
+			catch(Exception )
 			{
-				await asr.WaitAsync(Timeout.Infinite, RunTokenSource.Token);
-				asr = null;
-			}
-			// wait for the read to completely finish
-			lock (ReadDataQueue)
-			{
-				if (!ReadDataQueue.IsEmpty)
-				{
-					asr = ReadDataQueue.Last();
-				}
-			}
-			if (asr != null)
-			{
-				await asr.WaitAsync(Timeout.Infinite, RunTokenSource.Token);
+
 			}
 #if DEBUG
 			// Stop the stopwatch
@@ -341,7 +349,14 @@ namespace QA40xPlot.BareMetal
 							// note that queue is empty?
 							Debug.WriteLineIf(ShowDebug, "Waiting for a PacketNew...");
 							PacketNew.Reset();
-							await PacketNew.WaitHandleAsync(Timeout.Infinite, ctk);
+							// ?
+							var rslt = await PacketNew.WaitHandleAsync(1500, ctk);	// wait 1.5 seconds
+							if(!rslt)
+							{
+								EnableUsbData(false);   // if we time out waiting for a new packet, turn off the stream
+								if(!ctk.IsCancellationRequested)
+									await PacketNew.WaitHandleAsync(Timeout.Infinite, ctk);  // wait forever
+							}
 							Debug.WriteLineIf(ShowDebug, "PacketNew signalled...");
 						}
 						else if (SendPackets.IsEmpty || OutDataQueue.Count >= 2)
@@ -355,7 +370,11 @@ namespace QA40xPlot.BareMetal
 									if (await asr.WaitAsync(Timeout.Infinite, ctk))
 									{
 										// remove this from the queue
-										OutDataQueue.TryDequeue(out _);
+										lock(OutDataQueue)
+										{
+											if(!OutDataQueue.IsEmpty)
+												OutDataQueue.TryDequeue(out _);
+										}
 									}
 								}
 							}
@@ -497,7 +516,8 @@ namespace QA40xPlot.BareMetal
 						}
 						else
 						{
-							await HasReceivePacket.WaitHandleAsync(Timeout.Infinite, ctk);
+							if (!ctk.IsCancellationRequested)
+								await HasReceivePacket.WaitHandleAsync(Timeout.Infinite, ctk);
 						}
 					}
 				}
@@ -735,36 +755,33 @@ namespace QA40xPlot.BareMetal
 			uint jobSize = 0;
 			lock (ReceivePackets)
 			{
-				if (!ReceivePackets.IsEmpty)
+				if (!ReceivePackets.IsEmpty && ReceivePackets.TryDequeue(out AcqAsyncResult? ar))
 				{
-					if (ReceivePackets.TryDequeue(out AcqAsyncResult? ar))
+					jobno = ar?.JobNumber ?? 0;
+					jobSize = ar?.JobTotal ?? 0;
+					// the very first block isn't saved since it's the prebuf
+					if (ar != null && jobno != 0)
+						rxResults.Add(ar.ReadBuffer);
+					while (ReceivePackets.TryPeek(out ar))
 					{
-						jobno = ar?.JobNumber ?? 0;
-						jobSize = ar?.JobTotal ?? 0;
-						// the very first block isn't saved since it's the prebuf
-						if (ar != null && jobno != 0)
-							rxResults.Add(ar.ReadBuffer);
-						while (ReceivePackets.TryPeek(out ar))
+						if (ar.JobNumber == jobno)
 						{
-							if (ar.JobNumber == jobno)
-							{
-								ReceivePackets.TryDequeue(out ar);
-								if (ar != null)
-									rxResults.Add(ar.ReadBuffer);
-							}
-							else
-							{
-								// add the last post-job buffer if it exists
+							ReceivePackets.TryDequeue(out ar);
+							if (ar != null)
 								rxResults.Add(ar.ReadBuffer);
-								if(ReceivePackets.Count == 1 && !RunRepeatedly)
-								{
-									ReceivePackets.TryDequeue(out _);
-									HasReceivePacket.Reset();
-								}
-								else if(ReceivePackets.Count == 0)
-									HasReceivePacket.Reset();
-								break;
+						}
+						else
+						{
+							// add the last post-job buffer if it exists
+							rxResults.Add(ar.ReadBuffer);
+							if(ReceivePackets.Count == 1 && !RunRepeatedly)
+							{
+								ReceivePackets.TryDequeue(out _);
+								HasReceivePacket.Reset();
 							}
+							else if(ReceivePackets.Count == 0)
+								HasReceivePacket.Reset();
+							break;
 						}
 					}
 				}

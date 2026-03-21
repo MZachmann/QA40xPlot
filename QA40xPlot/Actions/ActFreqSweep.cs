@@ -574,36 +574,37 @@ namespace QA40xPlot.Actions
 
 						WaveGenerator.SetGen1(true, freqy, genScaleVolt, true);             // send a sine wave
 						WaveGenerator.SetGen2(true, 0, 0, false);            // send a sine wave
-						LeftRightSeries lrs;
+						LeftRightSeries lrs = null!;
 
 						FrequencyHistory.Clear();
 						for (int ik = 0; ik < (vm.Averages - 1); ik++)
 						{
 							lrs = await QaComm.DoAcquisitions(1, CanToken.Token, true, true);
-							if (lrs == null || lrs.TimeRslt == null || lrs.FreqRslt == null)
+							if (lrs == null || lrs.TimeRslt == null || lrs.FreqRslt == null || CanToken.IsCancellationRequested)
 								break;
 							FrequencyHistory.Add(lrs.FreqRslt);
 						}
 						// now FrequencyHistory has n-1 samples
+						if(!CanToken.IsCancellationRequested)
 						{
 							lrs = await QaComm.DoAcquisitions(1, CanToken.Token, true, false);
-							if (lrs == null || lrs.TimeRslt == null || lrs.FreqRslt == null)
+							if (lrs == null || lrs.TimeRslt == null || lrs.FreqRslt == null || CanToken.IsCancellationRequested)
 								break;
 							lrs.FreqRslt = CalculateAverages(lrs.FreqRslt, vm.Averages);
 						}
-						if (CanToken.IsCancellationRequested)
+						if (CanToken.IsCancellationRequested || lrs == null)
 							break;
 
 						page.TimeRslt = lrs.TimeRslt ?? new();
 						page.FreqRslt = lrs.FreqRslt;
 
 						int fundamentalBin = QaLibrary.GetBinOfFrequency(stepBinFrequencies[f], binSize);
-						if (page.TimeRslt.Left.Length == 0 || lrs.FreqRslt == null || fundamentalBin >= lrs.FreqRslt.Left.Length)               // Check in bin within range
+						if (page.TimeRslt.Left.Length == 0 || lrs?.FreqRslt == null || fundamentalBin >= lrs?.FreqRslt.Left.Length)               // Check in bin within range
 							break;
 
 						// Plot the mini graphs
-						QaLibrary.PlotMiniFftGraph(vm.Mini2Plot, lrs.FreqRslt, vm.LeftChannel && vm.ShowLeft, vm.RightChannel && vm.ShowRight);
-						QaLibrary.PlotMiniTimeGraph(vm.MiniPlot, lrs.TimeRslt, freqy, vm.LeftChannel && vm.ShowLeft, vm.RightChannel && vm.ShowRight);
+						QaLibrary.PlotMiniFftGraph(vm.Mini2Plot, lrs?.FreqRslt, vm.LeftChannel && vm.ShowLeft, vm.RightChannel && vm.ShowRight);
+						QaLibrary.PlotMiniTimeGraph(vm.MiniPlot, lrs?.TimeRslt, freqy, vm.LeftChannel && vm.ShowLeft, vm.RightChannel && vm.ShowRight);
 
 						// even with multiple configurations
 						// this will keep stacking up stuff while frequency array shows min...max,min...max,...

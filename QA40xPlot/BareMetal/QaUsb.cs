@@ -134,7 +134,7 @@ namespace QA40xPlot.BareMetal
 		static SemaphoreSlim AcqSemaphore = new SemaphoreSlim(1);
 
 		readonly int RegReadWriteTimeout = 100;
-		readonly int MainI2SReadWriteTimeout = 1000; // per baremetal
+		readonly int ReadWriteTimeout = 1000; // per baremetal
 
 		public byte[] CalData { get; private set; } = []; // readonly
 		public (double, double)[] FCalData { get; private set; } = []; // readonly
@@ -190,6 +190,7 @@ namespace QA40xPlot.BareMetal
 				FCalData = fcals.ToArray();     // doubles instead of bytes mainly for debugging
 				Debug.WriteLine($"Calibration data: {string.Join(", ", FCalData)}");
 				brslt = true;
+				//DumpRegisters();
 			}
 			catch (Exception ex)
 			{
@@ -197,6 +198,23 @@ namespace QA40xPlot.BareMetal
 			}
 
 			return brslt;
+		}
+
+		private void DumpRegisters()
+		{
+			Debug.WriteLine("Register dump:");
+			for (int i = 0; i < 25; i++)
+			{
+				try
+				{
+					uint val = ReadRegister((byte)i);
+					Debug.WriteLine($"Reg {i}: {val}");
+				}
+				catch (Exception ex)
+				{
+					Debug.WriteLine($"Error reading register {i}: {ex.Message}");
+				}
+			}
 		}
 
 		/// <summary>
@@ -213,11 +231,16 @@ namespace QA40xPlot.BareMetal
 				if (OnExit)
 				{
 					// clear stuff
+					DataReader?.Dispose();
+					DataWriter?.Dispose();
+					RegisterReader?.Dispose();
+					RegisterWriter?.Dispose();
 					DataReader = null;
 					DataWriter = null;
 					RegisterReader = null;
 					RegisterWriter = null;
 					QaLowUsb.DetachDevice(OnExit);
+					Device?.Close();
 					Device = null;
 				}
 			}
@@ -1039,7 +1062,7 @@ namespace QA40xPlot.BareMetal
 			byte[] localBuf = new byte[len];
 			Array.Copy(data, offset, localBuf, 0, len);
 			UsbTransfer? ar = null;
-			ec = DataWriter?.SubmitAsyncTransfer(localBuf, 0, localBuf.Length, MainI2SReadWriteTimeout, out ar) ?? ErrorCode.UnknownError;
+			ec = DataWriter?.SubmitAsyncTransfer(localBuf, 0, localBuf.Length, ReadWriteTimeout, out ar) ?? ErrorCode.UnknownError;
 			if (ec != ErrorCode.None)
 			{
 				//Log.WriteLine(LogType.Error, "Error code in Usb.WriteDataBegin: ");
@@ -1072,7 +1095,7 @@ namespace QA40xPlot.BareMetal
 		{
 			byte[] readBuffer = new byte[bufSize];
 			UsbTransfer? ar = null;
-			DataReader?.SubmitAsyncTransfer(readBuffer, 0, readBuffer.Length, MainI2SReadWriteTimeout, out ar);
+			DataReader?.SubmitAsyncTransfer(readBuffer, 0, readBuffer.Length, ReadWriteTimeout, out ar);
 			if (ar != null)
 				ReadQueue.Add(new AcqAsyncResult(ar, readBuffer));
 		}

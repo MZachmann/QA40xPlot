@@ -87,7 +87,7 @@
                         <MenuItem Header="Save _Configuration..." Command="{Binding DoSaveCfg}" />
                         <MenuItem Header="Save Configuration as _Default" Command="{Binding DoSaveDfltCfg}" />
                     </MenuItem>
-                    <MenuItem Header="_Page"  >
+                    <MenuItem Header="_Page" IsEnabled="{Binding IsRunning, Converter={StaticResource InvBoolConverter}}" >
                         <MenuItem Header="_Spectrum" Command="{Binding SetPlotPage}" CommandParameter="spectrum" />
                         <MenuItem Header="_Intermodulation" Command="{Binding SetPlotPage}" CommandParameter="intermod" />
                         <MenuItem Header="Sco_pe" Command="{Binding SetPlotPage}" CommandParameter="scope" />
@@ -99,7 +99,7 @@
                                   Visibility="{Binding HasQA430, Converter={StaticResource BoolVisConverter}}"
                                   />
                     </MenuItem>
-                    <MenuItem Header="_Test" IsEnabled="{Binding IsRunning, Converter={StaticResource InvBoolConverter}}" >
+                    <MenuItem Header="_Test"  >
                         <MenuItem Header="Plot _On Top" ToolTip="Determine which plot lines are on top."  >
                             <MenuItem Header="_Left" Command="{Binding DoOnTop}" 
                                       CommandParameter="Left" 

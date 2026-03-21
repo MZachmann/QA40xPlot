@@ -510,7 +510,7 @@ namespace QA40xPlot.Actions
 				WaveGenerator.SetGen1(true, dfreq, generatorV, true); // send a sine wave
 				bvm.GeneratorVoltage = bvm.GetGenVoltLine(generatorV); // update the viewmodel so we can show it on-screen
 				// do two and average them
-				acqData = await QaComm.DoAcquisitions(1, ct.Token, true, true);        // Do a single acquisition
+				acqData = await QaComm.DoAcquisitions(1, ct.Token, true, numtests > 1 || average > 1);        // Do a single acquisition
 				if (acqData == null || acqData.FreqRslt == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
 				{
 					ct.Dispose();

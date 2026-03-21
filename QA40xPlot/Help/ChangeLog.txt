@@ -3,7 +3,7 @@
 This changelog shows the changes made for each version
 Date format is US mm/dd/yy
 --------------------------------------------
-v 1.2.11 3/21/26
+v 1.3.0 3/21/26
 - support constant generator voltage when testing with repeats
 - add Fixed Latency setting for qa40x device
 - add Idle Generator setting to keep generator on between tests

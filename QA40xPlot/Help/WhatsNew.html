@@ -14,16 +14,16 @@
     </style>
 </head>
 <h1>What&#39;s New in QA40xPlot</h1>
-<h5>v 1.2.10&nbsp;&nbsp;&nbsp;&nbsp;March 21, 2026</h5>
+<h5>v 1.3.0&nbsp;&nbsp;&nbsp;&nbsp;March 21, 2026</h5>
 <h2>Risk Summary</h2>
-<p>This is extremely high risk due to the upgrades required to support continuous generation. Please report any new bugs via github or the forum. Because the changes are down deep in the USB code bugs here can cause serious issues up to possibly requiring a power cycle of the QA40x test device. These are the last planned high-risk changes for a long while.</p>
+<p>This is extremely high risk due to the upgrades required to support continuous generation. Please report any new bugs via github or the forum. Because the changes are down deep in the USB code bugs here can cause issues possibly requiring a power cycle of the QA403 or QA402 tester. These are the last planned high-risk changes for a long while.</p>
 <h2>Add Continuous Generator Support</h2>
 <p>There is a new setting Idle Generator which can be on or off. When turned on (the default) any case where the generator repeats (such as averaging or the Spectrum test in Run mode) the generator will run continuously. Prior to this 
-the generator would run as packets, with a short pause between each iteration. Now it just runs until stopped. The waveform will be discontinuous at one sample - junctions between the fft blocks - but the sampled waveform should more or less be the same at each fft boundary. This may produce more accurate testing results because the device under test has fewer start/stop transients and the tests run subjectively faster because the test cycle doesn&#39;t wait for the graph to plot.</p>
+the generator would run as packets, with a short pause between each fft block. Now it just runs until stopped. The waveform will be discontinuous at one sample - junctions between the fft blocks - but the sampled waveform should more or less be identical at each cycle. This may produce more accurate testing results because the device under test has fewer start/stop transients and the tests run subjectively faster because the test cycle doesn&#39;t wait for the graph to plot.</p>
 <h2>Default Color Change</h2>
 <p>My default color scheme has changed, so I thought it was time to update the default colors to my preferred gray palette. You can always change them in Settings and save that as the new default. The default plot line colors are unchanged, though the dark blue is a bit low-contrast for the scheme.</p>
 <h2>New Latency Setting</h2>
-<p>Previously, latency (time for the send data to start after we start receiving) was determined by examining the data for a signal. This was squirrely when testing noise and with low frequency stuff. After some testing the QA403 it became clear the device latency is constant and a fixed number of samples... so there is a new advanced setting of Latency. To test it, use the Scope test with a sine wave and the sine wave should start near time 0 (within a sample or two).</p>
+<p>Previously, USB latency (delay until the generator starts sending after we politely ask the USB port) was determined by examining the input data for a signal. This was squirrely when testing noise, which has no <em>data,</em> and with low voltage and low frequency stuff which starts slowly. After some empirical testing with the current code it became clear the device latency is constant and a fixed number of samples... so there is a new advanced setting to set that Latency. To test it, use the Scope test with a sine wave and the sine wave should start near time 0 (within a sample or two).</p>
 <p>&nbsp;</p>
 <h5>__________________________________________________________________________________________________________</h5>
 <h1>---- Older&nbsp; Entries ----</h1>

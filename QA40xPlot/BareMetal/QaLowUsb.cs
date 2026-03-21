@@ -53,12 +53,15 @@ namespace QA40xPlot.BareMetal
 			if (usbdev != null)
 			{
 				var iusbdev = usbdev as IUsbDevice;
-				iusbdev?.ResetDevice();
-				// Select config #1
-				iusbdev?.SetConfiguration(1);
-				iusbdev?.ClaimInterface((int)idInterface);
+				if(iusbdev != null)
+				{
+					iusbdev?.ResetDevice();
+					// Select config #1
+					iusbdev?.SetConfiguration(1);
+					iusbdev?.ClaimInterface((int)idInterface);
+					// keep the found device around
+				}
 				_IdInterface = idInterface;
-				// keep the found device around
 			}
 			_AttachedDevice = usbdev;
 			return usbdev;
@@ -72,17 +75,15 @@ namespace QA40xPlot.BareMetal
 		// this should probably be done on exit
 		public static void DetachDevice(bool OnExit)
 		{
-			if (_AttachedDevice != null)
+			// for some reason close crashes when exiting
+			//if (_AttachedDevice.IsOpen && !OnExit)
+			if (_AttachedDevice?.IsOpen == true)
 			{
-				// for some reason close crashes when exiting
-				if (_AttachedDevice.IsOpen && !OnExit)
-				{
-					var iusbdev = _AttachedDevice as IUsbDevice;
-					iusbdev?.ReleaseInterface(_IdInterface);
-					_AttachedDevice?.Close();
-				}
-				_AttachedDevice = null;
+				var iusbdev = _AttachedDevice as IUsbDevice;
+				iusbdev?.ReleaseInterface(_IdInterface);
+				_AttachedDevice?.Close();
 			}
+			_AttachedDevice = null;
 		}
 
 		public static bool IsDeviceConnected()
