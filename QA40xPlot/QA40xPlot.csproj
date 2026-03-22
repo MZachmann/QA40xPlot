@@ -21,6 +21,13 @@
 	</PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Keys_old\**" />
+    <EmbeddedResource Remove="Keys_old\**" />
+    <None Remove="Keys_old\**" />
+    <Page Remove="Keys_old\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Libraries\WelchAve.cs" />
   </ItemGroup>
 
@@ -101,16 +108,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.1" />
     <PackageReference Include="FftSharp" Version="2.2.0" />
     <PackageReference Include="LibUsbDotNet" Version="2.2.75" />
     <PackageReference Include="NAudio" Version="2.3.0" />
     <PackageReference Include="NAudio.Core" Version="2.3.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="ScottPlot.WPF" Version="5.1.57" />
-    <PackageReference Include="SkiaSharp.HarfBuzz" Version="3.119.2" />
-    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.2" />
-    <PackageReference Include="SkiaSharp.Views.WPF" Version="3.119.2" />
+    <PackageReference Include="ScottPlot" Version="5.0.56" />
+    <PackageReference Include="ScottPlot.WPF" Version="5.0.56" />
   </ItemGroup>
 
   <ItemGroup>

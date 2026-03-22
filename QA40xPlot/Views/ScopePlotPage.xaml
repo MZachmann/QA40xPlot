@@ -18,8 +18,14 @@
         <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
             <StackPanel Margin="0,1,1,0">
                 <views:StartStop ShowStart="True" />
-                <CheckBox Content="_Use Generator 1" IsChecked="{Binding UseGenerator1}"  Margin="0,5,0,0" HorizontalAlignment="Center"></CheckBox>
+                <CheckBox Content="_Use Generator 1" IsChecked="{Binding UseGenerator1}" HorizontalAlignment="Center"></CheckBox>
                 <CheckBox Content="Use Generator _2" IsChecked="{Binding UseGenerator2}" HorizontalAlignment="Center"></CheckBox>
+                <StackPanel Orientation="Vertical" HorizontalAlignment="Stretch"
+                            Visibility="{Binding UseGenerator1, Converter={StaticResource BoolNotVisConverter}}" >
+                    <CheckBox Content="History" IsChecked="{Binding UseHistory}" HorizontalAlignment="Center"/>
+                    <views:UpDownControl VerticalAlignment="Center" HorizontalAlignment="Center"
+                                         Value="{Binding HistoryIdx}" Minimum="0" />
+                </StackPanel>
                 <views:Attenuator />
                 <Expander Header="—— Generators" IsExpanded="{Binding ExpandGenerator}"  >
                     <StackPanel>

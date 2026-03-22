@@ -504,6 +504,19 @@ namespace QA40xPlot.Actions
 			return !ct.IsCancellationRequested;
 		}
 
+		public void ShowHistoryAt(int iAt)
+		{
+			var acq = UsbDataService.Singleton.GetLogResult(iAt);
+			if (acq.Valid)
+			{
+				var vm = (MyViewClass)PageData.ViewModel;
+				PageData.TimeRslt.Left = acq.Left;
+				PageData.TimeRslt.Right = acq.Right;
+				PageData.TimeRslt.dt = 1 / (double)vm.SampleRateVal;
+				UpdateGraph(false);
+			}
+		}
+
 		/// <summary>
 		/// Clear the plot
 		/// </summary>

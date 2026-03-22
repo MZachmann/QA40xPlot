@@ -12,6 +12,7 @@ v 1.3.0 3/21/26
 - move position of second thd info box in spectrum
 - change default color scheme to gray palette
 - disable SampleRate and FFT size settings while running a test since it's tough with idle
+- update to latest ScottPlot library, which has a strange SkiaSharp dependency
 v 1.2.10 3/07/26
 - reduce pagedata code debt substantially
 - add mini settings editor via pencil button on Settings expander

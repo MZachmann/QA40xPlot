@@ -4,6 +4,7 @@ using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
+using ScottPlot.Statistics;
 using System.Data;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
@@ -852,6 +853,22 @@ namespace QA40xPlot.Actions
 			{
 				if (changedProp == "RangeBottom" || changedProp == "RangeTop" || changedProp.Length == 0)
 					myPlot.Axes.SetLimitsY(Math.Log10(ToD(vm.RangeBottom, 1e-6)) - 0.00000001, Math.Log10(ToD(vm.RangeTop, 1)), myPlot.Axes.Left);  // - 0.000001 to force showing label
+			}
+		}
+
+		public async Task ShowHistoryAt(int iAt)
+		{
+			var acq = UsbDataService.Singleton.GetLogResult(iAt);
+			if (acq.Valid)
+			{
+				var vm = (MyViewClass)PageData.ViewModel;
+				PageData.TimeRslt.Left = acq.Left;
+				PageData.TimeRslt.Right = acq.Right;
+				PageData.TimeRslt.dt = 1 / (double)vm.SampleRateVal;
+				// now recalculate everything, no averaging here
+				PageData.FreqRslt = QaMath.CalculateSpectrum(PageData.TimeRslt, vm.WindowingMethod); 
+				await PostProcess(PageData, CanToken.Token); 
+				UpdateGraph(false);
 			}
 		}
 

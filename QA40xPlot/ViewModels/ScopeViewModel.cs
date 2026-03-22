@@ -56,6 +56,22 @@ namespace QA40xPlot.ViewModels
 
 		#region Setters and Getters
 
+		private bool _UseHistory = false;
+		[JsonIgnore]
+		public bool UseHistory
+		{
+			get => _UseHistory;
+			set => SetProperty(ref _UseHistory, value);
+		}
+
+		private int _HistoryIdx = 0;
+		[JsonIgnore]
+		public int HistoryIdx
+		{
+			get => _HistoryIdx;
+			set => SetProperty(ref _HistoryIdx, value);
+		}
+
 		private string _Gen1Waveform = string.Empty;
 		public string Gen1Waveform
 		{
@@ -143,6 +159,9 @@ namespace QA40xPlot.ViewModels
 					break;
 				case "DsPlotColors":
 					MyAction?.DrawPlotLines(0);
+					break;
+				case "HistoryIdx":
+					ShowHistoryIdx();
 					break;
 				case "UpdateGraph":
 					MyAction?.UpdateGraph(true);
@@ -404,6 +423,12 @@ namespace QA40xPlot.ViewModels
 			FreqShow = zv.Item1.ToString("0.### mS");
 			var valvolt = MathUtil.FormatVoltage(zv.Item2);
 			ZValue = $"{valvolt}";
+		}
+
+		public void ShowHistoryIdx()
+		{
+			if(UseHistory)
+				this.actScope.ShowHistoryAt(HistoryIdx);
 		}
 
 		~ScopeViewModel()

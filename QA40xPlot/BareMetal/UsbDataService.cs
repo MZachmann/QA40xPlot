@@ -22,7 +22,7 @@ namespace QA40xPlot.BareMetal
 {
 	public class UsbDataService
 	{
-		public readonly bool ShowDebug = false;
+		public readonly bool ShowDebug = true;
 
 		//readonly int RegReadWriteTimeout = 100;
 		readonly int MainI2SReadWriteTimeout = 1000; // per baremetal
@@ -55,6 +55,7 @@ namespace QA40xPlot.BareMetal
 		private ConcurrentQueue<AcqAsyncResult> ReceivePackets = new();
 		//
 		private ConcurrentQueue<AcqResult> AcqResultQueue = new();
+		private ConcurrentQueue<AcqResult> AllResultQueue = new();
 
 		private CancellationTokenSource RunTokenSource = new CancellationTokenSource();
 
@@ -104,6 +105,37 @@ namespace QA40xPlot.BareMetal
 				ServiceTask = Task.Delay(1);
 				IsStarted.Reset();
 			}
+		}
+
+		public int GetLogCount()
+		{
+			int count = 0;
+			lock (AllResultQueue)
+			{
+				count = AllResultQueue.Count;
+			}
+			return count;
+		}
+
+		public AcqResult GetLogResult(int idx)
+		{
+			AcqResult r = new AcqResult();
+			r.Valid = false;
+			lock (AllResultQueue)
+			{
+				if (idx < AllResultQueue.Count)
+				{
+					r = AllResultQueue.ElementAt(idx);
+				}
+				else if(!AllResultQueue.IsEmpty)
+				{
+					var fir = AllResultQueue.ElementAt(0);
+					r.Left = new double[fir.Left.Length];
+					r.Right = r.Left;
+					r.Valid = true;
+				}
+			}
+			return r;
 		}
 
 		/// <summary>
@@ -171,12 +203,14 @@ namespace QA40xPlot.BareMetal
 			}
 			else
 			{
-				// if we're already running but this is the last one of the group
-				RunRepeatedly = runRepeat;
-				if(!runRepeat)
-				{
-					HandleDataReady(true);
-				}
+				//// if we're already running but this is the last one of the group
+				//if (RunRepeatedly && !runRepeat)
+				//	RunRepeatedly = runRepeat;
+				//if (!runRepeat)
+				//{
+				//	HandleDataReady(false);
+				//	HandleDataReady(true);
+				//}
 				Debug.WriteLineIf(ShowDebug, "Using existing setup since sha is the same and service is running");
 			}
 			// in crude testing the average additional latency for a DAC
@@ -185,6 +219,10 @@ namespace QA40xPlot.BareMetal
 			var acqr = await WaitForResult(ct);
 			// sound always runs one at a time so we can surround waitforresult here
 			SoundObj?.Stop(); // roughly synched with data send for the qa40x
+			//if(!runRepeat)
+			//{
+			//	RunRepeatedly = false;   // stop any repeating of data
+			//}
 			if (acqr == null)
 			{
 				Debug.WriteLine("No data acquired");
@@ -314,6 +352,7 @@ namespace QA40xPlot.BareMetal
 			lock(AcqResultQueue)
 			{
 				AcqResultQueue.Clear();
+				//AllResultQueue.Clear();
 			}
 			SendPackets.Clear();
 			ReceivePackets.Clear();
@@ -348,12 +387,11 @@ namespace QA40xPlot.BareMetal
 						{
 							// note that queue is empty?
 							Debug.WriteLineIf(ShowDebug, "Waiting for a PacketNew...");
-							PacketNew.Reset();
 							// ?
-							var rslt = await PacketNew.WaitHandleAsync(1500, ctk);	// wait 1.5 seconds
+							var rslt = await PacketNew.WaitHandleAsync(Timeout.Infinite, ctk);	// wait 1.5 seconds
 							if(!rslt)
 							{
-								EnableUsbData(false);   // if we time out waiting for a new packet, turn off the stream
+								//EnableUsbData(false);   // if we time out waiting for a new packet, turn off the stream
 								if(!ctk.IsCancellationRequested)
 									await PacketNew.WaitHandleAsync(Timeout.Infinite, ctk);  // wait forever
 							}
@@ -363,18 +401,15 @@ namespace QA40xPlot.BareMetal
 						{
 							// if we have enough data in queue
 							// wait for the current one to finish
-							if (OutDataQueue.TryPeek(out asr))
+							if (OutDataQueue.TryPeek(out asr) && asr != null)
 							{
-								if (asr != null)
+								if (await asr.WaitAsync(Timeout.Infinite, ctk))
 								{
-									if (await asr.WaitAsync(Timeout.Infinite, ctk))
+									// remove this from the queue
+									lock(OutDataQueue)
 									{
-										// remove this from the queue
-										lock(OutDataQueue)
-										{
-											if(!OutDataQueue.IsEmpty)
-												OutDataQueue.TryDequeue(out _);
-										}
+										if(!OutDataQueue.IsEmpty)
+											OutDataQueue.TryDequeue(out _);
 									}
 								}
 							}
@@ -382,7 +417,8 @@ namespace QA40xPlot.BareMetal
 						else if(EnableSend.WaitOne(0)) // if (!SendPackets.IsEmpty && OutDataQueue.Count < 2)
 						{
 							// if we have a packet to send, queue it up immediately
-							while (OutDataQueue.Count < 2 && SendPackets.TryDequeue(out asr))
+							//while (OutDataQueue.Count < 4 && SendPackets.TryDequeue(out asr))
+							while (SendPackets.TryDequeue(out asr))
 							{
 								if (asr != null)
 								{
@@ -393,7 +429,9 @@ namespace QA40xPlot.BareMetal
 									}
 								}
 							}
-							if(SendPackets.IsEmpty && RunRepeatedly)
+							if (SendPackets.IsEmpty)
+								PacketNew.Reset();
+							if (SendPackets.IsEmpty && RunRepeatedly)
 							{
 								// note that we need more data to send
 								HandleDataReady(false);
@@ -681,19 +719,15 @@ namespace QA40xPlot.BareMetal
 					while (!rslt && itry > 0)
 					{
 						DumpQueue(itry);
-						var waitTask = PacketAvailable.WaitHandleAsync(250, ctok);
-						rslt = await waitTask;
-						//if (rslt)
-						//	PacketAvailable.Reset();
+						rslt = await PacketAvailable.WaitHandleAsync(250, ctok);
 						itry--;
 					}
 				}
 				else
 				{
 					rslt = await PacketAvailable.WaitHandleAsync((int)(400 + u * 1.5), ctok);
-					//if (rslt)
-					//	PacketAvailable.Reset();
 				}
+				PacketAvailable.Reset();
 
 #if DEBUG
 				// Stop the stopwatch
@@ -706,17 +740,27 @@ namespace QA40xPlot.BareMetal
 			{
 				UsbDataService.Singleton.RunRepeatedly = false;
 				await WaitForDoneQueue();
+				rslt = false;
 			}
-			catch(Exception) { }
+			catch(Exception ex) 
+			{
+				Debug.WriteLine($"{ex.Message}");
+			}
 
-			if(rslt)
+			if(rslt && !ctok.IsCancellationRequested)
 			{
 				DumpQueue(-1);
 				lock(AcqResultQueue)
 				{
 					rslt = AcqResultQueue.TryDequeue(out dataOut);
-					if (AcqResultQueue.IsEmpty)
-						PacketAvailable.Reset();
+					if (!AcqResultQueue.IsEmpty)
+						PacketAvailable.Set();
+					if (rslt && dataOut != null && dataOut.Valid)
+					{
+						var tt = dataOut.Left.Max();
+						if(tt > 1e-4)
+							AllResultQueue.Enqueue(dataOut);
+					}
 				}
 			}
 			if(!rslt || dataOut == null)
@@ -741,8 +785,8 @@ namespace QA40xPlot.BareMetal
 				{
 					var qausb = QaComm.GetUsb();
 					qausb?.WriteRegister(8, (uint)(enable ? 5 : 0)); // start data transfer
-					IsUsbEnabled = enable;
 				});
+				IsUsbEnabled = enable;
 			}
 		}
 
@@ -807,10 +851,12 @@ namespace QA40xPlot.BareMetal
 			{
 				lock (AcqResultQueue)
 				{
-					while (AcqResultQueue.Count > 0)
-					{
-						AcqResultQueue.TryDequeue(out _);
-					}
+					// when we're getting a fixed number of results we can't afford to toss some
+					// but if we're free-running then we don't want this to get infinitely long or out of synch
+					//while (AcqResultQueue.Count > 2)
+					//{
+					//	AcqResultQueue.TryDequeue(out _);
+					//}
 					AcqResultQueue.Enqueue(ars);
 				}
 				PacketAvailable.Set();
