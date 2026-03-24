@@ -27,6 +27,8 @@ namespace QA40xPlot.ViewModels
 		private ActAmpSweep actSweep { get; set; }
 
 		[JsonIgnore]
+		public override RelayCommand DoRun { get => new RelayCommand(StartIt); }
+		[JsonIgnore]
 		public override RelayCommand DoStart { get => new RelayCommand(StartIt); }
 		[JsonIgnore]
 		public override RelayCommand DoStop { get => new RelayCommand(StopIt); }

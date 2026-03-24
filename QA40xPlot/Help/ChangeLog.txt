@@ -3,6 +3,10 @@
 This changelog shows the changes made for each version
 Date format is US mm/dd/yy
 --------------------------------------------
+v 1.3.1 3/25/26
+- work on fixing the serious idle problem when spot averaging sweeps such as THD vs F
+- add history view for spectrum and scope when generator is disabled
+- improve chirp accuracy by decreasing dead time
 v 1.3.0 3/21/26
 - support constant generator voltage when testing with repeats
 - add Fixed Latency setting for qa40x device

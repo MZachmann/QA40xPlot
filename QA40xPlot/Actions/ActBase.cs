@@ -514,7 +514,7 @@ namespace QA40xPlot.Actions
 				if (acqData == null || acqData.FreqRslt == null || acqData.TimeRslt == null || ct.IsCancellationRequested)
 				{
 					ct.Dispose();
-					UsbDataService.Singleton.RunRepeatedly = false;
+					await UsbDataService.Singleton.StopRunning();
 					return null;
 				}
 
@@ -544,7 +544,7 @@ namespace QA40xPlot.Actions
 				if (acqData == null || acqData.FreqRslt == null || ct.IsCancellationRequested)
 				{
 					ct.Dispose();
-					UsbDataService.Singleton.RunRepeatedly = false;
+					await UsbDataService.Singleton.StopRunning();
 					return null;
 				}
 
@@ -553,7 +553,7 @@ namespace QA40xPlot.Actions
 				lrfs.Right[0] += GetFGain(acqData.FreqRslt.Right, generatorV, binmin, bintrack);
 			}
 			ct.Dispose();
-			UsbDataService.Singleton.RunRepeatedly = false;
+			await UsbDataService.Singleton.StopRunning();
 			if (average > 1)
 			{
 				lrfs.Left = lrfs.Left.Select(x => x / average).ToArray();

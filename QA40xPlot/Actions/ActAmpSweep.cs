@@ -379,6 +379,7 @@ namespace QA40xPlot.Actions
 			{
 				CanToken = new();
 				await RunAcquisition();
+				await UsbDataService.Singleton.StopRunning();
 			}
 			catch (Exception ex)
 			{

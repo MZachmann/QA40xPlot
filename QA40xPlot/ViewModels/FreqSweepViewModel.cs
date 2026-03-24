@@ -22,6 +22,8 @@ namespace QA40xPlot.ViewModels
 		public override List<string> AxisList { get; } = new List<string> { "XF", "YM", "YP" };
 
 		[JsonIgnore]
+		public override RelayCommand DoRun { get => new RelayCommand(StartIt); }
+		[JsonIgnore]
 		public override RelayCommand DoStart { get => new RelayCommand(StartIt); }
 		[JsonIgnore]
 		public override RelayCommand DoStop { get => new RelayCommand(StopIt); }

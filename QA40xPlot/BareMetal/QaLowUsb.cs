@@ -1,5 +1,6 @@
 ﻿using LibUsbDotNet;
 using LibUsbDotNet.Main;
+using System.Diagnostics;
 
 // Written by MZachmann 4-24-2025
 // much of the bare metal code comes originally from the PyQa40x library and from the Qa40x_BareMetal library on github
@@ -77,13 +78,27 @@ namespace QA40xPlot.BareMetal
 		{
 			// for some reason close crashes when exiting
 			//if (_AttachedDevice.IsOpen && !OnExit)
-			if (_AttachedDevice?.IsOpen == true)
+			try
 			{
-				var iusbdev = _AttachedDevice as IUsbDevice;
-				iusbdev?.ReleaseInterface(_IdInterface);
-				_AttachedDevice?.Close();
+				if (_AttachedDevice != null)
+				{
+					lock (_AttachedDevice)
+					{
+						if (_AttachedDevice?.IsOpen == true)
+						{
+							var iusbdev = _AttachedDevice as IUsbDevice;
+							iusbdev?.ReleaseInterface(_IdInterface);
+							//_AttachedDevice?.Close();
+						}
+					}
+					_AttachedDevice = null;
+				}
 			}
-			_AttachedDevice = null;
+			catch(Exception ex)
+			{
+				// log the exception or handle it as needed
+				Debug.WriteLine($"Error detaching device: {ex.Message}");
+			}
 		}
 
 		public static bool IsDeviceConnected()
