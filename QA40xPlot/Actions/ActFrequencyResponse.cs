@@ -836,7 +836,7 @@ namespace QA40xPlot.Actions
 			var endf = ToD(vm.EndFreq) * 3;
 			endf = Math.Min(endf, vm.SampleRateVal / 2);
 			var genv = QaLibrary.ConvertVoltage(voltagedBV, E_VoltageUnit.dBV, E_VoltageUnit.Volt);
-			var chirpy = Chirps.ChirpVp(vm.FftSizeVal, vm.SampleRateVal, genv, startf, endf, 0.8);
+			var chirpy = Chirps.ChirpVp(vm.FftSizeVal, vm.SampleRateVal, genv, startf, endf);
 			var ucLeft = chirpy;
 			if (vm.IsRiaa)
 			{

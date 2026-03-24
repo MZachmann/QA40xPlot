@@ -70,7 +70,7 @@ namespace QA40xPlot.BareMetal
 		/// <param name="f2">end freq</param>
 		/// <param name="pct">amount of buffer to fill with signal 1.0 == all</param>
 		/// <returns>(chirp,inverse)</returns>
-		public static double[] ChirpVp(uint totalBufferLength, double fs, double amplitudeVrms, double f1 = 20, double f2 = 20000, double pct = 0.6)
+		public static double[] ChirpVp(uint totalBufferLength, double fs, double amplitudeVrms, double f1 = 20, double f2 = 20000, double pct = 0.95)
 		{
 			// Calculate the length of the chirp in samples
 			int chirpLengthSamples = (int)(totalBufferLength * pct);

@@ -374,10 +374,10 @@ namespace QA40xPlot.Libraries
 				case "Impulse":
 					return theta.Select(f => dvamp * Impulse(f)).ToArray();
 				case "Chirp":
-					var chirpTwo = Chirps.ChirpVp(samples.SampleSize, samples.SampleRate, gw.Voltage, 20, 20000, 0.8);
+					var chirpTwo = Chirps.ChirpVp(samples.SampleSize, samples.SampleRate, gw.Voltage, 20, 20000);
 					return chirpTwo;
 				case "RiaaChirp":
-					var chirp3 = Chirps.ChirpVp(samples.SampleSize, samples.SampleRate, gw.Voltage, 20, 20000, 0.8);
+					var chirp3 = Chirps.ChirpVp(samples.SampleSize, samples.SampleRate, gw.Voltage, 20, 20000);
 					var bq = BiquadBuilder.BuildRiaaBiquad((uint)samples.SampleRate, false);
 					chirp3 = chirp3.Select(x => bq.Process(x)).ToArray();
 					return chirp3;
