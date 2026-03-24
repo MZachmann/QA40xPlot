@@ -735,7 +735,7 @@ namespace QA40xPlot.Actions
 					UpdateGraph(false);
 				}
 			}
-			UsbDataService.Singleton.RunRepeatedly = false; // stop freerunning
+			await UsbDataService.Singleton.StopRunning(); // stop freerunning
 			await showMessage("");
 			guiVm.HasExport = (PageData.TimeRslt.Left.Length > 0);
 			await EndAction(guiVm);

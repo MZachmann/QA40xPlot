@@ -188,17 +188,24 @@ namespace QA40xPlot
 
 		private async Task DoClosing()
 		{
-			// set max attenuation for safety, turns on ATTEN led
-			if (ViewSettings.Singleton.SettingsVm.RelayUsage != "Never")
+			try
 			{
-				if (!ViewSettings.IsUseREST)
+				await UsbDataService.Singleton.StopRunning();
+				// set max attenuation for safety, turns on ATTEN led
+				if (ViewSettings.Singleton.SettingsVm.RelayUsage != "Never")
 				{
-					var qadev = QaComm.CheckDeviceConnected();  // this will try to reopen the usb
-					var iscon = qadev.AsTask().Wait(50);
+					if (!ViewSettings.IsUseREST)
+					{
+						var qadev = QaComm.CheckDeviceConnected();  // this will try to reopen the usb
+						var iscon = qadev.AsTask().Wait(50);
+					}
+					await QaComm.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION);
 				}
-				await QaComm.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION);
 			}
-			await UsbDataService.Singleton.Stop();
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex.Message);
+			}
 		}
 
 		protected override void OnClosing(System.ComponentModel.CancelEventArgs e)

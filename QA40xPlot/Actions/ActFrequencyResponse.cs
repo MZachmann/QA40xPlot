@@ -206,6 +206,7 @@ namespace QA40xPlot.Actions
 			{
 				await DoMeasurement(0);
 			}
+			await UsbDataService.Singleton.StopRunning();
 			await showMessage("Finished.");
 			MyGuiModel.HasExport = (PageData.GainFrequencies.Length > 0);
 		}
@@ -436,7 +437,6 @@ namespace QA40xPlot.Actions
 				msr.IORange = $"({QaComm.GetOutputRange()} - {QaComm.GetInputRange()})";
 				if (lfrs == null || lfrs.TimeRslt == null || lfrs.FreqRslt == null)
 				{
-					UsbDataService.Singleton.RunRepeatedly = false;
 					return new();
 				}
 				//FrequencyHistory.Add(lfrs.FreqRslt);

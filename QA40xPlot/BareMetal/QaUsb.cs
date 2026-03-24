@@ -240,7 +240,7 @@ namespace QA40xPlot.BareMetal
 					RegisterReader = null;
 					RegisterWriter = null;
 					QaLowUsb.DetachDevice(OnExit);
-					Device?.Close();
+					//Device?.Close();	// this seems to crash hard for unknown reasons
 					Device = null;
 				}
 			}

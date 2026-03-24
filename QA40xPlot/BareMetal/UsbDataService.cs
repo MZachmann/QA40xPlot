@@ -1,5 +1,4 @@
 ﻿using LibUsbDotNet.Main;
-using QA40xPlot.Extensions;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using System.Collections.Concurrent;
@@ -22,9 +21,11 @@ namespace QA40xPlot.BareMetal
 {
 	public class UsbDataService
 	{
-		public readonly bool ShowDebug = true;
+		public readonly bool ShowDebug = false;
 
-		//readonly int RegReadWriteTimeout = 100;
+		readonly uint JOB_ITEM_PREBUFFER = 1000;    // so we know it's the prebuffer
+		readonly uint MAX_LOGDATA = 100;    // how many past results to keep in the log
+											//readonly int RegReadWriteTimeout = 100;
 		readonly int MainI2SReadWriteTimeout = 1000; // per baremetal
 		public static UsbDataService Singleton { get; } = new UsbDataService();
 		SoundUtil? SoundObj { get; set; } = null;
@@ -90,7 +91,6 @@ namespace QA40xPlot.BareMetal
 				RunTokenSource = new CancellationTokenSource();
 				ServiceTask = RunService(RunTokenSource.Token);
 				IsStarted.Set();
-				EnableSend.Set();
 			}
 		}
 
@@ -99,7 +99,7 @@ namespace QA40xPlot.BareMetal
 			// shut the running loop down
 			if (IsStarted.WaitOne(0))
 			{
-				RunTokenSource.Cancel();
+				await RunTokenSource.CancelAsync();
 				await WaitForDoneQueue();
 				//ServiceTask.Dispose();
 				ServiceTask = Task.Delay(1);
@@ -165,6 +165,7 @@ namespace QA40xPlot.BareMetal
 		private async Task<AcqResult> UseMyDataService(BaseViewModel? bvm, bool forceUpdate, double[] outL, double[] outR, uint sampleRate, CancellationToken ct, bool runRepeat)
 		{
 			Debug.WriteLineIf(ShowDebug, "--entering UseDataService");
+
 			byte[] shaData = [];
 			bool diffSha = false;
 			if(! ViewSettings.Singleton.SettingsVm.AllowRepeating)
@@ -191,6 +192,8 @@ namespace QA40xPlot.BareMetal
 			Start();    // start the service. does nothing if already started
 			if (forceUpdate || !RunRepeatedly || !IsUsbEnabled || diffSha)
 			{
+				var ius = IsUsbEnabled;
+				var dfs = diffSha;
 				Debug.WriteLineIf(ShowDebug && diffSha, $"New data sha: {Convert.ToBase64String(shaData)}");
 				ShaData = shaData;
 				if (_UseExternal)
@@ -203,14 +206,6 @@ namespace QA40xPlot.BareMetal
 			}
 			else
 			{
-				//// if we're already running but this is the last one of the group
-				//if (RunRepeatedly && !runRepeat)
-				//	RunRepeatedly = runRepeat;
-				//if (!runRepeat)
-				//{
-				//	HandleDataReady(false);
-				//	HandleDataReady(true);
-				//}
 				Debug.WriteLineIf(ShowDebug, "Using existing setup since sha is the same and service is running");
 			}
 			// in crude testing the average additional latency for a DAC
@@ -219,10 +214,10 @@ namespace QA40xPlot.BareMetal
 			var acqr = await WaitForResult(ct);
 			// sound always runs one at a time so we can surround waitforresult here
 			SoundObj?.Stop(); // roughly synched with data send for the qa40x
-			//if(!runRepeat)
-			//{
-			//	RunRepeatedly = false;   // stop any repeating of data
-			//}
+			if (!runRepeat)
+			{
+				RunRepeatedly = runRepeat;   // stop any repeating of data
+			}
 			if (acqr == null)
 			{
 				Debug.WriteLine("No data acquired");
@@ -277,6 +272,13 @@ namespace QA40xPlot.BareMetal
 			}
 		}
 
+		// manually say if we should send one packet or many packets
+		// when set we send another packet when one finishes sending and one is in queue
+		public async Task StopRunning()
+		{
+			await Stop();
+		}
+
 		public async Task WaitForDoneQueue()
 		{
 			// tell everyone to stop sending new data
@@ -316,8 +318,13 @@ namespace QA40xPlot.BareMetal
 				{
 					await asr.WaitAsync(Timeout.Infinite, ctk);
 				}
+				// empty any read queue
+				var qaUsb1 = QaComm.GetUsb();
+				// calling flush here seems to crash but readflush works fine
+				qaUsb1?.DataReader?.ReadFlush();
+				qaUsb1?.DataWriter?.Flush();
 			}
-			catch(Exception )
+			catch (Exception )
 			{
 
 			}
@@ -335,6 +342,7 @@ namespace QA40xPlot.BareMetal
 			PacketNew.Reset();  // clear this if needed
 			PacketAvailable.Reset();
 			ReadAvailable.Reset();
+			HasReceivePacket.Reset();
 			// empty any read queue
 			var qaUsb = QaComm.GetUsb();
 			// calling flush here seems to crash but readflush works fine
@@ -356,9 +364,12 @@ namespace QA40xPlot.BareMetal
 			}
 			SendPackets.Clear();
 			ReceivePackets.Clear();
-			HasReceivePacket.Reset();
 			// tell everyone they can run again
 			SoundObj?.Stop();
+			PacketNew.Reset();  // clear this if needed
+			PacketAvailable.Reset();
+			ReadAvailable.Reset();
+			HasReceivePacket.Reset();
 			EnableSend.Set();
 		}
 
@@ -377,21 +388,16 @@ namespace QA40xPlot.BareMetal
 				{
 					while (!ctk.IsCancellationRequested)
 					{
-						if (OutDataQueue.Count > 0 && !IsUsbEnabled)
-						{
-							// if we have data to send but haven't enabled the stream, do that now
-							// let's run this in the main dispatcher to improve multitasking
-							EnableUsbData(true);
-						}
 						if (SendPackets.IsEmpty && OutDataQueue.IsEmpty)
 						{
 							// note that queue is empty?
 							Debug.WriteLineIf(ShowDebug, "Waiting for a PacketNew...");
 							// ?
-							var rslt = await PacketNew.WaitHandleAsync(Timeout.Infinite, ctk);	// wait 1.5 seconds
+							var rslt = await PacketNew.WaitHandleAsync(1500, ctk);	// wait 1.5 seconds
 							if(!rslt)
 							{
-								//EnableUsbData(false);   // if we time out waiting for a new packet, turn off the stream
+								// if we time out waiting for a new packet, turn off the stream
+								EnableUsbData(false);
 								if(!ctk.IsCancellationRequested)
 									await PacketNew.WaitHandleAsync(Timeout.Infinite, ctk);  // wait forever
 							}
@@ -418,7 +424,7 @@ namespace QA40xPlot.BareMetal
 						{
 							// if we have a packet to send, queue it up immediately
 							//while (OutDataQueue.Count < 4 && SendPackets.TryDequeue(out asr))
-							while (SendPackets.TryDequeue(out asr))
+							if (SendPackets.TryDequeue(out asr) && !ctk.IsCancellationRequested)
 							{
 								if (asr != null)
 								{
@@ -429,6 +435,7 @@ namespace QA40xPlot.BareMetal
 									}
 								}
 							}
+							EnableUsbData(true);   // make sure it's on when we have data to send
 							if (SendPackets.IsEmpty)
 								PacketNew.Reset();
 							if (SendPackets.IsEmpty && RunRepeatedly)
@@ -484,10 +491,13 @@ namespace QA40xPlot.BareMetal
 							{
 								if (asr != null && await asr.WaitAsync(Timeout.Infinite, ctk))
 								{
-									if(EnableSend.WaitOne(0))
+									lock(ReceivePackets)
 									{
-										ReceivePackets.Enqueue(asr);
-										HasReceivePacket.Set();
+										if (EnableSend.WaitOne(0))
+										{
+											ReceivePackets.Enqueue(asr);
+											HasReceivePacket.Set();
+										}
 									}
 								}
 							}
@@ -514,9 +524,41 @@ namespace QA40xPlot.BareMetal
 			return tReader;
 		}
 
+		private void CleanService()
+		{
+			try
+			{
+				EnableSend.Reset();
+				// clean everything up
+				SendPackets.Clear();
+				OutDataQueue.Clear();
+				ReadDataQueue.Clear();
+				ReceivePackets.Clear();
+				// clean everything up
+				PacketNew.Reset();
+				ReadAvailable.Reset();
+				PacketAvailable.Reset();
+				HasReceivePacket.Reset();
+				// do this outside of the other thread
+				EnableUsbData(true);
+				// empty any read queue
+				var qaUsb = QaComm.GetUsb();
+				// calling flush here seems to crash but readflush works fine
+				qaUsb?.DataWriter?.Flush();
+				qaUsb?.DataReader?.ReadFlush();
+			}
+			catch(Exception ex)
+			{
+				Debug.WriteLine($"Error in CleanService: {ex.Message}");
+			}
+			// do this outside of the other thread
+			EnableUsbData(false);
+		}
+
 		public Task RunService(CancellationToken ctk)
 		{
 			List<AcqAsyncResult> readResults = new();
+			CleanService();
 
 			// Check if the service is already running
 			// Start a new task to run the acquisition
@@ -524,32 +566,39 @@ namespace QA40xPlot.BareMetal
 			{
 				var tSender = DoPacketSend(ctk);
 				var tReader = DoPacketReceive(ctk);
+				int lastCount = 0;
 				EnableSend.Set();
 				try
 				{
 					while (!ctk.IsCancellationRequested)
 					{
 						readResults.Clear();
-						lock (ReceivePackets)
+						lock(ReceivePackets)
 						{
 							if (ReceivePackets.Count > 0 && !ctk.IsCancellationRequested)
 							{
 								readResults = ReceivePackets.ToList();
 							}
+							// we've looked at the packets
+							HasReceivePacket.Reset();
 						}
-						if (readResults.Count > 0)
+						if (readResults.Count != lastCount )
 						{
-							var thejob = readResults.First().JobNumber;
-							if (thejob != readResults.Last().JobNumber && EnableSend.WaitOne(0))
+							lastCount = readResults.Count;
+							if(lastCount > 0)
 							{
-								var jobdone = readResults.Count(x => x.JobNumber == thejob);
-								var jobcnt = readResults.Count;
-								// only stop when we have at least one extra
-								// this lets us deal with the usb latency and keep fftsize values in synch
-								// if there is no last one then we've cancelled
-								Debug.WriteLineIf(ShowDebug, $"Job {thejob} done with {jobdone} of {jobcnt} blocks");
-								if (!ctk.IsCancellationRequested)
-									HandleJobDone();
+								var thejob = readResults.First().JobNumber;
+								if (thejob != readResults.Last().JobNumber && EnableSend.WaitOne(0))
+								{
+									var jobdone = readResults.Count(x => x.JobNumber == thejob);
+									var jobcnt = readResults.Count;
+									// only stop when we have at least one extra
+									// this lets us deal with the usb latency and keep fftsize values in synch
+									// if there is no last one then we've cancelled
+									Debug.WriteLineIf(ShowDebug, $"Job {thejob} done with {jobdone} of {jobcnt} blocks");
+									if (!ctk.IsCancellationRequested)
+										HandleJobDone();
+								}
 							}
 						}
 						else
@@ -587,7 +636,7 @@ namespace QA40xPlot.BareMetal
 		{
 			try
 			{
-				RunRepeatedly = false;	// stop any repeating of data
+				RunRepeatedly = false;  // stop any repeating of data
 				if (await UseInputData.WaitHandleAsync(8000, RunTokenSource.Token))
 				{
 					UseInputData.Reset();
@@ -598,13 +647,13 @@ namespace QA40xPlot.BareMetal
 					var sources = SplitIntoBuffers(left, right);
 					InDataQueue = sources;
 					CurrentJobNo = 0;
+					UseInputData.Set(); // after setting the indataqueue\
+					HandleDataReady(true);
 					RunRepeatedly = runRepeat;
-					UseInputData.Set(); // after setting the indataqueue
-					HandleDataReady(false);
 					CurrentJobNo++;
-					if (!RunRepeatedly)
+					if (!runRepeat)
 					{
-						HandleDataReady(true);
+						HandleDataReady(false);
 						CurrentJobNo++;
 					}
 				}
@@ -738,7 +787,6 @@ namespace QA40xPlot.BareMetal
 			}
 			catch (OperationCanceledException )
 			{
-				UsbDataService.Singleton.RunRepeatedly = false;
 				await WaitForDoneQueue();
 				rslt = false;
 			}
@@ -757,9 +805,13 @@ namespace QA40xPlot.BareMetal
 						PacketAvailable.Set();
 					if (rslt && dataOut != null && dataOut.Valid)
 					{
-						var tt = dataOut.Left.Max();
+						var tt = Math.Max(dataOut.Left.Max(), dataOut.Right.Max());
 						if(tt > 1e-4)
+						{
 							AllResultQueue.Enqueue(dataOut);
+							while(AllResultQueue.Count > MAX_LOGDATA)
+								AllResultQueue.TryDequeue(out _);
+						}
 					}
 				}
 			}
@@ -804,39 +856,41 @@ namespace QA40xPlot.BareMetal
 					jobno = ar?.JobNumber ?? 0;
 					jobSize = ar?.JobTotal ?? 0;
 					// the very first block isn't saved since it's the prebuf
-					if (ar != null && jobno != 0)
+					if (ar != null && ar.JobItem != JOB_ITEM_PREBUFFER)
 						rxResults.Add(ar.ReadBuffer);
 					while (ReceivePackets.TryPeek(out ar))
 					{
 						if (ar.JobNumber == jobno)
 						{
 							ReceivePackets.TryDequeue(out ar);
-							if (ar != null)
+							if (ar != null && ar.JobItem != JOB_ITEM_PREBUFFER)
 								rxResults.Add(ar.ReadBuffer);
 						}
 						else
 						{
 							// add the last post-job buffer if it exists
 							rxResults.Add(ar.ReadBuffer);
-							if(ReceivePackets.Count == 1 && !RunRepeatedly)
-							{
-								ReceivePackets.TryDequeue(out _);
-								HasReceivePacket.Reset();
-							}
-							else if(ReceivePackets.Count == 0)
-								HasReceivePacket.Reset();
+							//if(ReceivePackets.Count == 0)
+							//	HasReceivePacket.Reset();
 							break;
 						}
 					}
 				}
 			}
-			if(rxResults.Count == 0)
+			if (rxResults.Count == 0)
 			{
 				// this must be a trailer buffer with no data
 				return;
 			}
+			var rxLength = rxResults.Sum(x => x.Length);
+			if (rxLength < FFTSize)
+			{
+				Debug.WriteLine($"Not enough data received for job {jobno}: {rxLength} bytes");
+				return;
+			}
+
 			// now rxResults is all data results for the job
-			var rxData = new byte[rxResults.Sum(x => x.Length)];
+			var rxData = new byte[rxLength];
 			//Debug.WriteLine($"RxData bytes received: {rxData.Length}, blocks: {rxResults.Count}");
 			int offset = 0;
 			foreach (var b in rxResults)
@@ -853,10 +907,10 @@ namespace QA40xPlot.BareMetal
 				{
 					// when we're getting a fixed number of results we can't afford to toss some
 					// but if we're free-running then we don't want this to get infinitely long or out of synch
-					//while (AcqResultQueue.Count > 2)
-					//{
-					//	AcqResultQueue.TryDequeue(out _);
-					//}
+					while (AcqResultQueue.Count > 2)
+					{
+						AcqResultQueue.TryDequeue(out _);
+					}
 					AcqResultQueue.Enqueue(ars);
 				}
 				PacketAvailable.Set();
@@ -977,7 +1031,7 @@ namespace QA40xPlot.BareMetal
 			return aResult;
 		}
 
-		public void HandleDataReady(bool isLast)
+		public void HandleDataReady(bool isFirst)
 		{
 			if(!UseInputData.WaitOne(100))
 			{
@@ -989,13 +1043,13 @@ namespace QA40xPlot.BareMetal
 			{
 				uint jobItem = 0;
 				// If we have data to send, send it
-				var dataArray = InDataQueue.ToArray();
-				// if we are starting a new data source use all
-				// otherwise skip the prebuf
-				var dataQueue = (CurrentJobNo == 0) ? dataArray : dataArray.Skip(1);
-				if(isLast)
+				var dataQueue = InDataQueue.ToArray();
+				if (isFirst)
 				{
-					dataQueue = [dataArray[1]]; // if this is the last one, send the first block
+					var left = new double[PreBufSize];
+					var theData = QaUsb.ToByteStream(left, left);
+					AcqAsyncResult asr = new AcqAsyncResult(null!, theData, CurrentJobNo, JOB_ITEM_PREBUFFER, (uint)1);
+					SendPackets.Enqueue(asr);
 				}
 				uint bfrTotal = (uint)dataQueue.Sum(x => x.TheData?.Length ?? 0);
 				foreach (var bfr in dataQueue)
@@ -1050,7 +1104,7 @@ namespace QA40xPlot.BareMetal
 			UsbBuffSize = (uint)(0.1 + fusize);
 			DbfsAdjustment = Math.Pow(10, -((ParamOutput + 3.0) / 20));
 
-			// now pad front and back of the values via prebuf and postbuf 
+			// now get the prebuf and postbuf sizes in samples
 			var preBuf = QaComm.GetPreBuffer();
 			var postBuf = QaComm.GetPostBuffer();
 			PreBufSize = Math.Max((uint)preBuf, UsbBuffSize / 8);
@@ -1091,10 +1145,6 @@ namespace QA40xPlot.BareMetal
 		{
 			List<AsyncSource> sources = new List<AsyncSource>();
 
-			// PreBuffer
-			var lfa = new double[PreBufSize];
-			sources.Add(new AsyncSource() { Left = lfa, Right = lfa });
-
 			// now the data buffers
 			int blocks = (int)(left.Length / UsbBuffSize);
 			if ((left.Length - blocks * UsbBuffSize) > 0)
@@ -1116,10 +1166,6 @@ namespace QA40xPlot.BareMetal
 				src.TheData = QaUsb.ToByteStream(src.Left, src.Right);   // convert to bytes
 				sources.Add(src);
 			}
-
-			//// PostBuffer
-			//lfa = new double[PostBufSize];
-			//sources.Add(new AsyncSource() { Left = lfa, Right = lfa });
 
 			foreach(var src in sources)
 			{

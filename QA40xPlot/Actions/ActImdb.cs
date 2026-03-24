@@ -1012,7 +1012,7 @@ namespace QA40xPlot.Actions
 					UpdateGraph(false);
 				}
 			}
-			UsbDataService.Singleton.RunRepeatedly = false; // ensure we turn this off when done
+			await UsbDataService.Singleton.StopRunning(); // ensure we turn this off when done
 
 			await showMessage("");
 			guiVm.HasExport = PageData.FreqRslt != null && PageData.FreqRslt.Left?.Length > 0;

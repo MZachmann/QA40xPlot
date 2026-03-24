@@ -4,7 +4,6 @@ using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
-using ScottPlot.Statistics;
 using System.Data;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
@@ -366,7 +365,7 @@ namespace QA40xPlot.Actions
 					UpdateGraph(false);
 				}
 			}
-			UsbDataService.Singleton.RunRepeatedly = false; // ensure we turn this off when done
+			await UsbDataService.Singleton.StopRunning(); // ensure we turn this off when done
 			await showMessage("");
 			guiVm.HasExport = PageData.FreqRslt != null;
 			await EndAction(guiVm);
