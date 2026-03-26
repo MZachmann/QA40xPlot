@@ -471,7 +471,7 @@ namespace QA40xPlot.Libraries
 			catch (Exception ex)
 			{
 				// Handle other exceptions if necessary
-				Console.WriteLine($"Error converting string to color: {ex.Message}");
+				System.Diagnostics.Debug.WriteLine($"Error converting string to color: {ex.Message}");
 				return Colors.Black; // or any other default color you prefer
 			}
 		}

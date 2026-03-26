@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.Threading;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -21,37 +22,69 @@ namespace QA40xPlot.Libraries
 			tcs.TrySetResult(!timedOut);
 		}
 
-		// Awaitable wrapper for AsyncWaitHandle
-		public static async Task<bool> WaitHandleAsync(this WaitHandle handle, int timeOut, CancellationToken token = default)
+		public static async Task<int> WaitHandleAsync(this AsyncManualResetEvent handle, int timeOut, CancellationToken token = default)
 		{
-			var rslt = false;
-			Debug.Assert(handle != null, "WaitHandle should not be null");
+			try
+			{
+				var dtsk = Task.Delay(timeOut);
+				var wtsk = handle.WaitAsync(token);
+				var uou = await Task.WhenAny(wtsk, dtsk).ConfigureAwait(false);
+				if (uou.IsCanceled)
+					return -1;
+				return (wtsk == uou) ? 1 : 0;
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex.Message);
+			}
+			return -1; // if we're here then it popped an exception, assume cancellation
+		}
 
-			// Register the WaitHandle with the ThreadPool
+		/// <summary>
+		/// Asynchronously waits for a WaitHandle to be signaled.
+		/// </summary>
+		public static ValueTask<bool> WaitHandleAsync(
+			this WaitHandle handle,
+			int timeout = Timeout.Infinite,
+			CancellationToken cancellationToken = default)
+		{
+			if (handle == null)
+				throw new ArgumentNullException(nameof(handle));
+
+			// Fast path: already signaled
+			if (handle.WaitOne(0))
+				return ValueTask.FromResult(true);
+
 			var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-			// This callback will be invoked when the handle is signaled
-			RegisteredWaitHandle registeredHandle = ThreadPool.RegisterWaitForSingleObject(
+			// Register wait with ThreadPool
+			var reg = ThreadPool.RegisterWaitForSingleObject(
 				handle,
-				(state, timedOut) => DoStateResult(state!, timedOut),
-				tcs,
-				timeOut,
+				static (state, timedOut) =>
+				{
+					var (src, r) = ((TaskCompletionSource<bool>, RegisteredWaitHandle))state!;
+					src.TrySetResult(!timedOut);
+				},
+				(tcs, default(RegisteredWaitHandle)),
+				timeout,
 				executeOnlyOnce: true
 			);
 
-			try
+			// Cancellation support
+			if (cancellationToken.CanBeCanceled)
 			{
-				using (token.Register(() => tcs.TrySetCanceled(token)))
+				cancellationToken.Register(() =>
 				{
-					rslt = await tcs.Task.ConfigureAwait(false);
-				}
+					tcs.TrySetCanceled(cancellationToken);
+				});
 			}
-			finally
+
+			// Ensure unregistration after completion
+			return new ValueTask<bool>(tcs.Task.ContinueWith(result =>
 			{
-				// Always unregister to avoid resource leaks
-				registeredHandle.Unregister(null);
-			}
-			return rslt;
+				reg.Unregister(null);
+				return result.IsCanceled ? false : result.Result;
+			}, TaskScheduler.Default));
 		}
 	}
 }

@@ -1,15 +1,14 @@
 ﻿using LibUsbDotNet.Main;
+using Microsoft.VisualStudio.Threading;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using System.Collections.Concurrent;
 using System.Data;
 using System.Diagnostics;
-using Windows.ApplicationModel.Chat;
-
 
 // ------- Events
 // Start Engine: start the service task and wait for data available. ** set IsStarted
-// New Data Available: in PostData -> halt ongoing acquisition, create new packet setup, ** set PacketNew
+// New Data Available: in PostData -> halt ongoing acquisition, create new packet setup, ** set NewSendPacket
 // Packet Sent: start next packet transfer if repeating. ** set PacketSent
 // Packet Received: parse and return acquired packet ** set PacketReceived
 // Engine stalled - wait for new data available ** turn off IsSending until new data available
@@ -25,8 +24,10 @@ namespace QA40xPlot.BareMetal
 		public readonly bool ShowDebug = false;
 
 		readonly uint JOB_ITEM_PREBUFFER = 1000;    // so we know it's the prebuffer
-		readonly uint MAX_LOGDATA = 100;    // how many past results to keep in the log
-											//readonly int RegReadWriteTimeout = 100;
+		readonly uint MAX_LOGDATA = 100;        // how many past results to keep in the log
+		readonly uint MIN_OUT_QUEUE = 3;       // how many packets we want in the queue at a minimum to keep the usb fed
+
+		//readonly int RegReadWriteTimeout = 100;
 		readonly int MainI2SReadWriteTimeout = 3000; // per baremetal
 		public static UsbDataService Singleton { get; } = new UsbDataService();
 		SoundUtil? SoundObj { get; set; } = null;
@@ -37,27 +38,28 @@ namespace QA40xPlot.BareMetal
 		/// it will drop to zero, and then return to 1 when not busy
 		private uint CurrentJobNo { get; set; }
 		// - states
-		private ManualResetEvent IsStarted = new ManualResetEvent(false);			// engine is started
+		private ManualResetEvent IsStarted = new ManualResetEvent(false);           // engine is started
+		private VerboseReset EnableSend = new VerboseReset(nameof(EnableSend), false);
 		// - packet status
-		private ManualResetEvent PacketNew = new ManualResetEvent(false);			// new packet to send available
-		private ManualResetEvent ReadAvailable = new ManualResetEvent(false);
-		private ManualResetEvent EnableSend = new ManualResetEvent(false);
-		private ManualResetEvent PacketAvailable = new ManualResetEvent(false);
-		private ManualResetEvent HasReceivePacket = new ManualResetEvent(false);
+		private VerboseReset NewSendPacket = new VerboseReset(nameof(NewSendPacket), false);            // new packet to send available
+		private VerboseReset ReadAvailable = new VerboseReset(nameof(ReadAvailable), false);
+		private VerboseReset PacketAvailable = new VerboseReset(nameof(PacketAvailable), false);
+		private VerboseReset HasReceivePacket = new VerboseReset(nameof(HasReceivePacket), false);
 		// - directives
-		private ManualResetEvent UseInputData = new ManualResetEvent(true);			// allow access to input queue
-		// lists
+		private VerboseReset UseInputData = new VerboseReset(nameof(UseInputData), true);           // allow access to input queue
+																									// lists
 		private List<AsyncSource> InDataQueue { get; set; } = new();
 		// async queues for send and receive - in order of usage
-		private ConcurrentQueue<AcqAsyncResult> SendPackets = new();
+		private VerboseQueue<AcqAsyncResult> SendPacketQueue = new(nameof(SendPacketQueue));
 		// async queues
-		private ConcurrentQueue<AcqAsyncResult> OutDataQueue = new();
-		private ConcurrentQueue<AcqAsyncResult> ReadDataQueue = new();
+		private VerboseQueue<AcqAsyncResult> OutDataQueue = new(nameof(OutDataQueue));
+		private VerboseQueue<AcqAsyncResult> ReadDataQueue = new(nameof(ReadDataQueue));
 		// async queues for send and receive
-		private ConcurrentQueue<AcqAsyncResult> ReceivePackets = new();
-		//
-		private ConcurrentQueue<AcqResult> AcqResultQueue = new();
-		private ConcurrentQueue<AcqResult> AllResultQueue = new();
+		private VerboseQueue<AcqAsyncResult> ReceivePackets = new(nameof(ReceivePackets));
+		// async queues for read data results
+		// AllResultQueue is the log of all results
+		private VerboseQueue<AcqResult> AcqResultQueue = new(nameof(AcqResultQueue));
+		private VerboseQueue<AcqResult> AllResultQueue = new(nameof(AllResultQueue));
 
 		private CancellationTokenSource RunTokenSource = new CancellationTokenSource();
 
@@ -82,6 +84,11 @@ namespace QA40xPlot.BareMetal
 			EnableUsbData(false);
 		}
 
+		private static void DebugLine(string s)
+		{
+			Console.WriteLine(s);
+		}
+
 		/// <summary>
 		/// start up the usb data service
 		/// </summary>
@@ -102,6 +109,8 @@ namespace QA40xPlot.BareMetal
 			// shut the running loop down
 			if (IsStarted.WaitOne(0))
 			{
+				DebugLine("Stopping UsbDataService...");
+				EnableSend.Reset();  // stop the send loop
 				await RunTokenSource.CancelAsync();
 				await WaitForDoneQueue();
 				//ServiceTask.Dispose();
@@ -126,17 +135,24 @@ namespace QA40xPlot.BareMetal
 			// Create and start the stopwatch
 			Stopwatch stopwatch = new Stopwatch();
 			stopwatch.Start();
-#endif            
-			// empty any read queue                                 
-			var qaUsb = QaComm.GetUsb();
-			// calling flush here seems to crash but readflush works fine
-			qaUsb?.DataWriter?.Flush();
-			qaUsb?.DataReader?.Flush();
+#endif
+			// empty any read queue
+			try
+			{
+				var qaUsb = QaComm.GetUsb();
+				// calling flush here seems to crash but readflush works fine
+				qaUsb?.DataWriter?.Flush();
+				qaUsb?.DataReader?.Flush();
+			}
+			catch (Exception ex)
+			{
+				DebugLine($"Error flushing USB: {ex.Message}");
+			}
 #if DEBUG
 			// Stop the stopwatch
 			stopwatch.Stop();
 			// Display elapsed time in different formats
-			Debug.WriteLine($"Elapsed flush time: {stopwatch.ElapsedMilliseconds} ms");
+			WriteLine($"Elapsed flush time: {stopwatch.ElapsedMilliseconds} ms");
 #endif
 		}
 
@@ -150,7 +166,7 @@ namespace QA40xPlot.BareMetal
 				{
 					r = AllResultQueue.ElementAt(idx);
 				}
-				else if(!AllResultQueue.IsEmpty)
+				else if (!AllResultQueue.IsEmpty)
 				{
 					var fir = AllResultQueue.ElementAt(0);
 					r.Left = new double[fir.Left.Length];
@@ -191,7 +207,7 @@ namespace QA40xPlot.BareMetal
 
 			byte[] shaData = [];
 			bool diffSha = false;
-			if(! ViewSettings.Singleton.SettingsVm.AllowRepeating)
+			if (!ViewSettings.Singleton.SettingsVm.AllowRepeating)
 			{
 				// if we do not allow repeating
 				runRepeat = false;
@@ -222,7 +238,7 @@ namespace QA40xPlot.BareMetal
 				if (_UseExternal)
 				{
 					// if we are using an external sound device, prepare the waveform
-					SampleRate = QaComm.GetSampleRate();	// we need this value set for PrepareExternal
+					SampleRate = QaComm.GetSampleRate();    // we need this value set for PrepareExternal
 					SoundObj = PrepareExternal(true, outL, outR);
 				}
 				await PostData(bvm, outL, outR, runRepeat);
@@ -243,11 +259,11 @@ namespace QA40xPlot.BareMetal
 			}
 			if (acqr == null)
 			{
-				Debug.WriteLine("No data acquired");
+				DebugLine("No data acquired");
 			}
 			else
 			{
-				Debug.WriteLine($"Acquired data {acqr.Left.Length}");
+				DebugLine($"Acquired data {acqr.Left.Length}");
 			}
 			AcqResult r = new AcqResult();
 			r.Left = acqr?.Left ?? [];
@@ -291,7 +307,8 @@ namespace QA40xPlot.BareMetal
 			set
 			{
 				_RunRepeatedly = value;
-				Debug.WriteLineIf(ShowDebug, $"Run repeatedly={value}");
+				//Debug.WriteLineIf(ShowDebug, $"Run repeatedly={value}");
+				DebugLine($"Run repeatedly={value}");
 			}
 		}
 
@@ -306,7 +323,7 @@ namespace QA40xPlot.BareMetal
 		{
 			// tell everyone to stop sending new data
 			EnableSend.Reset();
-			SendPackets.Clear();
+			SendPacketQueue.Clear();
 			// wait for the send to completely finish
 			AcqAsyncResult? asr = null;
 #if DEBUG
@@ -330,7 +347,9 @@ namespace QA40xPlot.BareMetal
 				}
 				if (asr != null && !ctk.IsCancellationRequested)
 				{
+					DebugLine("Writing data to USB...");
 					await asr.WaitAsync(Timeout.Infinite, ctk);
+					DebugLine("Did write data to USB...");
 					asr = null;
 				}
 				// wait for the read to completely finish
@@ -351,7 +370,7 @@ namespace QA40xPlot.BareMetal
 				// empty any read queue
 				FlushUsb();
 			}
-			catch (Exception )
+			catch (Exception)
 			{
 
 			}
@@ -359,14 +378,14 @@ namespace QA40xPlot.BareMetal
 			// Stop the stopwatch
 			stopwatch.Stop();
 			// Display elapsed time in different formats
-			Debug.WriteLine($"Elapsed async waits: {stopwatch.ElapsedMilliseconds} ms");
+			WriteLine($"Elapsed async waits: {stopwatch.ElapsedMilliseconds} ms");
 #endif
 
 			// Stop streaming. This also extinguishes the RUN led
 			// do this outside of the other thread
 			EnableUsbData(false);
 			// clean everything up
-			PacketNew.Reset();  // clear this if needed
+			NewSendPacket.Reset();  // clear this if needed
 			PacketAvailable.Reset();
 			ReadAvailable.Reset();
 			HasReceivePacket.Reset();
@@ -381,16 +400,16 @@ namespace QA40xPlot.BareMetal
 			{
 				OutDataQueue.Clear();
 			}
-			lock(AcqResultQueue)
+			lock (AcqResultQueue)
 			{
 				AcqResultQueue.Clear();
 				//AllResultQueue.Clear();
 			}
-			SendPackets.Clear();
+			SendPacketQueue.Clear();
 			ReceivePackets.Clear();
 			// tell everyone they can run again
 			SoundObj?.Stop();
-			PacketNew.Reset();  // clear this if needed
+			NewSendPacket.Reset();  // clear this if needed
 			PacketAvailable.Reset();
 			ReadAvailable.Reset();
 			HasReceivePacket.Reset();
@@ -398,76 +417,77 @@ namespace QA40xPlot.BareMetal
 		}
 
 		/// <summary>
-		/// send data from the SendPackets queue to the OutDataQueue, one packet at a time
-		/// ensure OutDataQueue always has two buffers in it if SendPackets has enough
+		/// submit data from the SendPackets queue to the data bus
+		/// place each packet into the OutDataQueue for tracking
+		/// for each packet submitted to the data bus
+		/// submit and add a receive packet to the ReadDataQueue
+		/// ensure OutDataQueue always has data in it if SendPackets has something in it
 		/// </summary>
 		/// <param name="ctk"></param>
 		/// <returns></returns>
-		public async Task<bool> DoPacketSend(CancellationToken ctk)
+		public async Task<bool> DoPacketSubmit(CancellationToken ctk)
 		{
 			bool tSender = await Task<bool>.Run(async () =>
 			{
-				AcqAsyncResult? asr;
 				try
 				{
 					while (!ctk.IsCancellationRequested)
 					{
-						if (SendPackets.IsEmpty && OutDataQueue.IsEmpty)
+						await EnableSend.WaitHandleAsync(Timeout.Infinite, ctk);
+
+						// dequeue any finished packets
+						while (OutDataQueue.TryPeek(out AcqAsyncResult? asr) && asr != null && asr.IsDone())
 						{
-							// note that queue is empty?
-							Debug.WriteLineIf(ShowDebug, "Waiting for a PacketNew...");
-							// ?
-							var rslt = await PacketNew.WaitHandleAsync(1500, ctk);	// wait 1.5 seconds
-							if(!rslt)
+							if (ctk.IsCancellationRequested)
+								break;
+							// remove this from the queue
+							lock (OutDataQueue)
 							{
-								// if we time out waiting for a new packet, turn off the stream
-								EnableUsbData(false);
-								if(!ctk.IsCancellationRequested)
-									await PacketNew.WaitHandleAsync(Timeout.Infinite, ctk);  // wait forever
-							}
-							Debug.WriteLineIf(ShowDebug, "PacketNew signalled...");
-						}
-						else if (SendPackets.IsEmpty || OutDataQueue.Count >= 2)
-						{
-							// if we have enough data in queue
-							// wait for the current one to finish
-							if (OutDataQueue.TryPeek(out asr) && asr != null)
-							{
-								if (await asr.WaitAsync(Timeout.Infinite, ctk))
-								{
-									// remove this from the queue
-									lock(OutDataQueue)
-									{
-										if(!OutDataQueue.IsEmpty)
-											OutDataQueue.TryDequeue(out _);
-									}
-								}
+								if (!OutDataQueue.IsEmpty)
+									OutDataQueue.TryDequeue(out _);
 							}
 						}
-						else if(EnableSend.WaitOne(0)) // if (!SendPackets.IsEmpty && OutDataQueue.Count < 2)
+
+						// if we have a packet to send, queue it up immediately
+						if (OutDataQueue.Count < MIN_OUT_QUEUE && !SendPacketQueue.IsEmpty && !ctk.IsCancellationRequested)
 						{
-							// if we have a packet to send, queue it up immediately
-							//while (OutDataQueue.Count < 4 && SendPackets.TryDequeue(out asr))
-							if (SendPackets.TryDequeue(out asr) && !ctk.IsCancellationRequested)
+							if (SendPacketQueue.TryDequeue(out AcqAsyncResult? asr) && asr != null)
 							{
-								if (asr != null)
+								if (SendPacketQueue.IsEmpty)
+									NewSendPacket.Reset();  // this gets signaled when data is added to the sendpacketqueue
+								var ec = SubmitSendData(asr.ReadBuffer, asr.JobNumber, asr.JobItem, asr.JobTotal);
+								if (ec == ErrorCode.None)
 								{
-									var ec = SendDataBegin(asr.ReadBuffer, asr.JobNumber, asr.JobItem, asr.JobTotal);
-									if(ec == ErrorCode.None)
-									{
-										var acqr = ReadDataBegin(asr.ReadBuffer.Length, asr.JobNumber, asr.JobItem, asr.JobTotal);
-									}
+									var acqr = SubmitReadData(asr.ReadBuffer.Length, asr.JobNumber, asr.JobItem, asr.JobTotal);
 								}
 								EnableUsbData(true);   // make sure it's on when we have data to send
 							}
-							if (SendPackets.IsEmpty)
-								PacketNew.Reset();
-							if (SendPackets.IsEmpty && RunRepeatedly)
+						}
+
+						// no data available at all...
+						if (OutDataQueue.IsEmpty && SendPacketQueue.IsEmpty && !ctk.IsCancellationRequested)
+						{
+							// note that queue is empty?
+							//Debug.WriteLineIf(ShowDebug, "Waiting for a NewSendPacket...");
+							DebugLine("Waiting for a NewSendPacket...");
+							var rslt = await NewSendPacket.WaitHandleAsync(2500, ctk);  // wait 1.5 seconds
+							if (rslt != 1 && !ctk.IsCancellationRequested)
 							{
-								// note that we need more data to send
-								HandleDataReady(false);
-								CurrentJobNo++;
+								DebugLine("Timed out waiting for NewSendPacket...");
+								// if we time out waiting for a new packet, turn off the stream
+								EnableUsbData(false);
+								if (!ctk.IsCancellationRequested)
+									await NewSendPacket.WaitHandleAsync(Timeout.Infinite, ctk);  // wait forever
 							}
+							//Debug.WriteLineIf(ShowDebug, "NewSendPacket signalled...");
+							DebugLine("NewSendPacket signalled...");
+						}
+						if (EnableSend.IsSet && !ctk.IsCancellationRequested &&
+							SendPacketQueue.IsEmpty && RunRepeatedly)
+						{
+							// this puts more data into the sendpacketqueue
+							HandleDataReady(false);
+							CurrentJobNo++;
 						}
 					}
 				}
@@ -476,8 +496,8 @@ namespace QA40xPlot.BareMetal
 				}
 				catch (Exception ex)
 				{
-				// Other exceptions will end up here
-				Debug.WriteLine($"Error in acquisition sender: {ex.Message}");
+					// Other exceptions will end up here
+					DebugLine($"Error in acquisition sender: {ex.Message}");
 				}
 				finally
 				{
@@ -488,8 +508,8 @@ namespace QA40xPlot.BareMetal
 		}
 
 		/// <summary>
-		/// send data from the SendPackets queue to the OutDataQueue, one packet at a time
-		/// ensure OutDataQueue always has two buffers in it if SendPackets has enough
+		/// check the ReadDataQueue and put packets in the ReceivePackets queue 
+		/// when each queued read buffer is filled
 		/// </summary>
 		/// <param name="ctk"></param>
 		/// <returns></returns>
@@ -501,30 +521,49 @@ namespace QA40xPlot.BareMetal
 				{
 					while (!ctk.IsCancellationRequested)
 					{
-						if (ReadDataQueue.IsEmpty)
+						await EnableSend.WaitHandleAsync(Timeout.Infinite, ctk);
+						if (!ctk.IsCancellationRequested && ReadDataQueue.IsEmpty)
 						{
 							// note that queue is empty?
-							Debug.WriteLineIf(ShowDebug, "Waiting for a ReadAvailable...");
+							DebugLine("Waiting for a ReadAvailable...");
 							await ReadAvailable.WaitHandleAsync(Timeout.Infinite, ctk);
-							Debug.WriteLineIf(ShowDebug, "ReadAvailable signalled...");
+							DebugLine("ReadAvailable signalled...");
 						}
-						while (ReadDataQueue.Count > 0)
+						while (!ctk.IsCancellationRequested && ReadDataQueue.Count > 0)
 						{
-							if (ReadDataQueue.TryDequeue(out AcqAsyncResult? asr))
+							if (!ctk.IsCancellationRequested && ReadDataQueue.TryDequeue(out AcqAsyncResult? asr))
 							{
-								if (asr != null && await asr.WaitAsync(Timeout.Infinite, ctk))
+								DebugLine("Read data started");
+								if (asr != null )
 								{
-									lock(ReceivePackets)
+									DebugLine($"postread === size:{asr.ReadBuffer.Length} job:{asr.JobNumber}, item:{asr.JobItem}, total:{asr.JobTotal}");
+									var uas = await asr.WaitAsync(300, ctk);
+									if(uas)
+										DebugLine("Read data finished");
+									else if(!ctk.IsCancellationRequested)
 									{
-										if (EnableSend.WaitOne(0))
+										var vtotal = 0;
+										while( !uas && !ctk.IsCancellationRequested && vtotal<10)
 										{
-											ReceivePackets.Enqueue(asr);
-											HasReceivePacket.Set();
+
+											uas = await asr.WaitAsync(500, ctk);
+											vtotal++;
+										}
+									}
+									if (!ctk.IsCancellationRequested)
+									{
+										lock (ReceivePackets)
+										{
+											if (EnableSend.IsSet)
+											{
+												ReceivePackets.Enqueue(asr);
+												HasReceivePacket.Set();
+											}
 										}
 									}
 								}
 							}
-							if (ReadDataQueue.IsEmpty)
+							if (ReadDataQueue.IsEmpty && !ctk.IsCancellationRequested)
 							{
 								ReadAvailable.Reset();
 							}
@@ -533,11 +572,13 @@ namespace QA40xPlot.BareMetal
 				}
 				catch (OperationCanceledException)
 				{
+					// Other exceptions will end up here
+					DebugLine("Cancel stopping DoPacketReceive");
 				}
 				catch (Exception ex)
 				{
 					// Other exceptions will end up here
-					Debug.WriteLine($"Error in acquisition sender: {ex.Message}");
+					DebugLine($"Error in DoPacketReceive: {ex.Message}");
 				}
 				finally
 				{
@@ -547,52 +588,26 @@ namespace QA40xPlot.BareMetal
 			return tReader;
 		}
 
-		private void CleanService()
-		{
-			try
-			{
-				EnableSend.Reset();
-				// clean everything up
-				SendPackets.Clear();
-				OutDataQueue.Clear();
-				ReadDataQueue.Clear();
-				ReceivePackets.Clear();
-				// clean everything up
-				PacketNew.Reset();
-				ReadAvailable.Reset();
-				PacketAvailable.Reset();
-				HasReceivePacket.Reset();
-				// do this outside of the other thread
-				EnableUsbData(true);
-				FlushUsb();
-			}
-			catch(Exception ex)
-			{
-				Debug.WriteLine($"Error in CleanService: {ex.Message}");
-			}
-			// do this outside of the other thread
-			EnableUsbData(false);
-		}
-
-		public Task RunService(CancellationToken ctk)
+		/// <summary>
+		/// when there is enough read data to fullfill a request 
+		/// create a receive data packet and place it in the AcqResultQueue for processing by the main thread
+		/// also empty the read queue of those packets
+		/// </summary>
+		/// <param name="ctk"></param>
+		/// <returns></returns>
+		public async Task<bool> DoParseReceipt(CancellationToken ctk)
 		{
 			List<AcqAsyncResult> readResults = new();
-			CleanService();
-
-			// Check if the service is already running
-			// Start a new task to run the acquisition
-			Task t = Task.Run(async () =>
+			int lastCount = 0;
+			bool tParser = await Task<bool>.Run(async () =>
 			{
-				var tSender = DoPacketSend(ctk);
-				var tReader = DoPacketReceive(ctk);
-				int lastCount = 0;
-				EnableSend.Set();
 				try
 				{
 					while (!ctk.IsCancellationRequested)
 					{
+						await EnableSend.WaitHandleAsync(Timeout.Infinite, ctk);
 						readResults.Clear();
-						lock(ReceivePackets)
+						lock (ReceivePackets)
 						{
 							if (ReceivePackets.Count > 0 && !ctk.IsCancellationRequested)
 							{
@@ -601,30 +616,27 @@ namespace QA40xPlot.BareMetal
 							// we've looked at the packets
 							HasReceivePacket.Reset();
 						}
-						if (readResults.Count != lastCount )
+						if (readResults.Count != lastCount && !ctk.IsCancellationRequested)
 						{
 							lastCount = readResults.Count;
-							if(lastCount > 0)
+							if (lastCount > 0)
 							{
 								var thejob = readResults.First().JobNumber;
-								if (thejob != readResults.Last().JobNumber && EnableSend.WaitOne(0))
+								if (thejob != readResults.Last().JobNumber && EnableSend.IsSet)
 								{
 									var jobdone = readResults.Count(x => x.JobNumber == thejob);
 									var jobcnt = readResults.Count;
 									// only stop when we have at least one extra
 									// this lets us deal with the usb latency and keep fftsize values in synch
 									// if there is no last one then we've cancelled
-									Debug.WriteLineIf(ShowDebug, $"Job {thejob} done with {jobdone} of {jobcnt} blocks");
+									DebugLine($"Job {thejob} done with {jobdone} of {jobcnt} blocks");
 									if (!ctk.IsCancellationRequested)
 										HandleJobDone();
 								}
 							}
 						}
-						else
-						{
-							if (!ctk.IsCancellationRequested)
-								await HasReceivePacket.WaitHandleAsync(Timeout.Infinite, ctk);
-						}
+						else if (!ctk.IsCancellationRequested)
+							await HasReceivePacket.WaitHandleAsync(Timeout.Infinite, ctk);
 					}
 				}
 				catch (OperationCanceledException)
@@ -633,14 +645,80 @@ namespace QA40xPlot.BareMetal
 				catch (Exception ex)
 				{
 					// Other exceptions will end up here
-					Debug.WriteLine($"Error in acquisition: {ex.Message}");
+					DebugLine($"Error in acquisition: {ex.Message}");
 				}
 				finally
 				{
 					// Indicate an acq is no longer in progress
 					//Debug.Assert(IsNotRunning.WaitOne(0), "IsRunning should always be done");
 				}
+				return true;
 			});
+			return tParser;
+		}
+
+		private void CleanService()
+		{
+			try
+			{
+				EnableSend.Reset();
+				// clean everything up
+				SendPacketQueue.Clear();
+				OutDataQueue.Clear();
+				ReadDataQueue.Clear();
+				ReceivePackets.Clear();
+				// clean everything up
+				NewSendPacket.Reset();
+				ReadAvailable.Reset();
+				PacketAvailable.Reset();
+				HasReceivePacket.Reset();
+				// do this outside of the other thread
+				EnableUsbData(true);
+				FlushUsb();
+			}
+			catch (Exception ex)
+			{
+				DebugLine($"Error in CleanService: {ex.Message}");
+			}
+			// do this outside of the other thread
+			EnableUsbData(false);
+		}
+
+		/// <summary>
+		/// this is the primary task that gets run for the usbdataservice
+		/// </summary>
+		/// <param name="ctk"></param>
+		/// <returns></returns>
+		public Task RunService(CancellationToken ctk)
+		{
+			CleanService();
+			// Check if the service is already running
+			// Start a new task to run the acquisition
+			Task t = Task.Run(async () =>
+			{
+				EnableSend.Reset();
+				var tSender = DoPacketSubmit(ctk);
+				var tReader = DoPacketReceive(ctk);
+				var tParser = DoParseReceipt(ctk);
+				try
+				{
+					EnableSend.Set();
+					while (!ctk.IsCancellationRequested)
+					{
+						if (tSender.IsCompleted && tReader.IsCompleted && tParser.IsCompleted)
+						{
+							break;
+						}
+						await Task.Delay(100, ctk); // small delay to prevent tight loop
+					}
+				}
+				catch (Exception ex)
+				{
+					DebugLine($"Error in RunService: {ex.Message}");
+				}
+			});
+			DebugLine($"Finished Stopping runservice");
+
 			return t;
 		}
 
@@ -658,10 +736,10 @@ namespace QA40xPlot.BareMetal
 				RunRepeatedly = false;  // stop any repeating of data
 				LeftData = left;
 				RightData = right;
-				if (await UseInputData.WaitHandleAsync(8000, RunTokenSource.Token))
+				if (1 == await UseInputData.WaitHandleAsync(8000, RunTokenSource.Token))
 				{
 					UseInputData.Reset();
-					Debug.WriteLineIf(ShowDebug, $"Posting data of length {left.Length}");
+					DebugLine($"Posting data of length {left.Length}");
 #if DEBUG
 				// Create and start the stopwatch
 				Stopwatch stopwatch = new Stopwatch();
@@ -669,12 +747,13 @@ namespace QA40xPlot.BareMetal
 #endif
 					await Stop();
 					Start();
+					DebugLine("Finished start()");
 #if DEBUG
 				// Stop the stopwatch
 				stopwatch.Stop();
 				var totalTime = stopwatch.ElapsedMilliseconds;
 				// Display elapsed time in different formats
-				Debug.WriteLine($"*** Start-Stop Elapsed Time: {totalTime} ms");
+				WriteLine($"*** Start-Stop Elapsed Time: {totalTime} ms");
 #endif
 					InDataQueue.Clear();
 					//					await WaitForDoneQueue();
@@ -694,18 +773,18 @@ namespace QA40xPlot.BareMetal
 				}
 				else
 				{
-					Debug.WriteLineIf(ShowDebug, "PostData called while previous data is still being processed.");
+					DebugLine("PostData called while previous data is still being processed.");
 				}
 			}
 			catch (OperationCanceledException)
 			{
 				// If we cancel an acq via the CancellationToken, we'll end up here
-				Debug.WriteLineIf(ShowDebug, "Data posting was cancelled.");
+				DebugLine("Data posting was cancelled.");
 			}
 			catch (Exception ex)
 			{
 				// Other exceptions will end up here
-				Debug.WriteLine($"Error in acquisition: {ex.Message}");
+				DebugLine($"Error in acquisition: {ex.Message}");
 			}
 		}
 
@@ -714,7 +793,7 @@ namespace QA40xPlot.BareMetal
 		/// copied to a local buffer before returning.
 		/// </summary>
 		/// <param name="data"></param>
-		public ErrorCode SendDataBegin(byte[] dataSet, uint jobNo, uint jobItem, uint jobTotal)
+		public ErrorCode SubmitSendData(byte[] dataSet, uint jobNo, uint jobItem, uint jobTotal)
 		{
 			ErrorCode ec = ErrorCode.None;
 
@@ -751,7 +830,7 @@ namespace QA40xPlot.BareMetal
 		/// Creates and submits a buffer to be read asynchronously. Returns immediately.
 		/// </summary>
 		/// <param name="data"></param>
-		public AcqAsyncResult? ReadDataBegin(int bufSize, uint jobNo, uint jobItem, uint jobTotal)
+		public AcqAsyncResult? SubmitReadData(int bufSize, uint jobNo, uint jobItem, uint jobTotal)
 		{
 			AcqAsyncResult? result = null;
 			var qaUsb = QaComm.GetUsb();
@@ -759,13 +838,18 @@ namespace QA40xPlot.BareMetal
 			{
 				byte[] readBuffer = new byte[bufSize];
 				UsbTransfer? ar = null;
-				qaUsb.DataReader?.SubmitAsyncTransfer(readBuffer, 0, readBuffer.Length, MainI2SReadWriteTimeout, out ar);
+				var ec = qaUsb.DataReader?.SubmitAsyncTransfer(readBuffer, 0, readBuffer.Length, MainI2SReadWriteTimeout, out ar);
+				if(ec != ErrorCode.None)
+				{
+					throw new Exception("ERROR: Bad result in SubmitReadData");
+				}
 				if (ar != null)
 				{
 					lock (ReadDataQueue)
 					{
 						result = new AcqAsyncResult(ar, readBuffer, jobNo, jobItem, jobTotal);
 						ReadDataQueue.Enqueue(result);
+						DebugLine($"prepread === job:{jobNo}, item:{jobItem}, total:{jobTotal}");
 					}
 					ReadAvailable.Set(); // signal read queue has occupants
 				}
@@ -775,19 +859,19 @@ namespace QA40xPlot.BareMetal
 
 		private void DumpQueue(int itry)
 		{
-			if(ShowDebug)
+			if (ShowDebug)
 			{
-				Debug.WriteLine($"{itry} Send Packets: {SendPackets.Count},{OutDataQueue.Count} Read: {ReadDataQueue.Count},{ReceivePackets.Count} ");
-				var ro = SendPackets.Select(x => $"{x.JobItem}.{x.JobNumber}").ToList();
+				DebugLine($"{itry} Send Packets: {SendPacketQueue.Count},{OutDataQueue.Count} Read: {ReadDataQueue.Count},{ReceivePackets.Count} ");
+				var ro = SendPacketQueue.Select(x => $"{x.JobItem}.{x.JobNumber}").ToList();
 				var so = ReceivePackets.Select(x => $"{x.JobItem}.{x.JobNumber}").ToList();
 				var rox = string.Join(":", ro) + ":::" + string.Join(":", so);
-				Debug.WriteLine(rox);
+				DebugLine(rox);
 			}
 		}
 
 		public async Task<AcqResult?> WaitForResult(CancellationToken ctok)
 		{
-			var rslt = false;
+			var rslt = 0;
 			try
 			{
 				var u = 1000.0 * FFTSize / SampleRate; // # of mseconds to do the dataset
@@ -796,10 +880,10 @@ namespace QA40xPlot.BareMetal
 				Stopwatch stopwatch = new Stopwatch();
 				stopwatch.Start();
 #endif
-				if(ShowDebug)
+				if (ShowDebug)
 				{
 					int itry = (int)(2 + 4 * (u * 1.5 / 1000));
-					while (!rslt && itry > 0)
+					while (1 != rslt && itry > 0)
 					{
 						DumpQueue(itry);
 						rslt = await PacketAvailable.WaitHandleAsync(250, ctok);
@@ -816,32 +900,32 @@ namespace QA40xPlot.BareMetal
 				// Stop the stopwatch
 				stopwatch.Stop();
 				// Display elapsed time in different formats
-				Debug.WriteLine($"Elapsed Time: {stopwatch.ElapsedMilliseconds} ms");
+				WriteLine($"Elapsed Time: {stopwatch.ElapsedMilliseconds} ms");
 #endif
 			}
-			catch (OperationCanceledException )
+			catch (OperationCanceledException)
 			{
 				await WaitForDoneQueue();
-				rslt = false;
+				rslt = 0;
 			}
-			catch(Exception ex) 
+			catch (Exception ex)
 			{
-				Debug.WriteLine($"{ex.Message}");
+				DebugLine($"{ex.Message}");
 			}
 
 			AcqResult? dataOut = null;
-			if (rslt && !ctok.IsCancellationRequested)
+			if (rslt == 1 && !ctok.IsCancellationRequested)
 			{
 				DumpQueue(-1);
-				lock(AcqResultQueue)
+				lock (AcqResultQueue)
 				{
-					rslt = AcqResultQueue.TryDequeue(out dataOut);
+					bool bslt = AcqResultQueue.TryDequeue(out dataOut);
 					if (!AcqResultQueue.IsEmpty)
 						PacketAvailable.Set();
-					if (rslt && dataOut != null && dataOut.Valid)
+					if (bslt && dataOut != null && dataOut.Valid)
 					{
 						var tt = Math.Max(dataOut.Left.Max(), dataOut.Right.Max());
-						if(tt > 1e-4)
+						if (tt > 1e-4)
 						{
 							AcqResult acqr = new();
 							acqr.Left = LeftData;
@@ -855,35 +939,46 @@ namespace QA40xPlot.BareMetal
 					}
 				}
 			}
-			if(!rslt || dataOut == null)
+			if (dataOut == null)
 			{
-				Debug.WriteLine("No data result available");
+				DebugLine("No data result available");
 				return null;
 			}
 			//if(dataOut.Left.Length > 0)
-			//	Debug.WriteLine($"Data result max left: {dataOut.Left.Max()}");
+			//	WriteLine($"Data result max left: {dataOut.Left.Max()}");
 			//else
-			//	Debug.WriteLine("Data result empty");
+			//	WriteLine("Data result empty");
 			return dataOut;
 		}
 
 		private void EnableUsbData(bool enable)
 		{
-			Debug.WriteLineIf(ShowDebug, $"usb dataflow enable: {enable}");
-			if(IsUsbEnabled != enable)
+			if (IsUsbEnabled != enable)
 			{
-				// let's run this in the main dispatcher to improve multitasking
-				System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+				var qausb = QaComm.GetUsb();
+				if (qausb != null)
 				{
-					var qausb = QaComm.GetUsb();
-					qausb?.WriteRegister(8, (uint)(enable ? 5 : 0)); // start data transfer
-				});
-				IsUsbEnabled = enable;
+					DebugLine($"usb dataflow enable: {enable}");
+					qausb.WriteRegister(8, (uint)(enable ? 5 : 0)); // start data transfer
+					IsUsbEnabled = enable;
+				}
 			}
 		}
 
 		public void HandleJobDone()
 		{
+			try
+			{
+				PerformJobDone();
+			}
+			catch(Exception ex)
+			{
+				DebugLine($"Error in HandleJobDone: {ex.Message}");
+			}
+		}
+
+		public void PerformJobDone()
+		{ 
 			// we now have a list of all the rx buffers to convert to an array
 			// use fixed size so that frombytestream and others work ok
 			List<byte[]> rxResults = new();
@@ -929,13 +1024,13 @@ namespace QA40xPlot.BareMetal
 			var rxLength = rxResults.Sum(x => x.Length);
 			if (rxLength < FFTSize)
 			{
-				Debug.WriteLine($"Not enough data received for job {jobno}: {rxLength} bytes");
+				DebugLine($"Not enough data received for job {jobno}: {rxLength} bytes");
 				return;
 			}
 
 			// now rxResults is all data results for the job
 			var rxData = new byte[rxLength];
-			//Debug.WriteLine($"RxData bytes received: {rxData.Length}, blocks: {rxResults.Count}");
+			//WriteLine($"RxData bytes received: {rxData.Length}, blocks: {rxResults.Count}");
 			int offset = 0;
 			foreach (var b in rxResults)
 			{
@@ -957,6 +1052,7 @@ namespace QA40xPlot.BareMetal
 					}
 					AcqResultQueue.Enqueue(ars);
 				}
+				DebugLine($"Job {jobno} acquisition complete with {ars.Left.Length} samples");
 				PacketAvailable.Set();
 			}
 		}
@@ -1014,12 +1110,12 @@ namespace QA40xPlot.BareMetal
 			aResult.JobNumber = jobNumber;
 			if(rxData.Length == 0)
 			{
-				Debug.WriteLine("No data read from USB");
+				DebugLine("No data read from USB");
 				return aResult;
 			}
 
 			QaUsb.FromByteStream(rxData, out aResult.Right, out aResult.Left);
-			//Debug.WriteLine($"Deal with read data at {aResult.Left.Length}");
+			//WriteLine($"Deal with read data at {aResult.Left.Length}");
 			// Note that left and right data is swapped on QA402, QA403, QA404. We do that via arg ordering below.
 			// now we convert the stream to two data arrays
 			// and scan the data to see where to clip the latency
@@ -1047,7 +1143,7 @@ namespace QA40xPlot.BareMetal
 					if (HasAChannel(false))
 					{
 						rxoff = Math.Max(lxoff, CheckStart(aResult.Right, maxDelay));
-						Debug.WriteLine($"External latency for job {jobNumber}: {rxoff} samples");
+						DebugLine($"External latency for job {jobNumber}: {rxoff} samples");
 						roff = rxoff;
 					}
 				}
@@ -1077,9 +1173,9 @@ namespace QA40xPlot.BareMetal
 
 		public void HandleDataReady(bool isFirst)
 		{
-			if(!UseInputData.WaitOne(100))
+			if(!UseInputData.IsSet)
 			{
-				Debug.WriteLine("HandleDataReady called while previous data is still being processed.");
+				DebugLine("HandleDataReady called while previous data is still being processed.");
 				return;
 			}
 			UseInputData.Reset();
@@ -1093,19 +1189,21 @@ namespace QA40xPlot.BareMetal
 					var left = new double[PreBufSize];
 					var theData = QaUsb.ToByteStream(left, left);
 					AcqAsyncResult asr = new AcqAsyncResult(null!, theData, CurrentJobNo, JOB_ITEM_PREBUFFER, (uint)1);
-					SendPackets.Enqueue(asr);
+					SendPacketQueue.Enqueue(asr);
 				}
 				uint bfrTotal = (uint)dataQueue.Sum(x => x.TheData?.Length ?? 0);
 				foreach (var bfr in dataQueue)
 				{
 					AcqAsyncResult asr = new AcqAsyncResult(null!, bfr.TheData, CurrentJobNo, jobItem, bfrTotal);
-					SendPackets.Enqueue(asr);
+					SendPacketQueue.Enqueue(asr);
 					jobItem++;
 				}
-				PacketNew.Set(); // tell the service we have new data ready
+				if(ReadDataQueue.Count > 0)
+					ReadDataQueue.Clear();  // just in case
+				NewSendPacket.Set(); // tell the service we have new data ready
 				//SoundObj?.Play();
 				if (SoundObj != null)
-					Debug.WriteLine($"Sound device is playing: {SoundObj?.IsPlaying}");
+					DebugLine($"Sound device is playing: {SoundObj?.IsPlaying}");
 			}
 			UseInputData.Set();
 		}
@@ -1166,16 +1264,16 @@ namespace QA40xPlot.BareMetal
 		{
 			if(ShowDebug)
 			{
-				Debug.WriteLine($"****** Parameters *******");
-				Debug.WriteLine($"ParamInput: {ParamInput}, ParamOutput: {ParamOutput}, UsbBuffSize: {UsbBuffSize}");
-				Debug.WriteLine($"DacCalibration: {DacCalibration.Left}, {DacCalibration.Right}");
-				Debug.WriteLine($"AdcCalibration: {AdcCalibration.Left}, {AdcCalibration.Right}");
-				Debug.WriteLine($"DbfsAdjustment: {DbfsAdjustment}");
-				Debug.WriteLine($"PreBufSize: {PreBufSize}, PostBufSize: {PostBufSize}");
-				Debug.WriteLine($"****** Parameters *******");
+				DebugLine($"****** Parameters *******");
+				DebugLine($"ParamInput: {ParamInput}, ParamOutput: {ParamOutput}, UsbBuffSize: {UsbBuffSize}");
+				DebugLine($"DacCalibration: {DacCalibration.Left}, {DacCalibration.Right}");
+				DebugLine($"AdcCalibration: {AdcCalibration.Left}, {AdcCalibration.Right}");
+				DebugLine($"DbfsAdjustment: {DbfsAdjustment}");
+				DebugLine($"PreBufSize: {PreBufSize}, PostBufSize: {PostBufSize}");
+				DebugLine($"****** Parameters *******");
 			}
 			else
-				Debug.WriteLine($"****** ParamInput: {ParamInput}, ParamOutput: {ParamOutput}, UsbBuffSize: {UsbBuffSize}");
+				DebugLine($"****** ParamInput: {ParamInput}, ParamOutput: {ParamOutput}, UsbBuffSize: {UsbBuffSize}");
 
 		}
 

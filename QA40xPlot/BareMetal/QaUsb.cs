@@ -92,7 +92,16 @@ namespace QA40xPlot.BareMetal
 
 		public async Task<bool> WaitAsync(int timeout, CancellationToken ct)
 		{
-			return await UsbXfer.AsyncWaitHandle.WaitHandleAsync(timeout, ct);
+			bool rslt = false;
+			try
+			{
+				rslt = await UsbXfer.AsyncWaitHandle.WaitHandleAsync(timeout, ct);
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"WaitAsync fail: {ex.Message}");
+			}
+			return rslt;
 		}
 
 		public bool IsDone()
@@ -118,7 +127,7 @@ namespace QA40xPlot.BareMetal
 	{
 		// turn off to always use the prior code that doesn't run in background
 		// otherwise the prior code is used when user turns off AllowRepeating in Settings
-		private static readonly bool UseIdleCode = true;
+		private static readonly bool UseIdleCode = false;
 
 		object ReadRegLock = new object();
 		// how long to wait for relays to settle down after changing input/output ranges
@@ -200,21 +209,30 @@ namespace QA40xPlot.BareMetal
 			return brslt;
 		}
 
-		private void DumpRegisters()
+		public static string DumpRegisters()
 		{
-			Debug.WriteLine("Register dump:");
+			var qausb = QaComm.GetUsb();
+			var sdump = qausb?.DumpAllRegs() ?? string.Empty;
+			Debug.Write(sdump);
+			return sdump;
+		}
+
+		public string DumpAllRegs()
+		{ 
+			string sout = "Register dump:" + Environment.NewLine;
 			for (int i = 0; i < 25; i++)
 			{
 				try
 				{
 					uint val = ReadRegister((byte)i);
-					Debug.WriteLine($"Reg {i}: {val}");
+					sout += $"Reg {i}: {val}" + Environment.NewLine;
 				}
 				catch (Exception ex)
 				{
 					Debug.WriteLine($"Error reading register {i}: {ex.Message}");
 				}
 			}
+			return sout;
 		}
 
 		/// <summary>

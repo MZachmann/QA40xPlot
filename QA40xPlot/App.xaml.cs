@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.IO;
+using System.Windows;
 
 // Written by MZachmann 4-24-2025
 // some of this code came from the original Qa40x application by Joost Breed
@@ -17,6 +18,10 @@ namespace QA40xPlot
 		protected override void OnStartup(StartupEventArgs e)
 		{
 			base.OnStartup(e);
+
+			Console.SetOut(new StreamWriter("C:\\Users\\mark\\OneDrive\\Documents\\QA40x Saved Plot Files\\log.txt") { AutoFlush = true });
+			Console.WriteLine("This will be written to log.txt");
+
 			var callFile = e.Args.FirstOrDefault();
 			if (callFile != null && callFile.Length > 0)
 			{

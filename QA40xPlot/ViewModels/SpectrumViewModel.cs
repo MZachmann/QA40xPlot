@@ -400,7 +400,7 @@ namespace QA40xPlot.ViewModels
 		public void ShowHistoryIdx()
 		{
 			if (UseHistory)
-				actSpec.ShowHistoryAt(HistoryIdx).ContinueWith(x => x);
+				actSpec.ShowHistoryAt(HistoryIdx).ContinueWith((x) => { });
 		}
 
 		~SpectrumViewModel()

@@ -103,7 +103,7 @@ namespace QA40xPlot.Actions
 		public virtual Task LoadFromFile(string fileName, bool doLoad)
 		{
 			Debug.Assert(false);    // should never get here
-			return null;
+			return Task.Delay(1);
 		}
 
 		public virtual Rect GetDataBounds()
