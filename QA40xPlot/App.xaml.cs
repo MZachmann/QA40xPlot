@@ -19,8 +19,8 @@ namespace QA40xPlot
 		{
 			base.OnStartup(e);
 
-			Console.SetOut(new StreamWriter("C:\\Users\\mark\\OneDrive\\Documents\\QA40x Saved Plot Files\\log.txt") { AutoFlush = true });
-			Console.WriteLine("This will be written to log.txt");
+			//Console.SetOut(new StreamWriter("C:\\Users\\mark\\OneDrive\\Documents\\QA40x Saved Plot Files\\log.txt") { AutoFlush = true });
+			//Console.WriteLine("This will be written to log.txt");
 
 			var callFile = e.Args.FirstOrDefault();
 			if (callFile != null && callFile.Length > 0)

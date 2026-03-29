@@ -13,8 +13,8 @@ namespace QA40xPlot.BareMetal
 {
 	public class Datashow
 	{
-		public static List<String> _Trackers { get; } = new() 
-			{ "SendPacketQueue", "ReadDataQueue", "EnableSend", "OutDataQueue" };
+		public static List<String> _Trackers { get; } = new();
+			//{ "SendPacketQueue", "ReadDataQueue", "EnableSend", "OutDataQueue" };
 	}
 
 	public class VerboseQueue<T> : ConcurrentQueue<T>
