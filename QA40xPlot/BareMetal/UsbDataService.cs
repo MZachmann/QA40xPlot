@@ -28,7 +28,7 @@ namespace QA40xPlot.BareMetal
 		readonly uint MIN_OUT_QUEUE = 3;       // how many packets we want in the queue at a minimum to keep the usb fed
 
 		//readonly int RegReadWriteTimeout = 100;
-		private static object UsbLock = new object();		// a locker
+		private static object UsbLock = new object();
 		readonly int MainI2SReadWriteTimeout = 3000; // per baremetal
 		public static UsbDataService Singleton { get; } = new UsbDataService();
 		SoundUtil? SoundObj { get; set; } = null;
@@ -88,7 +88,7 @@ namespace QA40xPlot.BareMetal
 
 		private static void DebugLine(string s)
 		{
-			//Console.WriteLine(s);
+			Console.WriteLine(s);
 		}
 
 		/// <summary>
@@ -145,9 +145,9 @@ namespace QA40xPlot.BareMetal
 			// empty any read queue
 			try
 			{
-				lock(UsbLock)
+				var qaUsb = QaComm.GetUsb();
+				lock(qaUsb ?? UsbLock)
 				{
-					var qaUsb = QaComm.GetUsb();
 					// calling flush here seems to crash but readflush works fine
 					//qaUsb?.DataReader?.Reset();
 					//qaUsb?.DataWriter?.Reset();
@@ -240,6 +240,7 @@ namespace QA40xPlot.BareMetal
 			shaData = UsbDataService.CalculateSha(outL, outR);
 			diffSha = !ShaSame(shaData, ShaData);
 			Start();    // start the service. does nothing if already started
+			SampleRate = QaComm.GetSampleRate();    // we need this value set for PrepareExternal
 			if (forceUpdate || !RunRepeatedly || !IsUsbEnabled || diffSha)
 			{
 				var ius = IsUsbEnabled;
@@ -249,7 +250,6 @@ namespace QA40xPlot.BareMetal
 				if (_UseExternal)
 				{
 					// if we are using an external sound device, prepare the waveform
-					SampleRate = QaComm.GetSampleRate();    // we need this value set for PrepareExternal
 					SoundObj = PrepareExternal(true, outL, outR);
 				}
 				await PostData(bvm, outL, outR, runRepeat);
@@ -467,12 +467,14 @@ namespace QA40xPlot.BareMetal
 						{
 							if (SendPacketQueue.TryDequeue(out AcqAsyncResult? asr) && asr != null)
 							{
-								if (SendPacketQueue.IsEmpty)
-									NewSendPacket.Reset();  // this gets signaled when data is added to the sendpacketqueue
 								var ec = SubmitSendData(asr.ReadBuffer, asr.JobNumber, asr.JobItem, asr.JobTotal);
 								if (ec == ErrorCode.None)
 								{
 									var acqr = SubmitReadData(asr.ReadBuffer.Length, asr.JobNumber, asr.JobItem, asr.JobTotal);
+								}
+								if(SendPacketQueue.IsEmpty && !ctk.IsCancellationRequested)
+								{
+									NewSendPacket.Reset();  // this gets signaled when data is added to the sendpacketqueue
 								}
 								EnableUsbData(true);   // make sure it's on when we have data to send
 							}
@@ -484,8 +486,8 @@ namespace QA40xPlot.BareMetal
 							// note that queue is empty?
 							//Debug.WriteLineIf(ShowDebug, "Waiting for a NewSendPacket...");
 							DebugLine("Waiting for a NewSendPacket...");
-							var rslt = await NewSendPacket.WaitHandleAsync(2500, ctk);  // wait 1.5 seconds
-							if (rslt != 1 && !ctk.IsCancellationRequested)
+							var rslt = await NewSendPacket.WaitHandleAsync(1500, ctk);  // wait 1.5 seconds
+							if (rslt != 1 && !ctk.IsCancellationRequested && !RunRepeatedly)
 							{
 								DebugLine("Timed out waiting for NewSendPacket...");
 								// if we time out waiting for a new packet, turn off the stream
@@ -834,10 +836,10 @@ namespace QA40xPlot.BareMetal
 			}
 
 			UsbTransfer? ar = null;
-			lock (UsbLock)
+			var qaUsb = QaComm.GetUsb();
+			lock (qaUsb ?? UsbLock)
 			{
 				// we need to flush before every send to avoid a weird issue where the first packet gets stuck and never sends
-				var qaUsb = QaComm.GetUsb();
 				ec = qaUsb?.DataWriter?.SubmitAsyncTransfer(dataSet, 0, dataSet.Length, MainI2SReadWriteTimeout, out ar) ?? ErrorCode.UnknownError;
 			}
 			if (ec != ErrorCode.None)
@@ -866,9 +868,9 @@ namespace QA40xPlot.BareMetal
 				byte[] readBuffer = new byte[bufSize];
 				UsbTransfer? ar = null;
 				ErrorCode? ec = ErrorCode.DeviceNotFound;
-				lock (UsbLock)
+				var qaUsb = QaComm.GetUsb();
+				lock (qaUsb ?? UsbLock)
 				{
-					var qaUsb = QaComm.GetUsb();
 					ec = qaUsb?.DataReader?.SubmitAsyncTransfer(readBuffer, 0, readBuffer.Length, MainI2SReadWriteTimeout, out ar);
 				}
 				if (ec != ErrorCode.None)
@@ -987,10 +989,10 @@ namespace QA40xPlot.BareMetal
 		{
 			if (IsUsbEnabled != enable)
 			{
-				lock (UsbLock)
+				var qausb = QaComm.GetUsb();
+				if (qausb != null)
 				{
-					var qausb = QaComm.GetUsb();
-					if (qausb != null)
+					lock (qausb)
 					{
 						qausb.WriteRegister(8, (uint)(enable ? 5 : 0)); // start data transfer
 						IsUsbEnabled = enable;
@@ -1028,8 +1030,8 @@ namespace QA40xPlot.BareMetal
 					jobno = ar?.JobNumber ?? 0;
 					jobSize = ar?.JobTotal ?? 0;
 					// the very first block isn't saved since it's the prebuf
-					//if (ar != null && ar.JobItem != JOB_ITEM_PREBUFFER)
-					if (ar != null)
+					// and our delay is just enough to be past that
+					if (ar != null && ar.JobItem != JOB_ITEM_PREBUFFER)
 						rxResults.Add(ar.ReadBuffer);
 				}
 				if(ar != null)

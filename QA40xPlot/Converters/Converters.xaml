@@ -7,6 +7,7 @@
         <convert:VoltFormatter x:Key="VoltFormatter"/>
         <convert:WattFormatter x:Key="WattFormatter"/>
         <convert:TimeFormatter x:Key="TimeFormatter"/>
+        <convert:FreqFormatter x:Key="FreqFormatter"/>
         <convert:BoolToVisibilityConverter x:Key="BoolVisConverter"/>
         <convert:BoolToNotVisibilityConverter x:Key="BoolNotVisConverter"/>
         <convert:EnumToVisibilityConverter x:Key="EnumVisConverter"/>

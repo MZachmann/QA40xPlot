@@ -6,6 +6,7 @@ using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
 using System.Windows;
+using System.Windows.Interop;
 using static QA40xPlot.ViewModels.BaseViewModel;
 
 // various things for the thd vs frequency activity
@@ -463,7 +464,6 @@ namespace QA40xPlot.Actions
 				if (lrfs.TimeRslt == null)
 					return false;
 				msr.TimeRslt = lrfs.TimeRslt;
-				//BuildFrequencies(msr);      // do the relevant fft work
 				await showProgress(90);
 			}
 			catch (Exception ex)
@@ -513,6 +513,8 @@ namespace QA40xPlot.Actions
 				PageData.TimeRslt.Left = acq.Left;
 				PageData.TimeRslt.Right = acq.Right;
 				PageData.TimeRslt.dt = 1 / (double)vm.SampleRateVal;
+				BuildFrequencies(PageData);      // do the relevant fft work
+				SetInfoChannels(PageData);
 				UpdateGraph(false);
 			}
 		}
@@ -741,14 +743,25 @@ namespace QA40xPlot.Actions
 			await EndAction(guiVm);
 		}
 
-		private void FillChannelInfo(ScopeInfoViewModel vm, double[] timeData)
+		private void FillChannelInfo(ScopeInfoViewModel vm, bool isLeft, DataTab tab)
 		{
-			vm.TotalVolts = QaCompute.ComputeRmsTime(timeData); // set the total volts
-			vm.MaxVolts = timeData.Max(); // set the max Volts
-			vm.MinVolts = timeData.Min(); // set the min Volts
+			var tdata = isLeft ? tab.TimeRslt.Left : tab.TimeRslt.Right;
+			vm.TotalVolts = QaCompute.ComputeRmsTime(tdata); // set the total volts
+			vm.MaxVolts = tdata.Max(); // set the max Volts
+			vm.MinVolts = tdata.Min(); // set the min Volts
 			vm.PtPVolts = vm.MaxVolts - vm.MinVolts; // set the peak to peak Volts
-			vm.TsDelay = QaMath.CalculateTimeDelay(PageData.TimeRslt); // set the time delay
+			vm.TsDelay = QaMath.CalculateTimeDelay(tab.TimeRslt); // set the time delay
 			vm.PlotFormat = MyGuiModel.PlotFormat;
+			if (tab.FreqRslt == null)
+			{
+				vm.Fundamental = 0.0;
+			}
+			else
+			{
+				var fdata = isLeft ? tab.FreqRslt.Left : tab.FreqRslt.Right;
+				var fund = QaMath.CalculateFundamentalFreq(fdata, tab.FreqRslt.Df);
+				vm.Fundamental = fund;
+			}
 		}
 
 		// show the latest step values in the table
@@ -758,10 +771,10 @@ namespace QA40xPlot.Actions
 			if (timeData == null || timeData.Left.Length == 0)
 				return;
 			var vm = ViewSettings.Singleton.ScopeInfoLeft;
-			FillChannelInfo(vm, timeData.Left);
+			FillChannelInfo(vm, true, tab);
 			vm.TsDelay = -vm.TsDelay; // left is negative delay
 			vm = ViewSettings.Singleton.ScopeInfoRight;
-			FillChannelInfo(vm, timeData.Right);
+			FillChannelInfo(vm, false, tab);
 		}
 
 		void HandleChangedProperty(ScottPlot.Plot myPlot, MyViewClass vm, string changedProp)

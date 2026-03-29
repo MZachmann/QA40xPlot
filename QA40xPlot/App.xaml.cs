@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using Microsoft.VisualBasic.Logging;
+using System.IO;
 using System.Windows;
 
 // Written by MZachmann 4-24-2025
@@ -19,8 +20,13 @@ namespace QA40xPlot
 		{
 			base.OnStartup(e);
 
-			//Console.SetOut(new StreamWriter("C:\\Users\\mark\\OneDrive\\Documents\\QA40x Saved Plot Files\\log.txt") { AutoFlush = true });
-			//Console.WriteLine("This will be written to log.txt");
+			var myLogFile = "C:\\Users\\mark\\OneDrive\\Documents\\QA40x Saved Plot Files";
+			var isone = Directory.Exists(myLogFile);
+			if(isone)
+			{
+				Console.SetOut(new StreamWriter(myLogFile + "\\log.txt") { AutoFlush = true });
+				Console.WriteLine("This will be written to log.txt");
+			}
 
 			var callFile = e.Args.FirstOrDefault();
 			if (callFile != null && callFile.Length > 0)

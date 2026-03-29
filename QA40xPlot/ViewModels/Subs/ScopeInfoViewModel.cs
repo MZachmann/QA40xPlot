@@ -109,6 +109,13 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _TsDelay, value);
 		}
 
+		private double _Fundamental = 0;
+		public double Fundamental
+		{
+			get => _Fundamental;
+			set => SetProperty(ref _Fundamental, value);
+		}
+
 		public ScopeInfoViewModel()
 		{
 		}

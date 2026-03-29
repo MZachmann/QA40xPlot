@@ -338,6 +338,52 @@ namespace QA40xPlot.Converters
 		}
 	}
 
+	public class FreqFormatter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			if (value == null || value == DependencyProperty.UnsetValue)
+				return string.Empty;
+			// three arguments are:
+			// voltage, reference voltage, usepercent
+			string rslt = string.Empty;
+			{
+				double dv = (double)value;
+				var adv = Math.Abs(dv);
+				if (adv >= 100)
+				{
+					rslt = dv.ToString("0.#") + " Hz";
+				}
+				else if (adv >= .099)
+				{
+					rslt = dv.ToString("0.###") + " Hz";
+				}
+				else if (adv >= 1e4)
+				{
+					rslt = (dv / 1000).ToString("G3") + " KHz";
+				}
+				else if (adv >= 1e7)
+				{
+					rslt = (dv / 1000000).ToString("G3") + " MHz";
+				}
+				else if(adv >= 1e10)
+				{
+					rslt = (dv / 1e9).ToString("G3") + " GHz";
+				}
+				else
+				{
+					rslt = dv.ToString("G3") + " Hz";
+				}
+			}
+			return rslt;
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			return Binding.DoNothing;
+		}
+	}
+
 	/// <summary>
 	/// convert a voltage to dbv format
 	/// </summary>

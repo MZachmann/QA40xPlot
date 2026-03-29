@@ -48,6 +48,13 @@ namespace QA40xPlot.Libraries
 			return result;
 		}
 
+		public static double CalculateFundamentalFreq(double[] pts, double df)
+		{
+			var max = pts.Max();
+			var bin = pts.CountWhile(x => x < max);
+			return bin * df;
+		}
+
 		public static double MagAtFreq(double[] pts, double df, double dFreq)
 		{
 			var bin = (int)QaLibrary.GetBinOfFrequency(dFreq, df);
