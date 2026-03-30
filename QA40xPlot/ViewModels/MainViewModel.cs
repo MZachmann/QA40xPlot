@@ -93,6 +93,13 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _GraphBackground, value);
 		}
 
+		private bool _EnableTests = false;
+		public bool EnableTests
+		{
+			get => _EnableTests;
+			set => SetProperty(ref _EnableTests, value);
+		}
+
 		private bool _ShowQA430 = false;
 		[JsonIgnore]
 		public bool ShowQA430

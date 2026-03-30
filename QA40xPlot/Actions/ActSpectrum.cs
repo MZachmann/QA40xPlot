@@ -858,15 +858,26 @@ namespace QA40xPlot.Actions
 		public async Task ShowHistoryAt(int iAt)
 		{
 			var acq = UsbDataService.Singleton.GetLogResult(iAt);
-			if (acq.Valid)
+			if (acq?.LrtsJob != null)
 			{
 				var vm = (MyViewClass)PageData.ViewModel;
-				PageData.TimeRslt.Left = acq.Left;
-				PageData.TimeRslt.Right = acq.Right;
+				PageData.TimeRslt.Left = acq.LrtsJob.Left;
+				PageData.TimeRslt.Right = acq.LrtsJob.Right;
 				PageData.TimeRslt.dt = 1 / (double)vm.SampleRateVal;
 				// now recalculate everything, no averaging here
 				PageData.FreqRslt = QaMath.CalculateSpectrum(PageData.TimeRslt, vm.WindowingMethod); 
 				await PostProcess(PageData, CanToken.Token); 
+				UpdateGraph(false);
+			}
+			else
+			{
+				var vm = (MyViewClass)PageData.ViewModel;
+				PageData.TimeRslt.Left = Enumerable.Range(0, (int)vm.FftSizeVal).Select(x => x/(double)vm.FftSizeVal).ToArray();
+				var xmax = PageData.TimeRslt.Left.Last();	// the maximum value
+				PageData.TimeRslt.Right = PageData.TimeRslt.Left.Select(x => xmax - x).ToArray();
+				// now recalculate everything, no averaging here
+				PageData.FreqRslt = QaMath.CalculateSpectrum(PageData.TimeRslt, vm.WindowingMethod);
+				await PostProcess(PageData, CanToken.Token);
 				UpdateGraph(false);
 			}
 		}

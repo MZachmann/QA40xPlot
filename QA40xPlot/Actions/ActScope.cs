@@ -6,7 +6,6 @@ using ScottPlot;
 using ScottPlot.Plottables;
 using System.Data;
 using System.Windows;
-using System.Windows.Interop;
 using static QA40xPlot.ViewModels.BaseViewModel;
 
 // various things for the thd vs frequency activity
@@ -506,13 +505,33 @@ namespace QA40xPlot.Actions
 
 		public void ShowHistoryAt(int iAt)
 		{
-			var acq = UsbDataService.Singleton.GetLogResult(iAt);
-			if (acq.Valid)
+			var acq = UsbDataService.Singleton.GetLogResult(iAt/2);
+			if (acq?.LrtsJob != null)
 			{
 				var vm = (MyViewClass)PageData.ViewModel;
-				PageData.TimeRslt.Left = acq.Left;
-				PageData.TimeRslt.Right = acq.Right;
-				PageData.TimeRslt.dt = 1 / (double)vm.SampleRateVal;
+				if(1 == (iAt % 2))
+				{
+					PageData.TimeRslt.Left = acq.LrtsJob.Left;
+					PageData.TimeRslt.Right = acq.LrtsJob.Right;
+					PageData.TimeRslt.dt = 1 / (double)vm.SampleRateVal;
+				}
+				else
+				{
+					PageData.TimeRslt.Left = acq.TheSendDoc.LeftData;
+					PageData.TimeRslt.Right = acq.TheSendDoc.RightData;
+					PageData.TimeRslt.dt = 1 / (double)vm.SampleRateVal;
+				}
+				BuildFrequencies(PageData);      // do the relevant fft work
+				SetInfoChannels(PageData);
+				UpdateGraph(false);
+			}
+			else
+			{
+				var vm = (MyViewClass)PageData.ViewModel;
+				PageData.TimeRslt.Left = Enumerable.Range(0, (int)vm.FftSizeVal).Select(x => x / (double)vm.FftSizeVal).ToArray();
+				var xmax = PageData.TimeRslt.Left.Last();   // the maximum value
+				PageData.TimeRslt.Right = PageData.TimeRslt.Left.Select(x => xmax - x).ToArray();
+				// now recalculate everything, no averaging here
 				BuildFrequencies(PageData);      // do the relevant fft work
 				SetInfoChannels(PageData);
 				UpdateGraph(false);

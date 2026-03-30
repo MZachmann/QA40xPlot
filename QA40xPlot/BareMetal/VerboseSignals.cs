@@ -1,20 +1,16 @@
 ﻿using Microsoft.VisualStudio.Threading;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
 
+// this is simply the standard concurrentqueue and asyncresetevent with ability to 
+// show debug info when the state changes
+// the _Trackers variable is a list of items that get tracked
+//
 namespace QA40xPlot.BareMetal
 {
 	public class Datashow
 	{
-		public static List<String> _Trackers { get; } = new();
-			//{ "SendPacketQueue", "ReadDataQueue", "EnableSend", "OutDataQueue" };
+		public static List<String> _Trackers { get; } = new(); //{ "JobQueue" };
 	}
 
 	public class VerboseQueue<T> : ConcurrentQueue<T>
@@ -24,14 +20,14 @@ namespace QA40xPlot.BareMetal
 		public new void Enqueue(T item)
 		{
 			if (Datashow._Trackers.Contains(Name))
-				Console.WriteLine($"{Name}.Enqueue()");
+				UsbSubs.DebugLine($"{Name}.Enqueue()");
 			base.Enqueue(item);
 		}
 		public new bool TryDequeue([MaybeNullWhen(false)] out T result)
 		{
 			var did = base.TryDequeue(out result);
 			if (did && Datashow._Trackers.Contains(Name))
-				Console.WriteLine($"{Name}.TryDequeue()");
+				UsbSubs.DebugLine($"{Name}.TryDequeue()");
 			return did;
 		}
 	}
@@ -48,13 +44,13 @@ namespace QA40xPlot.BareMetal
 		public new void Set()
 		{
 			if (Datashow._Trackers.Contains(Name))
-				Console.WriteLine($"{Name}.Set() called");
+				UsbSubs.DebugLine($"{Name}.Set() called");
 			base.Set();
 		}
 		public new void Reset()
 		{
 			if (Datashow._Trackers.Contains(Name))
-				Console.WriteLine($"{Name}.Reset() called");
+				UsbSubs.DebugLine($"{Name}.Reset() called");
 			base.Reset();
 		}
 	}

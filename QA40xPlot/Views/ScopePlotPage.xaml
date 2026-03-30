@@ -20,11 +20,13 @@
                 <views:StartStop ShowStart="True" />
                 <CheckBox Content="_Use Generator 1" IsChecked="{Binding UseGenerator1}" HorizontalAlignment="Center"></CheckBox>
                 <CheckBox Content="Use Generator _2" IsChecked="{Binding UseGenerator2}" HorizontalAlignment="Center"></CheckBox>
+                <StackPanel Visibility="{Binding UseGenerator1, Converter={StaticResource BoolNotVisConverter}}">
                 <StackPanel Orientation="Vertical" HorizontalAlignment="Stretch"
-                            Visibility="{Binding UseGenerator1, Converter={StaticResource BoolNotVisConverter}}" >
+                            Visibility="{Binding MainVm.EnableTests, Converter={StaticResource BoolVisConverter}}" >
                     <CheckBox Content="History" IsChecked="{Binding UseHistory}" HorizontalAlignment="Center"/>
                     <views:UpDownControl VerticalAlignment="Center" HorizontalAlignment="Center"
                                          Value="{Binding HistoryIdx}" Minimum="0" />
+                </StackPanel>
                 </StackPanel>
                 <views:Attenuator />
                 <Expander Header="—— Generators" IsExpanded="{Binding ExpandGenerator}"  >

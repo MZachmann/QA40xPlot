@@ -23,6 +23,8 @@ namespace QA40xPlot
 		[DllImport("User32.dll")]
 		public static extern uint GetDpiForSystem();
 
+		private static bool IsLogSet = false;
+		private static string MyLogFolder = "C:\\Users\\mark\\OneDrive\\Documents\\QA40x Saved Plot Files";
 		private double _MaxTabWidth = 0;
 
 		// Modify the GetVersionInfo method
@@ -57,6 +59,28 @@ namespace QA40xPlot
 			return new string(productVersion.TakeWhile(x => x != '+').ToArray());
 		}
 
+		private void SetConsoleOut()
+		{
+			if (!IsLogSet && true == ViewSettings.Singleton?.MainVm?.EnableTests)
+			{
+				try
+				{
+					var myLogFile = MyLogFolder;
+					var isone = Directory.Exists(myLogFile);
+					if (isone)
+					{
+						Console.SetOut(new StreamWriter(myLogFile + "\\log.txt") { AutoFlush = true });
+						Console.WriteLine("This will be written to log.txt");
+					}
+				}
+				catch (Exception ex)
+				{
+					Debug.WriteLine("Failed to set console output: " + ex.Message);
+				}
+				IsLogSet = true;
+			}
+		}
+
 		public MainWindow()
 		{
 			string fload = " - factory default configuration";
@@ -82,6 +106,8 @@ namespace QA40xPlot
 			this.DataContext = vm;
 			vm.ProgressMessage = "Welcome to QA40xPlot v" + GetVersionInfo() + fload;
 			this.ContentRendered += DoContentRendered;
+			// set the console to write to file
+			SetConsoleOut();
 		}
 
 		public uint TestGetDpi()
@@ -107,6 +133,12 @@ namespace QA40xPlot
 				if (x is TabItem)
 					vm.DoNewTab(sender, e);
 			}
+		}
+
+		private void OnTestUsb(object sender, RoutedEventArgs e)
+		{
+			var qausb = QaComm.GetUsb();
+			TestUsbLib.EvaluateUsb().ConfigureAwait(false);
 		}
 
 		private void OnHelp(object sender, RoutedEventArgs e)

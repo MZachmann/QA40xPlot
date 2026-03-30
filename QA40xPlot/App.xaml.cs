@@ -1,4 +1,6 @@
 ﻿using Microsoft.VisualBasic.Logging;
+using QA40xPlot.ViewModels;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 
@@ -16,18 +18,10 @@ namespace QA40xPlot
 	{
 		public string DefaultCfg { get; set; } = "";
 		public string StockDefaultCfg { get; set; } = "QADefault.cfg";
+
 		protected override void OnStartup(StartupEventArgs e)
 		{
 			base.OnStartup(e);
-
-			var myLogFile = "C:\\Users\\mark\\OneDrive\\Documents\\QA40x Saved Plot Files";
-			var isone = Directory.Exists(myLogFile);
-			if(isone)
-			{
-				Console.SetOut(new StreamWriter(myLogFile + "\\log.txt") { AutoFlush = true });
-				Console.WriteLine("This will be written to log.txt");
-			}
-
 			var callFile = e.Args.FirstOrDefault();
 			if (callFile != null && callFile.Length > 0)
 			{

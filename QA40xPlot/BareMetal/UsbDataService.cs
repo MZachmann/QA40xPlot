@@ -1,988 +1,71 @@
 ﻿using LibUsbDotNet.Main;
-using Microsoft.VisualStudio.Threading;
 using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
-using System.Collections.Concurrent;
-using System.Data;
 using System.Diagnostics;
 
-// ------- Events
-// Start Engine: start the service task and wait for data available. ** set IsStarted
-// New Data Available: in PostData -> halt ongoing acquisition, create new packet setup, ** set NewSendPacket
-// Packet Sent: start next packet transfer if repeating. ** set PacketSent
-// Packet Received: parse and return acquired packet ** set PacketReceived
-// Engine stalled - wait for new data available ** turn off IsSending until new data available
-// Stop engine: stop the service task and wait for it to end. ** set IsStarted false. halt ongoing acquisition
-// ------- Register i/o to QA40x
-// Enable data transmission/reception via Enable
-// Set output range when transmitting data since max is known
+// this does the actual data send/receive
+// it does this by creating a task that's a loop that runs until the app closes
+// the loop deals with sending and receiving data while the higher level code
+// handles parsing and creating the data packets and then dealing with results as requested
+// The loop runs at a high level like this:
+//	constantly create a new job based off the current document when the last job finishes
+//
+//  if we have a new document to send, create a job and submit the data for that job
+//		otherwise keep sending any current document
+//  if told to Pause, turn off an event so the loop sits waiting and stops the dataflow
+//		otherwise it freeruns constantly sending the last job or blank if things are finished
 
 namespace QA40xPlot.BareMetal
 {
 	public class UsbDataService
 	{
-		public readonly bool ShowDebug = false;
-
-		readonly uint JOB_ITEM_PREBUFFER = 1000;    // so we know it's the prebuffer
-		readonly uint MAX_LOGDATA = 100;        // how many past results to keep in the log
-		readonly uint MIN_OUT_QUEUE = 3;       // how many packets we want in the queue at a minimum to keep the usb fed
-
-		//readonly int RegReadWriteTimeout = 100;
-		private static object UsbLock = new object();
-		readonly int MainI2SReadWriteTimeout = 3000; // per baremetal
+		// how many finished jobs to keep in the done queue 
+		private static readonly int DONE_JOB_MAX = 5;
 		public static UsbDataService Singleton { get; } = new UsbDataService();
-		SoundUtil? SoundObj { get; set; } = null;
-		private int _LastExternalLatency = 0;        // currently last latency
-		private bool _UseExternal = false;
-
-		/// Tracks whether or not an acq is in process. The count starts at one, and when it goes busy
-		/// it will drop to zero, and then return to 1 when not busy
-		private uint CurrentJobNo { get; set; }
-		// - states
-		private ManualResetEvent IsStarted = new ManualResetEvent(false);           // engine is started
-		private VerboseReset IsNotRunning = new VerboseReset(nameof(IsNotRunning), true);
-		private VerboseReset EnableSend = new VerboseReset(nameof(EnableSend), false);
-		// - packet status
-		private VerboseReset NewSendPacket = new VerboseReset(nameof(NewSendPacket), false);            // new packet to send available
-		private VerboseReset ReadAvailable = new VerboseReset(nameof(ReadAvailable), false);
-		private VerboseReset PacketAvailable = new VerboseReset(nameof(PacketAvailable), false);
-		private VerboseReset HasReceivePacket = new VerboseReset(nameof(HasReceivePacket), false);
-		// - directives
-		private VerboseReset UseInputData = new VerboseReset(nameof(UseInputData), true);           // allow access to input queue
-																									// lists
-		private List<AsyncSource> InDataQueue { get; set; } = new();
-		// async queues for send and receive - in order of usage
-		private VerboseQueue<AcqAsyncResult> SendPacketQueue = new(nameof(SendPacketQueue));
-		// async queues
-		private VerboseQueue<AcqAsyncResult> OutDataQueue = new(nameof(OutDataQueue));
-		private VerboseQueue<AcqAsyncResult> ReadDataQueue = new(nameof(ReadDataQueue));
-		// async queues for send and receive
-		private VerboseQueue<AcqAsyncResult> ReceivePackets = new(nameof(ReceivePackets));
-		// async queues for read data results
-		// AllResultQueue is the log of all results
-		private VerboseQueue<AcqResult> AcqResultQueue = new(nameof(AcqResultQueue));
-		private VerboseQueue<AcqResult> AllResultQueue = new(nameof(AllResultQueue));
-
+		public static readonly bool ShowDebug = false;
 		private CancellationTokenSource RunTokenSource = new CancellationTokenSource();
-
-		private (double Left, double Right) DacCalibration { get; set; }
-		private (double Left, double Right) AdcCalibration { get; set; }
-		private int ParamInput { get; set; }    // input and output range during setup
-		private int ParamOutput { get; set; }
-		private uint UsbBuffSize { get; set; } = 16384;
-		private double DbfsAdjustment { get; set; }
-		private uint PreBufSize { get; set; }
-		private uint PostBufSize { get; set; }
-		private uint SampleRate { get; set; }
-		private uint FFTSize { get; set; }
-		private bool IsUsbEnabled { get; set; } = false;
 		private Task ServiceTask = Task.Delay(1);
-		private byte[] ShaData { get; set; } = [];
-		private double[] LeftData { get; set; } = [];
-		private double[] RightData { get; set; } = [];
+		SoundUtil? SoundObj { get; set; } = null;
+		private bool _UseExternal = false;
+		private int _LastExternalLatency = 0;        // currently last latency
+
+		// a blank document for when we are idling
+		// and just want to run the service and wait for a job to come in
+		private static SendDoc BlankDoc = new();
+
+		private static bool IsUsbEnabled { get; set; } = false;
+		private static object UsbLock = new object();
+		readonly int MainI2SReadWriteTimeout = 6000; // per baremetal
+
+		private SendDoc? CurrentDoc = null;
+		private ReceiveJob? CurrentJob = null;
+		//
+		private VerboseReset IsNextJobReady = new VerboseReset(nameof(IsNextJobReady), false);
+		private VerboseReset IsAccepted = new VerboseReset(nameof(IsAccepted), false);
+		private VerboseReset EnableSend = new VerboseReset(nameof(EnableSend), false);
+		private VerboseReset EnableLoop = new VerboseReset(nameof(EnableLoop), false);
+		private VerboseReset IsNotRunning = new VerboseReset(nameof(IsNotRunning), true);
+		private VerboseReset IsStarted = new VerboseReset(nameof(IsStarted), false); // engine is started
+
+		// short queue of the job we're doing and the next job pretty much
+		private VerboseQueue<ReceiveJob> JobQueue = new(nameof(JobQueue));
+		// list of jobs that finished along with their data and descriptors
+		// one of these is enqueued each time an acquisition completes
+		private VerboseQueue<ReceiveJob> DoneJobQueue = new(nameof(DoneJobQueue));
+		// list of documents to send. this list is empty until we decide to acquire data
+		private VerboseQueue<SendDoc> SendDocQueue = new(nameof(SendDocQueue));
+		// list of documents sent. the last one on this list is the one we are currently sending
+		// this list can get trimmed
+		private VerboseQueue<SendDoc> SentDocQueue = new(nameof(SentDocQueue));
+		// list of documents sent. the last one on this list is the one we are currently sending
+		// this list can get trimmed
+		private VerboseQueue<ReceiveJob> WatchedJobsQueue = new(nameof(WatchedJobsQueue));
+
 
 		public UsbDataService()
 		{
+			IsUsbEnabled = true;    // ensure the next line writes to register 8
 			EnableUsbData(false);
-		}
-
-		private static void DebugLine(string s)
-		{
-			Console.WriteLine(s);
-		}
-
-		/// <summary>
-		/// start up the usb data service
-		/// </summary>
-		/// <returns></returns>
-		public void Start()
-		{
-			if (!IsStarted.WaitOne(0))
-			{
-				DebugLine("Starting DataService...");
-				RunTokenSource.Dispose();
-				RunTokenSource = new CancellationTokenSource();
-				ServiceTask = RunService(RunTokenSource.Token);
-				IsStarted.Set();
-				DebugLine("Started DataService...");
-			}
-		}
-
-		public async Task Stop()
-		{
-			// shut the running loop down
-			if (IsStarted.WaitOne(0))
-			{
-				DebugLine("Stopping UsbDataService...");
-				EnableSend.Reset();  // stop the send loop
-				await RunTokenSource.CancelAsync();
-				await WaitForDoneQueue();
-				await IsNotRunning.WaitAsync();  // wait for the service to finish
-				//ServiceTask.Dispose();	// we should probably dispose this before starting a new service task
-				ServiceTask = Task.Delay(1);
-				IsStarted.Reset();
-				DebugLine("Stopped UsbDataService...");
-			}
-		}
-
-		public int GetLogCount()
-		{
-			int count = 0;
-			lock (AllResultQueue)
-			{
-				count = AllResultQueue.Count;
-			}
-			return count;
-		}
-
-		private static void FlushUsb()
-		{
-#if DEBUG
-			// Create and start the stopwatch
-			Stopwatch stopwatch = new Stopwatch();
-			stopwatch.Start();
-#endif
-			// empty any read queue
-			try
-			{
-				var qaUsb = QaComm.GetUsb();
-				lock(qaUsb ?? UsbLock)
-				{
-					// calling flush here seems to crash but readflush works fine
-					//qaUsb?.DataReader?.Reset();
-					//qaUsb?.DataWriter?.Reset();
-					qaUsb?.DataReader?.ReadFlush();
-					qaUsb?.DataWriter?.Flush();
-				}
-			}
-			catch (Exception ex)
-			{
-				DebugLine($"Error flushing USB: {ex.Message}");
-			}
-#if DEBUG
-			// Stop the stopwatch
-			stopwatch.Stop();
-			// Display elapsed time in different formats
-			DebugLine($"Elapsed flush time: {stopwatch.ElapsedMilliseconds} ms");
-#endif
-		}
-
-		public AcqResult GetLogResult(int idx)
-		{
-			AcqResult r = new AcqResult();
-			r.Valid = false;
-			lock (AllResultQueue)
-			{
-				if (idx < AllResultQueue.Count)
-				{
-					r = AllResultQueue.ElementAt(idx);
-				}
-				else if (!AllResultQueue.IsEmpty)
-				{
-					var fir = AllResultQueue.ElementAt(0);
-					r.Left = new double[fir.Left.Length];
-					r.Right = r.Left;
-					r.Valid = true;
-				}
-			}
-			return r;
-		}
-
-		/// <summary>
-		/// top level method to run the data service once and return time data
-		/// </summary>
-		/// <param name="iteration"></param>
-		/// <param name="outL"></param>
-		/// <param name="outR"></param>
-		/// <param name="sampleRate"></param>
-		/// <param name="ct">the application cancellation token</param>
-		/// <returns></returns>
-		public static async Task<AcqResult> UseDataService(BaseViewModel? bvm, bool forceUpdate, double[] outL, double[] outR, uint sampleRate, CancellationToken ct, bool runRepeat)
-		{
-			Debug.Assert(UsbDataService.Singleton != null, "UsbDataService singleton should not be null");
-			return await UsbDataService.Singleton.UseMyDataService(bvm, forceUpdate, outL, outR, sampleRate, ct, runRepeat);
-		}
-
-		/// <summary>
-		/// top level method to run the data service once and return time data
-		/// </summary>
-		/// <param name="iteration"></param>
-		/// <param name="outL"></param>
-		/// <param name="outR"></param>
-		/// <param name="sampleRate"></param>
-		/// <param name="ct">the application cancellation token</param>
-		/// <returns></returns>
-		private async Task<AcqResult> UseMyDataService(BaseViewModel? bvm, bool forceUpdate, double[] outL, double[] outR, uint sampleRate, CancellationToken ct, bool runRepeat)
-		{
-			Debug.WriteLineIf(ShowDebug, "--entering UseDataService");
-
-			byte[] shaData = [];
-			bool diffSha = false;
-			if (!ViewSettings.Singleton.SettingsVm.AllowRepeating)
-			{
-				// if we do not allow repeating
-				runRepeat = false;
-			}
-			// check for external audio device usage
-			SoundObj?.Stop();
-			_UseExternal = ViewSettings.Singleton.SettingsVm.UseExternalEcho && SoundUtil.ExternalPresent();
-			if (_UseExternal)
-			{
-				runRepeat = false;
-			}
-			else
-			{
-				SoundObj = null;
-			}
-			// compare with prior sha to see if we need to update the usb stream.
-			// If we're repeating then we only want to update if the data has changed
-			// otherwise we want to update every time
-			shaData = UsbDataService.CalculateSha(outL, outR);
-			diffSha = !ShaSame(shaData, ShaData);
-			Start();    // start the service. does nothing if already started
-			SampleRate = QaComm.GetSampleRate();    // we need this value set for PrepareExternal
-			if (forceUpdate || !RunRepeatedly || !IsUsbEnabled || diffSha)
-			{
-				var ius = IsUsbEnabled;
-				var dfs = diffSha;
-				Debug.WriteLineIf(ShowDebug && diffSha, $"New data sha: {Convert.ToBase64String(shaData)}");
-				ShaData = shaData;
-				if (_UseExternal)
-				{
-					// if we are using an external sound device, prepare the waveform
-					SoundObj = PrepareExternal(true, outL, outR);
-				}
-				await PostData(bvm, outL, outR, runRepeat);
-			}
-			else
-			{
-				Debug.WriteLineIf(ShowDebug, "Using existing setup since sha is the same and service is running");
-			}
-			// in crude testing the average additional latency for a DAC
-			// is about 20-80ms when using the usb service and doing Play() here
-			SoundObj?.Play(); // roughly synched with data send for the qa40x
-			var acqr = await WaitForResult(ct);
-			// sound always runs one at a time so we can surround waitforresult here
-			SoundObj?.Stop(); // roughly synched with data send for the qa40x
-			if (!runRepeat)
-			{
-				RunRepeatedly = runRepeat;   // stop any repeating of data
-			}
-			if (acqr == null)
-			{
-				DebugLine("No data acquired");
-			}
-			else
-			{
-				DebugLine($"Acquired data {acqr.Left.Length}");
-			}
-			AcqResult r = new AcqResult();
-			r.Left = acqr?.Left ?? [];
-			r.Right = acqr?.Right ?? [];
-			r.Valid = acqr != null;
-			return r;
-		}
-
-		/// <summary>
-		/// calculate the sha of our byte stream
-		/// </summary>
-		/// <param name="left"></param>
-		/// <param name="right"></param>
-		/// <returns></returns>
-		private static byte[] CalculateSha(double[] left, double[] right)
-		{
-			return System.Security.Cryptography.SHA256.HashData(QaUsb.ToByteStream(left, right));
-		}
-
-		/// <summary>
-		/// compare two Shas and return true if they're the same
-		/// this lets us keep sending packets repeatedly
-		/// </summary>
-		/// <param name="data"></param>
-		/// <param name="sha"></param>
-		/// <returns></returns>
-		private static bool ShaSame(byte[] data, byte[] sha)
-		{
-			var same = data.SequenceEqual(sha);
-			if (!same)
-				return false;
-			return true;
-		}
-
-		// manually say if we should send one packet or many packets
-		// when set we send another packet when one finishes sending and one is in queue
-		private bool _RunRepeatedly = false;
-		public bool RunRepeatedly
-		{
-			get => _RunRepeatedly;
-			set
-			{
-				_RunRepeatedly = value;
-				//Debug.WriteLineIf(ShowDebug, $"Run repeatedly={value}");
-				DebugLine($"Run repeatedly={value}");
-			}
-		}
-
-		// manually say if we should send one packet or many packets
-		// when set we send another packet when one finishes sending and one is in queue
-		public async Task StopRunning()
-		{
-			await Stop();
-		}
-
-		public async Task WaitForDoneQueue()
-		{
-			// tell everyone to stop sending new data
-			EnableSend.Reset();
-			SendPacketQueue.Clear();
-			// wait for the send to completely finish
-			AcqAsyncResult? asr = null;
-#if DEBUG
-			// Create and start the stopwatch
-			Stopwatch stopwatch = new Stopwatch();
-			stopwatch.Start();
-#endif
-			try
-			{
-				var ctk = RunTokenSource.Token;
-				if (!ctk.IsCancellationRequested)
-				{
-					EnableUsbData(true);
-					lock (OutDataQueue)
-					{
-						if (!OutDataQueue.IsEmpty)
-						{
-							asr = OutDataQueue.Last();
-						}
-					}
-				}
-				if (asr != null && !ctk.IsCancellationRequested)
-				{
-					DebugLine("Writing data to USB...");
-					await asr.WaitAsync(Timeout.Infinite, ctk);
-					DebugLine("Did write data to USB...");
-					asr = null;
-				}
-				// wait for the read to completely finish
-				if (!ctk.IsCancellationRequested)
-				{
-					lock (ReadDataQueue)
-					{
-						if (!ReadDataQueue.IsEmpty)
-						{
-							asr = ReadDataQueue.Last();
-						}
-					}
-				}
-				if (asr != null && !ctk.IsCancellationRequested)
-				{
-					await asr.WaitAsync(Timeout.Infinite, ctk);
-				}
-				// empty any read queue
-				FlushUsb();
-			}
-			catch (Exception)
-			{
-
-			}
-#if DEBUG
-			// Stop the stopwatch
-			stopwatch.Stop();
-			// Display elapsed time in different formats
-			DebugLine($"Elapsed async waits: {stopwatch.ElapsedMilliseconds} ms");
-#endif
-
-			// Stop streaming. This also extinguishes the RUN led
-			// do this outside of the other thread
-			EnableUsbData(false);
-			// clean everything up
-			NewSendPacket.Reset();  // clear this if needed
-			PacketAvailable.Reset();
-			ReadAvailable.Reset();
-			HasReceivePacket.Reset();
-			// empty any read queue
-			FlushUsb();
-			// cancelling the transfers seems to fail so instead wait for them to finish
-			lock (ReadDataQueue)
-			{
-				ReadDataQueue.Clear();
-			}
-			lock (OutDataQueue)
-			{
-				OutDataQueue.Clear();
-			}
-			lock (AcqResultQueue)
-			{
-				AcqResultQueue.Clear();
-				//AllResultQueue.Clear();
-			}
-			SendPacketQueue.Clear();
-			ReceivePackets.Clear();
-			// tell everyone they can run again
-			SoundObj?.Stop();
-			NewSendPacket.Reset();  // clear this if needed
-			PacketAvailable.Reset();
-			ReadAvailable.Reset();
-			HasReceivePacket.Reset();
-			EnableSend.Set();
-		}
-
-		/// <summary>
-		/// submit data from the SendPackets queue to the data bus
-		/// place each packet into the OutDataQueue for tracking
-		/// for each packet submitted to the data bus
-		/// submit and add a receive packet to the ReadDataQueue
-		/// ensure OutDataQueue always has data in it if SendPackets has something in it
-		/// </summary>
-		/// <param name="ctk"></param>
-		/// <returns></returns>
-		public async Task<bool> DoPacketSubmit(CancellationToken ctk)
-		{
-			bool tSender = await Task<bool>.Run(async () =>
-			{
-				try
-				{
-					while (!ctk.IsCancellationRequested)
-					{
-						await EnableSend.WaitHandleAsync(Timeout.Infinite, ctk);
-
-						// dequeue any finished packets
-						while (OutDataQueue.TryPeek(out AcqAsyncResult? asr) && asr != null && asr.IsDone())
-						{
-							if (ctk.IsCancellationRequested)
-								break;
-							// remove this from the queue
-							lock (OutDataQueue)
-							{
-								if (!OutDataQueue.IsEmpty)
-								{
-									DebugLine($"WriteDone === job:{asr.JobNumber}, item:{asr.JobItem}, total:{asr.JobTotal}");
-									OutDataQueue.TryDequeue(out _);
-								}
-							}
-						}
-
-						// if we have a packet to send, queue it up immediately
-						if (OutDataQueue.Count < MIN_OUT_QUEUE && !SendPacketQueue.IsEmpty && !ctk.IsCancellationRequested)
-						{
-							if (SendPacketQueue.TryDequeue(out AcqAsyncResult? asr) && asr != null)
-							{
-								var ec = SubmitSendData(asr.ReadBuffer, asr.JobNumber, asr.JobItem, asr.JobTotal);
-								if (ec == ErrorCode.None)
-								{
-									var acqr = SubmitReadData(asr.ReadBuffer.Length, asr.JobNumber, asr.JobItem, asr.JobTotal);
-								}
-								if(SendPacketQueue.IsEmpty && !ctk.IsCancellationRequested)
-								{
-									NewSendPacket.Reset();  // this gets signaled when data is added to the sendpacketqueue
-								}
-								EnableUsbData(true);   // make sure it's on when we have data to send
-							}
-						}
-
-						// no data available at all...
-						if (OutDataQueue.IsEmpty && SendPacketQueue.IsEmpty && !ctk.IsCancellationRequested)
-						{
-							// note that queue is empty?
-							//Debug.WriteLineIf(ShowDebug, "Waiting for a NewSendPacket...");
-							DebugLine("Waiting for a NewSendPacket...");
-							var rslt = await NewSendPacket.WaitHandleAsync(1500, ctk);  // wait 1.5 seconds
-							if (rslt != 1 && !ctk.IsCancellationRequested && !RunRepeatedly)
-							{
-								DebugLine("Timed out waiting for NewSendPacket...");
-								// if we time out waiting for a new packet, turn off the stream
-								EnableUsbData(false);
-								if (!ctk.IsCancellationRequested)
-									await NewSendPacket.WaitHandleAsync(Timeout.Infinite, ctk);  // wait forever
-							}
-							//Debug.WriteLineIf(ShowDebug, "NewSendPacket signalled...");
-							DebugLine("NewSendPacket signalled...");
-						}
-						if (EnableSend.IsSet && !ctk.IsCancellationRequested &&
-							SendPacketQueue.IsEmpty && RunRepeatedly)
-						{
-							// this puts more data into the sendpacketqueue
-							HandleDataReady(false);
-							CurrentJobNo++;
-						}
-					}
-				}
-				catch (OperationCanceledException)
-				{
-				}
-				catch (Exception ex)
-				{
-					// Other exceptions will end up here
-					DebugLine($"Error in acquisition sender: {ex.Message}");
-				}
-				finally
-				{
-					DebugLine("Finished DoPacketSubmit");
-				}
-				return true;
-			});
-			return tSender;
-		}
-
-		/// <summary>
-		/// check the ReadDataQueue and put packets in the ReceivePackets queue 
-		/// when each queued read buffer is filled
-		/// </summary>
-		/// <param name="ctk"></param>
-		/// <returns></returns>
-		public async Task<bool> DoPacketReceive(CancellationToken ctk)
-		{
-			bool tReader = await Task<bool>.Run(async () =>
-			{
-				try
-				{
-					while (!ctk.IsCancellationRequested)
-					{
-						await EnableSend.WaitHandleAsync(Timeout.Infinite, ctk);
-						if (!ctk.IsCancellationRequested && ReadDataQueue.IsEmpty)
-						{
-							// note that queue is empty?
-							DebugLine("Waiting for a ReadAvailable...");
-							await ReadAvailable.WaitHandleAsync(Timeout.Infinite, ctk);
-							DebugLine("ReadAvailable signalled...");
-						}
-						while (!ctk.IsCancellationRequested && ReadDataQueue.Count > 0)
-						{
-							if (!ctk.IsCancellationRequested && ReadDataQueue.TryDequeue(out AcqAsyncResult? asr))
-							{
-								DebugLine("Read data started");
-								if (asr != null )
-								{
-									DebugLine($"WaitRead === size:{asr.ReadBuffer.Length} job:{asr.JobNumber}, item:{asr.JobItem}, total:{asr.JobTotal}");
-									var uas = await asr.WaitAsync(300, ctk);
-									if(uas)
-									{
-										DebugLine($"DoneRead === size:{asr.ReadBuffer.Length} job:{asr.JobNumber}, item:{asr.JobItem}, total:{asr.JobTotal}");
-									}
-									else if(!ctk.IsCancellationRequested)
-									{
-										var vtotal = 0;
-										while( !uas && !ctk.IsCancellationRequested && vtotal<10)
-										{
-
-											uas = await asr.WaitAsync(500, ctk);
-											vtotal++;
-										}
-										if(!uas)
-										{
-											DebugLine("Read data timed out and will be skipped");
-											asr = null;
-										}
-										else
-										{
-											DebugLine($"DoneRead === size:{asr.ReadBuffer.Length} job:{asr.JobNumber}, item:{asr.JobItem}, total:{asr.JobTotal}");
-										}
-									}
-									if (asr != null && !ctk.IsCancellationRequested)
-									{
-										lock (ReceivePackets)
-										{
-											if (EnableSend.IsSet)
-											{
-												ReceivePackets.Enqueue(asr);
-												HasReceivePacket.Set();
-											}
-										}
-									}
-								}
-							}
-							if (ReadDataQueue.IsEmpty && !ctk.IsCancellationRequested)
-							{
-								ReadAvailable.Reset();
-							}
-						}
-					}
-				}
-				catch (OperationCanceledException)
-				{
-					// Other exceptions will end up here
-					DebugLine("Cancel stopping DoPacketReceive");
-				}
-				catch (Exception ex)
-				{
-					// Other exceptions will end up here
-					DebugLine($"Error in DoPacketReceive: {ex.Message}");
-				}
-				finally
-				{
-					DebugLine($"Finished DoPacketReceive");
-				}
-				return true;
-			});
-			return tReader;
-		}
-
-		/// <summary>
-		/// when there is enough read data to fullfill a request 
-		/// create a receive data packet and place it in the AcqResultQueue for processing by the main thread
-		/// also empty the read queue of those packets
-		/// </summary>
-		/// <param name="ctk"></param>
-		/// <returns></returns>
-		public async Task<bool> DoParseReceipt(CancellationToken ctk)
-		{
-			List<AcqAsyncResult> readResults = new();
-			int lastCount = 0;
-			bool tParser = await Task<bool>.Run(async () =>
-			{
-				try
-				{
-					while (!ctk.IsCancellationRequested)
-					{
-						await EnableSend.WaitHandleAsync(Timeout.Infinite, ctk);
-						readResults.Clear();
-						lock (ReceivePackets)
-						{
-							if (ReceivePackets.Count > 0 && !ctk.IsCancellationRequested)
-							{
-								readResults = ReceivePackets.ToList();
-							}
-							// we've looked at the packets
-							HasReceivePacket.Reset();
-						}
-						if (readResults.Count != lastCount && !ctk.IsCancellationRequested)
-						{
-							lastCount = readResults.Count;
-							if (lastCount > 0)
-							{
-								var thejob = readResults.First().JobNumber;
-								if (thejob != readResults.Last().JobNumber && EnableSend.IsSet)
-								{
-									var jobdone = readResults.Count(x => x.JobNumber == thejob);
-									var jobcnt = readResults.Count;
-									// only stop when we have at least one extra
-									// this lets us deal with the usb latency and keep fftsize values in synch
-									// if there is no last one then we've cancelled
-									DebugLine($"Job {thejob} done with {jobdone} of {jobcnt} blocks");
-									if (!ctk.IsCancellationRequested)
-										HandleJobDone();
-								}
-							}
-						}
-						else if (!ctk.IsCancellationRequested)
-							await HasReceivePacket.WaitHandleAsync(Timeout.Infinite, ctk);
-					}
-				}
-				catch (OperationCanceledException)
-				{
-				}
-				catch (Exception ex)
-				{
-					// Other exceptions will end up here
-					DebugLine($"Error in acquisition: {ex.Message}");
-				}
-				finally
-				{
-					DebugLine($"Finished DoParseReceipt");
-					// Indicate an acq is no longer in progress
-					//Debug.Assert(IsNotRunning.WaitOne(0), "IsRunning should always be done");
-				}
-				return true;
-			});
-			return tParser;
-		}
-
-		private void CleanService()
-		{
-			try
-			{
-				EnableSend.Reset();
-				// clean everything up
-				SendPacketQueue.Clear();
-				OutDataQueue.Clear();
-				ReadDataQueue.Clear();
-				ReceivePackets.Clear();
-				// clean everything up
-				NewSendPacket.Reset();
-				ReadAvailable.Reset();
-				PacketAvailable.Reset();
-				HasReceivePacket.Reset();
-				// do this outside of the other thread
-				EnableUsbData(true);
-				FlushUsb();
-			}
-			catch (Exception ex)
-			{
-				DebugLine($"Error in CleanService: {ex.Message}");
-			}
-			// do this outside of the other thread
-			EnableUsbData(false);
-		}
-
-		/// <summary>
-		/// this is the primary task that gets run for the usbdataservice
-		/// </summary>
-		/// <param name="ctk"></param>
-		/// <returns></returns>
-		public Task RunService(CancellationToken ctk)
-		{
-			IsNotRunning.Reset();
-			CleanService();
-			// Check if the service is already running
-			// Start a new task to run the acquisition
-			Task t = Task.Run(async () =>
-			{
-				EnableSend.Reset();
-				var tSender = DoPacketSubmit(ctk);
-				var tReader = DoPacketReceive(ctk);
-				var tParser = DoParseReceipt(ctk);
-				try
-				{
-					EnableSend.Set();
-					while (!ctk.IsCancellationRequested)
-					{
-						if (tSender.IsCompleted && tReader.IsCompleted && tParser.IsCompleted)
-						{
-							break;
-						}
-						await Task.Delay(100, ctk); // small delay to prevent tight loop
-					}
-				}
-				catch (Exception ex)
-				{
-					DebugLine($"Error in RunService: {ex.Message}");
-				}
-			});
-			DebugLine($"Finished RunService");
-			IsNotRunning.Set();
-			return t;
-		}
-
-		/// <summary>
-		/// Submits the provided data for acquisition, and waits for the result. 
-		/// The data is split into buffers and submitted one at a time.
-		/// </summary>
-		/// <param name="left"></param>
-		/// <param name="right"></param>
-		/// <returns></returns>
-		public async Task PostData(BaseViewModel? bvm, double[] left, double[] right, bool runRepeat)
-		{
-			try
-			{
-				RunRepeatedly = false;  // stop any repeating of data
-				LeftData = left;
-				RightData = right;
-				if (1 == await UseInputData.WaitHandleAsync(8000, RunTokenSource.Token))
-				{
-					UseInputData.Reset();
-					DebugLine($"Posting data of length {left.Length}");
-#if DEBUG
-				// Create and start the stopwatch
-				Stopwatch stopwatch = new Stopwatch();
-				stopwatch.Start();
-#endif
-					DebugLine("Is now stopping");
-					await Stop();
-					DebugLine("Is now starting");
-					Start();
-					DebugLine("Start is now complete");
-#if DEBUG
-				// Stop the stopwatch
-				stopwatch.Stop();
-				var totalTime = stopwatch.ElapsedMilliseconds;
-					// Display elapsed time in different formats
-					DebugLine($"*** Start-Stop Elapsed Time: {totalTime} ms");
-#endif
-					InDataQueue.Clear();
-					//					await WaitForDoneQueue();
-					await CalculateParameters(bvm, left, right);
-					var sources = SplitIntoBuffers(left, right);
-					InDataQueue = sources;
-					CurrentJobNo = 0;
-					UseInputData.Set(); // after setting the indataqueue\
-					HandleDataReady(true);
-					RunRepeatedly = runRepeat;
-					CurrentJobNo++;
-					if (!runRepeat)
-					{
-						HandleDataReady(false);
-						CurrentJobNo++;
-					}
-				}
-				else
-				{
-					DebugLine("PostData called while previous data is still being processed.");
-				}
-			}
-			catch (OperationCanceledException)
-			{
-				// If we cancel an acq via the CancellationToken, we'll end up here
-				DebugLine("Data posting was cancelled.");
-			}
-			catch (Exception ex)
-			{
-				// Other exceptions will end up here
-				DebugLine($"Error in acquisition: {ex.Message}");
-			}
-		}
-
-		/// <summary>
-		/// Submits a buffer to be written and returns immediately. The submitted buffer is 
-		/// copied to a local buffer before returning.
-		/// </summary>
-		/// <param name="data"></param>
-		public ErrorCode SubmitSendData(byte[] dataSet, uint jobNo, uint jobItem, uint jobTotal)
-		{
-			ErrorCode ec = ErrorCode.None;
-
-			if (dataSet == null || dataSet.Length == 0)
-			{
-				return ErrorCode.InvalidParam;
-			}
-
-			UsbTransfer? ar = null;
-			var qaUsb = QaComm.GetUsb();
-			lock (qaUsb ?? UsbLock)
-			{
-				// we need to flush before every send to avoid a weird issue where the first packet gets stuck and never sends
-				ec = qaUsb?.DataWriter?.SubmitAsyncTransfer(dataSet, 0, dataSet.Length, MainI2SReadWriteTimeout, out ar) ?? ErrorCode.UnknownError;
-			}
-			if (ec != ErrorCode.None)
-			{
-				throw new Exception("Bad result in SendDataBegin");
-			}
-			if (ar != null)
-			{
-				DebugLine($"WriteSubmit === job:{jobNo}, item:{jobItem}, total:{jobTotal}");
-				lock (OutDataQueue)
-				{
-					OutDataQueue.Enqueue(new AcqAsyncResult(ar, dataSet, jobNo, jobItem, jobTotal));
-				}
-			}
-			return ec;
-		}
-
-		/// <summary>
-		/// Creates and submits a buffer to be read asynchronously. Returns immediately.
-		/// </summary>
-		/// <param name="data"></param>
-		public AcqAsyncResult? SubmitReadData(int bufSize, uint jobNo, uint jobItem, uint jobTotal)
-		{
-			AcqAsyncResult? result = null;
-			{
-				byte[] readBuffer = new byte[bufSize];
-				UsbTransfer? ar = null;
-				ErrorCode? ec = ErrorCode.DeviceNotFound;
-				var qaUsb = QaComm.GetUsb();
-				lock (qaUsb ?? UsbLock)
-				{
-					ec = qaUsb?.DataReader?.SubmitAsyncTransfer(readBuffer, 0, readBuffer.Length, MainI2SReadWriteTimeout, out ar);
-				}
-				if (ec != ErrorCode.None)
-				{
-					throw new Exception("ERROR: Bad result in SubmitReadData");
-				}
-				if (ar != null)
-				{
-					lock (ReadDataQueue)
-					{
-						result = new AcqAsyncResult(ar, readBuffer, jobNo, jobItem, jobTotal);
-						ReadDataQueue.Enqueue(result);
-						DebugLine($"ReadSubmit === job:{jobNo}, item:{jobItem}, total:{jobTotal}");
-					}
-					ReadAvailable.Set(); // signal read queue has occupants
-				}
-			}
-			return result;
-		}
-
-		private void DumpQueue(int itry)
-		{
-			if (ShowDebug)
-			{
-				DebugLine($"{itry} Send Packets: {SendPacketQueue.Count},{OutDataQueue.Count} Read: {ReadDataQueue.Count},{ReceivePackets.Count} ");
-				var ro = SendPacketQueue.Select(x => $"{x.JobItem}.{x.JobNumber}").ToList();
-				var so = ReceivePackets.Select(x => $"{x.JobItem}.{x.JobNumber}").ToList();
-				var rox = string.Join(":", ro) + ":::" + string.Join(":", so);
-				DebugLine(rox);
-			}
-		}
-
-		public async Task<AcqResult?> WaitForResult(CancellationToken ctok)
-		{
-			var rslt = 0;
-			try
-			{
-				var u = 1000.0 * FFTSize / SampleRate; // # of mseconds to do the dataset
-#if DEBUG
-				// Create and start the stopwatch
-				Stopwatch stopwatch = new Stopwatch();
-				stopwatch.Start();
-#endif
-				if (ShowDebug)
-				{
-					int itry = (int)(2 + 4 * (u * 1.5 / 1000));
-					while (1 != rslt && itry > 0)
-					{
-						DumpQueue(itry);
-						rslt = await PacketAvailable.WaitHandleAsync(250, ctok);
-						itry--;
-					}
-				}
-				else
-				{
-					rslt = await PacketAvailable.WaitHandleAsync((int)(400 + u * 1.5), ctok);
-				}
-				PacketAvailable.Reset();
-
-#if DEBUG
-				// Stop the stopwatch
-				stopwatch.Stop();
-				// Display elapsed time in different formats
-				DebugLine($"Elapsed Time: {stopwatch.ElapsedMilliseconds} ms");
-#endif
-			}
-			catch (OperationCanceledException)
-			{
-				await WaitForDoneQueue();
-				rslt = 0;
-			}
-			catch (Exception ex)
-			{
-				DebugLine($"{ex.Message}");
-			}
-
-			AcqResult? dataOut = null;
-			if (rslt == 1 && !ctok.IsCancellationRequested)
-			{
-				DumpQueue(-1);
-				lock (AcqResultQueue)
-				{
-					bool bslt = AcqResultQueue.TryDequeue(out dataOut);
-					if (!AcqResultQueue.IsEmpty)
-						PacketAvailable.Set();
-					if (bslt && dataOut != null && dataOut.Valid)
-					{
-						var tt = Math.Max(dataOut.Left.Max(), dataOut.Right.Max());
-						if (tt > 1e-4)
-						{
-							AcqResult acqr = new();
-							acqr.Left = LeftData;
-							acqr.Right = RightData;
-							acqr.Valid = true;
-							AllResultQueue.Enqueue(acqr);
-							AllResultQueue.Enqueue(dataOut);
-							while (AllResultQueue.Count > MAX_LOGDATA)
-								AllResultQueue.TryDequeue(out _);
-						}
-					}
-				}
-			}
-			if (dataOut == null)
-			{
-				DebugLine("No data result available");
-				return null;
-			}
-			//if(dataOut.Left.Length > 0)
-			//	WriteLine($"Data result max left: {dataOut.Left.Max()}");
-			//else
-			//	WriteLine("Data result empty");
-			return dataOut;
 		}
 
 		private void EnableUsbData(bool enable)
@@ -998,73 +81,530 @@ namespace QA40xPlot.BareMetal
 						IsUsbEnabled = enable;
 					}
 				}
-				DebugLine($"usb dataflow enable: {IsUsbEnabled}");
+				UsbSubs.DebugLineIf(ShowDebug, $"usb dataflow enable: {IsUsbEnabled}");
 			}
 		}
 
-		public void HandleJobDone()
+		// manually say if we should send one packet or many packets
+		// when set we send another packet when one finishes sending and one is in queue
+		// user tells us to stop running
+		public async Task StopRunning()
+		{
+			var rqb = new ReceiveJob(BlankDoc);
+			SendDocQueue.Enqueue(BlankDoc);
+			await Pause();
+		}
+
+		public ReceiveJob? GetLogResult(int idx)
+		{
+			if (idx < WatchedJobsQueue.Count)
+			{
+				return WatchedJobsQueue.ElementAt(idx);
+			}
+			return null;
+		}
+
+
+		/// <summary>
+		/// top level method to run the data service once and return time data
+		/// </summary>
+		/// <param name="ct">the application cancellation token</param>
+		/// <returns></returns>
+		public static async Task<AcqResult?> UseDataService(BaseViewModel? bvm, bool forceUpdate, double[] outL, double[] outR, CancellationToken ct, bool runRepeat)
+		{
+			Debug.Assert(UsbDataService.Singleton != null, "UsbDataService singleton should not be null");
+			return await Singleton.UseMyDataService(forceUpdate, outL, outR, ct, runRepeat);
+		}
+
+		/// <summary>
+		/// top level method to run the data service once and return time data
+		/// </summary>
+		private async Task<AcqResult?> UseMyDataService(bool forceUpdate, double[] outL, double[] outR, CancellationToken ct, bool runRepeat)
+		{
+			if (IsNotRunning.IsSet)
+			{
+				// create a blank document
+				await BlankDoc.CalculateParameters(null, [], []);
+				BlankDoc.Buffers = BlankDoc.SplitIntoBuffers(BlankDoc.LeftData, BlankDoc.RightData);
+				Start();
+				IsNotRunning.Reset();
+			}
+			await UnPause();
+			// check for external audio device usage
+			UsbSubs.DebugLine("--entering UseMyDataService");
+			SoundObj?.Stop();
+			_UseExternal = ViewSettings.Singleton.SettingsVm.UseExternalEcho && SoundUtil.ExternalPresent();
+			if (_UseExternal)
+			{
+				runRepeat = false;
+			}
+			else
+			{
+				SoundObj = null;
+			}
+
+			// create the SendDoc for this run
+			var newDoc = new SendDoc();
+			await newDoc.CalculateParameters(null, outL, outR);
+			bool needSend = true;
+			// just turn it on for now and leave it on.
+			// if it was off it will start i/o when we submit the first write block
+			EnableUsbData(true);
+			// see if it's the same as the running document
+			if (!JobQueue.IsEmpty)
+			{
+				// newest job entry
+				var latestJob = JobQueue.LastOrDefault();
+				var latestDoc = latestJob?.TheSendDoc;
+				if (latestDoc != null && newDoc.CompareDoc(latestDoc))
+				{
+					needSend = JobQueue.IsEmpty;
+					newDoc = latestDoc;
+					UsbSubs.DebugLine($"UseMyDataService: new doc is the same so need={needSend}");
+				}
+			}
+			if(needSend)
+			{
+				newDoc.Buffers = newDoc.SplitIntoBuffers(outL, outR);
+				// --- now ubd is the SendDocument
+				SendDocQueue.Enqueue(newDoc);
+				UsbSubs.DebugLineIf(ShowDebug, $"SendDocQ.Enqueue -- bfrs={newDoc.Buffers.Count} tsize={newDoc.Buffers.Sum(x => x.Length)}");
+			}
+			// now wait for the results?
+			var job = await WaitForNextJob(newDoc, ct);
+			UsbSubs.DebugLineIf(ShowDebug, $"Waitforjob: {job?.JobNumber}");
+			if (job != null)
+			{
+				var acr = await WaitForResults(job, ct);
+				UsbSubs.DebugLineIf(ShowDebug, $"Waitforresults: {job?.JobNumber}");
+				return acr;
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// start up the usb data service
+		/// </summary>
+		/// <returns></returns>
+		public void Start()
+		{
+			if (!IsStarted.IsSet)
+			{
+				UsbSubs.DebugLine("Starting DataService...");
+				//RunTokenSource.Dispose();
+				RunTokenSource = new CancellationTokenSource();
+				ServiceTask = RunService(RunTokenSource.Token);
+				IsStarted.Set();
+				EnableSend.Set();
+				EnableLoop.Set();
+				UsbSubs.DebugLine("Started DataService...");
+			}
+		}
+
+		public async Task Pause()
+		{
+			// shut the running loop down
+			if (IsStarted.IsSet)
+			{
+				UsbSubs.DebugLine("Pausing UsbDataService...");
+				// wait for data to stop flowing
+				EnableSend.Reset();  // stop sending data
+				while (!JobQueue.IsEmpty)
+					await Task.Delay(100);
+				EnableLoop.Reset(); // now halt the loop entirely
+				await Task.Delay(100); // let it pause on the infinite wait
+									   // clear all the queues to get ready for next time
+				EnableUsbData(false);
+				JobQueue.Clear();
+				DoneJobQueue.Clear();
+				SentDocQueue.Clear();
+				SendDocQueue.Clear();
+			}
+		}
+
+		public async Task UnPause()
+		{
+			// shut the running loop down
+			if (IsStarted.IsSet && !EnableLoop.IsSet)
+			{
+				EnableUsbData(true);
+				UsbSubs.DebugLine("Unpause...");
+				// turn stuff on again
+				EnableSend.Set();  // start sending data
+				EnableLoop.Set(); // now halt the loop entirely
+			}
+		}
+
+		private void SubmitData(ReceiveJob? job)
+		{
+			if (job != null)
+			{
+				UsbSubs.DebugLineIf(ShowDebug, $"SubmitData: submitting job {job.JobNumber} with {job.TheSendDoc.Buffers.Count} buffers");
+				uint jobItem = 0;
+				foreach (var bfr in job.TheSendDoc.Buffers)
+				{
+					var ec = SubmitSendData(job.SendPackets, bfr, job.JobNumber, jobItem, bfr.Length);
+					if (ec == ErrorCode.None)
+					{
+						var acqr = SubmitReadData(job.ReadPackets, bfr.Length, job.JobNumber, jobItem, bfr.Length);
+					}
+					jobItem++;
+				}
+			}
+		}
+
+		/// <summary>
+		/// job 0 is theprebuffer - white space then signal beginning
+		/// job 1...n
+		/// is the signal data
+		/// </summary>
+		/// <param name="ctk"></param>
+		/// <returns></returns>
+		private async Task RunService(CancellationToken ctk)
 		{
 			try
 			{
-				PerformJobDone();
-			}
-			catch(Exception ex)
-			{
-				DebugLine($"Error in HandleJobDone: {ex.Message}");
-			}
-		}
-
-		public void PerformJobDone()
-		{ 
-			// we now have a list of all the rx buffers to convert to an array
-			// use fixed size so that frombytestream and others work ok
-			List<byte[]> rxResults = new();
-			uint jobno = 0;
-			uint jobSize = 0;
-			lock (ReceivePackets)
-			{
-				AcqAsyncResult? ar = null;
-				// the first packet might be a prelude
-				if (!ReceivePackets.IsEmpty && ReceivePackets.TryDequeue(out ar))
+				uint jobNumber = 0;
+				bool newDoc = false;
+				ReceiveJob? receiveJob = null;
+				while (!ctk.IsCancellationRequested)
 				{
-					jobno = ar?.JobNumber ?? 0;
-					jobSize = ar?.JobTotal ?? 0;
-					// the very first block isn't saved since it's the prebuf
-					// and our delay is just enough to be past that
-					if (ar != null && ar.JobItem != JOB_ITEM_PREBUFFER)
-						rxResults.Add(ar.ReadBuffer);
-				}
-				if(ar != null)
-				{
-					while (ReceivePackets.TryPeek(out ar))
+					newDoc = false;
+					try
 					{
-						if (ar.JobNumber == jobno)
+						await EnableLoop.WaitHandleAsync(Timeout.Infinite, ctk);
+					}
+					catch (Exception ex)
+					{
+						// it's probably a cancellation so ignore it and just
+						UsbSubs.DebugLine($"RunService: EnableLoop wait was {ex.Message}");
+					}
+					if (ctk.IsCancellationRequested)
+					{
+						break;
+					}
+					// do we have a new document to send?
+					while (!SendDocQueue.IsEmpty && !ctk.IsCancellationRequested)
+					{
+						if (SendDocQueue.TryDequeue(out SendDoc? prev))
 						{
-							ReceivePackets.TryDequeue(out ar);
-							if (ar != null && ar.JobItem != JOB_ITEM_PREBUFFER)
-								rxResults.Add(ar.ReadBuffer);
+							if (prev != null)
+							{
+								SentDocQueue.Enqueue(prev);
+							}
 						}
-						else if (ar != null && ar.JobItem != JOB_ITEM_PREBUFFER)
+						newDoc = true;
+					}
+					while (SentDocQueue.Count > 3)
+					{
+						SentDocQueue.TryDequeue(out _);
+					}
+
+					// ensure the job queue always has at least two jobs in it
+					// time for another job to queue up?
+					if (EnableSend.IsSet && (newDoc || JobQueue.Count < 3) && !ctk.IsCancellationRequested)
+					{
+						if (!SentDocQueue.IsEmpty)
 						{
-							// add the last post-job buffer if it exists
-							rxResults.Add(ar.ReadBuffer);
-							//if(ReceivePackets.Count == 0)
-							//	HasReceivePacket.Reset();
-							break;
+							// use the newest available SendDoc to create a job
+							receiveJob = new ReceiveJob(SentDocQueue.Last());
+							receiveJob.JobNumber = ++jobNumber;
+							SubmitData(receiveJob); // submit the asynchronous r and w requests
+							JobQueue.Enqueue(receiveJob);
+							UsbSubs.DebugLineIf(ShowDebug, $"JobQueue count is {JobQueue.Count}, SentDocQueue count is {SentDocQueue.Count}");
+						}
+					}
+
+					{
+						// the wait for job code (in a different thread) needs to tell us to 
+						// save the results of this job when it's done, so check IsNextJobReady
+						// if we want a new job to watch find the first one that matches
+						// so we don't have to wait through the entire queue to get a result
+						// because there are always three jobs in queue
+						if (!IsNextJobReady.IsSet && receiveJob != null && ReferenceEquals(CurrentDoc, receiveJob.TheSendDoc))
+						{
+							if(receiveJob.IsWatched == false && !ctk.IsCancellationRequested)
+							{
+								// find the first available queued job that matches this document
+								for(int i = 0; i < JobQueue.Count; i++)
+								{
+									var jbs = JobQueue.ElementAt(i);
+									if (ReferenceEquals(jbs.TheSendDoc, receiveJob.TheSendDoc) && !jbs.IsWatched)
+									{
+										CurrentJob = jbs;
+										break;
+									}
+								}
+								// we have someone waiting for this job
+								if (CurrentJob != null)
+								{
+									CurrentJob.IsWatched = true;
+									// save the job for history if it's not blank and we care about it
+									// and we have EnableTests == true
+									if (ViewSettings.Singleton.MainVm.EnableTests)
+									{
+										if (CurrentJob.TheSendDoc.LeftData.Max() > 1e-3 || CurrentJob.TheSendDoc.RightData.Max() > 1e-3)
+											WatchedJobsQueue.Enqueue(CurrentJob);
+									}
+									IsNextJobReady.Set();   // inform the waiter
+								}
+							}
+						}
+					}
+
+					while (WatchedJobsQueue.Count > 50 && !ctk.IsCancellationRequested)
+					{
+						WatchedJobsQueue.TryDequeue(out _);
+					}
+
+					// see if the current job is finished receiving
+					if (!ctk.IsCancellationRequested)
+					{
+						if (JobQueue.TryPeek(out ReceiveJob? peek))
+						{
+							if (true == peek?.IsFinished())
+							{
+								// this job is done, remove it from the queue and add the result to the result queue
+								// next loop we'll add another job to the queue
+								if (JobQueue.TryDequeue(out ReceiveJob? doneJob))
+								{
+									//UsbSubs.DebugLine($"Job {doneJob?.JobNumber} finished and dequeued. Count is now {JobQueue.Count}");
+									if (doneJob != null)
+									{
+										DoneJobQueue.Enqueue(doneJob);
+									}
+								}
+								while(DoneJobQueue.Count > DONE_JOB_MAX)
+								{
+									DoneJobQueue.TryDequeue(out _);
+								}
+							}
+							else
+								await Task.Delay(30);
+						}
+						else
+						{
+							await Task.Delay(100);
 						}
 					}
 				}
 			}
+			catch (Exception e) 
+			{ 
+				UsbSubs.DebugLine($"Exception in RunService: {e.Message}");
+			}
+			IsNotRunning.Set();
+			IsStarted.Reset();
+			UsbSubs.DebugLine("DataService stopped.");
+		}
+
+		/// <summary>
+		/// Submits a buffer to be written and returns immediately. The submitted buffer is 
+		/// copied to a local buffer before returning.
+		/// </summary>
+		/// <param name="data"></param>
+		public ErrorCode SubmitSendData(Queue<AcqAsyncResult> pktQ, byte[] dataSet, uint jobNo, uint jobItem, int jobTotal)
+		{
+			ErrorCode ec = ErrorCode.None;
+
+			if (dataSet == null || dataSet.Length == 0)
+			{
+				return ErrorCode.InvalidParam;
+			}
+
+			UsbTransfer? ar = null;
+			var qaUsb = QaComm.GetUsb();
+			lock (qaUsb ?? UsbLock)
+			{
+				// we need to flush before every send to avoid a weird issue
+				// where the first packet gets stuck and never sends
+				ec = qaUsb?.DataWriter?.SubmitAsyncTransfer(dataSet, 0, dataSet.Length, MainI2SReadWriteTimeout, out ar) ?? ErrorCode.UnknownError;
+			}
+			if (ec != ErrorCode.None)
+			{
+				UsbSubs.DebugLine($"Bad result in SendDataBegin {ec}");
+			}
+			if (ar != null)
+			{
+				//UsbSubs.DebugLine($"WriteSubmit === job:{jobNo}, item:{jobItem}, total:{jobTotal}");
+				pktQ.Enqueue(new AcqAsyncResult(ar, dataSet, jobNo, jobItem, (uint)jobTotal));
+			}
+			return ec;
+		}
+
+		/// <summary>
+		/// Creates and submits a buffer to be read asynchronously. Returns immediately.
+		/// </summary>
+		/// <param name="data"></param>
+		public AcqAsyncResult? SubmitReadData(Queue<AcqAsyncResult> pktQ, int bufSize, uint jobNo, uint jobItem, int jobTotal)
+		{
+			AcqAsyncResult? result = null;
+			{
+				byte[] readBuffer = new byte[bufSize];
+				UsbTransfer? usbT = null;
+				ErrorCode? ec = ErrorCode.DeviceNotFound;
+				var qaUsb = QaComm.GetUsb();
+				lock (qaUsb ?? UsbLock)
+				{
+					ec = qaUsb?.DataReader?.SubmitAsyncTransfer(readBuffer, 0, readBuffer.Length, MainI2SReadWriteTimeout, out usbT);
+				}
+				if (ec != ErrorCode.None || usbT == null)
+				{
+					UsbSubs.DebugLine($"ERROR: {ec} in SubmitReadData");
+				}
+				if (usbT != null)
+				{
+					result = new AcqAsyncResult(usbT, readBuffer, jobNo, jobItem, (uint)jobTotal);
+					pktQ.Enqueue(result);
+					//UsbSubs.DebugLine($"ReadSubmit === job:{jobNo}, item:{jobItem}, total:{jobTotal}");
+				}
+			}
+			return result;
+		}
+
+		/// <summary>
+		///  wait for the next job using this document
+		/// </summary>
+		/// <param name="myDoc"></param>
+		/// <param name="ctk"></param>
+		/// <returns></returns>
+		private async Task<ReceiveJob?> WaitForNextJob(SendDoc myDoc, CancellationToken ctk)
+		{
+			try
+			{
+				ReceiveJob? myJob = null;
+				CurrentJob = null;
+				CurrentDoc = myDoc;
+				IsNextJobReady.Reset();     // for for next job
+				var ux = await IsNextJobReady.WaitHandleAsync(Timeout.Infinite, ctk);
+				if (ux == 1)
+				{
+					myJob = CurrentJob;
+					UsbSubs.DebugLineIf(ShowDebug, $"WaitForNextJob got job {myJob?.JobNumber}");
+				}
+				else
+				{
+					UsbSubs.DebugLineIf(ShowDebug, $"WaitForNextJob was cancelled while waiting for next job");
+				}
+				return myJob;
+			}
+			catch (Exception ex) 
+			{
+				UsbSubs.DebugLineIf(ShowDebug, $"WaitForNextJob was {ex.Message} ");
+			}
+			return null;
+		}
+
+		private async Task<AcqResult?> WaitForResults(ReceiveJob myJob, CancellationToken ctk)
+		{
+			// for now just wait for the first result to come in
+			UsbSubs.DebugLineIf(ShowDebug, $"WaitForResults with job {(myJob?.JobNumber)??100}");
+			// wait for myjob to finish (it should be)
+			if (myJob != null && !ctk.IsCancellationRequested)
+			{
+				// get the handle of the last job we need to read
+				var vhand = myJob.AsyncHandle();
+				if (vhand != null) 
+				{
+					try
+					{
+						var x = await vhand.WaitHandleAsync(Timeout.Infinite, ctk);
+					}
+					catch(Exception ex)
+					{
+						// it's probably a cancellation so ignore it and just
+						UsbSubs.DebugLine($"Wait for job {myJob.JobNumber} was {ex.Message}");
+					}
+				}
+			}
+
+			// parse job data into AcqResult
+			AcqResult acqr = DealWithReadData(myJob);
+			// get the data from myjob
+			return ctk.IsCancellationRequested ? null : acqr;
+		}
+
+		private int CheckStart(double[] data, int maxDelay)
+		{
+			// this checks the start of the data for a signal above the noise floor
+			// it returns the offset to the start of the signal
+			double maxNoise = 1e-4;   // empirically we see up to about -5e-6 in the first 1000 samples with no signal, so this is a little above that
+			double[] deltas = new double[maxDelay];
+			int total = 0;
+			int offset = 0;
+			for (int i = 0; i < maxDelay; i++)
+			{
+				deltas[i] = data[i + 1] - data[i];  // first derivative
+				if (deltas[i] > maxNoise || deltas[i] < -maxNoise)
+				{
+					// if we see 3 in a row above the noise floor, stop checking
+					if (++total > 3)
+					{
+						offset = i;
+						break;
+					}
+				}
+				else if (total > 0)
+				{
+					total--;
+				}
+			}
+			if (offset == maxDelay)
+			{
+				return 0;   // if we see no signal at all, just return 0 to avoid cutting off the start of the data
+			}
+			return offset;
+		}
+
+		/// <summary>
+		/// find a job by job number
+		/// </summary>
+		/// <param name="jobNumber"></param>
+		/// <returns>the job or null</returns>
+		private ReceiveJob? FindByNumber(int jobNumber)
+		{
+			var job = JobQueue.FirstOrDefault(j => j.JobNumber == jobNumber);
+			if(job == null)
+			{
+				job = DoneJobQueue.FirstOrDefault(j => j.JobNumber == jobNumber);
+			}
+			return job;
+		}
+
+		/// <summary>
+		/// convert job data into a timeseries
+		/// </summary>
+		/// <param name="job"></param>
+		/// <returns></returns>
+		public AcqResult DealWithReadData(ReceiveJob? job)
+		{
+			AcqResult aResult = new AcqResult();
+			// convert to double arrays
+			aResult.Valid = false;
+			aResult.JobNumber = (int)(job?.JobNumber ?? 0);
+			var theDoc = job?.TheSendDoc;
+			if (theDoc == null || job == null)
+				return aResult;
+
+			UsbSubs.DebugLine($"DealWithReadData with job {job.JobNumber} and isdone: {job.IsFinished()}");
+			var rxResults = job.ReadPackets.Select(x => x.ReadBuffer).ToList();
 			if (rxResults.Count == 0)
 			{
 				// this must be a trailer buffer with no data
-				return;
+				UsbSubs.DebugLineIf(ShowDebug, $"{rxResults.Count} results collected for job {aResult.JobNumber}");
+				return aResult;
+			}
+			// look to see if we have one more buffer we can use
+			var nxtJob = FindByNumber(aResult.JobNumber + 1);				
+			if (nxtJob != null)
+			{
+				rxResults.Add(nxtJob.ReadPackets.First().ReadBuffer);
 			}
 			var rxLength = rxResults.Sum(x => x.Length);
-			if (rxLength < FFTSize)
+			if (rxLength < (8*theDoc.FFTSize))
 			{
-				DebugLine($"Not enough data received for job {jobno}: {rxLength} bytes");
-				return;
+				UsbSubs.DebugLineIf(ShowDebug, $"Not enough data received for job {aResult.JobNumber}: {rxLength} bytes");
+				return aResult;
 			}
 
 			// now rxResults is all data results for the job
@@ -1076,93 +616,22 @@ namespace QA40xPlot.BareMetal
 				Buffer.BlockCopy(b, 0, rxData, offset, b.Length);
 				offset += b.Length;
 			}
-			// now have a byte array of the read datablocks in rxData
-			//var truncdata = rxData[(int)(PreBufSize*8)..(int)(PreBufSize*8 + jobSize*8)];
-			var ars = DealWithReadData(rxData, (int)jobno);
-			if (ars != null && ars.Valid)
-			{
-				lock (AcqResultQueue)
-				{
-					// when we're getting a fixed number of results we can't afford to toss some
-					// but if we're free-running then we don't want this to get infinitely long or out of synch
-					while (AcqResultQueue.Count > 2)
-					{
-						AcqResultQueue.TryDequeue(out _);
-					}
-					AcqResultQueue.Enqueue(ars);
-				}
-				DebugLine($"Job {jobno} acquisition complete with {ars.Left.Length} samples");
-				PacketAvailable.Set();
-			}
-		}
 
-		/// <summary>
-		/// see if the left (true) or right (false) channel has an external signal
-		/// </summary>
-		/// <param name="isLeft"></param>
-		/// <returns></returns>
-		private static bool HasAChannel(bool isLeft)
-		{
-			var useExternal = ViewSettings.Singleton.SettingsVm.UseExternalEcho;
-			if (!useExternal)
-				return false;
-			return SoundUtil.HasChannel(isLeft);
-		}
-
-		private int CheckStart(double[] data, int maxDelay)
-		{
-			// this checks the start of the data for a signal above the noise floor
-			// it returns the offset to the start of the signal
-			double maxNoise = 1e-4;   // empirically we see up to about -5e-6 in the first 1000 samples with no signal, so this is a little above that
-			double[] deltas = new double[maxDelay];
-			int total = 0;
-			int offset = 0;
-			for (int i=0; i<maxDelay; i++)
+			if (rxData.Length == 0)
 			{
-				deltas[i] = data[i + 1] - data[i];  // first derivative
-				if (deltas[i] > maxNoise || deltas[i] < -maxNoise)
-				{
-					// if we see 3 in a row above the noise floor, stop checking
-					if(++total > 3)
-					{
-						offset = i;
-						break;
-					}
-				}
-				else if(total > 0)
-				{
-					total--;
-				}
-			}
-			if(offset == maxDelay)
-			{
-				return 0;   // if we see no signal at all, just return 0 to avoid cutting off the start of the data
-			}
-			return offset;
-		}
-
-		public AcqResult DealWithReadData(byte[] rxData, int jobNumber)
-		{
-			// convert to double arrays
-			AcqResult aResult = new AcqResult();
-			aResult.Valid = false;
-			aResult.JobNumber = jobNumber;
-			if(rxData.Length == 0)
-			{
-				DebugLine("No data read from USB");
+				UsbSubs.DebugLine("No data read from USB");
 				return aResult;
 			}
-
+			UsbSubs.DebugLineIf(ShowDebug, $"Dealing with read data of length {rxData.Length} for job {aResult.JobNumber}");
 			QaUsb.FromByteStream(rxData, out aResult.Right, out aResult.Left);
-			//WriteLine($"Deal with read data at {aResult.Left.Length}");
+
 			// Note that left and right data is swapped on QA402, QA403, QA404. We do that via arg ordering below.
 			// now we convert the stream to two data arrays
 			// and scan the data to see where to clip the latency
-			//if (aResult.Left.Length > PreBufSize)
 			{
 				// Convert from dBFS to dBV. Note the 6 dB factor--the ADC is differential
 				// Apply scaling factor to map from dBFS to Volts. 
-				int tused = (int)FFTSize;    // should be fftsize
+				int tused = (int)theDoc.FFTSize;    // should be fftsize
 											 // internal stuff has a fixed latency
 											 // but external audio is all over the map
 				var ltc = MathUtil.ToInt(ViewSettings.Singleton.SettingsVm.Latency, 47);
@@ -1173,218 +642,50 @@ namespace QA40xPlot.BareMetal
 					var rxoff = _LastExternalLatency;
 					var lxoff = _LastExternalLatency;
 					var toff = ViewSettings.Singleton.SettingsVm.EchoDelay;
-					var maxDelay = (int)Math.Abs(toff * SampleRate / 1000);  // delay in samples
-					if(HasAChannel(true))
+					var maxDelay = (int)Math.Abs(toff * theDoc.SampleRate / 1000);  // delay in samples
+					if (QaUsb.HasAChannel(true))
 					{
 						lxoff = Math.Max(rxoff, CheckStart(aResult.Left, maxDelay));
 						loff = lxoff;
 					}
-					if (HasAChannel(false))
+					if (QaUsb.HasAChannel(false))
 					{
 						rxoff = Math.Max(lxoff, CheckStart(aResult.Right, maxDelay));
-						DebugLine($"External latency for job {jobNumber}: {rxoff} samples");
+						UsbSubs.DebugLineIf(ShowDebug, $"External latency for job {aResult.JobNumber}: {rxoff} samples");
 						roff = rxoff;
 					}
 				}
 
-				var adcCorrection = Math.Pow(10, (ParamInput - 6.0) / 20);
+				var adcCorrection = Math.Pow(10, (theDoc.ParamInput - 6.0) / 20);
 				var rlf = aResult.Left.Skip(loff).Take(tused);
 				if (rlf.Count() < tused)
 					rlf = rlf.Concat(new double[tused - rlf.Count()]);
-				Debug.Assert((rlf.Count() % 1024) == 0, "Must be a power of 2");
+				//Debug.Assert((rlf.Count() % 1024) == 0, "Must be a power of 2");
 				var troff = 0;// rlf.Average();  // dc offset
-				aResult.Left = rlf.Select(x => (x - troff) * AdcCalibration.Left * adcCorrection).ToArray();
-				Debug.WriteLineIf(ShowDebug, $"Job {jobNumber} Maximum rlf value {rlf.Max()}, left value: {aResult.Left.Max()}");
+				aResult.Left = rlf.Select(x => (x - troff) * theDoc.AdcCalibration.Left * adcCorrection).ToArray();
+				UsbSubs.DebugLine($"Job {aResult.JobNumber} Maximum rlf value {rlf.Max()}, left value: {aResult.Left.Max()}");
 
 				var rrf = aResult.Right.Skip(roff).Take(tused);
-		
+
 				if (rrf.Count() > 0)
 				{
 					troff = 0;// rrf.Average();  // dc offset
 					if (rrf.Count() < tused)
 						rrf = rrf.Concat(new double[tused - rrf.Count()]);
-					aResult.Right = rrf.Select(x => (x - troff) * AdcCalibration.Right * adcCorrection).ToArray();
+					aResult.Right = rrf.Select(x => (x - troff) * theDoc.AdcCalibration.Right * adcCorrection).ToArray();
 				}
+				UsbSubs.DebugLine($"Job {aResult.JobNumber} Maximum right value: {aResult.Right.Max()}");
 				aResult.Valid = true;
 			}
+			UsbSubs.DebugLineIf(ShowDebug, $"DealWithReadData finished with valid={aResult.Valid} length={aResult.Left.Length} ");
+
+			LeftRightTimeSeries lrts = new();
+			lrts.Left = aResult.Left;
+			lrts.Right = aResult.Right;
+			lrts.dt = 1.0 / theDoc.SampleRate;
+			job.LrtsJob = lrts;
+
 			return aResult;
-		}
-
-		public void HandleDataReady(bool isFirst)
-		{
-			if(!UseInputData.IsSet)
-			{
-				DebugLine("HandleDataReady called while previous data is still being processed.");
-				return;
-			}
-			UseInputData.Reset();
-			if (InDataQueue != null && InDataQueue.Count > 0)
-			{
-				uint jobItem = 0;
-				// If we have data to send, send it
-				var dataQueue = InDataQueue.ToArray();
-				if (isFirst)
-				{
-					var left = new double[PreBufSize];
-					var theData = QaUsb.ToByteStream(left, left);
-					AcqAsyncResult asr = new AcqAsyncResult(null!, theData, CurrentJobNo, JOB_ITEM_PREBUFFER, (uint)1);
-					SendPacketQueue.Enqueue(asr);
-				}
-				uint bfrTotal = (uint)dataQueue.Sum(x => x.TheData?.Length ?? 0);
-				foreach (var bfr in dataQueue)
-				{
-					AcqAsyncResult asr = new AcqAsyncResult(null!, bfr.TheData, CurrentJobNo, jobItem, bfrTotal);
-					SendPacketQueue.Enqueue(asr);
-					jobItem++;
-				}
-				if(ReadDataQueue.Count > 0 && isFirst)
-				{
-					DebugLine("Clearing read data queue");
-					ReadDataQueue.Clear();  // just in case
-				}
-				NewSendPacket.Set(); // tell the service we have new data ready
-				//SoundObj?.Play();
-				if (SoundObj != null)
-					DebugLine($"Sound device is playing: {SoundObj?.IsPlaying}");
-			}
-			UseInputData.Set();
-		}
-
-		/// <summary>
-		/// Based on current settings, calculate any locals
-		/// </summary>
-		private async Task<bool> CalculateParameters(BaseViewModel? bvm, double[] dataLeft, double[] dataRight)
-		{
-			// set the output amplitude to support the data
-			var maxOut = Math.Max(dataLeft.Max(), dataRight.Max());
-			var minOut = Math.Min(dataLeft.Min(), dataRight.Min());
-			maxOut = Math.Max(Math.Abs(maxOut), Math.Abs(minOut));  // maximum output voltage
-																	// don't bother setting output amplitude if we have no output
-			var mlevel = IODevUSB.DetermineOutput((maxOut > 0) ? maxOut : 1e-8, 1.05); // the setting for our voltage + 10%
-			var minRange = (int)MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.MinOutputRange, -12);
-			mlevel = Math.Max(mlevel, minRange); // noop for now but keep this line in for testing
-												 // let's run this in the main dispatcher to improve multitasking
-			System.Windows.Application.Current?.Dispatcher.Invoke(async () =>
-			{
-				await QaComm.SetOutputRange(mlevel);   // set the output voltage
-				if (bvm != null)
-				{
-					await QaComm.SetInputRange((int)bvm.Attenuation);
-				}
-			});
-
-			ParamOutput = QaComm.GetOutputRange();
-			ParamInput = QaComm.GetInputRange();
-
-			DacCalibration = QaUsb.GetDacCal(QaComm.GetCalData(), ParamOutput);
-			AdcCalibration = QaUsb.GetAdcCal(QaComm.GetCalData(), ParamInput);
-
-			// bufsize is leftout.length and usbBufSize is the size of the usb buffer
-			// bufSize * 8 must be >= to usbBufSize, and bufSize * 8 must be an integer multiple of usbBufSize
-			var usize = MathUtil.ToInt(ViewSettings.Singleton.SettingsVm.UsbBufferSize, 16384);
-			double fusize = Math.Pow(2, Math.Floor(Math.Log(usize, 2)));     // nearest power of 2
-			fusize = Math.Max(Math.Min(fusize, 131072), 2048);   // 2k to 128k ???
-
-			UsbBuffSize = (uint)(0.1 + fusize);
-			DbfsAdjustment = Math.Pow(10, -((ParamOutput + 3.0) / 20));
-
-			// now get the prebuf and postbuf sizes in samples
-			var preBuf = QaComm.GetPreBuffer();
-			var postBuf = QaComm.GetPostBuffer();
-			PreBufSize = Math.Max((uint)preBuf, UsbBuffSize / 8);
-			PostBufSize = Math.Max((uint)postBuf, UsbBuffSize / 8);
-
-			SampleRate = QaComm.GetSampleRate();
-			FFTSize = QaComm.GetFftSize();
-
-			DumpAllParams();
-
-			return true;
-		}
-
-		private void DumpAllParams()
-		{
-			if(ShowDebug)
-			{
-				DebugLine($"****** Parameters *******");
-				DebugLine($"ParamInput: {ParamInput}, ParamOutput: {ParamOutput}, UsbBuffSize: {UsbBuffSize}");
-				DebugLine($"DacCalibration: {DacCalibration.Left}, {DacCalibration.Right}");
-				DebugLine($"AdcCalibration: {AdcCalibration.Left}, {AdcCalibration.Right}");
-				DebugLine($"DbfsAdjustment: {DbfsAdjustment}");
-				DebugLine($"PreBufSize: {PreBufSize}, PostBufSize: {PostBufSize}");
-				DebugLine($"****** Parameters *******");
-			}
-			else
-				DebugLine($"****** ParamInput: {ParamInput}, ParamOutput: {ParamOutput}, UsbBuffSize: {UsbBuffSize}");
-
-		}
-
-		/// <summary>
-		/// convert stereo data into a set of buffers
-		/// </summary>
-		/// <param name="left"></param>
-		/// <param name="right"></param>
-		/// <returns></returns>
-		private List<AsyncSource> SplitIntoBuffers(double[] left, double[] right)
-		{
-			List<AsyncSource> sources = new List<AsyncSource>();
-
-			// now the data buffers
-			int blocks = (int)(left.Length / UsbBuffSize);
-			if ((left.Length - blocks * UsbBuffSize) > 0)
-			{
-				throw new Exception("Left length is not an integer multiple of the USB buffer size");
-			}
-			int usbb = (int)UsbBuffSize;
-			for (int i = 0; i < blocks; i++)
-			{
-				int offs = i * usbb;
-				var src = new AsyncSource()
-				{
-					Left = left[offs..(offs + usbb)],
-					Right = right[offs..(offs + usbb)]
-				};
-				// scale to max and calibration
-				src.Left = src.Left.Select(x => x * DbfsAdjustment * DacCalibration.Left).ToArray();
-				src.Right = src.Right.Select(x => x * DbfsAdjustment * DacCalibration.Right).ToArray();
-				src.TheData = QaUsb.ToByteStream(src.Left, src.Right);   // convert to bytes
-				sources.Add(src);
-			}
-
-			foreach(var src in sources)
-			{
-				src.TheData = QaUsb.ToByteStream(src.Left, src.Right);
-			}
-			return sources;
-		}
-
-		// external sound device support
-		private SoundUtil? PrepareExternal(bool useExternal, double[] leftOut, double[] rightOut)
-		{
-			SoundUtil? soundObj = null;
-
-			// we are also sending to an external sound system device
-			if (useExternal)
-			{
-				var lexout = leftOut.ToList();
-				var rexout = rightOut.ToList();
-				//
-				double[] prebuf = new double[PreBufSize];
-				double[] postbuf = new double[PostBufSize];
-				lexout.InsertRange(0, prebuf);
-				lexout.AddRange(postbuf);
-				rexout.InsertRange(0, prebuf);
-				rexout.AddRange(postbuf);
-				soundObj = SoundUtil.CreateUtil(ViewSettings.Singleton.SettingsVm.EchoName, lexout.ToArray(), rexout.ToArray(), (int)SampleRate);
-				if (soundObj != null && soundObj.IsNew)
-				{
-					soundObj.WasteOne((int)PostBufSize, SampleRate);  // play once to start up the DAC
-					// we seem to have startup issues on every scan so constant waste is needed to keep the DAC alive.
-					//soundObj.IsNew = false;
-				}
-			}
-			//soundObj?.Play();
-			return soundObj;
 		}
 	}
 }

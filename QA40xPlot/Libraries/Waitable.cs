@@ -1,27 +1,17 @@
 ﻿using Microsoft.VisualStudio.Threading;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QA40xPlot.Libraries
 {
 	public static class Waitable
 	{
-		/// <summary>
-		/// part of the AsyncWaitHandle code below.
-		/// This is the callback that will be called when the WaitHandle is signaled or times out.
 		/// </summary>
-		/// <param name="state">the task completion source</param>
-		/// <param name="timedOut">bool if we timed out waiting</param>
-		private static void DoStateResult(object state, bool timedOut)
-		{
-			var tcs = (TaskCompletionSource<bool>)state;
-			tcs.TrySetResult(!timedOut);
-		}
-
+		/// Asynchronously waits for an AsyncManualResetEvent to be signaled. Allows a cancellation token and a timeout
+		/// </summary>
+		/// <param name="handle">the event</param>
+		/// <param name="timeOut">timeout in ms or Timeout.Infinite</param>
+		/// <param name="token">cancellation token</param>
+		/// <returns>an integer result of -1==cancellation, 0==wait timeout, 1=wait success</returns>
 		public static async Task<int> WaitHandleAsync(this AsyncManualResetEvent handle, int timeOut, CancellationToken token = default)
 		{
 			try

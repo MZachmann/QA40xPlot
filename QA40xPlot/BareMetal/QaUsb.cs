@@ -43,7 +43,7 @@ namespace QA40xPlot.BareMetal
 		/// This is specific to the underlying library. LIBUSBDOTNET uses UsbTransfer. 
 		/// WinUsbDotNet uses IAsyncResult.
 		/// </summary>
-		UsbTransfer UsbXfer;
+		public UsbTransfer UsbXfer;
 
 		/// <summary>
 		/// Buffer of data to be received.
@@ -61,6 +61,7 @@ namespace QA40xPlot.BareMetal
 		}
 
 		/// <summary>
+		/// 
 		/// This will change depending on lib used.
 		/// </summary>
 		/// <param name="usb"></param>
@@ -443,7 +444,8 @@ namespace QA40xPlot.BareMetal
 			if( UseIdleCode )
 			{
 				// && ViewSettings.Singleton.SettingsVm.AllowRepeating
-				return await UsbDataService.UseDataService(null, false, leftOut, rightOut, _LastSampleRate, ct, runRepeat);
+				var rslt = await UsbDataService.UseDataService(null, false, leftOut, rightOut, ct, runRepeat);
+				return rslt ?? new();
 			}
 			else
 			{
@@ -511,7 +513,7 @@ namespace QA40xPlot.BareMetal
 			return r;
 		}
 
-		private static bool HasAChannel(bool isLeft)
+		public static bool HasAChannel(bool isLeft)
 		{
 			var useExternal = ViewSettings.Singleton.SettingsVm.UseExternalEcho;
 			if (!useExternal)
