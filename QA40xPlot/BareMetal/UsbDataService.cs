@@ -21,13 +21,14 @@ namespace QA40xPlot.BareMetal
 	{
 		// how many finished jobs to keep in the done queue 
 		private static readonly int DONE_JOB_MAX = 5;
+		private static readonly int WATCH_JOB_MAX = 50;
 		public static UsbDataService Singleton { get; } = new UsbDataService();
 		public static readonly bool ShowDebug = false;
 		private CancellationTokenSource RunTokenSource = new CancellationTokenSource();
 		private Task ServiceTask = Task.Delay(1);
 		SoundUtil? SoundObj { get; set; } = null;
 		private bool _UseExternal = false;
-		private int _LastExternalLatency = 0;        // currently last latency
+		private int _LastExternalLatency = -1;        // currently last latency
 
 		// a blank document for when we are idling
 		// and just want to run the service and wait for a job to come in
@@ -92,6 +93,8 @@ namespace QA40xPlot.BareMetal
 		{
 			var rqb = new ReceiveJob(BlankDoc);
 			SendDocQueue.Enqueue(BlankDoc);
+			SoundObj?.Stop();   // turn off external generator now
+			SoundObj = null;
 			await Pause();
 		}
 
@@ -125,23 +128,14 @@ namespace QA40xPlot.BareMetal
 			{
 				// create a blank document
 				await BlankDoc.CalculateParameters(null, [], []);
-				BlankDoc.Buffers = BlankDoc.SplitIntoBuffers(BlankDoc.LeftData, BlankDoc.RightData);
+				BlankDoc.SplitIntoBuffers(BlankDoc.LeftData, BlankDoc.RightData);
 				Start();
 				IsNotRunning.Reset();
 			}
 			await UnPause();
 			// check for external audio device usage
 			UsbSubs.DebugLine("--entering UseMyDataService");
-			SoundObj?.Stop();
 			_UseExternal = ViewSettings.Singleton.SettingsVm.UseExternalEcho && SoundUtil.ExternalPresent();
-			if (_UseExternal)
-			{
-				runRepeat = false;
-			}
-			else
-			{
-				SoundObj = null;
-			}
 
 			// create the SendDoc for this run
 			var newDoc = new SendDoc();
@@ -151,7 +145,8 @@ namespace QA40xPlot.BareMetal
 			// if it was off it will start i/o when we submit the first write block
 			EnableUsbData(true);
 			// see if it's the same as the running document
-			if (!JobQueue.IsEmpty)
+			var emptyJobs = JobQueue.IsEmpty;
+			if (!emptyJobs)
 			{
 				// newest job entry
 				var latestJob = JobQueue.LastOrDefault();
@@ -165,13 +160,32 @@ namespace QA40xPlot.BareMetal
 			}
 			if(needSend)
 			{
-				newDoc.Buffers = newDoc.SplitIntoBuffers(outL, outR);
-				// --- now ubd is the SendDocument
+				if (_UseExternal)
+				{
+					runRepeat = false;
+					SoundObj?.Stop();
+					// if we are using an external sound device, prepare the waveform
+					SoundObj = PrepareExternal(true, outL, outR, (int)newDoc.SampleRate);
+				}
+				else
+				{
+					SoundObj = null;
+				}
+				newDoc.SplitIntoBuffers(outL, outR);
+				// now start data transfer
 				SendDocQueue.Enqueue(newDoc);
+				SoundObj?.PlayRepeat();
+				_LastExternalLatency = -1;  // set to unknown
 				UsbSubs.DebugLineIf(ShowDebug, $"SendDocQ.Enqueue -- bfrs={newDoc.Buffers.Count} tsize={newDoc.Buffers.Sum(x => x.Length)}");
 			}
 			// now wait for the results?
 			var job = await WaitForNextJob(newDoc, ct);
+			if (_UseExternal && needSend)
+			{
+				// ignore the first job with this document
+				var job2 = await WaitForNextJob(newDoc, ct);    // wait for the second pass
+				job = job2;
+			}
 			UsbSubs.DebugLineIf(ShowDebug, $"Waitforjob: {job?.JobNumber}");
 			if (job != null)
 			{
@@ -339,22 +353,10 @@ namespace QA40xPlot.BareMetal
 								if (CurrentJob != null)
 								{
 									CurrentJob.IsWatched = true;
-									// save the job for history if it's not blank and we care about it
-									// and we have EnableTests == true
-									if (ViewSettings.Singleton.MainVm.EnableTests)
-									{
-										if (CurrentJob.TheSendDoc.LeftData.Max() > 1e-3 || CurrentJob.TheSendDoc.RightData.Max() > 1e-3)
-											WatchedJobsQueue.Enqueue(CurrentJob);
-									}
 									IsNextJobReady.Set();   // inform the waiter
 								}
 							}
 						}
-					}
-
-					while (WatchedJobsQueue.Count > 50 && !ctk.IsCancellationRequested)
-					{
-						WatchedJobsQueue.TryDequeue(out _);
 					}
 
 					// see if the current job is finished receiving
@@ -380,10 +382,14 @@ namespace QA40xPlot.BareMetal
 								}
 							}
 							else
+							{
+								// there is a job running but it's not finished yet
 								await Task.Delay(30);
+							}
 						}
 						else
 						{
+							// there are no jobs running currently
 							await Task.Delay(100);
 						}
 					}
@@ -502,7 +508,7 @@ namespace QA40xPlot.BareMetal
 			// wait for myjob to finish (it should be)
 			if (myJob != null && !ctk.IsCancellationRequested)
 			{
-				// get the handle of the last job we need to read
+				// get the handle of the last packet in the job we need to read
 				var vhand = myJob.AsyncHandle();
 				if (vhand != null) 
 				{
@@ -519,13 +525,30 @@ namespace QA40xPlot.BareMetal
 			}
 
 			// parse job data into AcqResult
-			AcqResult acqr = DealWithReadData(myJob);
+			AcqResult acqr = await DealWithReadData(myJob);
+
+			// save the job into history if it's not blank and we care about it
+			// and we have EnableTests == true
+			if (ViewSettings.Singleton.MainVm.EnableTests && myJob != null && !ctk.IsCancellationRequested)
+			{
+				if (!ReferenceEquals(myJob.TheSendDoc, BlankDoc))
+					if (myJob.TheSendDoc.LeftData.Length > 0)
+						if (myJob.TheSendDoc.LeftData.Max() > 1e-3 || myJob.TheSendDoc.RightData.Max() > 1e-3)
+							WatchedJobsQueue.Enqueue(myJob);
+				while (WatchedJobsQueue.Count > WATCH_JOB_MAX && !ctk.IsCancellationRequested)
+				{
+					WatchedJobsQueue.TryDequeue(out _);
+				}
+			}
+
 			// get the data from myjob
 			return ctk.IsCancellationRequested ? null : acqr;
 		}
 
 		private int CheckStart(double[] data, int maxDelay)
 		{
+			if (maxDelay == 0)
+				return 0;
 			// this checks the start of the data for a signal above the noise floor
 			// it returns the offset to the start of the signal
 			double maxNoise = 1e-4;   // empirically we see up to about -5e-6 in the first 1000 samples with no signal, so this is a little above that
@@ -576,7 +599,7 @@ namespace QA40xPlot.BareMetal
 		/// </summary>
 		/// <param name="job"></param>
 		/// <returns></returns>
-		public AcqResult DealWithReadData(ReceiveJob? job)
+		public async Task<AcqResult> DealWithReadData(ReceiveJob? job)
 		{
 			AcqResult aResult = new AcqResult();
 			// convert to double arrays
@@ -598,7 +621,12 @@ namespace QA40xPlot.BareMetal
 			var nxtJob = FindByNumber(aResult.JobNumber + 1);				
 			if (nxtJob != null)
 			{
-				rxResults.Add(nxtJob.ReadPackets.First().ReadBuffer);
+				var pkq = nxtJob.ReadPackets.First();
+				await pkq.WaitAsync();
+				var nxt = nxtJob.ReadPackets.First().ReadBuffer;    // the next buffer
+				//var skip = Math.Abs(nxtJob.TheSendDoc.BlockSkip);
+				//var nxt2 = nxt.Skip(skip).Concat(nxt.Take(skip));	// rotate
+				rxResults.Add(nxt);
 			}
 			var rxLength = rxResults.Sum(x => x.Length);
 			if (rxLength < (8*theDoc.FFTSize))
@@ -625,7 +653,6 @@ namespace QA40xPlot.BareMetal
 			UsbSubs.DebugLineIf(ShowDebug, $"Dealing with read data of length {rxData.Length} for job {aResult.JobNumber}");
 			QaUsb.FromByteStream(rxData, out aResult.Right, out aResult.Left);
 
-			// Note that left and right data is swapped on QA402, QA403, QA404. We do that via arg ordering below.
 			// now we convert the stream to two data arrays
 			// and scan the data to see where to clip the latency
 			{
@@ -639,18 +666,36 @@ namespace QA40xPlot.BareMetal
 				var loff = ltc;
 				if (_UseExternal)
 				{
+					// lastexternallatency tracks where the first latency value
+					// since repeats keep the exact same latency and can't do the same search
 					var rxoff = _LastExternalLatency;
 					var lxoff = _LastExternalLatency;
 					var toff = ViewSettings.Singleton.SettingsVm.EchoDelay;
 					var maxDelay = (int)Math.Abs(toff * theDoc.SampleRate / 1000);  // delay in samples
+
+					// left channel check
 					if (QaUsb.HasAChannel(true))
 					{
-						lxoff = Math.Max(rxoff, CheckStart(aResult.Left, maxDelay));
+						if (lxoff == -1)
+						{
+							lxoff = Math.Max(rxoff, CheckStart(aResult.Left, maxDelay));
+							_LastExternalLatency = lxoff;
+						}
+						//else
+						//	lxoff = 0;
 						loff = lxoff;
 					}
+					// right channel check
 					if (QaUsb.HasAChannel(false))
 					{
-						rxoff = Math.Max(lxoff, CheckStart(aResult.Right, maxDelay));
+						if(rxoff == -1)
+						{
+							rxoff = Math.Max(rxoff, CheckStart(aResult.Right, maxDelay));
+							if (_LastExternalLatency == -1)
+								_LastExternalLatency = rxoff;
+						}
+						//else
+						//	rxoff = 0;
 						UsbSubs.DebugLineIf(ShowDebug, $"External latency for job {aResult.JobNumber}: {rxoff} samples");
 						roff = rxoff;
 					}
@@ -679,6 +724,7 @@ namespace QA40xPlot.BareMetal
 			}
 			UsbSubs.DebugLineIf(ShowDebug, $"DealWithReadData finished with valid={aResult.Valid} length={aResult.Left.Length} ");
 
+			// note this data gets flipped for the qa402 (only) later
 			LeftRightTimeSeries lrts = new();
 			lrts.Left = aResult.Left;
 			lrts.Right = aResult.Right;
@@ -687,5 +733,35 @@ namespace QA40xPlot.BareMetal
 
 			return aResult;
 		}
+
+		// external sound device support
+		private SoundUtil? PrepareExternal(bool useExternal, double[] leftOut, double[] rightOut, int sampleRate)
+		{
+			SoundUtil? soundObj = null;
+
+			// we are also sending to an external sound system device
+			if (useExternal)
+			{
+				var lexout = leftOut.ToList();
+				var rexout = rightOut.ToList();
+				//
+				//double[] prebuf = new double[PreBufSize];
+				//double[] postbuf = new double[PostBufSize];
+				//lexout.InsertRange(0, prebuf);
+				//lexout.AddRange(postbuf);
+				//rexout.InsertRange(0, prebuf);
+				//rexout.AddRange(postbuf);
+				soundObj = SoundUtil.CreateUtil(ViewSettings.Singleton.SettingsVm.EchoName, lexout.ToArray(), rexout.ToArray(), sampleRate);
+				//if (soundObj != null && soundObj.IsNew)
+				//{
+				//	soundObj.WasteOne((int)PostBufSize, theDoc.SampleRate);  // play once to start up the DAC
+				//													  // we seem to have startup issues on every scan so constant waste is needed to keep the DAC alive.
+				//													  //soundObj.IsNew = false;
+				//}
+			}
+			//soundObj?.Play();
+			return soundObj;
+		}
+
 	}
 }

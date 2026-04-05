@@ -91,7 +91,8 @@ namespace QA40xPlot.BareMetal
 			return transferred;
 		}
 
-		public async Task<bool> WaitAsync(int timeout, CancellationToken ct)
+		public async Task<bool> WaitAsync(int timeout = Timeout.Infinite,
+								CancellationToken ct = default)
 		{
 			bool rslt = false;
 			try
@@ -441,9 +442,9 @@ namespace QA40xPlot.BareMetal
 			}
 			// now do the real thing.
 			// Switch to SubStreamingAsync to use prior version code
-			if( UseIdleCode )
+			//if( UseIdleCode && ViewSettings.Singleton.SettingsVm.AllowRepeating )
+			if (UseIdleCode)
 			{
-				// && ViewSettings.Singleton.SettingsVm.AllowRepeating
 				var rslt = await UsbDataService.UseDataService(null, false, leftOut, rightOut, ct, runRepeat);
 				return rslt ?? new();
 			}

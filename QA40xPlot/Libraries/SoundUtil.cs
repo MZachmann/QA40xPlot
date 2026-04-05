@@ -3,9 +3,9 @@
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
+using QA40xPlot.BareMetal;
 using QA40xPlot.ViewModels;
 using ScottPlot;
-using System.Diagnostics;
 using System.IO;
 
 // code for dealing with windows sound audio output devices
@@ -22,6 +22,8 @@ public class SoundUtil : FloorViewModel, IDisposable
 	string _DeviceName { get; set; } = string.Empty;
 	int _SampleRate { get; set; } = 0;
 	RawSourceWaveStream? _Provider { get; set; } = null;
+	private Task? WaveTask { get; set; } = null;
+	private VerboseReset AllowRepeat = new VerboseReset(nameof(AllowRepeat), true);
 
 	private bool _isNew = true;
 	public bool IsNew
@@ -96,7 +98,9 @@ public class SoundUtil : FloorViewModel, IDisposable
 		var idx = SettingsViewModel.EchoChannels.IndexOf(ViewSettings.Singleton.SettingsVm.EchoChannel);
 		if (idx < 0)
 			idx = 0;    // default to none
-		return 0 != (idx & (isLeft ? SettingsViewModel.EchoChannelLeft : SettingsViewModel.EchoChannelRight));
+		var u = isLeft ? SettingsViewModel.EchoChannelLeft : SettingsViewModel.EchoChannelRight;
+		var w = idx & u;
+		return 0 != w;
 	}
 
 	// create a new sound object if the name has changed
@@ -463,13 +467,18 @@ public class SoundUtil : FloorViewModel, IDisposable
 				if (WaveForm.Encoding == WaveFormatEncoding.IeeeFloat)
 					wv = WaveFormat.CreateIeeeFloatWaveFormat(sampleRate, channels);
 				_Provider = new RawSourceWaveStream(new MemoryStream(byteData), wv);
-				var resampler = new WdlResamplingSampleProvider(_Provider.ToSampleProvider(), wvf.SampleRate);
+				// asdfasdf
+				var lnw = new LoopStream(_Provider);
+				var resampler = new WdlResamplingSampleProvider(lnw.ToSampleProvider(), wvf.SampleRate);
 				WaveRender?.Init(resampler);
+				//WaveRender?.Init(lnw);
 			}
 			else
 			{
 				_Provider = new RawSourceWaveStream(new MemoryStream(byteData), WaveForm);
-				WaveRender?.Init(_Provider);
+				var lnw = new LoopStream(_Provider);
+				//WaveRender?.Init(_Provider);
+				WaveRender?.Init(lnw);
 			}
 			IsNew = true;
 		}
@@ -516,27 +525,30 @@ public class SoundUtil : FloorViewModel, IDisposable
 		return allWaves;
 	}
 
+	// play until stopped
+	public async Task PlayRepeat()
+	{
+		if (!AllowRepeat.IsSet)
+			return;
+		UsbSubs.DebugLine("Start Play");
+		AllowRepeat.Reset();
+		if (_Provider != null)
+			_Provider.Position = 0; // prepare to play again
+		WaveRender?.Play();
+	}
+
+	// since we're using a loop construct for the reader this will always run a loop
 	public void Play()
 	{
 		WaveRender?.Play();
-		//// Create and start the stopwatch
-		//Stopwatch stopwatch = new Stopwatch();
-		//stopwatch.Start();
-		//while (WaveRender?.PlaybackState == PlaybackState.Playing)
-		//{
-		//	Thread.Sleep(20);
-		//}
-		//stopwatch.Stop();
-		//// Display elapsed time in different formats
-		//Debug.WriteLine($"Entire play duration: {stopwatch.ElapsedMilliseconds} ms");
 	}
 
 	public void Stop()
 	{
 		if (_Provider != null)
 		{
+			AllowRepeat.Set();
 			WaveRender?.Stop();
-			_Provider.Position = 0; // prepare to play again
 		}
 	}
 
@@ -555,5 +567,80 @@ public class SoundUtil : FloorViewModel, IDisposable
 		// this has to block or the code fails (?)
 		Task.Delay((int)(1000 * numNotes / sampleRate)).Wait();  // give some time to start the sound engine
 		Stop();
+	}
+
+	/// <summary>
+	/// Stream for looping playback
+	/// this simply resets the pointer to zero when we get to the end of the input buffer
+	/// code is from Mark Heath (Naudio author)
+	/// </summary>
+	public class LoopStream : WaveStream
+	{
+		WaveStream sourceStream;
+
+		/// <summary>
+		/// Creates a new Loop stream
+		/// </summary>
+		/// <param name="sourceStream">The stream to read from. Note: the Read method of this stream should return 0 when it reaches the end
+		/// or else we will not loop to the start again.</param>
+		public LoopStream(WaveStream sourceStream)
+		{
+			this.sourceStream = sourceStream;
+			this.EnableLooping = true;
+		}
+
+		/// <summary>
+		/// Use this to turn looping on or off
+		/// </summary>
+		public bool EnableLooping { get; set; }
+
+		/// <summary>
+		/// Return source stream's wave format
+		/// </summary>
+		public override WaveFormat WaveFormat
+		{
+			get { return sourceStream.WaveFormat; }
+		}
+
+		/// <summary>
+		/// LoopStream simply returns
+		/// </summary>
+		public override long Length
+		{
+			get { return sourceStream.Length; }
+		}
+
+		/// <summary>
+		/// LoopStream simply passes on positioning to source stream
+		/// </summary>
+		public override long Position
+		{
+			get { return sourceStream.Position; }
+			set { sourceStream.Position = value; }
+		}
+
+		public override int Read(byte[] buffer, int offset, int count)
+		{
+			int totalBytesRead = 0;
+			// this is running in a separate thread so ignore resource use
+			{
+				while (totalBytesRead < count)
+				{
+					int bytesRead = sourceStream.Read(buffer, offset + totalBytesRead, count - totalBytesRead);
+					if (bytesRead == 0)
+					{
+						if (sourceStream.Position == 0 || !EnableLooping)
+						{
+							// something wrong with the source stream
+							break;
+						}
+						// loop
+						sourceStream.Position = 0;
+					}
+					totalBytesRead += bytesRead;
+				}
+			}
+			return totalBytesRead;
+		}
 	}
 }

@@ -32,7 +32,7 @@ namespace QA40xPlot.ViewModels
 		public static List<String> BackColors
 		{
 			get => new List<string>() { "Transparent", "#FFAAAAAA", "#FF666666",
-			"#FF999999", "White",
+			"#FFCCCCCC", "White",
 			"MintCream", "LightGray",
 			"DarkGray", "LightGreen", "Lavender" };
 		}
@@ -154,7 +154,7 @@ namespace QA40xPlot.ViewModels
 		}
 
 		// name of the sound device to echo to
-		private int _EchoDelay = -80;
+		private int _EchoDelay = 0;
 		public int EchoDelay
 		{
 			get { return _EchoDelay; }

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media.Imaging;
 
 namespace QA40xPlot.BareMetal
 {
@@ -29,7 +30,8 @@ namespace QA40xPlot.BareMetal
 				StartingTime = DateTime.Now;
 			}
 			var u2 = (DateTime.Now - StartingTime).ToString(@"mm\:ss\.fff\:");
-			Console.WriteLine(u2 + s);
+			//Console.WriteLine(u2 + s);
+			System.Diagnostics.Debug.WriteLine(s);
 #endif
 		}
 	}
@@ -96,6 +98,7 @@ namespace QA40xPlot.BareMetal
 		public double[] RightData { get; set; } = [];
 		private byte[] ShaData { get; set; } = [];
 		public List<byte[]> Buffers { get; set; } = [];
+		//public int BlockSkip { get; set; } = 0;
 		// stuff from the hardware device
 		public (double Left, double Right) DacCalibration { get; set; }
 		public (double Left, double Right) AdcCalibration { get; set; }
@@ -187,7 +190,7 @@ namespace QA40xPlot.BareMetal
 		/// <param name="left"></param>
 		/// <param name="right"></param>
 		/// <returns></returns>
-		public List<byte[]> SplitIntoBuffers(double[] left, double[] right)
+		public void SplitIntoBuffers(double[] left, double[] right)
 		{
 			List<byte[]> sources = new List<byte[]>();
 
@@ -198,19 +201,32 @@ namespace QA40xPlot.BareMetal
 				throw new Exception("Left length is not an integer multiple of the USB buffer size");
 			}
 			int usbb = (int)UsbBuffSize;
+			double[] blk1 = [];
+			double[] blk2 = [];
 			for (int i = 0; i < blocks; i++)
 			{
 				int offs = i * usbb;
-				var Left = left[offs..(offs + usbb)];
-				var Right = right[offs..(offs + usbb)];
+				var leftBuf = left[offs..(offs + usbb)];
+				var rightBuf = right[offs..(offs + usbb)];
+				if(i == 0)
+				{
+					blk1 = leftBuf; // first block
+				}
+				else if(i == (blocks-1))
+				{
+					blk2 = leftBuf;	// last block
+				}
 				// scale to max and calibration
-				Left = Left.Select(x => x * DbfsAdjustment * DacCalibration.Left).ToArray();
-				Right = Right.Select(x => x * DbfsAdjustment * DacCalibration.Right).ToArray();
-				var TheData = QaUsb.ToByteStream(Left, Right);   // convert to bytes
+				leftBuf = leftBuf.Select(x => x * DbfsAdjustment * DacCalibration.Left).ToArray();
+				rightBuf = rightBuf.Select(x => x * DbfsAdjustment * DacCalibration.Right).ToArray();
+				var TheData = QaUsb.ToByteStream(leftBuf, rightBuf);   // convert to bytes
 				sources.Add(TheData);
 			}
 
-			return sources;
+			LeftRightTimeSeries lrts = new() { Left = blk1, Right = blk2, dt=1 };
+			//var tdl = QaMath.CalculateTimeDelay(lrts);
+			Buffers = sources;
+			//BlockSkip = (int)tdl;
 		}
 
 

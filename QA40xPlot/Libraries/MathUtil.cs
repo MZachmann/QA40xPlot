@@ -313,6 +313,8 @@ namespace QA40xPlot.Libraries
 		// return mag of Z/(1-Z)
 		public static double ToImpedanceMag(double re, double im)
 		{
+			if (re == 0 && im == 0)
+				return 1;
 			var maga = re * re + im * im;
 			var magb = (1 - re) * (1 - re) + im * im;
 			var tmage = Math.Sqrt(maga / magb);

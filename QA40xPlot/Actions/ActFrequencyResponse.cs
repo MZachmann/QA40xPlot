@@ -1329,7 +1329,7 @@ namespace QA40xPlot.Actions
 								// change to an impedance set of limits
 								var myrule = ((MaximumBoundary)rule);
 								var oldlimit = myrule.Limits;
-								AxisLimits axs = new AxisLimits(oldlimit.Left, oldlimit.Right, 0, 2000);
+								AxisLimits axs = new AxisLimits(oldlimit.Left, oldlimit.Right, 0, 20000);
 								myrule.Limits = axs;
 							}
 						}
