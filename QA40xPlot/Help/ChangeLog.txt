@@ -8,6 +8,8 @@ v 1.4.1 4/xx/26
 - increase ohms max to 100,000 on impedance chart
 - increase default graph plot area brightness
 - add entire configuration to the saved file and load it (first) when loading the file
+- add a dialog question for open file for config/tests being loaded
+- flip history counter so 0 == latest, inverse chronological
 v 1.4.0 4/4/26
 - completely rework the idle processing so that it now works - i think
 - add a few usb tests to evaluate edge conditions and general handling

@@ -102,11 +102,11 @@ namespace QA40xPlot.BareMetal
 		{
 			if (idx < WatchedJobsQueue.Count)
 			{
-				return WatchedJobsQueue.ElementAt(idx);
+				// count backwards so 0 is the latest
+				return WatchedJobsQueue.ElementAt(WatchedJobsQueue.Count - idx - 1);
 			}
 			return null;
 		}
-
 
 		/// <summary>
 		/// top level method to run the data service once and return time data
