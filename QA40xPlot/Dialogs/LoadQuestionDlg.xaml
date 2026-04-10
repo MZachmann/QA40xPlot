@@ -1,0 +1,16 @@
+<Window x:Class="QA40xPlot.Dialogs.LoadQuestionDlg"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Open File Options" Height="200" Width="350"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize">
+    <StackPanel Margin="20">
+        <TextBlock Text="Load which information?" Margin="0,0,0,10" FontWeight="Bold"/>
+        <CheckBox x:Name="LoadData" Content="Load Test Results" Margin="0,0,0,10"/>
+        <CheckBox x:Name="LoadConfig" Content="Load Configuration" Margin="0,0,0,10"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="OK" Width="75" Margin="0,0,10,0" IsDefault="True" Click="OkButton_Click"/>
+            <Button Content="Cancel" Width="75" IsCancel="True"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

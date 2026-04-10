@@ -441,6 +441,14 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
+		public static string GetConfigText()
+		{
+			var cfgData = ViewSettings.Singleton;
+			// Serialize the object to a JSON string
+			string jsonString = Util.ConvertToJson(cfgData);
+			return jsonString;
+		}
+
 		public void SaveToSettings(string filename)
 		{
 			var cfgData = ViewSettings.Singleton;
@@ -462,17 +470,31 @@ namespace QA40xPlot.ViewModels
 			int msg = 0;
 			try
 			{
-				var cfgData = ViewSettings.Singleton;
 				// Read the JSON file into a string
 				string jsonContent = File.ReadAllText(filename);
+				msg = LoadFromSettingsText(jsonContent);
+			}
+			catch (Exception ex)
+			{
+				Debug.Write($"config load error: {ex.Message}");
+			}
+			return msg;
+		}
+
+		public int LoadFromSettingsText(string filetext)
+		{
+			int msg = 0;
+			try
+			{
+				var cfgData = ViewSettings.Singleton;
 				// Deserialize the JSON string into an object
-				var jsonObject = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(jsonContent);
+				var jsonObject = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(filetext);
 				if (jsonObject != null)
 				{
 					msg = ViewSettings.Singleton.GetSettingsFrom(jsonObject);
 					if (msg == 1)
 					{
-						MessageBox.Show($"The configuration file version is too low. Skipping {filename}", "Loader", MessageBoxButton.OK, MessageBoxImage.Information);
+						MessageBox.Show($"The configuration version is too low. Skipping", "Loader", MessageBoxButton.OK, MessageBoxImage.Information);
 						return msg;
 					}
 				}

@@ -2,16 +2,10 @@
 using Newtonsoft.Json;
 using QA40xPlot.Actions;
 using QA40xPlot.Data;
+using QA40xPlot.Dialogs;
 using QA40xPlot.ViewModels;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Xml.Linq;
 
 namespace QA40xPlot.Libraries
 {
@@ -26,6 +20,8 @@ namespace QA40xPlot.Libraries
 	public class DocUtil
 	{
 		public static List<ActBase> ActionList = new List<ActBase>();
+		public static bool DoLoadConfig = true;
+		public static bool DoLoadTests = true;
 
 		public static void DoOpenDocument()
 		{
@@ -43,32 +39,22 @@ namespace QA40xPlot.Libraries
 			// Process save file dialog box results
 			if (result == true)
 			{
-				// if we don't clear focus we get a COM exception
-				// as any focused text box tries to set the Text field i think
-				// this only happens with menus since clicking a tab button loses the focus
-				try
+				LoadQuestionDlg ldq = new LoadQuestionDlg(DoLoadConfig, DoLoadTests);
+				ldq.ShowDialog();
+
+				if (ldq.DialogResult == true)
 				{
-					System.Windows.Input.Keyboard.Focus(Application.Current?.MainWindow);
+					// Save document
+					string filename = openFileDialog.FileName;
+					var filetext = Util.LoadFileText(filename);
+					DoLoadTests = ldq.IsLoadData;
+					DoLoadConfig = ldq.IsLoadConfig;
+					OpenDocument(filetext, filename, DoLoadTests, DoLoadConfig);
 				}
-				catch (Exception ex)
-				{
-					Debug.WriteLine(ex.ToString());
-				}
-				// let the focus lose happen then continue
-				Task.Delay(20).ContinueWith(_ =>
-				{
-					Application.Current?.Dispatcher.Invoke(() =>
-					{
-						// Save document
-						string filename = openFileDialog.FileName;
-						var filetext = Util.LoadFileText(filename);
-						OpenDocument(filetext, filename);
-					});
-				});
 			}
 		}
 
-		public static void OpenDocument(string docText, string fileName)
+		public static void OpenDocument(string docText, string fileName, bool loadTests, bool loadConfig)
 		{
 			var actList = ActionList;
 			Dictionary<string, string>? docDict = null;
@@ -93,9 +79,19 @@ namespace QA40xPlot.Libraries
 				var kys = string.Join(",", ky);
 				Debug.WriteLine($"Dict keys: {kys}");
 				docDict["FileName"] = fileName;
-				foreach (var act in actList)
+				if(docDict.ContainsKey("Configuration"))
 				{
-					act.LoadFromDictionary(docDict, true);
+					var cfg = docDict["Configuration"];
+					if(loadConfig)
+						ViewSettings.Singleton.MainVm.LoadFromSettingsText(cfg);
+					docDict.Remove("Configuration");
+				}
+				if(loadTests)
+				{
+					foreach (var act in actList)
+					{
+						act.LoadFromDictionary(docDict, true);
+					}
 				}
 			}
 			catch (Exception ex)
@@ -140,6 +136,9 @@ namespace QA40xPlot.Libraries
 			var sdh = Util.ConvertToJson(dh);
 			if (sdh != null && sdh.Length > 0)
 				docDict.Add("Header", sdh);
+			var cfg = MainViewModel.GetConfigText();
+			if (cfg != null && cfg.Length > 0)
+				docDict.Add("Configuration", cfg);
 			try
 			{
 				string jsonString = string.Empty;

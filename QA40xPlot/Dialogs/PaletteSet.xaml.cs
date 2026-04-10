@@ -1,10 +1,11 @@
 ﻿using QA40xPlot.ViewModels;
 using QA40xPlot.ViewModels.Subs;
+using QA40xPlot.Views;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace QA40xPlot.Views
+namespace QA40xPlot.Dialogs
 {
 	public class ColorInfo
 	{
