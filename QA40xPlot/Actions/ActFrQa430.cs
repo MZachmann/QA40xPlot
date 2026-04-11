@@ -945,14 +945,14 @@ namespace QA40xPlot.Actions
 			var chans = WaveContainer.Singleton.Channels;
 			if (ttype == TestingType.Noise)
 			{
-				var lft = Chirps.NormalizeChirpCplx(vm.WindowingMethod, chirpy, genv, (lfrs.TimeRslt.Left, lfrs.TimeRslt.Right));
+				var lft = Chirps.NormalizeChirpCplx(vm.WindowingMethod, chirpy, genv, lfrs.TimeRslt);
 				leftFft = lft.Item1;
 				rightFft = lft.Item2;
 			}
 			else
 			{
-				// best?
-				var window = QaMath.GetWindowType(vm.WindowingMethod);
+				// best with chirp is rect always
+				var window = QaMath.GetWindowType("Rectangular");	// QaMath.GetWindowType(vm.WindowingMethod);
 				double[] lftF = window.Apply(lfrs.TimeRslt.Left, true);
 				leftFft = FFT.Forward(lftF);
 

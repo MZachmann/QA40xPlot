@@ -625,7 +625,7 @@ namespace QA40xPlot.Actions
 					lrts.Right = acqData.TimeRslt.Right;
 					lrts.dt = acqData.TimeRslt.dt;
 					LeftRightFrequencySeries lraddon = new LeftRightFrequencySeries();
-					(lraddon.Left, lraddon.Right) = Chirps.NormalizeChirpDbl(swindow, chirpy, generatorV, (lrts.Left, lrts.Right));
+					(lraddon.Left, lraddon.Right) = Chirps.NormalizeChirpDbl(swindow, chirpy, generatorV, lrts);
 					if (j == 0)
 					{
 						lrfs.Left = lraddon.Left;

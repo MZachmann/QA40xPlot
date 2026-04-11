@@ -318,8 +318,8 @@
                    HorizontalAlignment="Left" VerticalAlignment="Center"
                    Grid.Row="51" Grid.Column="4" />
             <local:GroupHeader Grid.Row="52" Grid.Column="0" Grid.ColumnSpan="5"  />
-            <Label VerticalAlignment="Center" Content="Debug tests: " Grid.Row="53" Grid.Column="0" />
-            <CheckBox  Grid.Row="53" Grid.Column="1" IsChecked="{Binding MainVm.EnableTests}" Content="Enable" VerticalAlignment="Center" />
+            <Label VerticalAlignment="Center" Content="Early Release: " Grid.Row="53" Grid.Column="0" />
+            <CheckBox  Grid.Row="53" Grid.Column="1" IsChecked="{Binding MainVm.EarlyRelease}" Content="Enable" VerticalAlignment="Center" />
             <TextBlock TextWrapping="Wrap" MaxWidth="600" 
                    Text="Enable History display and Evaluate USB test." 
                    HorizontalAlignment="Left" VerticalAlignment="Center"

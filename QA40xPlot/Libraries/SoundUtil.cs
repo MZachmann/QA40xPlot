@@ -1,6 +1,4 @@
-﻿
-
-using NAudio.CoreAudioApi;
+﻿using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using QA40xPlot.BareMetal;
@@ -182,13 +180,63 @@ public class SoundUtil : FloorViewModel, IDisposable
 		return isSupported;
 	}
 
+	public int GetBufferSize(WaveFormat wvf)
+	{
+		int bufferFrames = 0;
+		//var uvw = FindSupportedFormats(false);      // possible exclusive formats
+		//var uvwf = FilterSampleRate(uvw, sampleRate);
+		//var fmt = uvwf.Count() > 0 ? uvwf.First() : SndDevice?.AudioClient.MixFormat;
+		var fmt = wvf;
+		// Capture device buffer size
+		using (var audioClient = SndDevice?.AudioClient)
+		{
+			bool didw = false;
+			try
+			{
+				audioClient?.Initialize(
+					AudioClientShareMode.Exclusive,
+					AudioClientStreamFlags.None,
+					0,
+					0,
+					fmt,
+					Guid.Empty
+				);
+				bufferFrames = audioClient?.BufferSize ?? 0; // in frames
+				didw = true;
+			}
+			catch (Exception)
+			{
+			}
+			if (!didw)
+			{
+				try
+				{
+					audioClient?.Initialize(
+						AudioClientShareMode.Shared,
+						AudioClientStreamFlags.None,
+						0,
+						0,
+						fmt,
+						Guid.Empty
+					);
+					bufferFrames = audioClient?.BufferSize ?? 0; // in frames
+					didw = true;
+				}
+				catch (Exception)
+				{
+				}
+			}
+		}
+		return bufferFrames;
+	}
+
 	public MMDevice? InitDevice(string name)
 	{
 		// find our named device
 		_DeviceName = name;
 		var enumerator = new MMDeviceEnumerator();
 		MMDevice? myDevice = null;
-		foreach (var wasapi in enumerator.EnumerateAudioEndPoints(DataFlow.All, DeviceState.Active))
+		foreach (var wasapi in enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
 		{
 			try
 			{
@@ -205,7 +253,6 @@ public class SoundUtil : FloorViewModel, IDisposable
 			}
 		}
 		SndDevice = myDevice;
-
 		CreateRender();
 		return myDevice;
 	}
@@ -361,11 +408,12 @@ public class SoundUtil : FloorViewModel, IDisposable
 					// per the doc default latency is 200ms which is way too long for us
 					// so we try to get it to 40ms
 					var smode = IsShared ? AudioClientShareMode.Shared : AudioClientShareMode.Exclusive;
-					waveOut = new(SndDevice, smode, useEventSync: true, latency: 40);
+					// per the microsoft doc 10ms is a magic value that should work correctly
+					waveOut = new(SndDevice, smode, useEventSync: true, latency: 100);
 				}
 				catch
 				{
-					waveOut = new(SndDevice, AudioClientShareMode.Shared, useEventSync: true, latency: 40);
+					waveOut = new(SndDevice, AudioClientShareMode.Shared, useEventSync: true, latency: 100);
 					IsShared = true;
 				}
 				WaveRender = waveOut;
@@ -421,6 +469,7 @@ public class SoundUtil : FloorViewModel, IDisposable
 				}
 			}
 			WaveForm = wvf;
+			var bsize = GetBufferSize(wvf);
 
 			// if wvf isn't our requested format, we will need to resample
 			// start by calculating the packed stereo data given pcm or ieee float
@@ -577,6 +626,7 @@ public class SoundUtil : FloorViewModel, IDisposable
 	public class LoopStream : WaveStream
 	{
 		WaveStream sourceStream;
+		byte[] WaveBuffer;
 
 		/// <summary>
 		/// Creates a new Loop stream
@@ -587,6 +637,8 @@ public class SoundUtil : FloorViewModel, IDisposable
 		{
 			this.sourceStream = sourceStream;
 			this.EnableLooping = true;
+			WaveBuffer = new byte[Length];
+			int bytesRead = sourceStream.Read(WaveBuffer, 0, (int)Length);	// read the entire buffer
 		}
 
 		/// <summary>
@@ -621,26 +673,23 @@ public class SoundUtil : FloorViewModel, IDisposable
 
 		public override int Read(byte[] buffer, int offset, int count)
 		{
-			int totalBytesRead = 0;
-			// this is running in a separate thread so ignore resource use
+			// this simply reads from the cached buffer over and over again
+			var curpos = sourceStream.Position;
+			int remain = (int)(Length - curpos);   //remaining
+			if (count > remain)
 			{
-				while (totalBytesRead < count)
-				{
-					int bytesRead = sourceStream.Read(buffer, offset + totalBytesRead, count - totalBytesRead);
-					if (bytesRead == 0)
-					{
-						if (sourceStream.Position == 0 || !EnableLooping)
-						{
-							// something wrong with the source stream
-							break;
-						}
-						// loop
-						sourceStream.Position = 0;
-					}
-					totalBytesRead += bytesRead;
-				}
+				Buffer.BlockCopy(WaveBuffer, (int)curpos, buffer, offset, remain);
+				Buffer.BlockCopy(WaveBuffer, 0, buffer, offset+remain, count-remain);
+				sourceStream.Position = count - remain;
 			}
-			return totalBytesRead;
+			else
+			{
+				Buffer.BlockCopy(WaveBuffer, (int)curpos, buffer, offset, count);
+				sourceStream.Position = curpos + count;
+				if (sourceStream.Position == Length)
+					sourceStream.Position = 0;
+			}
+			return count;
 		}
 	}
 }

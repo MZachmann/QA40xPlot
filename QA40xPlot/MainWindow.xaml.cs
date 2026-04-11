@@ -61,7 +61,7 @@ namespace QA40xPlot
 
 		private void SetConsoleOut()
 		{
-			if (!IsLogSet && true == ViewSettings.Singleton?.MainVm?.EnableTests)
+			if (!IsLogSet && true == ViewSettings.Singleton?.MainVm?.EarlyRelease)
 			{
 				try
 				{

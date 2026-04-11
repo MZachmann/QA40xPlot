@@ -13,7 +13,8 @@ v 1.4.1 4/xx/26
 v 1.4.0 4/4/26
 - completely rework the idle processing so that it now works - i think
 - add a few usb tests to evaluate edge conditions and general handling
-- add a debugging option - Debug Tests to display history and the usb tests/logging
+- add a test option - Early Release for stuff not necessarily prime-time
+-       currently that is to display history and the usb tests/logging
 v 1.3.1 3/25/26
 - work on fixing the serious idle problem when spot averaging sweeps such as THD vs F
 - add history view for spectrum and scope when generator is disabled

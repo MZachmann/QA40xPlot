@@ -164,8 +164,10 @@ namespace QA40xPlot.BareMetal
 				{
 					runRepeat = false;
 					SoundObj?.Stop();
+					SoundObj = null;
 					// if we are using an external sound device, prepare the waveform
 					SoundObj = PrepareExternal(true, outL, outR, (int)newDoc.SampleRate);
+
 				}
 				else
 				{
@@ -180,7 +182,7 @@ namespace QA40xPlot.BareMetal
 			}
 			// now wait for the results?
 			var job = await WaitForNextJob(newDoc, ct);
-			if (_UseExternal && needSend)
+			if (job != null && _UseExternal && needSend)
 			{
 				// ignore the first job with this document
 				var job2 = await WaitForNextJob(newDoc, ct);    // wait for the second pass
@@ -343,7 +345,7 @@ namespace QA40xPlot.BareMetal
 								for(int i = 0; i < JobQueue.Count; i++)
 								{
 									var jbs = JobQueue.ElementAt(i);
-									if (ReferenceEquals(jbs.TheSendDoc, receiveJob.TheSendDoc) && !jbs.IsWatched)
+									if (ReferenceEquals(jbs.TheSendDoc, CurrentDoc) && !jbs.IsWatched)
 									{
 										CurrentJob = jbs;
 										break;
@@ -352,7 +354,6 @@ namespace QA40xPlot.BareMetal
 								// we have someone waiting for this job
 								if (CurrentJob != null)
 								{
-									CurrentJob.IsWatched = true;
 									IsNextJobReady.Set();   // inform the waiter
 								}
 							}
@@ -485,8 +486,12 @@ namespace QA40xPlot.BareMetal
 				var ux = await IsNextJobReady.WaitHandleAsync(Timeout.Infinite, ctk);
 				if (ux == 1)
 				{
-					myJob = CurrentJob;
-					UsbSubs.DebugLineIf(ShowDebug, $"WaitForNextJob got job {myJob?.JobNumber}");
+					myJob = CurrentJob;			// this gets set by the guy that turns on IsNextJobReady
+					if(myJob != null)
+					{
+						myJob.IsWatched = true;     // don't find this one again
+						UsbSubs.DebugLineIf(ShowDebug, $"WaitForNextJob got job {myJob?.JobNumber}");
+					}
 				}
 				else
 				{
@@ -528,8 +533,8 @@ namespace QA40xPlot.BareMetal
 			AcqResult acqr = await DealWithReadData(myJob);
 
 			// save the job into history if it's not blank and we care about it
-			// and we have EnableTests == true
-			if (ViewSettings.Singleton.MainVm.EnableTests && myJob != null && !ctk.IsCancellationRequested)
+			// and we have EarlyRelease == true
+			if (ViewSettings.Singleton.MainVm.EarlyRelease && myJob != null && !ctk.IsCancellationRequested)
 			{
 				if (!ReferenceEquals(myJob.TheSendDoc, BlankDoc))
 					if (myJob.TheSendDoc.LeftData.Length > 0)
@@ -549,34 +554,35 @@ namespace QA40xPlot.BareMetal
 		{
 			if (maxDelay == 0)
 				return 0;
-			// this checks the start of the data for a signal above the noise floor
-			// it returns the offset to the start of the signal
-			double maxNoise = 1e-4;   // empirically we see up to about -5e-6 in the first 1000 samples with no signal, so this is a little above that
-			double[] deltas = new double[maxDelay];
-			int total = 0;
-			int offset = 0;
-			for (int i = 0; i < maxDelay; i++)
-			{
-				deltas[i] = data[i + 1] - data[i];  // first derivative
-				if (deltas[i] > maxNoise || deltas[i] < -maxNoise)
-				{
-					// if we see 3 in a row above the noise floor, stop checking
-					if (++total > 3)
-					{
-						offset = i;
-						break;
-					}
-				}
-				else if (total > 0)
-				{
-					total--;
-				}
-			}
-			if (offset == maxDelay)
-			{
-				return 0;   // if we see no signal at all, just return 0 to avoid cutting off the start of the data
-			}
-			return offset;
+			return maxDelay;
+			//// this checks the start of the data for a signal above the noise floor
+			//// it returns the offset to the start of the signal
+			//double maxNoise = 1e-4;   // empirically we see up to about -5e-6 in the first 1000 samples with no signal, so this is a little above that
+			//double[] deltas = new double[maxDelay];
+			//int total = 0;
+			//int offset = 0;
+			//for (int i = 0; i < maxDelay; i++)
+			//{
+			//	deltas[i] = data[i + 1] - data[i];  // first derivative
+			//	if (deltas[i] > maxNoise || deltas[i] < -maxNoise)
+			//	{
+			//		// if we see 3 in a row above the noise floor, stop checking
+			//		if (++total > 3)
+			//		{
+			//			offset = i;
+			//			break;
+			//		}
+			//	}
+			//	else if (total > 0)
+			//	{
+			//		total--;
+			//	}
+			//}
+			//if (offset == maxDelay)
+			//{
+			//	return 0;   // if we see no signal at all, just return 0 to avoid cutting off the start of the data
+			//}
+			//return offset;
 		}
 
 		/// <summary>
@@ -664,43 +670,47 @@ namespace QA40xPlot.BareMetal
 				var ltc = MathUtil.ToInt(ViewSettings.Singleton.SettingsVm.Latency, 47);
 				var roff = ltc;
 				var loff = ltc;
+
 				if (_UseExternal)
 				{
 					// lastexternallatency tracks where the first latency value
 					// since repeats keep the exact same latency and can't do the same search
 					var rxoff = _LastExternalLatency;
 					var lxoff = _LastExternalLatency;
+
 					var toff = ViewSettings.Singleton.SettingsVm.EchoDelay;
 					var maxDelay = (int)Math.Abs(toff * theDoc.SampleRate / 1000);  // delay in samples
 
 					// left channel check
 					if (QaUsb.HasAChannel(true))
 					{
+						var moff = aResult.Left.Average();
+						aResult.Left = aResult.Left.Select(x => x - moff).ToArray();  // remove dc offset
 						if (lxoff == -1)
 						{
-							lxoff = Math.Max(rxoff, CheckStart(aResult.Left, maxDelay));
+							lxoff = Math.Max(lxoff, CheckStart(aResult.Left, loff+maxDelay));
 							_LastExternalLatency = lxoff;
 						}
-						//else
-						//	lxoff = 0;
+						else
+							lxoff = _LastExternalLatency;
 						loff = lxoff;
 					}
 					// right channel check
 					if (QaUsb.HasAChannel(false))
 					{
+						var moff = aResult.Right.Average();
+						aResult.Right = aResult.Right.Select(x => x - moff).ToArray();  // remove dc offset
 						if(rxoff == -1)
 						{
-							rxoff = Math.Max(rxoff, CheckStart(aResult.Right, maxDelay));
+							rxoff = Math.Max(rxoff, CheckStart(aResult.Right, roff+maxDelay));
 							if (_LastExternalLatency == -1)
 								_LastExternalLatency = rxoff;
 						}
-						//else
-						//	rxoff = 0;
-						UsbSubs.DebugLineIf(ShowDebug, $"External latency for job {aResult.JobNumber}: {rxoff} samples");
+						else
+							rxoff = _LastExternalLatency;
 						roff = rxoff;
 					}
 				}
-
 				var adcCorrection = Math.Pow(10, (theDoc.ParamInput - 6.0) / 20);
 				var rlf = aResult.Left.Skip(loff).Take(tused);
 				if (rlf.Count() < tused)
@@ -711,7 +721,6 @@ namespace QA40xPlot.BareMetal
 				UsbSubs.DebugLine($"Job {aResult.JobNumber} Maximum rlf value {rlf.Max()}, left value: {aResult.Left.Max()}");
 
 				var rrf = aResult.Right.Skip(roff).Take(tused);
-
 				if (rrf.Count() > 0)
 				{
 					troff = 0;// rrf.Average();  // dc offset
@@ -738,28 +747,11 @@ namespace QA40xPlot.BareMetal
 		private SoundUtil? PrepareExternal(bool useExternal, double[] leftOut, double[] rightOut, int sampleRate)
 		{
 			SoundUtil? soundObj = null;
-
-			// we are also sending to an external sound system device
+			// we are sending to an external sound system device
 			if (useExternal)
 			{
-				var lexout = leftOut.ToList();
-				var rexout = rightOut.ToList();
-				//
-				//double[] prebuf = new double[PreBufSize];
-				//double[] postbuf = new double[PostBufSize];
-				//lexout.InsertRange(0, prebuf);
-				//lexout.AddRange(postbuf);
-				//rexout.InsertRange(0, prebuf);
-				//rexout.AddRange(postbuf);
-				soundObj = SoundUtil.CreateUtil(ViewSettings.Singleton.SettingsVm.EchoName, lexout.ToArray(), rexout.ToArray(), sampleRate);
-				//if (soundObj != null && soundObj.IsNew)
-				//{
-				//	soundObj.WasteOne((int)PostBufSize, theDoc.SampleRate);  // play once to start up the DAC
-				//													  // we seem to have startup issues on every scan so constant waste is needed to keep the DAC alive.
-				//													  //soundObj.IsNew = false;
-				//}
+				soundObj = SoundUtil.CreateUtil(ViewSettings.Singleton.SettingsVm.EchoName, leftOut, rightOut, sampleRate);
 			}
-			//soundObj?.Play();
 			return soundObj;
 		}
 

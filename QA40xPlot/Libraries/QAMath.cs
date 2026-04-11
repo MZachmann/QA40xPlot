@@ -251,7 +251,7 @@ namespace QA40xPlot.Libraries
 			LeftRightFrequencySeries? fs = null;
 			if (lrts != null)
 			{
-				var norms = Chirps.NormalizeChirpDbl(windowing, signal, voltage, (lrts.Left, lrts.Right));
+				var norms = Chirps.NormalizeChirpDbl(windowing, signal, voltage, lrts);
 				fs = new();
 				fs.Left = norms.Item1;
 				fs.Right = norms.Item2;

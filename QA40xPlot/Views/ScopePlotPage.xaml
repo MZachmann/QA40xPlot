@@ -22,7 +22,7 @@
                 <CheckBox Content="Use Generator _2" IsChecked="{Binding UseGenerator2}" HorizontalAlignment="Center"></CheckBox>
                 <StackPanel Visibility="{Binding UseGenerator1, Converter={StaticResource BoolNotVisConverter}}">
                 <StackPanel Orientation="Vertical" HorizontalAlignment="Stretch"
-                            Visibility="{Binding MainVm.EnableTests, Converter={StaticResource BoolVisConverter}}" >
+                            Visibility="{Binding MainVm.EarlyRelease, Converter={StaticResource BoolVisConverter}}" >
                     <CheckBox Content="History" IsChecked="{Binding UseHistory}" HorizontalAlignment="Center"/>
                     <views:UpDownControl VerticalAlignment="Center" HorizontalAlignment="Center"
                                          Value="{Binding HistoryIdx}" Minimum="0" />

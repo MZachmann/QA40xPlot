@@ -857,23 +857,32 @@ namespace QA40xPlot.Actions
 
 		public async Task ShowHistoryAt(int iAt)
 		{
-			var acq = UsbDataService.Singleton.GetLogResult(iAt);
+			var acq = UsbDataService.Singleton.GetLogResult(iAt/2);
 			if (acq?.LrtsJob != null)
 			{
 				var vm = (MyViewClass)PageData.ViewModel;
-				PageData.TimeRslt.Left = acq.LrtsJob.Left;
-				PageData.TimeRslt.Right = acq.LrtsJob.Right;
-				PageData.TimeRslt.dt = 1 / (double)vm.SampleRateVal;
+				if (1 == (iAt % 2))
+				{
+					PageData.TimeRslt.Left = acq.LrtsJob.Left;
+					PageData.TimeRslt.Right = acq.LrtsJob.Right;
+					PageData.TimeRslt.dt = acq.LrtsJob.dt;
+				}
+				else
+				{
+					PageData.TimeRslt.Left = acq.TheSendDoc.LeftData;
+					PageData.TimeRslt.Right = acq.TheSendDoc.RightData;
+					PageData.TimeRslt.dt = 1 / (double)vm.SampleRateVal;
+				}
 				// now recalculate everything, no averaging here
-				PageData.FreqRslt = QaMath.CalculateSpectrum(PageData.TimeRslt, vm.WindowingMethod); 
-				await PostProcess(PageData, CanToken.Token); 
+				PageData.FreqRslt = QaMath.CalculateSpectrum(PageData.TimeRslt, vm.WindowingMethod);
+				await PostProcess(PageData, CanToken.Token);
 				UpdateGraph(false);
 			}
 			else
 			{
 				var vm = (MyViewClass)PageData.ViewModel;
-				PageData.TimeRslt.Left = Enumerable.Range(0, (int)vm.FftSizeVal).Select(x => x/(double)vm.FftSizeVal).ToArray();
-				var xmax = PageData.TimeRslt.Left.Last();	// the maximum value
+				PageData.TimeRslt.Left = Enumerable.Range(0, (int)vm.FftSizeVal).Select(x => x / (double)vm.FftSizeVal).ToArray();
+				var xmax = PageData.TimeRslt.Left.Last();   // the maximum value
 				PageData.TimeRslt.Right = PageData.TimeRslt.Left.Select(x => xmax - x).ToArray();
 				// now recalculate everything, no averaging here
 				PageData.FreqRslt = QaMath.CalculateSpectrum(PageData.TimeRslt, vm.WindowingMethod);

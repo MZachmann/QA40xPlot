@@ -20,9 +20,10 @@ namespace QA40xPlot.BareMetal
 		/// <param name="amplitudeVpk">peak voltage of signal</param>
 		/// <param name="f1">start freq</param>
 		/// <param name="f2">end freq</param>
-		/// <param name="pct">amount of buffer to fill with signal 1.0 == all</param>
+		/// <param name="pct">amount of buffer that is filled with signal. 
+		/// Must agree with the pct it was built with.</param>
 		/// <returns>(chirp,inverse)</returns>
-		public static double[] ChirpInverse(double[] chirpSignal, int totalBufferLength, double fs, double amplitudeVrms, double f1 = 20, double f2 = 20000, double pct = 0.95)
+		public static double[] ChirpInverse(double[] chirpSignal, int totalBufferLength, double fs, double amplitudeVrms, double f1 = 20, double f2 = 20000, double pct = 0.85)
 		{
 			// Calculate the length of the chirp in samples
 			int chirpLengthSamples = (int)(totalBufferLength * pct);
@@ -61,7 +62,7 @@ namespace QA40xPlot.BareMetal
 		}
 
 		/// <summary>
-		/// creates a chirp signal and an inverse filter
+		/// creates a chirp signal
 		/// </summary> 
 		/// <param name="totalBufferLength">amount of buffer to fill</param>
 		/// <param name="fs">sampling frequency</param>
@@ -69,8 +70,8 @@ namespace QA40xPlot.BareMetal
 		/// <param name="f1">start freq</param>
 		/// <param name="f2">end freq</param>
 		/// <param name="pct">amount of buffer to fill with signal 1.0 == all</param>
-		/// <returns>(chirp,inverse)</returns>
-		public static double[] ChirpVp(uint totalBufferLength, double fs, double amplitudeVrms, double f1 = 20, double f2 = 20000, double pct = 0.95)
+		/// <returns>chirp data</returns>
+		public static double[] ChirpVp(uint totalBufferLength, double fs, double amplitudeVrms, double f1 = 20, double f2 = 20000, double pct = 0.85)
 		{
 			// Calculate the length of the chirp in samples
 			int chirpLengthSamples = (int)(totalBufferLength * pct);
@@ -92,49 +93,69 @@ namespace QA40xPlot.BareMetal
 			int padding = (int)totalBufferLength - chirpSignal.Length;
 
 			// Pad the chirp signal with zeros to fit the total buffer length
-			double[] paddedChirp = chirpSignal.Concat(new double[padding]).ToArray();
+			double[] paddedChirp = (new double[padding/2]).Concat(chirpSignal).Concat(new double[padding - padding/2]).ToArray();
 
 			return paddedChirp;
 		}
 
-		public static (Complex[], Complex[]) NormalizeChirpCplx(string windowing, double[] chirp, double Vrms, (double[]? leftData, double[]? rightData) rdata)
+		/// <summary>
+		/// this function takes a left,right pair rdata of data received
+		/// and divides the fft of the pair by the fft of
+		/// a double[] chirp of data from the wave generator or reference input
+		/// </summary>
+		/// <param name="windowing">type of fft windowing to use</param>
+		/// <param name="chirp">the double[] that was sent to the generator
+		/// or that was received from a reference channel</param>
+		/// <param name="vrsltMax">scale factor for output</param>
+		/// <param name="rdata">(left,right) pair to divide by chirp</param>
+		/// <returns>it returns a complex pair of the normalized reception</returns>
+		public static (Complex[], Complex[]) NormalizeChirpCplx(string windowing, double[] chirp, double vrsltMax, LeftRightTimeSeries rdata)
 		{
 			Complex[] leftFft = [];
 			Complex[] rightFft = [];
 
+			windowing = "Rectangular";	// we don't have edge conditions with a chirp so no leakage issues
 			var window = QaMath.GetWindowType(windowing);    // best?
 
 			double[] inp = window.Apply(chirp, true);  // the input signal
 			var chirpFft = FFT.Forward(inp);
-			var cmax = Vrms;// * Math.Sqrt(2) / 2;     // not sure why the /2 here - rectangular window?
 
-			// Left channel
-
+			// do not divide by zero
 			chirpFft = chirpFft.Select(x => (x.Real != 0 || x.Imaginary != 0) ? x : new Complex(1e-10, 0)).ToArray(); // avoid divide by zero
-
-			if (rdata.leftData != null)
+																													  // Left channel
+			// Left channel
+			if (rdata.Left != null)
 			{
 				// so x / chirpFft will be 1 with a gain of 1
 				// hence multiply the expected rms voltage to get fft value
-				double[] lftWdw = window.Apply(rdata.leftData, true);
+				double[] lftWdw = window.Apply(rdata.Left, true);
 				var lFft = FFT.Forward(lftWdw);
-				lFft = lFft.Select((x, index) => cmax * x / chirpFft[index]).ToArray();
+				lFft = lFft.Select((x, index) => vrsltMax * x / chirpFft[index]).ToArray();
 				leftFft = lFft.Take(lFft.Length / 2).ToArray();
 			}
 
-			if (rdata.rightData != null)
+			// Right channel
+			if (rdata.Right != null)
 			{
-				double[] rgtWdw = window.Apply(rdata.rightData, true);
+				double[] rgtWdw = window.Apply(rdata.Right, true);
 				var rFft = FFT.Forward(rgtWdw);
-				rFft = rFft.Select((x, index) => cmax * x / chirpFft[index]).ToArray();
+				rFft = rFft.Select((x, index) => vrsltMax * x / chirpFft[index]).ToArray();
 				rightFft = rFft.Take(rFft.Length / 2).ToArray();
 			}
 			return (leftFft, rightFft);
 		}
 
-		public static (double[], double[]) NormalizeChirpDbl(string windowing, double[] chirp, double Vrms, (double[]? leftData, double[]? rightData) rdata)
+		/// <summary>
+		/// this does a NormalizeComplex and then converts to magnitude when we don't need the phase info
+		/// </summary>
+		/// <param name="windowing"></param>
+		/// <param name="chirp"></param>
+		/// <param name="vrsltMax"></param>
+		/// <param name="rdata"></param>
+		/// <returns></returns>
+		public static (double[], double[]) NormalizeChirpDbl(string windowing, double[] chirp, double vrsltMax, LeftRightTimeSeries rdata)
 		{
-			var cplx = NormalizeChirpCplx(windowing, chirp, Vrms, rdata);
+			var cplx = NormalizeChirpCplx(windowing, chirp, vrsltMax, rdata);
 			double[] leftFft = cplx.Item1.Select(x => x.Magnitude).ToArray();
 			double[] rightFft = cplx.Item2.Select(x => x.Magnitude).ToArray();
 			return (leftFft, rightFft);
