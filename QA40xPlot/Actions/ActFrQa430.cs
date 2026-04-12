@@ -951,13 +951,15 @@ namespace QA40xPlot.Actions
 			}
 			else
 			{
-				// best with chirp is rect always
-				var window = QaMath.GetWindowType("Rectangular");	// QaMath.GetWindowType(vm.WindowingMethod);
-				double[] lftF = window.Apply(lfrs.TimeRslt.Left, true);
-				leftFft = FFT.Forward(lftF);
+				// when using chirp don't window it
+				//var window = QaMath.GetWindowType(vm.WindowingMethod);
+				//double[] lftF = window.Apply(lfrs.TimeRslt.Left, true);
+				//leftFft = FFT.Forward(lftF);
 
-				double[] rgtF = window.Apply(lfrs.TimeRslt.Right, true);
-				rightFft = FFT.Forward(rgtF);
+				//double[] rgtF = window.Apply(lfrs.TimeRslt.Right, true);
+				//rightFft = FFT.Forward(rgtF);
+				leftFft = FFT.Forward(lfrs.TimeRslt.Left);
+				rightFft = FFT.Forward(lfrs.TimeRslt.Right);
 			}
 
 			var lrfs = new LeftRightFrequencySeries();

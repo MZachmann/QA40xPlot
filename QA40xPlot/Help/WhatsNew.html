@@ -14,15 +14,17 @@
     </style>
 </head>
 <h1>What&#39;s New in QA40xPlot</h1>
-<h5>v 1.4.1&nbsp;&nbsp;&nbsp;&nbsp;April xx, 2026</h5>
+<h5>v 1.4.1&nbsp;&nbsp;&nbsp;&nbsp;April 12, 2026</h5>
 <h2>Risk Summary</h2>
-<p>This release mainly works on synchronizing external generators. Some slight improvements to the idle read loop. It should be low risk.</p>
-<h2>Impedance Range</h2>
+<p>This release mainly works on synchronizing external generators - which now seem to work well. Some slight improvements to the idle read loop. It should be low risk.</p>
+<h2>Impedance Range Increase</h2>
 <p>Increase the impedance max to 100,000 ohms on the graph to support larger test impedances.</p>
-<h2>Graph Colors</h2>
+<h2>Brighten Graph Plot Area</h2>
 <p>On lower brightness monitors the graph plot area was a bit dark so I brightened the default. I strongly recommend you set it the way you like based on monitor brightness and save a default configuration.</p>
-<h2>File Save and Load</h2>
-<p>The saved file now contains all data and the entire configuration. Load now loads all test data and sets the configuration to match the data. At some future date an option to load (or not) the configuration will be added.</p>
+<h2>File Save and Load with Configuration</h2>
+<p>The saved file now contains all test configurations as well as all test data. Load now loads all test data and sets the configuration to match the data. When Open-ing a new dialog asks which pieces (data or configuration or both) to load.</p>
+<h2>Chirp Windowing</h2>
+<p>FFT WIndowing for chirps was originally a &#39;why not&#39; but the answer is that windowing chirps changes response curves unless the latency math is perfect. So, a rectangular window is both mathematically better and practically necessary. There&#39;s no reason to force a user to pick that so Chirp is now always non-windowed during tests (in the Frequency Response test group and Spectrum). This change substantially increases chirp accuracy at the sweep frequency limits.</p>
 <h5>__________________________________________________________________________________________________________</h5>
 <h1>---- Older&nbsp; Entries ----</h1>
 <h5>v 1.4.0&nbsp;&nbsp;&nbsp;&nbsp;April 4, 2026</h5>

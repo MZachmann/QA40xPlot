@@ -114,11 +114,9 @@ namespace QA40xPlot.BareMetal
 			Complex[] leftFft = [];
 			Complex[] rightFft = [];
 
-			windowing = "Rectangular";	// we don't have edge conditions with a chirp so no leakage issues
-			var window = QaMath.GetWindowType(windowing);    // best?
-
-			double[] inp = window.Apply(chirp, true);  // the input signal
-			var chirpFft = FFT.Forward(inp);
+			// don't window chirps just use them as is since there is no leakage given they don't repeat through the
+			// scan boundaries. they have short blank pauses left and right of the signal
+			var chirpFft = FFT.Forward(chirp);
 
 			// do not divide by zero
 			chirpFft = chirpFft.Select(x => (x.Real != 0 || x.Imaginary != 0) ? x : new Complex(1e-10, 0)).ToArray(); // avoid divide by zero
@@ -128,8 +126,7 @@ namespace QA40xPlot.BareMetal
 			{
 				// so x / chirpFft will be 1 with a gain of 1
 				// hence multiply the expected rms voltage to get fft value
-				double[] lftWdw = window.Apply(rdata.Left, true);
-				var lFft = FFT.Forward(lftWdw);
+				var lFft = FFT.Forward(rdata.Left);
 				lFft = lFft.Select((x, index) => vrsltMax * x / chirpFft[index]).ToArray();
 				leftFft = lFft.Take(lFft.Length / 2).ToArray();
 			}
@@ -137,8 +134,7 @@ namespace QA40xPlot.BareMetal
 			// Right channel
 			if (rdata.Right != null)
 			{
-				double[] rgtWdw = window.Apply(rdata.Right, true);
-				var rFft = FFT.Forward(rgtWdw);
+				var rFft = FFT.Forward(rdata.Right);
 				rFft = rFft.Select((x, index) => vrsltMax * x / chirpFft[index]).ToArray();
 				rightFft = rFft.Take(rFft.Length / 2).ToArray();
 			}
