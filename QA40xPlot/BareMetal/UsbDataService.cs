@@ -733,7 +733,7 @@ namespace QA40xPlot.BareMetal
 			}
 			UsbSubs.DebugLineIf(ShowDebug, $"DealWithReadData finished with valid={aResult.Valid} length={aResult.Left.Length} ");
 
-			// note this data gets flipped for the qa402 (only) later
+			// note this data gets flipped for the qa402 in DoAcquireUser
 			LeftRightTimeSeries lrts = new();
 			lrts.Left = aResult.Left;
 			lrts.Right = aResult.Right;

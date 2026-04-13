@@ -272,6 +272,9 @@ namespace QA40xPlot.BareMetal
 			var dtL = dataLeft;
 			var dtR = dataRight;
 			var gengain = MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.GeneratorGain, 0);
+			// add 6 db gain if balanced output
+			if (ViewSettings.Singleton.SettingsVm.IsBalancedIO)
+				gengain += 6;
 			if (gengain != 0.0)
 			{
 				gengain = 1.0 / QaLibrary.ConvertVoltage(gengain, Data.E_VoltageUnit.dBV, Data.E_VoltageUnit.Volt);   // linearize

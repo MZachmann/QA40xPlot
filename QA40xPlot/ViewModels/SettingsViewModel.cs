@@ -176,6 +176,13 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
+		private bool _IsBalancedIO = false;
+		public bool IsBalancedIO
+		{
+			get { return _IsBalancedIO; }
+			set { SetProperty(ref _IsBalancedIO, value); }
+		}
+
 		private string _PlotZOrder = "Get/Left";
 		public string PlotZOrder
 		{

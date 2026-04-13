@@ -182,6 +182,7 @@ public class SoundUtil : FloorViewModel, IDisposable
 
 	public int GetBufferSize(WaveFormat wvf)
 	{
+#if false
 		int bufferFrames = 0;
 		//var uvw = FindSupportedFormats(false);      // possible exclusive formats
 		//var uvwf = FilterSampleRate(uvw, sampleRate);
@@ -228,6 +229,9 @@ public class SoundUtil : FloorViewModel, IDisposable
 			}
 		}
 		return bufferFrames;
+#else
+		return 0;
+#endif
 	}
 
 	public MMDevice? InitDevice(string name)
@@ -469,7 +473,7 @@ public class SoundUtil : FloorViewModel, IDisposable
 				}
 			}
 			WaveForm = wvf;
-			var bsize = GetBufferSize(wvf);
+			//var bsize = GetBufferSize(wvf);
 
 			// if wvf isn't our requested format, we will need to resample
 			// start by calculating the packed stereo data given pcm or ieee float

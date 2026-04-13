@@ -20,6 +20,8 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -33,28 +35,32 @@
                   ItemsSource="{Binding Impedances}" />
             <Label VerticalAlignment="Center" Content="Ohms" Grid.Row="1" Grid.Column="2" HorizontalAlignment="Left" />
 
-            <Label VerticalAlignment="Center" Content="Noise Bandwidth: " HorizontalAlignment="Right" Grid.Row="3" Grid.Column="0"
+            <Label VerticalAlignment="Center" Content="Balanced I/O:" Grid.Row="3" Grid.Column="0" HorizontalAlignment="Right" />
+            <CheckBox  Grid.Row="3" Grid.Column="1" IsChecked="{Binding IsBalancedIO}" 
+                       Content="On" VerticalAlignment="Center" />
+
+            <Label VerticalAlignment="Center" Content="Noise Bandwidth: " HorizontalAlignment="Right" Grid.Row="5" Grid.Column="0"
                       ToolTip="Set the noise upper frequency for THD+N and SNR math."
                    />
-            <ComboBox IsEditable="True"  Grid.Row="3" Grid.Column="1" MinWidth="80" Text="{Binding NoiseBandwidthStr}" 
+            <ComboBox IsEditable="True"  Grid.Row="5" Grid.Column="1" MinWidth="80" Text="{Binding NoiseBandwidthStr}" 
                   ItemsSource="{Binding NoiseBandList}" />
 
-            <Label VerticalAlignment="Center" Content="Noise Weighting: " HorizontalAlignment="Right" Grid.Row="5" Grid.Column="0"
+            <Label VerticalAlignment="Center" Content="Noise Weighting: " HorizontalAlignment="Right" Grid.Row="7" Grid.Column="0"
                        ToolTip="Noise floor weighting method. Z = none."
                    />
-            <ComboBox  Grid.Row="5" Grid.Column="1" MinWidth="80" SelectedValue="{Binding NoiseWeight}" 
+            <ComboBox  Grid.Row="7" Grid.Column="1" MinWidth="80" SelectedValue="{Binding NoiseWeight}" 
                   ItemsSource="{Binding NoiseWeightList}" />
 
-            <Label VerticalAlignment="Center" Content="Test Channel: " HorizontalAlignment="Right" Grid.Row="7" Grid.Column="0"
+            <Label VerticalAlignment="Center" Content="Test Channel: " HorizontalAlignment="Right" Grid.Row="9" Grid.Column="0"
                        ToolTip="All tests except impedance and gain use this channel as the reference for i/o voltage and power conversions."
                    />
-            <ComboBox  Grid.Row="7" Grid.Column="1" MinWidth="80" SelectedValue="{Binding TestChannel}" 
+            <ComboBox  Grid.Row="9" Grid.Column="1" MinWidth="80" SelectedValue="{Binding TestChannel}" 
                        ItemsSource="{Binding ChannelList}" />
 
-            <Label VerticalAlignment="Center" Content="Sound Device Channels: " HorizontalAlignment="Right" Grid.Row="9" Grid.Column="0" 
+            <Label VerticalAlignment="Center" Content="Sound Device Channels: " HorizontalAlignment="Right" Grid.Row="11" Grid.Column="0" 
                   ToolTip="Which input channels will be from the external source - for delaying."
                    />
-            <ComboBox Grid.Row="9" Grid.Column="1" MinWidth="80" 
+            <ComboBox Grid.Row="11" Grid.Column="1" MinWidth="80" 
                   SelectedItem="{Binding EchoChannel}" 
                   ItemsSource="{Binding EchoChannels}" />
 

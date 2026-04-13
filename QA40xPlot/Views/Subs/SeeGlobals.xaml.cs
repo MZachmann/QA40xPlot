@@ -29,6 +29,8 @@ namespace QA40xPlot.Views
 			this.SoundDevice3.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
 			this.SoundDevice4.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
 			this.Editor.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
+			this.BalancedIO.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
+			this.BalancedIOa.DataContext = ViewSettings.Singleton.SettingsVm; // synch just this control
 		}
 
 		private void OnEdit(object sender, System.Windows.RoutedEventArgs e)

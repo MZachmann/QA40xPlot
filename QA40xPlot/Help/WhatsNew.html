@@ -16,6 +16,13 @@
 <h1>What&#39;s New in QA40xPlot</h1>
 <h5>v 1.4.1&nbsp;&nbsp;&nbsp;&nbsp;April 12, 2026</h5>
 <h2>Risk Summary</h2>
+<p>This release is a few additional minor fixes and ugprades. It should be very low risk.</p>
+<h2>Balanced I/O</h2>
+<p>This release adds support for balanced I/O. Clicking it on assumes that both input and output cabling are balanced and the voltage displayed is one leg of the differential signal. So, for example, requesting 1V output will have each leg with 0.5V for a total differential voltage of 1V. When you have balanced I/O turned on it will display in the small Settings window bottom left.</p>
+<h5>__________________________________________________________________________________________________________</h5>
+<h1>---- Older&nbsp; Entries ----</h1>
+<h5>v 1.4.1&nbsp;&nbsp;&nbsp;&nbsp;April 12, 2026</h5>
+<h2>Risk Summary</h2>
 <p>This release mainly works on synchronizing external generators - which now seem to work well. Some slight improvements to the idle read loop. It should be low risk.</p>
 <h2>Impedance Range Increase</h2>
 <p>Increase the impedance max to 100,000 ohms on the graph to support larger test impedances.</p>
@@ -25,8 +32,6 @@
 <p>The saved file now contains all test configurations as well as all test data. Load now loads all test data and sets the configuration to match the data. When Open-ing a new dialog asks which pieces (data or configuration or both) to load.</p>
 <h2>Chirp Windowing</h2>
 <p>FFT WIndowing for chirps was originally a &#39;why not&#39; but the answer is that windowing chirps changes response curves unless the latency math is perfect. So, a rectangular window is both mathematically better and practically necessary. There&#39;s no reason to force a user to pick that so Chirp is now always non-windowed during tests (in the Frequency Response test group and Spectrum). This change substantially increases chirp accuracy at the sweep frequency limits.</p>
-<h5>__________________________________________________________________________________________________________</h5>
-<h1>---- Older&nbsp; Entries ----</h1>
 <h5>v 1.4.0&nbsp;&nbsp;&nbsp;&nbsp;April 4, 2026</h5>
 <h2>Risk Summary</h2>
 <p>This release is primarily about improving the robustness of the new idle code and reducing risk. This turns the idle code back on so there may be issues.</p>

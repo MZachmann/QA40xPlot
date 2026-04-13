@@ -127,6 +127,9 @@ namespace QA40xPlot.Libraries
 			var finalDataLeft = dtL;
 			var finalDataRight = dtR;
 			var gengain = MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.GeneratorGain, 0);
+			// additional 6dB output if balanced
+			if (ViewSettings.Singleton.SettingsVm.IsBalancedIO)
+				gengain += 6;
 			if (gengain != 0.0)
 			{
 				gengain = 1.0 / QaLibrary.ConvertVoltage(gengain, Data.E_VoltageUnit.dBV, Data.E_VoltageUnit.Volt);   // linearize

@@ -3,6 +3,9 @@
 This changelog shows the changes made for each version
 Date format is US mm/dd/yy
 --------------------------------------------
+v 1.4.2 4/xx/26
+- add balanced i/o option that assumes input and output are balanced so 2x the single signal coax Voltage
+- 
 v 1.4.1 4/12/26
 - work on external generator syncing with the new idle stuff
 - increase ohms max to 100,000 on impedance chart
