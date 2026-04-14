@@ -28,6 +28,11 @@
                                     <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE70F;" FontSize="11"/>
                                 </Button.Content>
                              </Button>
+                            <Button Click="OnSave" CommandParameter="{Binding Id}" ToolTip="Save this entry to a file" Margin="4,0,0,0" >
+                                <Button.Content>
+                                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE74E;" FontSize="11"/>
+                                </Button.Content>
+                            </Button>
                             <Button Click="OnRemove" CommandParameter="{Binding Id}" ToolTip="Remove this entry" Margin="4,0,0,0" >
                                 <Button.Content>
                                     <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE74D;" FontSize="11"/>

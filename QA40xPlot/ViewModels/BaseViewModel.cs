@@ -945,12 +945,21 @@ namespace QA40xPlot.ViewModels
 			paletteDialog.ShowDialog();
 		}
 
-		public string GetSavePltName(string prefix)
+		public string GetSavePltName(string prefix, string fullName="")
 		{
 			string sout = string.Empty;
+			string fna = string.Empty;
+			if (!string.IsNullOrEmpty(fullName))
+			{
+				fna = fullName;
+			}
+			else
+			{
+				fna = String.Format(prefix + "{0}", FileAddon()); // Default file name
+			}
 			Microsoft.Win32.SaveFileDialog saveFileDialog = new Microsoft.Win32.SaveFileDialog
 			{
-				FileName = String.Format(prefix + "{0}", FileAddon()), // Default file name
+				FileName = fna, // Default file name
 				InitialDirectory = ViewSettings.Singleton.SettingsVm.DataFolder,
 				DefaultExt = ".plt", // Default file extension
 				Filter = PlotFileFilter // Filter files by extension
@@ -1035,6 +1044,8 @@ namespace QA40xPlot.ViewModels
 				button.ContextMenu.IsOpen = true;
 			}
 		}
+
+		public virtual void DoSaveIt(string param) { }
 
 		// here param is the id of the tab to remove from the othertab list
 		public virtual void DoDeleteIt(string param) { }

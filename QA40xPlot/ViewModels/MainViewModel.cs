@@ -451,18 +451,27 @@ namespace QA40xPlot.ViewModels
 
 		public void SaveToSettings(string filename)
 		{
-			var cfgData = ViewSettings.Singleton;
-			// Ensure the current window size is captured
-			var windsize = GetWindowSize(Application.Current.MainWindow);
-			if (windsize.Length > 0)
-				CurrentWindowRect = windsize;
-			CurrentWindowState = Application.Current.MainWindow.WindowState.ToString();
+			try
+			{
+				var cfgData = ViewSettings.Singleton;
+				// Ensure the current window size is captured
+				var windsize = GetWindowSize(Application.Current.MainWindow);
+				if (windsize.Length > 0)
+					CurrentWindowRect = windsize;
+				CurrentWindowState = Application.Current.MainWindow.WindowState.ToString();
 
-			// Serialize the object to a JSON string
-			string jsonString = Util.ConvertToJson(cfgData);
+				// Serialize the object to a JSON string
+				string jsonString = Util.ConvertToJson(cfgData);
 
-			// Write the JSON string to a file
-			File.WriteAllText(filename, jsonString);
+				// Write the JSON string to a file
+				// note this will pop up a dialog error message all by itself on failure
+				File.WriteAllText(filename, jsonString);
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine($"File save error: {ex.Message}");
+			}
+
 		}
 
 		public int LoadFromSettings(string filename)

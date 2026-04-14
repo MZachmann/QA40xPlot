@@ -5,6 +5,7 @@ using QA40xPlot.QA430;
 using QA40xPlot.ViewModels;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 
 namespace QA40xPlot.Data
 {
@@ -167,39 +168,47 @@ namespace QA40xPlot.Data
 		private void UpdateSource()
 		{
 			string didok = "";
-			try
+			var bex = File.Exists(FileName);
+			if (bex)
 			{
-				// read the existing file
-				var ftext = Util.LoadFileText(FileName);
-				if (ftext.Length > 0)
+				try
 				{
-					// convert it into a big dictionary
-					var dict = Util.Deserialize(ftext);
-					// find the DataDefinition
-					if (dict?.ContainsKey("Definition") ?? false)
+					// read the existing file
+					var ftext = Util.LoadFileText(FileName);
+					if (ftext.Length > 0)
 					{
-						// update the DataDefinition fields we edits
-						var defn = dict["Definition"];
-						defn["Name"] = this.Name;
-						defn["Heading"] = this.Heading;
-						defn["Description"] = this.Description;
-						// resave it back to the source file
-						string jsonString = Util.ConvertToJson(dict);
-						Util.CompressTextToFile(jsonString, FileName); // zip it
+						// convert it into a big dictionary
+						var dict = Util.Deserialize(ftext);
+						// find the DataDefinition
+						if (dict?.ContainsKey("Definition") ?? false)
+						{
+							// update the DataDefinition fields we edits
+							var defn = dict["Definition"];
+							defn["Name"] = this.Name;
+							defn["Heading"] = this.Heading;
+							defn["Description"] = this.Description;
+							// resave it back to the source file
+							string jsonString = Util.ConvertToJson(dict);
+							Util.CompressTextToFile(jsonString, FileName); // zip it
+						}
+						else
+						{
+							didok = $"Invalid file format {FileName}";
+						}
 					}
 					else
-					{
-						didok = $"Invalid file format {FileName}";
-					}
+						didok = $"Unable to read file {FileName}";
+					if (didok.Length > 0)
+						Debug.WriteLine(didok);
 				}
-				else
-					didok = $"Unable to read file {FileName}";
-				if (didok.Length > 0)
-					Debug.WriteLine(didok);
+				catch (Exception ex)
+				{
+					Debug.WriteLine(ex.Message);
+				}
 			}
-			catch (Exception ex)
+			else
 			{
-				Debug.WriteLine(ex.Message);
+
 			}
 		}
 

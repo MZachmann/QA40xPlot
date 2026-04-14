@@ -6,6 +6,7 @@ using QA40xPlot.Libraries;
 using QA40xPlot.QA430;
 using QA40xPlot.Views;
 using System.ComponentModel;
+using System.Drawing.Drawing2D;
 using System.Windows;
 using System.Windows.Input;
 
@@ -165,6 +166,19 @@ namespace QA40xPlot.ViewModels
 				default:
 					OpampPropertyChanged(sender, e);
 					break;
+			}
+		}
+
+		// here param is the id of the tab to remove from the othertab list
+		public override void DoSaveIt(string param)
+		{
+			var id = MathUtil.ToInt(param, -1);
+			var fat = MyAction.OtherTabs.FirstOrDefault(x => x.Id == id);
+			if (fat != null)
+			{
+				var fnameOrig = fat.Definition.FileName;
+				var fname = GetSavePltName(fnameOrig);
+				DocUtil.SaveToFile<AmpSweepViewModel>(fat, this, fname);
 			}
 		}
 

@@ -274,7 +274,7 @@ namespace QA40xPlot
 				{
 					// look for a default config file
 					string fpath = Util.GetDefaultConfigPath();
-					ViewSettings.Singleton.MainVm.SaveToSettings(fpath);
+					ViewSettings.Singleton.MainVm?.SaveToSettings(fpath);
 				}
 				catch (Exception ex)
 				{

@@ -288,6 +288,20 @@ public class FreqRespViewModel : BaseViewModel
 	}
 
 	// here param is the id of the tab to remove from the othertab list
+	public override void DoSaveIt(string param)
+	{
+		var id = MathUtil.ToInt(param, -1);
+		var fat = MyAction.OtherTabs.FirstOrDefault(x => x.Id == id);
+		if (fat != null)
+		{
+			var fnameOrig = fat.Definition.FileName;
+			var fname = GetSavePltName("", fnameOrig);
+			if (!string.IsNullOrEmpty(fname))
+				DocUtil.SaveToFile<FreqRespViewModel>(fat, this, fname);
+		}
+	}
+
+	// here param is the id of the tab to remove from the othertab list
 	public override void DoDeleteIt(string param)
 	{
 		var id = MathUtil.ToInt(param, -1);

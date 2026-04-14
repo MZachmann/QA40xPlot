@@ -46,5 +46,16 @@ namespace QA40xPlot.Views
 				u.ForceGraphDraw();
 			}
 		}
-	}
+
+		private void OnSave(object sender, RoutedEventArgs e)
+		{
+			var btu = sender as Button;
+			if (btu != null)
+			{
+				var ids = btu.CommandParameter.ToString() ?? "";
+				var myVm = ViewSettings.Singleton.MainVm.CurrentView;
+				myVm?.DoSaveIt(ids);
+			}
+		}
+    }
 }
