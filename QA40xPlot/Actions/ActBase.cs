@@ -239,8 +239,16 @@ namespace QA40xPlot.Actions
 					{
 						var u = myPlot.Axes.Bottom.Min;
 						var w = myPlot.Axes.Bottom.Max;
-						bvm.GraphStartX = Math.Pow(10, u).ToString("0");
-						bvm.GraphEndX = Math.Pow(10, w).ToString("0");
+						if(bvm.IsFreqAxisLinear)
+						{
+							bvm.GraphStartX = u.ToString("0");
+							bvm.GraphEndX = w.ToString("0");
+						}
+						else
+						{
+							bvm.GraphStartX = Math.Pow(10, u).ToString("0");
+							bvm.GraphEndX = Math.Pow(10, w).ToString("0");
+						}
 					}
 					break;
 				case "YP":  // Y percents

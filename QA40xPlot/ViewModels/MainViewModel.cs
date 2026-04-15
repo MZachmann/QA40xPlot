@@ -449,7 +449,7 @@ namespace QA40xPlot.ViewModels
 			return jsonString;
 		}
 
-		public void SaveToSettings(string filename)
+		public void SaveToSettings(string filename, bool showDialog)
 		{
 			try
 			{
@@ -470,6 +470,10 @@ namespace QA40xPlot.ViewModels
 			catch (Exception ex)
 			{
 				Debug.WriteLine($"File save error: {ex.Message}");
+				if(showDialog)
+				{
+					MessageBox.Show(ex.Message, "Save Failure", MessageBoxButton.OK, MessageBoxImage.Error);
+				}
 			}
 
 		}
@@ -667,7 +671,7 @@ namespace QA40xPlot.ViewModels
 			var vm = ViewSettings.Singleton.MainVm;
 			await vm.SetProgressBar(0);
 			await vm.SetProgressMessage($"Saved to {filename}", 50);
-			SaveToSettings(filename);
+			SaveToSettings(filename, true);
 			await vm.SetProgressBar(100);
 		}
 
@@ -689,7 +693,7 @@ namespace QA40xPlot.ViewModels
 			{
 				// Save document
 				string filename = saveFileDialog.FileName;
-				SaveToSettings(filename);
+				SaveToSettings(filename, true);
 			}
 		}
 
