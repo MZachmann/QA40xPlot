@@ -533,6 +533,13 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _rangeBottomdB, value);
 		}
 
+		private bool _isFreqAxisLinear = false;
+		public bool IsFreqAxisLinear
+		{
+			get { return _isFreqAxisLinear; }
+			set => SetProperty(ref _isFreqAxisLinear, value);
+		}
+
 		private string _GraphStartX = string.Empty;         // type of alert
 		public string GraphStartX
 		{

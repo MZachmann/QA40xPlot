@@ -189,6 +189,7 @@ public class FreqRespViewModel : BaseViewModel
 			case "DsPlotColors":
 				MyAction?.DrawPlotLines(0);
 				break;
+			case "IsFreqAxisLinear":
 			case "UpdateGraph":
 				MyAction?.UpdateGraph(true);
 				break;
@@ -454,7 +455,10 @@ public class FreqRespViewModel : BaseViewModel
 		{
 			var p = e.GetPosition(actPlot);
 			var cord = ConvertScottCoords(actPlot, p.X, p.Y);
-			FreqValue = Math.Pow(10, cord.Item1); // frequency
+			if(IsFreqAxisLinear)
+				FreqValue = cord.Item1; // frequency
+			else
+				FreqValue = Math.Pow(10, cord.Item1); // frequency
 			LookX = FreqValue;   // cache the frequency here
 		}
 		UpdateMouseCursor(FreqValue, 0);

@@ -5,7 +5,8 @@ Date format is US mm/dd/yy
 --------------------------------------------
 v 1.4.2 4/xx/26
 - add balanced i/o option that assumes input and output are balanced so 2x the single signal coax Voltage
-- 
+- added a save to the Get List entry for each test to support file opens with gets
+- added a linear frequency axis option only to the Frequency Response test
 v 1.4.1 4/12/26
 - work on external generator syncing with the new idle stuff
 - increase ohms max to 100,000 on impedance chart

@@ -1163,7 +1163,12 @@ namespace QA40xPlot.Actions
 		void HandleChangedProperty(ScottPlot.Plot myPlot, MyViewClass vm, string changedProp)
 		{
 			if (changedProp == "GraphStartX" || changedProp == "GraphEndX" || changedProp.Length == 0)
-				myPlot.Axes.SetLimitsX(Math.Log10(ToD(vm.GraphStartX, 20.0)), Math.Log10(ToD(vm.GraphEndX, 20000)), myPlot.Axes.Bottom);
+			{
+				if(vm.IsFreqAxisLinear)
+					myPlot.Axes.SetLimitsX(ToD(vm.GraphStartX, 20.0), ToD(vm.GraphEndX, 20000), myPlot.Axes.Bottom);
+				else
+					myPlot.Axes.SetLimitsX(Math.Log10(ToD(vm.GraphStartX, 20.0)), Math.Log10(ToD(vm.GraphEndX, 20000)), myPlot.Axes.Bottom);
+			}
 			if (changedProp == "RangeBottomdB" || changedProp == "RangeTopdB" || changedProp.Length == 0)
 				myPlot.Axes.SetLimitsY(ToD(vm.RangeBottomdB, -20), ToD(vm.RangeTopdB, 180), myPlot.Axes.Left);
 			if (changedProp == "PhaseBottom" || changedProp == "PhaseTop" || changedProp.Length == 0)
@@ -1178,16 +1183,28 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		void InitializePlot()
 		{
-		var guiVm = (MyViewClass)MyGuiModel;
-		ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
+			var guiVm = (MyViewClass)MyGuiModel;
+			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
+			//guiVm.IsFreqAxisLinear = true;
 
-		PlotUtil.InitializeMagFreqPlot(myPlot);
-		PlotUtil.SetOhmFreqRule(myPlot);
-		PlotUtil.SetHeadingColor(guiVm.MainPlot.MyLabel);
+			PlotUtil.InitializeMagFreqPlot(myPlot);
+			if(guiVm.IsFreqAxisLinear)
+			{
+				PlotUtil.SetupFreqLinearTics(myPlot);
+				PlotUtil.SetLinearMagFreqRule(myPlot);
+				PlotUtil.SetLinearOhmFreqRule(myPlot);
+			}
+			else
+			{
+				PlotUtil.SetupFreqTics(myPlot);
+				PlotUtil.SetMagFreqRule(myPlot);
+				PlotUtil.SetOhmFreqRule(myPlot);
+			}
+			PlotUtil.SetHeadingColor(guiVm.MainPlot.MyLabel);
 
-		var ttype = guiVm.GetTestingType(guiVm.TestType);
+			var ttype = guiVm.GetTestingType(guiVm.TestType);
 			// as if no phase
-		guiVm.ToShowPhase = Visibility.Collapsed;
+			guiVm.ToShowPhase = Visibility.Collapsed;
 			myPlot.Axes.Right.Label.Text = string.Empty;
 			var y2axis = guiVm.SecondYAxis;
 			if (y2axis != null)
@@ -1218,7 +1235,7 @@ namespace QA40xPlot.Actions
 			}
 			UpdatePlotTitle();
 			myPlot.XLabel("Frequency (Hz)");
-		guiVm.MainPlot.Refresh();
+			guiVm.MainPlot.Refresh();
 		}
 
 		/// <summary>
@@ -1261,8 +1278,8 @@ namespace QA40xPlot.Actions
 		/// <param name="measurementResult">Data to plot</param>
 		void PlotValues(DataTab page, int measurementNr, bool isMain)
 		{
-		var guiVm = (MyViewClass)MyGuiModel;
-		ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
+			var guiVm = (MyViewClass)MyGuiModel;
+			ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
 			int skipped = 0;
 
 			if (page.GainLeft == null || page.GainFrequencies == null)
@@ -1275,15 +1292,17 @@ namespace QA40xPlot.Actions
 			if (freqX[0] == 0)
 				skipped = 1;
 
-			double[] logFreqX = freqX.Select(x => (x > 0) ? Math.Log10(x) : 1e-6).ToArray();
-		float lineWidth = guiVm.ShowThickLines ? ViewSettings.Thickness : 1;
-		float markerSize = guiVm.ShowPoints ? lineWidth + 3 : 1;
+			double[] logFreqX = freqX;
+			if(!guiVm.IsFreqAxisLinear)
+				logFreqX = freqX.Select(x => (x > 0) ? Math.Log10(x) : 1e-6).ToArray();
+			float lineWidth = guiVm.ShowThickLines ? ViewSettings.Thickness : 1;
+			float markerSize = guiVm.ShowPoints ? lineWidth + 3 : 1;
 
-		var ttype = guiVm.GetTestingType(guiVm.TestType);
+			var ttype = guiVm.GetTestingType(guiVm.TestType);
 
-		double[] YValues = [];
-		double[] phaseValues = [];
-		double rref = ToD(guiVm.ZReference, 10);
+			double[] YValues = [];
+			double[] phaseValues = [];
+			double rref = ToD(guiVm.ZReference, 10);
 			string legendname = string.Empty;
 			var gainReal = page.GainReal;
 			var gainImag = page.GainImag;
@@ -1305,9 +1324,9 @@ namespace QA40xPlot.Actions
 					break;
 				case TestingType.Response:
 					{
-			var fvi = GraphUtil.ValueToPlotFn(guiVm, gainReal, page.GainFrequencies);
+						var fvi = GraphUtil.ValueToPlotFn(guiVm, gainReal, page.GainFrequencies);
 						YValues = gainReal.Select(fvi).ToArray();
-			fvi = GraphUtil.ValueToPlotFn(guiVm, gainImag, page.GainFrequencies);
+						fvi = GraphUtil.ValueToPlotFn(guiVm, gainImag, page.GainFrequencies);
 						phaseValues = gainImag.Select(fvi).ToArray();
 						legendname = isMain ? "Left" : "L";
 					}
@@ -1361,14 +1380,14 @@ namespace QA40xPlot.Actions
 			guiVm.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2, plot, guiVm.MainPlot, plot.IsVisible));
 			}
 
-		showPlot = (isMain && guiVm.ShowRight) || (!isMain && page.Definition.IsOnR);
+			showPlot = (isMain && guiVm.ShowRight) || (!isMain && page.Definition.IsOnR);
 			if ((ttype == TestingType.Gain || ttype == TestingType.Impedance) || showPlot)
 			{
 				var phases = phaseValues;
 				plot = null;
 			if (ttype == TestingType.Gain || ttype == TestingType.Impedance)
 				{
-				if (guiVm.ShowPhase)
+					if (guiVm.ShowPhase)
 					{
 						phases = UnWrap(phaseValues);
 						plot = myPlot.Add.SignalXY(logFreqX.Skip(skipped).ToArray(), phases.Skip(skipped).ToArray());
@@ -1388,29 +1407,29 @@ namespace QA40xPlot.Actions
 				}
 				if (plot != null)
 				{
-			plot.LineWidth = lineWidth;
-			plot.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, measurementNr * 2 + 1);
-			plot.MarkerSize = markerSize;
-			plot.LinePattern = LinePattern.Solid;
-			plot.IsVisible = !guiVm.HiddenLines.Contains(plot.LegendText);
-			guiVm.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2 + 1, plot, guiVm.MainPlot, plot.IsVisible));
+					plot.LineWidth = lineWidth;
+					plot.Color = GraphUtil.GetPaletteColor(page.Definition.RightColor, measurementNr * 2 + 1);
+					plot.MarkerSize = markerSize;
+					plot.LinePattern = LinePattern.Solid;
+					plot.IsVisible = !guiVm.HiddenLines.Contains(plot.LegendText);
+					guiVm.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2 + 1, plot, guiVm.MainPlot, plot.IsVisible));
 				}
 
 			if (isMain && guiVm.ShowGroupDelay && (phases.Length > 1) && (ttype == TestingType.Impedance || ttype == TestingType.Gain))
+			{
+				// note phases is unwrapped
+				double[] gdelay = new double[phases.Length];
+				for (int i = 1; i < phases.Length; i++)
 				{
-					// note phases is unwrapped
-					double[] gdelay = new double[phases.Length];
-					for (int i = 1; i < phases.Length; i++)
-					{
-						// in degrees / (degrees / second) == seconds
-						// so convert to ms
-						gdelay[i] = 1000 * (phases[i - 1] - phases[i]) / (360 * (freqX[i] - freqX[i - 1]));
-					}
-					gdelay[0] = gdelay[1];  // may as well
-											// save it in the pagedata for other uses
-					page.DelayRslt = gdelay;
-					// now plot it and add it to the legend
-					plot = myPlot.Add.SignalXY(logFreqX.Skip(skipped).ToArray(), gdelay.Skip(skipped).ToArray());
+					// in degrees / (degrees / second) == seconds
+					// so convert to ms
+					gdelay[i] = 1000 * (phases[i - 1] - phases[i]) / (360 * (freqX[i] - freqX[i - 1]));
+				}
+				gdelay[0] = gdelay[1];  // may as well
+										// save it in the pagedata for other uses
+				page.DelayRslt = gdelay;
+				// now plot it and add it to the legend
+				plot = myPlot.Add.SignalXY(logFreqX.Skip(skipped).ToArray(), gdelay.Skip(skipped).ToArray());
 				plot.Axes.YAxis = guiVm.SecondYAxis ?? myPlot.Axes.Left;
 				plot.LegendText = prefix + "Group Delay (ms)";
 				plot.LineWidth = lineWidth;
@@ -1419,8 +1438,7 @@ namespace QA40xPlot.Actions
 				guiVm.LegendInfo.Add(new MarkerItem(plot.LinePattern, plot.Color, plot.LegendText, measurementNr * 2 + 2, plot, guiVm.MainPlot, plot.IsVisible));
 				}
 			}
-
-		guiVm.MainPlot.Refresh();
+			guiVm.MainPlot.Refresh();
 		}
 
 		public void UpdateGraph(bool settingsChanged, string theProperty = "")
@@ -1431,28 +1449,28 @@ namespace QA40xPlot.Actions
 
 			if (settingsChanged)
 			{
-			PlotUtil.SetupMenus(guiVm.MainPlot.ThePlot, this, guiVm);
-			InitializePlot();
-			// do all
-			HandleChangedProperty(guiVm.MainPlot.ThePlot, guiVm, "");
-			PlotUtil.SetHeadingColor(guiVm.MainPlot.MyLabel);
+				PlotUtil.SetupMenus(guiVm.MainPlot.ThePlot, this, guiVm);
+				InitializePlot();
+				// do all
+				HandleChangedProperty(guiVm.MainPlot.ThePlot, guiVm, "");
+				PlotUtil.SetHeadingColor(guiVm.MainPlot.MyLabel);
 			}
 			else if (theProperty.Length > 0)
 			{
-				// if we're told which graph property changed...
-			HandleChangedProperty(guiVm.MainPlot.ThePlot, guiVm, theProperty);
+					// if we're told which graph property changed...
+				HandleChangedProperty(guiVm.MainPlot.ThePlot, guiVm, theProperty);
 			}
 
-		guiVm.UpdateMouseCursor(guiVm.LookX, 0);
-		DrawPlotLines(resultNr);
+			guiVm.UpdateMouseCursor(guiVm.LookX, 0);
+			DrawPlotLines(resultNr);
 		}
 
 		public int DrawPlotLines(int resultNr)
 		{
-		var guiVm = (MyViewClass)MyGuiModel;
-		guiVm.LegendInfo.Clear();
-		guiVm.MainPlot.ThePlot.Remove<Marker>();             // Remove all current lines
-		guiVm.MainPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
+			var guiVm = (MyViewClass)MyGuiModel;
+			guiVm.LegendInfo.Clear();
+			guiVm.MainPlot.ThePlot.Remove<Marker>();             // Remove all current lines
+			guiVm.MainPlot.ThePlot.Remove<SignalXY>();             // Remove all current lines
 			var mainFirst = PlotZMain;
 			var rnr = resultNr++;
 			if (!mainFirst)
@@ -1472,8 +1490,8 @@ namespace QA40xPlot.Actions
 				PlotValues(PageData, rnr, true);
 			}
 
-		guiVm.MainPlot.Refresh();
-		return resultNr;
+			guiVm.MainPlot.Refresh();
+			return resultNr;
 		}
 	}
 }

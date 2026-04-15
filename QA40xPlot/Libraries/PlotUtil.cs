@@ -62,7 +62,7 @@ namespace QA40xPlot.Libraries
 			minorTickGen.Divisions = 10;
 		}
 
-		private static void SetupFreqTics(ScottPlot.Plot myPlot)
+		public static void SetupFreqTics(ScottPlot.Plot myPlot)
 		{
 			ScottPlot.TickGenerators.NumericManual tickGenX = new();
 			// we start at a freq 1 of and end at 100000 I guess
@@ -81,6 +81,19 @@ namespace QA40xPlot.Libraries
 					}
 				}
 			}
+			myPlot.Axes.Bottom.TickGenerator = tickGenX;
+		}
+
+		public static void SetupFreqLinearTics(ScottPlot.Plot myPlot)
+		{
+			// create a numeric tick generator that uses our custom minor tick generator
+			ScottPlot.TickGenerators.EvenlySpacedMinorTickGenerator minorTickGen = new(2);
+
+			ScottPlot.TickGenerators.NumericAutomatic tickGenX = new();
+			tickGenX.TargetTickCount = 15;
+			tickGenX.MinorTickGenerator = minorTickGen;
+
+			// tell the bottom axis to use our custom tick generator
 			myPlot.Axes.Bottom.TickGenerator = tickGenX;
 		}
 
@@ -208,6 +221,18 @@ namespace QA40xPlot.Libraries
 		}
 
 		// this sets the axes bounds for freq vs magnitude while zooming in and out
+		public static void SetLinearMagFreqRule(ScottPlot.Plot myPlot)
+		{
+			myPlot.Axes.Rules.Clear();
+			ScottPlot.AxisRules.MaximumBoundary rule = new(
+				xAxis: myPlot.Axes.Bottom,
+				yAxis: myPlot.Axes.Left,
+				limits: new AxisLimits(1, 200000, -250, 150)
+				);
+			myPlot.Axes.Rules.Add(rule);
+		}
+
+		// this sets the axes bounds for freq vs magnitude while zooming in and out
 		public static void SetOhmFreqRule(ScottPlot.Plot myPlot)
 		{
 			myPlot.Axes.Rules.Clear();
@@ -215,6 +240,18 @@ namespace QA40xPlot.Libraries
 				xAxis: myPlot.Axes.Bottom,
 				yAxis: myPlot.Axes.Left,
 				limits: new AxisLimits(Math.Log10(1), Math.Log10(200000), -400, 10000)
+				);
+			myPlot.Axes.Rules.Add(rule);
+		}
+
+		// this sets the axes bounds for freq vs magnitude while zooming in and out
+		public static void SetLinearOhmFreqRule(ScottPlot.Plot myPlot)
+		{
+			myPlot.Axes.Rules.Clear();
+			ScottPlot.AxisRules.MaximumBoundary rule = new(
+				xAxis: myPlot.Axes.Bottom,
+				yAxis: myPlot.Axes.Left,
+				limits: new AxisLimits(1, 200000, -400, 10000)
 				);
 			myPlot.Axes.Rules.Add(rule);
 		}
