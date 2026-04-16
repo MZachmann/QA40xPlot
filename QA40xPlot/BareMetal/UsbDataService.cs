@@ -146,11 +146,13 @@ namespace QA40xPlot.BareMetal
 			EnableUsbData(true);
 			// see if it's the same as the running document
 			var emptyJobs = JobQueue.IsEmpty;
+			bool changedOutput = false;
 			if (!emptyJobs)
 			{
-				// newest job entry
+				// jobs waiting to complete list
 				var latestJob = JobQueue.LastOrDefault();
 				var latestDoc = latestJob?.TheSendDoc;
+				changedOutput = newDoc.ParamOutput != latestDoc?.ParamOutput;
 				if (latestDoc != null && newDoc.CompareDoc(latestDoc))
 				{
 					needSend = JobQueue.IsEmpty;
@@ -158,7 +160,8 @@ namespace QA40xPlot.BareMetal
 					UsbSubs.DebugLine($"UseMyDataService: new doc is the same so need={needSend}");
 				}
 			}
-			if(needSend)
+
+			if (needSend )
 			{
 				if (_UseExternal)
 				{
@@ -180,9 +183,11 @@ namespace QA40xPlot.BareMetal
 				_LastExternalLatency = -1;  // set to unknown
 				UsbSubs.DebugLineIf(ShowDebug, $"SendDocQ.Enqueue -- bfrs={newDoc.Buffers.Count} tsize={newDoc.Buffers.Sum(x => x.Length)}");
 			}
-			// now wait for the results?
+			// find the job we expect to finish soonest
 			var job = await WaitForNextJob(newDoc, ct);
-			if (job != null && _UseExternal && needSend)
+			// if it's external or the output relay has twigged we need to wait for
+			// the next input to let it settle if output or external
+			if (job != null && ((_UseExternal && needSend) || changedOutput))
 			{
 				// ignore the first job with this document
 				var job2 = await WaitForNextJob(newDoc, ct);    // wait for the second pass

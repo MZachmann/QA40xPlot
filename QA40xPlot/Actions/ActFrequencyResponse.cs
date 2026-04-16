@@ -409,9 +409,12 @@ namespace QA40xPlot.Actions
 					break;
 				case TestingType.Impedance:
 					{
-						double rref = ToD(guiVm.ZReference, 8);
-						db.LeftData = PageData.GainReal.Zip(PageData.GainImag, (x, y) => rref * MathUtil.ToImpedanceMag(x, y)).ToList();
-						db.PhaseData = PageData.GainReal.Zip(PageData.GainImag, (x, y) => MathUtil.ToImpedancePhase(x, y)).ToList();
+						var vm = (MyViewClass)(PageData.ViewModel);
+						double rref = ToD(vm.ZReference, 8);
+						// use the vm we used for the actual test
+						var mthd = vm.ZMethod;
+						db.LeftData = PageData.GainReal.Zip(PageData.GainImag, (x, y) => rref * MathUtil.ToImpedanceMag(x, y, mthd)).ToList();
+						db.PhaseData = PageData.GainReal.Zip(PageData.GainImag, (x, y) => MathUtil.ToImpedancePhase(x, y, mthd)).ToList();
 					}
 					break;
 			}
@@ -480,12 +483,12 @@ namespace QA40xPlot.Actions
 		}
 
 		public Rect GetPhaseBounds()
-			{
-				// here we want to show what's visible so use guiVm for visibility
-				var pageVm = PageData.ViewModel;
-				var guiVm = (MyViewClass)MyGuiModel;
-				var vmr = PageData.GainFrequencies; // test data
-				var ttype = guiVm.GetTestingType(guiVm.TestType);
+		{
+			// here we want to show what's visible so use guiVm for visibility
+			var pageVm = PageData.ViewModel;
+			var guiVm = (MyViewClass)MyGuiModel;
+			var vmr = PageData.GainFrequencies; // test data
+			var ttype = guiVm.GetTestingType(guiVm.TestType);
 			var gainReal = PageData.GainReal;
 			var gainImag = PageData.GainImag;
 
@@ -508,7 +511,9 @@ namespace QA40xPlot.Actions
 			}
 			else if (ttype == TestingType.Impedance)
 			{
-				var phaseValues = MathUtil.ToImpedancePhase(gainReal, gainImag).Select(x => 180 * x / Math.PI).ToArray(); ;
+				var vm = (MyViewClass)(PageData.ViewModel);
+				var mthd = vm.ZMethod;
+				var phaseValues = MathUtil.ToImpedancePhase(gainReal, gainImag, mthd).Select(x => 180 * x / Math.PI).ToArray(); ;
 				var phases = UnWrap(phaseValues);
 				rrc.Y = phases.Min();
 				rrc.Height = phases.Max() - rrc.Y;
@@ -517,11 +522,11 @@ namespace QA40xPlot.Actions
 		}
 
 		public override Rect GetDataBounds()
-			{
-				// here we want to show what's visible so use guiVm for visibility
-				var guiVm = (MyViewClass)MyGuiModel;
-				var vmr = PageData.GainFrequencies; // test data
-				var ttype = guiVm.GetTestingType(guiVm.TestType);
+		{
+			// here we want to show what's visible so use guiVm for visibility
+			var guiVm = (MyViewClass)MyGuiModel;
+			var vmr = PageData.GainFrequencies; // test data
+			var ttype = guiVm.GetTestingType(guiVm.TestType);
 			var msdre = PageData.GainReal;
 			var msdim = PageData.GainImag;
 
@@ -558,8 +563,10 @@ namespace QA40xPlot.Actions
 			}
 			else if (PageData.GainLeft != null && PageData.GainLeft.Length > 0)
 			{   // impedance
-				double rref = ToD(guiVm.ZReference, 10);
-				var gainZ = PageData.GainReal.Zip(PageData.GainImag, (x, y) => MathUtil.ToImpedanceMag(x, y));
+				var vm = (MyViewClass)(PageData.ViewModel);
+				double rref = ToD(vm.ZReference, 10);
+				var mthd = vm.ZMethod;
+				var gainZ = PageData.GainReal.Zip(PageData.GainImag, (x, y) => MathUtil.ToImpedanceMag(x, y, mthd));
 				var minL = gainZ.Min();
 				var maxL = gainZ.Max();
 				var minZohms = rref * minL;
@@ -617,10 +624,13 @@ namespace QA40xPlot.Actions
 						break;
 					case TestingType.Impedance:
 						{   // send freq, ohms, phasedeg
-							double rref = ToD(guiVm.ZReference, 10);
-							var impval = MathUtil.ToImpedanceMag(valuesRe[bin], valuesIm[bin]);
+							// use the vm we used for the actual test
+							var vm = (MyViewClass)(PageData.ViewModel);
+							var mthd = vm.ZMethod; // to get the right method
+							double rref = ToD(vm.ZReference, 10);
+							var impval = MathUtil.ToImpedanceMag(valuesRe[bin], valuesIm[bin], mthd);
 							var ohms = rref * impval;
-							impval = MathUtil.ToImpedancePhase(valuesRe[bin], valuesIm[bin]);
+							impval = MathUtil.ToImpedancePhase(valuesRe[bin], valuesIm[bin], mthd);
 							var gd = PageData.DelayRslt;
 							tup = ValueTuple.Create(myFreq, ohms, 180 * impval / Math.PI, (gd == null) ? 0.0 : gd.ElementAt(bin));
 						}
@@ -1302,7 +1312,8 @@ namespace QA40xPlot.Actions
 
 			double[] YValues = [];
 			double[] phaseValues = [];
-			double rref = ToD(guiVm.ZReference, 10);
+			var vm = (MyViewClass)(page.ViewModel);
+			double rref = ToD(vm.ZReference, 10);
 			string legendname = string.Empty;
 			var gainReal = page.GainReal;
 			var gainImag = page.GainImag;
@@ -1333,8 +1344,9 @@ namespace QA40xPlot.Actions
 					break;
 				case TestingType.Impedance:
 					{
-						YValues = MathUtil.ToImpedanceMag(gainReal, gainImag).Select(x => rref * x).ToArray();
-						phaseValues = MathUtil.ToImpedancePhase(gainReal, gainImag).Select(x => 180 * x / Math.PI).ToArray();
+						var mthd = vm.ZMethod;
+						YValues = MathUtil.ToImpedanceMag(gainReal, gainImag, mthd).Select(x => rref * x).ToArray();
+						phaseValues = MathUtil.ToImpedancePhase(gainReal, gainImag, mthd).Select(x => 180 * x / Math.PI).ToArray();
 						legendname = "|Z| Ohms";
 						if (myPlot.Axes.Rules.Count > 0)
 						{

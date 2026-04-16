@@ -285,22 +285,22 @@ namespace QA40xPlot.Libraries
 			return formattedText.Width;
 		}
 
-		public static double[] ToImpedanceMag(double[] re, double[] im)
+		public static double[] ToImpedanceMag(double[] re, double[] im, string method)
 		{
 			var xout = new double[re.Length];
 			for (int i = 0; i < im.Length; i++)
 			{
-				xout[i] = ToImpedanceMag(re[i], im[i]);
+				xout[i] = ToImpedanceMag(re[i], im[i], method);
 			}
 			return xout;
 		}
 
-		public static double[] ToImpedancePhase(double[] re, double[] im)
+		public static double[] ToImpedancePhase(double[] re, double[] im, string method)
 		{
 			var xout = new double[re.Length];
 			for (int i = 0; i < im.Length; i++)
 			{
-				xout[i] = ToImpedancePhase(re[i], im[i]);
+				xout[i] = ToImpedancePhase(re[i], im[i], method);
 			}
 			return xout;
 		}
@@ -310,37 +310,48 @@ namespace QA40xPlot.Libraries
 			return Math.Abs(a - b) < (Math.Abs(a) / 1e10);
 		}
 
-		// return mag of Z/(1-Z)
-		public static double ToImpedanceMag(double re, double im)
+		// return mag of Z/(1-Z) if method is Ratio
+		// return mag of Z*Zref if method is CurrentSense for now
+		public static double ToImpedanceMag(double re, double im, string method)
 		{
-			if (re == 0 && im == 0)
-				return 1;
-			var maga = re * re + im * im;
-			var magb = (1 - re) * (1 - re) + im * im;
-			var tmage = Math.Sqrt(maga / magb);
+			if(method != FreqRespViewModel.ZMethods[1])
+			{
+				if (re == 0 && im == 0)
+					return 1;
+				var maga = re * re + im * im;
+				var magb = (1 - re) * (1 - re) + im * im;
+				var tmage = Math.Sqrt(maga / magb);
 #if DEBUG
-			var tcplx = (new Complex(re, im)) / (new Complex(1 - re, -im));
-			var tmag = tcplx.Magnitude;
-			Debug.Assert(SameDouble(tmag, tmage), "disagree on magnitude");
+				var tcplx = (new Complex(re, im)) / (new Complex(1 - re, -im));
+				var tmag = tcplx.Magnitude;
+				Debug.Assert(SameDouble(tmag, tmage), "disagree on magnitude");
 #endif
-			return tmage;
+				return tmage;
+			}
+			return Math.Sqrt(re * re + im * im);
 		}
 
-		// return phase of Z/(1-Z)
-		public static double ToImpedancePhase(double re, double im)
+		// return phase of Z/(1-Z) if method is Ratio
+		// return phase of Z if method is CurrentSense for now
+		public static double ToImpedancePhase(double re, double im, string method)
 		{
-			var denomre = (1 - re) * (1 - re) + im * im;
-			var numre = (re * (1 - re) - im * im);
-			var numim = (re * im + im * (1 - re));
-			var phasea = Math.Atan2(numim / denomre, numre / denomre);
+			if (method != FreqRespViewModel.ZMethods[1])
+			{
+				var denomre = (1 - re) * (1 - re) + im * im;
+				var numre = (re * (1 - re) - im * im);
+				var numim = (re * im + im * (1 - re));
+				var phasea = Math.Atan2(numim / denomre, numre / denomre);
 #if DEBUG
-			var denomCplx = (new Complex(1 - re, -im)) * (new Complex(1 - re, im));
-			var numCplx = (new Complex(re, im)) * (new Complex(1 - re, im));
-			var tcplx = (new Complex(re, im)) / (new Complex(1 - re, -im));
-			var tphase = tcplx.Phase;
-			Debug.Assert(SameDouble(tphase, phasea), "phases differ");
+				var denomCplx = (new Complex(1 - re, -im)) * (new Complex(1 - re, im));
+				var numCplx = (new Complex(re, im)) * (new Complex(1 - re, im));
+				var tcplx = (new Complex(re, im)) / (new Complex(1 - re, -im));
+				var tphase = tcplx.Phase;
+				Debug.Assert(SameDouble(tphase, phasea), "phases differ");
 #endif
-			return phasea;
+				return phasea;
+			}
+			var z = new Complex(re, im);
+			return z.Phase;
 		}
 
 		public static double[] ToCplxMag(double[] re, double[] im)
