@@ -13,14 +13,14 @@ namespace QA40xPlot.Libraries
 {
 	public static class Util
 	{
-		public enum CompressType
+		private enum CompressType
 		{
 			Unknown,
 			Zip,
 			Gzip
 		}
 
-		// ZIP files start with the bytes: 50 4B 03 04 (PK..)
+		// ZIP files start with the bytes: 50 4B 03 04 (PK)
 		private static readonly byte[] ZipSignature = { 0x50, 0x4B, 0x03, 0x04 };
 		private static readonly byte[] GzipSignature = { 0x1F, 0x8B };
 		private static string _CompensationFile = string.Empty; // mic compensation file, if any
@@ -65,7 +65,7 @@ namespace QA40xPlot.Libraries
 						continue; // skip invalid lines
 					var f = MathUtil.ToDouble(parts[0], -1230.0); // first part is frequency
 					var g = MathUtil.ToDouble(parts[1], -1230.0); // second part is gain
-					if (f != -1230 && g != -1230)
+					if ((int)f != -1230 && (int)g != -1230)
 					{
 						freq.Add(f);
 						gain.Add(g);
@@ -118,7 +118,7 @@ namespace QA40xPlot.Libraries
 		}
 
 		/// <summary>
-		/// part of the load process needs this simple json deserialize
+		/// part of the load process needs this simple JSON deserialize
 		/// into a dictionary of dictionaries of string->object
 		/// </summary>
 		/// <param name="jsonText"></param>
@@ -141,9 +141,10 @@ namespace QA40xPlot.Libraries
 		/// <summary>
 		/// Load a file into a DataTab
 		/// </summary>
-		/// <param name="fileName">full path name</param>
+		/// <param name="dtab">the datatab</param>
+		/// <param name="strData">all of the data</param>
 		/// <returns>a datatab with no frequency info</returns>
-		public static DataTab? LoadFromString<Model>(DataTab dtab, string strData) where Model : BaseViewModel
+		public static DataTab? LoadFromString<TModel>(DataTab dtab, string strData) where TModel : BaseViewModel
 		{
 			// a new DataTab
 			var page = new DataTab(dtab.ViewModel, new LeftRightTimeSeries());
@@ -156,28 +157,24 @@ namespace QA40xPlot.Libraries
 				Dictionary<string, object>? oldTime = null;
 				// generic deserialize first....
 				string? viewName = string.Empty;
-				int viewVersion = 1;
 				{
 					var dict = Deserialize(jsonContent);
 					if (dict == null)
 						return null;
-					if (dict.ContainsKey("ViewModel"))
+					if (dict.TryGetValue("ViewModel", out Dictionary<string,object>? myvm))
 					{
-						var myvm = dict["ViewModel"];
-						if (myvm != null)
+						int viewVersion = 1;
+						if (myvm.ContainsKey("Name"))
+							viewName = myvm["Name"]?.ToString();
+						if (myvm.ContainsKey("Version"))
 						{
-							if (myvm.ContainsKey("Name"))
-								viewName = myvm["Name"]?.ToString();
-							if (myvm.ContainsKey("Version"))
-							{
-								var verstr = myvm["Version"]?.ToString();
-								viewVersion = MathUtil.ToInt(verstr, 1);
-							}
-							else
-								viewVersion = 1;
-							var z = dtab.ViewModel;
-							isValid = z?.IsValidLoadModel(viewName, viewVersion) ?? false;
+							var verstr = myvm["Version"]?.ToString();
+							viewVersion = MathUtil.ToInt(verstr, 1);
 						}
+						else
+							viewVersion = 1;
+						var z = dtab.ViewModel;
+						isValid = z?.IsValidLoadModel(viewName, viewVersion) ?? false;
 					}
 					if (dict.ContainsKey("TimeRslt"))
 						oldTime = dict["TimeRslt"];
@@ -192,7 +189,7 @@ namespace QA40xPlot.Libraries
 				var jsonObject = JsonConvert.DeserializeObject<DataTab>(jsonContent);
 				if (jsonObject != null)
 				{
-					if (jsonObject.TimeSaver != null && jsonObject.TimeSaver.Left.Length > 0)
+					if (jsonObject.TimeSaver != null && jsonObject.TimeSaver?.Left.Length > 0)
 					{
 						// we have a time saver, convert it to a time series
 						jsonObject.TimeRslt = jsonObject.TimeSaver.ToSeries(); // convert the time saver to a time series
@@ -224,7 +221,7 @@ namespace QA40xPlot.Libraries
 					if (page.ViewModel != null)
 					{
 						// copy all but name
-						var srcMod = jsonObject.ViewModel as Model;
+						var srcMod = jsonObject.ViewModel as TModel;
 						var destMod = page.ViewModel;
 						if (srcMod != null && destMod != null)
 						{
@@ -249,14 +246,15 @@ namespace QA40xPlot.Libraries
 		/// <summary>
 		/// Load a file into a DataTab
 		/// </summary>
-		/// <param name="fileName">full path name</param>
+		/// <param name="dtab"></param>
+		/// <param name="ftext">full path name</param>
 		/// <returns>a datatab with no frequency info</returns>
-		public static DataTab? LoadFromText<Model>(DataTab dtab, string ftext) where Model : BaseViewModel
+		public static DataTab? LoadFromText<TModel>(DataTab dtab, string ftext) where TModel : BaseViewModel
 		{
 			// a new DataTab
 			try
 			{
-				var page = LoadFromString<Model>(dtab, ftext);
+				var page = LoadFromString<TModel>(dtab, ftext);
 				return page;
 			}
 			catch (Exception ex)
@@ -269,12 +267,13 @@ namespace QA40xPlot.Libraries
 		/// <summary>
 		/// Load a file into a DataTab
 		/// </summary>
+		/// <param name="dtab">the source tab</param>
 		/// <param name="fileName">full path name</param>
 		/// <returns>a datatab with no frequency info</returns>
-		public static DataTab? LoadFile<Model>(DataTab dtab, string fileName) where Model : BaseViewModel
+		public static DataTab? LoadFile<TModel>(DataTab dtab, string fileName) where TModel : BaseViewModel
 		{
 			// a new DataTab
-			var page = LoadFromText<Model>(dtab, LoadFileText(fileName));
+			var page = LoadFromText<TModel>(dtab, LoadFileText(fileName));
 			if (page != null)
 				page.Definition.FileName = fileName;
 			return page;
@@ -285,15 +284,13 @@ namespace QA40xPlot.Libraries
 			string jsonString = string.Empty;
 			try
 			{
-				using (var sw = new StringWriter())
-				using (var writer = new JsonTextWriter(sw))
-				{
-					writer.Formatting = Formatting.Indented; // Enable pretty-print
-					writer.Indentation = 1;                   // Number of tabs per indent level
-					var serializer = new JsonSerializer();
-					serializer.Serialize(writer, tcv);
-					jsonString = sw.ToString();
-				}
+				using var sw = new StringWriter();
+				using var writer = new JsonTextWriter(sw);
+				writer.Formatting = Formatting.Indented; // Enable pretty-print
+				writer.Indentation = 1;                   // Number of tabs per indent level
+				var serializer = new JsonSerializer();
+				serializer.Serialize(writer, tcv);
+				jsonString = sw.ToString();
 			}
 			catch
 			{
@@ -307,7 +304,6 @@ namespace QA40xPlot.Libraries
 			// look for a default config file before we paint the windows for theme setting...
 			var fdocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 			var ffile = ((App)Application.Current).DefaultCfg;
-			string fload = string.Empty;
 			string fpath;
 			if (Path.IsPathRooted(ffile))
 			{
@@ -325,19 +321,17 @@ namespace QA40xPlot.Libraries
 			try
 			{
 				// Check file signature first
-				using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+				using FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+				if (fs.Length < signature.Length)
+					return false;
+
+				byte[] buffer = new byte[signature.Length];
+				fs.ReadExactly(buffer);
+
+				for (int i = 0; i < signature.Length; i++)
 				{
-					if (fs.Length < signature.Length)
+					if (buffer[i] != signature[i])
 						return false;
-
-					byte[] buffer = new byte[signature.Length];
-					fs.ReadExactly(buffer);
-
-					for (int i = 0; i < signature.Length; i++)
-					{
-						if (buffer[i] != signature[i])
-							return false;
-					}
 				}
 			}
 			catch
@@ -364,36 +358,32 @@ namespace QA40xPlot.Libraries
 			try
 			{
 				// Open the ZIP archive for reading
-				using (ZipArchive archive = ZipFile.OpenRead(filePath))
+				using ZipArchive archive = ZipFile.OpenRead(filePath);
+				var fname = Path.GetFileName(filePath);
+				// remove zip suffix
+				var fbegin = fname.Substring(0, fname.LastIndexOf('.'));
+				// Find the specific file inside the ZIP
+				// if we just do this then rename the file we can't load it
+				ZipArchiveEntry? entry = archive.GetEntry(fbegin);
+				if (entry == null)
 				{
-					var fname = Path.GetFileName(filePath);
-					// remove zip suffix
-					var fbegin = fname.Substring(0, fname.LastIndexOf('.'));
-					// Find the specific file inside the ZIP
-					// if we just do this then rename the file we can't load it
-					ZipArchiveEntry? entry = archive.GetEntry(fbegin);
-					if (entry == null)
+					// file was renamed? just use the first entry
+					var entries = archive.Entries;
+					if (entries.Count >= 1)
 					{
-						// file was renamed? just use the first entry
-						var entries = archive.Entries;
-						if (entries.Count >= 1)
-						{
-							entry = entries[0];
-						}
-					}
-					if (entry == null)
-					{
-						MessageBox.Show("Error", "Unable to load the file. Zip entry conflict.", MessageBoxButton.OK, MessageBoxImage.Error);
-						return string.Empty;
-					}
-
-					// Read the file content into a string
-					using (StreamReader reader = new StreamReader(entry.Open()))
-					{
-						string fileContent = reader.ReadToEnd();
-						return fileContent;
+						entry = entries[0];
 					}
 				}
+				if (entry == null)
+				{
+					MessageBox.Show("Error", "Unable to load the file. Zip entry conflict.", MessageBoxButton.OK, MessageBoxImage.Error);
+					return string.Empty;
+				}
+
+				// Read the file content into a string
+				using StreamReader reader = new StreamReader(entry.Open());
+				string fileContent = reader.ReadToEnd();
+				return fileContent;
 			}
 			catch (Exception)
 			{
@@ -412,12 +402,10 @@ namespace QA40xPlot.Libraries
 		{
 			try
 			{
-				using (FileStream compressedFileStream = new FileStream(filePath, FileMode.Open))
-				using (GZipStream decompressionStream = new GZipStream(compressedFileStream, CompressionMode.Decompress))
-				using (StreamReader reader = new StreamReader(decompressionStream, Encoding.UTF8))
-				{
-					return reader.ReadToEnd();
-				}
+				using FileStream compressedFileStream = new FileStream(filePath, FileMode.Open);
+				using GZipStream decompressionStream = new GZipStream(compressedFileStream, CompressionMode.Decompress);
+				using StreamReader reader = new StreamReader(decompressionStream, Encoding.UTF8);
+				return reader.ReadToEnd();
 			}
 			catch (Exception)
 			{
@@ -439,18 +427,14 @@ namespace QA40xPlot.Libraries
 				var fbegin = fname.Substring(0, fname.LastIndexOf('.'));    // remove zip suffix
 
 				// Create or overwrite the ZIP file
-				using (FileStream zipToOpen = new FileStream(filePath, FileMode.Create))
-				using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Create))
-				{
-					// Create a new entry (file) inside the ZIP
-					ZipArchiveEntry entry = archive.CreateEntry(fbegin);
+				using FileStream zipToOpen = new FileStream(filePath, FileMode.Create);
+				using ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Create);
+				// Create a new entry (file) inside the ZIP
+				ZipArchiveEntry entry = archive.CreateEntry(fbegin);
 
-					// Write the string content into the entry
-					using (StreamWriter writer = new StreamWriter(entry.Open(), Encoding.UTF8))
-					{
-						writer.Write(text);
-					}
-				}
+				// Write the string content into the entry
+				using StreamWriter writer = new StreamWriter(entry.Open(), Encoding.UTF8);
+				writer.Write(text);
 			}
 			catch (Exception ex)
 			{
@@ -460,12 +444,12 @@ namespace QA40xPlot.Libraries
 
 		public static void GetPropertiesFrom(Dictionary<string, Dictionary<string, object>> vwsIn, string name, object dest)
 		{
-			List<string> delayed = new List<string>();// { "Gen1Voltage", "Gen2Voltage", "GenVoltage", "StartVoltage", "EndVoltage" };
+			List<string> delayed = new();// { "Gen1Voltage", "Gen2Voltage", "GenVoltage", "StartVoltage", "EndVoltage" };
 			if (vwsIn == null || dest == null)
 				return;
 			if (!vwsIn.ContainsKey(name))
 				return;
-			Dictionary<string, object> vws = (Dictionary<string, object>)vwsIn[name];
+			Dictionary<string, object> vws = vwsIn[name];
 
 			try
 			{
@@ -497,9 +481,8 @@ namespace QA40xPlot.Libraries
 				}
 				foreach (var prop in pending)
 				{
-					if (vws.ContainsKey(prop.Name))
+					if (vws.TryGetValue(prop.Name, out object? value))
 					{
-						object value = vws[prop.Name];
 						try
 						{
 							//Debug.WriteLine("Property " + prop.Name);

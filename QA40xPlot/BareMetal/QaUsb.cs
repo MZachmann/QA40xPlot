@@ -101,6 +101,7 @@ namespace QA40xPlot.BareMetal
 			}
 			catch (Exception ex)
 			{
+				// this is essentially always cancellation
 				Console.WriteLine($"WaitAsync fail: {ex.Message}");
 			}
 			return rslt;

@@ -845,7 +845,7 @@ namespace QA40xPlot.ViewModels
 		}
 
 
-		private void DoStopRun(object? obj)
+		public static void DoStopRun(object? obj)
 		{
 			// paint the windows
 			var view = ViewSettings.Singleton.MainVm.CurrentView;

@@ -20,6 +20,7 @@ namespace QA40xPlot.Actions
 
 	public partial class ActFrQa430 : ActBase
 	{
+		private readonly static string _DefMethod = FreqRespViewModel.ZMethods[0];
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -420,8 +421,8 @@ namespace QA40xPlot.Actions
 				case TestingType.InputZ:
 					{
 						double rref = ToD(guiVm.ZReference, 8);
-						db.LeftData = PageData.GainReal.Zip(PageData.GainImag, (x, y) => rref * MathUtil.ToImpedanceMag(x, y, "Ratio")).ToList();
-						db.PhaseData = PageData.GainReal.Zip(PageData.GainImag, (x, y) => MathUtil.ToImpedancePhase(x, y, "Ratio")).ToList();
+						db.LeftData = PageData.GainReal.Zip(PageData.GainImag, (x, y) => rref * MathUtil.ToImpedanceMag(x, y, _DefMethod)).ToList();
+						db.PhaseData = PageData.GainReal.Zip(PageData.GainImag, (x, y) => MathUtil.ToImpedancePhase(x, y, _DefMethod)).ToList();
 					}
 					break;
 			}
@@ -489,7 +490,7 @@ namespace QA40xPlot.Actions
 			}
 			else if (ttype == TestingType.InputZ)
 			{
-				var phaseValues = MathUtil.ToImpedancePhase(gainReal, gainImag, "Ratio").Select(x => 180 * x / Math.PI).ToArray(); ;
+				var phaseValues = MathUtil.ToImpedancePhase(gainReal, gainImag, _DefMethod).Select(x => 180 * x / Math.PI).ToArray(); ;
 				var phases = UnWrap(phaseValues);
 				rrc.Y = phases.Min();
 				rrc.Height = phases.Max() - rrc.Y;
@@ -562,7 +563,7 @@ namespace QA40xPlot.Actions
 				else if (PageData.GainLeft != null && PageData.GainLeft.Length > 0)
 				{   // impedance
 					double rref = ToD(guiVm.ZReference, 10);
-					var gainZ = PageData.GainReal.Zip(PageData.GainImag, (x, y) => MathUtil.ToImpedanceMag(x, y, "Ratio"));
+					var gainZ = PageData.GainReal.Zip(PageData.GainImag, (x, y) => MathUtil.ToImpedanceMag(x, y, _DefMethod));
 					var minL = gainZ.Min();
 					var maxL = gainZ.Max();
 					var minZohms = rref * minL;
@@ -618,9 +619,9 @@ namespace QA40xPlot.Actions
 					case TestingType.InputZ:
 						{   // send freq, ohms, phasedeg
 							double rref = ToD(guiVm.ZReference, 10);
-							var impval = MathUtil.ToImpedanceMag(valuesRe[bin], valuesIm[bin], "Ratio");
+							var impval = MathUtil.ToImpedanceMag(valuesRe[bin], valuesIm[bin], _DefMethod);
 							var ohms = rref * impval;
-							impval = MathUtil.ToImpedancePhase(valuesRe[bin], valuesIm[bin], "Ratio");
+							impval = MathUtil.ToImpedancePhase(valuesRe[bin], valuesIm[bin], _DefMethod);
 							tup = ValueTuple.Create(myFreq, ohms, 180 * impval / Math.PI, 0.0);
 						}
 						break;
@@ -1416,8 +1417,8 @@ namespace QA40xPlot.Actions
 				case TestingType.InputZ:
 					{
 						double rref = 100000;
-						YValues = MathUtil.ToImpedanceMag(gainReal, gainImag, "Ratio").Select(x => rref * x).ToArray();
-						phaseValues = MathUtil.ToImpedancePhase(gainReal, gainImag, "Ratio").Select(x => 180 * x / Math.PI).ToArray();
+						YValues = MathUtil.ToImpedanceMag(gainReal, gainImag, _DefMethod).Select(x => rref * x).ToArray();
+						phaseValues = MathUtil.ToImpedancePhase(gainReal, gainImag, _DefMethod).Select(x => 180 * x / Math.PI).ToArray();
 						legendname = "|Z| Ohms";
 						if (myPlot.Axes.Rules.Count > 0)
 						{

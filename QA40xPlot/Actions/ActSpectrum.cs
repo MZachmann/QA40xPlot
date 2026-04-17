@@ -4,7 +4,6 @@ using QA40xPlot.Libraries;
 using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
-using System.Data;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
 
@@ -60,7 +59,6 @@ namespace QA40xPlot.Actions
 			DataBlob db = new();
 			var ffs = PageData.FreqRslt;
 
-			var sampleRate = MathUtil.ToUint(vm.SampleRate);
 			var fftsize = ffs.Left.Length;
 			var binSize = ffs.Df;
 			if (specVm.ShowRight && !specVm.ShowLeft)
@@ -80,7 +78,7 @@ namespace QA40xPlot.Actions
 		public override void PinGraphRange(string who)
 			{
 				var guiVm = (MyViewClass)MyGuiModel;
-				ScottPlot.Plot myPlot = guiVm.MainPlot.ThePlot;
+				Plot myPlot = guiVm.MainPlot.ThePlot;
 				PinGraphRanges(myPlot, guiVm, who);
 		}
 
@@ -105,6 +103,7 @@ namespace QA40xPlot.Actions
 		/// <summary>
 		/// Load a file into a DataTab
 		/// </summary>
+		/// <param name="page">the datatab we load via</param>
 		/// <param name="fileName">full path name</param>
 		/// <returns>a datatab with no frequency info</returns>
 		public DataTab? LoadFile(DataTab page, string fileName)

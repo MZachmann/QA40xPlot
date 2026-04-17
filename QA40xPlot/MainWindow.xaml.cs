@@ -223,6 +223,7 @@ namespace QA40xPlot
 			try
 			{
 				await UsbDataService.Singleton.StopRunning();
+				MainViewModel.DoStopRun(null);
 				// set max attenuation for safety, turns on ATTEN led
 				if (ViewSettings.Singleton.SettingsVm.RelayUsage != "Never")
 				{
@@ -247,8 +248,7 @@ namespace QA40xPlot
 				if (ViewSettings.Singleton.MainVm.HasQA430)
 					QA430Model.EndQA430Op();
 
-				DoClosing().ContinueWith(x => { });
-
+				DoClosing().Wait(5000);
 			}
 			catch (Exception ex)
 			{

@@ -6,7 +6,6 @@ using QA40xPlot.QA430;
 using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
-using System.Data;
 using System.Net.Http;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
@@ -16,7 +15,7 @@ namespace QA40xPlot.Actions
 	using MyViewClass = AmpSweepViewModel;
 
 
-	public partial class ActAmpSweep : ActOpamp<MyViewClass>
+	public class ActAmpSweep : ActOpamp<MyViewClass>
 	{
 		private List<SweepLine>? FrequencyLines(DataTab page)
 		{
@@ -205,7 +204,7 @@ namespace QA40xPlot.Actions
 		/// find a column by X coordinate where X is amplitude of generator input voltage 
 		/// </summary>
 		/// <param name="page"></param>
-		/// <param name="x">genV value</param>
+		/// <param name="xValue">genV value</param>
 		/// <returns></returns>
 		private List<SweepDot> LookupColumn(DataTab page, double xValue)
 		{
@@ -238,7 +237,7 @@ namespace QA40xPlot.Actions
 		/// <summary>
 		/// find the column by X coordinate where X is formatted inputv
 		/// </summary>
-		/// <param name="freq"></param>
+		/// <param name="volts"></param>
 		/// <returns></returns>
 		// for a given frequency, lookup the left and right columns
 		// this is used by the cursor display

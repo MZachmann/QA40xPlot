@@ -561,7 +561,6 @@ namespace QA40xPlot.Actions
 				lrfs.Right[0] += GetFGain(acqData.FreqRslt.Right, generatorV, binmin, bintrack);
 			}
 			ct.Dispose();
-			//await UsbDataService.Singleton.StopRunning();
 			if (average > 1)
 			{
 				lrfs.Left = lrfs.Left.Select(x => x / average).ToArray();

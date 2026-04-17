@@ -5,8 +5,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:views="clr-namespace:QA40xPlot.Views"
              xmlns:vm="clr-namespace:QA40xPlot.ViewModels"
-             xmlns:local="clr-namespace:QA40xPlot"
-             mc:Ignorable="d" 
+             xmlns:local="clr-namespace:QA40xPlot" 
+             d:DataContext="{d:DesignInstance Type=vm:FreqRespViewModel}"
+             mc:Ignorable="d"
              d:DesignHeight="750" d:DesignWidth="800">
     <Grid Height="Auto" Width="Auto">
         <Grid.ColumnDefinitions>
@@ -29,6 +30,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Label Content="T_est Type" Target="{Binding ElementName=cbType}"   HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Column="0" Grid.Row="0"  />
                     <ComboBox x:Name="cbType"  SelectedItem="{Binding TestType}" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" ItemsSource="{Binding TestTypes}" 
@@ -38,17 +40,25 @@
                               Visibility="{Binding TestType, Converter={StaticResource EnumVisConverter}, ConverterParameter=Impedance}"
                        VerticalAlignment="Center" Grid.Column="0" Grid.Row="1"  />
                     <ComboBox x:Name="cbZ"  IsEditable="True" Text="{Binding ZReference}" ToolTip="The series resistor value for the impedance test"
-                        VerticalContentAlignment="Center" IsEnabled="{Binding TestType, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=Impedance}"
-                              Visibility="{Binding TestType, Converter={StaticResource EnumVisConverter}, ConverterParameter=Impedance}"
+                        VerticalContentAlignment="Center" 
+                            Visibility="{Binding TestType, Converter={StaticResource EnumVisConverter}, ConverterParameter=Impedance}"
                           Grid.Column="1" Grid.Row="1" ItemsSource="{Binding Impedances}"  />
                     <Label Content="Ohms" Grid.Column="2" Grid.Row="1" VerticalAlignment="Center"
-                              Visibility="{Binding TestType, Converter={StaticResource EnumVisConverter}, ConverterParameter=Impedance}"
+                          Visibility="{Binding TestType, Converter={StaticResource EnumVisConverter}, ConverterParameter=Impedance}"
                            />
+                    <Label Content="Meth_od" 
+                       Target="{Binding ElementName=cbMth}"   HorizontalAlignment="Right" 
+                        Visibility="{Binding TestType, Converter={StaticResource EnumVisConverter}, ConverterParameter=Impedance}"
+                        VerticalAlignment="Center" Grid.Column="0" Grid.Row="2"  />
+                    <ComboBox x:Name="cbMth" SelectedValue="{Binding ZMethod}" ToolTip="Right channel is total or just reference voltage."
+                        VerticalContentAlignment="Center" 
+                        Visibility="{Binding TestType, Converter={StaticResource EnumVisConverter}, ConverterParameter=Impedance}"
+                          Grid.Column="1" Grid.Row="2" ItemsSource="{Binding ZMethods}"  />                    
                     <CheckBox Content="Use _microphone compensation" ToolTip="See Settings to select a compensation file"
                           IsChecked="{Binding UseMicCorrection}"
                               Visibility="{Binding TestType, Converter={StaticResource EnumVisConverter}, ConverterParameter=Response}"
-                        VerticalContentAlignment="Center" IsEnabled="{Binding TestType, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=Response}"
-                          Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="3"  />
+                            VerticalContentAlignment="Center"
+                          Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="3"  />
                 </Grid>
 
                 <Expander Header="—— Sweep" IsExpanded="{Binding ExpandSweep}"  >

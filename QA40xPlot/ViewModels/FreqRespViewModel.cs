@@ -12,7 +12,7 @@ using System.Windows.Input;
 
 public class FreqRespViewModel : BaseViewModel
 {
-	public static List<String> ZMethods { get => new List<string> { "Ratio", "CurrentSense" }; }
+	public static List<String> ZMethods { get => new List<string> { "Ratio", "Individual" }; }
 	public static List<String> VoltItems { get => new List<string> { "mV", "V", "dbV" }; }
 	public static List<String> Smoothings { get => new List<string> { "0", "0.001", "0.01", "0.05", "0.1", "0.25" }; }
 	public static List<String> PhaseList { get => new List<string> { "360", "180", "90", "0", "-90", "-180", "-360" }; }

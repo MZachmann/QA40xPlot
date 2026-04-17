@@ -31,7 +31,7 @@ namespace QA40xPlot.BareMetal
 			}
 			var u2 = (DateTime.Now - StartingTime).ToString(@"mm\:ss\.fff\:");
 			//Console.WriteLine(u2 + s);
-			System.Diagnostics.Debug.WriteLine(s);
+			System.Diagnostics.Debug.WriteLine(u2 + s);
 #endif
 		}
 	}

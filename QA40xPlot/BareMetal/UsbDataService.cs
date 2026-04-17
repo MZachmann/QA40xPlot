@@ -91,8 +91,11 @@ namespace QA40xPlot.BareMetal
 		// user tells us to stop running
 		public async Task StopRunning()
 		{
-			var rqb = new ReceiveJob(BlankDoc);
-			SendDocQueue.Enqueue(BlankDoc);
+			if (IsStarted.IsSet && !_IsPausing)
+			{
+				var rqb = new ReceiveJob(BlankDoc);
+				SendDocQueue.Enqueue(BlankDoc);
+			}
 			SoundObj?.Stop();   // turn off external generator now
 			SoundObj = null;
 			await Pause();
@@ -203,12 +206,16 @@ namespace QA40xPlot.BareMetal
 			return null;
 		}
 
+		private static bool _IsStarting = false;
 		/// <summary>
 		/// start up the usb data service
 		/// </summary>
 		/// <returns></returns>
 		public void Start()
 		{
+			if (_IsStarting)
+				return;
+			_IsStarting = true;
 			if (!IsStarted.IsSet)
 			{
 				UsbSubs.DebugLine("Starting DataService...");
@@ -220,12 +227,17 @@ namespace QA40xPlot.BareMetal
 				EnableLoop.Set();
 				UsbSubs.DebugLine("Started DataService...");
 			}
+			_IsStarting = false;
 		}
 
+		private static bool _IsPausing = false;
 		public async Task Pause()
 		{
+			if (_IsPausing)
+				return;
+			_IsPausing = true;
 			// shut the running loop down
-			if (IsStarted.IsSet)
+			if (IsStarted.IsSet && EnableLoop.IsSet)
 			{
 				UsbSubs.DebugLine("Pausing UsbDataService...");
 				// wait for data to stop flowing
@@ -240,7 +252,10 @@ namespace QA40xPlot.BareMetal
 				DoneJobQueue.Clear();
 				SentDocQueue.Clear();
 				SendDocQueue.Clear();
+				UsbSubs.DebugLine("Pause Completed");
 			}
+			_IsPausing = false;
+
 		}
 
 		public async Task UnPause()
@@ -535,7 +550,7 @@ namespace QA40xPlot.BareMetal
 			}
 
 			// parse job data into AcqResult
-			AcqResult acqr = await DealWithReadData(myJob);
+			AcqResult acqr = await DealWithReadData(myJob, ctk);
 
 			// save the job into history if it's not blank and we care about it
 			// and we have EarlyRelease == true
@@ -610,7 +625,7 @@ namespace QA40xPlot.BareMetal
 		/// </summary>
 		/// <param name="job"></param>
 		/// <returns></returns>
-		public async Task<AcqResult> DealWithReadData(ReceiveJob? job)
+		public async Task<AcqResult> DealWithReadData(ReceiveJob? job, CancellationToken ctk)
 		{
 			AcqResult aResult = new AcqResult();
 			// convert to double arrays
@@ -633,11 +648,13 @@ namespace QA40xPlot.BareMetal
 			if (nxtJob != null)
 			{
 				var pkq = nxtJob.ReadPackets.First();
-				await pkq.WaitAsync();
-				var nxt = nxtJob.ReadPackets.First().ReadBuffer;    // the next buffer
-				//var skip = Math.Abs(nxtJob.TheSendDoc.BlockSkip);
-				//var nxt2 = nxt.Skip(skip).Concat(nxt.Take(skip));	// rotate
-				rxResults.Add(nxt);
+				if( await pkq.WaitAsync(Timeout.Infinite, ctk))
+				{
+					var nxt = nxtJob.ReadPackets.First().ReadBuffer;    // the next buffer
+					//var skip = Math.Abs(nxtJob.TheSendDoc.BlockSkip);
+					//var nxt2 = nxt.Skip(skip).Concat(nxt.Take(skip));	// rotate
+					rxResults.Add(nxt);
+				}
 			}
 			var rxLength = rxResults.Sum(x => x.Length);
 			if (rxLength < (8*theDoc.FFTSize))
@@ -645,6 +662,8 @@ namespace QA40xPlot.BareMetal
 				UsbSubs.DebugLineIf(ShowDebug, $"Not enough data received for job {aResult.JobNumber}: {rxLength} bytes");
 				return aResult;
 			}
+			if(ctk.IsCancellationRequested)
+				return aResult;
 
 			// now rxResults is all data results for the job
 			var rxData = new byte[rxLength];
@@ -656,7 +675,7 @@ namespace QA40xPlot.BareMetal
 				offset += b.Length;
 			}
 
-			if (rxData.Length == 0)
+			if (rxData.Length == 0 || ctk.IsCancellationRequested)
 			{
 				UsbSubs.DebugLine("No data read from USB");
 				return aResult;
@@ -716,6 +735,9 @@ namespace QA40xPlot.BareMetal
 						roff = rxoff;
 					}
 				}
+
+				if (ctk.IsCancellationRequested)
+					return aResult;
 				var adcCorrection = Math.Pow(10, (theDoc.ParamInput - 6.0) / 20);
 				var rlf = aResult.Left.Skip(loff).Take(tused);
 				if (rlf.Count() < tused)
@@ -733,6 +755,8 @@ namespace QA40xPlot.BareMetal
 						rrf = rrf.Concat(new double[tused - rrf.Count()]);
 					aResult.Right = rrf.Select(x => (x - troff) * theDoc.AdcCalibration.Right * adcCorrection).ToArray();
 				}
+				if(ctk.IsCancellationRequested) 
+					return aResult;
 				UsbSubs.DebugLine($"Job {aResult.JobNumber} Maximum right value: {aResult.Right.Max()}");
 				aResult.Valid = true;
 			}
