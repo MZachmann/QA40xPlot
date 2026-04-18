@@ -15,8 +15,8 @@
     <AssemblyOriginatorKeyFile>Keys\sgKey.snk</AssemblyOriginatorKeyFile>
     <ApplicationIcon>Images\favicon.ico</ApplicationIcon>
     <UseWindowsForms>False</UseWindowsForms>
-    <AssemblyVersion>1.4.2</AssemblyVersion>
-    <FileVersion>1.4.2</FileVersion>
+    <AssemblyVersion>1.4.3</AssemblyVersion>
+    <FileVersion>1.4.3</FileVersion>
     <StartupObject>QA40xPlot.App</StartupObject>
 	</PropertyGroup>
 

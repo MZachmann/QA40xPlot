@@ -14,12 +14,12 @@
     </style>
 </head>
 <h1>What&#39;s New in QA40xPlot</h1>
-<h5>v 1.4.3&nbsp;&nbsp;&nbsp;April xx, 2026</h5>
+<h5>v 1.4.3&nbsp;&nbsp;&nbsp;April 18, 2026</h5>
 <h2>Risk Summary</h2>
 <p>This release is ongoing edge fixes of the idle code. It should be very low risk.</p>
 <h2>Differential Impedance Test</h2>
-<p>The option &quot;Individual&quot; lets you treat the Right channel input as just the reference resistor voltage (assumptively differential) instead of the the series total voltage.</p>
-<h5>______________________________________________________________________________________________________</h5>
+<p>There is now a method choice in the Impedance test. The new &quot;Individual&quot; method does the impedance calculation assuming the Right channel input is the differential voltage across the reference resistor instead of the series total voltage used by the standard 2-wire Ratio method.</p>
+<p>______________________________________________________________________________________________________</p>
 <h1>---- Older&nbsp; Entries ----</h1>
 <h5>v 1.4.2&nbsp;&nbsp;&nbsp;&nbsp;April 16, 2026</h5>
 <h2>Risk Summary</h2>
@@ -28,8 +28,6 @@
 <p>This release adds support for balanced I/O. Clicking it on claims that QA40x output cables are balanced and the generator voltage value is the total differential signal. So, for example, requesting 1V generator output will have each leg with 0.5V for a total differential voltage of 1V. When you have balanced I/O turned on it will display in the small Settings window bottom left. The displayed QA40x input voltage is always the total differential input voltage.</p>
 <h2>Linear Frequency Axis</h2>
 <p>This release adds early support for a linear frequency axis. Currently this is only available in the Frequency Response test group - as a checkbox in the X Axis area.</p>
-<h5>______________________________________________________________________________________________________</h5>
-<h1>---- Older&nbsp; Entries ----</h1>
 <h5>v 1.4.1&nbsp;&nbsp;&nbsp;&nbsp;April 12, 2026</h5>
 <h2>Risk Summary</h2>
 <p>This release mainly works on synchronizing external generators - which now seem to work well. Some slight improvements to the idle read loop. It should be low risk.</p>
@@ -100,7 +98,6 @@ the generator would run as packets, with a short pause between each fft block. N
 <p>Especially for pin, having the graph readjust a lot was annoying. Now only the axis being changed adjusts. Also, pin is now way more exact and should be far more useful.</p>
 <h2>More residual upgrade</h2>
 <p>The scope Residual graph now has a synched axis, like group delay in the Gain test.</p>
-<p>&nbsp;</p>
 <h2>Customize the Graph Popup menu</h2>
 <p>The default ScottPlot right-mouse-button graph popup menu wasn&#39;t very useful and now it is. </p>
 <ol>
@@ -122,7 +119,6 @@ the generator would run as packets, with a short pause between each fft block. N
 <h2>Add Shift-Click option to legend labels for a legend group</h2>
 <p>Hold down a shift key while clicking a legend checkbox (in the legend window) and the entire group of lines with the same suffix (after the @) will hide/show. This
 helps deal with the large number of plot lines in the THD vs Amplitude and vs Frequency tests.</p>
-<p>&nbsp;</p>
 <h5>v 1.2.5&nbsp;&nbsp;&nbsp;&nbsp; Jan 18, 2026</h5>
 <h2>Risk Summary</h2>
 <p>Start, Run, and Stop now work somewhat differently so there may be cases where they fail to enable correctly.
