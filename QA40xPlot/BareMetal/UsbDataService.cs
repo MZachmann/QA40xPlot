@@ -136,6 +136,7 @@ namespace QA40xPlot.BareMetal
 				IsNotRunning.Reset();
 			}
 			await UnPause();
+
 			// check for external audio device usage
 			UsbSubs.DebugLine("--entering UseMyDataService");
 			_UseExternal = ViewSettings.Singleton.SettingsVm.UseExternalEcho && SoundUtil.ExternalPresent();
@@ -190,14 +191,15 @@ namespace QA40xPlot.BareMetal
 			var job = await WaitForNextJob(newDoc, ct);
 			// if it's external or the output relay has twigged we need to wait for
 			// the next input to let it settle if output or external
-			if (job != null && ((_UseExternal && needSend) || changedOutput))
+			if (job != null && EnableSend.IsSet &&  !ct.IsCancellationRequested && 
+				((_UseExternal && needSend) || changedOutput))
 			{
 				// ignore the first job with this document
 				var job2 = await WaitForNextJob(newDoc, ct);    // wait for the second pass
 				job = job2;
 			}
 			UsbSubs.DebugLineIf(ShowDebug, $"Waitforjob: {job?.JobNumber}");
-			if (job != null)
+			if (job != null && EnableSend.IsSet && !ct.IsCancellationRequested)
 			{
 				var acr = await WaitForResults(job, ct);
 				UsbSubs.DebugLineIf(ShowDebug, $"Waitforresults: {job?.JobNumber}");
@@ -242,8 +244,37 @@ namespace QA40xPlot.BareMetal
 				UsbSubs.DebugLine("Pausing UsbDataService...");
 				// wait for data to stop flowing
 				EnableSend.Reset();  // stop sending data
-				while (!JobQueue.IsEmpty)
+				var t1 = 0;
+				var jc = JobQueue.Count;
+				// allow 1.5seconds to finish each pending job
+				// if take too long - then stop emptying it manually and just continue
+				double duration = 1500;	// in ms
+				if (JobQueue.TryPeek(out var j0))
+				{
+					duration = 200 + 1000 * j0.TheSendDoc.Buffers.Sum(x => x.Length) / (j0.TheSendDoc.SampleRate * 8.0);
+				}
+				while (!JobQueue.IsEmpty && t1 < duration)
+				{
+					// we send eight bytes per sample so...
 					await Task.Delay(100);
+					if (jc == JobQueue.Count)
+						t1 += 100;
+					else
+					{
+						jc = JobQueue.Count;
+						if (JobQueue.TryPeek(out var j1))
+						{
+							t1 = 0; // we moved a job out, keep going
+							duration = 200 + 1000 * j1.TheSendDoc.Buffers.Sum(x => x.Length) / (j1.TheSendDoc.SampleRate * 8.0);
+							UsbSubs.DebugLine($"Pause: duration=={duration}");
+						}
+					}
+				}
+
+				if (t1 >= duration)
+				{
+					UsbSubs.DebugLine($"Pause: JobQueue is not empty w-duration=={duration}");
+				}
 				EnableLoop.Reset(); // now halt the loop entirely
 				await Task.Delay(100); // let it pause on the infinite wait
 									   // clear all the queues to get ready for next time
@@ -499,6 +530,9 @@ namespace QA40xPlot.BareMetal
 		{
 			try
 			{
+				if (ctk.IsCancellationRequested)
+					return null;
+
 				ReceiveJob? myJob = null;
 				CurrentJob = null;
 				CurrentDoc = myDoc;

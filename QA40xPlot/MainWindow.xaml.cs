@@ -222,8 +222,9 @@ namespace QA40xPlot
 		{
 			try
 			{
-				await UsbDataService.Singleton.StopRunning();
 				MainViewModel.DoStopRun(null);
+				await Task.Delay(100);	// let dostoprun actually run
+				await UsbDataService.Singleton.StopRunning();
 				// set max attenuation for safety, turns on ATTEN led
 				if (ViewSettings.Singleton.SettingsVm.RelayUsage != "Never")
 				{
@@ -240,7 +241,7 @@ namespace QA40xPlot
 				Debug.WriteLine(ex.Message);
 			}
 		}
-
+		
 		protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
 		{
 			try
@@ -248,7 +249,17 @@ namespace QA40xPlot
 				if (ViewSettings.Singleton.MainVm.HasQA430)
 					QA430Model.EndQA430Op();
 
-				DoClosing().Wait(5000);
+				Task tsk = Task.Run(()=>
+				{
+					return DoClosing();
+				});
+
+				int t1 = 0;
+				while (!tsk.IsCanceled && !tsk.IsCompleted && t1 < 60)
+				{
+					Thread.Sleep(100);
+					t1++;
+				}
 			}
 			catch (Exception ex)
 			{
