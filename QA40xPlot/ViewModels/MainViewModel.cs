@@ -3,6 +3,7 @@ using Microsoft.Win32;
 using Newtonsoft.Json;
 using QA40xPlot.Data;
 using QA40xPlot.Libraries;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
@@ -197,6 +198,21 @@ namespace QA40xPlot.ViewModels
 			set => SetProperty(ref _CurrentPaletteRect, value);
 		}
 
+		private bool _EnableStop = false;         // type of alert
+		[JsonIgnore]
+		public bool EnableStop
+		{
+			get { return _EnableStop; }
+			set { SetProperty(ref _EnableStop, value); }
+		}
+
+		private bool _IsStopping = false;         // type of alert
+		[JsonIgnore]
+		public bool IsStopping
+		{
+			get { return _IsStopping; }
+			set { SetProperty(ref _IsStopping, value); }
+		}
 		private bool _IsRunning = false;         // type of alert
 		[JsonIgnore]
 		public bool IsRunning
@@ -863,6 +879,23 @@ namespace QA40xPlot.ViewModels
 
 		public MainViewModel()
 		{
+			PropertyChanged += CheckPropertyChanged;
+		}
+
+		private void CheckPropertyChanged(object? sender, PropertyChangedEventArgs e)
+		{
+			switch (e.PropertyName)
+			{
+				case "IsRunning":
+				case "IsStopping":
+					EnableStop = IsRunning && !IsStopping;
+					break;
+			}
+		}
+
+			~MainViewModel()
+		{
+			PropertyChanged -= CheckPropertyChanged;
 		}
 	}
 }

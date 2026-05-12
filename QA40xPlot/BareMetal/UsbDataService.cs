@@ -91,6 +91,7 @@ namespace QA40xPlot.BareMetal
 		// user tells us to stop running
 		public async Task StopRunning()
 		{
+			ViewSettings.Singleton.MainVm.IsStopping = true;
 			if (IsStarted.IsSet && !_IsPausing)
 			{
 				var rqb = new ReceiveJob(BlankDoc);
@@ -99,6 +100,7 @@ namespace QA40xPlot.BareMetal
 			SoundObj?.Stop();   // turn off external generator now
 			SoundObj = null;
 			await Pause();
+			ViewSettings.Singleton.MainVm.IsStopping = false;
 		}
 
 		public ReceiveJob? GetLogResult(int idx)

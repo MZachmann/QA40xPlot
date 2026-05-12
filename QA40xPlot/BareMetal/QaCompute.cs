@@ -115,7 +115,7 @@ namespace QA40xPlot.BareMetal
 			ffs = lrs.Right;
 			var thdRight = ComputeSnrRatio(windowing, ffs, lrs.Df, fundFreq, minFreq, maxFreq, weighting, false);
 			thdRight = QaLibrary.ConvertVoltage(thdRight, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
-
+			UsbSubs.DebugLine($"snrdb={thdLeft},{thdRight}");
 			return new(thdLeft, thdRight);
 		}
 

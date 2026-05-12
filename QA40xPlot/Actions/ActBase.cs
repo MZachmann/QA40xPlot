@@ -426,8 +426,8 @@ namespace QA40xPlot.Actions
 
 		protected async Task<LeftRightFrequencySeries?> MeasureNoiseFreq(BaseViewModel bvm, uint averages, CancellationToken ct, bool setRange = false)
 		{
-			bvm.GeneratorVoltage = "off"; // no generator voltage during noise measurement
 			var range = 0;
+			double freq = 15000;
 			if (setRange)
 				range = QaComm.GetInputRange();
 			// ********************************************************************
@@ -440,10 +440,27 @@ namespace QA40xPlot.Actions
 				await QaComm.SetInputRange(0); // and a small range for better noise...
 			LeftRightSeries lrfs = new();
 			FrequencyHistory.Clear();
+			// use a 1 microvolt sinewave to avoid having the test device
+			// auto-shutdown during the noise analysis
+			freq = QaLibrary.GetNearestBinFrequency(freq, bvm.SampleRateVal, bvm.FftSizeVal);
+			var vw = new GenWaveform()
+			{
+				Frequency = freq,
+				Voltage = 1e-6,
+				Enabled = true,
+				Name = "Sine",
+				Channels = WaveChannels.Both
+			};
+			var waveSample = new GenWaveSample()
+			{
+				SampleRate = bvm.SampleRateVal,
+				SampleSize = bvm.FftSizeVal
+			};
+			var wave = QaMath.CalculateWaveform([vw], waveSample);
 			for (int ik = 0; ik < (averages - 1); ik++)
 			{
 				await showMessage($"Noise test {ik}.", 40);
-				lrfs = await QaComm.DoAcquisitions(1, ct, true, true);
+				lrfs = await QaComm.DoAcquireUser(1, ct, wave, wave, true, true);
 				if (lrfs != null && lrfs.FreqRslt != null && lrfs.FreqRslt.Left.Length > 0)
 					FrequencyHistory.Add(lrfs.FreqRslt);
 			}
@@ -451,9 +468,23 @@ namespace QA40xPlot.Actions
 			{
 				if(averages > 1)
 					await showMessage($"Noise test {averages}.", 40);
-				lrfs = await QaComm.DoAcquisitions(1, ct, true, false);
+				lrfs = await QaComm.DoAcquireUser(1, ct, wave, wave, true, false);
 				if (lrfs != null && lrfs.FreqRslt != null && lrfs.FreqRslt.Left.Length > 0)
 					lrfs.FreqRslt = CalculateAverages(lrfs.FreqRslt, averages);
+				// now remove the 10k budgie
+				if (lrfs != null && lrfs.FreqRslt != null && lrfs.FreqRslt.Left.Length > 0)
+				{
+					var bin10k = QaLibrary.GetBinOfFrequency(freq, lrfs.FreqRslt.Df);
+					// zero out +-5 bins around 10k to remove the bump
+					for (int i=-5; i<=5; i++)
+					{
+						if (bin10k >= -i && bin10k < (lrfs.FreqRslt.Left.Length - i))
+						{
+							lrfs.FreqRslt.Left[bin10k+i] = Math.Min(lrfs.FreqRslt.Left[bin10k+i], 1e-9);
+							lrfs.FreqRslt.Right[bin10k+i] = Math.Min(lrfs.FreqRslt.Right[bin10k+i], 1e-9);
+						}
+					}
+				}
 			}
 
 			if (setRange)

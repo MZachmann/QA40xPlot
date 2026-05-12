@@ -2,6 +2,8 @@
 using QA40xPlot.Libraries;
 using QA40xPlot.QA430;
 using QA40xPlot.ViewModels;
+using QA40xPlot.Views.Subs;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -83,6 +85,19 @@ namespace QA40xPlot
 
 		public MainWindow()
 		{
+#pragma warning disable VSTHRD101 // Avoid unsupported async delegates
+			this.Closing += async (s, e) => 
+			{
+				try
+				{
+					await MainWindow_Closing(s, e);
+				}
+				catch (Exception ex)
+				{
+					UsbSubs.DebugLine("Error during closing: " + ex.Message);
+				}
+			};
+#pragma warning restore VSTHRD101 // Avoid unsupported async delegates
 			string fload = " - factory default configuration";
 			var fdocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 			// look for a default config file before we paint the windows for theme setting...
@@ -108,6 +123,59 @@ namespace QA40xPlot
 			this.ContentRendered += DoContentRendered;
 			// set the console to write to file
 			SetConsoleOut();
+		}
+
+		private async Task MainWindow_Closing(object? sender, CancelEventArgs e)
+		{
+			Window? doClosing = null;
+			try
+			{
+				if (ViewSettings.Singleton.MainVm.HasQA430)
+					QA430Model.EndQA430Op();
+
+				doClosing = new WhileClosing();
+				doClosing.Show();
+				await DoClosing();
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
+			}
+			try
+			{
+				if (!ViewSettings.IsUseREST && QaLowUsb.IsDeviceConnected() == true)
+				{
+					// now close down
+					await QaComm.Close(true);
+				}
+				var x = doClosing;
+				doClosing = null;
+				x?.Close();
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
+			}
+			doClosing?.Close();
+		}
+
+		protected override void OnClosing(CancelEventArgs e)
+		{
+			// do my stuff before closing
+			if (ViewSettings.IsSaveOnExit)
+			{
+				try
+				{
+					// look for a default config file
+					string fpath = Util.GetDefaultConfigPath();
+					ViewSettings.Singleton.MainVm?.SaveToSettings(fpath, false);
+				}
+				catch (Exception ex)
+				{
+					MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
+				}
+			}
+			base.OnClosing(e);
 		}
 
 		public uint TestGetDpi()
@@ -240,59 +308,6 @@ namespace QA40xPlot
 			{
 				Debug.WriteLine(ex.Message);
 			}
-		}
-		
-		protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
-		{
-			try
-			{
-				if (ViewSettings.Singleton.MainVm.HasQA430)
-					QA430Model.EndQA430Op();
-
-				Task tsk = Task.Run(()=>
-				{
-					return DoClosing();
-				});
-
-				int t1 = 0;
-				while (!tsk.IsCanceled && !tsk.IsCompleted && t1 < 60)
-				{
-					Thread.Sleep(100);
-					t1++;
-				}
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
-			}
-			try
-			{
-				if (!ViewSettings.IsUseREST && QaLowUsb.IsDeviceConnected() == true)
-				{
-					// now close down
-					var tsk = QaComm.Close(true);
-					tsk.AsTask().Wait(100);
-				}
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
-			}
-			// do my stuff before closing
-			if (ViewSettings.IsSaveOnExit)
-			{
-				try
-				{
-					// look for a default config file
-					string fpath = Util.GetDefaultConfigPath();
-					ViewSettings.Singleton.MainVm?.SaveToSettings(fpath, false);
-				}
-				catch (Exception ex)
-				{
-					MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
-				}
-			}
-			base.OnClosing(e);
 		}
 
 		// in dark mode the tabs are much too wide so let them get smaller this way
