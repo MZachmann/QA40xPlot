@@ -85,26 +85,13 @@ namespace QA40xPlot
 
 		public MainWindow()
 		{
-#pragma warning disable VSTHRD101 // Avoid unsupported async delegates
-			this.Closing += async (s, e) => 
-			{
-				try
-				{
-					await MainWindow_Closing(s, e);
-				}
-				catch (Exception ex)
-				{
-					UsbSubs.DebugLine("Error during closing: " + ex.Message);
-				}
-			};
-#pragma warning restore VSTHRD101 // Avoid unsupported async delegates
 			string fload = " - factory default configuration";
 			var fdocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 			// look for a default config file before we paint the windows for theme setting...
 			string fpath = Util.GetDefaultConfigPath();
 			if (File.Exists(fpath))
 			{
-				var err = ViewSettings.Singleton.MainVm.LoadFromSettings(fpath);
+				var err = ViewSettings.Singleton?.MainVm.LoadFromSettings(fpath);
 				if (err == 1)
 				{
 					MessageBox.Show("Please create a new default.", "Load Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -116,26 +103,26 @@ namespace QA40xPlot
 			}
 
 			InitializeComponent();
-			var vm = ViewSettings.Singleton.MainVm;
-			vm.ScreenDpi = TestGetDpi();
-			this.DataContext = vm;
-			vm.ProgressMessage = "Welcome to QA40xPlot v" + GetVersionInfo() + fload;
+			var vm = ViewSettings.Singleton?.MainVm;
+			if (vm != null) 
+			{
+				vm.ScreenDpi = TestGetDpi();
+				this.DataContext = vm;
+				vm.ProgressMessage = "Welcome to QA40xPlot v" + GetVersionInfo() + fload;
+			}
 			this.ContentRendered += DoContentRendered;
 			// set the console to write to file
 			SetConsoleOut();
 		}
 
-		private async Task MainWindow_Closing(object? sender, CancelEventArgs e)
+		private void MainWindow_Closing(CancelEventArgs e)
 		{
-			Window? doClosing = null;
 			try
 			{
 				if (ViewSettings.Singleton.MainVm.HasQA430)
 					QA430Model.EndQA430Op();
 
-				doClosing = new WhileClosing();
-				doClosing.Show();
-				await DoClosing();
+				DoClosing();
 			}
 			catch (Exception ex)
 			{
@@ -146,21 +133,31 @@ namespace QA40xPlot
 				if (!ViewSettings.IsUseREST && QaLowUsb.IsDeviceConnected() == true)
 				{
 					// now close down
-					await QaComm.Close(true);
+					QaComm.Close(true).AsTask().Wait();
 				}
-				var x = doClosing;
-				doClosing = null;
-				x?.Close();
 			}
 			catch (Exception ex)
 			{
 				MessageBox.Show(ex.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Information);
 			}
-			doClosing?.Close();
 		}
 
 		protected override void OnClosing(CancelEventArgs e)
 		{
+			if (ViewSettings.Singleton?.SettingsVm.AllowRepeating == true)
+			{
+				if (ViewSettings.Singleton.MainVm.IsRunning)
+				{
+					MessageBox.Show("A run is in progress. Please stop the run before closing.", "Run in Progress", MessageBoxButton.OK, MessageBoxImage.Warning);
+					e.Cancel = true; // Cancel the closing event
+					return;
+				}
+				else
+				{                       // if not running then do the closing
+					MainWindow_Closing(e);
+				}
+			}
+
 			// do my stuff before closing
 			if (ViewSettings.IsSaveOnExit)
 			{
@@ -168,7 +165,7 @@ namespace QA40xPlot
 				{
 					// look for a default config file
 					string fpath = Util.GetDefaultConfigPath();
-					ViewSettings.Singleton.MainVm?.SaveToSettings(fpath, false);
+					ViewSettings.Singleton?.MainVm?.SaveToSettings(fpath, false);
 				}
 				catch (Exception ex)
 				{
@@ -286,13 +283,13 @@ namespace QA40xPlot
 
 		}
 
-		private async Task DoClosing()
+		private void DoClosing()
 		{
 			try
 			{
-				MainViewModel.DoStopRun(null);
-				await Task.Delay(100);	// let dostoprun actually run
-				await UsbDataService.Singleton.StopRunning();
+				//MainViewModel.DoStopRun(null);
+				//await Task.Delay(100);	// let dostoprun actually run
+				//await UsbDataService.Singleton.StopRunning();
 				// set max attenuation for safety, turns on ATTEN led
 				if (ViewSettings.Singleton.SettingsVm.RelayUsage != "Never")
 				{
@@ -301,7 +298,7 @@ namespace QA40xPlot
 						var qadev = QaComm.CheckDeviceConnected();  // this will try to reopen the usb
 						var iscon = qadev.AsTask().Wait(50);
 					}
-					await QaComm.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION);
+					QaComm.SetInputRange(QaLibrary.DEVICE_MAX_ATTENUATION).AsTask().Wait();
 				}
 			}
 			catch (Exception ex)

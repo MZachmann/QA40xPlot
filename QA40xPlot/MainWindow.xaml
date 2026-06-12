@@ -81,6 +81,7 @@
                 <Menu Background="Transparent" VerticalAlignment="Center" >
                     <MenuItem Header="_File"  >
                         <MenuItem Header="_Open..." Command="{Binding DocOpen}"  />
+                        <MenuItem Header="_Get..." Command="{Binding DocGet}"  />
                         <MenuItem Header="_Save..." Command="{Binding DocSave}"  />
                         <Separator />
                         <MenuItem Header="_Load Configuration..." Command="{Binding DoLoadCfg}" />

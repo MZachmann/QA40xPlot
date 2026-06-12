@@ -32,6 +32,8 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public RelayCommand DocOpen { get => new RelayCommand(DoDocOpen); }
 		[JsonIgnore]
+		public RelayCommand DocGet { get => new RelayCommand(DoDocGet); }
+		[JsonIgnore]
 		public RelayCommand DocSave { get => new RelayCommand(DoDocSave); }
 		[JsonIgnore]
 		public RelayCommand<object> SetPlotPage { get => new RelayCommand<object>(DoSetPlotPage); }
@@ -637,6 +639,11 @@ namespace QA40xPlot.ViewModels
 		private void DoDocOpen()
 		{
 			DocUtil.DoOpenDocument();
+		}
+
+		private void DoDocGet()
+		{
+			DocUtil.DoGetDocument();
 		}
 
 		private void DoDocSave()

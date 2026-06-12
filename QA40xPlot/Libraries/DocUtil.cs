@@ -23,6 +23,30 @@ namespace QA40xPlot.Libraries
 		public static bool DoLoadConfig = true;
 		public static bool DoLoadTests = true;
 
+		public static void DoGetDocument()
+		{
+			OpenFileDialog openFileDialog = new OpenFileDialog
+			{
+				FileName = string.Empty, // Default file name
+				InitialDirectory = ViewSettings.Singleton.SettingsVm.DataFolder,
+				DefaultExt = ".plx", // Default file extension
+				Filter = "Document Files|*.plx.zip|All files|*.*" // Filter files by extension
+			};
+
+			// Show save file dialog box
+			bool? result = openFileDialog.ShowDialog();
+
+			// Process save file dialog box results
+			if (result == true)
+			{
+				// Load document
+				string filename = openFileDialog.FileName;
+				var filetext = Util.LoadFileText(filename);
+				DoLoadTests = true;
+				GetDocument(filetext, filename);
+			}
+		}
+
 		public static void DoOpenDocument()
 		{
 			OpenFileDialog openFileDialog = new OpenFileDialog
@@ -51,6 +75,46 @@ namespace QA40xPlot.Libraries
 					DoLoadConfig = ldq.IsLoadConfig;
 					OpenDocument(filetext, filename, DoLoadTests, DoLoadConfig);
 				}
+			}
+		}
+
+		public static void GetDocument(string docText, string fileName)
+		{
+			var actList = ActionList;
+			Dictionary<string, string>? docDict = null;
+			try
+			{
+				var u = JsonConvert.DeserializeObject<Dictionary<string, string>>(docText);
+				if (u != null)
+				{
+					docDict = u;
+				}
+			}
+			catch { }
+
+			if (docDict == null || docDict.Count == 0)
+			{
+				MessageBox.Show("The document is empty or invalid.", "A load error occurred.", MessageBoxButton.OK, MessageBoxImage.Information);
+				return;
+			}
+			try
+			{
+				var ky = docDict.Keys.Select(x => x.ToString()).ToArray();
+				var kys = string.Join(",", ky);
+				Debug.WriteLine($"Dict keys: {kys}");
+				docDict["FileName"] = fileName;
+				if (docDict.ContainsKey("Configuration"))
+				{
+					docDict.Remove("Configuration");
+				}
+				foreach (var act in actList)
+				{
+					act.LoadFromDictionary(docDict, false);
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, "A save error occurred.", MessageBoxButton.OK, MessageBoxImage.Information);
 			}
 		}
 

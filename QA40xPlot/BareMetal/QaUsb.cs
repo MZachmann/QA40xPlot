@@ -443,8 +443,7 @@ namespace QA40xPlot.BareMetal
 			}
 			// now do the real thing.
 			// Switch to SubStreamingAsync to use prior version code
-			//if( UseIdleCode && ViewSettings.Singleton.SettingsVm.AllowRepeating )
-			if (UseIdleCode)
+			if( UseIdleCode && ViewSettings.Singleton.SettingsVm.AllowRepeating )
 			{
 				var rslt = await UsbDataService.UseDataService(null, false, leftOut, rightOut, ct, runRepeat);
 				return rslt ?? new();
