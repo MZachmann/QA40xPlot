@@ -16,12 +16,10 @@ namespace QA40xPlot.Views
 		public ImdChannelInfo()
 		{
 			InitializeComponent();
-			SetDataContext(true);
 		}
 
-		public void SetDataContext(bool Leftright)
+		public void SetDataContext(ImdChannelViewModel vm)
 		{
-			var vm = Leftright ? ViewSettings.Singleton.ImdChannelLeft : ViewSettings.Singleton.ImdChannelRight;
 			this.DataContext = vm;
 		}
 

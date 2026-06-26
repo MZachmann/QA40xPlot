@@ -31,6 +31,8 @@ namespace QA40xPlot.ViewModels
 		private PlotControl actPlot { get; set; }
 		private ImdChannelInfo actInfoLeft { get; set; }
 		private ImdChannelInfo actInfoRight { get; set; }
+		private ImdChannelInfo actInfo2Left { get; set; }
+		private ImdChannelInfo actInfo2Right { get; set; }
 		[JsonIgnore]
 		public override RelayCommand DoRun { get => new RelayCommand(RunIt); }
 		[JsonIgnore]
@@ -207,17 +209,21 @@ namespace QA40xPlot.ViewModels
 			}
 		}
 
-		public void SetAction(PlotControl plot, ImdChannelInfo info, ImdChannelInfo info2, TabAbout tinfo)
+		public void SetAction(PlotControl plot, ImdChannelInfo info, ImdChannelInfo info2, ImdChannelInfo info3, ImdChannelInfo info4, TabAbout tinfo)
 		{
 			LinkPlots(plot);
 			actImd = new ActImd(this);
 			DocUtil.ActionList.Add(actImd);
 			actInfoLeft = info;
 			actInfoRight = info2;
+			actInfo2Left = info3;
+			actInfo2Right = info4;
 			actAbout = tinfo;
 			actPlot = plot;
-			info.SetDataContext(true);
-			info2.SetDataContext(false);
+			info.SetDataContext(ViewSettings.Singleton.ImdChannelLeft);
+			info2.SetDataContext(ViewSettings.Singleton.ImdChannelRight);
+			info3.SetDataContext(ViewSettings.Singleton.ImdChannel2Left);
+			info4.SetDataContext(ViewSettings.Singleton.ImdChannel2Right);
 			MyGuiModel.LinkAbout(MyAction.PageData.Definition);
 			ShowInfos();
 		}
@@ -306,17 +312,46 @@ namespace QA40xPlot.ViewModels
 			if (ViewSettings.Singleton?.ImdVm == null)
 				return;
 			uint frames = 0;
+			List<uint> chanId = new();
 			if (ShowLeft)
+			{
 				frames++;
+				chanId.Add(0);
+			}
 			if (ShowRight)
+			{
+				chanId.Add(1);
 				frames++;
-			var olist = MyGuiModel.OtherSetList;
-			var seen = (olist == null) ? 0 : olist.Count(x => x.IsOnR) + olist.Count(x => x.IsOnL);
-			frames += (uint)seen;
+			}
+			uint ictr = 1;
+			foreach (var otl in MyGuiModel.OtherSetList)
+			{
+				if (otl.IsOnL)
+				{
+					chanId.Add(2 * ictr);
+					frames++;
+				}
+				if (frames > 3)
+					break;
+				if (otl.IsOnR)
+				{
+					chanId.Add(2 * ictr + 1);
+					frames++;
+				}
+				ictr++;
+				if (frames > 3)
+					break;
+			}
+
 			if (actInfoLeft != null)
 				actInfoLeft.Visibility = (ShowSummary && frames > 0) ? Visibility.Visible : Visibility.Hidden;
 			if (actInfoRight != null)
 				actInfoRight.Visibility = (ShowSummary && frames > 1) ? Visibility.Visible : Visibility.Hidden;
+			if (actInfo2Left != null)
+				actInfo2Left.Visibility = (ShowSummary && frames > 2) ? Visibility.Visible : Visibility.Hidden;
+			if (actInfo2Right != null)
+				actInfo2Right.Visibility = (ShowSummary && frames > 3) ? Visibility.Visible : Visibility.Hidden;
+
 			if (actAbout != null)
 			{
 				actAbout.Visibility = ShowTabInfo ? Visibility.Visible : Visibility.Hidden;
@@ -505,6 +540,8 @@ namespace QA40xPlot.ViewModels
 			this.actPlot = default!;
 			this.actInfoLeft = default!;
 			this.actInfoRight = default!;
+			this.actInfo2Left = default!;
+			this.actInfo2Right = default!;
 			this.actImd = default!;
 
 			LeftWidth = 80;  // reset the width of the left column

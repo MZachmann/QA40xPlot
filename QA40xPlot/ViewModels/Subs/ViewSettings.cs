@@ -46,6 +46,10 @@ namespace QA40xPlot.ViewModels
 		[JsonIgnore]
 		public ImdChannelViewModel ImdChannelRight { get; private set; }
 		[JsonIgnore]
+		public ImdChannelViewModel ImdChannel2Left { get; private set; }
+		[JsonIgnore]
+		public ImdChannelViewModel ImdChannel2Right { get; private set; }
+		[JsonIgnore]
 		public DataDescript TabDefs { get; set; }
 
 		[JsonIgnore]
@@ -140,6 +144,9 @@ namespace QA40xPlot.ViewModels
 			ScopeInfoRight = new ScopeInfoViewModel();
 			ImdChannelLeft = new ImdChannelViewModel();
 			ImdChannelRight = new ImdChannelViewModel();
+			ImdChannel2Left = new ImdChannelViewModel();
+			ImdChannel2Right = new ImdChannelViewModel();
+
 			SpectrumVm = new SpectrumViewModel();
 			ImdVm = new ImdViewModel();
 			FreqRespVm = new FreqRespViewModel();

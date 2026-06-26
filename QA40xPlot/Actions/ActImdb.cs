@@ -113,27 +113,26 @@ namespace QA40xPlot.Actions
 		/// </summary>
 		/// <param name="page"></param>
 		/// <returns></returns>
-		public override async Task FinishLoad(DataTab page, string fileName, bool isMain)
+		public override async Task FinishLoad(DataTab page, string fileName, bool doLoad)
 		{
-			ClipName(page.Definition, fileName);
-
 			// now recalculate everything
 			if (page.FreqRslt == null)
 			{
 				BuildFrequencies(page);
 			}
-			await PostProcess(page, CanToken.Token);
+			ClipName(page.Definition, fileName);
 
+			await PostProcess(page, CanToken.Token);
 			var guiVm = (MyViewClass)MyGuiModel;
-			if (isMain)
+			if (doLoad)
 			{
 				// we can't overwrite the viewmodel since it links to the display proper
 				// update both the one we're using to sweep (PageData) and the dynamic one that links to the gui
 				guiVm.LoadViewFrom<MyViewClass>((MyViewClass)page.ViewModel);
 				PageData = page;    // set the current page to the loaded one
-			// relink to the new definition
-			guiVm.LinkAbout(page.Definition);
-			guiVm.HasSave = true;
+				// relink to the new definition
+				guiVm.LinkAbout(page.Definition);
+				guiVm.HasSave = true;
 			}
 			else
 			{
@@ -800,6 +799,8 @@ namespace QA40xPlot.Actions
 			ReformatChannels(); // ensure the channels are formatted correctly
 			ViewSettings.Singleton.ImdChannelLeft.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd;
 			ViewSettings.Singleton.ImdChannelRight.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd;
+			ViewSettings.Singleton.ImdChannel2Left.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd;
+			ViewSettings.Singleton.ImdChannel2Right.ThemeBkgd = ViewSettings.Singleton.MainVm.ThemeBkgd;
 			guiVm.UpdateMouseCursor(guiVm.LookX, guiVm.LookY);
 
 			ShowPageInfo(PageData);
@@ -843,22 +844,23 @@ namespace QA40xPlot.Actions
 		// so it matches the plot line color
 		private void SetVmColor(ImdChannelViewModel vm, int index)
 		{
-			var srcTab = OtherTabs.Find(item => item.GetProperty("Left") == vm);
-			string clr = "Transparent";
+			var srcTab = OtherTabs.Find(item => ReferenceEquals(item.GetProperty("Left"), vm));
+			var clr = srcTab?.Definition.LeftColor;
+			bool isLeft = true;
+			if (srcTab == null)
+			{
+				srcTab = OtherTabs.Find(item => ReferenceEquals(item.GetProperty("Right"), vm));
+				clr = srcTab?.Definition.RightColor;
+				isLeft = false;
+			}
+			if (srcTab == null)
+				return;
+			var srcIndx = (isLeft ? 2 : 3) + 2 * OtherTabs.IndexOf(srcTab);		// what index is this?
 			if (srcTab != null)
 			{
-				clr = srcTab.Definition.LeftColor;
+				var scottClr = GraphUtil.GetPaletteColor(clr, srcIndx);
+				vm.BorderColor = new System.Windows.Media.SolidColorBrush(PlotUtil.ScottToMedia(scottClr));
 			}
-			else
-			{
-				srcTab = OtherTabs.Find(item => item.GetProperty("Right") == vm);
-				if (srcTab != null)
-				{
-					clr = srcTab.Definition.RightColor;
-				}
-			}
-			var scottClr = GraphUtil.GetPaletteColor(clr, index);
-			vm.BorderColor = new System.Windows.Media.SolidColorBrush(PlotUtil.ScottToMedia(scottClr));
 		}
 
 		private void ShowPageInfo(DataTab page)
@@ -871,10 +873,6 @@ namespace QA40xPlot.Actions
 				if (mdl != null)
 				{
 					channels.Add(mdl);
-					var clr = GraphUtil.PlotPalette.GetColorName(0);
-					var brs = new System.Windows.Media.BrushConverter().ConvertFromString(clr);
-					if (brs != null)
-						mdl.BorderColor = (Brush)brs;
 				}
 			}
 			if (specVm.ShowRight)
@@ -883,16 +881,12 @@ namespace QA40xPlot.Actions
 				if (mdl != null)
 				{
 					channels.Add(mdl);
-					var clr = GraphUtil.PlotPalette.GetColorName(1);
-					var brs = new System.Windows.Media.BrushConverter().ConvertFromString(clr);
-					if (brs != null)
-						mdl.BorderColor = (Brush)brs;
 				}
 			}
-			if (channels.Count < 2 && OtherTabs.Count > 0)
+			if (OtherTabs.Count > 0)
 			{
 				var seen = DataUtil.FindShownInfo<MyViewClass, ImdChannelViewModel>(OtherTabs);
-				if (seen.Count > 0)
+				if (channels.Count < 4 && seen.Count > 0)
 				{
 					var mdl = seen[0];
 					if (mdl != null)
@@ -901,7 +895,7 @@ namespace QA40xPlot.Actions
 						channels.Add(mdl);
 					}
 				}
-				if (channels.Count < 2 && seen.Count > 1)
+				if (channels.Count < 4 && seen.Count > 1)
 				{
 					var mdl = seen[1];
 					if (mdl != null)
@@ -910,8 +904,25 @@ namespace QA40xPlot.Actions
 						channels.Add(mdl);
 					}
 				}
+				if (channels.Count < 4 && seen.Count > 2)
+				{
+					var mdl = seen[2];
+					if (mdl != null)
+					{
+						SetVmColor(mdl, channels.Count);
+						channels.Add(mdl);
+					}
+				}
+				if (channels.Count < 4 && seen.Count > 3)
+				{
+					var mdl = seen[3];
+					if (mdl != null)
+					{
+						SetVmColor(mdl, channels.Count);
+						channels.Add(mdl);
+					}
+				}
 			}
-
 
 			if (channels.Count > 0)
 			{
@@ -920,6 +931,14 @@ namespace QA40xPlot.Actions
 			if (channels.Count > 1)
 			{
 				channels[1].CopyPropertiesTo(ViewSettings.Singleton.ImdChannelRight);
+			}
+			if (channels.Count > 2)
+			{
+				channels[2].CopyPropertiesTo(ViewSettings.Singleton.ImdChannel2Left);
+			}
+			if (channels.Count > 3)
+			{
+				channels[3].CopyPropertiesTo(ViewSettings.Singleton.ImdChannel2Right);
 			}
 		}
 

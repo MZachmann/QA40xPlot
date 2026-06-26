@@ -3,6 +3,8 @@
 This changelog shows the changes made for each version
 Date format is US mm/dd/yy
 --------------------------------------------
+v 1.4.6 6/26/26
+- update the data summary boxes in intermodulation testing to 4 and color right
 v 1.4.5 6/12/26
 - add Get option for entire file to produce one get per test based on the load
 - re-enable idle option
