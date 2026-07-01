@@ -566,6 +566,9 @@ namespace QA40xPlot.Actions
 					var genScaleVolt = genVolt / Math.Abs(myConfig.Gain);   // input voltage for request
 					page.Definition.GeneratorVoltage = genScaleVolt;   // set the generator voltage in the definition
 					guiVm.GeneratorVoltage = vm.GetGenVoltLine(genScaleVolt);
+					var useExternal = ViewSettings.Singleton.SettingsVm.UseExternalEcho && SoundUtil.ExternalPresent();
+					double lastthd = 0;
+					int iretry = 0;
 					for (int f = 0; f < stepBinFrequencies.Length; f++)
 					{
 						var freqy = stepBinFrequencies[f];
@@ -591,8 +594,12 @@ namespace QA40xPlot.Actions
 							lrs = await QaComm.DoAcquisitions(1, CanToken.Token, true, false);
 							if (lrs == null || lrs.TimeRslt == null || lrs.FreqRslt == null || CanToken.IsCancellationRequested)
 								break;
-							lrs.FreqRslt = CalculateAverages(lrs.FreqRslt, vm.Averages);
+							if(useExternal)
+								lrs.FreqRslt = CalculateBest(lrs.FreqRslt, vm.Averages, freqy);
+							else
+								lrs.FreqRslt = CalculateAverages(lrs.FreqRslt, vm.Averages);
 						}
+
 						if (CanToken.IsCancellationRequested || lrs == null)
 							break;
 
@@ -611,6 +618,23 @@ namespace QA40xPlot.Actions
 						// this will keep stacking up stuff while frequency array shows min...max,min...max,...
 						var flr = GetNoiseFloor(page);
 						var work = CalculateColumn(page.FreqRslt, guiVm, flr, freqy, CanToken.Token, myConfig, noiseRslt); // do the math for the columns
+						if(useExternal && f != 0 && work.Item1?.THDN != null)
+						{
+							var lthdn = QaLibrary.ConvertVoltage(work.Item1.THDN, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+							var diff = Math.Abs(lastthd - lthdn);
+							Debug.WriteLine($"Diff thdn == {diff}");
+							if (iretry < 2 && diff > 3 )
+							{
+								f--;    // retry
+								Debug.WriteLine($"THDN out of range, retrying frequency {freqy}Hz");
+								await UsbDataService.Singleton.StopRunning();
+								await Task.Delay(1000);
+								iretry++;
+								continue;
+							}
+							iretry = 0;
+							lastthd = lthdn;  // left column thdn
+						}
 						if (work.Item1 != null && work.Item2 != null)
 						{
 							work.Item1.GenVolts = genVolt;

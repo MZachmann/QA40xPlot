@@ -6,6 +6,7 @@ using QA40xPlot.QA430;
 using QA40xPlot.ViewModels;
 using ScottPlot;
 using ScottPlot.Plottables;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Windows;
 using static QA40xPlot.ViewModels.BaseViewModel;
@@ -518,6 +519,9 @@ namespace QA40xPlot.Actions
 					// ********************************************************************
 					// Step through the list of voltages
 					// ********************************************************************
+					var useExternal = ViewSettings.Singleton.SettingsVm.UseExternalEcho && SoundUtil.ExternalPresent();
+					double lastthd = 0;
+					int iretry = 0;
 					for (int i = 0; i < stepInVoltages.Length; i++)
 					{
 						// attenuate for both channels
@@ -589,7 +593,10 @@ namespace QA40xPlot.Actions
 								lrfs = await QaComm.DoAcquireUser(1, CanToken.Token, wave, wave, true, false);
 								if (lrfs == null || lrfs.TimeRslt == null || lrfs.FreqRslt == null)
 									break;
-								lrfs.FreqRslt = CalculateAverages(lrfs.FreqRslt, guiVm.Averages);
+								if (useExternal)
+									lrfs.FreqRslt = CalculateBest(lrfs.FreqRslt, vm.Averages, myConfig.GenFrequency);
+								else
+									lrfs.FreqRslt = CalculateAverages(lrfs.FreqRslt, vm.Averages);
 							}
 						}
 						catch (HttpRequestException ex)
@@ -630,6 +637,23 @@ namespace QA40xPlot.Actions
 						var flr = GetNoiseFloor(page);
 						var work = CalculateColumn(page.FreqRslt, vm, flr, myConfig.GenFrequency,
 									CanToken.Token, myConfig, noiseRslt); // do the math for the columns
+						if (useExternal && i != 0 && work.Item1?.THDN != null)
+						{
+							var lthdn = QaLibrary.ConvertVoltage(work.Item1.THDN, E_VoltageUnit.Volt, E_VoltageUnit.dBV);
+							var diff = Math.Abs(lastthd - lthdn);
+							Debug.WriteLine($"Diff thdn == {diff}");
+							if (iretry < 2 && diff > 3)
+							{
+								Debug.WriteLine($"THDN out of range, retrying amplitude {stepOutLVoltages[i]}Hz");
+								i--;    // retry
+								await UsbDataService.Singleton.StopRunning();
+								await Task.Delay(1000);
+								iretry++;
+								continue;
+							}
+							iretry = 0;
+							lastthd = lthdn;  // left column thdn
+						}
 						if (work.Item1 != null && work.Item2 != null)
 						{
 							work.Item1.GenVolts = stepInVoltages[i];

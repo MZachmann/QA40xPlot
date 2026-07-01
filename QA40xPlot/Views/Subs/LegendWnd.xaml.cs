@@ -26,7 +26,7 @@ namespace QA40xPlot.Views
 		~LegendWnd()
 		{
 			var vm = this.DataContext as BaseViewModel;
-			if (vm != null && vm.LegendInfo != null)
+			if (vm != null)
 			{
 				vm.LegendInfo.CollectionChanged -= Vm_PropertyChanged;
 			}
@@ -35,24 +35,34 @@ namespace QA40xPlot.Views
 		public void SetDataContext(BaseViewModel vm)
 		{
 			this.DataContext = vm;
-			vm.LegendInfo.CollectionChanged += Vm_PropertyChanged;
+			if (vm != null)
+			{
+				vm.LegendInfo.CollectionChanged += Vm_PropertyChanged;
+			}
 		}
 
 		bool checkReset = false;
 		// trap when we add data to the legend list
 		private void Vm_PropertyChanged(object? sender, NotifyCollectionChangedEventArgs e)
 		{
-			if (sender != null)
+			try
 			{
-				if (e.Action == NotifyCollectionChangedAction.Add)
+				if (sender != null)
 				{
-					PopulateLegends();
-					checkReset = true;
+					if (e.Action == NotifyCollectionChangedAction.Add)
+					{
+						PopulateLegends();
+						checkReset = true;
+					}
+					else if (checkReset && e.Action == NotifyCollectionChangedAction.Reset)
+					{
+						PopulateLegends();
+					}
 				}
-				else if (checkReset && e.Action == NotifyCollectionChangedAction.Reset)
-				{
-					PopulateLegends();
-				}
+			}
+			catch(Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"LegendWnd Vm_PropertyChanged exception: {ex.Message}");
 			}
 		}
 

@@ -302,6 +302,8 @@ namespace QA40xPlot.Actions
 			_NextSnapshot++;
 		}
 
+
+
 		protected LeftRightFrequencySeries CalculateAverages(LeftRightFrequencySeries fseries, uint averages)
 		{
 			LeftRightFrequencySeries fresult = new();
@@ -340,6 +342,48 @@ namespace QA40xPlot.Actions
 				var cnt = FrequencyHistory.Count;
 				fresult.Left = fresult.Left.Select(x => Math.Sqrt(x / cnt)).ToArray();
 				fresult.Right = fresult.Right.Select(x => Math.Sqrt(x / cnt)).ToArray();
+			}
+			return fresult;
+		}
+
+		protected LeftRightFrequencySeries CalculateBest(LeftRightFrequencySeries fseries, uint averages, double dFreq)
+		{
+			LeftRightFrequencySeries fresult = new();
+			if (averages <= 1 || FrequencyHistory.Count == 0)
+			{
+				fresult = fseries;
+				if (averages > 1)
+					FrequencyHistory.Add(fseries);
+			}
+			else
+			{
+				// change in averages or full???
+				while (FrequencyHistory.Count > (averages - 1))
+				{
+					FrequencyHistory.RemoveAt(0);
+				}
+				if (fseries.Df != FrequencyHistory.First().Df
+					|| fseries.Left.Length != FrequencyHistory.First().Left.Length)
+				{
+					// entirely new values
+					FrequencyHistory.Clear();
+				}
+
+				// instead of doing some moving average or first-last thing just brute add it
+				// it's not that much overhead
+				FrequencyHistory.Add(fseries);          // plus 1
+														//
+				fresult.Df = FrequencyHistory.First().Df;
+				List<double> thds = new List<double>();
+				for(int i=0; i<FrequencyHistory.Count; i++)
+				{
+					fresult.Left = FrequencyHistory[0].Left;
+					fresult.Right = FrequencyHistory[0].Right;
+					var thdN = QaCompute.GetThdnDb("Hann", FrequencyHistory[i], dFreq, 20, 20000, ViewSettings.NoiseWeight);
+					thds.Add(thdN.Left);
+				}
+				Debug.WriteLine($"Best THD: {thds.Min()} Total={string.Join(", ", thds)}");
+				fresult = FrequencyHistory[thds.IndexOf(thds.Min())];
 			}
 			return fresult;
 		}
