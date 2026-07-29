@@ -256,19 +256,6 @@ namespace QA40xPlot.BareMetal
 			Debug.Assert(_Windowing != "Invalid", "Windows not set");
 			Debug.Assert(_OutputSource != OutputSources.Invalid, "Output source not set");
 
-			LeftRightSeries lrfs = new LeftRightSeries();
-			var dpt = new double[dataLeft.Length];
-			List<AcqResult> runList = new List<AcqResult>();
-			// set the output amplitude to support the data
-			var maxOut = Math.Max(dataLeft.Max(), dataRight.Max());
-			var minOut = Math.Min(dataLeft.Min(), dataRight.Min());
-			maxOut = Math.Max(Math.Abs(maxOut), Math.Abs(minOut));  // maximum output voltage
-																	// don't bother setting output amplitude if we have no output
-			var mlevel = DetermineOutput((maxOut > 0) ? maxOut : 1e-8, _Headroom); // the setting for our voltage + 10%
-			var minRange = (int)MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.MinOutputRange, -12);
-			mlevel = Math.Max(mlevel, minRange); // noop for now but keep this line in for testing
-			await SetOutputRange(mlevel);   // set the output voltage
-
 			var dtL = dataLeft;
 			var dtR = dataRight;
 			var gengain = MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.GeneratorGain, 0);
@@ -281,6 +268,19 @@ namespace QA40xPlot.BareMetal
 				dtL = dataLeft.Select(x => x * gengain).ToArray();
 				dtR = dataRight.Select(x => x * gengain).ToArray();
 			}
+
+			LeftRightSeries lrfs = new LeftRightSeries();
+			var dpt = new double[dataLeft.Length];
+			List<AcqResult> runList = new List<AcqResult>();
+			// set the output amplitude to support the data
+			var maxOut = Math.Max(dtL.Max(), dtR.Max());
+			var minOut = Math.Min(dtL.Min(), dtR.Min());
+			maxOut = Math.Max(Math.Abs(maxOut), Math.Abs(minOut));  // maximum output voltage
+																	// don't bother setting output amplitude if we have no output
+			var mlevel = DetermineOutput((maxOut > 0) ? maxOut : 1e-8, _Headroom); // the setting for our voltage + 10%
+			var minRange = (int)MathUtil.ToDouble(ViewSettings.Singleton.SettingsVm.MinOutputRange, -12);
+			mlevel = Math.Max(mlevel, minRange); // noop for now but keep this line in for testing
+			await SetOutputRange(mlevel);   // set the output voltage
 
 			for (int rrun = 0; rrun < averages; rrun++)
 			{
